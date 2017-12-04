@@ -3,6 +3,6 @@ extern crate jni;
 
 mod jvm;
 mod viper_ast;
-mod verifier;
+pub mod verifier;
 
 pub use jvm::{build_jvm, panic_on_jvm_exception};

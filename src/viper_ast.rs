@@ -8,7 +8,7 @@ use jni::errors::Error;
 // convenience methods for interacting with Scala from Python that, e.g.,
 // convert Python lists to Scala sequences and vice versa.
 
-fn new_add_op<'a>(env: &'a JNIEnv) -> Result<JValue<'a>, Error> {
+pub fn new_add_op<'a>(env: &'a JNIEnv) -> Result<JValue<'a>, Error> {
     env.get_static_field(
         "viper/silver/ast/AddOp$",
         "MODULE$",
