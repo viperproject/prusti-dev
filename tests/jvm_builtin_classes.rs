@@ -48,10 +48,7 @@ fn test_jvm_builtin_classes() {
                 "java/util/Arrays",
                 "binarySearch",
                 "([Ljava/lang/Object;Ljava/lang/Object;)I",
-                &[
-                    Object(int_array.as_obj()),
-                    Object(integer_value.as_obj()),
-                ],
+                &[Object(int_array.as_obj()), Object(integer_value.as_obj())],
             ).ok()
                 .and_then(|x| x.i().ok())
                 .unwrap();

@@ -16,4 +16,4 @@ test:
 
 clean:
 	cargo clean
-	find rust -name '*.bk' -delete
+	find . -name '*.bk' -delete

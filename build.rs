@@ -16,7 +16,8 @@ fn find_default_java_home() -> String {
 
 #[cfg(target_os = "windows")]
 fn find_default_java_home() -> String {
-    // TODO: Find paths dynamically, especially regarding 32-bit/64-bit paths / `Program Files (x86)` / `Program Files`.
+    // TODO: Find paths dynamically, especially regarding 32-bit/64-bit paths /
+    // `Program Files (x86)` / `Program Files`.
     String::from("C:\\Program Files\\Java\\jre8")
 }
 
