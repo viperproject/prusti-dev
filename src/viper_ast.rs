@@ -12,7 +12,7 @@ pub fn new_add_op<'a>(env: &'a JNIEnv) -> Result<JValue<'a>, Error> {
     env.get_static_field(
         "viper/silver/ast/AddOp$",
         "MODULE$",
-        "Lviper/silver/ast/AddOp$",
+        "Lviper/silver/ast/AddOp$;",
     )
 }
 

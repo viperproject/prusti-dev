@@ -1,15 +1,16 @@
 extern crate viper_sys;
 extern crate jni;
 
+use std::fs;
 use jni::JNIEnv;
-use jni::objects::{JObject, JValue};
+use jni::objects::JObject;
 use viper_sys::{build_jvm, panic_on_jvm_exception};
 use viper_sys::verifier::*;
-use std::fs;
+use viper_sys::scala::*;
 
 #[test]
 fn test_jvm_builtin_classes() {
-    let jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/").unwrap().map(
+    let mut jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/").unwrap().map(
         |x| x.unwrap().path().to_str().unwrap().to_owned()
     ).collect();
 
@@ -34,12 +35,21 @@ fn test_jvm_builtin_classes() {
 
     panic_on_jvm_exception(&env);
 
-    let args = env.new_object_array(0, "java/lang/String", JObject::null()).ok()
+    let silicon_args_array = env.new_object_array(0, "java/lang/String", JObject::null()).ok()
         .map(|x| JObject::from(x))
-        .map(|x| JValue::Object(x))
         .unwrap();
 
-    parse_command_line(&env, silicon, args);
+    panic_on_jvm_exception(&env);
+
+    let scala_predef = get_predef(&env).unwrap_or_else(|e| { panic_on_jvm_exception(&env); println!("{:?}", e); panic!(e); });
+
+    panic_on_jvm_exception(&env);
+
+    let silicon_args_seq = java_array_to_seq(&env, scala_predef, silicon_args_array).ok().unwrap();
+
+    panic_on_jvm_exception(&env);
+
+    parse_command_line(&env, silicon, silicon_args_seq);
 
     panic_on_jvm_exception(&env);
 

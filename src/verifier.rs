@@ -13,33 +13,33 @@ pub fn new_carbon<'a>(env: &JNIEnv<'a>) -> Result<JObject<'a>, Error> {
 pub fn parse_command_line<'a>(
     env: &'a JNIEnv,
     verifier: JObject,
-    args: JValue,
+    command_line_args: JObject,
 ) -> Result<JValue<'a>, Error> {
     env.call_method(
         verifier,
         "parseCommandLine",
         "(Lscala/collection/Seq;)V",
-        &[args],
+        &[JValue::Object(command_line_args)],
     )
 }
 
-pub fn start<'a>(env: &'a JNIEnv, verifier: JObject) -> Result<JValue<'a>, Error> {
-    env.call_method(verifier, "start", "()V", &[])
+pub fn start<'a>(env: &'a JNIEnv, verifier: JObject) -> Result<(), Error> {
+    env.call_method(verifier, "start", "()V", &[]).map(|_| ())
 }
 
-pub fn restart<'a>(env: &'a JNIEnv, verifier: JObject) -> Result<JValue<'a>, Error> {
-    env.call_method(verifier, "restart", "()V", &[])
+pub fn restart<'a>(env: &'a JNIEnv, verifier: JObject) -> Result<(), Error> {
+    env.call_method(verifier, "restart", "()V", &[]).map(|_| ())
 }
 
-pub fn stop<'a>(env: &'a JNIEnv, verifier: JObject) -> Result<JValue<'a>, Error> {
-    env.call_method(verifier, "stop", "()V", &[])
+pub fn stop<'a>(env: &'a JNIEnv, verifier: JObject) -> Result<(), Error> {
+    env.call_method(verifier, "stop", "()V", &[]).map(|_| ())
 }
 
-pub fn verify<'a>(env: &'a JNIEnv, verifier: JObject, prog: JValue) -> Result<JValue<'a>, Error> {
+pub fn verify<'a>(env: &'a JNIEnv, verifier: JObject, prog: JValue) -> Result<JObject<'a>, Error> {
     env.call_method(
         verifier,
         "verify",
-        "(Lviper/silver/ast/Program;)Lviper/silver/verifier/VerificationResult",
+        "(Lviper/silver/ast/Program;)Lviper/silver/verifier/VerificationResult;",
         &[prog],
-    )
+    ).and_then(|x| x.l())
 }
