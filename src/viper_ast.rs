@@ -1,12 +1,16 @@
 use jni::JNIEnv;
 use jni::objects::JObject;
+use jni::objects::JValue;
 use jni::errors::Error;
 
 // Offer wrapper functions around the Viper AST node constructors that we use
 // (structures like Program and Function, types like SetType, expressions like
 // FalseLit, statements like While, and some other stuff)
 
-pub_scala_object_getter!(get_quantified_permissions, "viper/silver/ast/utility/QuantifiedPermissions");
+pub_scala_object_getter!(
+    get_quantified_permissions,
+    "viper/silver/ast/utility/QuantifiedPermissions"
+);
 pub_scala_object_getter!(get_add_op, "viper/silver/ast/AddOp");
 pub_scala_object_getter!(get_div_op, "viper/silver/ast/DivOp");
 pub_scala_object_getter!(get_frac_op, "viper/silver/ast/FracOp");
@@ -26,12 +30,11 @@ pub_scala_object_getter!(get_perm_div_op, "viper/silver/ast/PermDivOp");
 pub_scala_object_getter!(get_sub_op, "viper/silver/ast/SubOp");
 pub_scala_object_getter!(get_no_position, "viper/silver/ast/NoPosition");
 pub_scala_object_getter!(get_no_info, "viper/silver/ast/NoInfo");
-pub_scala_object_getter!(get_get_no_trafos, "viper/silver/ast/NoTrafos");
+pub_scala_object_getter!(get_no_trafos, "viper/silver/ast/NoTrafos");
 pub_scala_object_getter!(get_int, "viper/silver/ast/Int");
 pub_scala_object_getter!(get_bool, "viper/silver/ast/Bool");
 pub_scala_object_getter!(get_ref, "viper/silver/ast/Ref");
 pub_scala_object_getter!(get_perm, "viper/silver/ast/Perm");
-
 
 // fn function_domain_type(self):
 // fn empty_seq(self):
@@ -42,16 +45,48 @@ pub_scala_object_getter!(get_perm, "viper/silver/ast/Perm");
 // fn to_map(self, dict):
 // fn to_big_int(self, num):
 // fn Program(self, domains, fields, functions, predicates, methods, position, info):
-/*
-pub fn new_program<'a>(env: &'a JNIEnv, domains: JObject, fields: JObject, functions: JObject,
-                       predicates: JObject, methods: JObject, position: JObject, info: JObject) -> Result<JValue<'a>, Error> {
-    env.get_static_field(
-        "viper/silver/ast/AddOp$",
-        "MODULE$",
-        "Lviper/silver/ast/AddOp$;",
-    )
+
+pub_scala_object_getter!(get_program_object, "viper/silver/ast/Program");
+
+pub fn new_program<'a>(
+    env: &'a JNIEnv,
+    program_object: JObject,
+    domains: JObject,
+    fields: JObject,
+    functions: JObject,
+    predicates: JObject,
+    methods: JObject,
+    position: JObject,
+    info: JObject,
+    errt: JObject,
+) -> Result<JObject<'a>, Error> {
+    env.call_method(
+        program_object,
+        "apply",
+        "(\
+            Lscala/collection/Seq;\
+            Lscala/collection/Seq;\
+            Lscala/collection/Seq;\
+            Lscala/collection/Seq;\
+            Lscala/collection/Seq;\
+            Lviper/silver/ast/Position;\
+            Lviper/silver/ast/Info;\
+            Lviper/silver/ast/ErrorTrafo;\
+        )\
+        Lviper/silver/ast/Program;",
+        &[
+            JValue::Object(domains),
+            JValue::Object(fields),
+            JValue::Object(functions),
+            JValue::Object(predicates),
+            JValue::Object(methods),
+            JValue::Object(position),
+            JValue::Object(info),
+            JValue::Object(errt),
+        ],
+    ).and_then(|x| x.l())
 }
-*/
+
 // fn Function(self, name, args, type, pres, posts, body, position, info):
 // fn Method(self, name, args, returns, pres, posts, locals, body, position, info):
 // fn Field(self, name, type, position, info):

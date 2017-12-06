@@ -41,7 +41,11 @@ pub fn stop<'a>(env: &'a JNIEnv, verifier: JObject) -> Result<(), Error> {
     env.call_method(verifier, "stop", "()V", &[]).map(|_| ())
 }
 
-pub fn verify<'a>(env: &'a JNIEnv, verifier: JObject, program: JObject) -> Result<JObject<'a>, Error> {
+pub fn verify<'a>(
+    env: &'a JNIEnv,
+    verifier: JObject,
+    program: JObject,
+) -> Result<JObject<'a>, Error> {
     trace!("verify");
     env.call_method(
         verifier,

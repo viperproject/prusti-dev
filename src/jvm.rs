@@ -1,5 +1,5 @@
-use jni_sys::{JavaVM as RawJavaVM, JNIEnv as RawJNIEnv, JavaVMInitArgs, JavaVMOption,
-              JNI_CreateJavaVM, JNI_FALSE, JNI_OK, JNI_VERSION_1_8};
+use jni::sys::{JavaVM as RawJavaVM, JNIEnv as RawJNIEnv, JavaVMInitArgs, JavaVMOption,
+               JNI_CreateJavaVM, JNI_FALSE, JNI_OK, JNI_VERSION_1_8};
 use jni::JNIEnv;
 use std::ffi::CString;
 use std::ptr;

@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate log;
-extern crate jni_sys;
 extern crate jni;
 
 #[macro_use]

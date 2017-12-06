@@ -5,14 +5,17 @@ SET_LD_LIBRARY_PATH = LD_LIBRARY_PATH="$$LD_LIBRARY_PATH:/home/fpoli/hg/jdk8u/bu
 
 default: build
 
-build:
-	cargo fmt ; cargo build
+fmt:
+	cargo fmt || true
+
+build: fmt
+	cargo build
+
+test: fmt
+	$(SET_LD_LIBRARY_PATH) cargo test -- --nocapture
 
 run:
-	$(SET_LD_LIBRARY_PATH) RUST_BACKTRACE=1 cargo run
-
-test:
-	$(SET_LD_LIBRARY_PATH) RUST_BACKTRACE=1 cargo test -- --nocapture
+	$(SET_LD_LIBRARY_PATH) cargo run
 
 clean:
 	cargo clean
