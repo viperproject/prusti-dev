@@ -6,7 +6,7 @@ use jni::errors::Error;
 pub_scala_object_getter!(get_none, "scala/None");
 pub_scala_object_getter!(get_predef, "scala/Predef");
 
-pub fn java_array_to_seq<'a>(
+pub fn wrap_ref_array<'a>(
     env: &'a JNIEnv,
     scala_predef: JObject,
     array: JObject,
@@ -27,7 +27,7 @@ pub fn new_mutable_array_seq<'a>(env: &'a JNIEnv, size: jint) -> Result<JObject<
     )
 }
 
-pub fn update_mutable_array_seq_element<'a>(
+pub fn update_mutable_array_seq<'a>(
     env: &'a JNIEnv,
     mutable_array_seq: JObject,
     index: jint,

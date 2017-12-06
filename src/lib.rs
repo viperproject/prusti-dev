@@ -5,7 +5,8 @@ extern crate jni;
 #[macro_use]
 mod macros;
 
-pub mod jvm;
+pub mod java;
+pub mod scala;
 pub mod viper_ast;
 pub mod verifier;
-pub mod scala;
+pub mod jvm;

@@ -55,16 +55,12 @@ pub unsafe fn build_jvm(jvm_option_strings: &[&str]) -> (*mut RawJavaVM, *mut Ra
 }
 
 pub fn print_exception(env: &JNIEnv) {
-    let exception_occurred = env.exception_check().ok().unwrap();
+    let exception_occurred = env.exception_check().unwrap_or_else(
+        |e| panic!(format!("{:?}", e)),
+    );
     if exception_occurred {
-        env.exception_describe().ok().unwrap();
-    }
-}
-
-pub fn panic_on_exception(env: &JNIEnv) {
-    let exception_occurred = env.exception_check().ok().unwrap();
-    if exception_occurred {
-        env.exception_describe().ok().unwrap();
-        panic!();
+        env.exception_describe().unwrap_or_else(
+            |e| panic!(format!("{:?}", e)),
+        );
     }
 }

@@ -8,6 +8,7 @@ use std::convert::From;
 use jni::JNIEnv;
 use jni::objects::JObject;
 use error_chain::ChainedError;
+use viper_sys::java::*;
 use viper_sys::scala::*;
 use viper_sys::jvm::*;
 use viper_sys::verifier::*;
@@ -25,7 +26,7 @@ fn test_call_silicon() {
     let jvm_options = [
         &format!("-Djava.class.path={}", jar_paths.join(":")),
         //"-Djava.security.debug=all",
-        "-verbose:gc",
+        //"-verbose:gc",
         //"-verbose:jni",
         //"-Xcheck:jni",
         "-Xdebug",
@@ -95,7 +96,7 @@ fn test_call_silicon() {
         panic!();
     });
 
-    let silicon_args_seq = java_array_to_seq(&env, scala_predef, silicon_args_array)
+    let silicon_args_seq = wrap_ref_array(&env, scala_predef, silicon_args_array)
         .unwrap_or_else(|e| {
             print_exception(&env);
             println!("{}", e.display_chain().to_string());
@@ -191,7 +192,19 @@ fn test_call_silicon() {
         panic!();
     });
 
-    verify(&env, silicon, program).unwrap_or_else(|e| {
+    let verification_result = verify(&env, silicon, program).unwrap_or_else(|e| {
+        print_exception(&env);
+        println!("{}", e.display_chain().to_string());
+        panic!();
+    });
+
+    let system_out = get_system_out(&env).unwrap_or_else(|e| {
+        print_exception(&env);
+        println!("{}", e.display_chain().to_string());
+        panic!();
+    });
+
+    println_object(&env, system_out, verification_result).unwrap_or_else(|e| {
         print_exception(&env);
         println!("{}", e.display_chain().to_string());
         panic!();
