@@ -1,48 +1,36 @@
 use jni::JNIEnv;
-use jni::objects::JValue;
+use jni::objects::JObject;
 use jni::errors::Error;
 
 // Offer wrapper functions around the Viper AST node constructors that we use
 // (structures like Program and Function, types like SetType, expressions like
-// FalseLit, statements like While, and some other stuff) as well as some
-// convenience methods for interacting with Scala from Python that, e.g.,
-// convert Python lists to Scala sequences and vice versa.
+// FalseLit, statements like While, and some other stuff)
 
-pub fn new_add_op<'a>(env: &'a JNIEnv) -> Result<JValue<'a>, Error> {
-    env.get_static_field(
-        "viper/silver/ast/AddOp$",
-        "MODULE$",
-        "Lviper/silver/ast/AddOp$;",
-    )
-}
-
-
-// TODO: AndOp
-// TODO: DivOp
-// TODO: FracOp
-// TODO: GeOp
-// TODO: GtOp
-// TODO: ImpliesOp
-// TODO: IntPermMulOp
-// TODO: LeOp
-// TODO: LtOp
-// TODO: ModOp
-// TODO: MulOp
-// TODO: NegOp
-// TODO: NotOp
-// TODO: OrOp
-// TODO: PermAddOp
-// TODO: PermDivOp
-// TODO: SubOp
-// TODO: NoPosition
-// TODO: NoInfo
-// TODO: NoTrafos
-// TODO: Int
-// TODO: Bool
-// TODO: Ref
-// TODO: Perm
-// TODO: None
-// TODO: QuantifiedPermissions
+pub_scala_object_getter!(get_quantified_permissions, "viper/silver/ast/utility/QuantifiedPermissions");
+pub_scala_object_getter!(get_add_op, "viper/silver/ast/AddOp");
+pub_scala_object_getter!(get_div_op, "viper/silver/ast/DivOp");
+pub_scala_object_getter!(get_frac_op, "viper/silver/ast/FracOp");
+pub_scala_object_getter!(get_ge_op, "viper/silver/ast/GeOp");
+pub_scala_object_getter!(get_gt_op, "viper/silver/ast/GtOp");
+pub_scala_object_getter!(get_implies_op, "viper/silver/ast/ImpliesOp");
+pub_scala_object_getter!(get_int_perm_mul_op, "viper/silver/ast/IntPermMulOp");
+pub_scala_object_getter!(get_le_op, "viper/silver/ast/LeOp");
+pub_scala_object_getter!(get_lt_op, "viper/silver/ast/LtOp");
+pub_scala_object_getter!(get_mod_op, "viper/silver/ast/ModOp");
+pub_scala_object_getter!(get_mul_op, "viper/silver/ast/MulOp");
+pub_scala_object_getter!(get_neg_op, "viper/silver/ast/NegOp");
+pub_scala_object_getter!(get_not_op, "viper/silver/ast/NotOp");
+pub_scala_object_getter!(get_or_op, "viper/silver/ast/OrOp");
+pub_scala_object_getter!(get_perm_add_op, "viper/silver/ast/PermAddOp");
+pub_scala_object_getter!(get_perm_div_op, "viper/silver/ast/PermDivOp");
+pub_scala_object_getter!(get_sub_op, "viper/silver/ast/SubOp");
+pub_scala_object_getter!(get_no_position, "viper/silver/ast/NoPosition");
+pub_scala_object_getter!(get_no_info, "viper/silver/ast/NoInfo");
+pub_scala_object_getter!(get_get_no_trafos, "viper/silver/ast/NoTrafos");
+pub_scala_object_getter!(get_int, "viper/silver/ast/Int");
+pub_scala_object_getter!(get_bool, "viper/silver/ast/Bool");
+pub_scala_object_getter!(get_ref, "viper/silver/ast/Ref");
+pub_scala_object_getter!(get_perm, "viper/silver/ast/Perm");
 
 
 // fn function_domain_type(self):
@@ -54,6 +42,16 @@ pub fn new_add_op<'a>(env: &'a JNIEnv) -> Result<JValue<'a>, Error> {
 // fn to_map(self, dict):
 // fn to_big_int(self, num):
 // fn Program(self, domains, fields, functions, predicates, methods, position, info):
+/*
+pub fn new_program<'a>(env: &'a JNIEnv, domains: JObject, fields: JObject, functions: JObject,
+                       predicates: JObject, methods: JObject, position: JObject, info: JObject) -> Result<JValue<'a>, Error> {
+    env.get_static_field(
+        "viper/silver/ast/AddOp$",
+        "MODULE$",
+        "Lviper/silver/ast/AddOp$;",
+    )
+}
+*/
 // fn Function(self, name, args, type, pres, posts, body, position, info):
 // fn Method(self, name, args, returns, pres, posts, locals, body, position, info):
 // fn Field(self, name, type, position, info):
