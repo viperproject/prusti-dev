@@ -4,7 +4,7 @@ extern crate jni;
 use std::fs;
 use jni::JNIEnv;
 use jni::objects::JObject;
-use viper_sys::{build_jvm, panic_on_jvm_exception};
+use viper_sys::*;
 use viper_sys::verifier::*;
 use viper_sys::scala::*;
 
@@ -41,7 +41,7 @@ fn test_jvm_builtin_classes() {
 
     panic_on_jvm_exception(&env);
 
-    let scala_predef = get_predef(&env).unwrap_or_else(|e| { panic_on_jvm_exception(&env); println!("{:?}", e); panic!(e); });
+    let scala_predef = get_predef(&env).ok().unwrap();
 
     panic_on_jvm_exception(&env);
 

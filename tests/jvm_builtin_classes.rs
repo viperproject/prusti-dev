@@ -57,8 +57,7 @@ fn test_jvm_builtin_classes() {
 
             assert!(0 <= result && result < array_length);
 
-            // TODO: it would be great to check the result of this call (see #jni-rs/issues/55)
-            let _ = env.pop_local_frame(JObject::null());
+            let _ = env.pop_local_frame(JObject::null()).ok().unwrap();
         }
     }
 }
