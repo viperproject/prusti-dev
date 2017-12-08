@@ -75,6 +75,8 @@ fn test_call_silicon() {
 
         reset(&env, silicon)?;
 
+        let program_object = get_program_object(&env)?;
+
         let program = new_program(
             &env,
             program_object,
@@ -95,6 +97,8 @@ fn test_call_silicon() {
         println_object(&env, system_out, verification_result)?;
 
         stop(&env, silicon)?;
+
+        Ok(JObject::null())
 
     }).unwrap_or_else(|e| {
             print_exception(&env);

@@ -36,21 +36,20 @@ fn test_jvm_builtin_classes() {
                 let int_array = JObject::from(env.new_object_array(
                     array_length,
                     "java/lang/Integer",
-                    integer_value.as_obj(),
+                    integer_value,
                 )?);
 
                 let result = env.call_static_method(
                     "java/util/Arrays",
                     "binarySearch",
                     "([Ljava/lang/Object;Ljava/lang/Object;)I",
-                    &[
-                        JValue::Object(int_array.as_obj()),
-                        JValue::Object(integer_value.as_obj()),
-                    ],
+                    &[JValue::Object(int_array), JValue::Object(integer_value)],
                 )?
                     .i()?;
 
                 assert!(0 <= result && result < array_length);
+
+                Ok(JObject::null())
 
             }).unwrap_or_else(|e| {
                     print_exception(&env);
