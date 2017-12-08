@@ -26,50 +26,36 @@ fn test_jvm_builtin_classes() {
 
     for int_value in -10..10 {
         for array_length in 1..50 {
-            // TODO: why this works even with 0 capacity?
-            env.push_local_frame(0).unwrap_or_else(|e| {
-                print_exception(&env);
-                panic!(format!("{}", e.display_chain().to_string()));
-            });
+            env.with_local_frame(16, || {
+                let integer_value = JObject::from(env.new_object(
+                    "java/lang/Integer",
+                    "(I)V",
+                    &[JValue::Int(int_value)],
+                )?);
 
-            let integer_value =
-                env.new_object("java/lang/Integer", "(I)V", &[JValue::Int(int_value)])
-                    .map(|x| JObject::from(x))
-                    .and_then(|x| env.new_global_ref(x))
-                    .unwrap_or_else(|e| {
-                        print_exception(&env);
-                        panic!(format!("{}", e.display_chain().to_string()));
-                    });
+                let int_array = JObject::from(env.new_object_array(
+                    array_length,
+                    "java/lang/Integer",
+                    integer_value.as_obj(),
+                )?);
 
-            let int_array =
-                env.new_object_array(array_length, "java/lang/Integer", integer_value.as_obj())
-                    .map(|x| JObject::from(x))
-                    .and_then(|x| env.new_global_ref(x))
-                    .unwrap_or_else(|e| {
-                        print_exception(&env);
-                        panic!(format!("{}", e.display_chain().to_string()));
-                    });
+                let result = env.call_static_method(
+                    "java/util/Arrays",
+                    "binarySearch",
+                    "([Ljava/lang/Object;Ljava/lang/Object;)I",
+                    &[
+                        JValue::Object(int_array.as_obj()),
+                        JValue::Object(integer_value.as_obj()),
+                    ],
+                )?
+                    .i()?;
 
-            let result = env.call_static_method(
-                "java/util/Arrays",
-                "binarySearch",
-                "([Ljava/lang/Object;Ljava/lang/Object;)I",
-                &[
-                    JValue::Object(int_array.as_obj()),
-                    JValue::Object(integer_value.as_obj()),
-                ],
-            ).and_then(|x| x.i())
-                .unwrap_or_else(|e| {
+                assert!(0 <= result && result < array_length);
+
+            }).unwrap_or_else(|e| {
                     print_exception(&env);
                     panic!(format!("{}", e.display_chain().to_string()));
                 });
-
-            assert!(0 <= result && result < array_length);
-
-            env.pop_local_frame(JObject::null()).unwrap_or_else(|e| {
-                print_exception(&env);
-                panic!(format!("{}", e.display_chain().to_string()));
-            });
         }
     }
 }

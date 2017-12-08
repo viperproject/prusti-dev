@@ -40,153 +40,64 @@ fn test_call_silicon() {
 
     let env: JNIEnv = unsafe { JNIEnv::from_raw(raw_jvm_env).ok().unwrap() };
 
-    let silicon = new_silicon(&env).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
+    env.with_local_frame(16, || {
+        let silicon = new_silicon(&env)?;
 
-    let silicon_args_array = env.new_object_array(3, "java/lang/String", JObject::null())
-        .ok()
-        .map(|x| JObject::from(x))
-        .unwrap();
+        let silicon_args_array = JObject::from(
+            env.new_object_array(3, "java/lang/String", JObject::null())?,
+        );
 
-    let mut arg;
+        env.set_object_array_element(
+            silicon_args_array.into_inner(),
+            0,
+            From::from(env.new_string("--z3Exe")?),
+        )?;
 
-    arg = env.new_string("--z3Exe").unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-    env.set_object_array_element(silicon_args_array.into_inner(), 0, From::from(arg))
-        .unwrap_or_else(|e| {
+        env.set_object_array_element(
+            silicon_args_array.into_inner(),
+            1,
+            From::from(env.new_string("/usr/local/Viper/z3/bin/z3")?),
+        )?;
+
+        env.set_object_array_element(
+            silicon_args_array.into_inner(),
+            2,
+            From::from(env.new_string("dummy-program.sil")?),
+        )?;
+
+        let scala_predef = get_predef(&env)?;
+
+        let silicon_args_seq = wrap_ref_array(&env, scala_predef, silicon_args_array)?;
+
+        parse_command_line(&env, silicon, silicon_args_seq)?;
+
+        start(&env, silicon)?;
+
+        reset(&env, silicon)?;
+
+        let program = new_program(
+            &env,
+            program_object,
+            new_mutable_array_seq(&env, 0)?,
+            new_mutable_array_seq(&env, 0)?,
+            new_mutable_array_seq(&env, 0)?,
+            new_mutable_array_seq(&env, 0)?,
+            new_mutable_array_seq(&env, 0)?,
+            get_no_position(&env)?,
+            get_no_info(&env)?,
+            get_no_trafos(&env)?,
+        )?;
+
+        let verification_result = verify(&env, silicon, program)?;
+
+        let system_out = get_system_out(&env)?;
+
+        println_object(&env, system_out, verification_result)?;
+
+        stop(&env, silicon)?;
+
+    }).unwrap_or_else(|e| {
             print_exception(&env);
             panic!(format!("{}", e.display_chain().to_string()));
         });
-
-    arg = env.new_string("/usr/local/Viper/z3/bin/z3")
-        .unwrap_or_else(|e| {
-            print_exception(&env);
-            panic!(format!("{}", e.display_chain().to_string()));
-        });
-    env.set_object_array_element(silicon_args_array.into_inner(), 1, From::from(arg))
-        .unwrap_or_else(|e| {
-            print_exception(&env);
-            panic!(format!("{}", e.display_chain().to_string()));
-        });
-
-    arg = env.new_string("dummy-program.sil").unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-    env.set_object_array_element(silicon_args_array.into_inner(), 2, From::from(arg))
-        .unwrap_or_else(|e| {
-            print_exception(&env);
-            panic!(format!("{}", e.display_chain().to_string()));
-        });
-
-    let scala_predef = get_predef(&env).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let silicon_args_seq = wrap_ref_array(&env, scala_predef, silicon_args_array)
-        .unwrap_or_else(|e| {
-            print_exception(&env);
-            panic!(format!("{}", e.display_chain().to_string()));
-        });
-
-    parse_command_line(&env, silicon, silicon_args_seq).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    start(&env, silicon).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    reset(&env, silicon).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let domains = new_mutable_array_seq(&env, 0).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let fields = new_mutable_array_seq(&env, 0).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let functions = new_mutable_array_seq(&env, 0).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let predicates = new_mutable_array_seq(&env, 0).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let methods = new_mutable_array_seq(&env, 0).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let position = get_no_position(&env).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let info = get_no_info(&env).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let errt = get_no_trafos(&env).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let program_object = get_program_object(&env).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let program = new_program(
-        &env,
-        program_object,
-        domains,
-        fields,
-        functions,
-        predicates,
-        methods,
-        position,
-        info,
-        errt,
-    ).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let verification_result = verify(&env, silicon, program).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    let system_out = get_system_out(&env).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    println_object(&env, system_out, verification_result).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
-
-    stop(&env, silicon).unwrap_or_else(|e| {
-        print_exception(&env);
-        panic!(format!("{}", e.display_chain().to_string()));
-    });
 }
