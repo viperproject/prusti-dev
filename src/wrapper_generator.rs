@@ -53,7 +53,7 @@ impl WrapperGenerator {
         create_dir_all(out_dir)?;
 
         {
-            let mod_code = generate_target_mod_code(&env, &self.targets);
+            let mod_code = generate_target_mod_code(&self.targets);
             let mod_path = format!("{}/mod.rs", out_dir);
             let mut mod_file = OpenOptions::new()
                 .read(true)

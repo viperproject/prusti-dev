@@ -31,7 +31,7 @@ fn generate_opening_mod(target: &str) -> String {
     let mut code: Vec<String> = vec![];
     let names = mod_list(target);
     for name in &names {
-        code.push(format!("pub mod {} {{", java_name_to_rust(name)));
+        code.push(format!("pub mod {} {{", java_class_name_to_rust(name)));
     }
     code.join(" ") + "\n"
 }
@@ -41,7 +41,6 @@ fn generate_imports() -> String {
         "use jni::JNIEnv;",
         "use jni::objects::JObject;",
         "use jni::objects::JValue;",
-        "use jni::errors::Error;",
         "use jni::errors::Result;",
         "use jni::sys::*;",
     ].join("\n") + "\n"
@@ -50,7 +49,7 @@ fn generate_imports() -> String {
 fn generate_closing_mod(target: &str) -> String {
     let mut code: Vec<String> = vec![];
     let names = mod_list(target);
-    for name in 0..names.len() {
+    for _ in 0..names.len() {
         code.push("}".to_owned());
     }
     code.join(" ") + "\n"
@@ -62,6 +61,7 @@ fn generate_scala_object_getter(target: &str) -> String {
         "".to_owned()
     } else {
         vec![
+            "#[allow(dead_code)]".to_owned(),
             "pub fn get<'a>(env: &'a JNIEnv) -> Result<JObject<'a>> {".to_owned(),
             "    env.get_static_field(".to_owned(),
             format!("        \"{}\",", target),

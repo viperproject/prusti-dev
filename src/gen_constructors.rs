@@ -120,6 +120,7 @@ fn generate_constructor(
         code.push(format!("/// - {}: {} ({})", par_name, par_type, par_sign));
     }
 
+    code.push("#[allow(dead_code)]".to_owned());
     code.push(format!("pub fn {}<'a>(", constructor_name));
     code.push("    env: &'a JNIEnv,".to_owned());
 

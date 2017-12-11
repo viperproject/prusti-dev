@@ -126,7 +126,7 @@ fn generate_method(
 ) -> String {
     assert_eq!(parameter_names.len(), parameter_signatures.len());
     let return_signature = get_return_signature(method_signature);
-    let return_type = generate_jni_type(&return_signature);
+    let return_type = generate_return_jni_type(&return_signature);
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
@@ -151,6 +151,7 @@ fn generate_method(
         return_signature
     ));
 
+    code.push("#[allow(dead_code)]".to_owned());
     code.push(format!(
         "pub fn {}<'a>(",
         java_name_to_rust(unique_method_name)

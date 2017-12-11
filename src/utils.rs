@@ -21,7 +21,24 @@ pub fn generate_jni_type(signature: &str) -> String {
         'S' => "jshort".to_owned(),
         'I' => "jint".to_owned(),
         'J' => "jlong".to_owned(),
-        'Z' => "jboolean".to_owned(),
+        'Z' => "bool".to_owned(),
+        'F' => "jfloat".to_owned(),
+        'D' => "jdouble".to_owned(),
+        'V' => "()".to_owned(),
+        x => unreachable!(x),
+    }
+}
+
+pub fn generate_return_jni_type(signature: &str) -> String {
+    match signature.chars().nth(0).unwrap() {
+        '[' => "JObject<'a>".to_owned(),
+        'L' => "JObject<'a>".to_owned(),
+        'B' => "jbyte".to_owned(),
+        'C' => "jchar".to_owned(),
+        'S' => "jshort".to_owned(),
+        'I' => "jint".to_owned(),
+        'J' => "jlong".to_owned(),
+        'Z' => "bool".to_owned(),
         'F' => "jfloat".to_owned(),
         'D' => "jdouble".to_owned(),
         'V' => "()".to_owned(),
