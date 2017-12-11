@@ -10,3 +10,6 @@ pub mod scala;
 pub mod viper_ast;
 pub mod verifier;
 pub mod jvm;
+
+#[path = "../gen/mod.rs"]
+mod wrappers;
