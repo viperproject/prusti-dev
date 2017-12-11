@@ -57,6 +57,7 @@ ENV LC_ALL en_US.UTF-8
 ENV RUST_CONTAINER 1
 
 # Set up workdir.
+ENV USER=root
 RUN cd / && \
     cargo new playground
 WORKDIR /playground
