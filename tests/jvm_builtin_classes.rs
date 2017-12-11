@@ -3,26 +3,38 @@ extern crate jni;
 extern crate error_chain;
 
 use error_chain::ChainedError;
-use jni::JNIEnv;
+use jni::JavaVM;
+use jni::InitArgsBuilder;
+use jni::JNIVersion;
 use jni::objects::JObject;
 use jni::objects::JValue;
 use viper_sys::jvm::*;
 
 #[test]
 fn test_jvm_builtin_classes() {
-    let jvm_options = [
-        //"-Djava.security.debug=all",
-        "-verbose:gc",
-        //"-verbose:jni",
-        "-Xcheck:jni",
-        "-Xdebug",
-        "-XX:+CheckJNICalls",
-        //"-XX:+TraceJNICalls",
-    ];
+    let jvm_args = InitArgsBuilder::new()
+        .version(JNIVersion::V8)
+        .option("-verbose:gc")
+        .option("-Xcheck:jni")
+        .option("-Xdebug")
+        .option("-XX:+CheckJNICalls")
+        //.option("-Djava.security.debug=all")
+        //.option("-verbose:jni")
+        //.option("-XX:+TraceJNICalls")
+        .build()
+        .unwrap_or_else(|e| {
+            panic!(format!("{}", e.display_chain().to_string()));
+        });
 
-    let (_, raw_jvm_env) = unsafe { build_jvm(&jvm_options) };
+    let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
+        panic!(format!("{}", e.display_chain().to_string()));
+    });
 
-    let env: JNIEnv = unsafe { JNIEnv::from_raw(raw_jvm_env).ok().unwrap() };
+
+    let env = jvm.attach_current_thread().expect(
+        "failed to attach jvm thread",
+    );
+
 
     for int_value in -10..10 {
         for array_length in 1..50 {

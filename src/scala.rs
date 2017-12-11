@@ -6,6 +6,14 @@ use jni::errors::Error;
 pub_scala_object_getter!(get_none, "scala/None");
 pub_scala_object_getter!(get_predef, "scala/Predef");
 
+pub fn new_some<'a>(env: &'a JNIEnv, object: JObject) -> Result<JObject<'a>, Error> {
+    env.new_object(
+        "scala/Some",
+        "([Ljava/lang/Object;)V",
+        &[JValue::Object(object)],
+    )
+}
+
 pub fn wrap_ref_array<'a>(
     env: &'a JNIEnv,
     scala_predef: JObject,

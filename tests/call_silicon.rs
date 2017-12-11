@@ -5,7 +5,9 @@ extern crate error_chain;
 
 use std::fs;
 use std::convert::From;
-use jni::JNIEnv;
+use jni::JavaVM;
+use jni::InitArgsBuilder;
+use jni::JNIVersion;
 use jni::objects::JObject;
 use error_chain::ChainedError;
 use viper_sys::java::*;
@@ -16,29 +18,30 @@ use viper_sys::viper_ast::*;
 
 #[test]
 fn test_call_silicon() {
-    env_logger::init().unwrap();
+    env_logger::init().expect("failed to initialize env_logger");
 
     let jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/")
         .unwrap()
         .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
         .collect();
 
-    let jvm_options = [
-        &format!("-Djava.class.path={}", jar_paths.join(":")),
-        //"-Djava.security.debug=all",
-        //"-verbose:gc",
-        //"-verbose:jni",
-        //"-Xcheck:jni",
-        "-Xdebug",
-        //"-XX:+CheckJNICalls",
-        //"-XX:+TraceJNICalls",
-    ];
+    let jvm_args = InitArgsBuilder::new()
+        .version(JNIVersion::V8)
+        .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
+        .option("-Xdebug")
+        .build()
+        .unwrap_or_else(|e| {
+            panic!(format!("{}", e.display_chain().to_string()));
+        });
 
-    println!("JVM options: {}", jvm_options.join(" "));
+    let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
+        panic!(format!("{}", e.display_chain().to_string()));
+    });
 
-    let (_, raw_jvm_env) = unsafe { build_jvm(&jvm_options) };
 
-    let env: JNIEnv = unsafe { JNIEnv::from_raw(raw_jvm_env).ok().unwrap() };
+    let env = jvm.attach_current_thread().expect(
+        "failed to attach jvm thread",
+    );
 
     env.with_local_frame(16, || {
         let silicon = new_silicon(&env)?;
@@ -75,11 +78,8 @@ fn test_call_silicon() {
 
         reset(&env, silicon)?;
 
-        let program_object = get_program_object(&env)?;
-
         let program = new_program(
             &env,
-            program_object,
             new_mutable_array_seq(&env, 0)?,
             new_mutable_array_seq(&env, 0)?,
             new_mutable_array_seq(&env, 0)?,

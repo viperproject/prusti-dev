@@ -3,9 +3,22 @@ use jni::objects::JObject;
 use jni::objects::JValue;
 use jni::errors::Error;
 
-// Offer wrapper functions around the Viper AST node constructors that we use
-// (structures like Program and Function, types like SetType, expressions like
-// FalseLit, statements like While, and some other stuff)
+// Wrapper functions around the Viper AST node constructors
+
+
+// TODO: fn function_domain_type(self):
+// TODO: fn empty_seq(self):
+// TODO: fn singleton_seq(self, element):
+// TODO: fn append(self, list, to_append):
+// TODO: fn to_seq(self, list):
+// TODO: fn to_list(self, seq):
+// TODO: fn to_map(self, dict):
+// TODO: fn to_big_int(self, num):
+
+// TODO: fn SimpleInfo(self, comments):
+// TODO: fn from_option(self, option):
+// TODO: fn to_function0(self, func):
+// TODO: fn to_position(self, expr, vias, error_string: str=None, rules: Rules=None, file: str = None):
 
 pub_scala_object_getter!(
     get_quantified_permissions,
@@ -36,21 +49,8 @@ pub_scala_object_getter!(get_bool, "viper/silver/ast/Bool");
 pub_scala_object_getter!(get_ref, "viper/silver/ast/Ref");
 pub_scala_object_getter!(get_perm, "viper/silver/ast/Perm");
 
-// fn function_domain_type(self):
-// fn empty_seq(self):
-// fn singleton_seq(self, element):
-// fn append(self, list, to_append):
-// fn to_seq(self, list):
-// fn to_list(self, seq):
-// fn to_map(self, dict):
-// fn to_big_int(self, num):
-// fn Program(self, domains, fields, functions, predicates, methods, position, info):
-
-pub_scala_object_getter!(get_program_object, "viper/silver/ast/Program");
-
 pub fn new_program<'a>(
     env: &'a JNIEnv,
-    program_object: JObject,
     domains: JObject,
     fields: JObject,
     functions: JObject,
@@ -60,9 +60,8 @@ pub fn new_program<'a>(
     info: JObject,
     errt: JObject,
 ) -> Result<JObject<'a>, Error> {
-    env.call_method(
-        program_object,
-        "apply",
+    env.new_object(
+        "viper/silver/ast/Program",
         "(\
             Lscala/collection/Seq;\
             Lscala/collection/Seq;\
@@ -72,8 +71,7 @@ pub fn new_program<'a>(
             Lviper/silver/ast/Position;\
             Lviper/silver/ast/Info;\
             Lviper/silver/ast/ErrorTrafo;\
-        )\
-        Lviper/silver/ast/Program;",
+        )V",
         &[
             JValue::Object(domains),
             JValue::Object(fields),
@@ -84,7 +82,49 @@ pub fn new_program<'a>(
             JValue::Object(info),
             JValue::Object(errt),
         ],
-    ).and_then(|x| x.l())
+    )
+}
+
+pub fn new_function<'a>(
+    env: &'a JNIEnv,
+    name: JObject,
+    args: JObject,
+    typ: JObject,
+    pres: JObject,
+    posts: JObject,
+    decs: JObject,
+    body: JObject,
+    position: JObject,
+    info: JObject,
+    errt: JObject,
+) -> Result<JObject<'a>, Error> {
+    env.new_object(
+        "viper/silver/ast/Function",
+        "(\
+            Ljava/lang/String;\
+            Lscala/collection/Seq;\
+            Lviper/silver/ast/Type;\
+            Lscala/collection/Seq;\
+            Lscala/collection/Seq;\
+            Lscala/Option;\
+            Lscala/Option;\
+            Lviper/silver/ast/Position;\
+            Lviper/silver/ast/Info;\
+            Lviper/silver/ast/ErrorTrafo;\
+        )V",
+        &[
+            JValue::Object(name),
+            JValue::Object(args),
+            JValue::Object(typ),
+            JValue::Object(pres),
+            JValue::Object(posts),
+            JValue::Object(decs),
+            JValue::Object(body),
+            JValue::Object(position),
+            JValue::Object(info),
+            JValue::Object(errt),
+        ],
+    )
 }
 
 // fn Function(self, name, args, type, pres, posts, body, position, info):
@@ -176,7 +216,5 @@ pub fn new_program<'a>(
 // fn Trigger(self, exps, position, info):
 // fn While(self, cond, invariants, locals, body, position, info):
 // fn Let(self, variable, exp, body, position, info):
-// fn from_option(self, option):
-// fn to_function0(self, func):
-// fn SimpleInfo(self, comments):
-// fn to_position(self, expr, vias, error_string: str=None, rules: Rules=None, file: str = None):
+
+// TODO: Magic wands!
