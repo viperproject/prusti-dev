@@ -47,6 +47,15 @@ RUN cd /tmp && \
     rm -rf /tmp/*
 ENV RUSTC=/rust-nll/bin/rustc
 
+# Install Prusti.
+RUN cd /tmp && \
+    git clone https://github.com/viperproject/prusti.git prusti && \
+    cd prusti && \
+    cargo build --release && \
+    mkdir -p /usr/lib/prusti && \
+    cp target/release/libprusti.so /usr/lib/prusti && \
+    rm -rf /tmp/*
+
 # Set up locale.
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
