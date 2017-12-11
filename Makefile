@@ -18,5 +18,5 @@ build:
 build_image:
 	sudo docker build -t ${IMAGE_NAME} docker
 
-build_imagei_as_rust_nightly: build_image
+build_image_as_rust_nightly: build_image
 	sudo docker build -t rust-nightly docker
