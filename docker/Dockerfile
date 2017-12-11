@@ -55,6 +55,7 @@ RUN cd /tmp && \
     mkdir -p /usr/lib/prusti && \
     cp target/release/libprusti.so /usr/lib/prusti && \
     rm -rf /tmp/*
+ENV RUSTFLAGS="-L /usr/lib/prusti/ -Z mir-emit-validate=1 -Z extra-plugins=prusti -Z borrowck=mir -Z nll"
 
 # Set up locale.
 RUN locale-gen en_US.UTF-8
