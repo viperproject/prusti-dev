@@ -2,6 +2,7 @@ use syntax::{self, ast};
 use syntax::symbol::Symbol;
 use syntax::codemap::Span;
 
+#[derive(Debug)]
 pub enum Type {
     Precondition,
     Postcondition,
@@ -10,7 +11,10 @@ pub enum Type {
 
 pub struct Specification {
     pub spec_type: Type,
-    pub string: String,
+    pub node_identifier: ast::Ident,
+    pub span: Span,
+    pub spec_string: String,
+    pub spec_expr: syntax::ptr::P<ast::Expr>,
 }
 
 pub struct SpecificationManager {
@@ -26,12 +30,29 @@ impl SpecificationManager {
     }
 
     pub fn add_specification(&mut self, spec_type: Symbol,
-                             name: ast::Ident, span: Span,
+                             node_identifier: ast::Ident, span: Span,
                              spec: String,
                              expr: syntax::ptr::P<ast::Expr>) {
-        println!("{}({:?}) on {:?}",
-            spec_type, expr, name);
-        //let mut err = cx.sess().struct_span_err(span, "error");
-        //err.emit();
+        let spec_type = match spec_type.as_str().as_ref() {
+            "requires" => {
+                Type::Precondition
+            },
+            "ensures" => {
+                Type::Postcondition
+            },
+            "invariant" => {
+                Type::Invariant
+            },
+            _ => {
+                panic!("Unrecognized specification type: {:?}", spec_type);
+            },
+        };
+        self.specs.push(Specification {
+            spec_type: spec_type,
+            node_identifier: node_identifier,
+            span: span,
+            spec_string: spec,
+            spec_expr: expr,
+        });
     }
 }

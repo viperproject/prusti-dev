@@ -7,6 +7,7 @@ struct MyStruct {
 }
 
 #[requires="x!=0"]
+#[ensures="result!=0"]
 fn divide(x: i32) -> i32 {
     x
 }

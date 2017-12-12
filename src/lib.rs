@@ -57,6 +57,8 @@ pub fn plugin_registrar(reg: &mut Registry) {
     let specs = pass.specs.clone();
     reg.register_late_lint_pass(pass as LateLintPassObject);
     register_syntax_extension(reg, "requires", specs.clone());
+    register_syntax_extension(reg, "ensures", specs.clone());
+    register_syntax_extension(reg, "invariant", specs.clone());
 }
 
 fn register_syntax_extension(reg: &mut Registry, name: &str,
