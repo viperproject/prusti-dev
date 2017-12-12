@@ -8,6 +8,16 @@ os:
 rust:
   - nightly
 
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - cmake
+      - gcc
+      - binutils-dev
+
 before_script:
   - ( ( cargo install clippy && export CLIPPY=true ) || export CLIPPY=false );
   - export PATH=$PATH:~/.cargo/bin
@@ -28,3 +38,17 @@ after_success:
         ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
         echo "Uploaded documentation"
       fi
+  - |
+      wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
+      tar xzf master.tar.gz &&
+      cd kcov-master &&
+      mkdir build &&
+      cd build &&
+      cmake .. &&
+      make &&
+      make install DESTDIR=../../kcov-build &&
+      cd ../.. &&
+      rm -rf kcov-master &&
+      for file in target/debug/prusti-*[^\.d]; do mkdir -p "target/cov/$(basename $file)"; ./kcov-build/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
+      bash <(curl -s https://codecov.io/bash) &&
+      echo "Uploaded code coverage"
