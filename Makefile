@@ -15,6 +15,19 @@ run:
 build:
 	cargo build
 
+test:
+	cargo test
+
+doc:
+	cargo rustdoc -- \
+		--no-defaults \
+		--passes collapse-docs \
+		--passes unindent-comments \
+		--passes strip-priv-imports
+
+build_release:
+	cargo build --release
+
 build_image:
 	sudo docker build -t ${IMAGE_NAME} docker
 
