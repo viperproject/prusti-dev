@@ -166,6 +166,7 @@ fn generate_method(
     ));
     code.push("///".to_owned());
     code.push("/// Parameters:".to_owned());
+    code.push("///".to_owned());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -240,6 +241,7 @@ fn generate_static_method(
     ));
     code.push("///".to_owned());
     code.push("/// Parameters:".to_owned());
+    code.push("///".to_owned());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];

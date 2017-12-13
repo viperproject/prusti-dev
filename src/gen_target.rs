@@ -6,7 +6,7 @@ use gen_methods::*;
 pub fn generate_target_code(env: &JNIEnv, target: &str) -> Result<String> {
     Ok(
         vec![
-            format!("// Automatically generated code for '{}'\n", target),
+            format!("//! Automatically generated code for '{}'\n", target),
             "#![allow(non_snake_case)]\n".to_owned(),
             generate_imports(),
             generate_scala_object_getter(target),
@@ -32,6 +32,10 @@ fn generate_scala_object_getter(target: &str) -> String {
         "".to_owned()
     } else {
         vec![
+            format!(
+                "/// Wrapped getter of Scala object {}",
+                target.replace("/", ".")
+            ),
             "#[allow(dead_code)]".to_owned(),
             "pub fn new<'a>(env: &'a JNIEnv) -> Result<JObject<'a>> {".to_owned(),
             "    env.get_static_field(".to_owned(),
