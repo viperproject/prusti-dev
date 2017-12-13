@@ -2,9 +2,10 @@ SHELL := /bin/bash
 IMAGE_VERSION=2017-12-10
 IMAGE_NAME="vakaras/prusti:${IMAGE_VERSION}"
 export RUSTC=
+LOG_LEVEL=error
 
 run:
-	${RUSTC} \
+	RUST_LOG=prusti=${LOG_LEVEL} ${RUSTC} \
 		-L target/debug/ \
 		-Z mir-emit-validate=1 \
 		-Z extra-plugins=prusti \

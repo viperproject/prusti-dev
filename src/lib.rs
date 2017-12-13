@@ -2,6 +2,10 @@
 #![feature(box_syntax, rustc_private)]
 #![feature(macro_vis_matcher)]
 
+#[macro_use]
+extern crate log;
+extern crate env_logger;
+
 extern crate syntax;
 
 #[macro_use]
@@ -47,12 +51,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
 
     fn check_crate_post(&mut self, _cx: &LateContext<'a, 'tcx>,
                         _: &'tcx hir::Crate) {
-        println!("It works!");
+        trace!("[check_crate_post] enter");
+        trace!("[check_crate_post] exit");
     }
 }
 
 #[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry) {
+    env_logger::init();
+    error!("this is printed by default");
     let pass = box Pass::new();
     let specs = pass.specs.clone();
     reg.register_late_lint_pass(pass as LateLintPassObject);

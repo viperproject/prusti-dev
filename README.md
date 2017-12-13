@@ -7,3 +7,11 @@
 [build_badge]: https://travis-ci.org/viperproject/prusti.svg
 [build_status]: https://travis-ci.org/viperproject/prusti
 [documentation]: https://viperproject.github.io/prusti/
+
+## Debugging
+
+You can specify the log level as follows:
+
+```bash
+make LOG_LEVEL=trace run
+```

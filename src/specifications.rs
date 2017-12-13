@@ -9,6 +9,7 @@ pub enum Type {
     Invariant,
 }
 
+#[derive(Debug)]
 pub struct Specification {
     pub spec_type: Type,
     pub node_identifier: ast::Ident,
@@ -33,6 +34,7 @@ impl SpecificationManager {
                              node_identifier: ast::Ident, span: Span,
                              spec: String,
                              expr: syntax::ptr::P<ast::Expr>) {
+        trace!("[add_specification] enter");
         let spec_type = match spec_type.as_str().as_ref() {
             "requires" => {
                 Type::Precondition
@@ -47,12 +49,15 @@ impl SpecificationManager {
                 panic!("Unrecognized specification type: {:?}", spec_type);
             },
         };
-        self.specs.push(Specification {
+        let specification = Specification {
             spec_type: spec_type,
             node_identifier: node_identifier,
             span: span,
             spec_string: spec,
             spec_expr: expr,
-        });
+        };
+        debug!("specification={:?}", specification);
+        self.specs.push(specification);
+        trace!("[add_specification] exit");
     }
 }
