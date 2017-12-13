@@ -10,6 +10,7 @@ use error_chain::ChainedError;
 fn main() {
     env_logger::init().expect("failed to initialize env_logger");
     let generated_dir = format!("{}/gen", env::var("CARGO_MANIFEST_DIR").unwrap());
+    let asm_jar = env::var("ASM_JAR").unwrap();
 
     let mut viper_jars: Vec<String> = fs::read_dir("/usr/lib/viper/")
         .unwrap()
@@ -17,7 +18,7 @@ fn main() {
         .collect();
 
     WrapperGenerator::new()
-        .use_jar("/home/fpoli/opt/asm-3.3.1.jar")
+        .use_jar(&asm_jar)
         .use_jars(&mut viper_jars)
         .wrap_all(&vec![
             "java.lang.System",

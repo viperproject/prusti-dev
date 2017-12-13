@@ -1,11 +1,11 @@
-viper-sys
+Viper-sys
 =========
 
-This crate exposes the raw Viper API.
-A "viper" crate will wrap this low-level crate in a higher-level API.
+[![Build Status][build_badge]][build_status]
 
+This crate exposes the low-level Viper API.
 
-Licence
--------
+A `viper` crate will wrap this low-level crate in a higher-level API.
 
-- `build.rs` comes from [rucaja](https://github.com/kud1ing/rucaja)
+[build_badge]: https://travis-ci.org/viperproject/viper-sys.svg
+[build_status]: https://travis-ci.org/viperproject/viper-sys
