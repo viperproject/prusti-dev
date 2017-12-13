@@ -1,5 +1,4 @@
 use std::ffi::CStr;
-use heck::SnakeCase;
 use jni::strings::JavaStr;
 use errors::*;
 
@@ -17,7 +16,7 @@ pub fn generate_jni_type(signature: &str) -> String {
         'S' => "jshort".to_owned(),
         'I' => "jint".to_owned(),
         'J' => "jlong".to_owned(),
-        'Z' => "bool".to_owned(),
+        'Z' => "jboolean".to_owned(),
         'F' => "jfloat".to_owned(),
         'D' => "jdouble".to_owned(),
         'V' => "()".to_owned(),
@@ -76,9 +75,9 @@ pub fn java_target_components(fqn: &str) -> Vec<String> {
 }
 
 pub fn java_method_to_rust(method_name: &str) -> String {
-    method_name.replace("$", "_").to_snake_case()
+    method_name.replace("$", "_")
 }
 
 pub fn java_class_or_package_to_rust(class_name: &str) -> String {
-    class_name.replace("$", "_object").to_snake_case()
+    class_name.replace("$", "_object")
 }

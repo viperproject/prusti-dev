@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use jni::JNIEnv;
 use jni::objects::JValue;
 use errors::*;
@@ -17,6 +18,8 @@ pub fn generate_all_constructors(env: &JNIEnv, target: &str) -> Result<String> {
         .l()?;
     let num_constructors = env.get_array_length(constructors.into_inner())?;
 
+    let mut sorted_constructors = BTreeMap::new();
+
     for constructor_index in 0..num_constructors {
         let constructor = env.get_object_array_element(
             constructors.into_inner(),
@@ -34,6 +37,10 @@ pub fn generate_all_constructors(env: &JNIEnv, target: &str) -> Result<String> {
                 .into(),
         )?)?;
 
+        sorted_constructors.insert(constructor_signature, constructor);
+    }
+
+    for (constructor_signature, constructor) in sorted_constructors {
         let mut parameter_names: Vec<String> = vec![];
         let mut parameter_signatures: Vec<String> = vec![];
 
@@ -78,10 +85,10 @@ pub fn generate_all_constructors(env: &JNIEnv, target: &str) -> Result<String> {
             parameter_signatures.push(java_str_to_string(parameter_signature)?);
         }
 
-        let constructor_name = if constructor_index == 0 {
+        let constructor_name = if generated_constructors.is_empty() {
             "new".to_owned()
         } else {
-            format!("new{}", constructor_index)
+            format!("new_{}", generated_constructors.len())
         };
 
         generated_constructors.push(generate_constructor(

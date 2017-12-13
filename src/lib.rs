@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate log;
 extern crate jni;
-extern crate heck;
 
 #[macro_use]
 extern crate error_chain;

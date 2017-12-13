@@ -7,6 +7,7 @@ pub fn generate_target_code(env: &JNIEnv, target: &str) -> Result<String> {
     Ok(
         vec![
             format!("// Automatically generated code for '{}'\n", target),
+            "#![allow(non_snake_case)]\n".to_owned(),
             generate_imports(),
             generate_scala_object_getter(target),
             generate_all_constructors(env, target)?,
@@ -32,7 +33,7 @@ fn generate_scala_object_getter(target: &str) -> String {
     } else {
         vec![
             "#[allow(dead_code)]".to_owned(),
-            "pub fn get<'a>(env: &'a JNIEnv) -> Result<JObject<'a>> {".to_owned(),
+            "pub fn new<'a>(env: &'a JNIEnv) -> Result<JObject<'a>> {".to_owned(),
             "    env.get_static_field(".to_owned(),
             format!("        \"{}\",", target),
             "        \"MODULE$\",".to_owned(),

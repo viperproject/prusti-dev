@@ -30,5 +30,9 @@ pub fn generate_target_mod_code(targets: &Vec<String>) -> String {
         })
         .unwrap_or("// No modules".to_owned());
 
-    vec!["// Automatically generated code\n".to_owned(), modules_tree].join("\n") + "\n"
+    vec![
+        "// Automatically generated code\n".to_owned(),
+        "#![allow(non_snake_case)]\n".to_owned(),
+        modules_tree,
+    ].join("\n") + "\n"
 }
