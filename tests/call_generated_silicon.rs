@@ -60,7 +60,7 @@ fn test_call_silicon() {
         env.set_object_array_element(
             silicon_args_array.into_inner(),
             1,
-            From::from(env.new_string("/usr/local/Viper/z3/bin/z3")?),
+            From::from(env.new_string("/usr/bin/viper-z3")?),
         )?;
 
         env.set_object_array_element(
