@@ -9,9 +9,10 @@ use error_chain::ChainedError;
 fn main() {
     env_logger::init().expect("failed to initialize env_logger");
     let generated_dir = format!("{}/gen", env::var("CARGO_MANIFEST_DIR").unwrap());
+    let asm_jar = env::var("ASM_JAR").unwrap();
 
     WrapperGenerator::new()
-        .use_jar("../tmp/asm.jar")
+        .use_jar(&asm_jar)
         .wrap("java.lang.Integer")
         .generate(&generated_dir)
         .unwrap_or_else(|e| {
