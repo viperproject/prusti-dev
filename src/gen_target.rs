@@ -1,39 +1,18 @@
 use jni::JNIEnv;
 use errors::*;
-use utils::*;
 use gen_constructors::*;
 use gen_methods::*;
 
 pub fn generate_target_code(env: &JNIEnv, target: &str) -> Result<String> {
     Ok(
         vec![
-            generate_code_header(),
-            generate_opening_mod(target),
+            format!("// Automatically generated code for '{}'\n", target),
             generate_imports(),
             generate_scala_object_getter(target),
             generate_all_constructors(env, target)?,
             generate_all_methods(env, target)?,
-            generate_closing_mod(target),
         ].join("\n"),
     )
-}
-
-fn mod_list(target: &str) -> Vec<String> {
-    target
-        .to_owned()
-        .replace("$", "/object")
-        .split("/")
-        .map(|s| s.to_owned())
-        .collect()
-}
-
-fn generate_opening_mod(target: &str) -> String {
-    let mut code: Vec<String> = vec![];
-    let names = mod_list(target);
-    for name in &names {
-        code.push(format!("pub mod {} {{", java_class_name_to_rust(name)));
-    }
-    code.join(" ") + "\n"
 }
 
 fn generate_imports() -> String {
@@ -44,15 +23,6 @@ fn generate_imports() -> String {
         "use jni::errors::Result;",
         "use jni::sys::*;",
     ].join("\n") + "\n"
-}
-
-fn generate_closing_mod(target: &str) -> String {
-    let mut code: Vec<String> = vec![];
-    let names = mod_list(target);
-    for _ in 0..names.len() {
-        code.push("}".to_owned());
-    }
-    code.join(" ") + "\n"
 }
 
 fn generate_scala_object_getter(target: &str) -> String {

@@ -154,7 +154,7 @@ fn generate_method(
     code.push("#[allow(dead_code)]".to_owned());
     code.push(format!(
         "pub fn {}<'a>(",
-        java_name_to_rust(unique_method_name)
+        java_method_to_rust(unique_method_name)
     ));
     code.push("    env: &'a JNIEnv,".to_owned());
     code.push("    receiver: JObject,".to_owned());

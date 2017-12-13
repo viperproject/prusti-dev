@@ -1,11 +1,7 @@
-use jni::strings::JavaStr;
-use errors::*;
 use std::ffi::CStr;
 use heck::SnakeCase;
-
-pub fn generate_code_header() -> String {
-    "// Automatically generated code\n".into()
-}
+use jni::strings::JavaStr;
+use errors::*;
 
 pub fn get_return_signature(signature: &str) -> String {
     let splitted: Vec<&str> = signature.split(")").collect();
@@ -73,20 +69,16 @@ pub fn java_str_to_string(str: JavaStr) -> Result<String> {
     unsafe { Ok(CStr::from_ptr(str.get_raw()).to_str()?.to_owned()) }
 }
 
-pub fn java_class_name_to_rust(name: &str) -> String {
-    name.to_owned()
-        .replace("$", "/object")
-        .replace(".", "_")
-        .replace("/", "_")
-        .replace("__", "_")
-        .to_snake_case()
+pub fn java_target_components(fqn: &str) -> Vec<String> {
+    fqn.split("/")
+        .map(|s| java_class_or_package_to_rust(s))
+        .collect()
 }
 
-pub fn java_name_to_rust(name: &str) -> String {
-    name.to_owned()
-        .replace("$", "_")
-        .replace(".", "_")
-        .replace("/", "_")
-        .replace("__", "_")
-        .to_snake_case()
+pub fn java_method_to_rust(method_name: &str) -> String {
+    method_name.replace("$", "_").to_snake_case()
+}
+
+pub fn java_class_or_package_to_rust(class_name: &str) -> String {
+    class_name.replace("$", "_object").to_snake_case()
 }
