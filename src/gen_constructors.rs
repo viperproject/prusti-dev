@@ -114,18 +114,29 @@ fn generate_constructor(
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
-        "/// Wrapped constructor of class {}",
+        "/// Wrapped constructor of Java class `{}`",
         target.replace("/", ".")
     ));
     code.push("///".to_owned());
-    code.push("/// Parameters:".to_owned());
+    code.push("/// Type and Java signature of parameters:".to_owned());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(&par_sign);
-        code.push(format!("/// - {}: {} ({})", par_name, par_type, par_sign));
+        code.push(format!(
+            "/// - `{}`: `{}` (`{}`)",
+            par_name,
+            par_type,
+            par_sign
+        ));
     }
+
+    code.push("///".to_owned());
+    code.push(format!(
+        "/// Return type and Java signature: `JObject` (`L{};`)",
+        target
+    ));
 
     code.push("#[allow(dead_code)]".to_owned());
     code.push(format!("pub fn {}<'a>(", constructor_name));

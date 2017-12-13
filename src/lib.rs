@@ -10,6 +10,7 @@ mod macros;
 
 pub mod errors;
 mod utils;
+mod gen_object_getter;
 mod gen_constructors;
 mod gen_methods;
 mod gen_target;

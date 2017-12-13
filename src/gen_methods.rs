@@ -160,24 +160,29 @@ fn generate_method(
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
-        "/// Wrapped method '{}' of class {}",
+        "/// Wrapped method '{}' of Java class `{}`",
         method_name,
         target.replace("/", ".")
     ));
     code.push("///".to_owned());
-    code.push("/// Parameters:".to_owned());
+    code.push("/// Type and Java signature of parameters:".to_owned());
     code.push("///".to_owned());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(&par_sign);
-        code.push(format!("/// - {}: {} ({})", par_name, par_type, par_sign));
+        code.push(format!(
+            "/// - `{}`: `{}` (`{}`)",
+            par_name,
+            par_type,
+            par_sign
+        ));
     }
 
     code.push("///".to_owned());
     code.push(format!(
-        "/// Returns: {} ({})",
+        "/// Return type and Java signature: `{}` (`{}`)",
         return_type,
         return_signature
     ));
@@ -235,24 +240,29 @@ fn generate_static_method(
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
-        "/// Wrapped static method '{}' of class {}",
+        "/// Wrapped static method '{}' of Java class `{}`",
         method_name,
         target.replace("/", ".")
     ));
     code.push("///".to_owned());
-    code.push("/// Parameters:".to_owned());
+    code.push("/// Type and Java signature of parameters:".to_owned());
     code.push("///".to_owned());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(&par_sign);
-        code.push(format!("/// - {}: {} ({})", par_name, par_type, par_sign));
+        code.push(format!(
+            "/// - `{}`: `{}` (`{}`)",
+            par_name,
+            par_type,
+            par_sign
+        ));
     }
 
     code.push("///".to_owned());
     code.push(format!(
-        "/// Returns: {} ({})",
+        "/// Return type and Java signature: `{}` (`{}`)",
         return_type,
         return_signature
     ));
