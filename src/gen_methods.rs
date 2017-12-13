@@ -160,7 +160,7 @@ fn generate_method(
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
-        "/// Wrapped method '{}' of Java class `{}`",
+        "/// Calls method `{}` of Java class `{}`.",
         method_name,
         target.replace("/", ".")
     ));
@@ -240,7 +240,7 @@ fn generate_static_method(
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
-        "/// Wrapped static method '{}' of Java class `{}`",
+        "/// Calls static method `{}` of Java class `{}`.",
         method_name,
         target.replace("/", ".")
     ));

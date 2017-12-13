@@ -114,7 +114,7 @@ fn generate_constructor(
 
     let mut code: Vec<String> = vec![];
     code.push(format!(
-        "/// Wrapped constructor of Java class `{}`",
+        "/// Calls a constructor of Java class `{}`.",
         target.replace("/", ".")
     ));
     code.push("///".to_owned());

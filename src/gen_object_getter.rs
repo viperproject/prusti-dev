@@ -5,8 +5,13 @@ pub fn generate_scala_object_getter(target: &str) -> String {
     } else {
         vec![
             format!(
-                "/// Wrapped getter of Scala object {}",
+                "/// Returns the unique instance of the Scala object `{}`.",
                 target.replace("/", ".")
+            ),
+            "///".to_owned(),
+            format!(
+                "/// Return type and Java signature: `JObject` (`L{};`)",
+                target
             ),
             "#[allow(dead_code)]".to_owned(),
             "pub fn new<'a>(env: &'a JNIEnv) -> Result<JObject<'a>> {".to_owned(),
