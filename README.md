@@ -1,5 +1,4 @@
 jni-gen
 =======
 
-Generates wrappers around Java code using the `jni` crate
-
+Generates wrappers around Java and Scala code using the `jni` crate
