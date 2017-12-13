@@ -1,4 +1,4 @@
-extern crate jni_gen_systest;
+extern crate testcrate;
 extern crate jni;
 extern crate error_chain;
 
@@ -8,8 +8,8 @@ use jni::InitArgsBuilder;
 use jni::JNIVersion;
 use jni::objects::JObject;
 use jni::objects::JValue;
-use jni_gen_systest::print_exception;
-use jni_gen_systest::wrappers::*;
+use testcrate::print_exception;
+use testcrate::wrappers::*;
 
 #[test]
 fn test_jvm_builtin_classes() {
