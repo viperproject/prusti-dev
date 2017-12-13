@@ -11,7 +11,7 @@ fn main() {
     let generated_dir = format!("{}/gen", env::var("CARGO_MANIFEST_DIR").unwrap());
 
     WrapperGenerator::new()
-        .use_jar("/home/fpoli/opt/asm-3.3.1.jar")
+        .use_jar("../tmp/asm.jar")
         .wrap("java.lang.Integer")
         .generate(&generated_dir)
         .unwrap_or_else(|e| {
