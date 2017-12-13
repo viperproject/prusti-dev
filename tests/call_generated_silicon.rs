@@ -1,6 +1,5 @@
 extern crate viper_sys;
 extern crate jni;
-extern crate env_logger;
 extern crate error_chain;
 
 use std::fs;
@@ -10,16 +9,12 @@ use jni::InitArgsBuilder;
 use jni::JNIVersion;
 use jni::objects::JObject;
 use error_chain::ChainedError;
-use viper_sys::java::*;
-use viper_sys::scala::*;
-use viper_sys::jvm::*;
-use viper_sys::verifier::*;
-use viper_sys::viper_ast::*;
+use viper_sys::print_exception;
+use viper_sys::get_system_out;
+use viper_sys::wrappers::*;
 
 #[test]
 fn test_call_silicon() {
-    env_logger::init().expect("failed to initialize env_logger");
-
     let jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/")
         .unwrap()
         .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
@@ -28,7 +23,13 @@ fn test_call_silicon() {
     let jvm_args = InitArgsBuilder::new()
         .version(JNIVersion::V8)
         .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
+        .option("-verbose:gc")
         .option("-Xdebug")
+        //.option("-Xcheck:jni")
+        //.option("-XX:+CheckJNICalls")
+        //.option("-Djava.security.debug=all")
+        //.option("-verbose:jni")
+        //.option("-XX:+TraceJNICalls")
         .build()
         .unwrap_or_else(|e| {
             panic!(format!("{}", e.display_chain().to_string()));
@@ -43,8 +44,8 @@ fn test_call_silicon() {
         "failed to attach jvm thread",
     );
 
-    env.with_local_frame(16, || {
-        let silicon = new_silicon(&env)?;
+    env.with_local_frame(32, || {
+        let silicon = viper::silicon::Silicon::new(&env)?;
 
         let silicon_args_array = JObject::from(
             env.new_object_array(3, "java/lang/String", JObject::null())?,
@@ -68,35 +69,33 @@ fn test_call_silicon() {
             From::from(env.new_string("dummy-program.sil")?),
         )?;
 
-        let scala_predef = get_predef(&env)?;
+        let scala_predef = scala::Predef_object::new(&env)?;
 
-        let silicon_args_seq = wrap_ref_array(&env, scala_predef, silicon_args_array)?;
+        let silicon_args_seq = scala::Predef::wrapRefArray(&env, scala_predef, silicon_args_array)?;
 
-        parse_command_line(&env, silicon, silicon_args_seq)?;
+        viper::silicon::Silicon::parseCommandLine(&env, silicon, silicon_args_seq)?;
 
-        start(&env, silicon)?;
+        viper::silicon::Silicon::start(&env, silicon)?;
 
-        reset(&env, silicon)?;
-
-        let program = new_program(
+        let program = viper::silver::ast::Program::new(
             &env,
-            new_mutable_array_seq(&env, 0)?,
-            new_mutable_array_seq(&env, 0)?,
-            new_mutable_array_seq(&env, 0)?,
-            new_mutable_array_seq(&env, 0)?,
-            new_mutable_array_seq(&env, 0)?,
-            get_no_position(&env)?,
-            get_no_info(&env)?,
-            get_no_trafos(&env)?,
+            scala::collection::mutable::ArraySeq::new(&env, 0)?,
+            scala::collection::mutable::ArraySeq::new(&env, 0)?,
+            scala::collection::mutable::ArraySeq::new(&env, 0)?,
+            scala::collection::mutable::ArraySeq::new(&env, 0)?,
+            scala::collection::mutable::ArraySeq::new(&env, 0)?,
+            viper::silver::ast::NoPosition_object::new(&env)?,
+            viper::silver::ast::NoInfo_object::new(&env)?,
+            viper::silver::ast::NoTrafos_object::new(&env)?,
         )?;
 
-        let verification_result = verify(&env, silicon, program)?;
+        let verification_result = viper::silicon::Silicon::verify(&env, silicon, program)?;
 
         let system_out = get_system_out(&env)?;
 
-        println_object(&env, system_out, verification_result)?;
+        java::io::PrintStream::println_6(&env, system_out, verification_result)?;
 
-        stop(&env, silicon)?;
+        viper::silicon::Silicon::stop(&env, silicon)?;
 
         Ok(JObject::null())
 

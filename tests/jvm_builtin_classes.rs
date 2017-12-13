@@ -8,7 +8,7 @@ use jni::InitArgsBuilder;
 use jni::JNIVersion;
 use jni::objects::JObject;
 use jni::objects::JValue;
-use viper_sys::jvm::*;
+use viper_sys::print_exception;
 
 #[test]
 fn test_jvm_builtin_classes() {
@@ -30,11 +30,9 @@ fn test_jvm_builtin_classes() {
         panic!(format!("{}", e.display_chain().to_string()));
     });
 
-
     let env = jvm.attach_current_thread().expect(
         "failed to attach jvm thread",
     );
-
 
     for int_value in -10..10 {
         for array_length in 1..50 {
