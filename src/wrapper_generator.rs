@@ -7,19 +7,19 @@ use std::path::Path;
 use std::io::prelude::*;
 use errors::*;
 use utils::*;
-use gen_target::*;
+use gen_class::*;
 use gen_mod::*;
 
 pub struct WrapperGenerator {
     jars: Vec<String>,
-    targets: Vec<String>,
+    classs: Vec<String>,
 }
 
 impl Default for WrapperGenerator {
     fn default() -> Self {
         WrapperGenerator {
             jars: vec![],
-            targets: vec![],
+            classs: vec![],
         }
     }
 }
@@ -39,14 +39,14 @@ impl WrapperGenerator {
         self
     }
 
-    pub fn wrap(&mut self, target_path: &str) -> &mut Self {
-        self.targets.push(target_path.to_owned().replace(".", "/"));
+    pub fn wrap(&mut self, class_path: &str) -> &mut Self {
+        self.classs.push(class_path.to_owned().replace(".", "/"));
         self
     }
 
-    pub fn wrap_all(&mut self, target_paths: &Vec<&str>) -> &mut Self {
-        for target_path in target_paths {
-            self.targets.push(target_path.replace(".", "/").to_owned());
+    pub fn wrap_all(&mut self, class_paths: &Vec<&str>) -> &mut Self {
+        for class_path in class_paths {
+            self.classs.push(class_path.replace(".", "/").to_owned());
         }
         self
     }
@@ -66,7 +66,7 @@ impl WrapperGenerator {
         create_dir_all(out_dir)?;
 
         {
-            let mod_code = generate_target_mod_code(&self.targets);
+            let mod_code = generate_mod_code(&self.classs);
             let mod_path = format!("{}/mod.rs", out_dir);
             let mut mod_file = OpenOptions::new()
                 .read(true)
@@ -77,28 +77,32 @@ impl WrapperGenerator {
             mod_file.write_all(mod_code.as_bytes())?;
         }
 
-        for target in &self.targets {
-            debug!("Generate wrapper for '{}'", target);
-            let target_code = generate_target_code(&env, &target)?;
-            let target_rel_mod_path = java_target_components(&target).join("/");
-            let target_path = Path::new(out_dir)
-                .join(target_rel_mod_path)
-                .with_extension("rs");
+        for class in &self.classs {
+            debug!("Generate wrapper for '{}'", class);
+            let class_code = generate_class_code(&env, &class)?;
+            let mut class_components = java_class_components(&class);
+            let last_index = class_components.len() - 1;
+            let class_name = class_components.remove(last_index);
+            let class_rel_mod_path = class_components.join("/");
+            let class_path = Path::new(out_dir).join(class_rel_mod_path).join(format!(
+                "class_{}.rs",
+                class_name
+            ));
             debug!(
                 "Write wrapper for '{}' to '{}'",
-                target,
-                target_path.display()
+                class,
+                class_path.display()
             );
-            if let Some(parent_path) = target_path.parent() {
+            if let Some(parent_path) = class_path.parent() {
                 create_dir_all(parent_path)?;
             }
-            let mut target_file = OpenOptions::new()
+            let mut class_file = OpenOptions::new()
                 .read(true)
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open(&target_path)?;
-            target_file.write_all(target_code.as_bytes())?;
+                .open(&class_path)?;
+            class_file.write_all(class_code.as_bytes())?;
         }
 
         Ok(())

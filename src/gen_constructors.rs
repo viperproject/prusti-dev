@@ -4,10 +4,10 @@ use jni::objects::JValue;
 use errors::*;
 use utils::*;
 
-pub fn generate_all_constructors(env: &JNIEnv, target: &str) -> Result<String> {
+pub fn generate_all_constructors(env: &JNIEnv, class: &str) -> Result<String> {
     let mut generated_constructors = vec![];
 
-    let clazz = env.find_class(target)?;
+    let clazz = env.find_class(class)?;
 
     let constructors = env.call_method(
         clazz.into(),
@@ -86,13 +86,13 @@ pub fn generate_all_constructors(env: &JNIEnv, target: &str) -> Result<String> {
         }
 
         let constructor_name = if generated_constructors.is_empty() {
-            "new".to_owned()
+            "construct".to_owned()
         } else {
-            format!("new_{}", generated_constructors.len())
+            format!("construct_{}", generated_constructors.len())
         };
 
         generated_constructors.push(generate_constructor(
-            target,
+            class,
             &constructor_name,
             &constructor_signature,
             &parameter_names,
@@ -104,7 +104,7 @@ pub fn generate_all_constructors(env: &JNIEnv, target: &str) -> Result<String> {
 }
 
 fn generate_constructor(
-    target: &str,
+    class: &str,
     constructor_name: &str,
     constructor_signature: &str,
     parameter_names: &Vec<String>,
@@ -115,7 +115,7 @@ fn generate_constructor(
     let mut code: Vec<String> = vec![];
     code.push(format!(
         "/// Calls a constructor of Java class `{}`.",
-        target.replace("/", ".")
+        class.replace("/", ".")
     ));
     code.push("///".to_owned());
     code.push("/// Type and Java signature of parameters:".to_owned());
@@ -135,12 +135,12 @@ fn generate_constructor(
     code.push("///".to_owned());
     code.push(format!(
         "/// Return type and Java signature: `JObject` (`L{};`)",
-        target
+        class
     ));
 
     code.push("#[allow(dead_code)]".to_owned());
-    code.push(format!("pub fn {}<'a>(", constructor_name));
-    code.push("    env: &'a JNIEnv,".to_owned());
+    code.push(format!("pub fn {}(", constructor_name));
+    code.push("    &self,".to_owned());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -150,8 +150,8 @@ fn generate_constructor(
     }
 
     code.push(") -> Result<JObject<'a>> {".to_owned());
-    code.push("    env.new_object(".to_owned());
-    code.push(format!("        \"{}\",", target));
+    code.push("    self.env.new_object(".to_owned());
+    code.push(format!("        \"{}\",", class));
     code.push(format!("        \"{}\",", constructor_signature));
     code.push("        &[".to_owned());
 

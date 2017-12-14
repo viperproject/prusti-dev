@@ -68,7 +68,7 @@ pub fn java_str_to_string(str: JavaStr) -> Result<String> {
     unsafe { Ok(CStr::from_ptr(str.get_raw()).to_str()?.to_owned()) }
 }
 
-pub fn java_target_components(fqn: &str) -> Vec<String> {
+pub fn java_class_components(fqn: &str) -> Vec<String> {
     fqn.split("/")
         .map(|s| java_class_or_package_to_rust(s))
         .collect()

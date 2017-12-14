@@ -5,11 +5,11 @@ use jni::objects::JValue;
 use errors::*;
 use utils::*;
 
-pub fn generate_all_methods(env: &JNIEnv, target: &str) -> Result<String> {
+pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
     let mut generated_methods = vec![];
     let mut used_method_counter = HashMap::new();
 
-    let clazz = env.find_class(target)?;
+    let clazz = env.find_class(class)?;
 
     let methods = env.call_method(
         clazz.into(),
@@ -55,8 +55,7 @@ pub fn generate_all_methods(env: &JNIEnv, target: &str) -> Result<String> {
 
     // Iterate on the ordered list of methods
     for (&(ref method_name, ref method_signature), method) in sorted_methods.iter() {
-        let method_modifier = env.call_method(clazz.into(), "getModifiers", "()I", &[])?
-            .i()?;
+        let method_modifier = env.call_method(*method, "getModifiers", "()I", &[])?.i()?;
 
         let is_static = env.call_static_method(
             "java.lang.reflect.Modifier".replace(".", "/"),
@@ -115,15 +114,15 @@ pub fn generate_all_methods(env: &JNIEnv, target: &str) -> Result<String> {
             Some(x) => *x,
         };
         let unique_method_name = if counter == 0 {
-            method_name.to_owned()
+            format!("call_{}", method_name)
         } else {
-            format!("{}_{}", method_name, counter)
+            format!("call_{}_{}", method_name, counter)
         };
         used_method_counter.insert(method_name.clone(), counter + 1);
 
         if is_static {
             generated_methods.push(generate_static_method(
-                target,
+                class,
                 method_name,
                 &unique_method_name,
                 &method_signature,
@@ -132,7 +131,7 @@ pub fn generate_all_methods(env: &JNIEnv, target: &str) -> Result<String> {
             ));
         } else {
             generated_methods.push(generate_method(
-                target,
+                class,
                 method_name,
                 &unique_method_name,
                 &method_signature,
@@ -147,7 +146,7 @@ pub fn generate_all_methods(env: &JNIEnv, target: &str) -> Result<String> {
 
 
 fn generate_method(
-    target: &str,
+    class: &str,
     method_name: &str,
     unique_method_name: &str,
     method_signature: &str,
@@ -162,7 +161,7 @@ fn generate_method(
     code.push(format!(
         "/// Calls method `{}` of Java class `{}`.",
         method_name,
-        target.replace("/", ".")
+        class.replace("/", ".")
     ));
     code.push("///".to_owned());
     code.push("/// Type and Java signature of parameters:".to_owned());
@@ -189,10 +188,10 @@ fn generate_method(
 
     code.push("#[allow(dead_code)]".to_owned());
     code.push(format!(
-        "pub fn {}<'a>(",
+        "pub fn {}(",
         java_method_to_rust(unique_method_name)
     ));
-    code.push("    env: &'a JNIEnv,".to_owned());
+    code.push("    &self,".to_owned());
     code.push("    receiver: JObject,".to_owned());
 
     for i in 0..parameter_names.len() {
@@ -203,7 +202,7 @@ fn generate_method(
     }
 
     code.push(format!(") -> Result<{}> {{", return_type));
-    code.push("    env.call_method(".to_owned());
+    code.push("    self.env.call_method(".to_owned());
     code.push("        receiver,".to_owned());
     code.push(format!("        \"{}\",", method_name));
     code.push(format!("        \"{}\",", method_signature));
@@ -227,7 +226,7 @@ fn generate_method(
 }
 
 fn generate_static_method(
-    target: &str,
+    class: &str,
     method_name: &str,
     unique_method_name: &str,
     method_signature: &str,
@@ -242,7 +241,7 @@ fn generate_static_method(
     code.push(format!(
         "/// Calls static method `{}` of Java class `{}`.",
         method_name,
-        target.replace("/", ".")
+        class.replace("/", ".")
     ));
     code.push("///".to_owned());
     code.push("/// Type and Java signature of parameters:".to_owned());
@@ -269,10 +268,10 @@ fn generate_static_method(
 
     code.push("#[allow(dead_code)]".to_owned());
     code.push(format!(
-        "pub fn {}<'a>(",
+        "pub fn {}(",
         java_method_to_rust(unique_method_name)
     ));
-    code.push("    env: &'a JNIEnv,".to_owned());
+    code.push("    &self,".to_owned());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -282,8 +281,8 @@ fn generate_static_method(
     }
 
     code.push(format!(") -> Result<{}> {{", return_type));
-    code.push("    env.call_static_method(".to_owned());
-    code.push(format!("        \"{}\",", target));
+    code.push("    self.env.call_static_method(".to_owned());
+    code.push(format!("        \"{}\",", class));
     code.push(format!("        \"{}\",", method_name));
     code.push(format!("        \"{}\",", method_signature));
     code.push("        &[".to_owned());

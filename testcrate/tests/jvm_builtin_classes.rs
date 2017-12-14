@@ -7,7 +7,6 @@ use jni::JavaVM;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;
 use jni::objects::JObject;
-use jni::objects::JValue;
 use testcrate::print_exception;
 use testcrate::wrappers::*;
 
@@ -38,7 +37,7 @@ fn test_jvm_builtin_classes() {
     for int_value in -10..10 {
         for array_length in 1..50 {
             env.with_local_frame(16, || {
-                let integer_value = java::lang::Integer::new(&env, int_value)?;
+                let integer_value = java::lang::Integer::new(&env).construct(int_value)?;
 
                 let int_array = JObject::from(env.new_object_array(
                     array_length,
@@ -46,13 +45,7 @@ fn test_jvm_builtin_classes() {
                     integer_value,
                 )?);
 
-                let result = env.call_static_method(
-                    "java/util/Arrays",
-                    "binarySearch",
-                    "([Ljava/lang/Object;Ljava/lang/Object;)I",
-                    &[JValue::Object(int_array), JValue::Object(integer_value)],
-                )?
-                    .i()?;
+                let result = java::util::Arrays::new(&env).call_binarySearch_14(int_array, integer_value)?;
 
                 assert!(0 <= result && result < array_length);
 

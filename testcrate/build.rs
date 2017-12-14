@@ -14,6 +14,7 @@ fn main() {
     WrapperGenerator::new()
         .use_jar(&asm_jar)
         .wrap("java.lang.Integer")
+        .wrap("java.util.Arrays")
         .generate(&generated_dir)
         .unwrap_or_else(|e| {
             panic!(format!("{}", e.display_chain().to_string()));
