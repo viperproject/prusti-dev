@@ -34,6 +34,7 @@ fn generate_imports() -> String {
 fn generate_struct(class: &str) -> String {
     let class_name = java_class_components(class).last().unwrap().to_owned();
     vec![
+        "#[allow(non_camel_case_types)]".to_owned(),
         format!("pub struct {}<'a> {{", class_name),
         "    env: &'a JNIEnv<'a>,".to_owned(),
         "}".to_owned(),
