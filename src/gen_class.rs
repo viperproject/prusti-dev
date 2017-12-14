@@ -26,7 +26,7 @@ fn generate_imports() -> String {
         "use jni::JNIEnv;",
         "use jni::objects::JObject;",
         "use jni::objects::JValue;",
-        "use jni::errors::Result;",
+        "use jni::errors::Result as JNIResult;",
         "use jni::sys::*;",
     ].join("\n") + "\n"
 }

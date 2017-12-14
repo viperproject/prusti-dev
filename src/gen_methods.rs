@@ -201,7 +201,7 @@ fn generate_method(
         code.push(format!("    {}: {},", par_name, par_type));
     }
 
-    code.push(format!(") -> Result<{}> {{", return_type));
+    code.push(format!(") -> JNIResult<{}> {{", return_type));
     code.push("    self.env.call_method(".to_owned());
     code.push("        receiver,".to_owned());
     code.push(format!("        \"{}\",", method_name));
@@ -280,7 +280,7 @@ fn generate_static_method(
         code.push(format!("    {}: {},", par_name, par_type));
     }
 
-    code.push(format!(") -> Result<{}> {{", return_type));
+    code.push(format!(") -> JNIResult<{}> {{", return_type));
     code.push("    self.env.call_static_method(".to_owned());
     code.push(format!("        \"{}\",", class));
     code.push(format!("        \"{}\",", method_name));

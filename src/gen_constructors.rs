@@ -149,7 +149,7 @@ fn generate_constructor(
         code.push(format!("    {}: {},", par_name, par_type));
     }
 
-    code.push(") -> Result<JObject<'a>> {".to_owned());
+    code.push(") -> JNIResult<JObject<'a>> {".to_owned());
     code.push("    self.env.new_object(".to_owned());
     code.push(format!("        \"{}\",", class));
     code.push(format!("        \"{}\",", constructor_signature));
