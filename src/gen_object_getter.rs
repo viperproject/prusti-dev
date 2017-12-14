@@ -14,8 +14,8 @@ pub fn generate_scala_object_getter(class: &str) -> String {
                 class
             ),
             "#[allow(dead_code)]".to_owned(),
-            "pub fn new<'a>(env: &'a JNIEnv) -> Result<JObject<'a>> {".to_owned(),
-            "    env.get_static_field(".to_owned(),
+            "pub fn get(&self) -> Result<JObject<'a>> {".to_owned(),
+            "    self.env.get_static_field(".to_owned(),
             format!("        \"{}\",", class),
             "        \"MODULE$\",".to_owned(),
             format!("        \"L{};\",", class),
