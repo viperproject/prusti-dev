@@ -14,7 +14,7 @@ use viper_sys::get_system_out;
 use viper_sys::wrappers::*;
 
 #[test]
-fn test_call_silicon() {
+fn verify_empty_program() {
     let jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/")
         .unwrap()
         .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
