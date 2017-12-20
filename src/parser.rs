@@ -15,6 +15,9 @@ use syntax::ext::quote::rt::ExtParseUtils;
 use specifications::{SpecType, SpecID, RawSpec};
 
 
+/// A data structure that extracts raw preconditions, postconditions,
+/// and loop invariants. Each original assertion gets a unique `SpecID`
+/// that allows to map it back to its original location.
 pub struct SpecParser {
     last_id: SpecID,
     raw_specs: HashMap<SpecID, RawSpec>,
@@ -92,6 +95,7 @@ impl RawSpec {
 
 impl SpecParser {
 
+    /// Create new spec parser.
     pub fn new() -> SpecParser {
         SpecParser {
             last_id: SpecID::new(),
@@ -99,10 +103,13 @@ impl SpecParser {
         }
     }
 
+    /// Generate a fresh specification ID (guaranteed to be unique).
     pub fn get_new_id(&mut self) -> SpecID {
         self.last_id.inc()
     }
 
+    /// Register the raw specification and return the ID under which it
+    /// was stored.
     pub fn register_spec(&mut self, spec: RawSpec) -> SpecID {
         let new_id = self.get_new_id();
         self.raw_specs.insert(new_id, spec);

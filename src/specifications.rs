@@ -30,13 +30,19 @@ use syntax::codemap::Span;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A specification type.
 pub enum SpecType {
+    /// Precondition of a procedure.
     Precondition,
+    /// Postcondition of a procedure.
     Postcondition,
+    /// Loop invariant.
     Invariant,
 }
 
 #[derive(Debug)]
+/// A conversion from string into specification type error.
 pub enum TryFromStringError {
+    /// Reported when the string being converted is not one of the
+    /// following: `requires`, `ensures`, `invariant`.
     UnknownSpecificationType,
 }
 
@@ -60,13 +66,16 @@ impl<'a> TryFrom<&'a str> for SpecType {
 pub struct SpecID(u64);
 
 impl SpecID {
+    /// Constructor.
     pub fn new() -> SpecID {
         SpecID(100)
     }
+    /// Increment ID and return a copy of the new value.
     pub fn inc(&mut self) -> SpecID {
         self.0 += 1;
         SpecID(self.0)
     }
+    /// Cast ID into a number.
     pub fn to_number(&self) -> u64 {
         self.0
     }
@@ -82,7 +91,10 @@ impl ToString for SpecID {
 #[derive(Debug, Clone)]
 /// A specification AST extracted from the attribute.
 pub struct RawSpec {
+    /// Type of this specification.
     pub spec_type: SpecType,
+    /// Specification parsed as AST.
     pub expr: ptr::P<ast::Expr>,
+    /// The original location of the specification.
     pub span: Span,
 }

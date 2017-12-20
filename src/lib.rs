@@ -34,6 +34,8 @@
 //! be used by the verification tool to query Prusti for all needed
 //! information. This trait is defined in the crate `prusti_interface`.
 
+#![warn(missing_docs)]
+
 #![feature(plugin_registrar)]
 #![feature(quote)]
 #![feature(box_syntax)]
@@ -101,6 +103,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     }
 }
 
+/// Register Prusti plugin.
 #[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry) {
     env_logger::init().unwrap();
