@@ -179,7 +179,7 @@ impl SpecParser {
                         item.span,
                         statements,
                         ),
-                    ).unwrap();
+                    ).into_inner();
                 let spec_item_id = self.get_new_id();
                 let spec_item_id_string = spec_item_id.to_string();
                 mem::replace(&mut spec_item.attrs, vec![
@@ -238,7 +238,7 @@ impl SpecParser {
                                  item: Annotatable) -> Vec<Annotatable> {
         trace!("[expand_specifications] enter");
         let annotatables = if let Annotatable::Item(item) = item {
-            let mut item = item.unwrap();
+            let mut item = item.into_inner();
             let items = self.expand_item_specifications(cx, attr, item);
             items.into_iter().map(|item| Annotatable::Item(ptr::P(item))).collect()
         } else {
@@ -273,7 +273,7 @@ impl<'a, 'cx: 'a> LoopInvariantRewriter<'a, 'cx> {
     fn rewrite_block(&mut self, block: ptr::P<ast::Block>,
                      invariants: Vec<RawSpec>) -> ptr::P<ast::Block> {
         debug!("invariants: {:?}", invariants);
-        let mut block = block.unwrap();
+        let mut block = block.into_inner();
         if !invariants.is_empty() {
             let assertions: Vec<ast::Stmt> = invariants.into_iter().map(|spec| {
                 let assertion_id = self.parser.register_spec(spec.clone()).to_number();
@@ -287,7 +287,7 @@ impl<'a, 'cx: 'a> LoopInvariantRewriter<'a, 'cx> {
                         $assertions
                     }
                 }
-            ).unwrap();
+            ).into_inner();
             let loop_id = self.parser.get_new_id();
             let loop_id_string = format!(" = \"{}\"", loop_id.to_number());
             let mut builder = syntax::tokenstream::TokenStreamBuilder::new();
@@ -315,7 +315,7 @@ impl<'a, 'cx: 'a> fold::Folder for LoopInvariantRewriter<'a, 'cx> {
 
     fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
         debug!("expr: {}", syntax::print::pprust::expr_to_string(&expr));
-        let expr = expr.unwrap();
+        let expr = expr.into_inner();
         let expr = {
             if let ast::ExprKind::While(condition, block, ident) = expr.node {
                 let invariants: Vec<_> = expr.attrs.into_iter().map(
