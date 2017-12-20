@@ -7,6 +7,7 @@ LOG_LEVEL=error
 run:
 	RUST_LOG=prusti=${LOG_LEVEL} ${RUSTC} \
 		-L target/debug/ \
+		--extern prusti_contracts=$(wildcard target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z mir-emit-validate=1 \
 		-Z extra-plugins=prusti \
 		-Z borrowck=mir \

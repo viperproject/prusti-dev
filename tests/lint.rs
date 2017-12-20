@@ -1,5 +1,5 @@
-#![feature(custom_attribute)]
-#![feature(attr_literals)]
+extern crate prusti_contracts;
+
 
 struct MyStruct {
     field: i32,
