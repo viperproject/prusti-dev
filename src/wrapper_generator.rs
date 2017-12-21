@@ -85,7 +85,7 @@ impl WrapperGenerator {
             let class_name = class_components.remove(last_index);
             let class_rel_mod_path = class_components.join("/");
             let class_path = Path::new(out_dir).join(class_rel_mod_path).join(format!(
-                "class_{}.rs",
+                "{}_wrapper.rs",
                 class_name
             ));
             debug!(

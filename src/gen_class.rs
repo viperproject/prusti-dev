@@ -47,7 +47,7 @@ fn generate_begin_impl(class: &str) -> String {
         format!("impl<'a> {}<'a> {{", class_name),
         "".to_owned(),
         "#[allow(dead_code)]".to_owned(),
-        "pub fn new(env: &'a JNIEnv<'a>) -> Self {".to_owned(),
+        "pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_owned(),
         format!("    {}{{ env: env }}", class_name),
         "}".to_owned(),
     ].join("\n") + "\n"

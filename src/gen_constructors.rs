@@ -86,9 +86,9 @@ pub fn generate_all_constructors(env: &JNIEnv, class: &str) -> Result<String> {
         }
 
         let constructor_name = if generated_constructors.is_empty() {
-            "construct".to_owned()
+            "new".to_owned()
         } else {
-            format!("construct_{}", generated_constructors.len())
+            format!("new_{}", generated_constructors.len())
         };
 
         generated_constructors.push(generate_constructor(

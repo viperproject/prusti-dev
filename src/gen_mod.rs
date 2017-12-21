@@ -16,8 +16,8 @@ pub fn generate_mod_code(classes: &Vec<String>) -> String {
             for (name, opt_rec_result) in modules {
                 match opt_rec_result {
                     None => {
-                        res.push(format!("mod class_{};\n", name));
-                        res.push(format!("pub use self::class_{}::*;\n", name));
+                        res.push(format!("mod {}_wrapper;\n", name));
+                        res.push(format!("pub use self::{}_wrapper::*;\n", name));
                     }
                     Some(rec_result) => {
                         res.push(format!("pub mod {} {{\n", name));
