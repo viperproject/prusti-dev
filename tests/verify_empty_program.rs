@@ -9,7 +9,6 @@ use jni::InitArgsBuilder;
 use jni::JNIVersion;
 use jni::objects::JObject;
 use error_chain::ChainedError;
-use viper_sys::print_exception;
 use viper_sys::get_system_out;
 use viper_sys::wrappers::*;
 
@@ -45,7 +44,7 @@ fn verify_empty_program() {
     );
 
     env.with_local_frame(32, || {
-        let silicon = viper::silicon::Silicon::new(&env).construct()?;
+        let silicon = viper::silicon::Silicon::with(&env).new()?;
 
         let silicon_args_array = JObject::from(
             env.new_object_array(3, "java/lang/String", JObject::null())?,
@@ -69,46 +68,54 @@ fn verify_empty_program() {
             From::from(env.new_string("dummy-program.sil")?),
         )?;
 
-        let silicon_args_seq = scala::Predef::new(&env).call_wrapRefArray(
+        let silicon_args_seq = scala::Predef::with(&env).call_wrapRefArray(
             silicon_args_array,
         )?;
 
-        viper::silicon::Silicon::new(&env).call_parseCommandLine(
+        viper::silicon::Silicon::with(&env).call_parseCommandLine(
             silicon,
             silicon_args_seq,
         )?;
 
-        viper::silicon::Silicon::new(&env).call_start(silicon)?;
+        viper::silicon::Silicon::with(&env).call_start(silicon)?;
 
-        let program = viper::silver::ast::Program::new(&env).construct(
-            scala::collection::mutable::ArraySeq::new(&env).construct(0)?,
-            scala::collection::mutable::ArraySeq::new(&env).construct(0)?,
-            scala::collection::mutable::ArraySeq::new(&env).construct(0)?,
-            scala::collection::mutable::ArraySeq::new(&env).construct(0)?,
-            scala::collection::mutable::ArraySeq::new(&env).construct(0)?,
-            viper::silver::ast::NoPosition_object::new(&env).get()?,
-            viper::silver::ast::NoInfo_object::new(&env).get()?,
-            viper::silver::ast::NoTrafos_object::new(&env).get()?,
+        let program = viper::silver::ast::Program::with(&env).new(
+            scala::collection::mutable::ArraySeq::with(&env).new(0)?,
+            scala::collection::mutable::ArraySeq::with(&env).new(0)?,
+            scala::collection::mutable::ArraySeq::with(&env).new(0)?,
+            scala::collection::mutable::ArraySeq::with(&env).new(0)?,
+            scala::collection::mutable::ArraySeq::with(&env).new(0)?,
+            viper::silver::ast::NoPosition_object::with(&env)
+                .singleton()?,
+            viper::silver::ast::NoInfo_object::with(&env).singleton()?,
+            viper::silver::ast::NoTrafos_object::with(&env).singleton()?,
         )?;
 
-        let verification_result = viper::silicon::Silicon::new(&env).call_verify(
+        let verification_result = viper::silicon::Silicon::with(&env).call_verify(
             silicon,
             program,
         )?;
 
         let system_out = get_system_out(&env)?;
 
-        java::io::PrintStream::new(&env).call_println_6(
+        java::io::PrintStream::with(&env).call_println_6(
             system_out,
             verification_result,
         )?;
 
-        viper::silicon::Silicon::new(&env).call_stop(silicon)?;
+        viper::silicon::Silicon::with(&env).call_stop(silicon)?;
 
         Ok(JObject::null())
 
     }).unwrap_or_else(|e| {
-            print_exception(&env);
+            let exception_occurred = env.exception_check().unwrap_or_else(
+                |e| panic!(format!("{:?}", e)),
+            );
+            if exception_occurred {
+                env.exception_describe().unwrap_or_else(
+                    |e| panic!(format!("{:?}", e)),
+                );
+            }
             panic!(format!("{}", e.display_chain().to_string()));
         });
 }
