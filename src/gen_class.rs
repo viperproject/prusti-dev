@@ -10,6 +10,7 @@ pub fn generate_class_code(env: &JNIEnv, class: &str) -> Result<String> {
         vec![
             format!("//! Automatically generated code for '{}'\n", class),
             "#![allow(non_snake_case)]\n".to_owned(),
+            "#![allow(unused_imports)]\n".to_owned(),
             generate_imports(),
             generate_struct(class),
             generate_begin_impl(class),

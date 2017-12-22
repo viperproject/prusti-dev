@@ -75,7 +75,8 @@ pub fn java_class_components(fqn: &str) -> Vec<String> {
 }
 
 pub fn java_method_to_rust(method_name: &str) -> String {
-    method_name.replace("$", "_")
+    method_name.replace("_", "__").replace("$", "_dollar_")
+    // If needed, replace other charachters with "_{something}_"
 }
 
 pub fn java_class_or_package_to_rust(class_name: &str) -> String {

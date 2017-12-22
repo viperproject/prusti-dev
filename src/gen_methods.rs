@@ -113,10 +113,10 @@ pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
             None => 0,
             Some(x) => *x,
         };
-        let unique_method_name = if counter == 0 {
-            format!("call_{}", method_name)
+        let rust_method_name = if counter == 0 {
+            format!("call_{}", java_method_to_rust(method_name))
         } else {
-            format!("call_{}_{}", method_name, counter)
+            format!("call_{}_{}", java_method_to_rust(method_name), counter)
         };
         used_method_counter.insert(method_name.clone(), counter + 1);
 
@@ -124,7 +124,7 @@ pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
             generated_methods.push(generate_static_method(
                 class,
                 method_name,
-                &unique_method_name,
+                &rust_method_name,
                 &method_signature,
                 &parameter_names,
                 &parameter_signatures,
@@ -133,7 +133,7 @@ pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
             generated_methods.push(generate_method(
                 class,
                 method_name,
-                &unique_method_name,
+                &rust_method_name,
                 &method_signature,
                 &parameter_names,
                 &parameter_signatures,
@@ -148,7 +148,7 @@ pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
 fn generate_method(
     class: &str,
     method_name: &str,
-    unique_method_name: &str,
+    rust_method_name: &str,
     method_signature: &str,
     parameter_names: &Vec<String>,
     parameter_signatures: &Vec<String>,
@@ -187,10 +187,7 @@ fn generate_method(
     ));
 
     code.push("#[allow(dead_code)]".to_owned());
-    code.push(format!(
-        "pub fn {}(",
-        java_method_to_rust(unique_method_name)
-    ));
+    code.push(format!("pub fn {}(", rust_method_name));
     code.push("    &self,".to_owned());
     code.push("    receiver: JObject,".to_owned());
 
@@ -228,7 +225,7 @@ fn generate_method(
 fn generate_static_method(
     class: &str,
     method_name: &str,
-    unique_method_name: &str,
+    rust_method_name: &str,
     method_signature: &str,
     parameter_names: &Vec<String>,
     parameter_signatures: &Vec<String>,
@@ -267,10 +264,7 @@ fn generate_static_method(
     ));
 
     code.push("#[allow(dead_code)]".to_owned());
-    code.push(format!(
-        "pub fn {}(",
-        java_method_to_rust(unique_method_name)
-    ));
+    code.push(format!("pub fn {}(", rust_method_name));
     code.push("    &self,".to_owned());
 
     for i in 0..parameter_names.len() {
