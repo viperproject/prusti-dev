@@ -36,6 +36,7 @@ fn main() {
             "scala.collection.mutable.ListBuffer",
             "scala.collection.immutable.HashMap",
             // Viper
+            "viper.silicon.interfaces.Failure",
             "viper.silicon.Silicon",
             "viper.silver.ast.Add",
             "viper.silver.ast.AddOp$",
@@ -130,6 +131,7 @@ fn main() {
             "viper.silver.ast.PermMinus",
             "viper.silver.ast.PermMul",
             "viper.silver.ast.PermSub",
+            "viper.silver.ast.Position",
             "viper.silver.ast.Predicate",
             "viper.silver.ast.PredicateAccess",
             "viper.silver.ast.PredicateAccessPredicate",
@@ -156,6 +158,9 @@ fn main() {
             "viper.silver.ast.utility.QuantifiedPermissions$",
             "viper.silver.ast.While",
             "viper.silver.ast.WildcardPerm",
+            "viper.silver.verifier.ErrorMessage",
+            "viper.silver.verifier.ErrorReason",
+            "viper.silver.verifier.VerificationError",
         ])
         .generate(&generated_dir)
         .unwrap_or_else(|e| {
