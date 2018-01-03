@@ -30,8 +30,9 @@ impl RawSpec {
         let spec_expr = match &attr.node {
             &ast::MetaItemKind::NameValue(ref lit) => {
                 match lit.node {
-                    ast::LitKind::Str(ref lit, _) => {
-                        cx.parse_expr(lit.to_string().clone())
+                    ast::LitKind::Str(ref sym, _) => {
+                        let expr = cx.parse_expr(sym.to_string().clone());
+                        fix_spans(expr, lit.span)
                     },
                     _ => {panic!("Unrecognized attribute literal: {:?}", lit.node)},
                 }
@@ -69,7 +70,8 @@ impl RawSpec {
                             &token::Lit::Str_(ref name) => {
                                 let name: &str = &name.as_str();
                                 let spec = String::from(name);
-                                cx.parse_expr(spec.clone())
+                                let expr = cx.parse_expr(spec.clone());
+                                fix_spans(expr, attr.span)
                             },
                             _ => {
                                 unreachable!();
@@ -252,6 +254,36 @@ impl SpecParser {
     pub fn check_ast(&self) {
         unimplemented!()
     }
+}
+
+fn fix_spans(expr: ptr::P<ast::Expr>, base_span: Span) -> ptr::P<ast::Expr> {
+    let mut rewriter = SpanRewriter::new(expr.span, base_span);
+    rewriter.fold_expr(expr)
+}
+
+struct SpanRewriter {
+    old_base_pos: syntax::codemap::BytePos,
+    new_base_pos: syntax::codemap::BytePos,
+}
+
+impl SpanRewriter {
+    pub fn new(old_base_span: Span, new_base_span: Span) -> SpanRewriter {
+        SpanRewriter {
+            old_base_pos: old_base_span.lo(),
+            new_base_pos: new_base_span.lo(),
+        }
+    }
+}
+
+impl fold::Folder for SpanRewriter {
+
+    fn new_span(&mut self, sp: Span) -> Span {
+        let one = syntax::codemap::BytePos(1);
+        let lo = sp.lo() + self.new_base_pos - self.old_base_pos + one;
+        let hi = sp.hi() + self.new_base_pos - self.old_base_pos + one;
+        Span::new(lo, hi, sp.ctxt())
+    }
+
 }
 
 struct LoopInvariantRewriter<'a, 'cx: 'a> {
