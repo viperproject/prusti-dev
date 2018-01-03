@@ -12,13 +12,17 @@ run:
 		-Z extra-plugins=prusti \
 		-Z borrowck=mir \
 		-Z nll \
-		tests/lint.rs
+		tests/typecheck/fail/specification_type_error.rs
 
 build:
 	cargo build
 
 test:
 	cargo test
+
+clean:
+	cargo clean
+	rm -f lint
 
 doc:
 	cargo rustdoc -- \
