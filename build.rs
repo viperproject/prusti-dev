@@ -35,6 +35,7 @@ fn main() {
             "scala.collection.mutable.ArraySeq",
             "scala.collection.mutable.ListBuffer",
             "scala.collection.immutable.HashMap",
+            "scala.collection.Seq",
             // Viper
             "viper.silicon.interfaces.Failure",
             "viper.silicon.Silicon",
