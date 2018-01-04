@@ -83,6 +83,7 @@ fn main() {
             "viper.silver.ast.Goto",
             "viper.silver.ast.GtCmp",
             "viper.silver.ast.GtOp$",
+            "viper.silver.ast.HasIdentifier",
             "viper.silver.ast.IdentifierPosition",
             "viper.silver.ast.If",
             "viper.silver.ast.Implies",
