@@ -3,7 +3,6 @@ extern crate jni;
 
 use jni::AttachGuard;
 use ast_factory::*;
-use error_manager::ErrorManager;
 use verifier::Verifier;
 use verifier::state;
 
@@ -18,10 +17,6 @@ impl<'a> VerificationContext<'a> {
 
     pub fn new_ast_factory(&self) -> AstFactory {
         AstFactory::new(&self.env)
-    }
-
-    pub fn new_error_manager(&self) -> ErrorManager {
-        ErrorManager::default()
     }
 
     pub fn new_verifier(&self) -> Verifier<state::Started> {
