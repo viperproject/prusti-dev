@@ -26,6 +26,7 @@ fn main() {
             "java.lang.System",
             "java.io.PrintStream",
             "java.math.BigInteger",
+            "java.nio.file.Path",
             "java.nio.file.Paths",
             // Scala
             "scala.Some",
