@@ -162,6 +162,7 @@ fn main() {
             "viper.silver.ast.WildcardPerm",
             "viper.silver.verifier.ErrorMessage",
             "viper.silver.verifier.Failure",
+            "viper.silver.verifier.AbstractError",
             "viper.silver.verifier.VerificationError",
         ])
         .generate(&generated_dir)
