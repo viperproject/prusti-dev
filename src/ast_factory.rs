@@ -47,6 +47,30 @@ jobject_wrapper!(Stmt);
 jobject_wrapper!(Expr);
 jobject_wrapper!(Position);
 
+macro_rules! build_ast_node {
+    ($self:expr, $wrapper:path, $($java_class:ident)::+) => {
+         {
+            let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).new(
+                $self.new_no_position().to_jobject(),
+                $self.new_no_info(),
+                $self.new_no_trafos(),
+            ));
+            $wrapper { obj }
+        }
+    };
+    ($self:expr, $wrapper:path, $($java_class:ident)::+, $($args:expr),+) => {
+         {
+            let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).new(
+                $($args),+ ,
+                $self.new_no_position().to_jobject(),
+                $self.new_no_info(),
+                $self.new_no_trafos(),
+            ));
+            $wrapper { obj }
+        }
+    };
+}
+
 impl<'a> AstFactory<'a> {
     pub fn new(env: &'a JNIEnv) -> Self {
         let jni = JniUtils::new(env);
@@ -108,17 +132,16 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn new_program(&self, methods: Vec<&Method>) -> Program<'a> {
-        let obj = self.jni.unwrap_result(ast::Program::with(self.env).new(
+        build_ast_node!(
+            self,
+            Program,
+            ast::Program,
             self.jni.new_seq(vec![]),
             self.jni.new_seq(vec![]),
             self.jni.new_seq(vec![]),
             self.jni.new_seq(vec![]),
-            self.jni.new_seq(map_to_jobjects!(methods)),
-            self.new_no_position().to_jobject(),
-            self.new_no_info(),
-            self.new_no_trafos(),
-        ));
-        Program { obj }
+            self.jni.new_seq(map_to_jobjects!(methods))
+        )
     }
 
     pub fn new_method(
@@ -128,31 +151,27 @@ impl<'a> AstFactory<'a> {
         pres: Vec<&Expr>,
         posts: Vec<&Expr>,
     ) -> Method<'a> {
-        let obj = self.jni.unwrap_result(ast::Method::with(self.env).new(
+        build_ast_node!(
+            self,
+            Method,
+            ast::Method,
             self.jni.new_string(name),
             self.jni.new_seq(vec![]),
             self.jni.new_seq(vec![]),
             self.jni.new_seq(map_to_jobjects!(pres)),
             self.jni.new_seq(map_to_jobjects!(posts)),
-            self.jni.new_option(body.map(|x| x.to_jobject())),
-            self.new_no_position().to_jobject(),
-            self.new_no_info(),
-            self.new_no_trafos(),
-        ));
-        Method { obj }
+            self.jni.new_option(body.map(|x| x.to_jobject()))
+        )
     }
 
     pub fn new_seqn(&self, stmts: Vec<&Stmt>) -> Seqn<'a> {
-        let obj = self.jni.unwrap_result(ast::Seqn::with(self.env).new(
-            self.jni.new_seq(
-                map_to_jobjects!(stmts),
-            ),
-            self.jni.new_seq(vec![]),
-            self.new_no_position().to_jobject(),
-            self.new_no_info(),
-            self.new_no_trafos(),
-        ));
-        Seqn { obj }
+        build_ast_node!(
+            self,
+            Seqn,
+            ast::Seqn,
+            self.jni.new_seq(map_to_jobjects!(stmts)),
+            self.jni.new_seq(vec![])
+        )
     }
 
     pub fn new_assert(&self, expr: &Expr, pos: Position) -> Stmt<'a> {
@@ -177,21 +196,43 @@ impl<'a> AstFactory<'a> {
         Stmt { obj }
     }
 
+    pub fn new_or(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+        build_ast_node!(self, Expr, ast::Or, left.to_jobject(), right.to_jobject())
+    }
+
+    pub fn new_and(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+        build_ast_node!(self, Expr, ast::And, left.to_jobject(), right.to_jobject())
+    }
+
+    pub fn new_implies(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::Implies,
+            left.to_jobject(),
+            right.to_jobject()
+        )
+    }
+
+    pub fn new_magic_wand(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MagicWand,
+            left.to_jobject(),
+            right.to_jobject()
+        )
+    }
+
+    pub fn new_not(&self, expr: &Expr) -> Expr<'a> {
+        build_ast_node!(self, Expr, ast::Not, expr.to_jobject())
+    }
+
     pub fn new_true_lit(&self) -> Expr<'a> {
-        let obj = self.jni.unwrap_result(ast::TrueLit::with(self.env).new(
-            self.new_no_position().to_jobject(),
-            self.new_no_info(),
-            self.new_no_trafos(),
-        ));
-        Expr { obj }
+        build_ast_node!(self, Expr, ast::TrueLit)
     }
 
     pub fn new_false_lit(&self) -> Expr<'a> {
-        let obj = self.jni.unwrap_result(ast::FalseLit::with(self.env).new(
-            self.new_no_position().to_jobject(),
-            self.new_no_info(),
-            self.new_no_trafos(),
-        ));
-        Expr { obj }
+        build_ast_node!(self, Expr, ast::FalseLit)
     }
 }

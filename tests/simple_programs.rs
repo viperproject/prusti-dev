@@ -75,3 +75,40 @@ fn assert_false() {
         ])
     );
 }
+
+#[test]
+fn assert_with_boolean_operations() {
+    setup();
+
+    let verification_context: VerificationContext = VIPER.new_verification_context();
+
+    let ast_factory = verification_context.new_ast_factory();
+
+    let true_lit = ast_factory.new_true_lit();
+
+    let false_lit = ast_factory.new_false_lit();
+
+    let and = ast_factory.new_and(&false_lit, &true_lit);
+
+    let or = ast_factory.new_or(&false_lit, &true_lit);
+
+    let implication = ast_factory.new_implies(&and, &or);
+
+    let pos = ast_factory.new_no_position();
+
+    let assertion = ast_factory.new_assert(&implication, pos);
+
+    let seqn = ast_factory.new_seqn(vec![&assertion]);
+
+    let method = ast_factory.new_method("bar", Some(&seqn), vec![], vec![]);
+
+    let program = ast_factory.new_program(vec![&method]);
+
+    let verifier = verification_context.new_verifier();
+
+    let verification_result = verifier.verify(program);
+
+    debug!("Verification result: {:?}", verification_result);
+
+    assert_eq!(verification_result, VerificationResult::Success());
+}
