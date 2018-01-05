@@ -4,7 +4,6 @@ extern crate log;
 extern crate viper_sys;
 extern crate jni;
 extern crate error_chain;
-extern crate uuid;
 
 mod viper;
 mod verification_context;

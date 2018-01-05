@@ -93,7 +93,6 @@ impl<'a> Verifier<'a, state::Started> {
             self.jni.to_string(viper_result)
         );
 
-        // TODO: convert `silicon_result` to a `VerificationResult` using `error_manager`
         let is_failure = self.jni.is_instance_of(
             viper_result,
             "viper/silver/verifier/Failure",

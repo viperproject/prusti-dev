@@ -49,7 +49,7 @@ fn assert_false() {
 
     let false_lit = ast_factory.new_false_lit();
 
-    let pos = ast_factory.new_identifier_position(0, 0, "pos-id:0,0");
+    let pos = ast_factory.new_identifier_position(0, 0, "pos-id:123");
 
     let assertion = ast_factory.new_assert(&false_lit, pos);
 
@@ -70,7 +70,7 @@ fn assert_false() {
         VerificationResult::Failure(vec![
             VerificationError::new(
                 "assert.failed".to_owned(),
-                "pos-id:0,0".to_owned()
+                "pos-id:123".to_owned()
             ),
         ])
     );

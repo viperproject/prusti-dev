@@ -15,6 +15,7 @@ impl<'a> JniUtils<'a> {
         JniUtils { env }
     }
 
+    /// Unwraps a Result<T>, checking for Java Exceptions.
     pub fn unwrap_result<T>(&self, res: Result<T>) -> T {
         res.unwrap_or_else(|error| {
             let exception_occurred = self.env.exception_check().unwrap_or_else(
@@ -29,6 +30,7 @@ impl<'a> JniUtils<'a> {
         })
     }
 
+    /// Converts a Rust Option<JObject> to a Scala Option
     pub fn new_option(&self, opt: Option<JObject>) -> JObject {
         match opt {
             Some(o) => self.unwrap_result(scala::Some::with(self.env).new(o)),
@@ -36,10 +38,12 @@ impl<'a> JniUtils<'a> {
         }
     }
 
+    /// Converts a Rust String to a Java String
     pub fn new_string(&self, string: &str) -> JObject {
         self.unwrap_result(self.env.new_string(string)).into()
     }
 
+    /// Converts a Rust Vec<JObject> to a Scala Seq
     pub fn new_seq(&self, objects: Vec<JObject>) -> JObject {
         let array_seq_wrapper = scala::collection::mutable::ArraySeq::with(self.env);
         let len = objects.len();
@@ -50,11 +54,13 @@ impl<'a> JniUtils<'a> {
         res
     }
 
+    /// Converts a Java String to a Rust String
     pub fn get_string(&self, string_object: JObject) -> String {
         self.unwrap_result(self.env.get_string(JString::from(string_object)))
             .into()
     }
 
+    /// Calls the "toString" method on a Java object and returns the result as a Rust String
     pub fn to_string(&self, object: JObject) -> String {
         let object_wrapper = java::lang::Object::with(self.env);
         let string_object = self.unwrap_result(object_wrapper.call_toString(object));
@@ -62,6 +68,7 @@ impl<'a> JniUtils<'a> {
         java_str.into()
     }
 
+    /// Returns the name of the class of a Java object as Rust String
     pub fn class_name(&self, object: JObject) -> String {
         let class: JObject = self.unwrap_result(self.env.get_object_class(object)).into();
         let class_name_object =
@@ -69,6 +76,7 @@ impl<'a> JniUtils<'a> {
         self.get_string(class_name_object)
     }
 
+    /// Convert a Scala Seq to a Rust Vec<JObject>
     pub fn seq_to_vec(&self, sequence: JObject) -> Vec<JObject> {
         let mut res: Vec<JObject> = vec![];
         let seq_wrapper = scala::collection::Seq::with(self.env);
@@ -80,12 +88,14 @@ impl<'a> JniUtils<'a> {
         res
     }
 
-    pub fn is_instance_of(&self, instance: JObject, class: &str) -> bool {
-        let instance_class = self.unwrap_result(self.env.get_object_class(instance));
+    /// Checks if an object is a subtype of a Java class
+    pub fn is_instance_of(&self, object: JObject, class: &str) -> bool {
+        let object_class = self.unwrap_result(self.env.get_object_class(object));
         let super_class = self.unwrap_result(self.env.find_class(class));
-        self.unwrap_result(self.env.is_assignable_from(instance_class, super_class))
+        self.unwrap_result(self.env.is_assignable_from(object_class, super_class))
     }
 
+    /// Returns a new Java array of objects, initialised with null values
     pub fn new_object_array(&self, length: jsize) -> JObject {
         let object_class = self.unwrap_result(self.env.find_class("java/lang/Object"));
         JObject::from(self.unwrap_result(self.env.new_object_array(
@@ -95,6 +105,7 @@ impl<'a> JniUtils<'a> {
         )))
     }
 
+    /// Converts a Scala Seq to a Java Array
     #[allow(dead_code)]
     pub fn seq_to_array(&self, sequence: JObject, elements_class_ref: &str) -> JObject {
         let elements_class = self.unwrap_result(self.env.find_class(elements_class_ref));
