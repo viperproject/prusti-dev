@@ -26,7 +26,7 @@ fn left() {
 
     let verification_context: VerificationContext = VIPER.new_verification_context();
 
-    let verifier = verification_context.new_verifier_tmp();
+    let verifier = verification_context.new_verifier();
 }
 
 #[test]
@@ -35,5 +35,5 @@ fn right() {
 
     let verification_context: VerificationContext = VIPER.new_verification_context();
 
-    let verifier = verification_context.new_verifier_tmp();
+    let verifier = verification_context.new_verifier();
 }
