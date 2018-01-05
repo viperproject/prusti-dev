@@ -6,34 +6,33 @@ extern crate viper;
 extern crate error_chain;
 extern crate env_logger;
 
-use std::sync::{Once, ONCE_INIT};
 use viper::*;
-
-static INIT: Once = ONCE_INIT;
+use std::thread;
+use std::thread::JoinHandle;
 
 lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 
-/// Setup function that is only run once, even if called multiple times.
-fn setup() {
-    INIT.call_once(|| { env_logger::init().unwrap(); });
-}
-
 #[test]
-fn left() {
-    setup();
+#[ignore] // Disabled because of bug https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances
+fn concurrent_verifier_initialization() {
+    env_logger::init().unwrap();
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let mut handlers: Vec<JoinHandle<()>> = vec![];
 
-    let verifier = verification_context.new_verifier();
-}
+    let num_threads = 3;
 
-#[test]
-fn right() {
-    setup();
+    for i in 0..num_threads {
+        handlers.push(thread::spawn(move || {
+            debug!("Start of thread {:?}", i);
+            let verification_context: VerificationContext = VIPER.new_verification_context();
+            let _verifier = verification_context.new_verifier();
+            debug!("End of thread {:?}", i);
+        }));
+    }
 
-    let verification_context: VerificationContext = VIPER.new_verification_context();
-
-    let verifier = verification_context.new_verifier();
+    for handler in handlers {
+        handler.join().unwrap();
+    }
 }
