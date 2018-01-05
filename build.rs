@@ -105,6 +105,7 @@ fn main() {
             "viper.silver.ast.LocalVarDecl",
             "viper.silver.ast.LtCmp",
             "viper.silver.ast.LtOp$",
+            "viper.silver.ast.MagicWand",
             "viper.silver.ast.Method",
             "viper.silver.ast.MethodCall",
             "viper.silver.ast.Minus",
