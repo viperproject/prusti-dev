@@ -51,3 +51,13 @@ macro_rules! build_ast_node {
         }
     };
 }
+
+#[macro_export]
+macro_rules! get_ast_object {
+    ($self:expr, $wrapper:path, $($java_class:ident)::+) => {
+         {
+            let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).singleton());
+            $wrapper { obj }
+        }
+    };
+}

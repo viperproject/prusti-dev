@@ -3,10 +3,23 @@
 use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
+use ast_factory::ast_type::Type;
 
 jobject_wrapper!(Expr);
 
 impl<'a> AstFactory<'a> {
+    pub fn new_local_var(&self, name: &str, var_type: &Type) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::LocalVar,
+            self.jni.new_string(name),
+            var_type.to_jobject()
+        )
+    }
+
+    // Boolean operators
+
     pub fn new_or(&self, left: &Expr, right: &Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Or, left.to_jobject(), right.to_jobject())
     }

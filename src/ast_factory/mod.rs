@@ -6,6 +6,7 @@ mod expression;
 mod position;
 mod statement;
 mod program;
+mod ast_type;
 
 use jni::JNIEnv;
 use jni::objects::JObject;
@@ -16,6 +17,7 @@ pub use self::expression::*;
 pub use self::position::*;
 pub use self::statement::*;
 pub use self::program::*;
+pub use self::ast_type::*;
 
 pub struct AstFactory<'a> {
     env: &'a JNIEnv<'a>,
