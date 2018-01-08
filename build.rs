@@ -74,6 +74,7 @@ fn main() {
             "viper.silver.ast.EqCmp",
             "viper.silver.ast.Exhale",
             "viper.silver.ast.Exists",
+            "viper.silver.ast.ExplicitMultiset",
             "viper.silver.ast.ExplicitSeq",
             "viper.silver.ast.ExplicitSet",
             "viper.silver.ast.FalseLit",
