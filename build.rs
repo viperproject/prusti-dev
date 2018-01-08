@@ -143,6 +143,7 @@ fn main() {
             "viper.silver.ast.PermMinus",
             "viper.silver.ast.PermMul",
             "viper.silver.ast.PermSub",
+            "viper.silver.ast.PermDiv",
             "viper.silver.ast.Predicate",
             "viper.silver.ast.PredicateAccess",
             "viper.silver.ast.PredicateAccessPredicate",
