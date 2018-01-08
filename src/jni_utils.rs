@@ -43,6 +43,25 @@ impl<'a> JniUtils<'a> {
         self.unwrap_result(self.env.new_string(string)).into()
     }
 
+    pub fn new_map(&self, items: Vec<(JObject, JObject)>) -> JObject {
+        let hash_map_wrapper = scala::collection::immutable::HashMap::with(self.env);
+        let mut result = self.unwrap_result(hash_map_wrapper.new());
+        for &(k, v) in items.iter() {
+            result = self.unwrap_result(hash_map_wrapper.call_updated(result, k, v));
+        }
+        return result;
+    }
+
+    /// Converts a Rust number to a Java BigInt
+    pub fn new_big_int(&self, number: i32) -> JObject {
+        let number_string = self.new_string(&number.to_string());
+
+        let java_big_integer =
+            self.unwrap_result(java::math::BigInteger::with(self.env).new_3(number_string));
+
+        self.unwrap_result(scala::math::BigInt::with(self.env).new(java_big_integer))
+    }
+
     /// Converts a Rust Vec<JObject> to a Scala Seq
     pub fn new_seq(&self, objects: Vec<JObject>) -> JObject {
         let array_seq_wrapper = scala::collection::mutable::ArraySeq::with(self.env);

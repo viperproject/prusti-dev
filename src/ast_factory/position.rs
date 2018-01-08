@@ -1,19 +1,17 @@
 #![allow(dead_code)]
 
 use jni::sys::jint;
-use jni::objects::JObject;
-use viper_sys::wrappers::*;
+use viper_sys::wrappers::java;
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
-
-jobject_wrapper!(Position);
+use ast_factory::structs::Position;
 
 impl<'a> AstFactory<'a> {
     pub fn new_no_position(&self) -> Position {
         let obj = self.jni.unwrap_result(
             ast::NoPosition_object::with(self.env).singleton(),
         );
-        Position { obj }
+        Position::new(obj)
     }
 
     pub fn new_line_column_position(&self, line: jint, column: jint) -> Position {
@@ -23,7 +21,7 @@ impl<'a> AstFactory<'a> {
                 column,
             ),
         );
-        Position { obj }
+        Position::new(obj)
     }
 
     pub fn new_identifier_position(&self, line: jint, column: jint, pos_id: &str) -> Position {
@@ -40,6 +38,6 @@ impl<'a> AstFactory<'a> {
                 self.jni.new_string(pos_id),
             ),
         );
-        Position { obj }
+        Position::new(obj)
     }
 }

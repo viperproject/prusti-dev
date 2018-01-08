@@ -2,6 +2,7 @@
 
 #[macro_use]
 mod macros;
+mod structs;
 mod expression;
 mod position;
 mod statement;
@@ -18,6 +19,7 @@ pub use self::position::*;
 pub use self::statement::*;
 pub use self::program::*;
 pub use self::ast_type::*;
+pub use self::structs::*;
 
 pub struct AstFactory<'a> {
     env: &'a JNIEnv<'a>,

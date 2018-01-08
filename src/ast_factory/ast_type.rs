@@ -1,10 +1,8 @@
 #![allow(dead_code)]
 
-use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
-
-jobject_wrapper!(Type);
+use ast_factory::structs::Type;
 
 impl<'a> AstFactory<'a> {
     pub fn new_int(&self) -> Type<'a> {
@@ -21,5 +19,13 @@ impl<'a> AstFactory<'a> {
 
     pub fn new_ref(&self) -> Type<'a> {
         get_ast_object!(self, Type, ast::Ref_object)
+    }
+
+    pub fn new_type_var(&self, name: &str) -> Type<'a> {
+        let java_name = self.jni.new_string(name);
+        let obj = self.jni.unwrap_result(
+            ast::TypeVar::with(self.env).new(java_name),
+        );
+        Type::new(obj)
     }
 }

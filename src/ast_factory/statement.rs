@@ -1,14 +1,12 @@
 #![allow(dead_code)]
 
-use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
-use ast_factory::expression::Expr;
-use ast_factory::program::Field;
-use ast_factory::position::Position;
-use ast_factory::program::LocalVarDecl;
-
-jobject_wrapper!(Stmt);
+use ast_factory::structs::Expr;
+use ast_factory::structs::Field;
+use ast_factory::structs::Position;
+use ast_factory::structs::LocalVarDecl;
+use ast_factory::structs::Stmt;
 
 impl<'a> AstFactory<'a> {
     pub fn new_new_stmt(&self, lhs: &Expr, fields: Vec<&Field>) -> Stmt<'a> {
@@ -72,7 +70,7 @@ impl<'a> AstFactory<'a> {
             self.new_no_info(),
             self.new_no_trafos(),
         ));
-        Stmt { obj }
+        Stmt::new(obj)
     }
 
     pub fn new_assert_with_comment(&self, expr: &Expr, pos: Position, comment: String) -> Stmt<'a> {
@@ -84,7 +82,7 @@ impl<'a> AstFactory<'a> {
             ),
             self.new_no_trafos(),
         ));
-        Stmt { obj }
+        Stmt::new(obj)
     }
 
     pub fn new_fold(&self, acc: &Expr) -> Stmt<'a> {
