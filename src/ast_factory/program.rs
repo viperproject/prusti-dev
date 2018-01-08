@@ -8,7 +8,7 @@ use ast_factory::structs::Program;
 use ast_factory::structs::Method;
 
 impl<'a> AstFactory<'a> {
-    pub fn new_program(&self, methods: Vec<&Method>) -> Program<'a> {
+    pub fn new_program(&self, methods: Vec<Method>) -> Program<'a> {
         build_ast_node!(
             self,
             Program,
@@ -24,9 +24,9 @@ impl<'a> AstFactory<'a> {
     pub fn new_method(
         &self,
         name: &str,
-        body: Option<&Stmt>,
-        pres: Vec<&Expr>,
-        posts: Vec<&Expr>,
+        body: Option<Stmt>,
+        pres: Vec<Expr>,
+        posts: Vec<Expr>,
     ) -> Method<'a> {
         build_ast_node!(
             self,
@@ -37,7 +37,10 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(vec![]),
             self.jni.new_seq(map_to_jobjects!(pres)),
             self.jni.new_seq(map_to_jobjects!(posts)),
-            self.jni.new_option(body.map(|x| x.to_jobject()))
+            match body {
+                None => self.jni.new_option(None),
+                Some(x) => self.jni.new_option(Some(x.to_jobject())),
+            }
         )
     }
 }

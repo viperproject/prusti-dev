@@ -11,27 +11,27 @@ use ast_factory::structs::Location;
 use ast_factory::structs::LocalVarDecl;
 
 impl<'a> AstFactory<'a> {
-    pub fn new_add(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_add(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Add, left.to_jobject(), right.to_jobject())
     }
 
-    pub fn new_sub(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_sub(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Sub, left.to_jobject(), right.to_jobject())
     }
 
-    pub fn new_mul(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_mul(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Mul, left.to_jobject(), right.to_jobject())
     }
 
-    pub fn new_div(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_div(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Div, left.to_jobject(), right.to_jobject())
     }
 
-    pub fn new_mod(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_mod(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Mod, left.to_jobject(), right.to_jobject())
     }
 
-    pub fn new_lt_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_lt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -41,7 +41,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_le_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_le_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -51,7 +51,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_gt_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_gt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -61,7 +61,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_ge_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_ge_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -71,7 +71,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_eq_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_eq_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -81,7 +81,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_ne_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_ne_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -97,19 +97,19 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::IntLit, big_i)
     }
 
-    pub fn new_minus(&self, expr: &Expr) -> Expr<'a> {
+    pub fn new_minus(&self, expr: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Minus, expr.to_jobject())
     }
 
-    pub fn new_or(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_or(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Or, left.to_jobject(), right.to_jobject())
     }
 
-    pub fn new_and(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_and(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::And, left.to_jobject(), right.to_jobject())
     }
 
-    pub fn new_implies(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_implies(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -119,7 +119,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_magic_wand(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_magic_wand(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -129,7 +129,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_not(&self, expr: &Expr) -> Expr<'a> {
+    pub fn new_not(&self, expr: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Not, expr.to_jobject())
     }
 
@@ -145,7 +145,7 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::NullLit)
     }
 
-    pub fn new_field_access_predicate(&self, loc: &Expr, perm: &Expr) -> Expr<'a> {
+    pub fn new_field_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -155,7 +155,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_predicate_access_predicate(&self, loc: &Expr, perm: &Expr) -> Expr<'a> {
+    pub fn new_predicate_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -165,7 +165,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_inhale_exhale_pred(&self, inhale: &Expr, exhale: &Expr) -> Expr<'a> {
+    pub fn new_inhale_exhale_pred(&self, inhale: Expr, exhale: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -191,7 +191,7 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::EpsilonPerm)
     }
 
-    pub fn new_fractional_perm(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_fractional_perm(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -201,7 +201,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_perm_div(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_div(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -211,15 +211,15 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_current_perm(&self, loc: &Expr) -> Expr<'a> {
+    pub fn new_current_perm(&self, loc: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::CurrentPerm, loc.to_jobject())
     }
 
-    pub fn new_perm_minus(&self, expr: &Expr) -> Expr<'a> {
+    pub fn new_perm_minus(&self, expr: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::PermMinus, expr.to_jobject())
     }
 
-    pub fn new_perm_add(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_add(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -229,7 +229,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_perm_sub(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_sub(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -239,7 +239,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_perm_mul(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_mul(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -249,7 +249,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_int_perm_mul(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_int_perm_mul(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -259,7 +259,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_perm_lt_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_lt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -269,7 +269,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_perm_le_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_le_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -279,7 +279,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_perm_gt_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_gt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -289,7 +289,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_perm_ge_cmp(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_perm_ge_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -299,7 +299,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_func_app(&self, func: &Function, args: Vec<&Expr>) -> Expr<'a> {
+    pub fn new_func_app(&self, func: &Function, args: Vec<Expr>) -> Expr<'a> {
         let func_app_object_wrapper = ast::FuncApp_object::with(self.env);
         let obj = self.jni.unwrap_result(func_app_object_wrapper.call_apply_1(
             self.jni.unwrap_result(
@@ -319,8 +319,8 @@ impl<'a> AstFactory<'a> {
     pub fn new_domain_func_app(
         &self,
         domain_func: &DomainFunc,
-        args: Vec<&Expr>,
-        type_var_map: Vec<(&Type, &Type)>,
+        args: Vec<Expr>,
+        type_var_map: Vec<(Type, Type)>,
     ) -> Expr<'a> {
         let domain_func_app_object_wrapper = ast::DomainFuncApp_object::with(self.env);
         let obj = self.jni.unwrap_result(
@@ -339,7 +339,7 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
-    pub fn new_field_access(&self, rcv: &Expr, field: &Expr) -> Expr<'a> {
+    pub fn new_field_access(&self, rcv: Expr, field: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -349,7 +349,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_predicate_access(&self, args: Vec<&Expr>, predicate_name: &str) -> Expr<'a> {
+    pub fn new_predicate_access(&self, args: Vec<Expr>, predicate_name: &str) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -359,7 +359,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_cond_exp(&self, cond: &Expr, then_expr: &Expr, else_expr: &Expr) -> Expr<'a> {
+    pub fn new_cond_exp(&self, cond: Expr, then_expr: Expr, else_expr: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -370,7 +370,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_unfolding(&self, acc: &Expr, body: &Expr) -> Expr<'a> {
+    pub fn new_unfolding(&self, acc: Expr, body: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -380,7 +380,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_applying(&self, wand: &Expr, body: &Expr) -> Expr<'a> {
+    pub fn new_applying(&self, wand: Expr, body: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -390,11 +390,11 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_old(&self, expr: &Expr) -> Expr<'a> {
+    pub fn new_old(&self, expr: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Old, expr.to_jobject())
     }
 
-    pub fn new_labelled_old(&self, expr: &Expr, old_label: &str) -> Expr<'a> {
+    pub fn new_labelled_old(&self, expr: Expr, old_label: &str) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -404,7 +404,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_let(&self, variable: &LocalVarDecl, expr: &Expr, body: &Expr) -> Expr<'a> {
+    pub fn new_let(&self, variable: LocalVarDecl, expr: Expr, body: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -417,9 +417,9 @@ impl<'a> AstFactory<'a> {
 
     pub fn new_forall(
         &self,
-        variables: Vec<&LocalVarDecl>,
-        triggers: Vec<&Trigger>,
-        expr: &Expr,
+        variables: Vec<LocalVarDecl>,
+        triggers: Vec<Trigger>,
+        expr: Expr,
     ) -> Expr<'a> {
         build_ast_node!(
             self,
@@ -431,7 +431,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_exists(&self, variables: Vec<&LocalVarDecl>, expr: &Expr) -> Expr<'a> {
+    pub fn new_exists(&self, variables: Vec<LocalVarDecl>, expr: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -443,9 +443,9 @@ impl<'a> AstFactory<'a> {
 
     pub fn new_for_perm(
         &self,
-        variable: &LocalVarDecl,
-        access_list: Vec<&Location>,
-        body: &Expr,
+        variable: LocalVarDecl,
+        access_list: Vec<Location>,
+        body: Expr,
     ) -> Expr<'a> {
         build_ast_node!(
             self,
@@ -455,7 +455,7 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(
                 access_list
                     .iter()
-                    .map(|x| match **x {
+                    .map(|x| match *x {
                         Location::Predicate(ref p) => p.to_jobject(),
                         Location::Field(ref f) => f.to_jobject(),
                     })
@@ -465,7 +465,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_trigger(&self, exps: Vec<&Expr>) -> Trigger<'a> {
+    pub fn new_trigger(&self, exps: Vec<Expr>) -> Trigger<'a> {
         build_ast_node!(
             self,
             Trigger,
@@ -474,7 +474,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_local_var(&self, name: &str, var_type: &Type) -> Expr<'a> {
+    pub fn new_local_var(&self, name: &str, var_type: Type) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -484,15 +484,15 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_result(&self, var_type: &Type) -> Expr<'a> {
+    pub fn new_result(&self, var_type: Type) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::Result, var_type.to_jobject())
     }
 
-    pub fn new_empty_seq(&self, elem_type: &Type) -> Expr<'a> {
+    pub fn new_empty_seq(&self, elem_type: Type) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::EmptySeq, elem_type.to_jobject())
     }
 
-    pub fn new_explicit_seq(&self, elems: Vec<&Expr>) -> Expr<'a> {
+    pub fn new_explicit_seq(&self, elems: Vec<Expr>) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -501,7 +501,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_range_seq(&self, low: &Expr, high: Expr) -> Expr<'a> {
+    pub fn new_range_seq(&self, low: Expr, high: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -511,7 +511,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_seq_append(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_seq_append(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -521,7 +521,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_seq_index(&self, seq: &Expr, index: &Expr) -> Expr<'a> {
+    pub fn new_seq_index(&self, seq: Expr, index: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -531,15 +531,15 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_seq_take(&self, seq: &Expr, num: &Expr) -> Expr<'a> {
+    pub fn new_seq_take(&self, seq: Expr, num: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::SeqTake, seq.to_jobject(), num.to_jobject())
     }
 
-    pub fn new_seq_drop(&self, seq: &Expr, num: &Expr) -> Expr<'a> {
+    pub fn new_seq_drop(&self, seq: Expr, num: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::SeqDrop, seq.to_jobject(), num.to_jobject())
     }
 
-    pub fn new_seq_contains(&self, elem: &Expr, seq: &Expr) -> Expr<'a> {
+    pub fn new_seq_contains(&self, elem: Expr, seq: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -549,7 +549,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_seq_update(&self, seq: &Expr, index: &Expr, elem: &Expr) -> Expr<'a> {
+    pub fn new_seq_update(&self, seq: Expr, index: Expr, elem: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -560,16 +560,16 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_seq_length(&self, seq: &Expr) -> Expr<'a> {
+    pub fn new_seq_length(&self, seq: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::SeqLength, seq.to_jobject())
     }
 
 
-    pub fn new_empty_set(&self, elem_type: &Type) -> Expr<'a> {
+    pub fn new_empty_set(&self, elem_type: Type) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::EmptySet, elem_type.to_jobject())
     }
 
-    pub fn new_explicit_set(&self, elems: Vec<&Expr>) -> Expr<'a> {
+    pub fn new_explicit_set(&self, elems: Vec<Expr>) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -578,11 +578,11 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_empty_multi_set(&self, elem_type: &Type) -> Expr<'a> {
+    pub fn new_empty_multi_set(&self, elem_type: Type) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::EmptyMultiset, elem_type.to_jobject())
     }
 
-    pub fn new_explicit_multi_set(&self, elems: Vec<&Expr>) -> Expr<'a> {
+    pub fn new_explicit_multi_set(&self, elems: Vec<Expr>) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -591,7 +591,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_any_set_union(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_any_set_union(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -601,7 +601,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_any_set_intersection(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_any_set_intersection(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -611,7 +611,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_any_set_subset(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_any_set_subset(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -621,7 +621,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_any_set_minus(&self, left: &Expr, right: &Expr) -> Expr<'a> {
+    pub fn new_any_set_minus(&self, left: Expr, right: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -631,7 +631,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_any_set_contains(&self, elem: &Expr, set: &Expr) -> Expr<'a> {
+    pub fn new_any_set_contains(&self, elem: Expr, set: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
@@ -641,7 +641,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_any_set_cardinality(&self, set: &Expr) -> Expr<'a> {
+    pub fn new_any_set_cardinality(&self, set: Expr) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::AnySetCardinality, set.to_jobject())
     }
 }

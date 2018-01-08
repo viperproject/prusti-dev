@@ -11,6 +11,10 @@ macro_rules! jobject_wrapper {
                 self.obj
             }
         }
+
+        impl<'a> Clone for $name<'a> {
+            fn clone(&self) -> Self { $name { obj: self.obj } }
+        }
     );
 }
 

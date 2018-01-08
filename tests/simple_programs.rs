@@ -46,13 +46,13 @@ fn failure_with_assert_false() {
 
     let pos = ast.new_identifier_position(0, 0, "pos-id:123");
 
-    let assertion = ast.new_assert(&false_lit, pos);
+    let assertion = ast.new_assert(false_lit, pos);
 
-    let seqn = ast.new_seqn(vec![&assertion]);
+    let seqn = ast.new_seqn(vec![assertion]);
 
-    let method = ast.new_method("foo", Some(&seqn), vec![], vec![]);
+    let method = ast.new_method("foo", Some(seqn), vec![], vec![]);
 
-    let program = ast.new_program(vec![&method]);
+    let program = ast.new_program(vec![method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -80,21 +80,21 @@ fn success_with_assert_with_boolean_operations() {
 
     let false_lit = ast.new_false_lit();
 
-    let and = ast.new_and(&false_lit, &true_lit);
+    let and = ast.new_and(false_lit.clone(), true_lit.clone());
 
-    let or = ast.new_or(&false_lit, &true_lit);
+    let or = ast.new_or(false_lit.clone(), true_lit.clone());
 
-    let implication = ast.new_implies(&and, &or);
+    let implication = ast.new_implies(and, or);
 
     let pos = ast.new_no_position();
 
-    let assertion = ast.new_assert(&implication, pos);
+    let assertion = ast.new_assert(implication, pos);
 
-    let seqn = ast.new_seqn(vec![&assertion]);
+    let seqn = ast.new_seqn(vec![assertion]);
 
-    let method = ast.new_method("foo", Some(&seqn), vec![], vec![]);
+    let method = ast.new_method("foo", Some(seqn), vec![], vec![]);
 
-    let program = ast.new_program(vec![&method]);
+    let program = ast.new_program(vec![method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -110,20 +110,20 @@ fn success_with_assert_false_in_dead_code() {
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();
 
-    let assert_false = ast.new_assert(&ast.new_false_lit(), ast.new_no_position());
-    let assert_true = ast.new_assert(&ast.new_true_lit(), ast.new_no_position());
+    let assert_false = ast.new_assert(ast.new_false_lit(), ast.new_no_position());
+    let assert_true = ast.new_assert(ast.new_true_lit(), ast.new_no_position());
 
     let if_stmt = ast.new_if(
-        &ast.new_false_lit(),
-        &ast.new_seqn(vec![&assert_false]),
-        &ast.new_seqn(vec![&assert_true]),
+        ast.new_false_lit(),
+        ast.new_seqn(vec![assert_false]),
+        ast.new_seqn(vec![assert_true]),
     );
 
-    let method_body = ast.new_seqn(vec![&if_stmt]);
+    let method_body = ast.new_seqn(vec![if_stmt]);
 
-    let method = ast.new_method("foo", Some(&method_body), vec![], vec![]);
+    let method = ast.new_method("foo", Some(method_body), vec![], vec![]);
 
-    let program = ast.new_program(vec![&method]);
+    let program = ast.new_program(vec![method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -139,21 +139,21 @@ fn success_with_assign_if_and_assert() {
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();
 
-    let local_var = ast.new_local_var("x", &ast.new_bool());
+    let local_var = ast.new_local_var("x", ast.new_bool_type());
 
-    let assignment = ast.new_local_var_assign(&local_var, &ast.new_true_lit());
+    let assignment = ast.new_local_var_assign(local_var.clone(), ast.new_true_lit());
 
     let if_stmt = ast.new_if(
-        &local_var,
-        &ast.new_assert(&local_var, ast.new_no_position()),
-        &ast.new_assert(&ast.new_false_lit(), ast.new_no_position()),
+        local_var.clone(),
+        ast.new_assert(local_var.clone(), ast.new_no_position()),
+        ast.new_assert(ast.new_false_lit(), ast.new_no_position()),
     );
 
-    let method_body = ast.new_seqn(vec![&assignment, &if_stmt]);
+    let method_body = ast.new_seqn(vec![assignment, if_stmt]);
 
-    let method = ast.new_method("foo", Some(&method_body), vec![], vec![]);
+    let method = ast.new_method("foo", Some(method_body), vec![], vec![]);
 
-    let program = ast.new_program(vec![&method]);
+    let program = ast.new_program(vec![method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -169,24 +169,24 @@ fn failure_with_assign_if_and_assert() {
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();
 
-    let local_var = ast.new_local_var("x", &ast.new_bool());
+    let local_var = ast.new_local_var("x", ast.new_bool_type());
 
-    let assignment = ast.new_local_var_assign(&local_var, &ast.new_true_lit());
+    let assignment = ast.new_local_var_assign(local_var.clone(), ast.new_true_lit());
 
     let if_stmt = ast.new_if(
-        &local_var,
-        &ast.new_assert(
-            &ast.new_false_lit(),
+        local_var.clone(),
+        ast.new_assert(
+            ast.new_false_lit(),
             ast.new_identifier_position(3, 0, "then"),
         ),
-        &ast.new_assert(&local_var, ast.new_identifier_position(5, 0, "else")),
+        ast.new_assert(local_var.clone(), ast.new_identifier_position(5, 0, "else")),
     );
 
-    let method_body = ast.new_seqn(vec![&assignment, &if_stmt]);
+    let method_body = ast.new_seqn(vec![assignment, if_stmt]);
 
-    let method = ast.new_method("foo", Some(&method_body), vec![], vec![]);
+    let method = ast.new_method("foo", Some(method_body), vec![], vec![]);
 
-    let program = ast.new_program(vec![&method]);
+    let program = ast.new_program(vec![method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -201,4 +201,42 @@ fn failure_with_assign_if_and_assert() {
             ),
         ])
     );
+}
+
+
+#[test]
+fn success_with_complex_post_condition() {
+    setup();
+
+    let verification_context: VerificationContext = VIPER.new_verification_context();
+    let ast = verification_context.new_ast_factory();
+
+    let post_conditions =
+        vec![
+            ast.new_eq_cmp(
+                ast.new_empty_multi_set(ast.new_int_type()),
+                ast.new_empty_multi_set(ast.new_int_type())
+            ),
+            ast.new_eq_cmp(
+                ast.new_explicit_set((0..10).map(|x| ast.new_int_lit(x)).collect()),
+                ast.new_explicit_set((0..10).map(|x| ast.new_int_lit(x)).collect())
+            ),
+            ast.new_eq_cmp(
+                ast.new_seq_take(
+                    ast.new_explicit_seq((0..10).map(|x| ast.new_int_lit(x)).collect()),
+                    ast.new_int_lit(3),
+                ),
+                ast.new_explicit_seq((0..3).map(|x| ast.new_int_lit(x)).collect())
+            ),
+        ];
+
+    let method = ast.new_method("foo", None, vec![], post_conditions);
+
+    let program = ast.new_program(vec![method]);
+
+    let verifier = verification_context.new_verifier();
+
+    let verification_result = verifier.verify(program);
+
+    assert_eq!(verification_result, VerificationResult::Success());
 }
