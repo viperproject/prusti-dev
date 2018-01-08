@@ -14,8 +14,8 @@ lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 
+/// Test bug https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances
 #[test]
-#[ignore] // Disabled because of bug https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances
 fn concurrent_verifier_initialization() {
     env_logger::init().unwrap();
 
@@ -27,7 +27,17 @@ fn concurrent_verifier_initialization() {
         handlers.push(thread::spawn(move || {
             debug!("Start of thread {:?}", i);
             let verification_context: VerificationContext = VIPER.new_verification_context();
-            let _verifier = verification_context.new_verifier();
+
+            let ast = verification_context.new_ast_factory();
+
+            let program = ast.new_program(vec![]);
+
+            let verifier = verification_context.new_verifier();
+
+            let verification_result = verifier.verify(program);
+
+            assert_eq!(verification_result, VerificationResult::Success());
+
             debug!("End of thread {:?}", i);
         }));
     }

@@ -2,6 +2,7 @@ use jni::*;
 use std::fs;
 use verification_context::*;
 use error_chain::ChainedError;
+use std::env;
 
 pub struct Viper {
     jvm: JavaVM,
@@ -9,10 +10,17 @@ pub struct Viper {
 
 impl Viper {
     pub fn new() -> Self {
-        let jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/")
+        let viper_home = env::var("VIPER_HOME").unwrap_or("/usr/lib/viper/".to_owned());
+
+        debug!("Viper home: '{}'", &viper_home);
+
+        let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap()
             .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
+            .filter(|x| !x.contains("carbon"))
             .collect();
+
+        debug!("Java classpath: {}", jar_paths.clone().join(":"));
 
         let jvm_args = InitArgsBuilder::new()
             .version(JNIVersion::V8)
@@ -33,7 +41,18 @@ impl Viper {
             panic!(format!("{}", e.display_chain().to_string()));
         });
 
-        Viper { jvm }
+        let this = Viper { jvm };
+
+        {
+            // Initialize the logging context
+            // See:
+            // - https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances
+            // - https://stackoverflow.com/a/16013093/2491528
+            let ver_context = this.new_verification_context();
+            ver_context.new_verifier();
+        }
+
+        this
     }
 
     pub fn new_verification_context(&self) -> VerificationContext {

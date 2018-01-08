@@ -15,18 +15,45 @@ impl<'a> JniUtils<'a> {
         JniUtils { env }
     }
 
+    /*fn get_stack_trace(&self, t: JObject) -> Result<String> {
+        let sw = java::io::StringWriter::with(self.env).new()?;
+        let pw = java::io::PrintWriter::with(self.env).new_4(sw)?;
+        java::lang::Throwable::with(self.env)
+            .call_printStackTrace_1(t, pw)?;
+        Ok(self.to_string(sw))
+    }*/
+
     /// Unwraps a Result<T>, checking for Java Exceptions.
     pub fn unwrap_result<T>(&self, res: Result<T>) -> T {
         res.unwrap_or_else(|error| {
-            let exception_occurred = self.env.exception_check().unwrap_or_else(
-                |e| panic!(format!("{:?}", e)),
-            );
+            error!("{}", error.display_chain().to_string());
+            let exception_occurred = self.env.exception_check().unwrap_or_else(|e| {
+                error!("{}", e.display_chain().to_string());
+                panic!();
+            });
             if exception_occurred {
-                self.env.exception_describe().unwrap_or_else(
-                    |e| panic!(format!("{:?}", e)),
-                );
+                self.env.exception_describe().unwrap_or_else(|e| {
+                    error!("{}", e.display_chain().to_string());
+                    panic!();
+                });
+
+                /*let throwable = self.env.exception_occurred().unwrap_or_else(|e| {
+                    error!("{}", e.display_chain().to_string());
+                    panic!();
+                });*/
+
+                self.env.exception_clear().unwrap_or_else(|e| {
+                    error!("{}", e.display_chain().to_string());
+                    panic!();
+                });
+
+                /*let stack_trace = self.get_stack_trace(throwable.into()).unwrap_or_else(|e| {
+                    error!("{}", e.display_chain().to_string());
+                    panic!();
+                });
+                error!("Exception stack trace:\n{}", stack_trace);*/
             }
-            panic!(format!("{}", error.display_chain().to_string()));
+            panic!();
         })
     }
 
