@@ -68,7 +68,7 @@ fn main() {
             "viper.silver.ast.DomainFuncApp$",
             "viper.silver.ast.DomainType",
             "viper.silver.ast.EmptySeq",
-            "viper.silver.ast.EmptyMultiSet",
+            "viper.silver.ast.EmptyMultiset",
             "viper.silver.ast.EmptySet",
             "viper.silver.ast.EpsilonPerm",
             "viper.silver.ast.EqCmp",
