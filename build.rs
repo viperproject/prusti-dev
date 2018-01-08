@@ -28,6 +28,7 @@ fn main() {
             "java.lang.Class",
             "java.lang.Object",
             "java.lang.System",
+            "java.lang.Throwable",
             "java.math.BigInteger",
             "java.nio.file.Paths",
             // Scala
