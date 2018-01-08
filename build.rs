@@ -63,6 +63,7 @@ fn main() {
             "viper.silver.ast.DomainType",
             "viper.silver.ast.EmptySeq",
             "viper.silver.ast.EmptySet",
+            "viper.silver.ast.EpsilonPerm",
             "viper.silver.ast.EqCmp",
             "viper.silver.ast.Exhale",
             "viper.silver.ast.Exists",
