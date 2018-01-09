@@ -138,7 +138,6 @@ fn generate_constructor(
         class
     ));
 
-    code.push("#[allow(dead_code)]".to_owned());
     code.push(format!("pub fn {}(", constructor_name));
     code.push("    &self,".to_owned());
 

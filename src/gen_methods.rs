@@ -186,7 +186,6 @@ fn generate_method(
         return_signature
     ));
 
-    code.push("#[allow(dead_code)]".to_owned());
     code.push(format!("pub fn {}(", rust_method_name));
     code.push("    &self,".to_owned());
     code.push("    receiver: JObject,".to_owned());
@@ -263,7 +262,6 @@ fn generate_static_method(
         return_signature
     ));
 
-    code.push("#[allow(dead_code)]".to_owned());
     code.push(format!("pub fn {}(", rust_method_name));
     code.push("    &self,".to_owned());
 
