@@ -51,9 +51,9 @@ macro_rules! build_ast_node {
     ($self:expr, $wrapper:ident, $($java_class:ident)::+) => {
          {
             let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).new(
-                $self.new_no_position().to_jobject(),
-                $self.new_no_info(),
-                $self.new_no_trafos(),
+                $self.no_position().to_jobject(),
+                $self.no_info(),
+                $self.no_trafos(),
             ));
             $wrapper::new(obj)
         }
@@ -62,9 +62,9 @@ macro_rules! build_ast_node {
          {
             let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).new(
                 $($args),+ ,
-                $self.new_no_position().to_jobject(),
-                $self.new_no_info(),
-                $self.new_no_trafos(),
+                $self.no_position().to_jobject(),
+                $self.no_info(),
+                $self.no_trafos(),
             ));
             $wrapper::new(obj)
         }

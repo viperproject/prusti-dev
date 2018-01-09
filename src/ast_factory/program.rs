@@ -14,7 +14,7 @@ use ast_factory::structs::DomainFunc;
 use ast_factory::structs::DomainAxiom;
 
 impl<'a> AstFactory<'a> {
-    pub fn new_program(
+    pub fn program(
         &self,
         domains: Vec<Domain>,
         fields: Vec<Field>,
@@ -34,7 +34,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_field(&self, name: &str, typ: Type) -> Field<'a> {
+    pub fn field(&self, name: &str, typ: Type) -> Field<'a> {
         build_ast_node!(
             self,
             Field,
@@ -44,7 +44,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_local_var_decl(&self, name: &str, typ: Type) -> LocalVarDecl<'a> {
+    pub fn local_var_decl(&self, name: &str, typ: Type) -> LocalVarDecl<'a> {
         build_ast_node!(
             self,
             LocalVarDecl,
@@ -54,7 +54,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_predicate(
+    pub fn predicate(
         &self,
         name: &str,
         formal_args: Vec<LocalVarDecl>,
@@ -73,7 +73,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_function(
+    pub fn function(
         &self,
         name: &str,
         formal_args: Vec<LocalVarDecl>,
@@ -99,7 +99,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_method(
+    pub fn method(
         &self,
         name: &str,
         formal_args: Vec<LocalVarDecl>,
@@ -119,12 +119,12 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(map_to_jobjects!(posts)),
             match body {
                 None => self.jni.new_option(None),
-                Some(x) => self.jni.new_option(Some(self.new_seqn(x).to_jobject())),
+                Some(x) => self.jni.new_option(Some(self.seqn(x).to_jobject())),
             }
         )
     }
 
-    pub fn new_domain(
+    pub fn domain(
         &self,
         name: &str,
         functions: Vec<DomainFunc>,
@@ -142,7 +142,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_domain_func(
+    pub fn domain_func(
         &self,
         name: &str,
         formal_args: Vec<LocalVarDecl>,
@@ -155,27 +155,22 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(map_to_jobjects!(formal_args)),
             typ.to_jobject(),
             unique as u8, // TODO: perform the `as u8` conversion in the `jni-gen` crate
-            self.new_no_position().to_jobject(),
-            self.new_no_info(),
+            self.no_position().to_jobject(),
+            self.no_info(),
             self.jni.new_string(domain_name),
-            self.new_no_trafos(),
+            self.no_trafos(),
         ));
         DomainFunc::new(obj)
     }
 
-    pub fn new_domain_axiom(
-        &self,
-        name: &str,
-        expr: Expr,
-        domain_name: &str,
-    ) -> DomainAxiom<'a> {
+    pub fn domain_axiom(&self, name: &str, expr: Expr, domain_name: &str) -> DomainAxiom<'a> {
         let obj = self.jni.unwrap_result(ast::DomainAxiom::with(self.env).new(
             self.jni.new_string(name),
             expr.to_jobject(),
-            self.new_no_position().to_jobject(),
-            self.new_no_info(),
+            self.no_position().to_jobject(),
+            self.no_info(),
             self.jni.new_string(domain_name),
-            self.new_no_trafos(),
+            self.no_trafos(),
         ));
         DomainAxiom::new(obj)
     }

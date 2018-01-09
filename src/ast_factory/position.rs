@@ -5,14 +5,14 @@ use ast_factory::AstFactory;
 use ast_factory::structs::Position;
 
 impl<'a> AstFactory<'a> {
-    pub fn new_no_position(&self) -> Position {
+    pub fn no_position(&self) -> Position {
         let obj = self.jni.unwrap_result(
             ast::NoPosition_object::with(self.env).singleton(),
         );
         Position::new(obj)
     }
 
-    pub fn new_line_column_position(&self, line: jint, column: jint) -> Position {
+    pub fn line_column_position(&self, line: jint, column: jint) -> Position {
         let obj = self.jni.unwrap_result(
             ast::LineColumnPosition::with(self.env).new(
                 line,
@@ -22,7 +22,7 @@ impl<'a> AstFactory<'a> {
         Position::new(obj)
     }
 
-    pub fn new_identifier_position(&self, line: jint, column: jint, pos_id: &str) -> Position {
+    pub fn identifier_position(&self, line: jint, column: jint, pos_id: &str) -> Position {
         let obj = self.jni.unwrap_result(
             ast::IdentifierPosition::with(self.env).new(
                 self.jni.unwrap_result(
@@ -31,7 +31,7 @@ impl<'a> AstFactory<'a> {
                         self.jni.new_object_array(0),
                     ),
                 ),
-                self.new_line_column_position(line, column).to_jobject(),
+                self.line_column_position(line, column).to_jobject(),
                 self.jni.new_option(None),
                 self.jni.new_string(pos_id),
             ),

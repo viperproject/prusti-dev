@@ -30,7 +30,7 @@ fn concurrent_verifier_initialization() {
 
                 let ast = verification_context.new_ast_factory();
 
-                let program = ast.new_program(vec![], vec![], vec![], vec![], vec![]);
+                let program = ast.program(vec![], vec![], vec![], vec![], vec![]);
 
                 let verifier = verification_context.new_verifier();
 
