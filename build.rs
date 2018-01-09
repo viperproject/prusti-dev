@@ -22,6 +22,7 @@ fn main() {
         .use_jars(&mut viper_jars)
         .wrap_all(&vec![
             // Java
+            "java.io.OutputStreamWriter",
             "java.io.PrintStream",
             "java.io.PrintWriter",
             "java.io.StringWriter",
@@ -30,6 +31,7 @@ fn main() {
             "java.lang.System",
             "java.lang.Throwable",
             "java.math.BigInteger",
+            "java.nio.charset.StandardCharsets",
             "java.nio.file.Paths",
             // Scala
             "scala.Some",
