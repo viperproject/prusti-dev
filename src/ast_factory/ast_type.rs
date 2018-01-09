@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
 use ast_factory::structs::Type;

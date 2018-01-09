@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
 use ast_factory::structs::Type;
@@ -9,6 +7,7 @@ use ast_factory::structs::Expr;
 use ast_factory::structs::Trigger;
 use ast_factory::structs::Location;
 use ast_factory::structs::LocalVarDecl;
+use ast_factory::structs::Field;
 
 impl<'a> AstFactory<'a> {
     pub fn new_add(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -339,7 +338,7 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
-    pub fn new_field_access(&self, rcv: Expr, field: Expr) -> Expr<'a> {
+    pub fn new_field_access(&self, rcv: Expr, field: Field) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,

@@ -6,6 +6,7 @@ jobject_wrapper!(Trigger);
 jobject_wrapper!(Position);
 jobject_wrapper!(Domain);
 jobject_wrapper!(DomainFunc);
+jobject_wrapper!(DomainAxiom);
 jobject_wrapper!(Function);
 jobject_wrapper!(Program);
 jobject_wrapper!(Method);

@@ -110,17 +110,38 @@ impl<'a> Verifier<'a, state::Started> {
             let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
 
             for viper_error in viper_errors {
-                assert!(
-                    self.jni.is_instance_of(
-                        viper_error,
-                        "viper/silver/verifier/VerificationError",
-                    ),
-                    format!(
-                        "The verifier returned an error that is not a VerificationError ({}): {:?}",
-                        self.jni.class_name(viper_error),
-                        self.jni.to_string(viper_error)
-                    )
+                let is_verification_error = self.jni.is_instance_of(
+                    viper_error,
+                    "viper/silver/verifier/VerificationError",
                 );
+
+                if !is_verification_error {
+                    let is_aborted_exceptionally = self.jni.is_instance_of(
+                        viper_error,
+                        "viper/silver/verifier/AbortedExceptionally",
+                    );
+
+                    if is_aborted_exceptionally {
+                        let exception = self.jni.unwrap_result(
+                            silver::verifier::AbortedExceptionally::with(
+                                self.env,
+                            ).call_cause(viper_error),
+                        );
+                        let stack_trace =
+                            self.jni.unwrap_result(self.jni.get_stack_trace(exception));
+                        error!(
+                            "The verification aborted due to the following exception: {}",
+                            stack_trace
+                        );
+                    } else {
+                        error!(
+                            "The verifier returned an unhandled error of type {}: {}",
+                            self.jni.class_name(viper_error),
+                            self.jni.to_string(viper_error)
+                        );
+                    }
+                    panic!();
+                };
 
                 let error_type = self.jni.get_string(self.jni.unwrap_result(
                     verification_error_wrapper.call_id(viper_error),

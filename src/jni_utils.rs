@@ -15,13 +15,14 @@ impl<'a> JniUtils<'a> {
         JniUtils { env }
     }
 
-    /*fn get_stack_trace(&self, t: JObject) -> Result<String> {
+    /// Generates the stack trace from a Java Exception
+    pub fn get_stack_trace(&self, t: JObject) -> Result<String> {
         let sw = java::io::StringWriter::with(self.env).new()?;
         let pw = java::io::PrintWriter::with(self.env).new_4(sw)?;
         java::lang::Throwable::with(self.env)
-            .call_printStackTrace_1(t, pw)?;
+            .call_printStackTrace_2(t, pw)?;
         Ok(self.to_string(sw))
-    }*/
+    }
 
     /// Unwraps a Result<T>, checking for Java Exceptions.
     pub fn unwrap_result<T>(&self, res: Result<T>) -> T {

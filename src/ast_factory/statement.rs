@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
 use ast_factory::structs::Expr;
@@ -107,7 +105,7 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Stmt, ast::Apply, wand.to_jobject())
     }
 
-    pub fn new_seqn(&self, stmts: Vec<Stmt>) -> Stmt<'a> {
+    pub(crate) fn new_seqn(&self, stmts: Vec<Stmt>) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
@@ -117,25 +115,25 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_if(&self, cond: Expr, then_body: Stmt, else_body: Stmt) -> Stmt<'a> {
+    pub fn new_if(&self, cond: Expr, then_body: Vec<Stmt>, else_body: Vec<Stmt>) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::If,
             cond.to_jobject(),
-            then_body.to_jobject(),
-            else_body.to_jobject()
+            self.new_seqn(then_body).to_jobject(),
+            self.new_seqn(else_body).to_jobject()
         )
     }
 
-    pub fn new_while(&self, cond: Expr, invs: Vec<Expr>, body: Stmt) -> Stmt<'a> {
+    pub fn new_while(&self, cond: Expr, invs: Vec<Expr>, body: Vec<Stmt>) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::While,
             cond.to_jobject(),
             self.jni.new_seq(map_to_jobjects!(invs)),
-            body.to_jobject()
+            self.new_seqn(body).to_jobject()
         )
     }
 
@@ -162,13 +160,13 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn new_constraining(&self, vars: Vec<Expr>, body: Stmt) -> Stmt<'a> {
+    pub fn new_constraining(&self, vars: Vec<Expr>, body: Vec<Stmt>) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Constraining,
             self.jni.new_seq(map_to_jobjects!(vars)),
-            body.to_jobject()
+            self.new_seqn(body).to_jobject()
         )
     }
 

@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use jni::sys::jint;
 use viper_sys::wrappers::java;
 use viper_sys::wrappers::viper::silver::ast;

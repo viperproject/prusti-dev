@@ -1,6 +1,4 @@
 #[macro_use]
-extern crate log;
-#[macro_use]
 extern crate lazy_static;
 extern crate viper;
 extern crate error_chain;
@@ -14,35 +12,36 @@ lazy_static! {
     static ref VIPER: Viper = Viper::new();
 }
 
-/// Test bug https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances
+/// Regression test for the following bug:
+/// https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances
 #[test]
 fn concurrent_verifier_initialization() {
     env_logger::init().unwrap();
 
-    let mut handlers: Vec<JoinHandle<()>> = vec![];
+    const MAX_NUM_THREADS: u32 = 2;
+    const MIN_NUM_THREADS: u32 = 10;
 
-    let num_threads = 3;
+    for num_threads in MIN_NUM_THREADS..(MAX_NUM_THREADS + 1) {
+        let mut handlers: Vec<JoinHandle<()>> = vec![];
 
-    for i in 0..num_threads {
-        handlers.push(thread::spawn(move || {
-            debug!("Start of thread {:?}", i);
-            let verification_context: VerificationContext = VIPER.new_verification_context();
+        for _ in 0..num_threads {
+            handlers.push(thread::spawn(move || {
+                let verification_context: VerificationContext = VIPER.new_verification_context();
 
-            let ast = verification_context.new_ast_factory();
+                let ast = verification_context.new_ast_factory();
 
-            let program = ast.new_program(vec![]);
+                let program = ast.new_program(vec![], vec![], vec![], vec![], vec![]);
 
-            let verifier = verification_context.new_verifier();
+                let verifier = verification_context.new_verifier();
 
-            let verification_result = verifier.verify(program);
+                let verification_result = verifier.verify(program);
 
-            assert_eq!(verification_result, VerificationResult::Success());
+                assert_eq!(verification_result, VerificationResult::Success());
+            }));
+        }
 
-            debug!("End of thread {:?}", i);
-        }));
-    }
-
-    for handler in handlers {
-        handler.join().unwrap();
+        for handler in handlers.drain(..) {
+            handler.join().unwrap();
+        }
     }
 }
