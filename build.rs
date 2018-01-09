@@ -185,6 +185,7 @@ fn main() {
             "viper.silver.ast.utility.QuantifiedPermissions$",
             "viper.silver.ast.While",
             "viper.silver.ast.WildcardPerm",
+            "viper.silver.verifier.AbortedExceptionally",
             "viper.silver.verifier.ErrorMessage",
             "viper.silver.verifier.Failure",
             "viper.silver.verifier.AbstractError",
