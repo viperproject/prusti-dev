@@ -79,29 +79,32 @@ fn success_with_complex_program() {
                     ast.full_perm()
                 ),
             ],
-            Some(vec![
-                // box = new(value)
-                ast.new_stmt(
-                    ast.local_var("box", ast.ref_type()),
-                    vec![ast.field("value", ast.int_type())]
-                ),
-                // box.value = v
-                ast.field_assign(
-                    ast.field_access(
+            Some(ast.seqn(
+                vec![
+                    // box = new(value)
+                    ast.new_stmt(
                         ast.local_var("box", ast.ref_type()),
-                        ast.field("value", ast.int_type()),
+                        vec![ast.field("value", ast.int_type())]
                     ),
-                    ast.local_var("v", ast.int_type())
-                ),
-                // fold EvenNumBox(box)
-                ast.fold(ast.predicate_access_predicate(
-                    ast.predicate_access(
-                        vec![ast.local_var("box", ast.ref_type())],
-                        "EvenNumBox",
+                    // box.value = v
+                    ast.field_assign(
+                        ast.field_access(
+                            ast.local_var("box", ast.ref_type()),
+                            ast.field("value", ast.int_type()),
+                        ),
+                        ast.local_var("v", ast.int_type())
                     ),
-                    ast.full_perm(),
-                )),
-            ]),
+                    // fold EvenNumBox(box)
+                    ast.fold(ast.predicate_access_predicate(
+                        ast.predicate_access(
+                            vec![ast.local_var("box", ast.ref_type())],
+                            "EvenNumBox",
+                        ),
+                        ast.full_perm(),
+                    )),
+                ],
+                vec![],
+            )),
         );
 
     let program = ast.program(

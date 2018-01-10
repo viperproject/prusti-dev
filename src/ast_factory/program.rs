@@ -106,7 +106,7 @@ impl<'a> AstFactory<'a> {
         formal_returns: Vec<LocalVarDecl>,
         pres: Vec<Expr>,
         posts: Vec<Expr>,
-        body: Option<Vec<Stmt>>,
+        body: Option<Stmt>,
     ) -> Method<'a> {
         build_ast_node!(
             self,
@@ -119,7 +119,7 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(map_to_jobjects!(posts)),
             match body {
                 None => self.jni.new_option(None),
-                Some(x) => self.jni.new_option(Some(self.seqn(x).to_jobject())),
+                Some(x) => self.jni.new_option(Some(x.to_jobject())),
             }
         )
     }

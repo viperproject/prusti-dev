@@ -48,7 +48,7 @@ fn failure_with_assert_false() {
 
     let assertion = ast.assert(false_lit, pos);
 
-    let body = vec![assertion];
+    let body = ast.seqn(vec![assertion], vec![]);
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
 
@@ -80,9 +80,9 @@ fn success_with_assert_with_boolean_operations() {
 
     let false_lit = ast.false_lit();
 
-    let and = ast.and(false_lit.clone(), true_lit.clone());
+    let and = ast.and(false_lit, true_lit);
 
-    let or = ast.or(false_lit.clone(), true_lit.clone());
+    let or = ast.or(false_lit, true_lit);
 
     let implication = ast.implies(and, or);
 
@@ -90,7 +90,7 @@ fn success_with_assert_with_boolean_operations() {
 
     let assertion = ast.assert(implication, pos);
 
-    let body = vec![assertion];
+    let body = ast.seqn(vec![assertion], vec![]);
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
 
@@ -113,9 +113,13 @@ fn success_with_assert_false_in_dead_code() {
     let assert_false = ast.assert(ast.false_lit(), ast.no_position());
     let assert_true = ast.assert(ast.true_lit(), ast.no_position());
 
-    let if_stmt = ast.if_stmt(ast.false_lit(), vec![assert_false], vec![assert_true]);
+    let if_stmt = ast.if_stmt(
+        ast.false_lit(),
+        ast.seqn(vec![assert_false], vec![]),
+        ast.seqn(vec![assert_true], vec![]),
+    );
 
-    let body = vec![if_stmt];
+    let body = ast.seqn(vec![if_stmt], vec![]);
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
 
@@ -137,15 +141,18 @@ fn success_with_assign_if_and_assert() {
 
     let local_var = ast.local_var("x", ast.bool_type());
 
-    let assignment = ast.local_var_assign(local_var.clone(), ast.true_lit());
+    let assignment = ast.local_var_assign(local_var, ast.true_lit());
 
     let if_stmt = ast.if_stmt(
-        local_var.clone(),
-        vec![ast.assert(local_var.clone(), ast.no_position())],
-        vec![ast.assert(ast.false_lit(), ast.no_position())],
+        local_var,
+        ast.seqn(vec![ast.assert(local_var, ast.no_position())], vec![]),
+        ast.seqn(vec![ast.assert(ast.false_lit(), ast.no_position())], vec![]),
     );
 
-    let method_body = vec![assignment, if_stmt];
+    let method_body = ast.seqn(
+        vec![assignment, if_stmt],
+        vec![ast.local_var_decl("x", ast.bool_type())],
+    );
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));
 
@@ -167,19 +174,26 @@ fn failure_with_assign_if_and_assert() {
 
     let local_var = ast.local_var("x", ast.bool_type());
 
-    let assignment = ast.local_var_assign(local_var.clone(), ast.true_lit());
+    let assignment = ast.local_var_assign(local_var, ast.true_lit());
 
     let if_stmt = ast.if_stmt(
-        local_var.clone(),
-        vec![
-            ast.assert(ast.false_lit(), ast.identifier_position(3, 0, "then")),
-        ],
-        vec![
-            ast.assert(local_var.clone(), ast.identifier_position(5, 0, "else")),
-        ],
+        local_var,
+        ast.seqn(
+            vec![
+                ast.assert(ast.false_lit(), ast.identifier_position(3, 0, "then")),
+            ],
+            vec![],
+        ),
+        ast.seqn(
+            vec![ast.assert(local_var, ast.identifier_position(5, 0, "else"))],
+            vec![],
+        ),
     );
 
-    let method_body = vec![assignment, if_stmt];
+    let method_body = ast.seqn(
+        vec![assignment, if_stmt],
+        vec![ast.local_var_decl("x", ast.bool_type())],
+    );
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));
 
@@ -230,7 +244,7 @@ fn success_with_complex_post_condition() {
 
     let assertion = ast.assert(condition, ast.no_position());
 
-    let body = vec![assertion];
+    let body = ast.seqn(vec![assertion], vec![]);
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
 

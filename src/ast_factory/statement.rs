@@ -130,35 +130,37 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Stmt, ast::Apply, wand.to_jobject())
     }
 
-    pub(crate) fn seqn(&self, stmts: Vec<Stmt>) -> Stmt<'a> {
+    /// Here the argument `scoped_decls` is a vector of `LocalVarDecl`, but Viper allows also
+    /// labels, methods, domains and so on.
+    pub fn seqn(&self, stmts: Vec<Stmt>, scoped_decls: Vec<LocalVarDecl>) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Seqn,
             self.jni.new_seq(map_to_jobjects!(stmts)),
-            self.jni.new_seq(vec![])
+            self.jni.new_seq(map_to_jobjects!(scoped_decls))
         )
     }
 
-    pub fn if_stmt(&self, cond: Expr, then_body: Vec<Stmt>, else_body: Vec<Stmt>) -> Stmt<'a> {
+    pub fn if_stmt(&self, cond: Expr, then_body: Stmt, else_body: Stmt) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::If,
             cond.to_jobject(),
-            self.seqn(then_body).to_jobject(),
-            self.seqn(else_body).to_jobject()
+            then_body.to_jobject(),
+            else_body.to_jobject()
         )
     }
 
-    pub fn while_stmt(&self, cond: Expr, invs: Vec<Expr>, body: Vec<Stmt>) -> Stmt<'a> {
+    pub fn while_stmt(&self, cond: Expr, invs: Vec<Expr>, body: Stmt) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::While,
             cond.to_jobject(),
             self.jni.new_seq(map_to_jobjects!(invs)),
-            self.seqn(body).to_jobject()
+            body.to_jobject()
         )
     }
 
@@ -185,13 +187,13 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn constraining(&self, vars: Vec<Expr>, body: Vec<Stmt>) -> Stmt<'a> {
+    pub fn constraining(&self, vars: Vec<Expr>, body: Stmt) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Constraining,
             self.jni.new_seq(map_to_jobjects!(vars)),
-            self.seqn(body).to_jobject()
+            body.to_jobject()
         )
     }
 
