@@ -136,6 +136,7 @@ fn main() {
             "viper.silver.ast.NeCmp",
             "viper.silver.ast.NegOp$",
             "viper.silver.ast.NewStmt",
+            "viper.silver.ast.Node",
             "viper.silver.ast.NoInfo$",
             "viper.silver.ast.NoPerm",
             "viper.silver.ast.NoPosition$",
@@ -192,6 +193,7 @@ fn main() {
             "viper.silver.verifier.Failure",
             "viper.silver.verifier.AbstractError",
             "viper.silver.verifier.VerificationError",
+            "viper.silver.verifier.ConsistencyError",
         ])
         .generate(&generated_dir)
         .unwrap_or_else(|e| {
