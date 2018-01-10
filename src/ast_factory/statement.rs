@@ -48,12 +48,44 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn exhale(&self, expr: Expr) -> Stmt<'a> {
-        build_ast_node!(self, Stmt, ast::Exhale, expr.to_jobject())
+    pub fn exhale(&self, expr: Expr, pos: Position) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Exhale::with(self.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
     }
 
-    pub fn inhale(&self, expr: Expr) -> Stmt<'a> {
-        build_ast_node!(self, Stmt, ast::Inhale, expr.to_jobject())
+    pub fn exhale_with_comment(&self, expr: Expr, pos: Position, comment: &str) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Exhale::with(self.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            self.simple_info(vec![comment]),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
+    }
+
+    pub fn inhale(&self, expr: Expr, pos: Position) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Inhale::with(self.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
+    }
+
+    pub fn inhale_with_comment(&self, expr: Expr, pos: Position, comment: &str) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Inhale::with(self.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            self.simple_info(vec![comment]),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
     }
 
     pub fn assert(&self, expr: Expr, pos: Position) -> Stmt<'a> {
