@@ -196,8 +196,4 @@ impl<'a> AstFactory<'a> {
             body.to_jobject()
         )
     }
-
-    pub fn local_var_decl_stmt(&self, decl: LocalVarDecl) -> Stmt<'a> {
-        build_ast_node!(self, Stmt, ast::LocalVarDeclStmt, decl.to_jobject())
-    }
 }
