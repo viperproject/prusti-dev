@@ -43,11 +43,11 @@ fn success_with_complex_program() {
         Some(
             // acc(box.value) && even(box.value)
             ast.and(
-                ast.perm_ge_cmp(
-                    ast.current_perm(ast.field_access(
+                ast.field_access_predicate(
+                    ast.field_access(
                         ast.local_var("box", ast.ref_type()),
                         ast.field("value", ast.int_type()),
-                    )),
+                    ),
                     ast.full_perm(),
                 ),
                 ast.func_app(
