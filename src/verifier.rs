@@ -82,7 +82,26 @@ impl<'a> Verifier<'a, state::Stopped> {
 }
 
 impl<'a> Verifier<'a, state::Started> {
+    fn check_ast_consistency(&self, program: Program) -> Vec<JObject> {
+        self.jni.seq_to_vec(self.jni.unwrap_result(
+            silver::ast::Node::with(self.env).call_checkTransitively(program.to_jobject()),
+        ))
+    }
+
     pub fn verify(&self, program: Program) -> VerificationResult {
+        let consistency_errors = self.check_ast_consistency(program.clone());
+
+        if !consistency_errors.is_empty() {
+            error!(
+                "The provided program has {} consistency errors.",
+                consistency_errors.len()
+            );
+            for error in consistency_errors {
+                error!("{}", self.jni.to_string(error));
+            }
+            panic!();
+        }
+
         let viper_result = self.jni.unwrap_result(self.silicon_wrapper.call_verify(
             self.silicon_instance,
             program.to_jobject(),
