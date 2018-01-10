@@ -154,7 +154,7 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string(name),
             self.jni.new_seq(map_to_jobjects!(formal_args)),
             typ.to_jobject(),
-            unique as u8, // TODO: perform the `as u8` conversion in the `jni-gen` crate
+            unique,
             self.no_position().to_jobject(),
             self.no_info(),
             self.jni.new_string(domain_name),
