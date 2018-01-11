@@ -149,9 +149,21 @@ fn generate_constructor(
     }
 
     code.push(") -> JNIResult<JObject<'a>> {".to_owned());
-    code.push("    self.env.new_object(".to_owned());
-    code.push(format!("        \"{}\",", class));
-    code.push(format!("        \"{}\",", constructor_signature));
+    code.push(format!(
+        "    let class = self.env.find_class(\"{}\")?;",
+        class
+    ));
+    code.push(format!(
+        "    let method_signature = \"{}\";",
+        constructor_signature
+    ));
+    code.push(
+        "    let method_id = self.env.get_method_id(class, \"<init>\", method_signature)?;"
+            .to_owned(),
+    );
+    code.push("    self.env.new_object_by_id(".to_owned());
+    code.push("        class,".to_owned());
+    code.push("        method_id,".to_owned());
     code.push("        &[".to_owned());
 
     for i in 0..parameter_names.len() {

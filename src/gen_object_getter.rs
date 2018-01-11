@@ -14,8 +14,9 @@ pub fn generate_scala_object_getter(class: &str) -> String {
                 class
             ),
             "pub fn singleton(&self) -> JNIResult<JObject<'a>> {".to_owned(),
+            format!("    let class = self.env.find_class(\"{}\")?;", class),
             "    self.env.get_static_field(".to_owned(),
-            format!("        \"{}\",", class),
+            "        class,".to_owned(),
             "        \"MODULE$\",".to_owned(),
             format!("        \"L{};\",", class),
             "    ).and_then(|x| x.l())".to_owned(),

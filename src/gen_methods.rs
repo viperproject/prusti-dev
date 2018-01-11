@@ -198,10 +198,31 @@ fn generate_method(
     }
 
     code.push(format!(") -> JNIResult<{}> {{", return_type));
-    code.push("    self.env.call_method(".to_owned());
+    code.push(format!(
+        "    let class = self.env.find_class(\"{}\")?;",
+        class
+    ));
+    code.push(format!("    let method_name = \"{}\";", method_name));
+    code.push(format!(
+        "    let method_signature = \"{}\";",
+        method_signature
+    ));
+    code.push(format!(
+        "    let return_signature = \"{}\";",
+        return_signature
+    ));
+    code.push(
+        "    let method_id = self.env.get_method_id(class, method_name, method_signature)?;"
+            .to_owned(),
+    );
+    code.push(
+        "    let return_type = JavaType::from_str(return_signature)?;".to_owned(),
+    );
+    code.push("    unsafe {".to_owned());
+    code.push("    self.env.call_method_unsafe(".to_owned());
     code.push("        receiver,".to_owned());
-    code.push(format!("        \"{}\",", method_name));
-    code.push(format!("        \"{}\",", method_signature));
+    code.push("        method_id,".to_owned());
+    code.push("        return_type,".to_owned());
     code.push("        &[".to_owned());
 
     for i in 0..parameter_names.len() {
@@ -216,6 +237,7 @@ fn generate_method(
         "    ).and_then(|x| x.{}())",
         generate_jni_type_char(&return_signature)
     ));
+    code.push("    }".to_owned());
     code.push("}".to_owned());
 
     code.join("\n") + "\n"
@@ -273,10 +295,31 @@ fn generate_static_method(
     }
 
     code.push(format!(") -> JNIResult<{}> {{", return_type));
-    code.push("    self.env.call_static_method(".to_owned());
-    code.push(format!("        \"{}\",", class));
-    code.push(format!("        \"{}\",", method_name));
-    code.push(format!("        \"{}\",", method_signature));
+    code.push(format!(
+        "    let class = self.env.find_class(\"{}\")?;",
+        class
+    ));
+    code.push(format!("    let method_name = \"{}\";", method_name));
+    code.push(format!(
+        "    let method_signature = \"{}\";",
+        method_signature
+    ));
+    code.push(format!(
+        "    let return_signature = \"{}\";",
+        return_signature
+    ));
+    code.push(
+        "    let method_id = self.env.get_static_method_id(class, method_name, method_signature)?;"
+            .to_owned(),
+    );
+    code.push(
+        "    let return_type = JavaType::from_str(return_signature)?;".to_owned(),
+    );
+    code.push("    unsafe {".to_owned());
+    code.push("    self.env.call_static_method_unsafe(".to_owned());
+    code.push("        class,".to_owned());
+    code.push("        method_id,".to_owned());
+    code.push("        return_type,".to_owned());
     code.push("        &[".to_owned());
 
     for i in 0..parameter_names.len() {
@@ -291,6 +334,7 @@ fn generate_static_method(
         "    ).and_then(|x| x.{}())",
         generate_jni_type_char(&return_signature)
     ));
+    code.push("    }".to_owned());
     code.push("}".to_owned());
 
     code.join("\n") + "\n"

@@ -29,6 +29,7 @@ fn generate_imports() -> String {
         "use jni::objects::JValue;",
         "use jni::errors::Result as JNIResult;",
         "use jni::sys::*;",
+        "use jni::signature::*;",
     ].join("\n") + "\n"
 }
 
