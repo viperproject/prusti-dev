@@ -225,8 +225,8 @@ fn success_with_complex_post_condition() {
     let condition = ast.and(
         ast.and(
             ast.eq_cmp(
-                ast.empty_multi_set(ast.int_type()),
-                ast.empty_multi_set(ast.int_type()),
+                ast.empty_multiset(ast.int_type()),
+                ast.empty_multiset(ast.int_type()),
             ),
             ast.eq_cmp(
                 ast.explicit_set((0..10).map(|x| ast.int_lit(x)).collect()),

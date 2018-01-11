@@ -298,7 +298,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn func_app(&self, func: &Function, args: Vec<Expr>) -> Expr<'a> {
+    pub fn func_app(&self, func: Function, args: Vec<Expr>) -> Expr<'a> {
         let func_app_object_wrapper = ast::FuncApp_object::with(self.env);
         let obj = self.jni.unwrap_result(func_app_object_wrapper.call_apply_1(
             self.jni.unwrap_result(
@@ -317,7 +317,7 @@ impl<'a> AstFactory<'a> {
 
     pub fn domain_func_app(
         &self,
-        domain_func: &DomainFunc,
+        domain_func: DomainFunc,
         args: Vec<Expr>,
         type_var_map: Vec<(Type, Type)>,
     ) -> Expr<'a> {
@@ -577,11 +577,11 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn empty_multi_set(&self, elem_type: Type) -> Expr<'a> {
+    pub fn empty_multiset(&self, elem_type: Type) -> Expr<'a> {
         build_ast_node!(self, Expr, ast::EmptyMultiset, elem_type.to_jobject())
     }
 
-    pub fn explicit_multi_set(&self, elems: Vec<Expr>) -> Expr<'a> {
+    pub fn explicit_multiset(&self, elems: Vec<Expr>) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
