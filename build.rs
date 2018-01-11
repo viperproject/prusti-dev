@@ -47,6 +47,7 @@ fn main() {
             // Viper
             "viper.silicon.interfaces.Failure",
             "viper.silicon.Silicon",
+            "viper.silver.ast.pretty.FastPrettyPrinter$",
             "viper.silver.ast.Add",
             "viper.silver.ast.AddOp$",
             "viper.silver.ast.And",
