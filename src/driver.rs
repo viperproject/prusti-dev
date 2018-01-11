@@ -15,6 +15,7 @@ use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use std::path::PathBuf;
 use std::process::Command;
 use syntax::ast;
+use syntax::feature_gate::AttributeType;
 
 struct PrustiCompilerCalls {
     default: RustcDefaultCalls,
@@ -65,7 +66,39 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             .late_callback(matches, sess, crate_stores, input, odir, ofile)
     }
     fn build_controller(&mut self, sess: &session::Session, matches: &getopts::Matches) -> driver::CompileController<'a> {
-        let control = self.default.build_controller(sess, matches);
+        let mut control = self.default.build_controller(sess, matches);
+        //control.make_glob_map = ???
+        //control.keep_ast = true;
+        let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
+        control.after_parse.callback = Box::new(move |state| {
+            trace!("[after_parse.callback] enter");
+            {
+                let registry = state.registry.as_mut().unwrap();
+                registry.register_attribute(
+                    String::from("invariant"), AttributeType::Whitelisted);
+                registry.register_attribute(
+                    String::from("requires"), AttributeType::Whitelisted);
+                registry.register_attribute(
+                    String::from("ensures"), AttributeType::Whitelisted);
+                registry.register_attribute(
+                    String::from("__PRUSTI_SPEC"), AttributeType::Whitelisted);
+            }
+            trace!("[after_parse.callback] exit");
+            old(state);
+        });
+        let old = std::mem::replace(&mut control.after_expand.callback, box |_| {});
+        control.after_expand.callback = Box::new(move |state| {
+            trace!("[after_expand.callback] enter");
+            trace!("[after_expand.callback] exit");
+            old(state);
+        });
+        let old = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
+        control.after_analysis.callback = Box::new(move |state| {
+            trace!("[after_analysis.callback] enter");
+            trace!("[after_analysis.callback] exit");
+            old(state);
+        });
+        control.after_analysis.stop = Compilation::Stop;
         control
     }
 }

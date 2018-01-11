@@ -1,5 +1,3 @@
-#![feature(custom_attribute)]
-
 // This test checks that specifications are type-checked.
 
 extern crate prusti_contracts;
