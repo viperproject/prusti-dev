@@ -1,10 +1,8 @@
-extern crate viper_sys;
-extern crate jni;
-
 use jni::AttachGuard;
 use ast_factory::*;
 use verifier::Verifier;
 use verifier::state;
+use ast_utils::*;
 
 pub struct VerificationContext<'a> {
     env: AttachGuard<'a>,
@@ -17,6 +15,10 @@ impl<'a> VerificationContext<'a> {
 
     pub fn new_ast_factory(&self) -> AstFactory {
         AstFactory::new(&self.env)
+    }
+
+    pub fn new_ast_utils(&self) -> AstUtils {
+        AstUtils::new(&self.env)
     }
 
     pub fn new_verifier(&self) -> Verifier<state::Started> {

@@ -8,6 +8,7 @@ use viper_sys::wrappers::viper::*;
 use jni_utils::JniUtils;
 use verification_result::VerificationResult;
 use verification_result::VerificationError;
+use ast_utils::AstUtils;
 use std::marker::PhantomData;
 
 pub mod state {
@@ -82,14 +83,15 @@ impl<'a> Verifier<'a, state::Stopped> {
 }
 
 impl<'a> Verifier<'a, state::Started> {
-    fn check_ast_consistency(&self, program: Program) -> Vec<JObject> {
-        self.jni.seq_to_vec(self.jni.unwrap_result(
-            silver::ast::Node::with(self.env).call_checkTransitively(program.to_jobject()),
-        ))
-    }
-
     pub fn verify(&self, program: Program) -> VerificationResult {
-        let consistency_errors = self.check_ast_consistency(program.clone());
+        let ast_utils = AstUtils::new(self.env);
+
+        debug!(
+            "Program to be verified:\n{}",
+            ast_utils.pretty_print(program)
+        );
+
+        let consistency_errors = ast_utils.check_consistency(program);
 
         if !consistency_errors.is_empty() {
             error!(

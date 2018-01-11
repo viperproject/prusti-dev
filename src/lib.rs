@@ -10,8 +10,10 @@ mod ast_factory;
 mod verification_result;
 mod verifier;
 mod jni_utils;
+mod ast_utils;
 
 pub use viper::*;
 pub use verification_context::*;
 pub use ast_factory::*;
 pub use verification_result::*;
+pub use ast_utils::*;
