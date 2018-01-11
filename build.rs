@@ -133,6 +133,7 @@ fn main() {
             "viper.silver.ast.ModOp$",
             "viper.silver.ast.Mul",
             "viper.silver.ast.MulOp$",
+            "viper.silver.ast.MultisetType",
             "viper.silver.ast.NeCmp",
             "viper.silver.ast.NegOp$",
             "viper.silver.ast.NewStmt",
