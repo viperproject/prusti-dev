@@ -1,7 +1,10 @@
 #![feature(box_syntax)]
 #![feature(rustc_private)]
 
+extern crate env_logger;
 extern crate getopts;
+#[macro_use]
+extern crate log;
 extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_errors;
@@ -79,7 +82,8 @@ fn get_sysroot() -> String {
 }
 
 pub fn main() {
-    println!("It works!");
+    env_logger::init().unwrap();
+    trace!("[main] enter");
     let mut args: Vec<String> = std::env::args().collect();
     args.push("--sysroot".to_owned());
     args.push(get_sysroot());
@@ -91,4 +95,5 @@ pub fn main() {
             std::process::exit(1);
         }
     }).expect("rustc_thread failed");
+    trace!("[main] exit");
 }
