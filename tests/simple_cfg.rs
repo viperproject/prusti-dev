@@ -50,11 +50,6 @@ fn success_with_single_chain() {
 
     assert_eq!(
         verification_result,
-        VerificationResult::Failure(vec![
-            VerificationError::new(
-                "assert.failed".to_owned(),
-                "pos-id:123".to_owned()
-            ),
-        ])
+        VerificationResult::Success()
     );
 }
