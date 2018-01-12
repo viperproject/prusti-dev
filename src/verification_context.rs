@@ -3,6 +3,7 @@ use ast_factory::*;
 use verifier::Verifier;
 use verifier::state;
 use ast_utils::*;
+use cfg_method::*;
 
 pub struct VerificationContext<'a> {
     env: AttachGuard<'a>,
@@ -25,5 +26,11 @@ impl<'a> VerificationContext<'a> {
         Verifier::<state::Uninitialized>::new(&self.env)
             .parse_command_line(vec!["--z3Exe", "/usr/bin/viper-z3", "dummy-program.sil"])
             .start()
+    }
+
+    pub fn new_cfg_method<IntoString>(&self, ast_factory: &'a AstFactory, method_name: IntoString, formal_args: Vec<LocalVarDecl<'a>>, formal_returns: Vec<LocalVarDecl<'a>>, local_vars: Vec<LocalVarDecl<'a>>) -> CfgMethod
+    where IntoString: Into<String>
+    {
+        CfgMethod::new(ast_factory, method_name.into(), formal_args, formal_returns, local_vars)
     }
 }
