@@ -39,6 +39,7 @@ fn success_with_single_chain() {
     let block_3 = cfg.add_block(ast.local_var_assign(local_var, ast.int_lit(2)));
 
     cfg.set_successor(block_1, Successor::Goto(block_3));
+    cfg.set_successor(block_2, Successor::Return());
     cfg.set_successor(block_3, Successor::Goto(block_2));
 
     let program = ast.program(vec![], vec![], vec![], vec![], vec![cfg.to_ast().ok().unwrap()]);

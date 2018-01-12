@@ -23,6 +23,7 @@ struct CfgBlock<'a> {
 #[derive(Clone)]
 pub enum Successor<'a> {
     Unreachable(),
+    Return(),
     Goto(CfgBlockIndex),
     Switch(Vec<(Expr<'a>, CfgBlockIndex)>),
     If(Expr<'a>, CfgBlockIndex, CfgBlockIndex)
@@ -71,10 +72,15 @@ impl<'a> CfgMethod<'a> {
         format!("{}_{}_{}", LABEL_PREFIX, self.method_name, index)
     }
 
+    fn return_label(&self) -> String {
+        format!("{}_{}_return", LABEL_PREFIX, self.method_name)
+    }
+
     fn successor_to_ast(&self, successor: &Successor) -> Stmt {
         let ast = self.ast_factory;
         match successor {
             &Successor::Unreachable() => ast.assert(ast.false_lit(), ast.no_position()),
+            &Successor::Return() => ast.goto(&self.return_label()),
             &Successor::Goto(target) => ast.goto(&self.index_to_label(target.block_index)),
             &Successor::Switch(ref successors) => {
                 let skip = ast.seqn(vec![], vec![]);
@@ -111,12 +117,19 @@ impl<'a> CfgMethod<'a> {
 
     pub fn to_ast(self) -> LocalResult<Method<'a>> {
         let num_basic_blocks = self.basic_blocks.len();
-        let method_body = Some(
-            self.ast_factory.seqn(
-                (0..num_basic_blocks).map(|x| self.block_to_ast(x)).collect(),
-                self.local_vars.clone()
+        let method_body = {
+            let mut blocks_ast: Vec<Stmt> = (0..num_basic_blocks).map(|x| self.block_to_ast(x)).collect();
+            blocks_ast.push(self.ast_factory.label(&self.return_label(), vec![]));
+            let mut labels: Vec<Stmt> = (0..num_basic_blocks).map(|x| self.ast_factory.label(&self.index_to_label(x), vec![])).collect();
+            labels.push(self.ast_factory.label(&self.return_label(), vec![]));
+            Some(
+                self.ast_factory.seqn_with_labels(
+                    blocks_ast,
+                    self.local_vars.clone(),
+                    labels
+                )
             )
-        );
+        };
 
         let method = self.ast_factory.method(
             &self.method_name,

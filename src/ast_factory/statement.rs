@@ -1,4 +1,5 @@
 use viper_sys::wrappers::viper::silver::ast;
+use jni::objects::JObject;
 use ast_factory::AstFactory;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Field;
@@ -139,6 +140,19 @@ impl<'a> AstFactory<'a> {
             ast::Seqn,
             self.jni.new_seq(map_to_jobjects!(stmts)),
             self.jni.new_seq(map_to_jobjects!(scoped_decls))
+        )
+    }
+
+    // TODO: merge somehow with `self.seqn`
+    pub fn seqn_with_labels(&self, stmts: Vec<Stmt>, scoped_decls: Vec<LocalVarDecl>, scoped_labels: Vec<Stmt>) -> Stmt<'a> {
+        let decls: Vec<JObject> = map_to_jobjects!(scoped_decls);
+        let labels: Vec<JObject> = map_to_jobjects!(scoped_labels);
+        build_ast_node!(
+            self,
+            Stmt,
+            ast::Seqn,
+            self.jni.new_seq(map_to_jobjects!(stmts)),
+            self.jni.new_seq(vec![decls, labels].concat())
         )
     }
 
