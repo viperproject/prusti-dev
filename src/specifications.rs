@@ -20,11 +20,21 @@
 //!     i
 //! }
 //! ```
+//!
+//! The allowed assertions are of the form:
+//!
+//!     assertion := assertion && assertion
+//!                | expression ==> assertion
+//!                | (forall variable_name :: {expression} expression)
+//!
+//!  Here ``expression`` is a Rust expression that contains only
+//!  elements that are considered expressions in Viper, plus ``match``
+//!  expressions.
+
 
 use std::convert::TryFrom;
 use std::string::ToString;
 use syntax::{ast, ptr};
-use syntax::codemap::Span;
 
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -62,18 +72,19 @@ impl<'a> TryFrom<&'a str> for SpecType {
 
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-/// A unique specification ID.
+/// A unique ID of the specification element such as entire precondition
+/// or postcondition.
 pub struct SpecID(u64);
 
 impl SpecID {
     /// Constructor.
-    pub fn new() -> SpecID {
-        SpecID(100)
+    pub fn new() -> Self {
+        Self{ 0: 100 }
     }
     /// Increment ID and return a copy of the new value.
-    pub fn inc(&mut self) -> SpecID {
+    pub fn inc(&mut self) -> Self {
         self.0 += 1;
-        SpecID(self.0)
+        Self{ 0: self.0 }
     }
     /// Cast ID into a number.
     pub fn to_number(&self) -> u64 {
@@ -88,13 +99,86 @@ impl ToString for SpecID {
 }
 
 
-#[derive(Debug, Clone)]
-/// A specification AST extracted from the attribute.
-pub struct RawSpec {
-    /// Type of this specification.
-    pub spec_type: SpecType,
-    /// Specification parsed as AST.
-    pub expr: ptr::P<ast::Expr>,
-    /// The original location of the specification.
-    pub span: Span,
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+/// A unique ID of the Rust expression used in the specification.
+pub struct ExpressionId(u64);
+
+impl ExpressionId {
+    /// Constructor.
+    pub fn new() -> Self {
+        Self{ 0: 100 }
+    }
+    /// Increment ID and return a copy of the new value.
+    pub fn inc(&mut self) -> Self {
+        self.0 += 1;
+        Self{ 0: self.0 }
+    }
+    /// Cast ID into a number.
+    pub fn to_number(&self) -> u64 {
+        self.0
+    }
 }
+
+impl ToString for ExpressionId {
+    fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+#[derive(Debug, Clone)]
+/// A Rust expression used in the specification.
+pub struct Expression<ET> {
+    /// Unique identifier.
+    pub id: ExpressionId,
+    /// Actual expression.
+    pub expr: ET,
+}
+
+#[derive(Debug, Clone)]
+/// An assertion used in the specification.
+pub struct Assertion<ET> {
+    /// Subassertions.
+    pub kind: Box<AssertionKind<ET>>,
+}
+
+#[derive(Debug, Clone)]
+/// A single trigger for a quantifier.
+pub struct Trigger<ET>(Vec<Expression<ET>>);
+
+#[derive(Debug, Clone)]
+/// A set of triggers used in the quantifier.
+pub struct TriggerSet<ET>(Vec<Trigger<ET>>);
+
+#[derive(Debug, Clone)]
+/// An assertion kind used in the specification.
+pub enum AssertionKind<ET> {
+    /// A single Rust expression.
+    Expr(Expression<ET>),
+    /// Conjunction &&.
+    And(Vec<Assertion<ET>>),
+    /// Implication ==>
+    Implies(Expression<ET>, Assertion<ET>),
+    /// Quantifier (forall x :: {trigger(x)} body(x))
+    ForAll(String, TriggerSet<ET>, Expression<ET>),
+}
+
+
+#[derive(Debug, Clone)]
+/// Specification such as precondition, postcondition, or invariant.
+pub struct Specification<ET> {
+    /// Specification type.
+    pub typ: SpecType,
+    /// Actual specification.
+    pub assertion: Assertion<ET>,
+}
+
+
+/// A specification that has no types associated with it.
+pub type UntypedSpecification = Specification<ptr::P<ast::Expr>>;
+/// A set of specifications associated with a single element.
+pub type UntypedSpecificationSet = Vec<UntypedSpecification>;
+/// An assertion that has no types associated with it.
+pub type UntypedAssertion = Assertion<ptr::P<ast::Expr>>;
+/// An assertion kind that has no types associated with it.
+pub type UntypedAssertionKind = AssertionKind<ptr::P<ast::Expr>>;
+//pub type TypedAssertion = Assertion<rustc::hir::Expr>;

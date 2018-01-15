@@ -5,14 +5,14 @@ LOG_LEVEL=error
 
 run:
 	RUST_LOG=prusti=${LOG_LEVEL} \
-	LD_LIBRARY_PATH=~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/ \
+			 LD_LIBRARY_PATH=~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/:target/debug/ \
 	target/debug/prusti-driver \
 		-L target/debug/ \
 		--extern prusti_contracts=$(wildcard target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z mir-emit-validate=1 \
 		-Z borrowck=mir \
 		-Z nll \
-		tests/typecheck/fail/specification_type_error.rs
+		tests/typecheck/pass/lint.rs
 
 build:
 	cargo build

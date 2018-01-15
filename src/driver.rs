@@ -5,6 +5,7 @@ extern crate env_logger;
 extern crate getopts;
 #[macro_use]
 extern crate log;
+extern crate prusti;
 extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_errors;
@@ -83,13 +84,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                 registry.register_attribute(
                     String::from("__PRUSTI_SPEC"), AttributeType::Whitelisted);
             }
+            prusti::parser::rewrite_crate(state);
             trace!("[after_parse.callback] exit");
-            old(state);
-        });
-        let old = std::mem::replace(&mut control.after_expand.callback, box |_| {});
-        control.after_expand.callback = Box::new(move |state| {
-            trace!("[after_expand.callback] enter");
-            trace!("[after_expand.callback] exit");
             old(state);
         });
         let old = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
