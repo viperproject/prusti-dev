@@ -16,6 +16,7 @@ pub struct CfgMethod<'a> {
 
 #[derive(Clone)]
 struct CfgBlock<'a> {
+    invs: Vec<Expr<'a>>,
     stmt: Stmt<'a>,
     successor: Successor<'a>
 }
@@ -25,8 +26,8 @@ pub enum Successor<'a> {
     Unreachable(),
     Return(),
     Goto(CfgBlockIndex),
-    Switch(Vec<(Expr<'a>, CfgBlockIndex)>),
-    If(Expr<'a>, CfgBlockIndex, CfgBlockIndex)
+    GotoSwitch(Vec<(Expr<'a>, CfgBlockIndex)>),
+    GotoIf(Expr<'a>, CfgBlockIndex, CfgBlockIndex)
 }
 
 #[derive(Clone, Copy)]
@@ -49,10 +50,11 @@ impl<'a> CfgMethod<'a> {
         }
     }
 
-    pub fn add_block(&mut self, stmt: Stmt<'a>) -> CfgBlockIndex {
+    pub fn add_block(&mut self, invs: Vec<Expr<'a>>, stmt: Stmt<'a>) -> CfgBlockIndex {
         let index = self.basic_blocks.len();
         self.basic_blocks.push(
             CfgBlock {
+                invs,
                 stmt,
                 successor: Successor::Unreachable()
             }
@@ -68,68 +70,23 @@ impl<'a> CfgMethod<'a> {
         self.basic_blocks[index.block_index].successor = successor;
     }
 
-    fn index_to_label(&self, index: usize) -> String {
-        format!("{}_{}_{}", LABEL_PREFIX, self.method_name, index)
-    }
-
-    fn return_label(&self) -> String {
-        format!("{}_{}_return", LABEL_PREFIX, self.method_name)
-    }
-
-    fn successor_to_ast(&self, successor: &Successor) -> Stmt {
-        let ast = self.ast_factory;
-        match successor {
-            &Successor::Unreachable() => ast.assert(ast.false_lit(), ast.no_position()),
-            &Successor::Return() => ast.goto(&self.return_label()),
-            &Successor::Goto(target) => ast.goto(&self.index_to_label(target.block_index)),
-            &Successor::Switch(ref successors) => {
-                let skip = ast.seqn(vec![], vec![]);
-                let mut stmts: Vec<Stmt> = vec![];
-                for &(test, target) in successors {
-                    let goto = ast.goto(&self.index_to_label(target.block_index));
-                    let conditional_goto = ast.if_stmt(test, goto, skip);
-                    stmts.push(conditional_goto);
-                }
-                stmts.push(ast.assert(ast.false_lit(), ast.no_position()));
-                ast.seqn(stmts, vec![])
-            },
-            &Successor::If(test, then_target, else_target) => {
-                let then_goto = ast.goto(&self.index_to_label(then_target.block_index));
-                let else_goto = ast.goto(&self.index_to_label(else_target.block_index));
-                ast.if_stmt(test, then_goto, else_goto)
-            }
-        }
-    }
-
-    fn block_to_ast(&self, index: usize) -> Stmt {
-        let block = &self.basic_blocks[index];
-        let ast = self.ast_factory;
-        let label = self.index_to_label(index);
-        ast.seqn(
-            vec![
-                ast.label(&label, vec![]), // TODO: we probably need label invariants...
-                block.stmt,
-                self.successor_to_ast(&block.successor)
-            ],
-            vec![]
-        )
-    }
-
     pub fn to_ast(self) -> LocalResult<Method<'a>> {
-        let num_basic_blocks = self.basic_blocks.len();
-        let method_body = {
-            let mut blocks_ast: Vec<Stmt> = (0..num_basic_blocks).map(|x| self.block_to_ast(x)).collect();
-            blocks_ast.push(self.ast_factory.label(&self.return_label(), vec![]));
-            let mut labels: Vec<Stmt> = (0..num_basic_blocks).map(|x| self.ast_factory.label(&self.index_to_label(x), vec![])).collect();
-            labels.push(self.ast_factory.label(&self.return_label(), vec![]));
-            Some(
-                self.ast_factory.seqn_with_labels(
-                    blocks_ast,
-                    self.local_vars.clone(),
-                    labels
-                )
+        let mut blocks_ast: Vec<Stmt> = vec![];
+        let mut labels: Vec<Stmt> = vec![];
+        for (index, block) in self.basic_blocks.into_iter().enumerate() {
+            blocks_ast.push(block_to_ast(self.ast_factory, &self.method_name, block, index));
+            labels.push(self.ast_factory.label(&index_to_label(&self.method_name, index), vec![]));
+        }
+        blocks_ast.push(self.ast_factory.label(&return_label(&self.method_name), vec![]));
+        labels.push(self.ast_factory.label(&return_label(&self.method_name), vec![]));
+
+        let method_body = Some(
+            self.ast_factory.seqn_with_labels(
+                blocks_ast,
+                self.local_vars,
+                labels
             )
-        };
+        );
 
         let method = self.ast_factory.method(
             &self.method_name,
@@ -142,4 +99,48 @@ impl<'a> CfgMethod<'a> {
 
         Ok(method)
     }
+}
+
+fn index_to_label(method_name: &str, index: usize) -> String {
+    format!("{}_{}_{}", LABEL_PREFIX, method_name, index)
+}
+
+fn return_label(method_name: &str) -> String {
+    format!("{}_{}_return", LABEL_PREFIX, method_name)
+}
+
+fn successor_to_ast<'a>(ast: &'a AstFactory, method_name: &str, successor: Successor<'a>) -> Stmt<'a> {
+    match successor {
+        Successor::Unreachable() => ast.assert(ast.false_lit(), ast.no_position()),
+        Successor::Return() => ast.goto(&return_label(method_name)),
+        Successor::Goto(target) => ast.goto(&index_to_label(method_name, target.block_index)),
+        Successor::GotoSwitch(ref successors) => {
+            let skip = ast.seqn(vec![], vec![]);
+            let mut stmts: Vec<Stmt> = vec![];
+            for &(test, target) in successors {
+                let goto = ast.goto(&index_to_label(method_name, target.block_index));
+                let conditional_goto = ast.if_stmt(test, goto, skip);
+                stmts.push(conditional_goto);
+            }
+            stmts.push(ast.assert(ast.false_lit(), ast.no_position()));
+            ast.seqn(stmts, vec![])
+        },
+        Successor::GotoIf(test, then_target, else_target) => {
+            let then_goto = ast.goto(&index_to_label(method_name, then_target.block_index));
+            let else_goto = ast.goto(&index_to_label(method_name, else_target.block_index));
+            ast.if_stmt(test, then_goto, else_goto)
+        }
+    }
+}
+
+fn block_to_ast<'a>(ast: &'a AstFactory, method_name: &str, block: CfgBlock<'a>, index: usize) -> Stmt<'a> {
+    let label = index_to_label(method_name, index);
+    ast.seqn(
+        vec![
+            ast.label(&label, block.invs),
+            block.stmt,
+            successor_to_ast(ast, method_name, block.successor)
+        ],
+        vec![]
+    )
 }

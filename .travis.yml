@@ -1,9 +1,7 @@
 language: rust
 cache: cargo
 dist: xenial
-
-os:
-  - linux
+sudo: true
 
 rust:
   - stable
@@ -24,8 +22,7 @@ before_install:
   # Make sure stdout is in blocking mode. Otherwise builds will fail due to large writes to stdout
   # See https://github.com/travis-ci/travis-ci/issues/4704. If this gets fixed, this line can also be removed.
   - python3 -c 'import os,sys,fcntl; flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL); fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags&~os.O_NONBLOCK);'
-  - wget -c http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc -O /tmp/key.asc
-  - sudo apt-key add /tmp/key.asc
+  - wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
   - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
   - sudo apt-get update
 
