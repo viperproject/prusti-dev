@@ -74,7 +74,7 @@ fn main() {
             ]),
             java_class!("scala.collection.Seq", vec![
                 method!("length"),
-                method!("apply", "(Ljava/lang/Object;)Ljava/lang/Object;"),
+                method!("apply", "(I)Ljava/lang/Object;"),
                 method!("toArray"),
             ]),
             java_class!("scala.reflect.ClassTag$", vec![
