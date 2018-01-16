@@ -1,12 +1,17 @@
 use std::collections::HashMap;
-use utils::*;
 use module_tree::*;
+use class_name::*;
 
-pub fn generate_module(class_name_paths: Vec<String>) -> String {
+pub fn generate_module(class_names: Vec<&ClassName>) -> String {
     let mut modules = ModuleTree::default();
 
-    for class_name_path in class_name_paths {
-        modules = modules.insert(java_class_components(&class_name_path));
+    for class_name in class_names {
+        let components: Vec<String> = class_name
+            .full_components()
+            .iter()
+            .map(|x| x.to_string())
+            .collect();
+        modules = modules.insert(components);
     }
 
     let modules_tree = modules

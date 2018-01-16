@@ -344,3 +344,8 @@ fn generate_static(
 
     code.join("\n") + "\n"
 }
+
+fn java_method_to_rust(method_name: &str) -> String {
+    method_name.replace("_", "__").replace("$", "_dollar_")
+    // If needed, replace other charachters with "_{something}_"
+}

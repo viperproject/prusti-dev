@@ -1,8 +1,29 @@
+use class_name::*;
+
+#[derive(Debug, Clone)]
 pub struct ClassWrapperSpec {
-    pub full_class_name: String,
-    pub items: Vec<ItemWrapperSpec>,
+    class_name: ClassName,
+    items: Vec<ItemWrapperSpec>,
 }
 
+impl ClassWrapperSpec {
+    pub fn new(full_class_name: &str, items: Vec<ItemWrapperSpec>) -> Self {
+        ClassWrapperSpec {
+            class_name: ClassName::new(full_class_name),
+            items,
+        }
+    }
+
+    pub fn get_name(&self) -> &ClassName {
+        &self.class_name
+    }
+
+    pub fn get_items(&self) -> &Vec<ItemWrapperSpec> {
+        &self.items
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum ItemWrapperSpec {
     ScalaObjectGetter(),
     Constructor {
@@ -19,16 +40,10 @@ pub enum ItemWrapperSpec {
 #[macro_export]
 macro_rules! java_class {
     ($full_class_name:expr) => (
-        ClassWrapperSpec{
-            full_class_name: $full_class_name.into(),
-            items: vec![]
-        }
+        ClassWrapperSpec::new($full_class_name, vec![])
     );
     ($full_class_name:expr, $items:expr) => (
-        ClassWrapperSpec{
-            full_class_name: $full_class_name.into(),
-            items: $items
-        }
+        ClassWrapperSpec::new($full_class_name, $items)
     );
 }
 

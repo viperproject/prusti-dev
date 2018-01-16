@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct ClassName {
     full_class_name_dot: String,
     full_class_name_slash: String,
@@ -27,6 +28,10 @@ impl ClassName {
 
     pub fn path(&self) -> String {
         self.full_class_name_slash.clone()
+    }
+
+    pub fn full_components(&self) -> Vec<&str> {
+        self.full_class_name_slash.split("/").collect()
     }
 
     pub fn full_name(&self) -> String {

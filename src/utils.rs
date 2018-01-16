@@ -67,18 +67,3 @@ pub fn generate_jvalue_wrapper(par: &str, signature: &str) -> String {
 pub fn java_str_to_string(str: JavaStr) -> Result<String> {
     unsafe { Ok(CStr::from_ptr(str.get_raw()).to_str()?.to_string()) }
 }
-
-pub fn java_class_components(fqn: &str) -> Vec<String> {
-    fqn.split("/")
-        .map(|s| java_class_or_package_to_rust(s))
-        .collect()
-}
-
-pub fn java_method_to_rust(method_name: &str) -> String {
-    method_name.replace("_", "__").replace("$", "_dollar_")
-    // If needed, replace other charachters with "_{something}_"
-}
-
-pub fn java_class_or_package_to_rust(class_name: &str) -> String {
-    class_name.replace("$", "_object")
-}
