@@ -32,6 +32,8 @@
 //!  expressions.
 
 
+use rustc;
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::string::ToString;
 use syntax::{ast, ptr};
@@ -123,6 +125,12 @@ impl Into<usize> for ExpressionId {
     }
 }
 
+impl From<u128> for ExpressionId {
+    fn from(value: u128) -> Self {
+        Self{ 0: value as usize }
+    }
+}
+
 #[derive(Debug, Clone)]
 /// A Rust expression used in the specification.
 pub struct Expression<ET> {
@@ -185,8 +193,21 @@ pub enum SpecificationSet<ET> {
 pub type UntypedSpecification = Specification<ptr::P<ast::Expr>>;
 /// A set of specifications associated with a single element.
 pub type UntypedSpecificationSet = SpecificationSet<ptr::P<ast::Expr>>;
+/// A map of specifications for a specific crate.
+pub type UntypedSpecificationMap = HashMap<SpecID, UntypedSpecificationSet>;
 /// An assertion that has no types associated with it.
 pub type UntypedAssertion = Assertion<ptr::P<ast::Expr>>;
 /// An assertion kind that has no types associated with it.
 pub type UntypedAssertionKind = AssertionKind<ptr::P<ast::Expr>>;
-//pub type TypedAssertion = Assertion<rustc::hir::Expr>;
+
+
+/// A specification that has no types associated with it.
+pub type TypedSpecification = Specification<rustc::hir::Expr>;
+/// A set of specifications associated with a single element.
+pub type TypedSpecificationSet = SpecificationSet<rustc::hir::Expr>;
+/// A map of specifications for a specific crate.
+pub type TypedSpecificationMap = HashMap<SpecID, UntypedSpecificationSet>;
+/// An assertion that has no types associated with it.
+pub type TypedAssertion = Assertion<rustc::hir::Expr>;
+/// An assertion kind that has no types associated with it.
+pub type TypedAssertionKind = AssertionKind<rustc::hir::Expr>;

@@ -15,6 +15,8 @@ use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use std::path::PathBuf;
 use std::process::Command;
+use std::rc::Rc;
+use std::cell::Cell;
 use syntax::ast;
 use syntax::feature_gate::AttributeType;
 
@@ -66,11 +68,15 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         self.default
             .late_callback(matches, sess, crate_stores, input, odir, ofile)
     }
-    fn build_controller(&mut self, sess: &session::Session, matches: &getopts::Matches) -> driver::CompileController<'a> {
+    fn build_controller(&mut self, sess: &session::Session,
+                        matches: &getopts::Matches) -> driver::CompileController<'a> {
         let mut control = self.default.build_controller(sess, matches);
         //control.make_glob_map = ???
         //control.keep_ast = true;
         let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
+        let specifications = Rc::new(Cell::new(None));
+        let put_specifications = specifications.clone();
+        let get_specifications = specifications.clone();
         control.after_parse.callback = Box::new(move |state| {
             trace!("[after_parse.callback] enter");
             {
@@ -86,13 +92,18 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                 registry.register_attribute(
                     String::from("__PRUSTI_SPEC_PROC"), AttributeType::Whitelisted);
             }
-            prusti::parser::rewrite_crate(state);
+            let untyped_specifications = prusti::parser::rewrite_crate(state);
+            put_specifications.set(Some(untyped_specifications));
+
             trace!("[after_parse.callback] exit");
             old(state);
         });
         let old = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
         control.after_analysis.callback = Box::new(move |state| {
             trace!("[after_analysis.callback] enter");
+            let untyped_specifications = get_specifications.replace(None).unwrap();
+            let _typed_specifications = prusti::typeck::type_specifications(
+                state, untyped_specifications);
             trace!("[after_analysis.callback] exit");
             old(state);
         });

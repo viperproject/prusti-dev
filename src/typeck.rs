@@ -1,0 +1,105 @@
+//! A module for extracting type information for specifications.
+
+
+use rustc;
+use rustc::hir::{self, intravisit};
+use rustc::ty::TyCtxt;
+use rustc_driver::driver;
+use syntax::{self, ast};
+use std::collections::HashMap;
+use specifications::{ExpressionId, UntypedSpecificationMap, TypedSpecificationMap};
+
+
+/// Convert untyped specifications to typed specifications.
+pub fn type_specifications(state: &mut driver::CompileState,
+                           untyped_specifications: UntypedSpecificationMap
+                           ) -> TypedSpecificationMap {
+    trace!("[type_specifications] enter");
+    let tcx = state.tcx.unwrap();
+    let mut collector = TypeCollector::new(tcx);
+    intravisit::walk_crate(&mut collector, tcx.hir.krate());
+    trace!("[type_specifications] exit");
+    unimplemented!();
+}
+
+
+
+/// Visitor that collects typed expressions used in specifications.
+struct TypeCollector<'a, 'tcx: 'a> {
+    pub typed_expressions: HashMap<ExpressionId, rustc::hir::Expr>,
+    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+}
+
+
+impl <'a, 'tcx: 'a> TypeCollector<'a, 'tcx> {
+
+    fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Self {
+        Self {
+            typed_expressions: HashMap::new(),
+            tcx: tcx,
+        }
+    }
+
+    fn register_typed_expression(&mut self,
+                                args: &syntax::ptr::P<[rustc::hir::Expr]>) {
+        trace!("[register_typed_expression] enter");
+        let mut args = args.clone().into_vec();
+        assert!(args.len() == 2);
+        let expression = args.pop().unwrap();
+        let id = match args.pop().unwrap().node {
+            hir::Expr_::ExprLit(lit) => {
+                match lit.into_inner().node {
+                    ast::LitKind::Int(id, _) => {
+                        ExpressionId::from(id)
+                    },
+                    _ => {bug!()},
+                }
+            },
+            _ => {bug!()},
+        };
+        debug!("id = {:?} expression = {:?}", id, expression);
+        self.typed_expressions.insert(id, expression);
+        trace!("[register_typed_expression] exit");
+    }
+
+}
+
+impl <'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx>
+        for TypeCollector<'a, 'tcx> {
+
+    fn nested_visit_map<'this>(&'this mut self) ->
+            intravisit::NestedVisitorMap<'this, 'tcx> {
+        let map = &self.tcx.hir;
+        intravisit::NestedVisitorMap::All(map)
+    }
+
+    fn visit_expr(&mut self, expr: &'tcx hir::Expr) {
+        match expr.node {
+            hir::Expr_::ExprCall(ref target, ref args) => {
+                match target.node {
+                    hir::Expr_::ExprPath(
+                        hir::QPath::Resolved(_, ref path)) => {
+                        match path.def {
+                            hir::def::Def::Fn(def_id) => {
+                                let def_path = self.tcx
+                                    .def_path(def_id)
+                                    .to_string_no_crate();
+                                let crate_name = self.tcx.crate_name(
+                                    def_id.krate);
+                                if crate_name == "prusti_contracts" &&
+                                    def_path == r#"::internal[0]::__assertion[0]"# {
+                                    self.register_typed_expression(args);
+                                }
+                            },
+                            _ => {},
+                        };
+                    },
+                    _ => {},
+                }
+            },
+            _ => {},
+        }
+        intravisit::walk_expr(self, expr);
+    }
+
+}

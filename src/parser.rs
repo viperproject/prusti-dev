@@ -16,7 +16,7 @@ use syntax_pos::FileName;
 use specifications::{
     AssertionKind, Assertion, SpecID, SpecType, Expression, ExpressionId,
     SpecificationSet, UntypedSpecification, UntypedSpecificationSet,
-    UntypedAssertion};
+    UntypedAssertion, UntypedSpecificationMap};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -25,12 +25,14 @@ use std::mem;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
-pub fn rewrite_crate(state: &mut driver::CompileState) {
+pub fn rewrite_crate(state: &mut driver::CompileState
+                     ) -> UntypedSpecificationMap {
     trace!("[rewrite_crate] enter");
     let krate = state.krate.take().unwrap();
     let mut parser = SpecParser::new(state.session);
     state.krate = Some(parser.fold_crate(krate));
     trace!("[rewrite_crate] exit");
+    parser.untyped_specifications
 }
 
 
@@ -44,7 +46,7 @@ pub struct SpecParser<'tcx> {
     ast_builder: MinimalAstBuilder<'tcx>,
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
-    untyped_specifications: HashMap<SpecID, UntypedSpecificationSet>,
+    untyped_specifications: UntypedSpecificationMap,
 }
 
 impl<'tcx> SpecParser<'tcx> {
