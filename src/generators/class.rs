@@ -14,15 +14,12 @@ pub struct ClassGenerator<'a> {
 
 impl<'a> ClassGenerator<'a> {
     pub fn new(env: &'a JNIEnv<'a>, class: ClassName, items: Vec<ItemWrapperSpec>) -> Self {
-        ClassGenerator {
-            env,
-            class,
-            items
-        }
+        ClassGenerator { env, class, items }
     }
 
     fn check(&self) -> Result<()> {
-        self.env.find_class(self.class.path())
+        self.env
+            .find_class(self.class.path())
             .map(|_| ())
             .chain_err(|| ErrorKind::NoClass(self.class.full_name()))
     }
@@ -30,18 +27,19 @@ impl<'a> ClassGenerator<'a> {
     pub fn generate(&self) -> Result<String> {
         self.check()?;
 
-        Ok(
-            vec![
-                format!("//! Automatically generated code for '{}'\n", self.class.full_name()),
-                "#![allow(non_snake_case)]\n".to_string(),
-                "#![allow(unused_imports)]\n".to_string(),
-                self.generate_imports(),
-                self.generate_struct(),
-                self.generate_begin_impl(),
-                self.generate_items()?,
-                self.generate_end_impl(),
-            ].join("\n"),
-        )
+        Ok(vec![
+            format!(
+                "//! Automatically generated code for '{}'\n",
+                self.class.full_name()
+            ),
+            "#![allow(non_snake_case)]\n".to_string(),
+            "#![allow(unused_imports)]\n".to_string(),
+            self.generate_imports(),
+            self.generate_struct(),
+            self.generate_begin_impl(),
+            self.generate_items()?,
+            self.generate_end_impl(),
+        ].join("\n"))
     }
 
     fn generate_imports(&self) -> String {
@@ -89,13 +87,24 @@ impl<'a> ClassGenerator<'a> {
             let gen = match item {
                 &ItemWrapperSpec::ScalaObjectGetter() => {
                     generate_scala_object_getter(self.env, &self.class)?
-                },
-                &ItemWrapperSpec::Constructor { ref signature, ref suffix } => {
+                }
+                &ItemWrapperSpec::Constructor {
+                    ref signature,
+                    ref suffix,
+                } => {
                     generate_constructor(self.env, &self.class, signature.clone(), suffix.clone())?
-                },
-                &ItemWrapperSpec::Method { ref name, ref signature, ref suffix } => {
-                    generate_method(self.env, &self.class, name, signature.clone(), suffix.clone())?
-                },
+                }
+                &ItemWrapperSpec::Method {
+                    ref name,
+                    ref signature,
+                    ref suffix,
+                } => generate_method(
+                    self.env,
+                    &self.class,
+                    name,
+                    signature.clone(),
+                    suffix.clone(),
+                )?,
             };
             gen_items.push(gen)
         }

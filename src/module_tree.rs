@@ -20,23 +20,21 @@ impl ModuleTree {
         let mut path_iter = path.into_iter();
         let curr_name = path_iter.next();
         match curr_name {
-            Some(name) => {
-                match self {
-                    ModuleTree::Leaf => {
-                        let mut modules = HashMap::new();
-                        modules.insert(name, ModuleTree::Leaf.insert(path_iter));
-                        ModuleTree::Node(modules)
-                    }
-                    ModuleTree::Node(mut modules) => {
-                        let sub_tree = match modules.remove(&name) {
-                            None => ModuleTree::Leaf,
-                            Some(sub_tree) => sub_tree,
-                        };
-                        modules.insert(name, sub_tree.insert(path_iter));
-                        ModuleTree::Node(modules)
-                    }
+            Some(name) => match self {
+                ModuleTree::Leaf => {
+                    let mut modules = HashMap::new();
+                    modules.insert(name, ModuleTree::Leaf.insert(path_iter));
+                    ModuleTree::Node(modules)
                 }
-            }
+                ModuleTree::Node(mut modules) => {
+                    let sub_tree = match modules.remove(&name) {
+                        None => ModuleTree::Leaf,
+                        Some(sub_tree) => sub_tree,
+                    };
+                    modules.insert(name, sub_tree.insert(path_iter));
+                    ModuleTree::Node(modules)
+                }
+            },
             None => self,
         }
     }

@@ -5,7 +5,12 @@ use errors::*;
 use utils::*;
 use class_name::*;
 
-pub fn generate_constructor(env: &JNIEnv, class: &ClassName, target_signature: Option<String>, suffix: Option<String>) -> Result<String> {
+pub fn generate_constructor(
+    env: &JNIEnv,
+    class: &ClassName,
+    target_signature: Option<String>,
+    suffix: Option<String>,
+) -> Result<String> {
     let clazz = env.find_class(class.path())?;
 
     let constructors = env.call_method(
@@ -20,10 +25,8 @@ pub fn generate_constructor(env: &JNIEnv, class: &ClassName, target_signature: O
     let mut indexed_constructors = HashMap::new();
 
     for constructor_index in 0..num_constructors {
-        let constructor = env.get_object_array_element(
-            constructors.into_inner(),
-            constructor_index,
-        )?;
+        let constructor =
+            env.get_object_array_element(constructors.into_inner(), constructor_index)?;
 
         let constructor_signature = java_str_to_string(env.get_string(
             env.call_static_method(
@@ -45,16 +48,17 @@ pub fn generate_constructor(env: &JNIEnv, class: &ClassName, target_signature: O
                 return Err(ErrorKind::NoConstructors(class.full_name()).into());
             }
             if indexed_constructors.len() > 1 {
-                return Err(ErrorKind::AmbiguousConstructor(class.full_name(), indexed_constructors.keys().map(|k| k.to_string()).collect()).into());
+                return Err(ErrorKind::AmbiguousConstructor(
+                    class.full_name(),
+                    indexed_constructors.keys().map(|k| k.to_string()).collect(),
+                ).into());
             }
             indexed_constructors.drain().take(1).next().unwrap()
         }
-        Some(sign) => {
-            match indexed_constructors.get(&sign) {
-                Some(constr) => (sign, *constr),
-                None => return Err(ErrorKind::NoMatchingConstructor(class.full_name(), sign).into())
-            }
-        }
+        Some(sign) => match indexed_constructors.get(&sign) {
+            Some(constr) => (sign, *constr),
+            None => return Err(ErrorKind::NoMatchingConstructor(class.full_name(), sign).into()),
+        },
     };
 
     let mut parameter_names: Vec<String> = vec![];
@@ -70,17 +74,9 @@ pub fn generate_constructor(env: &JNIEnv, class: &ClassName, target_signature: O
     let num_parameters = env.get_array_length(parameters.into_inner())?;
 
     for parameter_index in 0..num_parameters {
-        let parameter = env.get_object_array_element(
-            parameters.into_inner(),
-            parameter_index,
-        )?;
+        let parameter = env.get_object_array_element(parameters.into_inner(), parameter_index)?;
         let parameter_name = env.get_string(
-            env.call_method(
-                parameter,
-                "getName",
-                "()Ljava/lang/String;",
-                &[],
-            )?
+            env.call_method(parameter, "getName", "()Ljava/lang/String;", &[])?
                 .l()?
                 .into(),
         )?;
@@ -103,7 +99,7 @@ pub fn generate_constructor(env: &JNIEnv, class: &ClassName, target_signature: O
 
     let constructor_name = match suffix {
         None => "new".to_string(),
-        Some(s) => format!("new_{}", s)
+        Some(s) => format!("new_{}", s),
     };
 
     Ok(generate(
@@ -138,9 +134,7 @@ fn generate(
         let par_type = generate_jni_type(&par_sign);
         code.push(format!(
             "/// - `{}`: `{}` (`{}`)",
-            par_name,
-            par_type,
-            par_sign
+            par_name, par_type, par_sign
         ));
     }
 

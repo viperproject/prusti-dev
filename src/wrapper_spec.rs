@@ -1,12 +1,19 @@
 pub struct ClassWrapperSpec {
     pub full_class_name: String,
-    pub items: Vec<ItemWrapperSpec>
+    pub items: Vec<ItemWrapperSpec>,
 }
 
 pub enum ItemWrapperSpec {
     ScalaObjectGetter(),
-    Constructor { signature: Option<String>, suffix: Option<String> },
-    Method { name: String, signature: Option<String>, suffix: Option<String> },
+    Constructor {
+        signature: Option<String>,
+        suffix: Option<String>,
+    },
+    Method {
+        name: String,
+        signature: Option<String>,
+        suffix: Option<String>,
+    },
 }
 
 #[macro_export]

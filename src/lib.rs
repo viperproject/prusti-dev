@@ -1,8 +1,8 @@
 #[macro_use]
-extern crate log;
+extern crate error_chain;
 extern crate jni;
 #[macro_use]
-extern crate error_chain;
+extern crate log;
 #[macro_use]
 mod wrapper_spec;
 
