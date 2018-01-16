@@ -1,15 +1,13 @@
 use std::collections::HashMap;
-use std::collections::BTreeMap;
 use jni::JNIEnv;
 use jni::objects::JValue;
+use jni::objects::JObject;
 use errors::*;
 use utils::*;
+use class_name::*;
 
-pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
-    let mut generated_methods = vec![];
-    let mut used_method_counter = HashMap::new();
-
-    let clazz = env.find_class(class)?;
+pub fn generate_method(env: &JNIEnv, class_name: &ClassName, method_name: &str, target_signature: Option<String>, suffix: Option<String>) -> Result<String> {
+    let clazz = env.find_class(class_name.path())?;
 
     let methods = env.call_method(
         clazz.into(),
@@ -20,7 +18,7 @@ pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
         .l()?;
     let num_methods = env.get_array_length(methods.into_inner())?;
 
-    let mut sorted_methods = BTreeMap::new();
+    let mut indexed_methods = HashMap::new();
 
     for method_index in 0..num_methods {
         let method = env.get_object_array_element(
@@ -41,7 +39,7 @@ pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
 
         let method_signature = java_str_to_string(env.get_string(
             env.call_static_method(
-                "org.objectweb.asm.Type".replace(".", "/"),
+                "org/objectweb/asm/Type",
                 "getMethodDescriptor",
                 "(Ljava/lang/reflect/Method;)Ljava/lang/String;",
                 &[JValue::Object(method)],
@@ -50,103 +48,124 @@ pub fn generate_all_methods(env: &JNIEnv, class: &str) -> Result<String> {
                 .into(),
         )?)?;
 
-        sorted_methods.insert((method_name, method_signature), method);
+        match indexed_methods.remove(&method_name) {
+            None => {
+                let mut signature_map = HashMap::new();
+                signature_map.insert(method_signature, method);
+                indexed_methods.insert(method_name, signature_map);
+            },
+            Some(mut signature_map) => {
+                signature_map.insert(method_signature, method);
+                indexed_methods.insert(method_name, signature_map);
+            }
+        }
     }
 
-    // Iterate on the ordered list of methods
-    for (&(ref method_name, ref method_signature), method) in sorted_methods.iter() {
-        let method_modifier = env.call_method(*method, "getModifiers", "()I", &[])?.i()?;
+    let matching_methods = match indexed_methods.get_mut(method_name) {
+        None => return Err(ErrorKind::NoMethod(class_name.full(), method_name.into()).into()),
+        Some(mm) => mm
+    };
 
-        let is_static = env.call_static_method(
-            "java.lang.reflect.Modifier".replace(".", "/"),
-            "isStatic",
-            "(I)Z",
-            &[JValue::Int(method_modifier)],
-        )?
-            .z()?;
+    let (method_signature, method): (String, JObject) = match target_signature {
+        None => {
+            if matching_methods.len() == 0 {
+                unreachable!();
+            }
+            if matching_methods.len() > 1 {
+                return Err(ErrorKind::AmbiguousMethod(class_name.full(), method_name.into()).into());
+            }
+            matching_methods.drain().take(1).next().unwrap()
+        }
+        Some(sign) => {
+            match matching_methods.get(&sign) {
+                Some(constr) => (sign, *constr),
+                None => return Err(ErrorKind::NoMatchingMethod(class_name.full(), method_name.into(), sign).into())
+            }
+        }
+    };
 
-        let mut parameter_names: Vec<String> = vec![];
-        let mut parameter_signatures: Vec<String> = vec![];
+    let method_modifier = env.call_method(method, "getModifiers", "()I", &[])?.i()?;
 
-        let parameters = env.call_method(
-            *method,
-            "getParameters",
-            "()[Ljava/lang/reflect/Parameter;",
-            &[],
-        )?
+    let is_static = env.call_static_method(
+        "java/lang/reflect/Modifier",
+        "isStatic",
+        "(I)Z",
+        &[JValue::Int(method_modifier)],
+    )?
+        .z()?;
+
+    let mut parameter_names: Vec<String> = vec![];
+    let mut parameter_signatures: Vec<String> = vec![];
+
+    let parameters = env.call_method(
+        method,
+        "getParameters",
+        "()[Ljava/lang/reflect/Parameter;",
+        &[],
+    )?
+        .l()?;
+    let num_parameters = env.get_array_length(parameters.into_inner())?;
+
+    for parameter_index in 0..num_parameters {
+        let parameter = env.get_object_array_element(
+            parameters.into_inner(),
+            parameter_index,
+        )?;
+        let parameter_name = env.get_string(
+            env.call_method(
+                parameter,
+                "getName",
+                "()Ljava/lang/String;",
+                &[],
+            )?
+                .l()?
+                .into(),
+        )?;
+        let parameter_type = env.call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
             .l()?;
-        let num_parameters = env.get_array_length(parameters.into_inner())?;
+        let parameter_signature = env.get_string(
+            env.call_static_method(
+                "org/objectweb/asm/Type",
+                "getDescriptor",
+                "(Ljava/lang/Class;)Ljava/lang/String;",
+                &[JValue::Object(parameter_type)],
+            )?
+                .l()?
+                .into(),
+        )?;
 
-        for parameter_index in 0..num_parameters {
-            let parameter = env.get_object_array_element(
-                parameters.into_inner(),
-                parameter_index,
-            )?;
-            let parameter_name = env.get_string(
-                env.call_method(
-                    parameter,
-                    "getName",
-                    "()Ljava/lang/String;",
-                    &[],
-                )?
-                    .l()?
-                    .into(),
-            )?;
-            let parameter_type = env.call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
-                .l()?;
-            let parameter_signature = env.get_string(
-                env.call_static_method(
-                    "org.objectweb.asm.Type".replace(".", "/"),
-                    "getDescriptor",
-                    "(Ljava/lang/Class;)Ljava/lang/String;",
-                    &[JValue::Object(parameter_type)],
-                )?
-                    .l()?
-                    .into(),
-            )?;
-
-            parameter_names.push(java_str_to_string(parameter_name)?);
-            parameter_signatures.push(java_str_to_string(parameter_signature)?);
-        }
-
-        let counter = match used_method_counter.get(method_name) {
-            None => 0,
-            Some(x) => *x,
-        };
-        let rust_method_name = if counter == 0 {
-            format!("call_{}", java_method_to_rust(method_name))
-        } else {
-            format!("call_{}_{}", java_method_to_rust(method_name), counter)
-        };
-        used_method_counter.insert(method_name.clone(), counter + 1);
-
-        if is_static {
-            generated_methods.push(generate_static_method(
-                class,
-                method_name,
-                &rust_method_name,
-                &method_signature,
-                &parameter_names,
-                &parameter_signatures,
-            ));
-        } else {
-            generated_methods.push(generate_method(
-                class,
-                method_name,
-                &rust_method_name,
-                &method_signature,
-                &parameter_names,
-                &parameter_signatures,
-            ));
-        }
+        parameter_names.push(java_str_to_string(parameter_name)?);
+        parameter_signatures.push(java_str_to_string(parameter_signature)?);
     }
 
-    Ok(generated_methods.join("\n"))
+    let rust_method_name = match suffix {
+        None => format!("call_{}", java_method_to_rust(method_name)),
+        Some(s) => format!("call_{}_{}", java_method_to_rust(method_name), s)
+    };
+
+    if is_static {
+        Ok(generate_static(
+            class_name,
+            method_name,
+            &rust_method_name,
+            &method_signature,
+            &parameter_names,
+            &parameter_signatures,
+        ))
+    } else {
+        Ok(generate(
+            class_name,
+            method_name,
+            &rust_method_name,
+            &method_signature,
+            &parameter_names,
+            &parameter_signatures,
+        ))
+    }
 }
 
-
-fn generate_method(
-    class: &str,
+fn generate(
+    class_name: &ClassName,
     method_name: &str,
     rust_method_name: &str,
     method_signature: &str,
@@ -161,11 +180,11 @@ fn generate_method(
     code.push(format!(
         "/// Calls method `{}` of Java class `{}`.",
         method_name,
-        class.replace("/", ".")
+        class_name.full()
     ));
-    code.push("///".to_owned());
-    code.push("/// Type and Java signature of parameters:".to_owned());
-    code.push("///".to_owned());
+    code.push("///".to_string());
+    code.push("/// Type and Java signature of parameters:".to_string());
+    code.push("///".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -179,7 +198,7 @@ fn generate_method(
         ));
     }
 
-    code.push("///".to_owned());
+    code.push("///".to_string());
     code.push(format!(
         "/// Return type and Java signature: `{}` (`{}`)",
         return_type,
@@ -187,8 +206,8 @@ fn generate_method(
     ));
 
     code.push(format!("pub fn {}(", rust_method_name));
-    code.push("    &self,".to_owned());
-    code.push("    receiver: JObject,".to_owned());
+    code.push("    &self,".to_string());
+    code.push("    receiver: JObject,".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -200,7 +219,7 @@ fn generate_method(
     code.push(format!(") -> JNIResult<{}> {{", return_type));
     code.push(format!(
         "    let class = self.env.find_class(\"{}\")?;",
-        class
+        class_name.path()
     ));
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(
@@ -213,17 +232,17 @@ fn generate_method(
     ));
     code.push(
         "    let method_id = self.env.get_method_id(class, method_name, method_signature)?;"
-            .to_owned(),
+            .to_string(),
     );
     code.push(
-        "    let return_type = JavaType::from_str(return_signature)?;".to_owned(),
+        "    let return_type = JavaType::from_str(return_signature)?;".to_string(),
     );
-    code.push("    unsafe {".to_owned());
-    code.push("    self.env.call_method_unsafe(".to_owned());
-    code.push("        receiver,".to_owned());
-    code.push("        method_id,".to_owned());
-    code.push("        return_type,".to_owned());
-    code.push("        &[".to_owned());
+    code.push("    unsafe {".to_string());
+    code.push("    self.env.call_method_unsafe(".to_string());
+    code.push("        receiver,".to_string());
+    code.push("        method_id,".to_string());
+    code.push("        return_type,".to_string());
+    code.push("        &[".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -232,19 +251,19 @@ fn generate_method(
         code.push(format!("            {},", par_jvalue));
     }
 
-    code.push("        ]".to_owned());
+    code.push("        ]".to_string());
     code.push(format!(
         "    ).and_then(|x| x.{}())",
         generate_jni_type_char(&return_signature)
     ));
-    code.push("    }".to_owned());
-    code.push("}".to_owned());
+    code.push("    }".to_string());
+    code.push("}".to_string());
 
     code.join("\n") + "\n"
 }
 
-fn generate_static_method(
-    class: &str,
+fn generate_static(
+    class_name: &ClassName,
     method_name: &str,
     rust_method_name: &str,
     method_signature: &str,
@@ -259,11 +278,11 @@ fn generate_static_method(
     code.push(format!(
         "/// Calls static method `{}` of Java class `{}`.",
         method_name,
-        class.replace("/", ".")
+        class_name.full()
     ));
-    code.push("///".to_owned());
-    code.push("/// Type and Java signature of parameters:".to_owned());
-    code.push("///".to_owned());
+    code.push("///".to_string());
+    code.push("/// Type and Java signature of parameters:".to_string());
+    code.push("///".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -277,7 +296,7 @@ fn generate_static_method(
         ));
     }
 
-    code.push("///".to_owned());
+    code.push("///".to_string());
     code.push(format!(
         "/// Return type and Java signature: `{}` (`{}`)",
         return_type,
@@ -285,7 +304,7 @@ fn generate_static_method(
     ));
 
     code.push(format!("pub fn {}(", rust_method_name));
-    code.push("    &self,".to_owned());
+    code.push("    &self,".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -297,7 +316,7 @@ fn generate_static_method(
     code.push(format!(") -> JNIResult<{}> {{", return_type));
     code.push(format!(
         "    let class = self.env.find_class(\"{}\")?;",
-        class
+        class_name.path()
     ));
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(
@@ -310,17 +329,17 @@ fn generate_static_method(
     ));
     code.push(
         "    let method_id = self.env.get_static_method_id(class, method_name, method_signature)?;"
-            .to_owned(),
+            .to_string(),
     );
     code.push(
-        "    let return_type = JavaType::from_str(return_signature)?;".to_owned(),
+        "    let return_type = JavaType::from_str(return_signature)?;".to_string(),
     );
-    code.push("    unsafe {".to_owned());
-    code.push("    self.env.call_static_method_unsafe(".to_owned());
-    code.push("        class,".to_owned());
-    code.push("        method_id,".to_owned());
-    code.push("        return_type,".to_owned());
-    code.push("        &[".to_owned());
+    code.push("    unsafe {".to_string());
+    code.push("    self.env.call_static_method_unsafe(".to_string());
+    code.push("        class,".to_string());
+    code.push("        method_id,".to_string());
+    code.push("        return_type,".to_string());
+    code.push("        &[".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -329,13 +348,13 @@ fn generate_static_method(
         code.push(format!("            {},", par_jvalue));
     }
 
-    code.push("        ]".to_owned());
+    code.push("        ]".to_string());
     code.push(format!(
         "    ).and_then(|x| x.{}())",
         generate_jni_type_char(&return_signature)
     ));
-    code.push("    }".to_owned());
-    code.push("}".to_owned());
+    code.push("    }".to_string());
+    code.push("}".to_string());
 
     code.join("\n") + "\n"
 }

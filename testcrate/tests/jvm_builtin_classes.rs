@@ -14,11 +14,9 @@ use testcrate::wrappers::*;
 fn test_jvm_builtin_classes() {
     let jvm_args = InitArgsBuilder::new()
         .version(JNIVersion::V8)
-        .option("-verbose:gc")
         .option("-Xcheck:jni")
         .option("-Xdebug")
         .option("-XX:+CheckJNICalls")
-        //.option("-Djava.security.debug=all")
         //.option("-verbose:jni")
         //.option("-XX:+TraceJNICalls")
         .build()
@@ -45,7 +43,7 @@ fn test_jvm_builtin_classes() {
                     integer_value,
                 )?);
 
-                let result = java::util::Arrays::with(&env).call_binarySearch_14(int_array, integer_value)?;
+                let result = java::util::Arrays::with(&env).call_binarySearch(int_array, integer_value)?;
 
                 assert!(0 <= result && result < array_length);
 

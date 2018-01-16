@@ -1,0 +1,99 @@
+use jni::JNIEnv;
+use errors::*;
+use generators::constructor::*;
+use generators::scala_object_getter::*;
+use class_name::*;
+use wrapper_spec::*;
+use generators::method::*;
+
+pub struct ClassGenerator<'a> {
+    env: &'a JNIEnv<'a>,
+    class_name: ClassName,
+    items: Vec<ItemWrapperSpec>,
+}
+
+impl<'a> ClassGenerator<'a> {
+    pub fn new(env: &'a JNIEnv<'a>, class_name: ClassName, items: Vec<ItemWrapperSpec>) -> Self {
+        ClassGenerator {
+            env,
+            class_name,
+            items
+        }
+    }
+
+    fn check(&self) -> Result<()> {
+        self.env.find_class(self.class_name.path())
+            .map(|_| ())
+            .chain_err(|| ErrorKind::NoClass(self.class_name.full()))
+    }
+
+    pub fn generate(&self) -> Result<String> {
+        self.check()?;
+
+        Ok(
+            vec![
+                format!("//! Automatically generated code for '{}'\n", self.class_name.full()),
+                "#![allow(non_snake_case)]\n".to_string(),
+                "#![allow(unused_imports)]\n".to_string(),
+                self.generate_imports(),
+                self.generate_struct(),
+                self.generate_begin_impl(),
+                self.generate_items()?,
+                self.generate_end_impl(),
+            ].join("\n"),
+        )
+    }
+
+    fn generate_imports(&self) -> String {
+        vec![
+            "use jni::JNIEnv;",
+            "use jni::objects::JObject;",
+            "use jni::objects::JValue;",
+            "use jni::errors::Result as JNIResult;",
+            "use jni::sys::*;",
+            "use jni::signature::*;",
+        ].join("\n") + "\n"
+    }
+
+    fn generate_struct(&self) -> String {
+        vec![
+            "#[allow(non_camel_case_types)]".to_string(),
+            format!("pub struct {}<'a> {{", self.class_name.simple()),
+            "    env: &'a JNIEnv<'a>,".to_string(),
+            "}".to_string(),
+        ].join("\n") + "\n"
+    }
+
+    fn generate_begin_impl(&self) -> String {
+        vec![
+            format!("impl<'a> {}<'a> {{", self.class_name.simple()),
+            "".to_string(),
+            "pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_string(),
+            format!("    {}{{ env: env }}", self.class_name.simple()),
+            "}".to_string(),
+        ].join("\n") + "\n"
+    }
+
+    fn generate_end_impl(&self) -> String {
+        format!("}} // end of impl {}\n", self.class_name.simple())
+    }
+
+    fn generate_items(&self) -> Result<String> {
+        let mut gen_items: Vec<String> = vec![];
+        for item in self.items.iter() {
+            let gen = match item {
+                &ItemWrapperSpec::ScalaObjectGetter() => {
+                    generate_scala_object_getter(self.env, &self.class_name)?
+                },
+                &ItemWrapperSpec::Constructor { ref signature, ref suffix } => {
+                    generate_constructor(self.env, &self.class_name, signature.clone(), suffix.clone())?
+                },
+                &ItemWrapperSpec::Method { ref name, ref signature, ref suffix } => {
+                    generate_method(self.env, &self.class_name, name, signature.clone(), suffix.clone())?
+                },
+            };
+            gen_items.push(gen)
+        }
+        Ok(gen_items.join("\n") + "\n")
+    }
+}

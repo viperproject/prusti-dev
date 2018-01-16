@@ -3,7 +3,9 @@ Jni-gen
 
 [![Build Status][build_badge]][build_status]
 
-Generate wrappers around Java and Scala code using the `jni` crate.
+Generate wrappers around Java and Scala code.
+
+The genereted code use the `jni` crate to interact with the JVM.
 
 [Development documentation][documentation]
 

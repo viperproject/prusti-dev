@@ -64,12 +64,12 @@ impl ModuleTree {
                     let mut sub_result: Vec<Vec<String>> = sub_modules.get_paths();
                     if !sub_result.is_empty() {
                         for i in 0..sub_result.len() {
-                            let mut tmp = vec![name.to_owned()];
+                            let mut tmp = vec![name.to_string()];
                             tmp.append(&mut sub_result[i]);
                             sub_result[i] = tmp;
                         }
                     } else {
-                        sub_result = vec![vec![name.to_owned()]];
+                        sub_result = vec![vec![name.to_string()]];
                     }
                     result.append(&mut sub_result);
                 }
@@ -106,6 +106,10 @@ impl ModuleTree {
 mod tests {
     use super::*;
     use unordered_set_eq::*;
+
+    macro_rules! string_vec {
+        ($($x:expr),*) => (vec![$($x.to_string()),*]);
+    }
 
     #[test]
     fn no_path() {

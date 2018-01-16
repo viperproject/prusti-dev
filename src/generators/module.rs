@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use utils::*;
 use module_tree::*;
 
-pub fn generate_mod_code(classes: &Vec<String>) -> String {
+pub fn generate_module(class_name_paths: Vec<String>) -> String {
     let mut modules = ModuleTree::default();
 
-    for class in classes {
-        modules = modules.insert(java_class_components(class));
+    for class_name_path in class_name_paths {
+        modules = modules.insert(java_class_components(&class_name_path));
     }
 
     let modules_tree = modules
@@ -21,7 +21,7 @@ pub fn generate_mod_code(classes: &Vec<String>) -> String {
                     }
                     Some(rec_result) => {
                         res.push(format!("pub mod {} {{\n", name));
-                        let code: String = rec_result.to_owned();
+                        let code: String = rec_result.to_string();
                         res.push(code);
                         res.push(format!("}} // end of mod {}\n", name));
                     }
@@ -29,11 +29,11 @@ pub fn generate_mod_code(classes: &Vec<String>) -> String {
             }
             res.join("")
         })
-        .unwrap_or("// No modules".to_owned());
+        .unwrap_or("// No modules".to_string());
 
     vec![
-        "//! Automatically generated code\n".to_owned(),
-        "#![allow(non_snake_case)]\n".to_owned(),
+        "//! Automatically generated code\n".to_string(),
+        "#![allow(non_snake_case)]\n".to_string(),
         modules_tree,
     ].join("\n") + "\n"
 }
