@@ -98,7 +98,7 @@ fn verify_empty_program() {
 
         let system_out = get_system_out(&env)?;
 
-        java::io::PrintStream::with(&env).call_println_6(
+        java::io::PrintStream::with(&env).call_println(
             system_out,
             verification_result,
         )?;
