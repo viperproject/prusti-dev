@@ -24,14 +24,14 @@ before_install:
   - python3 -c 'import os,sys,fcntl; flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL); fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags&~os.O_NONBLOCK);'
   - wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
   - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
-  - sudo apt-get update
+  - travis_retry sudo apt-get update
 
 install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
-  - sudo apt-get install viper
+  - travis_retry sudo apt-get install viper
 
 script:
-  - travis_wait cargo test -- --nocapture
+  - cargo test -- --nocapture
 
 after_success:
   - |
