@@ -80,6 +80,11 @@ impl<'a> ClassGenerator<'a> {
 
     fn generate_items(&self) -> Result<String> {
         let mut gen_items: Vec<String> = vec![];
+
+        if self.items.is_empty() {
+            warn!("Class {} does not wrap any item", self.class.full_name())
+        }
+
         for item in self.items.iter() {
             let gen = match item {
                 &ItemWrapperSpec::ScalaObjectGetter() => {
