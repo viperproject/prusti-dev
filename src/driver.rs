@@ -102,8 +102,9 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         control.after_analysis.callback = Box::new(move |state| {
             trace!("[after_analysis.callback] enter");
             let untyped_specifications = get_specifications.replace(None).unwrap();
-            let _typed_specifications = prusti::typeck::type_specifications(
+            let typed_specifications = prusti::typeck::type_specifications(
                 state, untyped_specifications);
+            debug!("typed_specifications = {:?}", typed_specifications);
             trace!("[after_analysis.callback] exit");
             old(state);
         });

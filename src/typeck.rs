@@ -7,7 +7,12 @@ use rustc::ty::TyCtxt;
 use rustc_driver::driver;
 use syntax::{self, ast};
 use std::collections::HashMap;
-use specifications::{ExpressionId, UntypedSpecificationMap, TypedSpecificationMap};
+use specifications::{
+    ExpressionId, UntypedSpecificationMap, UntypedSpecification,
+    TypedSpecification, TypedSpecificationMap, SpecificationSet,
+    UntypedAssertion, TypedAssertion, Specification, AssertionKind,
+    Assertion, Expression,
+};
 
 
 /// Convert untyped specifications to typed specifications.
@@ -18,10 +23,79 @@ pub fn type_specifications(state: &mut driver::CompileState,
     let tcx = state.tcx.unwrap();
     let mut collector = TypeCollector::new(tcx);
     intravisit::walk_crate(&mut collector, tcx.hir.krate());
+    let typed_specifications = convert_to_typed(
+        untyped_specifications, &collector.typed_expressions);
     trace!("[type_specifications] exit");
-    unimplemented!();
+    typed_specifications
 }
 
+
+fn type_assertion(assertion: UntypedAssertion,
+                  typed_expressions: &HashMap<ExpressionId, rustc::hir::Expr>
+                  ) -> TypedAssertion {
+    Assertion {
+        kind: box {
+            match *assertion.kind {
+                AssertionKind::Expr(expr) => {
+                    AssertionKind::Expr(
+                        Expression {
+                            id: expr.id,
+                            expr: typed_expressions[&expr.id].clone(),
+                        }
+                    )
+                },
+                AssertionKind::And(assertions) => {
+                    AssertionKind::And(
+                        assertions
+                            .into_iter()
+                            .map(|assertion|
+                                 type_assertion(assertion, typed_expressions))
+                            .collect()
+                    )
+                },
+                _ => {
+                    unimplemented!()
+                },
+            }
+        }
+    }
+}
+
+
+fn type_specification(specification: UntypedSpecification,
+                      typed_expressions: &HashMap<ExpressionId, rustc::hir::Expr>
+                      ) -> TypedSpecification {
+    Specification {
+        typ: specification.typ,
+        assertion: type_assertion(specification.assertion, typed_expressions),
+    }
+}
+
+
+fn convert_to_typed(untyped_specifications: UntypedSpecificationMap,
+                    typed_expressions: &HashMap<ExpressionId, rustc::hir::Expr>
+                    ) -> TypedSpecificationMap {
+    untyped_specifications.into_iter().map(
+        |(id, untyped_specification)| {
+            match untyped_specification {
+                SpecificationSet::Procedure(precondition, postcondition) => {
+                    let precondition = precondition
+                        .into_iter()
+                        .map(|spec| type_specification(spec, typed_expressions))
+                        .collect();
+                    let postcondition = postcondition
+                        .into_iter()
+                        .map(|spec| type_specification(spec, typed_expressions))
+                        .collect();
+                    (id, SpecificationSet::Procedure(precondition, postcondition))
+                },
+                SpecificationSet::Loop(invariants) => {
+                    unimplemented!();
+                },
+            }
+        }
+    ).collect()
+}
 
 
 /// Visitor that collects typed expressions used in specifications.

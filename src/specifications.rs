@@ -206,7 +206,7 @@ pub type TypedSpecification = Specification<rustc::hir::Expr>;
 /// A set of specifications associated with a single element.
 pub type TypedSpecificationSet = SpecificationSet<rustc::hir::Expr>;
 /// A map of specifications for a specific crate.
-pub type TypedSpecificationMap = HashMap<SpecID, UntypedSpecificationSet>;
+pub type TypedSpecificationMap = HashMap<SpecID, TypedSpecificationSet>;
 /// An assertion that has no types associated with it.
 pub type TypedAssertion = Assertion<rustc::hir::Expr>;
 /// An assertion kind that has no types associated with it.
