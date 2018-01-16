@@ -1,8 +1,8 @@
+extern crate env_logger;
+extern crate error_chain;
 #[macro_use]
 extern crate lazy_static;
 extern crate viper;
-extern crate error_chain;
-extern crate env_logger;
 
 use viper::*;
 use std::thread;

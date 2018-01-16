@@ -2,11 +2,11 @@
 
 #[macro_use]
 extern crate error_chain;
+extern crate jni;
 #[macro_use]
 extern crate log;
-extern crate viper_sys;
-extern crate jni;
 extern crate uuid;
+extern crate viper_sys;
 
 mod viper;
 mod verification_context;

@@ -144,7 +144,12 @@ impl<'a> AstFactory<'a> {
     }
 
     // TODO: merge somehow with `self.seqn`
-    pub fn seqn_with_labels(&self, stmts: Vec<Stmt>, scoped_decls: Vec<LocalVarDecl>, scoped_labels: Vec<Stmt>) -> Stmt<'a> {
+    pub fn seqn_with_labels(
+        &self,
+        stmts: Vec<Stmt>,
+        scoped_decls: Vec<LocalVarDecl>,
+        scoped_labels: Vec<Stmt>,
+    ) -> Stmt<'a> {
         let decls: Vec<JObject> = map_to_jobjects!(scoped_decls);
         let labels: Vec<JObject> = map_to_jobjects!(scoped_labels);
         build_ast_node!(

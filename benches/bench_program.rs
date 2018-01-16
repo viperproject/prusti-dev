@@ -18,9 +18,7 @@ fn bench_build_program(bench: &mut Bencher) {
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast_factory = verification_context.new_ast_factory();
 
-    bench.iter(|| {
-        build_program(&ast_factory)
-    });
+    bench.iter(|| build_program(&ast_factory));
 }
 
 fn bench_verify_program(bench: &mut Bencher) {
@@ -29,9 +27,7 @@ fn bench_verify_program(bench: &mut Bencher) {
     let verifier = verification_context.new_verifier();
     let program = build_program(&ast_factory);
 
-    bench.iter(move || {
-        verifier.verify(program)
-    });
+    bench.iter(move || verifier.verify(program));
 }
 
 fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
@@ -56,7 +52,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                     "Wrapper",
                     vec![(ast.type_var("T"), ast.type_var("T"))],
                     vec![ast.type_var("T")],
-                )
+                ),
             ),
         ],
         ast.type_var("T"),
@@ -81,7 +77,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                                 ast.domain_func_app(
                                     wrap_domain_function,
                                     vec![ast.local_var("x", ast.type_var("T"))],
-                                    vec![(ast.type_var("T"), ast.type_var("T"))]
+                                    vec![(ast.type_var("T"), ast.type_var("T"))],
                                 ),
                             ],
                             vec![(ast.type_var("T"), ast.type_var("T"))],
@@ -89,7 +85,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                         ast.local_var("x", ast.type_var("T")),
                     ),
                 ),
-                "Wrapper"
+                "Wrapper",
             ),
         ],
         vec![ast.type_var("T")],
@@ -130,7 +126,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                     vec![
                         ast.field_access(
                             ast.local_var("box", ast.ref_type()),
-                            ast.field("value", ast.int_type())
+                            ast.field("value", ast.int_type()),
                         ),
                     ],
                 ),
@@ -149,11 +145,8 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
         vec![
             // EvenNumBox(box)
             ast.predicate_access_predicate(
-                ast.predicate_access(
-                    vec![ast.local_var("box", ast.ref_type())],
-                    "EvenNumBox",
-                ),
-                ast.full_perm()
+                ast.predicate_access(vec![ast.local_var("box", ast.ref_type())], "EvenNumBox"),
+                ast.full_perm(),
             ),
         ],
         Some(ast.seqn(
@@ -161,7 +154,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                 // box = new(value)
                 ast.new_stmt(
                     ast.local_var("box", ast.ref_type()),
-                    vec![ast.field("value", ast.int_type())]
+                    vec![ast.field("value", ast.int_type())],
                 ),
                 // box.value = unwrap(wrap(v))
                 ast.field_assign(
@@ -175,20 +168,15 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                             ast.domain_func_app(
                                 wrap_domain_function,
                                 vec![ast.local_var("v", ast.int_type())],
-                                vec![
-                                    (ast.type_var("T"), ast.int_type()),
-                                ]
+                                vec![(ast.type_var("T"), ast.int_type())],
                             ),
                         ],
                         vec![(ast.type_var("T"), ast.int_type())],
-                    )
+                    ),
                 ),
                 // fold EvenNumBox(box)
                 ast.fold(ast.predicate_access_predicate(
-                    ast.predicate_access(
-                        vec![ast.local_var("box", ast.ref_type())],
-                        "EvenNumBox",
-                    ),
+                    ast.predicate_access(vec![ast.local_var("box", ast.ref_type())], "EvenNumBox"),
                     ast.full_perm(),
                 )),
             ],

@@ -1,5 +1,5 @@
-extern crate viper_sys;
 extern crate jni;
+extern crate viper_sys;
 
 use jni::JNIEnv;
 use jni::objects::JObject;
@@ -44,16 +44,11 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
 impl<'a> Verifier<'a, state::Uninitialized> {
     pub fn parse_command_line(self, args: Vec<&str>) -> Verifier<'a, state::Stopped> {
         {
-            let args = self.jni.new_seq(
-                args.iter()
-                    .map(|x| self.jni.new_string(x))
-                    .collect(),
-            );
+            let args = self.jni
+                .new_seq(args.iter().map(|x| self.jni.new_string(x)).collect());
             self.jni.unwrap_result(
-                self.silicon_wrapper.call_parseCommandLine(
-                    self.silicon_instance,
-                    args,
-                ),
+                self.silicon_wrapper
+                    .call_parseCommandLine(self.silicon_instance, args),
             );
         }
         Verifier {
@@ -68,9 +63,8 @@ impl<'a> Verifier<'a, state::Uninitialized> {
 
 impl<'a> Verifier<'a, state::Stopped> {
     pub fn start(self) -> Verifier<'a, state::Started> {
-        self.jni.unwrap_result(self.silicon_wrapper.call_start(
-            self.silicon_instance,
-        ));
+        self.jni
+            .unwrap_result(self.silicon_wrapper.call_start(self.silicon_instance));
 
         Verifier {
             env: self.env,
@@ -104,20 +98,18 @@ impl<'a> Verifier<'a, state::Started> {
             panic!();
         }
 
-        let viper_result = self.jni.unwrap_result(self.silicon_wrapper.call_verify(
-            self.silicon_instance,
-            program.to_jobject(),
-        ));
+        let viper_result = self.jni.unwrap_result(
+            self.silicon_wrapper
+                .call_verify(self.silicon_instance, program.to_jobject()),
+        );
 
         debug!(
             "Viper verification result: {}",
             self.jni.to_string(viper_result)
         );
 
-        let is_failure = self.jni.is_instance_of(
-            viper_result,
-            "viper/silver/verifier/Failure",
-        );
+        let is_failure = self.jni
+            .is_instance_of(viper_result, "viper/silver/verifier/Failure");
 
         if is_failure {
             let mut errors: Vec<VerificationError> = vec![];
@@ -131,22 +123,17 @@ impl<'a> Verifier<'a, state::Started> {
             let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
 
             for viper_error in viper_errors {
-                let is_verification_error = self.jni.is_instance_of(
-                    viper_error,
-                    "viper/silver/verifier/VerificationError",
-                );
+                let is_verification_error = self.jni
+                    .is_instance_of(viper_error, "viper/silver/verifier/VerificationError");
 
                 if !is_verification_error {
-                    let is_aborted_exceptionally = self.jni.is_instance_of(
-                        viper_error,
-                        "viper/silver/verifier/AbortedExceptionally",
-                    );
+                    let is_aborted_exceptionally = self.jni
+                        .is_instance_of(viper_error, "viper/silver/verifier/AbortedExceptionally");
 
                     if is_aborted_exceptionally {
                         let exception = self.jni.unwrap_result(
-                            silver::verifier::AbortedExceptionally::with(
-                                self.env,
-                            ).call_cause(viper_error),
+                            silver::verifier::AbortedExceptionally::with(self.env)
+                                .call_cause(viper_error),
                         );
                         let stack_trace =
                             self.jni.unwrap_result(self.jni.get_stack_trace(exception));
@@ -164,28 +151,25 @@ impl<'a> Verifier<'a, state::Started> {
                     panic!();
                 };
 
-                let error_type = self.jni.get_string(self.jni.unwrap_result(
-                    verification_error_wrapper.call_id(viper_error),
-                ));
-
-                let pos = self.jni.unwrap_result(
-                    verification_error_wrapper.call_pos(viper_error),
+                let error_type = self.jni.get_string(
+                    self.jni
+                        .unwrap_result(verification_error_wrapper.call_id(viper_error)),
                 );
 
+                let pos = self.jni
+                    .unwrap_result(verification_error_wrapper.call_pos(viper_error));
+
                 assert!(
-                    self.jni.is_instance_of(
-                        pos,
-                        "viper/silver/ast/HasIdentifier",
-                    ),
+                    self.jni
+                        .is_instance_of(pos, "viper/silver/ast/HasIdentifier",),
                     format!(
                         "The verifier returned an error whose position has no identifier: {:?}",
                         self.jni.to_string(viper_error)
                     )
                 );
 
-                let pos_id = self.jni.get_string(self.jni.unwrap_result(
-                    has_identifier_wrapper.call_id(pos),
-                ));
+                let pos_id = self.jni
+                    .get_string(self.jni.unwrap_result(has_identifier_wrapper.call_id(pos)));
 
                 errors.push(VerificationError::new(error_type, pos_id))
             }

@@ -28,9 +28,23 @@ impl<'a> VerificationContext<'a> {
             .start()
     }
 
-    pub fn new_cfg_method<IntoString>(&self, ast_factory: &'a AstFactory, method_name: IntoString, formal_args: Vec<LocalVarDecl<'a>>, formal_returns: Vec<LocalVarDecl<'a>>, local_vars: Vec<LocalVarDecl<'a>>) -> CfgMethod
-    where IntoString: Into<String>
+    pub fn new_cfg_method<IntoString>(
+        &self,
+        ast_factory: &'a AstFactory,
+        method_name: IntoString,
+        formal_args: Vec<LocalVarDecl<'a>>,
+        formal_returns: Vec<LocalVarDecl<'a>>,
+        local_vars: Vec<LocalVarDecl<'a>>,
+    ) -> CfgMethod
+    where
+        IntoString: Into<String>,
     {
-        CfgMethod::new(ast_factory, method_name.into(), formal_args, formal_returns, local_vars)
+        CfgMethod::new(
+            ast_factory,
+            method_name.into(),
+            formal_args,
+            formal_returns,
+            local_vars,
+        )
     }
 }

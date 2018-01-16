@@ -1,8 +1,8 @@
+extern crate env_logger;
+extern crate error_chain;
 #[macro_use]
 extern crate lazy_static;
 extern crate viper;
-extern crate error_chain;
-extern crate env_logger;
 
 use viper::*;
 
@@ -28,7 +28,7 @@ fn success_with_complex_program() {
             vec![
                 ast.local_var_assign(
                     ast.local_var("res", ast.int_type()),
-                    ast.local_var("arg", ast.int_type())
+                    ast.local_var("arg", ast.int_type()),
                 ),
             ],
             vec![],

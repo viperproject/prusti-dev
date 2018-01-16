@@ -1,8 +1,8 @@
+extern crate env_logger;
+extern crate error_chain;
 #[macro_use]
 extern crate lazy_static;
 extern crate viper;
-extern crate error_chain;
-extern crate env_logger;
 
 use std::sync::{Once, ONCE_INIT};
 use viper::*;
@@ -15,7 +15,9 @@ lazy_static! {
 
 /// Setup function that is only run once, even if called multiple times.
 fn setup() {
-    INIT.call_once(|| { env_logger::init().unwrap(); });
+    INIT.call_once(|| {
+        env_logger::init().unwrap();
+    });
 }
 
 #[test]
@@ -61,10 +63,7 @@ fn failure_with_assert_false() {
     assert_eq!(
         verification_result,
         VerificationResult::Failure(vec![
-            VerificationError::new(
-                "assert.failed".to_owned(),
-                "pos-id:123".to_owned()
-            ),
+            VerificationError::new("assert.failed".to_owned(), "pos-id:123".to_owned()),
         ])
     );
 }
@@ -206,14 +205,10 @@ fn failure_with_assign_if_and_assert() {
     assert_eq!(
         verification_result,
         VerificationResult::Failure(vec![
-            VerificationError::new(
-                "assert.failed".to_owned(),
-                "then".to_owned()
-            ),
+            VerificationError::new("assert.failed".to_owned(), "then".to_owned()),
         ])
     );
 }
-
 
 #[test]
 fn success_with_complex_post_condition() {

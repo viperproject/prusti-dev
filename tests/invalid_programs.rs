@@ -1,8 +1,8 @@
+extern crate env_logger;
+extern crate error_chain;
 #[macro_use]
 extern crate lazy_static;
 extern crate viper;
-extern crate error_chain;
-extern crate env_logger;
 
 use std::sync::{Once, ONCE_INIT};
 use viper::*;
@@ -15,7 +15,9 @@ lazy_static! {
 
 /// Setup function that is only run once, even if called multiple times.
 fn setup() {
-    INIT.call_once(|| { env_logger::init().unwrap(); });
+    INIT.call_once(|| {
+        env_logger::init().unwrap();
+    });
 }
 
 #[test]
@@ -66,7 +68,7 @@ fn panic_on_type_error() {
     let assignment = ast.local_var_assign(local_var, ast.true_lit()); // type error
 
     let if_stmt = ast.if_stmt(
-        local_var, // type error
+        local_var,                                                        // type error
         ast.seqn(vec![ast.assert(local_var, ast.no_position())], vec![]), // type error
         ast.seqn(vec![ast.assert(ast.false_lit(), ast.no_position())], vec![]),
     );

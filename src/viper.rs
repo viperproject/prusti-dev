@@ -56,9 +56,9 @@ impl Viper {
     }
 
     pub fn new_verification_context(&self) -> VerificationContext {
-        let env_guard = self.jvm.attach_current_thread().expect(
-            "failed to attach jvm thread",
-        );
+        let env_guard = self.jvm
+            .attach_current_thread()
+            .expect("failed to attach jvm thread");
 
         VerificationContext::new(env_guard)
     }

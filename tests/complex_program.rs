@@ -1,8 +1,8 @@
+extern crate env_logger;
+extern crate error_chain;
 #[macro_use]
 extern crate lazy_static;
 extern crate viper;
-extern crate error_chain;
-extern crate env_logger;
 
 use viper::*;
 
@@ -38,7 +38,7 @@ fn success_with_complex_program() {
                     "Wrapper",
                     vec![(ast.type_var("T"), ast.type_var("T"))],
                     vec![ast.type_var("T")],
-                )
+                ),
             ),
         ],
         ast.type_var("T"),
@@ -63,7 +63,7 @@ fn success_with_complex_program() {
                                 ast.domain_func_app(
                                     wrap_domain_function,
                                     vec![ast.local_var("x", ast.type_var("T"))],
-                                    vec![(ast.type_var("T"), ast.type_var("T"))]
+                                    vec![(ast.type_var("T"), ast.type_var("T"))],
                                 ),
                             ],
                             vec![(ast.type_var("T"), ast.type_var("T"))],
@@ -71,7 +71,7 @@ fn success_with_complex_program() {
                         ast.local_var("x", ast.type_var("T")),
                     ),
                 ),
-                "Wrapper"
+                "Wrapper",
             ),
         ],
         vec![ast.type_var("T")],
@@ -112,7 +112,7 @@ fn success_with_complex_program() {
                     vec![
                         ast.field_access(
                             ast.local_var("box", ast.ref_type()),
-                            ast.field("value", ast.int_type())
+                            ast.field("value", ast.int_type()),
                         ),
                     ],
                 ),
@@ -120,61 +120,55 @@ fn success_with_complex_program() {
         ),
     );
 
-    let method =
-        ast.method(
-            "build_even_num_box",
-            vec![ast.local_var_decl("v", ast.int_type())],
-            vec![ast.local_var_decl("box", ast.ref_type())],
+    let method = ast.method(
+        "build_even_num_box",
+        vec![ast.local_var_decl("v", ast.int_type())],
+        vec![ast.local_var_decl("box", ast.ref_type())],
+        vec![
+            // even(v)
+            ast.func_app(even_function, vec![ast.local_var("v", ast.int_type())]),
+        ],
+        vec![
+            // EvenNumBox(box)
+            ast.predicate_access_predicate(
+                ast.predicate_access(vec![ast.local_var("box", ast.ref_type())], "EvenNumBox"),
+                ast.full_perm(),
+            ),
+        ],
+        Some(ast.seqn(
             vec![
-                // even(v)
-                ast.func_app(even_function, vec![ast.local_var("v", ast.int_type())]),
-            ],
-            vec![
-                // EvenNumBox(box)
-                ast.predicate_access_predicate(
-                    ast.predicate_access(vec![ast.local_var("box", ast.ref_type())], "EvenNumBox"),
-                    ast.full_perm()
+                // box = new(value)
+                ast.new_stmt(
+                    ast.local_var("box", ast.ref_type()),
+                    vec![ast.field("value", ast.int_type())],
                 ),
-            ],
-            Some(ast.seqn(
-                vec![
-                    // box = new(value)
-                    ast.new_stmt(
+                // box.value = unwrap(wrap(v))
+                ast.field_assign(
+                    ast.field_access(
                         ast.local_var("box", ast.ref_type()),
-                        vec![ast.field("value", ast.int_type())]
+                        ast.field("value", ast.int_type()),
                     ),
-                    // box.value = unwrap(wrap(v))
-                    ast.field_assign(
-                        ast.field_access(
-                            ast.local_var("box", ast.ref_type()),
-                            ast.field("value", ast.int_type()),
-                        ),
-                        ast.domain_func_app(
-                            unwrap_domain_function,
-                            vec![
-                                ast.domain_func_app(
-                                    wrap_domain_function,
-                                    vec![ast.local_var("v", ast.int_type())],
-                                    vec![
-                                        (ast.type_var("T"), ast.int_type()),
-                                    ]
-                                ),
-                            ],
-                            vec![(ast.type_var("T"), ast.int_type())],
-                        )
+                    ast.domain_func_app(
+                        unwrap_domain_function,
+                        vec![
+                            ast.domain_func_app(
+                                wrap_domain_function,
+                                vec![ast.local_var("v", ast.int_type())],
+                                vec![(ast.type_var("T"), ast.int_type())],
+                            ),
+                        ],
+                        vec![(ast.type_var("T"), ast.int_type())],
                     ),
-                    // fold EvenNumBox(box)
-                    ast.fold(ast.predicate_access_predicate(
-                        ast.predicate_access(
-                            vec![ast.local_var("box", ast.ref_type())],
-                            "EvenNumBox",
-                        ),
-                        ast.full_perm(),
-                    )),
-                ],
-                vec![],
-            )),
-        );
+                ),
+                // fold EvenNumBox(box)
+                ast.fold(ast.predicate_access_predicate(
+                    ast.predicate_access(vec![ast.local_var("box", ast.ref_type())], "EvenNumBox"),
+                    ast.full_perm(),
+                )),
+            ],
+            vec![],
+        )),
+    );
 
     let program = ast.program(
         vec![wrapper_domain],

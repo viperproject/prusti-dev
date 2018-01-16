@@ -18,9 +18,8 @@ impl<'a> JniUtils<'a> {
     /// Generates the stack trace from a Java Exception
     pub fn get_stack_trace(&self, t: JObject) -> Result<String> {
         let sw = java::io::StringWriter::with(self.env).new()?;
-        let pw = java::io::PrintWriter::with(self.env).new_4(sw)?;
-        java::lang::Throwable::with(self.env)
-            .call_printStackTrace_2(t, pw)?;
+        let pw = java::io::PrintWriter::with(self.env).new(sw)?;
+        java::lang::Throwable::with(self.env).call_printStackTrace(t, pw)?;
         Ok(self.to_string(sw))
     }
 
@@ -85,7 +84,7 @@ impl<'a> JniUtils<'a> {
         let number_string = self.new_string(&number.to_string());
 
         let java_big_integer =
-            self.unwrap_result(java::math::BigInteger::with(self.env).new_3(number_string));
+            self.unwrap_result(java::math::BigInteger::with(self.env).new(number_string));
 
         self.unwrap_result(scala::math::BigInt::with(self.env).new(java_big_integer))
     }
@@ -158,13 +157,11 @@ impl<'a> JniUtils<'a> {
         let elements_class = self.unwrap_result(self.env.find_class(elements_class_ref));
         let class_tag_object_wrapper = scala::reflect::ClassTag_object::with(self.env);
         let class_tag_object = self.unwrap_result(class_tag_object_wrapper.singleton());
-        let elements_class_tag = self.unwrap_result(class_tag_object_wrapper.call_apply(
-            class_tag_object,
-            elements_class.into(),
-        ));
-        self.unwrap_result(scala::collection::Seq::with(self.env).call_toArray(
-            sequence,
-            elements_class_tag,
-        ))
+        let elements_class_tag = self.unwrap_result(
+            class_tag_object_wrapper.call_apply(class_tag_object, elements_class.into()),
+        );
+        self.unwrap_result(
+            scala::collection::Seq::with(self.env).call_toArray(sequence, elements_class_tag),
+        )
     }
 }

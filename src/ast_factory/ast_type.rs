@@ -24,11 +24,8 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn type_var(&self, name: &str) -> Type<'a> {
-        let obj = self.jni.unwrap_result(ast::TypeVar::with(self.env).new(
-            self.jni.new_string(
-                name,
-            ),
-        ));
+        let obj = self.jni
+            .unwrap_result(ast::TypeVar::with(self.env).new(self.jni.new_string(name)));
         Type::new(obj)
     }
 
@@ -39,42 +36,28 @@ impl<'a> AstFactory<'a> {
         type_parameters: Vec<Type>,
     ) -> Type<'a> {
         let obj = self.jni.unwrap_result(ast::DomainType::with(self.env).new(
-            self.jni.new_string(
-                domain_name,
-            ),
-            self.jni.new_map(
-                map_to_jobject_pairs!(type_vars_map),
-            ),
-            self.jni.new_seq(
-                map_to_jobjects!(
-                    type_parameters
-                ),
-            ),
+            self.jni.new_string(domain_name),
+            self.jni.new_map(map_to_jobject_pairs!(type_vars_map)),
+            self.jni.new_seq(map_to_jobjects!(type_parameters)),
         ));
         Type::new(obj)
     }
 
     pub fn set_type(&self, element_type: Type) -> Type<'a> {
-        let obj = self.jni.unwrap_result(ast::SetType::with(self.env).new(
-            element_type.to_jobject(),
-        ));
+        let obj = self.jni
+            .unwrap_result(ast::SetType::with(self.env).new(element_type.to_jobject()));
         Type::new(obj)
     }
 
     pub fn multiset_type(&self, element_type: Type) -> Type<'a> {
-        let obj = self.jni.unwrap_result(
-            ast::MultisetType::with(self.env).new(
-                element_type
-                    .to_jobject(),
-            ),
-        );
+        let obj = self.jni
+            .unwrap_result(ast::MultisetType::with(self.env).new(element_type.to_jobject()));
         Type::new(obj)
     }
 
     pub fn seq_type(&self, element_type: Type) -> Type<'a> {
-        let obj = self.jni.unwrap_result(ast::SeqType::with(self.env).new(
-            element_type.to_jobject(),
-        ));
+        let obj = self.jni
+            .unwrap_result(ast::SeqType::with(self.env).new(element_type.to_jobject()));
         Type::new(obj)
     }
 }
