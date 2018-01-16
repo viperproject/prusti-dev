@@ -1,6 +1,6 @@
-extern crate viper_sys;
-extern crate jni;
 extern crate error_chain;
+extern crate jni;
+extern crate viper_sys;
 
 use std::fs;
 use std::convert::From;
@@ -38,17 +38,14 @@ fn verify_empty_program() {
         panic!(format!("{}", e.display_chain().to_string()));
     });
 
-
-    let env = jvm.attach_current_thread().expect(
-        "failed to attach jvm thread",
-    );
+    let env = jvm.attach_current_thread()
+        .expect("failed to attach jvm thread");
 
     env.with_local_frame(32, || {
         let silicon = viper::silicon::Silicon::with(&env).new()?;
 
-        let silicon_args_array = JObject::from(
-            env.new_object_array(3, "java/lang/String", JObject::null())?,
-        );
+        let silicon_args_array =
+            JObject::from(env.new_object_array(3, "java/lang/String", JObject::null())?);
 
         env.set_object_array_element(
             silicon_args_array.into_inner(),
@@ -68,14 +65,9 @@ fn verify_empty_program() {
             From::from(env.new_string("dummy-program.sil")?),
         )?;
 
-        let silicon_args_seq = scala::Predef::with(&env).call_wrapRefArray(
-            silicon_args_array,
-        )?;
+        let silicon_args_seq = scala::Predef::with(&env).call_wrapRefArray(silicon_args_array)?;
 
-        viper::silicon::Silicon::with(&env).call_parseCommandLine(
-            silicon,
-            silicon_args_seq,
-        )?;
+        viper::silicon::Silicon::with(&env).call_parseCommandLine(silicon, silicon_args_seq)?;
 
         viper::silicon::Silicon::with(&env).call_start(silicon)?;
 
@@ -85,37 +77,28 @@ fn verify_empty_program() {
             scala::collection::mutable::ArraySeq::with(&env).new(0)?,
             scala::collection::mutable::ArraySeq::with(&env).new(0)?,
             scala::collection::mutable::ArraySeq::with(&env).new(0)?,
-            viper::silver::ast::NoPosition_object::with(&env)
-                .singleton()?,
+            viper::silver::ast::NoPosition_object::with(&env).singleton()?,
             viper::silver::ast::NoInfo_object::with(&env).singleton()?,
             viper::silver::ast::NoTrafos_object::with(&env).singleton()?,
         )?;
 
-        let verification_result = viper::silicon::Silicon::with(&env).call_verify(
-            silicon,
-            program,
-        )?;
+        let verification_result =
+            viper::silicon::Silicon::with(&env).call_verify(silicon, program)?;
 
         let system_out = get_system_out(&env)?;
 
-        java::io::PrintStream::with(&env).call_println(
-            system_out,
-            verification_result,
-        )?;
+        java::io::PrintStream::with(&env).call_println(system_out, verification_result)?;
 
         viper::silicon::Silicon::with(&env).call_stop(silicon)?;
 
         Ok(JObject::null())
-
     }).unwrap_or_else(|e| {
-            let exception_occurred = env.exception_check().unwrap_or_else(
-                |e| panic!(format!("{:?}", e)),
-            );
-            if exception_occurred {
-                env.exception_describe().unwrap_or_else(
-                    |e| panic!(format!("{:?}", e)),
-                );
-            }
-            panic!(format!("{}", e.display_chain().to_string()));
-        });
+        let exception_occurred = env.exception_check()
+            .unwrap_or_else(|e| panic!(format!("{:?}", e)));
+        if exception_occurred {
+            env.exception_describe()
+                .unwrap_or_else(|e| panic!(format!("{:?}", e)));
+        }
+        panic!(format!("{}", e.display_chain().to_string()));
+    });
 }

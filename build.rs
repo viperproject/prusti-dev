@@ -1,6 +1,6 @@
-extern crate jni_gen;
 extern crate env_logger;
 extern crate error_chain;
+extern crate jni_gen;
 
 use std::fs;
 use std::env;
