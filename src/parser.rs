@@ -134,6 +134,21 @@ impl<'tcx> SpecParser<'tcx> {
         statements
     }
 
+    fn build_prusti_contract_import(&self, span: Span) -> ast::Stmt {
+        let builder = &self.ast_builder;
+        builder.stmt_item(
+            span,
+            builder.item_use_glob(
+                span,
+                ast::Visibility::Inherited,
+                vec![
+                    builder.ident_of("prusti_contracts"),
+                    builder.ident_of("internal"),
+                ]
+            )
+        )
+    }
+
     /// Generate a function that contains only the precondition and postcondition
     /// for type-checking.
     fn generate_spec_item(&mut self, item: &ast::Item,
@@ -149,17 +164,7 @@ impl<'tcx> SpecParser<'tcx> {
 
                 // Import contracts.
                 let mut statements = vec![
-                    builder.stmt_item(
-                        span,
-                        builder.item_use_glob(
-                            span,
-                            ast::Visibility::Inherited,
-                            vec![
-                                builder.ident_of("prusti_contracts"),
-                                builder.ident_of("internal"),
-                            ]
-                        )
-                    )
+                    self.build_prusti_contract_import(span),
                 ];
 
                 // Add preconditions.
@@ -214,7 +219,7 @@ impl<'tcx> SpecParser<'tcx> {
                     ).into_inner();
                 mem::replace(&mut spec_item.attrs, vec![
                     builder.attribute_name_value(
-                        item.span, "__PRUSTI_SPEC_PROC", &spec_id.to_string()),
+                        item.span, "__PRUSTI_SPEC_ONLY", &spec_id.to_string()),
                     builder.attribute_allow(item.span, "unused_mut"),
                     builder.attribute_allow(item.span, "dead_code"),
                     builder.attribute_allow(item.span, "non_snake_case"),
@@ -226,6 +231,80 @@ impl<'tcx> SpecParser<'tcx> {
                 unreachable!();
             }
         }
+    }
+
+    fn rewrite_loop_block(&mut self, block: ptr::P<ast::Block>,
+                          spec_id: SpecID,
+                          invariants: &Vec<UntypedSpecification>
+                          ) -> ptr::P<ast::Block> {
+        trace!("[rewrite_loop_block] enter");
+        let mut block = block.into_inner();
+        if invariants.is_empty() {
+            return ptr::P(block);
+        }
+        let span = block.span;
+        let mut statements = self.convert_to_statements(invariants);
+        statements.insert(0, self.build_prusti_contract_import(span));
+        let builder = &self.ast_builder;
+        let expr = builder.expr_if(
+            span,
+            builder.expr_bool(span, false),
+            builder.expr_block(
+                builder.block(
+                    span,
+                    statements
+                )
+            ),
+            None,
+        );
+        let mut expr = expr.into_inner();
+        expr.attrs = vec![
+            self.ast_builder.attribute_name_value(
+                span, "__PRUSTI_SPEC_ONLY", &spec_id.to_string()),
+        ].into();
+        block.stmts.insert(0, builder.stmt_expr(ptr::P(expr)));
+        trace!("[rewrite_loop_block] exit");
+        ptr::P(block)
+    }
+
+    fn rewrite_loop(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
+        // TODO: Recursively rewrite nested loops.
+        trace!("[rewrite_loop] enter");
+        let mut expr = expr.into_inner();
+        let attrs = expr.attrs.to_vec();
+        expr.attrs = vec![].into();
+        let invariants = self.parse_specs(attrs);
+        if !invariants.iter().all(|spec| spec.typ == SpecType::Invariant) {
+            self.report_error(expr.span, "loops can have only invariants");
+            return ptr::P(expr);
+        }
+        let spec_set = SpecificationSet::Loop(invariants.clone());
+        let id = self.register_specification(spec_set);
+        expr.node = match expr.node {
+            ast::ExprKind::While(condition, block, ident) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::While(condition, block, ident)
+            },
+            ast::ExprKind::WhileLet(pattern, expr, block, label) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::WhileLet(pattern, expr, block, label)
+            },
+            ast::ExprKind::ForLoop(pattern, expr, block, label) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::ForLoop(pattern, expr, block, label)
+            },
+            ast::ExprKind::Loop(block, label) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::Loop(block, label)
+            },
+            _ => {unreachable!()},
+        };
+        expr.attrs = vec![
+            self.ast_builder.attribute_name_value(
+                expr.span, "__PRUSTI_SPEC", &id.to_string()),
+        ].into();
+        trace!("[rewrite_loop] exit");
+        ptr::P(expr)
     }
 
     fn rewrite_fn_item(&mut self,
@@ -558,6 +637,21 @@ impl<'tcx> Folder for SpecParser<'tcx> {
             },
         };
         trace!("[fold_item] exit");
+        result
+    }
+
+    fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
+        let result = match expr.node {
+            ast::ExprKind::While(_, _, _) |
+            ast::ExprKind::WhileLet(_, _, _, _) |
+            ast::ExprKind::ForLoop(_, _, _, _) |
+            ast::ExprKind::Loop(_, _) => {
+                self.rewrite_loop(expr)
+            },
+            _ => {
+                expr.map(|e| syntax::fold::noop_fold_expr(e, self))
+            },
+        };
         result
     }
 

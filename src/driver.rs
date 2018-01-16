@@ -90,7 +90,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                 registry.register_attribute(
                     String::from("__PRUSTI_SPEC"), AttributeType::Whitelisted);
                 registry.register_attribute(
-                    String::from("__PRUSTI_SPEC_PROC"), AttributeType::Whitelisted);
+                    String::from("__PRUSTI_SPEC_ONLY"), AttributeType::Whitelisted);
             }
             let untyped_specifications = prusti::parser::rewrite_crate(state);
             put_specifications.set(Some(untyped_specifications));

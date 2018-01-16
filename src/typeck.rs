@@ -75,22 +75,22 @@ fn type_specification(specification: UntypedSpecification,
 fn convert_to_typed(untyped_specifications: UntypedSpecificationMap,
                     typed_expressions: &HashMap<ExpressionId, rustc::hir::Expr>
                     ) -> TypedSpecificationMap {
+    let convert = |specs: Vec<UntypedSpecification>| {
+        specs
+            .into_iter()
+            .map(|spec| type_specification(spec, typed_expressions))
+            .collect()
+    };
     untyped_specifications.into_iter().map(
         |(id, untyped_specification)| {
             match untyped_specification {
                 SpecificationSet::Procedure(precondition, postcondition) => {
-                    let precondition = precondition
-                        .into_iter()
-                        .map(|spec| type_specification(spec, typed_expressions))
-                        .collect();
-                    let postcondition = postcondition
-                        .into_iter()
-                        .map(|spec| type_specification(spec, typed_expressions))
-                        .collect();
-                    (id, SpecificationSet::Procedure(precondition, postcondition))
+                    (id, SpecificationSet::Procedure(
+                            convert(precondition),
+                            convert(postcondition)))
                 },
                 SpecificationSet::Loop(invariants) => {
-                    unimplemented!();
+                    (id, SpecificationSet::Loop(convert(invariants)))
                 },
             }
         }
