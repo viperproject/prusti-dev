@@ -70,14 +70,14 @@ impl WrapperGenerator {
         for class in self.classes.drain(..) {
             let class_name = ClassName::new(&class.full_class_name);
             class_name_paths.push(class_name.path());
-            debug!("Generate wrapper for '{}'", class_name.full());
+            debug!("Generate wrapper for '{}'", class_name.full_name());
             let mut class_components = java_class_components(&class_name.path());
             let last_index = class_components.len() - 1;
             class_components.remove(last_index);
             let class_rel_mod_path = class_components.join("/");
             let class_path = Path::new(out_dir).join(class_rel_mod_path).join(format!(
                 "{}_wrapper.rs",
-                class_name.simple()
+                java_class_or_package_to_rust(&class_name.name())
             ));
             debug!(
                 "Write wrapper for '{}' to '{}'",

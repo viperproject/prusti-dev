@@ -12,7 +12,7 @@ pub fn generate_scala_object_getter(env: &JNIEnv, class_name: &ClassName) -> Res
     Ok(vec![
         format!(
             "/// Returns the unique instance of the Scala object `{}`.",
-            class_name.full()
+            class_name.full_name()
         ),
         "///".to_string(),
         format!(

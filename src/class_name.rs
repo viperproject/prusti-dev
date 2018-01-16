@@ -18,15 +18,19 @@ impl ClassName {
         }
     }
 
-    pub fn simple(&self) -> String {
+    pub fn name(&self) -> String {
         self.class_name.clone()
+    }
+
+    pub fn rust_name(&self) -> String {
+        self.class_name.replace("$", "_object")
     }
 
     pub fn path(&self) -> String {
         self.full_class_name_slash.clone()
     }
 
-    pub fn full(&self) -> String {
+    pub fn full_name(&self) -> String {
         self.full_class_name_dot.clone()
     }
 }

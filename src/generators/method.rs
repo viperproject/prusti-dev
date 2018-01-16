@@ -6,8 +6,8 @@ use errors::*;
 use utils::*;
 use class_name::*;
 
-pub fn generate_method(env: &JNIEnv, class_name: &ClassName, method_name: &str, target_signature: Option<String>, suffix: Option<String>) -> Result<String> {
-    let clazz = env.find_class(class_name.path())?;
+pub fn generate_method(env: &JNIEnv, class: &ClassName, method_name: &str, target_signature: Option<String>, suffix: Option<String>) -> Result<String> {
+    let clazz = env.find_class(class.path())?;
 
     let methods = env.call_method(
         clazz.into(),
@@ -62,7 +62,7 @@ pub fn generate_method(env: &JNIEnv, class_name: &ClassName, method_name: &str, 
     }
 
     let matching_methods = match indexed_methods.get_mut(method_name) {
-        None => return Err(ErrorKind::NoMethod(class_name.full(), method_name.into()).into()),
+        None => return Err(ErrorKind::NoMethod(class.full_name(), method_name.into()).into()),
         Some(mm) => mm
     };
 
@@ -72,14 +72,14 @@ pub fn generate_method(env: &JNIEnv, class_name: &ClassName, method_name: &str, 
                 unreachable!();
             }
             if matching_methods.len() > 1 {
-                return Err(ErrorKind::AmbiguousMethod(class_name.full(), method_name.into()).into());
+                return Err(ErrorKind::AmbiguousMethod(class.full_name(), method_name.into(), matching_methods.keys().map(|k| k.to_string()).collect()).into());
             }
             matching_methods.drain().take(1).next().unwrap()
         }
         Some(sign) => {
             match matching_methods.get(&sign) {
                 Some(constr) => (sign, *constr),
-                None => return Err(ErrorKind::NoMatchingMethod(class_name.full(), method_name.into(), sign).into())
+                None => return Err(ErrorKind::NoMatchingMethod(class.full_name(), method_name.into(), sign).into())
             }
         }
     };
@@ -145,7 +145,7 @@ pub fn generate_method(env: &JNIEnv, class_name: &ClassName, method_name: &str, 
 
     if is_static {
         Ok(generate_static(
-            class_name,
+            class,
             method_name,
             &rust_method_name,
             &method_signature,
@@ -154,7 +154,7 @@ pub fn generate_method(env: &JNIEnv, class_name: &ClassName, method_name: &str, 
         ))
     } else {
         Ok(generate(
-            class_name,
+            class,
             method_name,
             &rust_method_name,
             &method_signature,
@@ -165,7 +165,7 @@ pub fn generate_method(env: &JNIEnv, class_name: &ClassName, method_name: &str, 
 }
 
 fn generate(
-    class_name: &ClassName,
+    class: &ClassName,
     method_name: &str,
     rust_method_name: &str,
     method_signature: &str,
@@ -180,7 +180,7 @@ fn generate(
     code.push(format!(
         "/// Calls method `{}` of Java class `{}`.",
         method_name,
-        class_name.full()
+        class.full_name()
     ));
     code.push("///".to_string());
     code.push("/// Type and Java signature of parameters:".to_string());
@@ -219,7 +219,7 @@ fn generate(
     code.push(format!(") -> JNIResult<{}> {{", return_type));
     code.push(format!(
         "    let class = self.env.find_class(\"{}\")?;",
-        class_name.path()
+        class.path()
     ));
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(
@@ -263,7 +263,7 @@ fn generate(
 }
 
 fn generate_static(
-    class_name: &ClassName,
+    class: &ClassName,
     method_name: &str,
     rust_method_name: &str,
     method_signature: &str,
@@ -278,7 +278,7 @@ fn generate_static(
     code.push(format!(
         "/// Calls static method `{}` of Java class `{}`.",
         method_name,
-        class_name.full()
+        class.full_name()
     ));
     code.push("///".to_string());
     code.push("/// Type and Java signature of parameters:".to_string());
@@ -316,7 +316,7 @@ fn generate_static(
     code.push(format!(") -> JNIResult<{}> {{", return_type));
     code.push(format!(
         "    let class = self.env.find_class(\"{}\")?;",
-        class_name.path()
+        class.path()
     ));
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(

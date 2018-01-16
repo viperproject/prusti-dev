@@ -8,23 +8,23 @@ use generators::method::*;
 
 pub struct ClassGenerator<'a> {
     env: &'a JNIEnv<'a>,
-    class_name: ClassName,
+    class: ClassName,
     items: Vec<ItemWrapperSpec>,
 }
 
 impl<'a> ClassGenerator<'a> {
-    pub fn new(env: &'a JNIEnv<'a>, class_name: ClassName, items: Vec<ItemWrapperSpec>) -> Self {
+    pub fn new(env: &'a JNIEnv<'a>, class: ClassName, items: Vec<ItemWrapperSpec>) -> Self {
         ClassGenerator {
             env,
-            class_name,
+            class,
             items
         }
     }
 
     fn check(&self) -> Result<()> {
-        self.env.find_class(self.class_name.path())
+        self.env.find_class(self.class.path())
             .map(|_| ())
-            .chain_err(|| ErrorKind::NoClass(self.class_name.full()))
+            .chain_err(|| ErrorKind::NoClass(self.class.full_name()))
     }
 
     pub fn generate(&self) -> Result<String> {
@@ -32,7 +32,7 @@ impl<'a> ClassGenerator<'a> {
 
         Ok(
             vec![
-                format!("//! Automatically generated code for '{}'\n", self.class_name.full()),
+                format!("//! Automatically generated code for '{}'\n", self.class.full_name()),
                 "#![allow(non_snake_case)]\n".to_string(),
                 "#![allow(unused_imports)]\n".to_string(),
                 self.generate_imports(),
@@ -58,7 +58,7 @@ impl<'a> ClassGenerator<'a> {
     fn generate_struct(&self) -> String {
         vec![
             "#[allow(non_camel_case_types)]".to_string(),
-            format!("pub struct {}<'a> {{", self.class_name.simple()),
+            format!("pub struct {}<'a> {{", self.class.rust_name()),
             "    env: &'a JNIEnv<'a>,".to_string(),
             "}".to_string(),
         ].join("\n") + "\n"
@@ -66,16 +66,16 @@ impl<'a> ClassGenerator<'a> {
 
     fn generate_begin_impl(&self) -> String {
         vec![
-            format!("impl<'a> {}<'a> {{", self.class_name.simple()),
+            format!("impl<'a> {}<'a> {{", self.class.rust_name()),
             "".to_string(),
             "pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_string(),
-            format!("    {}{{ env: env }}", self.class_name.simple()),
+            format!("    {}{{ env: env }}", self.class.rust_name()),
             "}".to_string(),
         ].join("\n") + "\n"
     }
 
     fn generate_end_impl(&self) -> String {
-        format!("}} // end of impl {}\n", self.class_name.simple())
+        format!("}} // end of impl {}\n", self.class.rust_name())
     }
 
     fn generate_items(&self) -> Result<String> {
@@ -83,13 +83,13 @@ impl<'a> ClassGenerator<'a> {
         for item in self.items.iter() {
             let gen = match item {
                 &ItemWrapperSpec::ScalaObjectGetter() => {
-                    generate_scala_object_getter(self.env, &self.class_name)?
+                    generate_scala_object_getter(self.env, &self.class)?
                 },
                 &ItemWrapperSpec::Constructor { ref signature, ref suffix } => {
-                    generate_constructor(self.env, &self.class_name, signature.clone(), suffix.clone())?
+                    generate_constructor(self.env, &self.class, signature.clone(), suffix.clone())?
                 },
                 &ItemWrapperSpec::Method { ref name, ref signature, ref suffix } => {
-                    generate_method(self.env, &self.class_name, name, signature.clone(), suffix.clone())?
+                    generate_method(self.env, &self.class, name, signature.clone(), suffix.clone())?
                 },
             };
             gen_items.push(gen)

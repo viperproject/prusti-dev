@@ -25,9 +25,9 @@ error_chain!{
             display("no constructors in class '{}'", class)
         }
 
-        AmbiguousConstructor(class: String) {
+        AmbiguousConstructor(class: String, signatures: Vec<String>) {
             description("ambiguous constructor")
-            display("ambiguous constructor in class '{}'", class)
+            display("ambiguous constructor in class '{}'. Possible signatures: {}.", class, signatures.join(", "))
         }
 
         NoMatchingConstructor(class: String, signature: String) {
@@ -40,9 +40,9 @@ error_chain!{
             display("no method '{}' in class '{}'", method, class)
         }
 
-        AmbiguousMethod(class: String, method: String) {
+        AmbiguousMethod(class: String, method: String, signatures: Vec<String>) {
             description("ambiguous method")
-            display("ambiguous method '{}' in class '{}'", method, class)
+            display("ambiguous method '{}' in class '{}'. Possible signatures: {}.", method, class, signatures.join(", "))
         }
 
         NoMatchingMethod(class: String, method: String, signature: String) {

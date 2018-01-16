@@ -5,8 +5,8 @@ use errors::*;
 use utils::*;
 use class_name::*;
 
-pub fn generate_constructor(env: &JNIEnv, class_name: &ClassName, target_signature: Option<String>, suffix: Option<String>) -> Result<String> {
-    let clazz = env.find_class(class_name.path())?;
+pub fn generate_constructor(env: &JNIEnv, class: &ClassName, target_signature: Option<String>, suffix: Option<String>) -> Result<String> {
+    let clazz = env.find_class(class.path())?;
 
     let constructors = env.call_method(
         clazz.into(),
@@ -41,18 +41,18 @@ pub fn generate_constructor(env: &JNIEnv, class_name: &ClassName, target_signatu
 
     let (constructor_signature, constructor) = match target_signature {
         None => {
-            if num_constructors == 0 {
-                return Err(ErrorKind::NoConstructors(class_name.full()).into());
+            if indexed_constructors.len() == 0 {
+                return Err(ErrorKind::NoConstructors(class.full_name()).into());
             }
-            if num_constructors > 1 {
-                return Err(ErrorKind::AmbiguousConstructor(class_name.full()).into());
+            if indexed_constructors.len() > 1 {
+                return Err(ErrorKind::AmbiguousConstructor(class.full_name(), indexed_constructors.keys().map(|k| k.to_string()).collect()).into());
             }
             indexed_constructors.drain().take(1).next().unwrap()
         }
         Some(sign) => {
             match indexed_constructors.get(&sign) {
                 Some(constr) => (sign, *constr),
-                None => return Err(ErrorKind::NoMatchingConstructor(class_name.full(), sign).into())
+                None => return Err(ErrorKind::NoMatchingConstructor(class.full_name(), sign).into())
             }
         }
     };
@@ -107,7 +107,7 @@ pub fn generate_constructor(env: &JNIEnv, class_name: &ClassName, target_signatu
     };
 
     Ok(generate(
-        class_name,
+        class,
         &constructor_name,
         &constructor_signature,
         &parameter_names,
@@ -116,7 +116,7 @@ pub fn generate_constructor(env: &JNIEnv, class_name: &ClassName, target_signatu
 }
 
 fn generate(
-    class_name: &ClassName,
+    class: &ClassName,
     constructor_name: &str,
     constructor_signature: &str,
     parameter_names: &Vec<String>,
@@ -127,7 +127,7 @@ fn generate(
     let mut code: Vec<String> = vec![];
     code.push(format!(
         "/// Calls a constructor of Java class `{}`.",
-        class_name.full()
+        class.full_name()
     ));
     code.push("///".to_string());
     code.push("/// Type and Java signature of parameters:".to_string());
@@ -147,7 +147,7 @@ fn generate(
     code.push("///".to_string());
     code.push(format!(
         "/// Return type and Java signature: `JObject` (`L{};`)",
-        class_name.path()
+        class.path()
     ));
 
     code.push(format!("pub fn {}(", constructor_name));
@@ -163,7 +163,7 @@ fn generate(
     code.push(") -> JNIResult<JObject<'a>> {".to_string());
     code.push(format!(
         "    let class = self.env.find_class(\"{}\")?;",
-        class_name.path()
+        class.path()
     ));
     code.push(format!(
         "    let method_signature = \"{}\";",
