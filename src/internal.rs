@@ -1,2 +1,2 @@
-pub fn __assertion(uuid: u64, spec: bool) {
+pub fn __assertion(uuid: usize, spec: bool) {
 }
