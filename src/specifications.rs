@@ -86,10 +86,6 @@ impl SpecID {
         self.0 += 1;
         Self{ 0: self.0 }
     }
-    /// Cast ID into a number.
-    pub fn to_number(&self) -> u64 {
-        self.0
-    }
 }
 
 impl ToString for SpecID {
@@ -101,7 +97,7 @@ impl ToString for SpecID {
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the Rust expression used in the specification.
-pub struct ExpressionId(u64);
+pub struct ExpressionId(usize);
 
 impl ExpressionId {
     /// Constructor.
@@ -113,15 +109,17 @@ impl ExpressionId {
         self.0 += 1;
         Self{ 0: self.0 }
     }
-    /// Cast ID into a number.
-    pub fn to_number(&self) -> u64 {
-        self.0
-    }
 }
 
 impl ToString for ExpressionId {
     fn to_string(&self) -> String {
         self.0.to_string()
+    }
+}
+
+impl Into<usize> for ExpressionId {
+    fn into(self) -> usize {
+        self.0
     }
 }
 
@@ -173,10 +171,20 @@ pub struct Specification<ET> {
 }
 
 
+#[derive(Debug, Clone)]
+/// Specification of a single element such as procedure or loop.
+pub enum SpecificationSet<ET> {
+    /// (Precondition, Postcondition)
+    Procedure(Vec<Specification<ET>>, Vec<Specification<ET>>),
+    /// Loop invariant.
+    Loop(Vec<Specification<ET>>),
+}
+
+
 /// A specification that has no types associated with it.
 pub type UntypedSpecification = Specification<ptr::P<ast::Expr>>;
 /// A set of specifications associated with a single element.
-pub type UntypedSpecificationSet = Vec<UntypedSpecification>;
+pub type UntypedSpecificationSet = SpecificationSet<ptr::P<ast::Expr>>;
 /// An assertion that has no types associated with it.
 pub type UntypedAssertion = Assertion<ptr::P<ast::Expr>>;
 /// An assertion kind that has no types associated with it.

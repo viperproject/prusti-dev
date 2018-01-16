@@ -15,9 +15,11 @@ use syntax::util::small_vector::SmallVector;
 use syntax_pos::FileName;
 use specifications::{
     AssertionKind, Assertion, SpecID, SpecType, Expression, ExpressionId,
-    UntypedSpecification, UntypedSpecificationSet, UntypedAssertion};
+    SpecificationSet, UntypedSpecification, UntypedSpecificationSet,
+    UntypedAssertion};
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::mem;
 
 
 
@@ -81,35 +83,183 @@ impl<'tcx> SpecParser<'tcx> {
         err.emit();
     }
 
+    fn populate_statements(&self, assertion: &UntypedAssertion,
+                           statements: &mut Vec<ast::Stmt>) {
+        trace!("[populate_statements] enter");
+        let builder = &self.ast_builder;
+        match *assertion.kind {
+            AssertionKind::Expr(ref expression) => {
+                let id = expression.id;
+                let rust_expr = expression.expr.clone();
+                let span = rust_expr.span;
+                let stmt = builder.stmt_expr(
+                    builder.expr_call(
+                        span,
+                        builder.expr_ident(
+                            span,
+                            builder.ident_of("__assertion"),
+                        ),
+                        vec![
+                            builder.expr_usize(span, id.into()),
+                            rust_expr,
+                        ],
+                    )
+                );
+                statements.push(stmt);
+            },
+            AssertionKind::And(ref assertions) => {
+                for assertion in assertions {
+                    self.populate_statements(assertion, statements);
+                }
+            },
+            _ => {
+                unimplemented!();
+            }
+        };
+        trace!("[populate_statements] exit");
+    }
+
+    /// Convert untyped specifications into a sequence of statements for
+    /// type-checking.
+    fn convert_to_statements(&self, specifications: &Vec<UntypedSpecification>
+                             ) -> Vec<ast::Stmt> {
+        trace!("[convert_to_statements] enter");
+        let mut statements = Vec::new();
+        for specification in specifications {
+            self.populate_statements(&specification.assertion, &mut statements);
+        }
+        trace!("[convert_to_statements] exit");
+        statements
+    }
+
+    /// Generate a function that contains only the precondition and postcondition
+    /// for type-checking.
+    fn generate_spec_item(&mut self, item: &ast::Item,
+                          spec_id: SpecID,
+                          preconditions: &Vec<UntypedSpecification>,
+                          postconditions: &Vec<UntypedSpecification>) -> ast::Item {
+        let mut name = item.ident.to_string();
+        let builder = &self.ast_builder;
+        let span = item.span;
+        match &item.node {
+            &ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi,
+                               ref _generics, ref _body) => {
+
+                // Import contracts.
+                let mut statements = vec![
+                    builder.stmt_item(
+                        span,
+                        builder.item_use_glob(
+                            span,
+                            ast::Visibility::Inherited,
+                            vec![
+                                builder.ident_of("prusti_contracts"),
+                                builder.ident_of("internal"),
+                            ]
+                        )
+                    )
+                ];
+
+                // Add preconditions.
+                statements.extend(self.convert_to_statements(preconditions));
+
+                // Add result.
+                let args: Vec<_> = decl.inputs.clone().into_iter().map(|arg| {
+                    if let ast::PatKind::Ident(_, ident, _) = arg.pat.node {
+                        builder.expr_ident(ident.span, ident.node)
+                    }
+                    else {
+                        unreachable!();
+                    }
+                }).collect();
+                statements.push(
+                    builder.stmt_let(
+                        item.span,
+                        false,
+                        ast::Ident::from_str("result"),
+                        builder.expr_call_ident(item.span, item.ident, args),
+                    )
+                );
+
+                // Add postconditions.
+                statements.extend(self.convert_to_statements(postconditions));
+
+                // Return result.
+                statements.push(
+                    builder.stmt_expr(
+                        builder.expr_ident(
+                            item.span,
+                            builder.ident_of("result")
+                        )
+                    )
+                );
+
+                // Glue everything.
+                let return_type = match decl.output.clone() {
+                    ast::FunctionRetTy::Ty(return_type) => {Some(return_type)},
+                    ast::FunctionRetTy::Default(_) => {None},
+                };
+                name.push_str("__spec");
+                let mut spec_item = builder.item_fn_optional_result(
+                    item.span,
+                    ast::Ident::from_str(&name),
+                    decl.inputs.clone(),
+                    return_type,
+                    builder.block(
+                        item.span,
+                        statements,
+                        ),
+                    ).into_inner();
+                mem::replace(&mut spec_item.attrs, vec![
+                    builder.attribute_name_value(
+                        item.span, "__PRUSTI_SPEC_PROC", &spec_id.to_string()),
+                    builder.attribute_allow(item.span, "unused_mut"),
+                    builder.attribute_allow(item.span, "dead_code"),
+                    builder.attribute_allow(item.span, "non_snake_case"),
+                    builder.attribute_allow(item.span, "unused_imports"),
+                ]);
+                spec_item
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+    }
+
     fn rewrite_fn_item(&mut self,
                         item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[rewrite_function] enter");
         let mut item = item.into_inner();
         let attrs = item.attrs;
+        item.attrs = vec![];
         let specs = self.parse_specs(attrs);
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(item.span, "invariant not allowed for procedure");
             return SmallVector::new();
         }
-        let id = self.register_specification(specs);
+        let preconditions: Vec<_> = specs
+            .clone().into_iter()
+            .filter(|spec| spec.typ == SpecType::Precondition).collect();
+        let postconditions: Vec<_> = specs
+            .into_iter()
+            .filter(|spec| spec.typ == SpecType::Postcondition).collect();
+        let spec_set = SpecificationSet::Procedure(
+            preconditions.clone(), postconditions.clone());
+        let id = self.register_specification(spec_set);
+        let spec_item = self.generate_spec_item(&item, id, &preconditions, &postconditions);
         let node = item.node;
         item.node = self.fold_item_kind(node);
-        let builder = &self.ast_builder;
         item.attrs = vec![
-            builder.attribute(
-                item.span,
-                builder.meta_name_value(
-                    item.span,
-                    builder.name_of("__PRUSTI_SPEC"),
-                    ast::LitKind::Str(
-                        builder.name_of(&id.to_string()),
-                        ast::StrStyle::Cooked),
-                )
-            )
+            self.ast_builder.attribute_name_value(
+                item.span, "__PRUSTI_SPEC", &id.to_string()),
         ];
         debug!("new_item:\n{}", syntax::print::pprust::item_to_string(&item));
+        debug!("spec_item:\n{}", syntax::print::pprust::item_to_string(&spec_item));
         trace!("[rewrite_function] exit");
-        SmallVector::one(ptr::P(item))
+        let mut result = SmallVector::new();
+        result.push(ptr::P(item));
+        result.push(ptr::P(spec_item));
+        result
     }
 
     fn extract_spec_string(&self, attribute: &ast::Attribute) -> Option<String> {

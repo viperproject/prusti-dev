@@ -83,6 +83,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                     String::from("ensures"), AttributeType::Whitelisted);
                 registry.register_attribute(
                     String::from("__PRUSTI_SPEC"), AttributeType::Whitelisted);
+                registry.register_attribute(
+                    String::from("__PRUSTI_SPEC_PROC"), AttributeType::Whitelisted);
             }
             prusti::parser::rewrite_crate(state);
             trace!("[after_parse.callback] exit");

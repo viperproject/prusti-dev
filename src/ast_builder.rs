@@ -58,6 +58,60 @@ impl<'a> MinimalAstBuilder<'a> {
         Symbol::intern(st)
     }
 
+    pub fn attribute_name_value(&self, span: Span, name: &str,
+                                value: &str) -> ast::Attribute {
+        self.attribute(
+            span,
+            self.meta_name_value(
+                span,
+                self.name_of(name),
+                ast::LitKind::Str(
+                    self.name_of(value),
+                    ast::StrStyle::Cooked),
+            )
+        )
+    }
+
+    pub fn attribute_allow(&self, span: Span, value: &str) -> ast::Attribute {
+        self.attribute(
+            span,
+            self.meta_list(
+                span,
+                self.name_of("allow"),
+                vec![
+                    self.meta_list_item_word(span, self.name_of(value)),
+                ],
+            )
+        )
+    }
+
+    pub fn item_fn_optional_result(&self,
+               span: Span,
+               name: Ident,
+               inputs: Vec<ast::Arg> ,
+               output: Option<P<ast::Ty>>,
+               body: P<ast::Block>
+              ) -> P<ast::Item> {
+        let output = match output {
+            Some(output) => ast::FunctionRetTy::Ty(output),
+            None => ast::FunctionRetTy::Default(span),
+        };
+        self.item(span,
+                  name,
+                  Vec::new(),
+                  ast::ItemKind::Fn(
+                      P(ast::FnDecl {
+                          inputs,
+                          output: output,
+                          variadic: false
+                      }),
+                      ast::Unsafety::Normal,
+                      dummy_spanned(ast::Constness::NotConst),
+                      Abi::Rust,
+                      Generics::default(),
+                      body))
+    }
+
 }
 
 impl<'a> AstBuilder for MinimalAstBuilder<'a> {
