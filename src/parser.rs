@@ -343,36 +343,52 @@ impl<'tcx> SpecParser<'tcx> {
         result
     }
 
-    fn extract_spec_string(&self, attribute: &ast::Attribute) -> Option<String> {
+    /// Extracts specification string from the attribute with the
+    /// correct base span.
+    fn extract_spec_string(&self, attribute: &ast::Attribute
+                           ) -> Option<(String, Span)> {
         use syntax::tokenstream::TokenTree;
         use syntax::parse::token;
 
         let trees: Vec<TokenTree> = attribute.tokens.trees().collect();
         if trees.len() != 2 {
-            self.report_error(attribute.span, "malformed specification");
+            self.report_error(
+                attribute.span,
+                "malformed specification (incorrect number of token trees)");
             return None;
         }
         match &trees[0] {
             &TokenTree::Token(_, ref token) => {
                 if *token != token::Token::Eq {
-                    self.report_error(attribute.span, "malformed specification");
+                    self.report_error(
+                        attribute.span,
+                        "malformed specification (expected equality)");
                     return None;
                 }
             },
             _ => {
-                self.report_error(attribute.span, "malformed specification");
+                self.report_error(
+                    attribute.span,
+                    "malformed specification (expected token)");
                 return None;
             },
         };
-        let spec_string = match &trees[1] {
-            &TokenTree::Token(_, ref token) => {
+        let spec_string_with_span = match &trees[1] {
+            &TokenTree::Token(span, ref token) => {
                 match token {
                     &token::Token::Literal(ref lit, None) => {
                         match lit {
                             &token::Lit::Str_(ref name) => {
                                 let name: &str = &name.as_str();
                                 let spec = String::from(name);
-                                Some(spec)
+                                Some((spec, span))
+                            },
+                            &token::Lit::StrRaw(ref name, delimiter_size) => {
+                                let name: &str = &name.as_str();
+                                let spec = String::from(name);
+                                Some((spec,
+                                      shift_span(span,
+                                                 (delimiter_size + 1) as u32)))
                             },
                             _ => {
                                 None
@@ -388,10 +404,12 @@ impl<'tcx> SpecParser<'tcx> {
                 None
             },
         };
-        if spec_string.is_none() {
-            self.report_error(attribute.span, "malformed specification");
+        if spec_string_with_span.is_none() {
+            self.report_error(
+                attribute.span,
+                "malformed specification (failed to parse specification string)");
         }
-        spec_string
+        spec_string_with_span
     }
 
     fn parse_assertion_wrap(&mut self, span: Span,
@@ -419,10 +437,10 @@ impl<'tcx> SpecParser<'tcx> {
         let specifications: Vec<_> = attributes.into_iter().map(|attribute| {
             if let Ok(spec_type) = SpecType::try_from(
                 &attribute.path.to_string() as &str) {
-                if let Some(spec_string) = self.extract_spec_string(&attribute) {
+                if let Some((spec_string, span)) = self.extract_spec_string(&attribute) {
                     debug!("spec={:?} spec_type={:?}", spec_string, spec_type);
                     if let Some(assertion) = self.parse_assertion_wrap(
-                        attribute.span, spec_string) {
+                        span, spec_string) {
                         debug!("assertion={:?}", assertion);
                         Some(UntypedSpecification {
                             typ: spec_type,
@@ -447,13 +465,27 @@ impl<'tcx> SpecParser<'tcx> {
     }
 
     /// Parse Rust expression.
-    fn parse_expression(&mut self, _span: Span, spec_string: String)
+    fn parse_expression(&mut self, base_span: Span, spec_string: String)
             -> Result<ptr::P<ast::Expr>, AssertionParsingError> {
-        trace!("[parse_expression] enter spec_string={:?}", spec_string);
+        trace!("[parse_expression] enter spec_string={:?} span={:?}",
+               spec_string, base_span);
+        let mut whitespace_count = 0;
+        for char in spec_string.chars() {
+            if !char.is_whitespace() {
+                break;
+            }
+            whitespace_count += 1;
+        }
         let expr = parse::parse_expr_from_source_str(
             FileName::QuoteExpansion, spec_string, &self.session.parse_sess);
+        debug!("Parsed expr: {:?}", expr);
         let result = match expr {
-            Ok(expr) => Ok(expr),
+            Ok(expr) => {
+                let mut rewriter = SpanRewriter::new(
+                    whitespace_count, expr.span, base_span);
+                let expr = rewriter.fold_expr(expr);
+                Ok(expr)
+            },
             Err(mut err) => {
                 err.emit();
                 Err(AssertionParsingError::ParsingRustExpressionFailed)
@@ -562,7 +594,6 @@ impl<'tcx> SpecParser<'tcx> {
     }
 
     /// Parse a specification string into an assertion object.
-    /// TODO: Write a unit test for this.
     fn parse_assertion(&mut self, span: Span, spec_string: String)
             -> Result<UntypedAssertion, AssertionParsingError> {
         trace!("[parse_assertion] enter spec_string={:?}", spec_string);
@@ -601,14 +632,16 @@ impl<'tcx> SpecParser<'tcx> {
                 if let Some(&(_, '&')) = iter.peek() {
                     iter.next();
                     let block = substring(&spec_string, block_start, position);
-                    let assertion = self.parse_assertion(span, block)?;
+                    let new_span = shift_span(span, block_start as u32);
+                    let assertion = self.parse_assertion(new_span, block)?;
                     assertions.push(assertion);
                     block_start = position + 2;
                 }
             }
         }
         let block = substring(&spec_string, block_start, spec_string.len());
-        let last_assertion = self.parse_assertion_simple(span, block)?;
+        let new_span = shift_span(span, block_start as u32);
+        let last_assertion = self.parse_assertion_simple(new_span, block)?;
         let assertion = if assertions.is_empty() {
             last_assertion
         }
@@ -673,4 +706,37 @@ fn substring(string: &str, start: usize, end: usize) -> String {
         .skip(start)
         .take(end-start)
         .collect::<String>()
+}
+
+struct SpanRewriter {
+    old_base_pos: syntax::codemap::BytePos,
+    new_base_pos: syntax::codemap::BytePos,
+}
+
+impl SpanRewriter {
+    pub fn new(whitespace_count: u32, old_base_span: Span,
+               new_base_span: Span) -> SpanRewriter {
+        SpanRewriter {
+            old_base_pos: old_base_span.lo(),
+            new_base_pos:
+                new_base_span.lo() +
+                syntax::codemap::BytePos(whitespace_count),
+        }
+    }
+}
+
+impl Folder for SpanRewriter {
+
+    fn new_span(&mut self, sp: Span) -> Span {
+        let one = syntax::codemap::BytePos(1);
+        let lo = sp.lo() + self.new_base_pos - self.old_base_pos + one;
+        let hi = sp.hi() + self.new_base_pos - self.old_base_pos + one;
+        Span::new(lo, hi, sp.ctxt())
+    }
+
+}
+
+fn shift_span(span: Span, offset: u32) -> Span {
+    let offset = syntax::codemap::BytePos(offset);
+    Span::new(span.lo() + offset, span.hi() + offset, span.ctxt())
 }

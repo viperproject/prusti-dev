@@ -13,6 +13,7 @@ extern crate syntax;
 
 use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
+use std::env::var;
 use std::path::PathBuf;
 use std::process::Command;
 use std::rc::Rc;
@@ -108,7 +109,9 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             trace!("[after_analysis.callback] exit");
             old(state);
         });
-        control.after_analysis.stop = Compilation::Stop;
+        if Ok(String::from("true")) != var("PRUSTI_TESTS") {
+            control.after_analysis.stop = Compilation::Stop;
+        }
         control
     }
 }
@@ -135,7 +138,7 @@ pub fn main() {
         let (result, _) = rustc_driver::run_compiler(
             &args, &mut prusti_compiler_calls, None, None);
         if let Err(session::CompileIncomplete::Errored(_)) = result {
-            std::process::exit(1);
+            std::process::exit(101);
         }
     }).expect("rustc_thread failed");
     trace!("[main] exit");
