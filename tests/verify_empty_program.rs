@@ -1,3 +1,4 @@
+extern crate env_logger;
 extern crate error_chain;
 extern crate jni;
 extern crate viper_sys;
@@ -14,6 +15,8 @@ use viper_sys::wrappers::*;
 
 #[test]
 fn verify_empty_program() {
+    env_logger::init().expect("failed to initialize env_logger");
+
     let jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/")
         .unwrap()
         .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
