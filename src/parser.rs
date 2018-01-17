@@ -4,7 +4,7 @@
 
 
 use ast_builder::MinimalAstBuilder;
-use regex::Regex;
+use regex::{self, Regex};
 use rustc::session::Session;
 use rustc_driver::driver;
 use syntax::{self, ast, ptr, parse};
@@ -16,7 +16,8 @@ use syntax_pos::FileName;
 use specifications::{
     AssertionKind, Assertion, SpecID, SpecType, Expression, ExpressionId,
     SpecificationSet, UntypedSpecification, UntypedSpecificationSet,
-    UntypedAssertion, UntypedSpecificationMap, UntypedExpression};
+    UntypedAssertion, UntypedSpecificationMap, UntypedExpression,
+    Trigger, TriggerSet, UntypedTriggerSet};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -85,33 +86,53 @@ impl<'tcx> SpecParser<'tcx> {
         err.emit();
     }
 
+    /// Construct a statement that calls a function with given
+    /// expression to make that expression to be type-checked by the
+    /// Rust compiler.
+    fn build_typeck_call(&self, expression: &UntypedExpression,
+                         function_name: &str) -> ast::Stmt {
+        let builder = &self.ast_builder;
+        let id = expression.id;
+        let rust_expr = expression.expr.clone();
+        let span = rust_expr.span;
+        builder.stmt_expr(
+            builder.expr_call(
+                span,
+                builder.expr_ident(
+                    span,
+                    builder.ident_of(function_name),
+                ),
+                vec![
+                    builder.expr_usize(span, id.into()),
+                    rust_expr,
+                ],
+            )
+        )
+    }
+
+    fn build_assertion(&self, expression: &UntypedExpression) -> ast::Stmt {
+        self.build_typeck_call(expression, "__assertion")
+    }
+
+    fn convert_trigger_set_to_statements(&self, trigger_set: &UntypedTriggerSet
+                                         ) -> Vec<ast::Stmt> {
+        let mut statements = Vec::new();
+        for trigger in trigger_set.triggers().iter() {
+            for term in trigger.terms().iter() {
+                let statement = self.build_typeck_call(term, "__trigger");
+                statements.push(statement);
+            }
+        }
+        statements
+    }
+
     fn populate_statements(&self, assertion: &UntypedAssertion,
                            statements: &mut Vec<ast::Stmt>) {
         trace!("[populate_statements] enter");
-        let builder = &self.ast_builder;
-        let add_expression = |expression: &UntypedExpression,
-                              statements: &mut Vec<ast::Stmt>| {
-            let id = expression.id;
-            let rust_expr = expression.expr.clone();
-            let span = rust_expr.span;
-            let stmt = builder.stmt_expr(
-                builder.expr_call(
-                    span,
-                    builder.expr_ident(
-                        span,
-                        builder.ident_of("__assertion"),
-                    ),
-                    vec![
-                        builder.expr_usize(span, id.into()),
-                        rust_expr,
-                    ],
-                )
-            );
-            statements.push(stmt);
-        };
         match *assertion.kind {
             AssertionKind::Expr(ref expression) => {
-                add_expression(expression, statements);
+                let stmt = self.build_assertion(expression);
+                statements.push(stmt);
             },
             AssertionKind::And(ref assertions) => {
                 for assertion in assertions {
@@ -119,12 +140,33 @@ impl<'tcx> SpecParser<'tcx> {
                 }
             },
             AssertionKind::Implies(ref expression, ref assertion) => {
-                add_expression(expression, statements);
+                let stmt = self.build_assertion(expression);
+                statements.push(stmt);
                 self.populate_statements(assertion, statements);
             },
-            _ => {
-                unimplemented!();
-            }
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref filter,
+                                  ref body) => {
+                let mut stmts = self.convert_trigger_set_to_statements(trigger_set);
+                stmts.push(self.build_assertion(filter));
+                let body_assertion = self.build_assertion(body);
+                let span = body_assertion.span;
+                stmts.push(body_assertion);
+                let builder = &self.ast_builder;
+                let statement = builder.stmt_item(
+                    span,
+                    builder.item_fn_optional_result(
+                        span,
+                        ast::Ident::from_str("forall"),
+                        vars.clone(),
+                        None,
+                        builder.block(
+                            span,
+                            stmts,
+                        ),
+                    ),
+                );
+                statements.push(statement);
+            },
         };
         trace!("[populate_statements] exit");
     }
@@ -433,6 +475,9 @@ impl<'tcx> SpecParser<'tcx> {
             Err(AssertionParsingError::ParsingRustExpressionFailed) => {
                 None
             },
+            Err(AssertionParsingError::FailedForallMatch) => {
+                None
+            },
         }
     }
 
@@ -503,11 +548,113 @@ impl<'tcx> SpecParser<'tcx> {
         result
     }
 
+    fn parse_vars(&mut self, span: Span, var_match: regex::Match
+                  ) -> Result<Vec<ast::Arg>, AssertionParsingError> {
+        let span = shift_resize_span(span,
+                                     var_match.start() as u32,
+                                     var_match.as_str().len() as u32);
+        let vars_string = var_match.as_str();
+        let mut vars = Vec::new();
+        let re = Regex::new(
+            r"^\s*([a-z][a-z0-9]*)\s*:\s*([a-z][a-z0-9]*)\s*$").unwrap();
+        let builder = &self.ast_builder;
+        for var_string in vars_string.split(",") {
+            if let Some(caps) = re.captures(var_string) {
+                let name = &caps[1];
+                let typ = &caps[2];
+                let var = builder.arg(
+                    span,
+                    builder.ident_of(name),
+                    builder.ty_ident(span, builder.ident_of(typ)));
+                vars.push(var);
+            } else {
+                self.report_error(
+                    span, "failed to parse forall bounded variable list");
+                return Err(AssertionParsingError::FailedForallMatch);
+            };
+        }
+        Ok(vars)
+    }
+
+    fn parse_triggers(&mut self, span: Span, trigger_match: regex::Match
+                  ) -> Result<UntypedTriggerSet, AssertionParsingError> {
+        let span = shift_resize_span(span,
+                                     trigger_match.start() as u32,
+                                     trigger_match.as_str().len() as u32);
+        let trigger_set_string = trigger_match.as_str();
+        let mut triggers = Vec::new();
+        for trigger_string in trigger_set_string.split(";") {
+            let mut terms = Vec::new();
+            for term in trigger_string.split(",") {
+                let term = self.parse_expression(span, String::from(term))?;
+                let expr = Expression {
+                    id: self.get_new_expression_id(),
+                    expr: term,
+                };
+                terms.push(expr);
+            }
+            triggers.push(Trigger::new(terms));
+        }
+        Ok(TriggerSet::new(triggers))
+    }
+
+    fn parse_forall_expr(&mut self, span: Span, expr_match: regex::Match
+                         ) -> Result<ptr::P<ast::Expr>, AssertionParsingError> {
+        let expr_string = String::from(expr_match.as_str());
+        if expr_string.contains("==>") {
+            self.report_error(span, "forall can have only one implication");
+            return Err(AssertionParsingError::FailedForallMatch);
+        }
+        let span = shift_resize_span(span,
+                                     expr_match.start() as u32,
+                                     expr_match.as_str().len() as u32);
+        self.parse_expression(span, String::from(expr_string))
+    }
+
+    fn parse_forall(&mut self, span: Span, spec_string: String
+                    ) -> Result<UntypedAssertion, AssertionParsingError> {
+        let re = Regex::new(r"(?x)
+            ^\s*forall\s*
+            (?P<vars>.*)\s*::\s*\{(?P<triggers>.*)\}\s*
+            (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
+        ").unwrap();
+        if let Some(caps) = re.captures(&spec_string) {
+            let vars = self.parse_vars(
+                span, caps.name("vars").unwrap())?;
+            let triggers = self.parse_triggers(
+                span, caps.name("triggers").unwrap())?;
+            let filter = self.parse_forall_expr(
+                span, caps.name("filter").unwrap())?;
+            let body = self.parse_forall_expr(
+                span, caps.name("body").unwrap())?;
+            debug!("forall: vars={:?} triggers={:?} filter={:?} body={:?}",
+                   vars, triggers, filter, body);
+            let assertion = UntypedAssertion {
+                kind: box AssertionKind::ForAll(
+                    vars,
+                    triggers,
+                    Expression {
+                        id: self.get_new_expression_id(),
+                        expr: filter
+                    },
+                    Expression {
+                        id: self.get_new_expression_id(),
+                        expr: body
+                    },
+                ),
+            };
+            Ok(assertion)
+        } else {
+            self.report_error(span, "failed to parse forall expression");
+            Err(AssertionParsingError::FailedForallMatch)
+        }
+    }
+
     /// Parse an assertion string into an assertion object.
     /// The assertion string can only contain an implication, forall, or a
     /// Rust expression.
-    fn parse_assertion_simple(&mut self, span: Span, spec_string: String)
-            -> Result<UntypedAssertion, AssertionParsingError> {
+    fn parse_assertion_simple(&mut self, span: Span, spec_string: String
+                              ) -> Result<UntypedAssertion, AssertionParsingError> {
         trace!("[parse_assertion_simple] enter spec_string={:?}", spec_string);
 
         // Drop surrounding parenthesis.
@@ -520,27 +667,11 @@ impl<'tcx> SpecParser<'tcx> {
         }
 
         // Parse forall.
-        {
-            let re = Regex::new(r"(?x)
-                ^\s*
-                forall
-                \s*
-                (?P<vars>[a-z][a-z0-9]*(,\s*[a-z][a-z0-9]*))
-                \s*
-                ::
-                \s*
-                \{(?P<triggers>.*)\}
-                \s*
-                (?P<filter>.*)
-                \s*
-                ==>
-                \s*
-                (?P<body>.*)
-                \s*
-            ").unwrap();
-            if let Some(_caps) = re.captures(&spec_string) {
-                unimplemented!();
-            }
+        if spec_string.contains("forall") &&
+            (!spec_string.contains("==>") ||
+             spec_string.find("forall").unwrap() <
+             spec_string.find("==>").unwrap()) {
+            return self.parse_forall(span, spec_string);
         }
 
         // Parse the implication.
@@ -699,6 +830,8 @@ pub enum AssertionParsingError {
     NotMatchingParenthesis,
     /// Reported when Rust assertion parsing fails.
     ParsingRustExpressionFailed,
+    /// Reported when matching forall expression fails.
+    FailedForallMatch,
 }
 
 fn substring(string: &str, start: usize, end: usize) -> String {
@@ -740,4 +873,11 @@ impl Folder for SpanRewriter {
 fn shift_span(span: Span, offset: u32) -> Span {
     let offset = syntax::codemap::BytePos(offset);
     Span::new(span.lo() + offset, span.hi() + offset, span.ctxt())
+}
+
+
+fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
+    let lo = span.lo() + syntax::codemap::BytePos(offset);
+    let hi = lo + syntax::codemap::BytePos(length);
+    Span::new(lo, hi, span.ctxt())
 }

@@ -142,74 +142,98 @@ pub struct Expression<ET> {
 
 #[derive(Debug, Clone)]
 /// An assertion used in the specification.
-pub struct Assertion<ET> {
+pub struct Assertion<ET, AT> {
     /// Subassertions.
-    pub kind: Box<AssertionKind<ET>>,
+    pub kind: Box<AssertionKind<ET, AT>>,
 }
 
 #[derive(Debug, Clone)]
 /// A single trigger for a quantifier.
 pub struct Trigger<ET>(Vec<Expression<ET>>);
 
+impl<ET> Trigger<ET> {
+    /// Construct a new trigger, which is a “conjunction” of terms.
+    pub fn new(terms: Vec<Expression<ET>>) -> Trigger<ET> {
+        Trigger(terms)
+    }
+    /// Getter for terms.
+    pub fn terms(&self) -> &Vec<Expression<ET>> {
+        &self.0
+    }
+}
+
 #[derive(Debug, Clone)]
 /// A set of triggers used in the quantifier.
 pub struct TriggerSet<ET>(Vec<Trigger<ET>>);
 
+impl<ET> TriggerSet<ET> {
+    /// Construct a new trigger set.
+    pub fn new(triggers: Vec<Trigger<ET>>) -> TriggerSet<ET> {
+        TriggerSet(triggers)
+    }
+    /// Getter for triggers.
+    pub fn triggers(&self) -> &Vec<Trigger<ET>> {
+        &self.0
+    }
+}
+
 #[derive(Debug, Clone)]
 /// An assertion kind used in the specification.
-pub enum AssertionKind<ET> {
+pub enum AssertionKind<ET, AT> {
     /// A single Rust expression.
     Expr(Expression<ET>),
     /// Conjunction &&.
-    And(Vec<Assertion<ET>>),
+    And(Vec<Assertion<ET, AT>>),
     /// Implication ==>
-    Implies(Expression<ET>, Assertion<ET>),
-    /// Quantifier (forall x :: {trigger(x)} body(x))
-    ForAll(String, TriggerSet<ET>, Expression<ET>),
+    Implies(Expression<ET>, Assertion<ET, AT>),
+    /// Quantifier (forall vars :: {triggers} filter ==> body)
+    ForAll(Vec<AT>, TriggerSet<ET>, Expression<ET>, Expression<ET>),
 }
 
 
 #[derive(Debug, Clone)]
 /// Specification such as precondition, postcondition, or invariant.
-pub struct Specification<ET> {
+pub struct Specification<ET, AT> {
     /// Specification type.
     pub typ: SpecType,
     /// Actual specification.
-    pub assertion: Assertion<ET>,
+    pub assertion: Assertion<ET, AT>,
 }
 
 
 #[derive(Debug, Clone)]
 /// Specification of a single element such as procedure or loop.
-pub enum SpecificationSet<ET> {
+pub enum SpecificationSet<ET, AT> {
     /// (Precondition, Postcondition)
-    Procedure(Vec<Specification<ET>>, Vec<Specification<ET>>),
+    Procedure(Vec<Specification<ET, AT>>, Vec<Specification<ET, AT>>),
     /// Loop invariant.
-    Loop(Vec<Specification<ET>>),
+    Loop(Vec<Specification<ET, AT>>),
 }
 
 
 /// A specification that has no types associated with it.
-pub type UntypedSpecification = Specification<ptr::P<ast::Expr>>;
+pub type UntypedSpecification = Specification<ptr::P<ast::Expr>, ast::Arg>;
 /// A set of specifications associated with a single element.
-pub type UntypedSpecificationSet = SpecificationSet<ptr::P<ast::Expr>>;
+pub type UntypedSpecificationSet = SpecificationSet<ptr::P<ast::Expr>, ast::Arg>;
 /// A map of specifications for a specific crate.
 pub type UntypedSpecificationMap = HashMap<SpecID, UntypedSpecificationSet>;
 /// An assertion that has no types associated with it.
-pub type UntypedAssertion = Assertion<ptr::P<ast::Expr>>;
+pub type UntypedAssertion = Assertion<ptr::P<ast::Expr>, ast::Arg>;
 /// An assertion kind that has no types associated with it.
-pub type UntypedAssertionKind = AssertionKind<ptr::P<ast::Expr>>;
+pub type UntypedAssertionKind = AssertionKind<ptr::P<ast::Expr>, ast::Arg>;
 /// An expression that has no types associated with it.
 pub type UntypedExpression = Expression<ptr::P<ast::Expr>>;
+/// A trigger set that has not types associated with it.
+pub type UntypedTriggerSet = TriggerSet<ptr::P<ast::Expr>>;
 
 
 /// A specification that has no types associated with it.
-pub type TypedSpecification = Specification<rustc::hir::Expr>;
+pub type TypedSpecification = Specification<rustc::hir::Expr, rustc::hir::Arg>;
 /// A set of specifications associated with a single element.
-pub type TypedSpecificationSet = SpecificationSet<rustc::hir::Expr>;
+pub type TypedSpecificationSet = SpecificationSet<rustc::hir::Expr, rustc::hir::Arg>;
 /// A map of specifications for a specific crate.
 pub type TypedSpecificationMap = HashMap<SpecID, TypedSpecificationSet>;
 /// An assertion that has no types associated with it.
-pub type TypedAssertion = Assertion<rustc::hir::Expr>;
+pub type TypedAssertion = Assertion<rustc::hir::Expr, rustc::hir::Arg>;
 /// An assertion kind that has no types associated with it.
-pub type TypedAssertionKind = AssertionKind<rustc::hir::Expr>;
+pub type TypedAssertionKind = AssertionKind<rustc::hir::Expr, rustc::hir::Arg>;
