@@ -26,6 +26,20 @@ before_install:
   - wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
   - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
   - travis_retry sudo apt-get update
+  # Install Z3 with a known-to-work version
+  - mkdir tmp
+  - cd tmp
+  - wget -O z3.zip https://github.com/Z3Prover/z3/archive/3865c453827506fc5c9d6c6c7c3d66d17030f158.zip
+  - unzip z3.zip
+  - cd z3-*
+  - ./configure
+  - cd build
+  - make
+  - make install
+  - cd ../../..
+  - rm -rf tmp
+  - rm /usr/bin/viper-z3
+  - ln -s /usr/bin/z3 /usr/bin/viper-z3
 
 install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
