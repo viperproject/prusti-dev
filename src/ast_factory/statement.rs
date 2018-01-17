@@ -1,10 +1,8 @@
 use viper_sys::wrappers::viper::silver::ast;
-use jni::objects::JObject;
 use ast_factory::AstFactory;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Field;
 use ast_factory::structs::Position;
-use ast_factory::structs::LocalVarDecl;
 use ast_factory::structs::Stmt;
 use ast_factory::structs::Declaration;
 
