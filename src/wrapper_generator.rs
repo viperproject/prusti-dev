@@ -54,7 +54,7 @@ impl WrapperGenerator {
         debug!("Generate JNI wrappers in '{}'", out_dir);
 
         let jvm_args = InitArgsBuilder::new()
-            .version(JNIVersion::V6)
+            .version(JNIVersion::V8)
             .option(&format!("-Djava.class.path={}", self.jars.join(":")))
             .option("-Xdebug")
             .build()?;
