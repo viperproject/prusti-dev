@@ -7,7 +7,7 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
 
     for class_name in class_names {
         let components: Vec<String> = class_name
-            .full_components()
+            .full_rust_components()
             .iter()
             .map(|x| x.to_string())
             .collect();

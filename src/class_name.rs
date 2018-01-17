@@ -22,10 +22,6 @@ impl ClassName {
         self.class_name.clone()
     }
 
-    pub fn rust_name(&self) -> String {
-        self.class_name.replace("$", "_object")
-    }
-
     pub fn path(&self) -> String {
         self.full_class_name_slash.clone()
     }
@@ -34,7 +30,22 @@ impl ClassName {
         self.full_class_name_slash.split("/").collect()
     }
 
+    pub fn rust_name(&self) -> String {
+        component_name_to_rust(&self.class_name)
+    }
+
+    pub fn full_rust_components(&self) -> Vec<String> {
+        self.full_class_name_slash
+            .split("/")
+            .map(component_name_to_rust)
+            .collect()
+    }
+
     pub fn full_name(&self) -> String {
         self.full_class_name_dot.clone()
     }
+}
+
+fn component_name_to_rust(name: &str) -> String {
+    name.replace("$", "_object")
 }
