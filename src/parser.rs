@@ -16,7 +16,7 @@ use syntax_pos::FileName;
 use specifications::{
     AssertionKind, Assertion, SpecID, SpecType, Expression, ExpressionId,
     SpecificationSet, UntypedSpecification, UntypedSpecificationSet,
-    UntypedAssertion, UntypedSpecificationMap};
+    UntypedAssertion, UntypedSpecificationMap, UntypedExpression};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -89,30 +89,38 @@ impl<'tcx> SpecParser<'tcx> {
                            statements: &mut Vec<ast::Stmt>) {
         trace!("[populate_statements] enter");
         let builder = &self.ast_builder;
+        let add_expression = |expression: &UntypedExpression,
+                              statements: &mut Vec<ast::Stmt>| {
+            let id = expression.id;
+            let rust_expr = expression.expr.clone();
+            let span = rust_expr.span;
+            let stmt = builder.stmt_expr(
+                builder.expr_call(
+                    span,
+                    builder.expr_ident(
+                        span,
+                        builder.ident_of("__assertion"),
+                    ),
+                    vec![
+                        builder.expr_usize(span, id.into()),
+                        rust_expr,
+                    ],
+                )
+            );
+            statements.push(stmt);
+        };
         match *assertion.kind {
             AssertionKind::Expr(ref expression) => {
-                let id = expression.id;
-                let rust_expr = expression.expr.clone();
-                let span = rust_expr.span;
-                let stmt = builder.stmt_expr(
-                    builder.expr_call(
-                        span,
-                        builder.expr_ident(
-                            span,
-                            builder.ident_of("__assertion"),
-                        ),
-                        vec![
-                            builder.expr_usize(span, id.into()),
-                            rust_expr,
-                        ],
-                    )
-                );
-                statements.push(stmt);
+                add_expression(expression, statements);
             },
             AssertionKind::And(ref assertions) => {
                 for assertion in assertions {
                     self.populate_statements(assertion, statements);
                 }
+            },
+            AssertionKind::Implies(ref expression, ref assertion) => {
+                add_expression(expression, statements);
+                self.populate_statements(assertion, statements);
             },
             _ => {
                 unimplemented!();
@@ -561,7 +569,8 @@ impl<'tcx> SpecParser<'tcx> {
                         let expr = self.parse_expression(span, expr)?;
                         let assertion = substring(&spec_string, position+1,
                                                   spec_string.len());
-                        let assertion = self.parse_assertion(span, assertion)?;
+                        let new_span = shift_span(span, (position+1) as u32);
+                        let assertion = self.parse_assertion(new_span, assertion)?;
                         let precondition = Expression {
                             id: self.get_new_expression_id(),
                             expr: expr,

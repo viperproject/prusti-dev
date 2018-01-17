@@ -199,6 +199,8 @@ pub type UntypedSpecificationMap = HashMap<SpecID, UntypedSpecificationSet>;
 pub type UntypedAssertion = Assertion<ptr::P<ast::Expr>>;
 /// An assertion kind that has no types associated with it.
 pub type UntypedAssertionKind = AssertionKind<ptr::P<ast::Expr>>;
+/// An expression that has no types associated with it.
+pub type UntypedExpression = Expression<ptr::P<ast::Expr>>;
 
 
 /// A specification that has no types associated with it.
