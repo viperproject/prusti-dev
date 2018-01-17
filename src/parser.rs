@@ -504,9 +504,10 @@ impl<'tcx> SpecParser<'tcx> {
 
         // Drop surrounding parenthesis.
         {
-            let re = Regex::new(r"^\s*\((.*)\)\s*$").unwrap();
+            let re = Regex::new(r"^(\s*\()(.*)\)\s*$").unwrap();
             if let Some(caps) = re.captures(&spec_string) {
-                return self.parse_assertion_simple(span, String::from(&caps[1]));
+                let new_span = shift_span(span, caps[1].len() as u32);
+                return self.parse_assertion_simple(new_span, String::from(&caps[2]));
             }
         }
 
@@ -594,41 +595,29 @@ impl<'tcx> SpecParser<'tcx> {
     }
 
     /// Parse a specification string into an assertion object.
+    ///
+    /// This method works by splitting assertion on `&&` and recursively
+    /// parsing each conjunct.
     fn parse_assertion(&mut self, span: Span, spec_string: String)
             -> Result<UntypedAssertion, AssertionParsingError> {
         trace!("[parse_assertion] enter spec_string={:?}", spec_string);
-        // Get pairs of matching braces.
-        let mut start_positions: Vec<usize> = Vec::new();
-        // Map from position of an open parenthesis to the position
-        // of the matching close parenthesis.
-        let mut end_positions: HashMap<usize, usize> = HashMap::new();
-        for (position, char) in spec_string.chars().enumerate() {
-            if char == '(' {
-                start_positions.push(position);
-            }
-            else if char == ')' {
-                if let Some(start_position) = start_positions.pop() {
-                    end_positions.insert(start_position, position);
-                } else {
-                    return Err(AssertionParsingError::NotMatchingParenthesis);
-                }
-            }
-        }
-        if !start_positions.is_empty() {
-            return Err(AssertionParsingError::NotMatchingParenthesis);
-        }
-        // Split assertion and process it recursively.
         let mut iter = spec_string.char_indices().peekable();
         let mut block_start = 0;
         let mut assertions: Vec<UntypedAssertion> = Vec::new();
+        let mut parenthesis_depth = 0;
         while let Some((position, char)) = iter.next() {
             if char == '(' {
-                match iter.nth(end_positions[&position] - position) {
-                    Some((_, ')')) => {},
-                    _ => {bug!()},
-                }
+                parenthesis_depth += 1;
+                continue;
             }
-            if char == '&' {
+            if char == ')' {
+                parenthesis_depth -= 1;
+                if parenthesis_depth < 0 {
+                    return Err(AssertionParsingError::NotMatchingParenthesis);
+                }
+                continue;
+            }
+            if parenthesis_depth == 0 && char == '&' {
                 if let Some(&(_, '&')) = iter.peek() {
                     iter.next();
                     let block = substring(&spec_string, block_start, position);
@@ -638,6 +627,9 @@ impl<'tcx> SpecParser<'tcx> {
                     block_start = position + 2;
                 }
             }
+        }
+        if parenthesis_depth != 0 {
+            return Err(AssertionParsingError::NotMatchingParenthesis);
         }
         let block = substring(&spec_string, block_start, spec_string.len());
         let new_span = shift_span(span, block_start as u32);
