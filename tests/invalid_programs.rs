@@ -75,7 +75,7 @@ fn panic_on_type_error() {
 
     let method_body = ast.seqn(
         vec![assignment, if_stmt],
-        vec![ast.local_var_decl("x", ast.int_type())],
+        vec![ast.local_var_decl("x", ast.int_type()).into()],
     );
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));

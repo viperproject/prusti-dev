@@ -15,7 +15,10 @@ jobject_wrapper!(Predicate);
 jobject_wrapper!(LocalVarDecl);
 jobject_wrapper!(Stmt);
 
-pub enum Location<'a> {
-    Predicate(Predicate<'a>),
-    Field(Field<'a>),
-}
+jobject_wrapper!(Location);
+generate_conversion_from_to!(Predicate, Location);
+generate_conversion_from_to!(Field, Location);
+
+jobject_wrapper!(Declaration);
+generate_conversion_from_to!(Stmt, Declaration);
+generate_conversion_from_to!(LocalVarDecl, Declaration);

@@ -150,7 +150,7 @@ fn success_with_assign_if_and_assert() {
 
     let method_body = ast.seqn(
         vec![assignment, if_stmt],
-        vec![ast.local_var_decl("x", ast.bool_type())],
+        vec![ast.local_var_decl("x", ast.bool_type()).into()],
     );
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));
@@ -191,7 +191,7 @@ fn failure_with_assign_if_and_assert() {
 
     let method_body = ast.seqn(
         vec![assignment, if_stmt],
-        vec![ast.local_var_decl("x", ast.bool_type())],
+        vec![ast.local_var_decl("x", ast.bool_type()).into()],
     );
 
     let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));

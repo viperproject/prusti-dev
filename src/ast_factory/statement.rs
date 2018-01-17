@@ -6,6 +6,7 @@ use ast_factory::structs::Field;
 use ast_factory::structs::Position;
 use ast_factory::structs::LocalVarDecl;
 use ast_factory::structs::Stmt;
+use ast_factory::structs::Declaration;
 
 impl<'a> AstFactory<'a> {
     pub fn new_stmt(&self, lhs: Expr, fields: Vec<Field>) -> Stmt<'a> {
@@ -131,33 +132,13 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Stmt, ast::Apply, wand.to_jobject())
     }
 
-    /// Here the argument `scoped_decls` is a vector of `LocalVarDecl`, but Viper allows also
-    /// labels, methods, domains and so on.
-    pub fn seqn(&self, stmts: Vec<Stmt>, scoped_decls: Vec<LocalVarDecl>) -> Stmt<'a> {
+    pub fn seqn(&self, stmts: Vec<Stmt>, scoped_decls: Vec<Declaration>) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Seqn,
             self.jni.new_seq(map_to_jobjects!(stmts)),
             self.jni.new_seq(map_to_jobjects!(scoped_decls))
-        )
-    }
-
-    // TODO: merge somehow with `self.seqn`
-    pub fn seqn_with_labels(
-        &self,
-        stmts: Vec<Stmt>,
-        scoped_decls: Vec<LocalVarDecl>,
-        scoped_labels: Vec<Stmt>,
-    ) -> Stmt<'a> {
-        let decls: Vec<JObject> = map_to_jobjects!(scoped_decls);
-        let labels: Vec<JObject> = map_to_jobjects!(scoped_labels);
-        build_ast_node!(
-            self,
-            Stmt,
-            ast::Seqn,
-            self.jni.new_seq(map_to_jobjects!(stmts)),
-            self.jni.new_seq(vec![decls, labels].concat())
         )
     }
 

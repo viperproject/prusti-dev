@@ -78,7 +78,12 @@ impl<'a> CfgMethod<'a> {
 
     pub fn to_ast(self) -> LocalResult<Method<'a>> {
         let mut blocks_ast: Vec<Stmt> = vec![];
-        let mut labels: Vec<Stmt> = vec![];
+        let mut declarations: Vec<Declaration> = vec![];
+
+        for &local_var in self.local_vars.iter() {
+            declarations.push(local_var.into());
+        }
+
         for (index, block) in self.basic_blocks.into_iter().enumerate() {
             blocks_ast.push(block_to_ast(
                 self.ast_factory,
@@ -86,25 +91,24 @@ impl<'a> CfgMethod<'a> {
                 block,
                 index,
             ));
-            labels.push(
+            declarations.push(
                 self.ast_factory
-                    .label(&index_to_label(&self.method_name, index), vec![]),
+                    .label(&index_to_label(&self.method_name, index), vec![])
+                    .into(),
             );
         }
         blocks_ast.push(
             self.ast_factory
-                .label(&return_label(&self.method_name), vec![]),
+                .label(&return_label(&self.method_name), vec![])
+                .into(),
         );
-        labels.push(
+        declarations.push(
             self.ast_factory
-                .label(&return_label(&self.method_name), vec![]),
+                .label(&return_label(&self.method_name), vec![])
+                .into(),
         );
 
-        let method_body = Some(self.ast_factory.seqn_with_labels(
-            blocks_ast,
-            self.local_vars,
-            labels,
-        ));
+        let method_body = Some(self.ast_factory.seqn(blocks_ast, declarations));
 
         let method = self.ast_factory.method(
             &self.method_name,

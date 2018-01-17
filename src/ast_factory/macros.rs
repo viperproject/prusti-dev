@@ -8,7 +8,7 @@ macro_rules! jobject_wrapper {
             pub(crate) fn new(obj: JObject<'a>) -> Self {
                 $name { obj }
             }
-            pub(crate) fn to_jobject(&self) -> JObject {
+            pub(crate) fn to_jobject(&self) -> JObject<'a> {
                 self.obj
             }
         }
@@ -71,9 +71,20 @@ macro_rules! build_ast_node {
 #[macro_export]
 macro_rules! get_ast_object {
     ($self:expr, $wrapper:ident, $($java_class:ident)::+) => {
-         {
+        {
             let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).singleton());
             $wrapper::new(obj)
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! generate_conversion_from_to {
+    ($from:ident, $to:ident) => {
+        impl<'a> From<$from<'a>> for $to<'a> {
+            fn from(other: $from<'a>) -> Self {
+                $to::new(other.to_jobject())
+            }
         }
     };
 }

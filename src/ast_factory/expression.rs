@@ -446,15 +446,7 @@ impl<'a> AstFactory<'a> {
             Expr,
             ast::ForPerm,
             variable.to_jobject(),
-            self.jni.new_seq(
-                access_list
-                    .iter()
-                    .map(|x| match *x {
-                        Location::Predicate(ref p) => p.to_jobject(),
-                        Location::Field(ref f) => f.to_jobject(),
-                    })
-                    .collect(),
-            ),
+            self.jni.new_seq(map_to_jobjects!(access_list)),
             body.to_jobject()
         )
     }
