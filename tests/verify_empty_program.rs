@@ -20,15 +20,15 @@ use std::env;
 fn verify_empty_program() {
     env_logger::init().expect("failed to initialize env_logger");
 
-    let viper_home = env::var("VIPER_HOME").unwrap_or("/usr/lib/viper/".to_owned());
+    let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
     debug!("Using Viper home: '{}'", &viper_home);
 
-    let z3_path = env::var("Z3_PATH").unwrap_or("/usr/bin/viper-z3".to_owned());
+    let z3_path = env::var("Z3_PATH").unwrap_or_else(|_| "/usr/bin/viper-z3".to_string());
     debug!("Using Z3 path: '{}'", &z3_path);
 
     let jar_paths: Vec<String> = fs::read_dir(viper_home)
         .unwrap()
-        .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
+        .map(|x| x.unwrap().path().to_str().unwrap().to_string())
         .collect();
 
     let jvm_args = InitArgsBuilder::new()

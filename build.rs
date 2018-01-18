@@ -14,7 +14,7 @@ fn main() {
 
     let mut viper_jars: Vec<String> = fs::read_dir("/usr/lib/viper/")
         .unwrap()
-        .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
+        .map(|x| x.unwrap().path().to_str().unwrap().to_string())
         .collect();
 
     WrapperGenerator::new()
