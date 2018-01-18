@@ -3,7 +3,7 @@ Viper
 
 [![Build Status][build_badge]][build_status]
 
-This crate exposes the high-level Viper API.
+This crate exposes the high-level interface to Viper.
 
 [Development documentation][documentation]
 
