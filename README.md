@@ -3,9 +3,9 @@ Jni-gen
 
 [![Build Status][build_badge]][build_status]
 
-Generate wrappers around Java and Scala code.
+Generator of Rust bindings to Java classes.
 
-The genereted code use the `jni` crate to interact with the JVM.
+The generated code use the `jni` crate to interact with the JVM.
 
 [Development documentation][documentation]
 
