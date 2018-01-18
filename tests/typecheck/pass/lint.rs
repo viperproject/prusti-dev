@@ -26,6 +26,7 @@ fn fib(mut n: i32) -> i32 {
     i
 }
 
+#[requires="true ==> forall x: i32, y45: usize :: {x + 2, x + 3; x + 4} x > 0 ==> y45 + 2 > 2"]
 fn main() {
     let mut my_struct = MyStruct { field: 0 };
 

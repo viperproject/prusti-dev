@@ -1,194 +1,291 @@
 //! Code for extracting specifications.
+//!
+//! TODO: Copy documentation from my status report.
 
 
-use std::mem;
-use std::convert::TryFrom;
-use std::collections::HashMap;
-
-use syntax::{self, ast, ptr, fold};
+use ast_builder::MinimalAstBuilder;
+use regex::{self, Regex};
+use rustc::session::Session;
+use rustc_driver::driver;
+use syntax::{self, ast, ptr, parse};
 use syntax::codemap::Span;
-use syntax::fold::Folder;
-use syntax::ext::base::{ExtCtxt, Annotatable};
 use syntax::ext::build::AstBuilder;
-use syntax::ext::quote::rt::ExtParseUtils;
+use syntax::fold::Folder;
+use syntax::util::small_vector::SmallVector;
+use syntax_pos::FileName;
+use specifications::{
+    AssertionKind, Assertion, SpecID, SpecType, Expression, ExpressionId,
+    SpecificationSet, UntypedSpecification, UntypedSpecificationSet,
+    UntypedAssertion, UntypedSpecificationMap, UntypedExpression,
+    Trigger, TriggerSet, UntypedTriggerSet, ForAllVars};
+use std::collections::HashMap;
+use std::convert::TryFrom;
+use std::mem;
 
-use specifications::{SpecType, SpecID, RawSpec};
 
 
-/// A data structure that extracts raw preconditions, postconditions,
-/// and loop invariants. Each original assertion gets a unique `SpecID`
-/// that allows to map it back to its original location.
-pub struct SpecParser {
-    last_id: SpecID,
-    raw_specs: HashMap<SpecID, RawSpec>,
+/// Rewrite specifications in the expanded AST to get them type-checked
+/// by rustc. For more information see the module documentation.
+pub fn rewrite_crate(state: &mut driver::CompileState
+                     ) -> UntypedSpecificationMap {
+    trace!("[rewrite_crate] enter");
+    let krate = state.krate.take().unwrap();
+    let mut parser = SpecParser::new(state.session);
+    state.krate = Some(parser.fold_crate(krate));
+    trace!("[rewrite_crate] exit");
+    parser.untyped_specifications
 }
 
-impl RawSpec {
 
-    fn from_meta_item(cx: &mut ExtCtxt, attr: &ast::MetaItem) -> Self {
-        let spec_type = SpecType::try_from(attr.name.as_str().as_ref()).unwrap();
-        let spec_expr = match &attr.node {
-            &ast::MetaItemKind::NameValue(ref lit) => {
-                match lit.node {
-                    ast::LitKind::Str(ref sym, _) => {
-                        let expr = cx.parse_expr(sym.to_string().clone());
-                        fix_spans(expr, lit.span)
-                    },
-                    _ => {panic!("Unrecognized attribute literal: {:?}", lit.node)},
-                }
-            },
-            _ => {panic!("Unrecognized attribute: {:?}", attr.node)},
-        };
-        RawSpec {
-            spec_type: spec_type,
-            expr: spec_expr,
-            span: attr.span,
-        }
-    }
-
-    fn from_attribute(cx: &mut ExtCtxt, attr: &ast::Attribute) -> Self {
-        use syntax::tokenstream::TokenTree;
-        use syntax::parse::token;
-
-        let spec_type = SpecType::try_from(&attr.path.to_string() as &str).unwrap();
-
-        let trees: Vec<TokenTree> = attr.tokens.trees().collect();
-        assert!(trees.len() == 2);
-        match &trees[0] {
-            &TokenTree::Token(_, ref token) => {
-                assert!(*token == token::Token::Eq);
-            },
-            _ => {
-                unreachable!();
-            },
-        };
-        let spec_expr = match &trees[1] {
-            &TokenTree::Token(_, ref token) => {
-                match token {
-                    &token::Token::Literal(ref lit, None) => {
-                        match lit {
-                            &token::Lit::Str_(ref name) => {
-                                let name: &str = &name.as_str();
-                                let spec = String::from(name);
-                                let expr = cx.parse_expr(spec.clone());
-                                fix_spans(expr, attr.span)
-                            },
-                            _ => {
-                                unreachable!();
-                            },
-                        }
-                    },
-                    _ => {
-                        unreachable!();
-                    },
-                }
-            },
-            _ => {
-                unreachable!();
-            },
-        };
-        RawSpec {
-            spec_type: spec_type,
-            expr: spec_expr,
-            span: attr.span,
-        }
-    }
+/// A data structure that extracts preconditions, postconditions,
+/// and loop invariants. It also rewrites the AST for type-checking.
+/// Each original assertion gets a unique `SpecID` and expression – a
+/// unique `ExpressionId` that allows to map them back to their original
+/// locations.
+pub struct SpecParser<'tcx> {
+    session: &'tcx Session,
+    ast_builder: MinimalAstBuilder<'tcx>,
+    last_specification_id: SpecID,
+    last_expression_id: ExpressionId,
+    untyped_specifications: UntypedSpecificationMap,
 }
 
-impl SpecParser {
+impl<'tcx> SpecParser<'tcx> {
 
     /// Create new spec parser.
-    pub fn new() -> SpecParser {
+    pub fn new(session: &'tcx Session) -> SpecParser<'tcx> {
         SpecParser {
-            last_id: SpecID::new(),
-            raw_specs: HashMap::new(),
+            session: session,
+            ast_builder: MinimalAstBuilder::new(&session.parse_sess),
+            last_specification_id: SpecID::new(),
+            last_expression_id: ExpressionId::new(),
+            untyped_specifications: HashMap::new(),
         }
     }
 
     /// Generate a fresh specification ID (guaranteed to be unique).
-    pub fn get_new_id(&mut self) -> SpecID {
-        self.last_id.inc()
+    fn get_new_specification_id(&mut self) -> SpecID {
+        self.last_specification_id.inc()
+    }
+
+    /// Generate a fresh expression ID (guaranteed to be unique).
+    fn get_new_expression_id(&mut self) -> ExpressionId {
+        self.last_expression_id.inc()
     }
 
     /// Register the raw specification and return the ID under which it
     /// was stored.
-    pub fn register_spec(&mut self, spec: RawSpec) -> SpecID {
-        let new_id = self.get_new_id();
-        self.raw_specs.insert(new_id, spec);
+    fn register_specification(&mut self, spec: UntypedSpecificationSet) -> SpecID {
+        let new_id = self.get_new_specification_id();
+        self.untyped_specifications.insert(new_id, spec);
         new_id
+    }
+
+    fn report_error(&self, span: Span, message: &str) {
+        let mut err = self.session.struct_span_err(span, message);
+        err.emit();
+    }
+
+    /// Construct a statement that calls a function with given
+    /// expression to make that expression to be type-checked by the
+    /// Rust compiler.
+    fn build_typeck_call(&self, expression: &UntypedExpression,
+                         function_name: &str) -> ast::Stmt {
+        let builder = &self.ast_builder;
+        let id = expression.id;
+        let rust_expr = expression.expr.clone();
+        let span = rust_expr.span;
+        builder.stmt_expr(
+            builder.expr_call(
+                span,
+                builder.expr_ident(
+                    span,
+                    builder.ident_of(function_name),
+                ),
+                vec![
+                    builder.expr_usize(span, id.into()),
+                    rust_expr,
+                ],
+            )
+        )
+    }
+
+    fn build_assertion(&self, expression: &UntypedExpression) -> ast::Stmt {
+        self.build_typeck_call(expression, "__assertion")
+    }
+
+    fn convert_trigger_set_to_statements(&self, trigger_set: &UntypedTriggerSet
+                                         ) -> Vec<ast::Stmt> {
+        let mut statements = Vec::new();
+        for trigger in trigger_set.triggers().iter() {
+            for term in trigger.terms().iter() {
+                let statement = self.build_typeck_call(term, "__trigger");
+                statements.push(statement);
+            }
+        }
+        statements
+    }
+
+    fn populate_statements(&self, assertion: &UntypedAssertion,
+                           statements: &mut Vec<ast::Stmt>) {
+        trace!("[populate_statements] enter");
+        match *assertion.kind {
+            AssertionKind::Expr(ref expression) => {
+                let stmt = self.build_assertion(expression);
+                statements.push(stmt);
+            },
+            AssertionKind::And(ref assertions) => {
+                for assertion in assertions {
+                    self.populate_statements(assertion, statements);
+                }
+            },
+            AssertionKind::Implies(ref expression, ref assertion) => {
+                let stmt = self.build_assertion(expression);
+                statements.push(stmt);
+                self.populate_statements(assertion, statements);
+            },
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref filter,
+                                  ref body) => {
+                let mut stmts = self.convert_trigger_set_to_statements(trigger_set);
+                stmts.push(self.build_assertion(filter));
+                let body_assertion = self.build_assertion(body);
+                let span = body_assertion.span;
+                stmts.push(body_assertion);
+                let builder = &self.ast_builder;
+                stmts.push(
+                    builder.stmt_expr(
+                        builder.expr_call(
+                            span,
+                            builder.expr_ident(
+                                span,
+                                builder.ident_of("__id"),
+                            ),
+                            vec![builder.expr_usize(span, vars.id.into())],
+                        )
+                    )
+                );
+                let statement = builder.stmt_item(
+                    span,
+                    builder.item_fn_optional_result(
+                        span,
+                        ast::Ident::from_str("forall"),
+                        vars.vars.clone(),
+                        None,
+                        builder.block(
+                            span,
+                            stmts,
+                        ),
+                    ),
+                );
+                statements.push(statement);
+            },
+        };
+        trace!("[populate_statements] exit");
+    }
+
+    /// Convert untyped specifications into a sequence of statements for
+    /// type-checking.
+    fn convert_to_statements(&self, specifications: &Vec<UntypedSpecification>
+                             ) -> Vec<ast::Stmt> {
+        trace!("[convert_to_statements] enter");
+        let mut statements = Vec::new();
+        for specification in specifications {
+            self.populate_statements(&specification.assertion, &mut statements);
+        }
+        trace!("[convert_to_statements] exit");
+        statements
+    }
+
+    fn build_prusti_contract_import(&self, span: Span) -> ast::Stmt {
+        let builder = &self.ast_builder;
+        builder.stmt_item(
+            span,
+            builder.item_use_glob(
+                span,
+                ast::Visibility::Inherited,
+                vec![
+                    builder.ident_of("prusti_contracts"),
+                    builder.ident_of("internal"),
+                ]
+            )
+        )
     }
 
     /// Generate a function that contains only the precondition and postcondition
     /// for type-checking.
-    fn generate_spec_item(&mut self, cx: &mut ExtCtxt,
-                          item: &ast::Item, proc_specs: &[RawSpec]) -> ast::Item {
+    fn generate_spec_item(&mut self, item: &ast::Item,
+                          spec_id: SpecID,
+                          preconditions: &Vec<UntypedSpecification>,
+                          postconditions: &Vec<UntypedSpecification>) -> ast::Item {
         let mut name = item.ident.to_string();
+        let builder = &self.ast_builder;
+        let span = item.span;
         match &item.node {
-            &ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi, ref _generics, ref _body) => {
-                let return_type = match decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => {return_type},
-                    _ => {unreachable!()},
-                };
-                name.push_str("__spec");
+            &ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi,
+                               ref _generics, ref _body) => {
+
+                // Import contracts.
                 let mut statements = vec![
-                    quote_stmt!(cx, use prusti_contracts::internal::*;).unwrap()
+                    self.build_prusti_contract_import(span),
                 ];
-                let assertions: Vec<_> = proc_specs.into_iter().map(|spec| {
-                    let assertion_id = self.register_spec(spec.clone());
-                    let assertion_id_number = assertion_id.to_number();
-                    let spec_expr = &spec.expr;
-                    let stmt = quote_stmt!(cx, __assertion($assertion_id_number, $spec_expr)).unwrap();
-                    (spec.spec_type, stmt)
-                }).collect();
+
                 // Add preconditions.
-                let preconditions = assertions
-                    .iter()
-                    .filter(|&&(ref spec_type, _)| *spec_type == SpecType::Precondition)
-                    .map(|&(_, ref stmt)| stmt.clone());
-                statements.extend(preconditions);
+                statements.extend(self.convert_to_statements(preconditions));
+
                 // Add result.
                 let args: Vec<_> = decl.inputs.clone().into_iter().map(|arg| {
                     if let ast::PatKind::Ident(_, ident, _) = arg.pat.node {
-                        cx.expr_ident(ident.span, ident.node)
+                        builder.expr_ident(ident.span, ident.node)
                     }
                     else {
                         unreachable!();
                     }
                 }).collect();
                 statements.push(
-                    cx.stmt_let(
+                    builder.stmt_let(
                         item.span,
                         false,
                         ast::Ident::from_str("result"),
-                        cx.expr_call_ident(item.span, item.ident, args),
+                        builder.expr_call_ident(item.span, item.ident, args),
                     )
                 );
+
                 // Add postconditions.
-                let postconditions = assertions
-                    .iter()
-                    .filter(|&&(ref spec_type, _)| *spec_type == SpecType::Postcondition)
-                    .map(|&(_, ref stmt)| stmt.clone());
-                statements.extend(postconditions);
+                statements.extend(self.convert_to_statements(postconditions));
+
                 // Return result.
-                statements.push(quote_stmt!(cx, result).unwrap());
+                statements.push(
+                    builder.stmt_expr(
+                        builder.expr_ident(
+                            item.span,
+                            builder.ident_of("result")
+                        )
+                    )
+                );
+
                 // Glue everything.
-                let mut spec_item = cx.item_fn(
+                let return_type = match decl.output.clone() {
+                    ast::FunctionRetTy::Ty(return_type) => {Some(return_type)},
+                    ast::FunctionRetTy::Default(_) => {None},
+                };
+                name.push_str("__spec");
+                let mut spec_item = builder.item_fn_optional_result(
                     item.span,
                     ast::Ident::from_str(&name),
                     decl.inputs.clone(),
                     return_type,
-                    cx.block(
+                    builder.block(
                         item.span,
                         statements,
                         ),
                     ).into_inner();
-                let spec_item_id = self.get_new_id();
-                let spec_item_id_string = spec_item_id.to_string();
                 mem::replace(&mut spec_item.attrs, vec![
-                    quote_attr!(cx, #[allow(unused_mut)]),
-                    quote_attr!(cx, #[allow(dead_code)]),
-                    quote_attr!(cx, #[allow(non_snake_case)]),
-                    quote_attr!(cx, #[__PRUSTI_SPEC=$spec_item_id_string]),
+                    builder.attribute_name_value(
+                        item.span, "__PRUSTI_SPEC_ONLY", &spec_id.to_string()),
+                    builder.attribute_allow(item.span, "unused_mut"),
+                    builder.attribute_allow(item.span, "dead_code"),
+                    builder.attribute_allow(item.span, "non_snake_case"),
+                    builder.attribute_allow(item.span, "unused_imports"),
                 ]);
                 spec_item
             },
@@ -198,67 +295,566 @@ impl SpecParser {
         }
     }
 
-    /// Rewrite all loop invariants.
-    fn rewrite_item(&mut self, cx: &mut ExtCtxt, item: ast::Item) -> ast::Item {
-        let mut rewriter = LoopInvariantRewriter::new(self, cx);
-        rewriter.rewrite_item(item)
-    }
-
-    fn expand_item_specifications(&mut self,
-                                  cx: &mut ExtCtxt,
-                                  attr: &ast::MetaItem,
-                                  mut item: ast::Item) -> Vec<ast::Item> {
-        trace!("[expand_item_specifications] enter");
-        let item_id = self.get_new_id();
-        let item_id_string = item_id.to_string();
-        let new_attrs = vec![
-            quote_attr!(cx, #[__PRUSTI_SPEC=$item_id_string]),
-        ];
-        let old_attrs = mem::replace(&mut item.attrs, new_attrs);
-        let mut proc_specs = vec![RawSpec::from_meta_item(cx, attr)];
-        proc_specs.extend(old_attrs.into_iter().map(
-            |attr| RawSpec::from_attribute(cx, &attr)
-        ));
-        assert!(
-            !proc_specs.iter().any(|spec| spec.spec_type == SpecType::Invariant),
-            "Loop invariant in an unexpected position."
+    fn rewrite_loop_block(&mut self, block: ptr::P<ast::Block>,
+                          spec_id: SpecID,
+                          invariants: &Vec<UntypedSpecification>
+                          ) -> ptr::P<ast::Block> {
+        trace!("[rewrite_loop_block] enter");
+        let mut block = block.into_inner();
+        if invariants.is_empty() {
+            return ptr::P(block);
+        }
+        let span = block.span;
+        let mut statements = self.convert_to_statements(invariants);
+        statements.insert(0, self.build_prusti_contract_import(span));
+        let builder = &self.ast_builder;
+        let expr = builder.expr_if(
+            span,
+            builder.expr_bool(span, false),
+            builder.expr_block(
+                builder.block(
+                    span,
+                    statements
+                )
+            ),
+            None,
         );
-        let spec_item = self.generate_spec_item(cx, &item, &proc_specs);
-        debug!("spec_item:\n{}", syntax::print::pprust::item_to_string(&spec_item));
-        item = self.rewrite_item(cx, item);
-        debug!("item:\n{}", syntax::print::pprust::item_to_string(&item));
-        trace!("[expand_item_specifications] exit");
-        vec![item, spec_item]
+        let mut expr = expr.into_inner();
+        expr.attrs = vec![
+            self.ast_builder.attribute_name_value(
+                span, "__PRUSTI_SPEC_ONLY", &spec_id.to_string()),
+        ].into();
+        block.stmts.insert(0, builder.stmt_expr(ptr::P(expr)));
+        trace!("[rewrite_loop_block] exit");
+        ptr::P(block)
     }
 
-    /// Rewrite a procedure with specifications so that its specs are
-    /// type-checked.
-    pub fn expand_specifications(&mut self,
-                                 cx: &mut ExtCtxt,
-                                 _span: Span,
-                                 attr: &ast::MetaItem,
-                                 item: Annotatable) -> Vec<Annotatable> {
-        trace!("[expand_specifications] enter");
-        let annotatables = if let Annotatable::Item(item) = item {
-            let mut item = item.into_inner();
-            let items = self.expand_item_specifications(cx, attr, item);
-            items.into_iter().map(|item| Annotatable::Item(ptr::P(item))).collect()
-        } else {
-            bug!("This should not be reached.")
+    fn rewrite_loop(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
+        // TODO: Recursively rewrite nested loops.
+        trace!("[rewrite_loop] enter");
+        let mut expr = expr.into_inner();
+        let attrs = expr.attrs.to_vec();
+        expr.attrs = vec![].into();
+        let invariants = self.parse_specs(attrs);
+        if !invariants.iter().all(|spec| spec.typ == SpecType::Invariant) {
+            self.report_error(expr.span, "loops can have only invariants");
+            return ptr::P(expr);
+        }
+        let spec_set = SpecificationSet::Loop(invariants.clone());
+        let id = self.register_specification(spec_set);
+        expr.node = match expr.node {
+            ast::ExprKind::While(condition, block, ident) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::While(condition, block, ident)
+            },
+            ast::ExprKind::WhileLet(pattern, expr, block, label) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::WhileLet(pattern, expr, block, label)
+            },
+            ast::ExprKind::ForLoop(pattern, expr, block, label) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::ForLoop(pattern, expr, block, label)
+            },
+            ast::ExprKind::Loop(block, label) => {
+                let block = self.rewrite_loop_block(block, id, &invariants);
+                ast::ExprKind::Loop(block, label)
+            },
+            _ => {unreachable!()},
         };
-        trace!("[expand_specifications] exit");
-        annotatables
+        expr.attrs = vec![
+            self.ast_builder.attribute_name_value(
+                expr.span, "__PRUSTI_SPEC", &id.to_string()),
+        ].into();
+        trace!("[rewrite_loop] exit");
+        ptr::P(expr)
     }
 
-    /// Currently, this method only checks that all attributes were converted.
-    pub fn check_ast(&self) {
-        unimplemented!()
+    fn rewrite_fn_item(&mut self,
+                        item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        trace!("[rewrite_function] enter");
+        let mut item = item.into_inner();
+        let attrs = item.attrs;
+        item.attrs = vec![];
+        let specs = self.parse_specs(attrs);
+        if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
+            self.report_error(item.span, "invariant not allowed for procedure");
+            return SmallVector::new();
+        }
+        let preconditions: Vec<_> = specs
+            .clone().into_iter()
+            .filter(|spec| spec.typ == SpecType::Precondition).collect();
+        let postconditions: Vec<_> = specs
+            .into_iter()
+            .filter(|spec| spec.typ == SpecType::Postcondition).collect();
+        let spec_set = SpecificationSet::Procedure(
+            preconditions.clone(), postconditions.clone());
+        let id = self.register_specification(spec_set);
+        let spec_item = self.generate_spec_item(&item, id, &preconditions, &postconditions);
+        let node = item.node;
+        item.node = self.fold_item_kind(node);
+        item.attrs = vec![
+            self.ast_builder.attribute_name_value(
+                item.span, "__PRUSTI_SPEC", &id.to_string()),
+        ];
+        debug!("new_item:\n{}", syntax::print::pprust::item_to_string(&item));
+        debug!("spec_item:\n{}", syntax::print::pprust::item_to_string(&spec_item));
+        trace!("[rewrite_function] exit");
+        let mut result = SmallVector::new();
+        result.push(ptr::P(item));
+        result.push(ptr::P(spec_item));
+        result
+    }
+
+    /// Extracts specification string from the attribute with the
+    /// correct base span.
+    fn extract_spec_string(&self, attribute: &ast::Attribute
+                           ) -> Option<(String, Span)> {
+        use syntax::tokenstream::TokenTree;
+        use syntax::parse::token;
+
+        let trees: Vec<TokenTree> = attribute.tokens.trees().collect();
+        if trees.len() != 2 {
+            self.report_error(
+                attribute.span,
+                "malformed specification (incorrect number of token trees)");
+            return None;
+        }
+        match &trees[0] {
+            &TokenTree::Token(_, ref token) => {
+                if *token != token::Token::Eq {
+                    self.report_error(
+                        attribute.span,
+                        "malformed specification (expected equality)");
+                    return None;
+                }
+            },
+            _ => {
+                self.report_error(
+                    attribute.span,
+                    "malformed specification (expected token)");
+                return None;
+            },
+        };
+        let spec_string_with_span = match &trees[1] {
+            &TokenTree::Token(span, ref token) => {
+                match token {
+                    &token::Token::Literal(ref lit, None) => {
+                        match lit {
+                            &token::Lit::Str_(ref name) => {
+                                let name: &str = &name.as_str();
+                                let spec = String::from(name);
+                                Some((spec, span))
+                            },
+                            &token::Lit::StrRaw(ref name, delimiter_size) => {
+                                let name: &str = &name.as_str();
+                                let spec = String::from(name);
+                                Some((spec,
+                                      shift_span(span,
+                                                 (delimiter_size + 1) as u32)))
+                            },
+                            _ => {
+                                None
+                            },
+                        }
+                    },
+                    _ => {
+                        None
+                    },
+                }
+            },
+            _ => {
+                None
+            },
+        };
+        if spec_string_with_span.is_none() {
+            self.report_error(
+                attribute.span,
+                "malformed specification (failed to parse specification string)");
+        }
+        spec_string_with_span
+    }
+
+    fn parse_assertion_wrap(&mut self, span: Span,
+                            spec_string: String) -> Option<UntypedAssertion> {
+        match self.parse_assertion(span, spec_string) {
+            Ok(assertion) => {
+                Some(assertion)
+            },
+            Err(AssertionParsingError::NotMatchingParenthesis) => {
+                self.report_error(span, "not matching parenthesis");
+                None
+            },
+            Err(AssertionParsingError::ParsingRustExpressionFailed) => {
+                None
+            },
+            Err(AssertionParsingError::FailedForallMatch) => {
+                None
+            },
+        }
+    }
+
+    /// Parses attribute into specification.
+    /// TODO: Rewrite to use the [syn](https://crates.io/crates/syn) crate.
+    fn parse_specs(&mut self,
+                   attributes: Vec<ast::Attribute>) -> Vec<UntypedSpecification> {
+        trace!("[parse_specs] enter attributes.len={}", attributes.len());
+
+        let specifications: Vec<_> = attributes.into_iter().map(|attribute| {
+            if let Ok(spec_type) = SpecType::try_from(
+                &attribute.path.to_string() as &str) {
+                if let Some((spec_string, span)) = self.extract_spec_string(&attribute) {
+                    debug!("spec={:?} spec_type={:?}", spec_string, spec_type);
+                    if let Some(assertion) = self.parse_assertion_wrap(
+                        span, spec_string) {
+                        debug!("assertion={:?}", assertion);
+                        Some(UntypedSpecification {
+                            typ: spec_type,
+                            assertion: assertion,
+                        })
+                    }
+                    else {
+                        None
+                    }
+                }
+                else {
+                    None
+                }
+            } else {
+                self.report_error(attribute.span, "unsupported attribute");
+                None
+            }
+        }).filter(|spec| spec.is_some()).map(|spec| spec.unwrap()).collect();
+
+        trace!("[parse_specs] exit");
+        specifications
+    }
+
+    /// Parse Rust expression.
+    fn parse_expression(&mut self, base_span: Span, spec_string: String)
+            -> Result<ptr::P<ast::Expr>, AssertionParsingError> {
+        trace!("[parse_expression] enter spec_string={:?} span={:?}",
+               spec_string, base_span);
+        let mut whitespace_count = 0;
+        for char in spec_string.chars() {
+            if !char.is_whitespace() {
+                break;
+            }
+            whitespace_count += 1;
+        }
+        let expr = parse::parse_expr_from_source_str(
+            FileName::QuoteExpansion, spec_string, &self.session.parse_sess);
+        debug!("Parsed expr: {:?}", expr);
+        let result = match expr {
+            Ok(expr) => {
+                let mut rewriter = SpanRewriter::new(
+                    whitespace_count, expr.span, base_span);
+                let expr = rewriter.fold_expr(expr);
+                Ok(expr)
+            },
+            Err(mut err) => {
+                err.emit();
+                Err(AssertionParsingError::ParsingRustExpressionFailed)
+            },
+        };
+        trace!("[parse_expression] exit");
+        result
+    }
+
+    fn parse_vars(&mut self, span: Span, var_match: regex::Match
+                  ) -> Result<Vec<ast::Arg>, AssertionParsingError> {
+        let span = shift_resize_span(span,
+                                     var_match.start() as u32,
+                                     var_match.as_str().len() as u32);
+        let vars_string = var_match.as_str();
+        let mut vars = Vec::new();
+        let re = Regex::new(
+            r"^\s*([a-z][a-z0-9]*)\s*:\s*([a-z][a-z0-9]*)\s*$").unwrap();
+        let builder = &self.ast_builder;
+        for var_string in vars_string.split(",") {
+            if let Some(caps) = re.captures(var_string) {
+                let name = &caps[1];
+                let typ = &caps[2];
+                let var = builder.arg(
+                    span,
+                    builder.ident_of(name),
+                    builder.ty_ident(span, builder.ident_of(typ)));
+                vars.push(var);
+            } else {
+                self.report_error(
+                    span, "failed to parse forall bounded variable list");
+                return Err(AssertionParsingError::FailedForallMatch);
+            };
+        }
+        Ok(vars)
+    }
+
+    fn parse_triggers(&mut self, span: Span, trigger_match: regex::Match
+                  ) -> Result<UntypedTriggerSet, AssertionParsingError> {
+        let span = shift_resize_span(span,
+                                     trigger_match.start() as u32,
+                                     trigger_match.as_str().len() as u32);
+        let trigger_set_string = trigger_match.as_str();
+        let mut triggers = Vec::new();
+        for trigger_string in trigger_set_string.split(";") {
+            let mut terms = Vec::new();
+            for term in trigger_string.split(",") {
+                let term = self.parse_expression(span, String::from(term))?;
+                let expr = Expression {
+                    id: self.get_new_expression_id(),
+                    expr: term,
+                };
+                terms.push(expr);
+            }
+            triggers.push(Trigger::new(terms));
+        }
+        Ok(TriggerSet::new(triggers))
+    }
+
+    fn parse_forall_expr(&mut self, span: Span, expr_match: regex::Match
+                         ) -> Result<ptr::P<ast::Expr>, AssertionParsingError> {
+        let expr_string = String::from(expr_match.as_str());
+        if expr_string.contains("==>") {
+            self.report_error(span, "forall can have only one implication");
+            return Err(AssertionParsingError::FailedForallMatch);
+        }
+        let span = shift_resize_span(span,
+                                     expr_match.start() as u32,
+                                     expr_match.as_str().len() as u32);
+        self.parse_expression(span, String::from(expr_string))
+    }
+
+    fn parse_forall(&mut self, span: Span, spec_string: String
+                    ) -> Result<UntypedAssertion, AssertionParsingError> {
+        let re = Regex::new(r"(?x)
+            ^\s*forall\s*
+            (?P<vars>.*)\s*::\s*\{(?P<triggers>.*)\}\s*
+            (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
+        ").unwrap();
+        if let Some(caps) = re.captures(&spec_string) {
+            let vars = self.parse_vars(
+                span, caps.name("vars").unwrap())?;
+            let triggers = self.parse_triggers(
+                span, caps.name("triggers").unwrap())?;
+            let filter = self.parse_forall_expr(
+                span, caps.name("filter").unwrap())?;
+            let body = self.parse_forall_expr(
+                span, caps.name("body").unwrap())?;
+            debug!("forall: vars={:?} triggers={:?} filter={:?} body={:?}",
+                   vars, triggers, filter, body);
+            let assertion = UntypedAssertion {
+                kind: box AssertionKind::ForAll(
+                    ForAllVars {
+                        id: self.get_new_expression_id(),
+                        vars: vars,
+                    },
+                    triggers,
+                    Expression {
+                        id: self.get_new_expression_id(),
+                        expr: filter
+                    },
+                    Expression {
+                        id: self.get_new_expression_id(),
+                        expr: body
+                    },
+                ),
+            };
+            Ok(assertion)
+        } else {
+            self.report_error(span, "failed to parse forall expression");
+            Err(AssertionParsingError::FailedForallMatch)
+        }
+    }
+
+    /// Parse an assertion string into an assertion object.
+    /// The assertion string can only contain an implication, forall, or a
+    /// Rust expression.
+    fn parse_assertion_simple(&mut self, span: Span, spec_string: String
+                              ) -> Result<UntypedAssertion, AssertionParsingError> {
+        trace!("[parse_assertion_simple] enter spec_string={:?}", spec_string);
+
+        // Drop surrounding parenthesis.
+        {
+            let re = Regex::new(r"^(\s*\()(.*)\)\s*$").unwrap();
+            if let Some(caps) = re.captures(&spec_string) {
+                let new_span = shift_span(span, caps[1].len() as u32);
+                return self.parse_assertion_simple(new_span, String::from(&caps[2]));
+            }
+        }
+
+        // Parse forall.
+        if spec_string.contains("forall") &&
+            (!spec_string.contains("==>") ||
+             spec_string.find("forall").unwrap() <
+             spec_string.find("==>").unwrap()) {
+            return self.parse_forall(span, spec_string);
+        }
+
+        // Parse the implication.
+        {
+            let mut parenthesis_depth = 0;
+            let mut iter = spec_string.char_indices().peekable();
+            let mut last2 = None;
+            let mut last1 = None;
+            while let Some((position, char)) = iter.next() {
+                if char == '(' {
+                    parenthesis_depth += 1;
+                    last1 = None;
+                    continue;
+                }
+                if char == ')' {
+                    parenthesis_depth -= 1;
+                    if parenthesis_depth < 0 {
+                        return Err(AssertionParsingError::NotMatchingParenthesis);
+                    }
+                    last1 = None;
+                    continue;
+                }
+                if parenthesis_depth == 0 {
+                    if last2 == Some('=') && last1 == Some('=') && char == '>' {
+                        let expr = substring(&spec_string, 0, position - 2);
+                        let expr = self.parse_expression(span, expr)?;
+                        let assertion = substring(&spec_string, position+1,
+                                                  spec_string.len());
+                        let new_span = shift_span(span, (position+1) as u32);
+                        let assertion = self.parse_assertion(new_span, assertion)?;
+                        let precondition = Expression {
+                            id: self.get_new_expression_id(),
+                            expr: expr,
+                        };
+                        // TODO: Report the bug that the following line
+                        // gives a compiler error.
+                        //let kind = UntypedAssertionKind::Implies(precondition, assertion);
+                        return Ok(UntypedAssertion {
+                            kind: box AssertionKind::Implies(precondition, assertion),
+                        });
+                    }
+                }
+                last1 = Some(char);
+                last2 = last1;
+            }
+            if parenthesis_depth != 0 {
+                return Err(AssertionParsingError::NotMatchingParenthesis);
+            }
+        }
+
+        // We have a simple Rust expression.
+        let expr = self.parse_expression(span, spec_string)?;
+        let assertion = UntypedAssertion {
+            kind: box AssertionKind::Expr(Expression {
+                id: self.get_new_expression_id(),
+                expr: expr,
+            }),
+        };
+        trace!("[parse_assertion_simple] exit");
+        Ok(assertion)
+    }
+
+    /// Parse a specification string into an assertion object.
+    ///
+    /// This method works by splitting assertion on `&&` and recursively
+    /// parsing each conjunct.
+    fn parse_assertion(&mut self, span: Span, spec_string: String)
+            -> Result<UntypedAssertion, AssertionParsingError> {
+        trace!("[parse_assertion] enter spec_string={:?}", spec_string);
+        let mut iter = spec_string.char_indices().peekable();
+        let mut block_start = 0;
+        let mut assertions: Vec<UntypedAssertion> = Vec::new();
+        let mut parenthesis_depth = 0;
+        while let Some((position, char)) = iter.next() {
+            if char == '(' {
+                parenthesis_depth += 1;
+                continue;
+            }
+            if char == ')' {
+                parenthesis_depth -= 1;
+                if parenthesis_depth < 0 {
+                    return Err(AssertionParsingError::NotMatchingParenthesis);
+                }
+                continue;
+            }
+            if parenthesis_depth == 0 && char == '&' {
+                if let Some(&(_, '&')) = iter.peek() {
+                    iter.next();
+                    let block = substring(&spec_string, block_start, position);
+                    let new_span = shift_span(span, block_start as u32);
+                    let assertion = self.parse_assertion(new_span, block)?;
+                    assertions.push(assertion);
+                    block_start = position + 2;
+                }
+            }
+        }
+        if parenthesis_depth != 0 {
+            return Err(AssertionParsingError::NotMatchingParenthesis);
+        }
+        let block = substring(&spec_string, block_start, spec_string.len());
+        let new_span = shift_span(span, block_start as u32);
+        let last_assertion = self.parse_assertion_simple(new_span, block)?;
+        let assertion = if assertions.is_empty() {
+            last_assertion
+        }
+        else {
+            assertions.push(last_assertion);
+            Assertion {
+                kind: box AssertionKind::And(assertions),
+            }
+        };
+
+        trace!("[parse_assertion] exit");
+        Ok(assertion)
     }
 }
 
-fn fix_spans(expr: ptr::P<ast::Expr>, base_span: Span) -> ptr::P<ast::Expr> {
-    let mut rewriter = SpanRewriter::new(expr.span, base_span);
-    rewriter.fold_expr(expr)
+impl<'tcx> Folder for SpecParser<'tcx> {
+
+    fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        trace!("[fold_item] enter");
+        let result = match item.node {
+            ast::ItemKind::Fn(_, _, _, _, _, _) => {
+                self.rewrite_fn_item(item)
+            },
+            _ => {
+                SmallVector::one(item.map(|item| self.fold_item_simple(item)))
+            },
+        };
+        trace!("[fold_item] exit");
+        result
+    }
+
+    fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
+        let result = match expr.node {
+            ast::ExprKind::While(_, _, _) |
+            ast::ExprKind::WhileLet(_, _, _, _) |
+            ast::ExprKind::ForLoop(_, _, _, _) |
+            ast::ExprKind::Loop(_, _) => {
+                self.rewrite_loop(expr)
+            },
+            _ => {
+                expr.map(|e| syntax::fold::noop_fold_expr(e, self))
+            },
+        };
+        result
+    }
+
+}
+
+
+#[derive(Debug)]
+/// An error reported when parsing of assertion fails.
+pub enum AssertionParsingError {
+    /// Reported when parenthesis do not match.
+    NotMatchingParenthesis,
+    /// Reported when Rust assertion parsing fails.
+    ParsingRustExpressionFailed,
+    /// Reported when matching forall expression fails.
+    FailedForallMatch,
+}
+
+fn substring(string: &str, start: usize, end: usize) -> String {
+    string
+        .chars()
+        .skip(start)
+        .take(end-start)
+        .collect::<String>()
 }
 
 struct SpanRewriter {
@@ -267,15 +863,18 @@ struct SpanRewriter {
 }
 
 impl SpanRewriter {
-    pub fn new(old_base_span: Span, new_base_span: Span) -> SpanRewriter {
+    pub fn new(whitespace_count: u32, old_base_span: Span,
+               new_base_span: Span) -> SpanRewriter {
         SpanRewriter {
             old_base_pos: old_base_span.lo(),
-            new_base_pos: new_base_span.lo(),
+            new_base_pos:
+                new_base_span.lo() +
+                syntax::codemap::BytePos(whitespace_count),
         }
     }
 }
 
-impl fold::Folder for SpanRewriter {
+impl Folder for SpanRewriter {
 
     fn new_span(&mut self, sp: Span) -> Span {
         let one = syntax::codemap::BytePos(1);
@@ -286,111 +885,14 @@ impl fold::Folder for SpanRewriter {
 
 }
 
-struct LoopInvariantRewriter<'a, 'cx: 'a> {
-    parser: &'a mut SpecParser,
-    cx: &'a mut ExtCtxt<'cx>,
+fn shift_span(span: Span, offset: u32) -> Span {
+    let offset = syntax::codemap::BytePos(offset);
+    Span::new(span.lo() + offset, span.hi() + offset, span.ctxt())
 }
 
-impl<'a, 'cx: 'a> LoopInvariantRewriter<'a, 'cx> {
-    pub fn new(parser: &'a mut SpecParser,
-               cx: &'a mut ExtCtxt<'cx>) -> LoopInvariantRewriter<'a, 'cx> {
-        LoopInvariantRewriter {
-            parser: parser,
-            cx: cx,
-        }
-    }
-    pub fn rewrite_item(&mut self, item: ast::Item) -> ast::Item {
-        self.fold_item_simple(item)
-    }
-    fn rewrite_block(&mut self, block: ptr::P<ast::Block>,
-                     invariants: Vec<RawSpec>) -> ptr::P<ast::Block> {
-        debug!("invariants: {:?}", invariants);
-        let mut block = block.into_inner();
-        if !invariants.is_empty() {
-            let assertions: Vec<ast::Stmt> = invariants.into_iter().map(|spec| {
-                let assertion_id = self.parser.register_spec(spec.clone()).to_number();
-                let spec_expr = &spec.expr;
-                quote_stmt!(self.cx, __assertion($assertion_id, $spec_expr)).unwrap()
-            }).collect();
-            let mut expr = quote_expr!(self.cx,
-                {
-                    if false {
-                        use prusti_contracts::internal::*;
-                        $assertions
-                    }
-                }
-            ).into_inner();
-            let loop_id = self.parser.get_new_id();
-            let loop_id_string = format!(" = \"{}\"", loop_id.to_number());
-            let mut builder = syntax::tokenstream::TokenStreamBuilder::new();
-            for stream in self.cx.parse_tts(loop_id_string) {
-                builder.push(stream);
-            }
-            expr.attrs = vec![
-                ast::Attribute {
-                    style: ast::AttrStyle::Outer,
-                    path: ast::Path::from_ident(block.span, ast::Ident::from_str("__PRUSTI_SPEC")),
-                    tokens: builder.build(),
-                    id: syntax::attr::mk_attr_id(),
-                    is_sugared_doc: false,
-                    span: block.span,
-                }
-            ].into();
-            let stmt = self.cx.stmt_expr(ptr::P(expr));
-            block.stmts.insert(0, stmt);
-        }
-        ptr::P(block)
-    }
-}
 
-impl<'a, 'cx: 'a> fold::Folder for LoopInvariantRewriter<'a, 'cx> {
-
-    fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
-        debug!("expr: {}", syntax::print::pprust::expr_to_string(&expr));
-        let expr = expr.into_inner();
-        let expr = {
-            if let ast::ExprKind::While(condition, block, ident) = expr.node {
-                let invariants: Vec<_> = expr.attrs.into_iter().map(
-                    |attr| RawSpec::from_attribute(self.cx, &attr)
-                ).collect();
-                let block = self.rewrite_block(block, invariants);
-                let loop_id = self.parser.get_new_id();
-                let loop_id_string = format!(" = \"{}\"", loop_id.to_number());
-                let mut builder = syntax::tokenstream::TokenStreamBuilder::new();
-                for stream in self.cx.parse_tts(loop_id_string) {
-                    builder.push(stream);
-                }
-                let mut new_attrs = vec![
-                    ast::Attribute {
-                        style: ast::AttrStyle::Outer,
-                        path: ast::Path::from_ident(expr.span, ast::Ident::from_str("__PRUSTI_SPEC")),
-                        tokens: builder.build(),
-                        id: syntax::attr::mk_attr_id(),
-                        is_sugared_doc: false,
-                        span: expr.span,
-                    }
-                ];
-                debug!("attrs: {:?}", new_attrs);
-                ast::Expr {
-                    id: expr.id,
-                    node: ast::ExprKind::While(condition, block, ident),
-                    span: expr.span,
-                    attrs: new_attrs.into(),
-                }
-            }
-            else if let ast::ExprKind::WhileLet(_pattern, _condition, _block, _ident) = expr.node {
-                unimplemented!();
-            }
-            else if let ast::ExprKind::ForLoop(_pattern, _condition, _block, _ident) = expr.node {
-                unimplemented!();
-            }
-            else if let ast::ExprKind::Loop(_block, _ident) = expr.node {
-                unimplemented!();
-            } else {
-                expr
-            }
-        };
-        ptr::P(expr)
-    }
-
+fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
+    let lo = span.lo() + syntax::codemap::BytePos(offset);
+    let hi = lo + syntax::codemap::BytePos(length);
+    Span::new(lo, hi, span.ctxt())
 }
