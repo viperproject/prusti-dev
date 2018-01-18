@@ -4,6 +4,9 @@
 
 [Development documentation][documentation]
 
+Prusti is a Rust front-end for the [Viper verification
+infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
+
 [build_badge]: https://travis-ci.org/viperproject/prusti.svg
 [build_status]: https://travis-ci.org/viperproject/prusti
 [documentation]: https://viperproject.github.io/prusti/
