@@ -162,6 +162,14 @@ impl<ET> Trigger<ET> {
     }
 }
 
+impl<ET> IntoIterator for Trigger<ET> {
+    type Item = Expression<ET>;
+    type IntoIter = ::std::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 #[derive(Debug, Clone)]
 /// A set of triggers used in the quantifier.
 pub struct TriggerSet<ET>(Vec<Trigger<ET>>);
@@ -177,6 +185,23 @@ impl<ET> TriggerSet<ET> {
     }
 }
 
+impl<ET> IntoIterator for TriggerSet<ET> {
+    type Item = Trigger<ET>;
+    type IntoIter = ::std::vec::IntoIter<Self::Item>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+#[derive(Debug, Clone)]
+/// A sequence of variables used in the forall.
+pub struct ForAllVars<AT> {
+    /// Unique id for this sequence of variables.
+    pub id: ExpressionId,
+    /// Variables.
+    pub vars: Vec<AT>,
+}
+
 #[derive(Debug, Clone)]
 /// An assertion kind used in the specification.
 pub enum AssertionKind<ET, AT> {
@@ -187,7 +212,7 @@ pub enum AssertionKind<ET, AT> {
     /// Implication ==>
     Implies(Expression<ET>, Assertion<ET, AT>),
     /// Quantifier (forall vars :: {triggers} filter ==> body)
-    ForAll(Vec<AT>, TriggerSet<ET>, Expression<ET>, Expression<ET>),
+    ForAll(ForAllVars<AT>, TriggerSet<ET>, Expression<ET>, Expression<ET>),
 }
 
 
@@ -213,9 +238,9 @@ pub enum SpecificationSet<ET, AT> {
 
 /// A specification that has no types associated with it.
 pub type UntypedSpecification = Specification<ptr::P<ast::Expr>, ast::Arg>;
-/// A set of specifications associated with a single element.
+/// A set of untyped specifications associated with a single element.
 pub type UntypedSpecificationSet = SpecificationSet<ptr::P<ast::Expr>, ast::Arg>;
-/// A map of specifications for a specific crate.
+/// A map of untyped specifications for a specific crate.
 pub type UntypedSpecificationMap = HashMap<SpecID, UntypedSpecificationSet>;
 /// An assertion that has no types associated with it.
 pub type UntypedAssertion = Assertion<ptr::P<ast::Expr>, ast::Arg>;
@@ -227,13 +252,15 @@ pub type UntypedExpression = Expression<ptr::P<ast::Expr>>;
 pub type UntypedTriggerSet = TriggerSet<ptr::P<ast::Expr>>;
 
 
-/// A specification that has no types associated with it.
+/// A specification that types associated with it.
 pub type TypedSpecification = Specification<rustc::hir::Expr, rustc::hir::Arg>;
-/// A set of specifications associated with a single element.
+/// A set of typed specifications associated with a single element.
 pub type TypedSpecificationSet = SpecificationSet<rustc::hir::Expr, rustc::hir::Arg>;
-/// A map of specifications for a specific crate.
+/// A map of typed specifications for a specific crate.
 pub type TypedSpecificationMap = HashMap<SpecID, TypedSpecificationSet>;
-/// An assertion that has no types associated with it.
+/// An assertion that has types associated with it.
 pub type TypedAssertion = Assertion<rustc::hir::Expr, rustc::hir::Arg>;
-/// An assertion kind that has no types associated with it.
+/// An assertion kind that has types associated with it.
 pub type TypedAssertionKind = AssertionKind<rustc::hir::Expr, rustc::hir::Arg>;
+/// A trigger set that has types associated with it.
+pub type TypedTriggerSet = TriggerSet<rustc::hir::Expr>;

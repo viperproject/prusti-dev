@@ -17,7 +17,7 @@ use specifications::{
     AssertionKind, Assertion, SpecID, SpecType, Expression, ExpressionId,
     SpecificationSet, UntypedSpecification, UntypedSpecificationSet,
     UntypedAssertion, UntypedSpecificationMap, UntypedExpression,
-    Trigger, TriggerSet, UntypedTriggerSet};
+    Trigger, TriggerSet, UntypedTriggerSet, ForAllVars};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -152,12 +152,24 @@ impl<'tcx> SpecParser<'tcx> {
                 let span = body_assertion.span;
                 stmts.push(body_assertion);
                 let builder = &self.ast_builder;
+                stmts.push(
+                    builder.stmt_expr(
+                        builder.expr_call(
+                            span,
+                            builder.expr_ident(
+                                span,
+                                builder.ident_of("__id"),
+                            ),
+                            vec![builder.expr_usize(span, vars.id.into())],
+                        )
+                    )
+                );
                 let statement = builder.stmt_item(
                     span,
                     builder.item_fn_optional_result(
                         span,
                         ast::Ident::from_str("forall"),
-                        vars.clone(),
+                        vars.vars.clone(),
                         None,
                         builder.block(
                             span,
@@ -631,7 +643,10 @@ impl<'tcx> SpecParser<'tcx> {
                    vars, triggers, filter, body);
             let assertion = UntypedAssertion {
                 kind: box AssertionKind::ForAll(
-                    vars,
+                    ForAllVars {
+                        id: self.get_new_expression_id(),
+                        vars: vars,
+                    },
                     triggers,
                     Expression {
                         id: self.get_new_expression_id(),
