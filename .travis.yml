@@ -42,13 +42,12 @@ before_install:
       wget -O z3.zip https://github.com/Z3Prover/z3/archive/3865c453827506fc5c9d6c6c7c3d66d17030f158.zip &&
       unzip z3.zip &&
       rm z3.zip &&
-      mv z3-3865c453827506fc5c9d6c6c7c3d66d17030f158 tmp-z3 &&
-      cd tmp-z3 &&
+      cd z3-* &&
       ./configure &&
       cd build &&
       make -j 2 &&
       cd ../.. &&
-      mv tmp-z3 .cache/z3
+      mv z3-* .cache/z3
     ); else
       echo "Using cached Z3" &&
       ls .cache/z3;
@@ -57,7 +56,7 @@ before_install:
 install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
   - travis_retry sudo apt-get install viper
-  - ( cd .cache/z3/build; sudo make install )
+  - ( cd .cache/z3/build && sudo make install )
   - ( cargo install clippy && export CLIPPY=true ) || export CLIPPY=false
 
 script:
