@@ -1,6 +1,6 @@
 #![doc(html_root_url = "https://viperproject.github.io/prusti/")]
 
-//! # Prusti: Viper Front-End For Rust.
+//! Prusti is a Viper Front-End For Rust.
 //!
 //! More information about the Viper project can be found
 //! [here](viper.ethz.ch).
@@ -9,7 +9,7 @@
 //! between the compiler and verification tool. Its main responsibility
 //! is to provide a convenient access to program's CFG with contracts.
 //!
-//! ## Prusti Design
+//! # Prusti Design
 //!
 //! Prusti registers attributes for specifying programs:
 //! `#[requires="<precondition>"]`, `#[ensures="<postcondition>"]`, and

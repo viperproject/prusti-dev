@@ -1,6 +1,7 @@
 //! Data structures for storing information about specifications.
 //!
-//! Please see `parser.rs` for more information about specifications.
+//! Please see the `parser.rs` file for more information about
+//! specifications.
 
 
 use rustc;

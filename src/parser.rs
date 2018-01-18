@@ -1,4 +1,6 @@
-//! # Extracting and type-checking specifications.
+//! Extracting and type-checking specifications.
+//!
+//! # Design
 //!
 //! Prusti uses the Rust annotation mechanism for specifications.
 //! Currently, we support procedure preconditions and postconditions and
