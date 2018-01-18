@@ -12,25 +12,26 @@ use ast_factory::structs::Type;
 use ast_factory::structs::LocalVarDecl;
 use ast_factory::structs::DomainFunc;
 use ast_factory::structs::DomainAxiom;
+use jni::objects::JObject;
 
 impl<'a> AstFactory<'a> {
     pub fn program(
         &self,
-        domains: Vec<Domain>,
-        fields: Vec<Field>,
-        functions: Vec<Function>,
-        predicates: Vec<Predicate>,
-        methods: Vec<Method>,
+        domains: &[Domain],
+        fields: &[Field],
+        functions: &[Function],
+        predicates: &[Predicate],
+        methods: &[Method],
     ) -> Program<'a> {
         build_ast_node!(
             self,
             Program,
             ast::Program,
-            self.jni.new_seq(map_to_jobjects!(domains)),
-            self.jni.new_seq(map_to_jobjects!(fields)),
-            self.jni.new_seq(map_to_jobjects!(functions)),
-            self.jni.new_seq(map_to_jobjects!(predicates)),
-            self.jni.new_seq(map_to_jobjects!(methods))
+            self.jni.new_seq(&map_to_jobjects!(domains)),
+            self.jni.new_seq(&map_to_jobjects!(fields)),
+            self.jni.new_seq(&map_to_jobjects!(functions)),
+            self.jni.new_seq(&map_to_jobjects!(predicates)),
+            self.jni.new_seq(&map_to_jobjects!(methods))
         )
     }
 
@@ -57,7 +58,7 @@ impl<'a> AstFactory<'a> {
     pub fn predicate(
         &self,
         name: &str,
-        formal_args: Vec<LocalVarDecl>,
+        formal_args: &[LocalVarDecl],
         body: Option<Expr>,
     ) -> Predicate<'a> {
         build_ast_node!(
@@ -65,7 +66,7 @@ impl<'a> AstFactory<'a> {
             Predicate,
             ast::Predicate,
             self.jni.new_string(name),
-            self.jni.new_seq(map_to_jobjects!(formal_args)),
+            self.jni.new_seq(&map_to_jobjects!(formal_args)),
             match body {
                 None => self.jni.new_option(None),
                 Some(x) => self.jni.new_option(Some(x.to_jobject())),
@@ -76,10 +77,10 @@ impl<'a> AstFactory<'a> {
     pub fn function(
         &self,
         name: &str,
-        formal_args: Vec<LocalVarDecl>,
+        formal_args: &[LocalVarDecl],
         typ: Type,
-        pres: Vec<Expr>,
-        posts: Vec<Expr>,
+        pres: &[Expr],
+        posts: &[Expr],
         body: Option<Expr>,
     ) -> Function<'a> {
         build_ast_node!(
@@ -87,10 +88,10 @@ impl<'a> AstFactory<'a> {
             Function,
             ast::Function,
             self.jni.new_string(name),
-            self.jni.new_seq(map_to_jobjects!(formal_args)),
+            self.jni.new_seq(&map_to_jobjects!(formal_args)),
             typ.to_jobject(),
-            self.jni.new_seq(map_to_jobjects!(pres)),
-            self.jni.new_seq(map_to_jobjects!(posts)),
+            self.jni.new_seq(&map_to_jobjects!(pres)),
+            self.jni.new_seq(&map_to_jobjects!(posts)),
             self.jni.new_option(None), // decs: Option[DecClause]
             match body {
                 None => self.jni.new_option(None),
@@ -102,10 +103,10 @@ impl<'a> AstFactory<'a> {
     pub fn method(
         &self,
         name: &str,
-        formal_args: Vec<LocalVarDecl>,
-        formal_returns: Vec<LocalVarDecl>,
-        pres: Vec<Expr>,
-        posts: Vec<Expr>,
+        formal_args: &[LocalVarDecl],
+        formal_returns: &[LocalVarDecl],
+        pres: &[Expr],
+        posts: &[Expr],
         body: Option<Stmt>,
     ) -> Method<'a> {
         build_ast_node!(
@@ -113,10 +114,10 @@ impl<'a> AstFactory<'a> {
             Method,
             ast::Method,
             self.jni.new_string(name),
-            self.jni.new_seq(map_to_jobjects!(formal_args)),
-            self.jni.new_seq(map_to_jobjects!(formal_returns)),
-            self.jni.new_seq(map_to_jobjects!(pres)),
-            self.jni.new_seq(map_to_jobjects!(posts)),
+            self.jni.new_seq(&map_to_jobjects!(formal_args)),
+            self.jni.new_seq(&map_to_jobjects!(formal_returns)),
+            self.jni.new_seq(&map_to_jobjects!(pres)),
+            self.jni.new_seq(&map_to_jobjects!(posts)),
             match body {
                 None => self.jni.new_option(None),
                 Some(x) => self.jni.new_option(Some(x.to_jobject())),
@@ -127,32 +128,32 @@ impl<'a> AstFactory<'a> {
     pub fn domain(
         &self,
         name: &str,
-        functions: Vec<DomainFunc>,
-        axioms: Vec<DomainAxiom>,
-        type_vars: Vec<Type>,
+        functions: &[DomainFunc],
+        axioms: &[DomainAxiom],
+        type_vars: &[Type],
     ) -> Domain<'a> {
         build_ast_node!(
             self,
             Domain,
             ast::Domain,
             self.jni.new_string(name),
-            self.jni.new_seq(map_to_jobjects!(functions)),
-            self.jni.new_seq(map_to_jobjects!(axioms)),
-            self.jni.new_seq(map_to_jobjects!(type_vars))
+            self.jni.new_seq(&map_to_jobjects!(functions)),
+            self.jni.new_seq(&map_to_jobjects!(axioms)),
+            self.jni.new_seq(&map_to_jobjects!(type_vars))
         )
     }
 
     pub fn domain_func(
         &self,
         name: &str,
-        formal_args: Vec<LocalVarDecl>,
+        formal_args: &[LocalVarDecl],
         typ: Type,
         unique: bool,
         domain_name: &str,
     ) -> DomainFunc<'a> {
         let obj = self.jni.unwrap_result(ast::DomainFunc::with(self.env).new(
             self.jni.new_string(name),
-            self.jni.new_seq(map_to_jobjects!(formal_args)),
+            self.jni.new_seq(&map_to_jobjects!(formal_args)),
             typ.to_jobject(),
             unique,
             self.no_position().to_jobject(),

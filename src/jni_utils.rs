@@ -70,13 +70,13 @@ impl<'a> JniUtils<'a> {
         self.unwrap_result(self.env.new_string(string)).into()
     }
 
-    pub fn new_map(&self, items: Vec<(JObject, JObject)>) -> JObject {
+    pub fn new_map(&self, items: &[(JObject, JObject)]) -> JObject {
         let hash_map_wrapper = scala::collection::immutable::HashMap::with(self.env);
         let mut result = self.unwrap_result(hash_map_wrapper.new());
-        for &(k, v) in items.iter() {
+        for &(k, v) in items {
             result = self.unwrap_result(hash_map_wrapper.call_updated(result, k, v));
         }
-        return result;
+        result
     }
 
     /// Converts a Rust number to a Java BigInt
@@ -90,12 +90,12 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Rust Vec<JObject> to a Scala Seq
-    pub fn new_seq(&self, objects: Vec<JObject>) -> JObject {
+    pub fn new_seq(&self, objects: &[JObject]) -> JObject {
         let array_seq_wrapper = scala::collection::mutable::ArraySeq::with(self.env);
         let len = objects.len();
         let res = self.unwrap_result(array_seq_wrapper.new(len as i32));
-        for i in 0..len {
-            self.unwrap_result(array_seq_wrapper.call_update(res, i as i32, objects[i]));
+        for (i, obj) in objects.iter().enumerate() {
+            self.unwrap_result(array_seq_wrapper.call_update(res, i as i32, *obj));
         }
         res
     }
@@ -110,8 +110,7 @@ impl<'a> JniUtils<'a> {
     pub fn to_string(&self, object: JObject) -> String {
         let object_wrapper = java::lang::Object::with(self.env);
         let string_object = self.unwrap_result(object_wrapper.call_toString(object));
-        let java_str = self.get_string(string_object);
-        java_str.into()
+        self.get_string(string_object)
     }
 
     /// Returns the name of the class of a Java object as Rust String

@@ -2,7 +2,7 @@ use ast_factory::*;
 use errors::Result as LocalResult;
 use uuid::Uuid;
 
-const LABEL_PREFIX: &'static str = "__viper";
+const LABEL_PREFIX: &str = "__viper";
 
 pub struct CfgMethod<'a> {
     ast_factory: &'a AstFactory<'a>,
@@ -76,15 +76,16 @@ impl<'a> CfgMethod<'a> {
         self.basic_blocks[index.block_index].successor = successor;
     }
 
+    #[cfg_attr(feature = "cargo-clippy", allow(wrong_self_convention))]
     pub fn to_ast(self) -> LocalResult<Method<'a>> {
         let mut blocks_ast: Vec<Stmt> = vec![];
         let mut declarations: Vec<Declaration> = vec![];
 
-        for &local_var in self.local_vars.iter() {
+        for &local_var in &self.local_vars {
             declarations.push(local_var.into());
         }
 
-        for (index, block) in self.basic_blocks.into_iter().enumerate() {
+        for (index, block) in self.basic_blocks.iter().enumerate() {
             blocks_ast.push(block_to_ast(
                 self.ast_factory,
                 &self.method_name,
@@ -93,29 +94,28 @@ impl<'a> CfgMethod<'a> {
             ));
             declarations.push(
                 self.ast_factory
-                    .label(&index_to_label(&self.method_name, index), vec![])
+                    .label(&index_to_label(&self.method_name, index), &[])
                     .into(),
             );
         }
         blocks_ast.push(
             self.ast_factory
-                .label(&return_label(&self.method_name), vec![])
-                .into(),
+                .label(&return_label(&self.method_name), &[]),
         );
         declarations.push(
             self.ast_factory
-                .label(&return_label(&self.method_name), vec![])
+                .label(&return_label(&self.method_name), &[])
                 .into(),
         );
 
-        let method_body = Some(self.ast_factory.seqn(blocks_ast, declarations));
+        let method_body = Some(self.ast_factory.seqn(&blocks_ast, &declarations));
 
         let method = self.ast_factory.method(
             &self.method_name,
-            self.formal_args,
-            self.formal_returns,
-            vec![],
-            vec![],
+            &self.formal_args,
+            &self.formal_returns,
+            &[],
+            &[],
             method_body,
         );
 
@@ -134,14 +134,14 @@ fn return_label(method_name: &str) -> String {
 fn successor_to_ast<'a>(
     ast: &'a AstFactory,
     method_name: &str,
-    successor: Successor<'a>,
+    successor: &Successor<'a>,
 ) -> Stmt<'a> {
-    match successor {
+    match *successor {
         Successor::Unreachable() => ast.assert(ast.false_lit(), ast.no_position()),
         Successor::Return() => ast.goto(&return_label(method_name)),
         Successor::Goto(target) => ast.goto(&index_to_label(method_name, target.block_index)),
         Successor::GotoSwitch(ref successors) => {
-            let skip = ast.seqn(vec![], vec![]);
+            let skip = ast.seqn(&[], &[]);
             let mut stmts: Vec<Stmt> = vec![];
             for &(test, target) in successors {
                 let goto = ast.goto(&index_to_label(method_name, target.block_index));
@@ -149,7 +149,7 @@ fn successor_to_ast<'a>(
                 stmts.push(conditional_goto);
             }
             stmts.push(ast.assert(ast.false_lit(), ast.no_position()));
-            ast.seqn(stmts, vec![])
+            ast.seqn(&stmts, &[])
         }
         Successor::GotoIf(test, then_target, else_target) => {
             let then_goto = ast.goto(&index_to_label(method_name, then_target.block_index));
@@ -162,16 +162,16 @@ fn successor_to_ast<'a>(
 fn block_to_ast<'a>(
     ast: &'a AstFactory,
     method_name: &str,
-    block: CfgBlock<'a>,
+    block: &CfgBlock<'a>,
     index: usize,
 ) -> Stmt<'a> {
     let label = index_to_label(method_name, index);
     ast.seqn(
-        vec![
-            ast.label(&label, block.invs),
+        &[
+            ast.label(&label, &block.invs),
             block.stmt,
-            successor_to_ast(ast, method_name, block.successor),
+            successor_to_ast(ast, method_name, &block.successor),
         ],
-        vec![],
+        &[],
     )
 }

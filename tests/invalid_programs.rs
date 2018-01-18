@@ -34,21 +34,21 @@ fn panic_on_consistency_error() {
 
     let if_stmt = ast.if_stmt(
         local_var,
-        ast.seqn(vec![ast.assert(local_var, ast.no_position())], vec![]),
-        ast.seqn(vec![ast.assert(ast.false_lit(), ast.no_position())], vec![]),
+        ast.seqn(&[ast.assert(local_var, ast.no_position())], &[]),
+        ast.seqn(&[ast.assert(ast.false_lit(), ast.no_position())], &[]),
     );
 
     let method_body = ast.seqn(
-        vec![assignment, if_stmt],
-        vec![
+        &[assignment, if_stmt],
+        &[
             // consistency error: we omit the declaration of the local variable x
             // ast.local_var_decl("x", ast.bool_type())
         ],
     );
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -69,18 +69,18 @@ fn panic_on_type_error() {
 
     let if_stmt = ast.if_stmt(
         local_var,                                                        // type error
-        ast.seqn(vec![ast.assert(local_var, ast.no_position())], vec![]), // type error
-        ast.seqn(vec![ast.assert(ast.false_lit(), ast.no_position())], vec![]),
+        ast.seqn(&[ast.assert(local_var, ast.no_position())], &[]), // type error
+        ast.seqn(&[ast.assert(ast.false_lit(), ast.no_position())], &[]),
     );
 
     let method_body = ast.seqn(
-        vec![assignment, if_stmt],
-        vec![ast.local_var_decl("x", ast.int_type()).into()],
+        &[assignment, if_stmt],
+        &[ast.local_var_decl("x", ast.int_type()).into()],
     );
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 

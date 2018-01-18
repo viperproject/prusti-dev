@@ -20,22 +20,22 @@ fn success_with_complex_program() {
 
     let method = ast.method(
         "foobar",
-        vec![ast.local_var_decl("arg", ast.int_type())],
-        vec![ast.local_var_decl("res", ast.int_type())],
-        vec![ast.false_lit()],
-        vec![ast.true_lit()],
+        &[ast.local_var_decl("arg", ast.int_type())],
+        &[ast.local_var_decl("res", ast.int_type())],
+        &[ast.false_lit()],
+        &[ast.true_lit()],
         Some(ast.seqn(
-            vec![
+            &[
                 ast.local_var_assign(
                     ast.local_var("res", ast.int_type()),
                     ast.local_var("arg", ast.int_type()),
                 ),
             ],
-            vec![],
+            &[],
         )),
     );
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let pretty_printed = ast_utils.pretty_print(program);
 

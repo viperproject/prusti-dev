@@ -54,11 +54,11 @@ fn success_with_simple_chain() {
     cfg.set_successor(block_3, Successor::Goto(block_2));
 
     let program = ast.program(
-        vec![],
-        vec![],
-        vec![],
-        vec![],
-        vec![cfg.to_ast().ok().unwrap()],
+        &[],
+        &[],
+        &[],
+        &[],
+        &[cfg.to_ast().ok().unwrap()],
     );
 
     let verifier = verification_context.new_verifier();
@@ -92,7 +92,7 @@ fn success_with_simple_loop() {
     // skip
     let block_2 = cfg.add_block(
         vec![ast.le_cmp(local_var, ast.int_lit(10))],
-        ast.seqn(vec![], vec![]),
+        ast.seqn(&[], &[]),
     );
 
     // a = a + 1
@@ -116,11 +116,11 @@ fn success_with_simple_loop() {
     cfg.set_successor(block_4, Successor::Return());
 
     let program = ast.program(
-        vec![],
-        vec![],
-        vec![],
-        vec![],
-        vec![cfg.to_ast().ok().unwrap()],
+        &[],
+        &[],
+        &[],
+        &[],
+        &[cfg.to_ast().ok().unwrap()],
     );
 
     let verifier = verification_context.new_verifier();

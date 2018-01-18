@@ -28,7 +28,7 @@ fn success_with_empty_program() {
 
     let ast = verification_context.new_ast_factory();
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![]);
+    let program = ast.program(&[], &[], &[], &[], &[]);
 
     let verifier = verification_context.new_verifier();
 
@@ -50,11 +50,11 @@ fn failure_with_assert_false() {
 
     let assertion = ast.assert(false_lit, pos);
 
-    let body = ast.seqn(vec![assertion], vec![]);
+    let body = ast.seqn(&[assertion], &[]);
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -63,7 +63,7 @@ fn failure_with_assert_false() {
     assert_eq!(
         verification_result,
         VerificationResult::Failure(vec![
-            VerificationError::new("assert.failed".to_owned(), "pos-id:123".to_owned()),
+            VerificationError::new("assert.failed".to_string(), "pos-id:123".to_string()),
         ])
     );
 }
@@ -89,11 +89,11 @@ fn success_with_assert_with_boolean_operations() {
 
     let assertion = ast.assert(implication, pos);
 
-    let body = ast.seqn(vec![assertion], vec![]);
+    let body = ast.seqn(&[assertion], &[]);
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -114,15 +114,15 @@ fn success_with_assert_false_in_dead_code() {
 
     let if_stmt = ast.if_stmt(
         ast.false_lit(),
-        ast.seqn(vec![assert_false], vec![]),
-        ast.seqn(vec![assert_true], vec![]),
+        ast.seqn(&[assert_false], &[]),
+        ast.seqn(&[assert_true], &[]),
     );
 
-    let body = ast.seqn(vec![if_stmt], vec![]);
+    let body = ast.seqn(&[if_stmt], &[]);
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -144,18 +144,18 @@ fn success_with_assign_if_and_assert() {
 
     let if_stmt = ast.if_stmt(
         local_var,
-        ast.seqn(vec![ast.assert(local_var, ast.no_position())], vec![]),
-        ast.seqn(vec![ast.assert(ast.false_lit(), ast.no_position())], vec![]),
+        ast.seqn(&[ast.assert(local_var, ast.no_position())], &[]),
+        ast.seqn(&[ast.assert(ast.false_lit(), ast.no_position())], &[]),
     );
 
     let method_body = ast.seqn(
-        vec![assignment, if_stmt],
-        vec![ast.local_var_decl("x", ast.bool_type()).into()],
+        &[assignment, if_stmt],
+        &[ast.local_var_decl("x", ast.bool_type()).into()],
     );
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -178,25 +178,25 @@ fn failure_with_assign_if_and_assert() {
     let if_stmt = ast.if_stmt(
         local_var,
         ast.seqn(
-            vec![
+            &[
                 ast.assert(ast.false_lit(), ast.identifier_position(3, 0, "then")),
             ],
-            vec![],
+            &[],
         ),
         ast.seqn(
-            vec![ast.assert(local_var, ast.identifier_position(5, 0, "else"))],
-            vec![],
+            &[ast.assert(local_var, ast.identifier_position(5, 0, "else"))],
+            &[],
         ),
     );
 
     let method_body = ast.seqn(
-        vec![assignment, if_stmt],
-        vec![ast.local_var_decl("x", ast.bool_type()).into()],
+        &[assignment, if_stmt],
+        &[ast.local_var_decl("x", ast.bool_type()).into()],
     );
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(method_body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 
@@ -205,7 +205,7 @@ fn failure_with_assign_if_and_assert() {
     assert_eq!(
         verification_result,
         VerificationResult::Failure(vec![
-            VerificationError::new("assert.failed".to_owned(), "then".to_owned()),
+            VerificationError::new("assert.failed".to_string(), "then".to_string()),
         ])
     );
 }
@@ -224,26 +224,26 @@ fn success_with_complex_post_condition() {
                 ast.empty_multiset(ast.int_type()),
             ),
             ast.eq_cmp(
-                ast.explicit_set((0..10).map(|x| ast.int_lit(x)).collect()),
-                ast.explicit_set((0..10).map(|x| ast.int_lit(x)).collect()),
+                ast.explicit_set(&(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
+                ast.explicit_set(&(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
             ),
         ),
         ast.eq_cmp(
             ast.seq_take(
-                ast.explicit_seq((0..10).map(|x| ast.int_lit(x)).collect()),
+                ast.explicit_seq(&(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
                 ast.int_lit(3),
             ),
-            ast.explicit_seq((0..3).map(|x| ast.int_lit(x)).collect()),
+            ast.explicit_seq(&(0..3).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
         ),
     );
 
     let assertion = ast.assert(condition, ast.no_position());
 
-    let body = ast.seqn(vec![assertion], vec![]);
+    let body = ast.seqn(&[assertion], &[]);
 
-    let method = ast.method("foo", vec![], vec![], vec![], vec![], Some(body));
+    let method = ast.method("foo", &[], &[], &[], &[], Some(body));
 
-    let program = ast.program(vec![], vec![], vec![], vec![], vec![method]);
+    let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier();
 

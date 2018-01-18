@@ -1,6 +1,7 @@
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
 use ast_factory::structs::Type;
+use jni::objects::JObject;
 
 impl<'a> AstFactory<'a> {
     pub fn int_type(&self) -> Type<'a> {
@@ -32,13 +33,13 @@ impl<'a> AstFactory<'a> {
     pub fn domain_type(
         &self,
         domain_name: &str,
-        type_vars_map: Vec<(Type, Type)>,
-        type_parameters: Vec<Type>,
+        type_vars_map: &[(Type, Type)],
+        type_parameters: &[Type],
     ) -> Type<'a> {
         let obj = self.jni.unwrap_result(ast::DomainType::with(self.env).new(
             self.jni.new_string(domain_name),
-            self.jni.new_map(map_to_jobject_pairs!(type_vars_map)),
-            self.jni.new_seq(map_to_jobjects!(type_parameters)),
+            self.jni.new_map(&map_to_jobject_pairs!(type_vars_map)),
+            self.jni.new_seq(&map_to_jobjects!(type_parameters)),
         ));
         Type::new(obj)
     }

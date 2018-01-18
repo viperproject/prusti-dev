@@ -8,6 +8,7 @@ use ast_factory::structs::Trigger;
 use ast_factory::structs::Location;
 use ast_factory::structs::LocalVarDecl;
 use ast_factory::structs::Field;
+use jni::objects::JObject;
 
 impl<'a> AstFactory<'a> {
     pub fn add(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -298,12 +299,12 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn func_app(&self, func: Function, args: Vec<Expr>) -> Expr<'a> {
+    pub fn func_app(&self, func: Function, args: &[Expr]) -> Expr<'a> {
         let func_app_object_wrapper = ast::FuncApp_object::with(self.env);
         let obj = self.jni.unwrap_result(func_app_object_wrapper.call_apply(
             self.jni.unwrap_result(func_app_object_wrapper.singleton()),
             func.to_jobject(),
-            self.jni.new_seq(map_to_jobjects!(args)),
+            self.jni.new_seq(&map_to_jobjects!(args)),
             self.no_position().to_jobject(),
             self.no_info(),
             self.no_trafos(),
@@ -314,8 +315,8 @@ impl<'a> AstFactory<'a> {
     pub fn domain_func_app(
         &self,
         domain_func: DomainFunc,
-        args: Vec<Expr>,
-        type_var_map: Vec<(Type, Type)>,
+        args: &[Expr],
+        type_var_map: &[(Type, Type)],
     ) -> Expr<'a> {
         let domain_func_app_object_wrapper = ast::DomainFuncApp_object::with(self.env);
         let obj = self.jni.unwrap_result(
@@ -323,8 +324,8 @@ impl<'a> AstFactory<'a> {
                 self.jni
                     .unwrap_result(domain_func_app_object_wrapper.singleton()),
                 domain_func.to_jobject(),
-                self.jni.new_seq(map_to_jobjects!(args)),
-                self.jni.new_map(map_to_jobject_pairs!(type_var_map)),
+                self.jni.new_seq(&map_to_jobjects!(args)),
+                self.jni.new_map(&map_to_jobject_pairs!(type_var_map)),
                 self.no_position().to_jobject(),
                 self.no_info(),
                 self.no_trafos(),
@@ -343,12 +344,12 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn predicate_access(&self, args: Vec<Expr>, predicate_name: &str) -> Expr<'a> {
+    pub fn predicate_access(&self, args: &[Expr], predicate_name: &str) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
             ast::PredicateAccess,
-            self.jni.new_seq(map_to_jobjects!(args)),
+            self.jni.new_seq(&map_to_jobjects!(args)),
             self.jni.new_string(predicate_name)
         )
     }
@@ -411,26 +412,26 @@ impl<'a> AstFactory<'a> {
 
     pub fn forall(
         &self,
-        variables: Vec<LocalVarDecl>,
-        triggers: Vec<Trigger>,
+        variables: &[LocalVarDecl],
+        triggers: &[Trigger],
         expr: Expr,
     ) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
             ast::Forall,
-            self.jni.new_seq(map_to_jobjects!(variables)),
-            self.jni.new_seq(map_to_jobjects!(triggers)),
+            self.jni.new_seq(&map_to_jobjects!(variables)),
+            self.jni.new_seq(&map_to_jobjects!(triggers)),
             expr.to_jobject()
         )
     }
 
-    pub fn exists(&self, variables: Vec<LocalVarDecl>, expr: Expr) -> Expr<'a> {
+    pub fn exists(&self, variables: &[LocalVarDecl], expr: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
             ast::Exists,
-            self.jni.new_seq(map_to_jobjects!(variables)),
+            self.jni.new_seq(&map_to_jobjects!(variables)),
             expr.to_jobject()
         )
     }
@@ -438,7 +439,7 @@ impl<'a> AstFactory<'a> {
     pub fn for_perm(
         &self,
         variable: LocalVarDecl,
-        access_list: Vec<Location>,
+        access_list: &[Location],
         body: Expr,
     ) -> Expr<'a> {
         build_ast_node!(
@@ -446,17 +447,17 @@ impl<'a> AstFactory<'a> {
             Expr,
             ast::ForPerm,
             variable.to_jobject(),
-            self.jni.new_seq(map_to_jobjects!(access_list)),
+            self.jni.new_seq(&map_to_jobjects!(access_list)),
             body.to_jobject()
         )
     }
 
-    pub fn trigger(&self, exps: Vec<Expr>) -> Trigger<'a> {
+    pub fn trigger(&self, exps: &[Expr]) -> Trigger<'a> {
         build_ast_node!(
             self,
             Trigger,
             ast::Trigger,
-            self.jni.new_seq(map_to_jobjects!(exps))
+            self.jni.new_seq(&map_to_jobjects!(exps))
         )
     }
 
@@ -478,12 +479,12 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::EmptySeq, elem_type.to_jobject())
     }
 
-    pub fn explicit_seq(&self, elems: Vec<Expr>) -> Expr<'a> {
+    pub fn explicit_seq(&self, elems: &[Expr]) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
             ast::ExplicitSeq,
-            self.jni.new_seq(map_to_jobjects!(elems))
+            self.jni.new_seq(&map_to_jobjects!(elems))
         )
     }
 
@@ -554,12 +555,12 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::EmptySet, elem_type.to_jobject())
     }
 
-    pub fn explicit_set(&self, elems: Vec<Expr>) -> Expr<'a> {
+    pub fn explicit_set(&self, elems: &[Expr]) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
             ast::ExplicitSet,
-            self.jni.new_seq(map_to_jobjects!(elems))
+            self.jni.new_seq(&map_to_jobjects!(elems))
         )
     }
 
@@ -567,12 +568,12 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::EmptyMultiset, elem_type.to_jobject())
     }
 
-    pub fn explicit_multiset(&self, elems: Vec<Expr>) -> Expr<'a> {
+    pub fn explicit_multiset(&self, elems: &[Expr]) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
             ast::ExplicitMultiset,
-            self.jni.new_seq(map_to_jobjects!(elems))
+            self.jni.new_seq(&map_to_jobjects!(elems))
         )
     }
 

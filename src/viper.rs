@@ -8,15 +8,21 @@ pub struct Viper {
     jvm: JavaVM,
 }
 
+impl Default for Viper {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Viper {
     pub fn new() -> Self {
-        let viper_home = env::var("VIPER_HOME").unwrap_or("/usr/lib/viper/".to_owned());
+        let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
 
         debug!("Using Viper home: '{}'", &viper_home);
 
         let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap()
-            .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
+            .map(|x| x.unwrap().path().to_str().unwrap().to_string())
             .filter(|x| !x.contains("carbon"))
             .collect();
 

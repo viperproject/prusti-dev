@@ -5,15 +5,16 @@ use ast_factory::structs::Field;
 use ast_factory::structs::Position;
 use ast_factory::structs::Stmt;
 use ast_factory::structs::Declaration;
+use jni::objects::JObject;
 
 impl<'a> AstFactory<'a> {
-    pub fn new_stmt(&self, lhs: Expr, fields: Vec<Field>) -> Stmt<'a> {
+    pub fn new_stmt(&self, lhs: Expr, fields: &[Field]) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::NewStmt,
             lhs.to_jobject(),
-            self.jni.new_seq(map_to_jobjects!(fields))
+            self.jni.new_seq(&map_to_jobjects!(fields))
         )
     }
 
@@ -37,14 +38,14 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn method_call(&self, method_name: &str, args: Vec<Expr>, targets: Vec<Expr>) -> Stmt<'a> {
+    pub fn method_call(&self, method_name: &str, args: &[Expr], targets: &[Expr]) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::MethodCall,
             self.jni.new_string(method_name),
-            self.jni.new_seq(map_to_jobjects!(args)),
-            self.jni.new_seq(map_to_jobjects!(targets))
+            self.jni.new_seq(&map_to_jobjects!(args)),
+            self.jni.new_seq(&map_to_jobjects!(targets))
         )
     }
 
@@ -62,7 +63,7 @@ impl<'a> AstFactory<'a> {
         let obj = self.jni.unwrap_result(ast::Exhale::with(self.env).new(
             expr.to_jobject(),
             pos.to_jobject(),
-            self.simple_info(vec![comment]),
+            self.simple_info(&[comment]),
             self.no_trafos(),
         ));
         Stmt::new(obj)
@@ -82,7 +83,7 @@ impl<'a> AstFactory<'a> {
         let obj = self.jni.unwrap_result(ast::Inhale::with(self.env).new(
             expr.to_jobject(),
             pos.to_jobject(),
-            self.simple_info(vec![comment]),
+            self.simple_info(&[comment]),
             self.no_trafos(),
         ));
         Stmt::new(obj)
@@ -102,7 +103,7 @@ impl<'a> AstFactory<'a> {
         let obj = self.jni.unwrap_result(ast::Assert::with(self.env).new(
             expr.to_jobject(),
             pos.to_jobject(),
-            self.simple_info(vec![comment]),
+            self.simple_info(&[comment]),
             self.no_trafos(),
         ));
         Stmt::new(obj)
@@ -130,13 +131,13 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Stmt, ast::Apply, wand.to_jobject())
     }
 
-    pub fn seqn(&self, stmts: Vec<Stmt>, scoped_decls: Vec<Declaration>) -> Stmt<'a> {
+    pub fn seqn(&self, stmts: &[Stmt], scoped_decls: &[Declaration]) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Seqn,
-            self.jni.new_seq(map_to_jobjects!(stmts)),
-            self.jni.new_seq(map_to_jobjects!(scoped_decls))
+            self.jni.new_seq(&map_to_jobjects!(stmts)),
+            self.jni.new_seq(&map_to_jobjects!(scoped_decls))
         )
     }
 
@@ -151,24 +152,24 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn while_stmt(&self, cond: Expr, invs: Vec<Expr>, body: Stmt) -> Stmt<'a> {
+    pub fn while_stmt(&self, cond: Expr, invs: &[Expr], body: Stmt) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::While,
             cond.to_jobject(),
-            self.jni.new_seq(map_to_jobjects!(invs)),
+            self.jni.new_seq(&map_to_jobjects!(invs)),
             body.to_jobject()
         )
     }
 
-    pub fn label(&self, name: &str, invs: Vec<Expr>) -> Stmt<'a> {
+    pub fn label(&self, name: &str, invs: &[Expr]) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Label,
             self.jni.new_string(name),
-            self.jni.new_seq(map_to_jobjects!(invs))
+            self.jni.new_seq(&map_to_jobjects!(invs))
         )
     }
 
@@ -176,21 +177,21 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Stmt, ast::Goto, self.jni.new_string(target))
     }
 
-    pub fn fresh(&self, vars: Vec<Expr>) -> Stmt<'a> {
+    pub fn fresh(&self, vars: &[Expr]) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Fresh,
-            self.jni.new_seq(map_to_jobjects!(vars))
+            self.jni.new_seq(&map_to_jobjects!(vars))
         )
     }
 
-    pub fn constraining(&self, vars: Vec<Expr>, body: Stmt) -> Stmt<'a> {
+    pub fn constraining(&self, vars: &[Expr], body: Stmt) -> Stmt<'a> {
         build_ast_node!(
             self,
             Stmt,
             ast::Constraining,
-            self.jni.new_seq(map_to_jobjects!(vars)),
+            self.jni.new_seq(&map_to_jobjects!(vars)),
             body.to_jobject()
         )
     }

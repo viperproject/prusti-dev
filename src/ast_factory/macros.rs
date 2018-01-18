@@ -25,7 +25,7 @@ macro_rules! map_to_jobject {
 #[macro_export]
 macro_rules! map_to_jobjects {
     ($items:expr) => (
-        map_to_jobject!($items.iter()).collect()
+        map_to_jobject!($items.iter()).collect::<Vec<JObject>>()
     );
 }
 
@@ -39,7 +39,7 @@ macro_rules! map_to_jobject_pair {
 #[macro_export]
 macro_rules! map_to_jobject_pairs {
     ($items:expr) => (
-        map_to_jobject_pair!($items.iter()).collect()
+        map_to_jobject_pair!($items.iter()).collect::<Vec<(JObject, JObject)>>()
     );
 }
 

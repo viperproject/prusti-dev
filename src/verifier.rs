@@ -1,3 +1,4 @@
+#![cfg_attr(feature = "cargo-clippy", allow(new_ret_no_self))]
 extern crate jni;
 extern crate viper_sys;
 
@@ -42,10 +43,10 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
 }
 
 impl<'a> Verifier<'a, state::Uninitialized> {
-    pub fn parse_command_line(self, args: Vec<&str>) -> Verifier<'a, state::Stopped> {
+    pub fn parse_command_line(self, args: &[&str]) -> Verifier<'a, state::Stopped> {
         {
             let args = self.jni
-                .new_seq(args.iter().map(|x| self.jni.new_string(x)).collect());
+                .new_seq(&args.iter().map(|x| self.jni.new_string(x)).collect::<Vec<JObject>>());
             self.jni.unwrap_result(
                 self.silicon_wrapper
                     .call_parseCommandLine(self.silicon_instance, args),
