@@ -1,0 +1,32 @@
+language: rust
+cache: cargo
+dist: trusty
+os:
+  - linux
+
+sudo: false
+
+rust:
+  - nightly
+
+before_script:
+  - ( ( cargo install clippy && export CLIPPY=true ) || export CLIPPY=false );
+  - export PATH=$PATH:~/.cargo/bin
+
+script:
+  - cargo build
+  - cargo test
+  - |
+      if [[ $CLIPPY ]]; then
+        cargo clippy
+      fi
+
+after_success:
+  - |
+      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
+        cargo rustdoc --lib -- -Z unstable-options --document-private-items --enable-commonmark &&
+        echo "<meta http-equiv=refresh content=0;url=prusti_contracts/index.html>" > target/doc/index.html &&
+        git clone https://github.com/davisp/ghp-import.git &&
+        ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
+        echo "Uploaded documentation"
+      fi
