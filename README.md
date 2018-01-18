@@ -3,9 +3,7 @@ Viper-sys
 
 [![Build Status][build_badge]][build_status]
 
-This crate exposes the low-level Viper API.
-
-A `viper` crate will wrap this low-level crate in a higher-level API.
+This crate exposes the low-level interface to Viper.
 
 [Development documentation][documentation]
 
