@@ -29,13 +29,13 @@ pub fn generate_method(
     for method_index in 0..num_methods {
         let method = env.get_object_array_element(methods.into_inner(), method_index)?;
 
-        let method_name = java_str_to_string(env.get_string(
+        let method_name = java_str_to_string(&env.get_string(
             env.call_method(method, "getName", "()Ljava/lang/String;", &[])?
                 .l()?
                 .into(),
         )?)?;
 
-        let method_signature = java_str_to_string(env.get_string(
+        let method_signature = java_str_to_string(&env.get_string(
             env.call_static_method(
                 "org/objectweb/asm/Type",
                 "getMethodDescriptor",
@@ -130,8 +130,8 @@ pub fn generate_method(
                 .into(),
         )?;
 
-        parameter_names.push(java_str_to_string(parameter_name)?);
-        parameter_signatures.push(java_str_to_string(parameter_signature)?);
+        parameter_names.push(java_str_to_string(&parameter_name)?);
+        parameter_signatures.push(java_str_to_string(&parameter_signature)?);
     }
 
     let rust_method_name = match suffix {

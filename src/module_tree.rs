@@ -54,9 +54,9 @@ impl ModuleTree {
 
     #[allow(dead_code)]
     pub fn get_paths(&self) -> Vec<Vec<String>> {
-        match self {
-            &ModuleTree::Leaf => vec![],
-            &ModuleTree::Node(ref modules) => {
+        match *self {
+            ModuleTree::Leaf => vec![],
+            ModuleTree::Node(ref modules) => {
                 let mut result: Vec<Vec<String>> = vec![];
                 for (name, sub_modules) in modules.iter() {
                     let mut sub_result: Vec<Vec<String>> = sub_modules.get_paths();

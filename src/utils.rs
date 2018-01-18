@@ -3,14 +3,13 @@ use jni::strings::JavaStr;
 use errors::*;
 
 pub fn get_return_signature(signature: &str) -> String {
-    let splitted: Vec<&str> = signature.split(")").collect();
+    let splitted: Vec<&str> = signature.split(')').collect();
     splitted[1].to_string()
 }
 
 pub fn generate_jni_type(signature: &str) -> String {
     match signature.chars().nth(0).unwrap() {
-        '[' => "JObject".to_string(),
-        'L' => "JObject".to_string(),
+        '[' | 'L' => "JObject".to_string(),
         'B' => "jbyte".to_string(),
         'C' => "jchar".to_string(),
         'S' => "jshort".to_string(),
@@ -26,8 +25,7 @@ pub fn generate_jni_type(signature: &str) -> String {
 
 pub fn generate_return_jni_type(signature: &str) -> String {
     match signature.chars().nth(0).unwrap() {
-        '[' => "JObject<'a>".to_string(),
-        'L' => "JObject<'a>".to_string(),
+        '[' | 'L' => "JObject<'a>".to_string(),
         'B' => "jbyte".to_string(),
         'C' => "jchar".to_string(),
         'S' => "jshort".to_string(),
@@ -50,8 +48,7 @@ pub fn generate_jni_type_char(signature: &str) -> String {
 
 pub fn generate_jvalue_wrapper(par: &str, signature: &str) -> String {
     match signature.chars().nth(0).unwrap() {
-        '[' => format!("JValue::Object({})", par),
-        'L' => format!("JValue::Object({})", par),
+        '[' | 'L' => format!("JValue::Object({})", par),
         'B' => format!("JValue::Byte({})", par),
         'C' => format!("JValue::Char({})", par),
         'S' => format!("JValue::Short({})", par),
@@ -64,6 +61,6 @@ pub fn generate_jvalue_wrapper(par: &str, signature: &str) -> String {
     }
 }
 
-pub fn java_str_to_string(str: JavaStr) -> Result<String> {
-    unsafe { Ok(CStr::from_ptr(str.get_raw()).to_str()?.to_string()) }
+pub fn java_str_to_string(string: &JavaStr) -> Result<String> {
+    unsafe { Ok(CStr::from_ptr(string.get_raw()).to_str()?.to_string()) }
 }
