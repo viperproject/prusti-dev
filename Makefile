@@ -42,11 +42,8 @@ clean:
 	rm -f lint
 
 doc:
-	cargo rustdoc -- \
-		--no-defaults \
-		--passes collapse-docs \
-		--passes unindent-comments \
-		--passes strip-priv-imports
+	cargo rustdoc --lib -- \
+		-Z unstable-options --document-private-items --enable-commonmark
 
 build_release:
 	cargo build --release
