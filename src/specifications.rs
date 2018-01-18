@@ -1,35 +1,6 @@
 //! Data structures for storing information about specifications.
 //!
-//! Currently, we support preconditions, postconditions, and loop
-//! invariants that can be specified by using the attribute syntax as
-//! follows:
-//!
-//! ```rust
-//! #[requires="0 < n && n < 10"]
-//! #[ensures="result > 0"]
-//! fn fib(mut n: i32) -> i32 {
-//!     let mut i = 1;
-//!     let mut j = 1;
-//!     #[invariant="i > 0 && j > 0"]
-//!     while n > 2 {
-//!         let tmp = i + j;
-//!         j = i;
-//!         i = tmp;
-//!         n -= 1;
-//!     }
-//!     i
-//! }
-//! ```
-//!
-//! The allowed assertions are of the form:
-//!
-//!     assertion := assertion && assertion
-//!                | expression ==> assertion
-//!                | (forall variable_name :: {expression} expression)
-//!
-//!  Here ``expression`` is a Rust expression that contains only
-//!  elements that are considered expressions in Viper, plus ``match``
-//!  expressions.
+//! Please see `parser.rs` for more information about specifications.
 
 
 use rustc;

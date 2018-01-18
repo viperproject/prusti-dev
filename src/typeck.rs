@@ -1,4 +1,7 @@
 //! A module for extracting type information for specifications.
+//!
+//! Please see the `parser.rs` file for more information about
+//! specifications.
 
 
 use rustc;

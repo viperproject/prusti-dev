@@ -1,6 +1,122 @@
-//! Code for extracting specifications.
+//! # Extracting and type-checking specifications.
 //!
-//! TODO: Copy documentation from my status report.
+//! Prusti uses the Rust annotation mechanism for specifications.
+//! Currently, we support procedure preconditions and postconditions and
+//! loop invariants. An example specification would look like this:
+//!
+//! ```
+//! #[requires="0 < n && n < 10"]
+//! #[ensures="result > 0"]
+//! fn fib(mut n: i32) -> i32 {
+//!     let mut i = 1;
+//!     let mut j = 1;
+//!     #[invariant="i > 0 && j > 0"]
+//!     while n > 2 {
+//!         let tmp = i + j;
+//!         j = i;
+//!         i = tmp;
+//!         n -= 1;
+//!     }
+//!     i
+//! }
+//! ```
+//!
+//! The current version of the tool support the following assertion
+//! syntax:
+//!
+//!     assertion := assertion && assertion
+//!                | expression ==> assertion
+//!                | (forall variable_name :: {expression} expression ==> expression)
+//!
+//! Here `expression` is a Rust expression that contains only elements
+//! that are considered expressions in Viper, plus `match` expressions.
+//! The parsed specification is stored in the structure
+//! `specifications::UntypedSpecification` and type-checked
+//! specification is stored in the structure
+//! `specifications::TypedSpecification`.
+//!
+//! The general workflow for parsing and type-checking specifications is
+//! as follows:
+//!
+//! 1.  Register callbacks on the `rustc_driver`:
+//!
+//!     +   `after_parse`
+//!     +   `after_analysis`
+//!
+//!     After `after_analysis` the compilation is stopped (except when
+//!     running in the test suite).
+//!
+//! 2.  When the `after_parse` callback is invoked:
+//!
+//!     1.  Register attributes `requires`, `ensures`, `invariant`,
+//!         `__PRUSTI_SPEC_ONLY`, and `__PRUSTI_SPEC` to avoid the
+//!         annoying warning about unknown attributes.
+//!     2.  Collect all specification attributes.
+//!     3.  Construct `UntypedSpecification` objects by parsing the
+//!         specification attributes. First, we split each string into
+//!         assertions and expression strings by using a regular
+//!         expression. Then, by using the `parse_expr_from_source_str`
+//!         procedure we parse each expression into a Rust `Expr` node.
+//!         Finally, for each ``Expression`` generate a unique
+//!         ``ExpressionId``.
+//!     4.  Rewrite the program to add additional function, with “dummy”
+//!         assertions wrapping the Rust expressions used in
+//!         specifications; these are then automatically type checked by
+//!         the Rust compiler. This is necessary because it seems that
+//!         there is no way to call a type checker on an AST manually.
+//!         The example above would be rewritten as follows:
+//!
+//!         ```
+//!         #[__PRUSTI_SPEC = "101"]
+//!         fn fib(mut n: i32) -> i32 {
+//!             let mut i = 1;
+//!             let mut j = 1;
+//!
+//!             #[__PRUSTI_SPEC = "102"]
+//!             while n > 2 {
+//!                 #[__PRUSTI_SPEC_ONLY = "103"]
+//!                 {
+//!                     if false {
+//!                         use prusti_contracts::internal::* ;
+//!                         __assertion(104, i > 0);
+//!                         __assertion(105, j > 0);
+//!                     }
+//!                 }
+//!                 let tmp = i + j;
+//!                 j = i;
+//!                 i = tmp;
+//!                 n -= 1;
+//!             }
+//!             i
+//!         }
+//!
+//!         #[allow(unused_mut)]
+//!         #[allow(dead_code)]
+//!         #[allow(non_snake_case)]
+//!         #[__PRUSTI_SPEC_ONLY = "106"]
+//!         fn fib__spec(mut n: i32) -> i32 {
+//!             use prusti_contracts::internal::* ;
+//!             __assertion(107, 0 < n);
+//!             __assertion(108, n < 10);
+//!             let result = fib(n);
+//!             __assertion(109, result > 0);
+//!             result
+//!         }
+//!         ```
+//!
+//!         The first argument to `__assertion` is an `ExpressionId` of
+//!         the corresponding expression.
+//!
+//! 3.  When the ``after_analysis`` callback is invoked:
+//!
+//!     1.  Traverse HIR and create a map from `ExpressionId` (first
+//!         argument of `__assertion`) to HIR `Expr` (second argument of
+//!         `__assertion`).
+//!     2.  Construct `TypedAssertion` by traversing `UntypedAssertion`
+//!         and inserting HIR expressions based on `ExpressionId`.
+//!
+//! Note: AST/HIR nodes are linked to assertions by specification
+//! identifier that is stored as a ``__PRUSTI_SPEC`` attribute.
 
 
 use ast_builder::MinimalAstBuilder;
@@ -330,7 +446,6 @@ impl<'tcx> SpecParser<'tcx> {
     }
 
     fn rewrite_loop(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
-        // TODO: Recursively rewrite nested loops.
         trace!("[rewrite_loop] enter");
         let mut expr = expr.into_inner();
         let attrs = expr.attrs.to_vec();
