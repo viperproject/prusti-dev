@@ -23,8 +23,12 @@ impl<'a> VerificationContext<'a> {
     }
 
     pub fn new_verifier(&self) -> Verifier<state::Started> {
+        let z3_path = env::var("Z3_PATH").unwrap_or("/usr/bin/viper-z3".to_owned());
+
+        debug!("Using Z3 path: '{}'", &z3_path);
+
         Verifier::<state::Uninitialized>::new(&self.env)
-            .parse_command_line(vec!["--z3Exe", "/usr/bin/viper-z3", "dummy-program.sil"])
+            .parse_command_line(vec!["--z3Exe", z3_path, "dummy-program.sil"])
             .start()
     }
 
