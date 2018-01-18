@@ -44,7 +44,7 @@ pub fn generate_constructor(
 
     let (constructor_signature, constructor) = match target_signature {
         None => {
-            if indexed_constructors.len() == 0 {
+            if indexed_constructors.is_empty() {
                 return Err(ErrorKind::NoConstructors(class.full_name()).into());
             }
             if indexed_constructors.len() > 1 {
@@ -115,8 +115,8 @@ fn generate(
     class: &ClassName,
     constructor_name: &str,
     constructor_signature: &str,
-    parameter_names: &Vec<String>,
-    parameter_signatures: &Vec<String>,
+    parameter_names: &[String],
+    parameter_signatures: &[String],
 ) -> String {
     assert_eq!(parameter_names.len(), parameter_signatures.len());
 
@@ -131,7 +131,7 @@ fn generate(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_type = generate_jni_type(&par_sign);
+        let par_type = generate_jni_type(par_sign);
         code.push(format!(
             "/// - `{}`: `{}` (`{}`)",
             par_name, par_type, par_sign
@@ -150,7 +150,7 @@ fn generate(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_type = generate_jni_type(&par_sign);
+        let par_type = generate_jni_type(par_sign);
         code.push(format!("    {}: {},", par_name, par_type));
     }
 
@@ -175,7 +175,7 @@ fn generate(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_jvalue = generate_jvalue_wrapper(&par_name, &par_sign);
+        let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
         code.push(format!("            {},", par_jvalue));
     }
 

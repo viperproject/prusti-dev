@@ -59,17 +59,17 @@ impl ModuleTree {
             ModuleTree::Node(ref modules) => {
                 let mut result: Vec<Vec<String>> = vec![];
                 for (name, sub_modules) in modules.iter() {
-                    let mut sub_result: Vec<Vec<String>> = sub_modules.get_paths();
-                    if !sub_result.is_empty() {
-                        for i in 0..sub_result.len() {
+                    let mut sub_results: Vec<Vec<String>> = sub_modules.get_paths();
+                    if !sub_results.is_empty() {
+                        for sub_result in &mut sub_results {
                             let mut tmp = vec![name.to_string()];
-                            tmp.append(&mut sub_result[i]);
-                            sub_result[i] = tmp;
+                            tmp.append(sub_result);
+                            *sub_result = tmp;
                         }
                     } else {
-                        sub_result = vec![vec![name.to_string()]];
+                        sub_results = vec![vec![name.to_string()]];
                     }
-                    result.append(&mut sub_result);
+                    result.append(&mut sub_results);
                 }
                 result
             }
@@ -87,9 +87,9 @@ impl ModuleTree {
     where
         F: Fn(HashMap<String, Option<R>>) -> R,
     {
-        match self {
-            &ModuleTree::Leaf => None,
-            &ModuleTree::Node(ref modules) => {
+        match *self {
+            ModuleTree::Leaf => None,
+            ModuleTree::Node(ref modules) => {
                 let mut computed: HashMap<String, Option<R>> = HashMap::new();
                 for (name, sub_modules) in modules.iter() {
                     computed.insert(name.clone(), sub_modules._visit(f));

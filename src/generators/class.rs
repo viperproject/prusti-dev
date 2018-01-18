@@ -83,18 +83,18 @@ impl<'a> ClassGenerator<'a> {
             warn!("Class {} does not wrap any item", self.class.full_name())
         }
 
-        for item in self.items.iter() {
-            let gen = match item {
-                &ItemWrapperSpec::ScalaObjectGetter() => {
+        for item in &self.items {
+            let gen = match *item {
+                ItemWrapperSpec::ScalaObjectGetter() => {
                     generate_scala_object_getter(self.env, &self.class)?
                 }
-                &ItemWrapperSpec::Constructor {
+                ItemWrapperSpec::Constructor {
                     ref signature,
                     ref suffix,
                 } => {
                     generate_constructor(self.env, &self.class, signature.clone(), suffix.clone())?
                 }
-                &ItemWrapperSpec::Method {
+                ItemWrapperSpec::Method {
                     ref name,
                     ref signature,
                     ref suffix,

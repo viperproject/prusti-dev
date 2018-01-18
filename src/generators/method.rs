@@ -66,7 +66,7 @@ pub fn generate_method(
 
     let (method_signature, method): (String, JObject) = match target_signature {
         None => {
-            if matching_methods.len() == 0 {
+            if matching_methods.is_empty() {
                 unreachable!();
             }
             if matching_methods.len() > 1 {
@@ -165,8 +165,8 @@ fn generate(
     method_name: &str,
     rust_method_name: &str,
     method_signature: &str,
-    parameter_names: &Vec<String>,
-    parameter_signatures: &Vec<String>,
+    parameter_names: &[String],
+    parameter_signatures: &[String],
 ) -> String {
     assert_eq!(parameter_names.len(), parameter_signatures.len());
     let return_signature = get_return_signature(method_signature);
@@ -185,7 +185,7 @@ fn generate(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_type = generate_jni_type(&par_sign);
+        let par_type = generate_jni_type(par_sign);
         code.push(format!(
             "/// - `{}`: `{}` (`{}`)",
             par_name, par_type, par_sign
@@ -205,7 +205,7 @@ fn generate(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_type = generate_jni_type(&par_sign);
+        let par_type = generate_jni_type(par_sign);
         code.push(format!("    {}: {},", par_name, par_type));
     }
 
@@ -238,7 +238,7 @@ fn generate(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_jvalue = generate_jvalue_wrapper(&par_name, &par_sign);
+        let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
         code.push(format!("            {},", par_jvalue));
     }
 
@@ -258,8 +258,8 @@ fn generate_static(
     method_name: &str,
     rust_method_name: &str,
     method_signature: &str,
-    parameter_names: &Vec<String>,
-    parameter_signatures: &Vec<String>,
+    parameter_names: &[String],
+    parameter_signatures: &[String],
 ) -> String {
     assert_eq!(parameter_names.len(), parameter_signatures.len());
     let return_signature = get_return_signature(method_signature);
@@ -278,7 +278,7 @@ fn generate_static(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_type = generate_jni_type(&par_sign);
+        let par_type = generate_jni_type(par_sign);
         code.push(format!(
             "/// - `{}`: `{}` (`{}`)",
             par_name, par_type, par_sign
@@ -297,7 +297,7 @@ fn generate_static(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_type = generate_jni_type(&par_sign);
+        let par_type = generate_jni_type(par_sign);
         code.push(format!("    {}: {},", par_name, par_type));
     }
 
@@ -330,7 +330,7 @@ fn generate_static(
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
-        let par_jvalue = generate_jvalue_wrapper(&par_name, &par_sign);
+        let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
         code.push(format!("            {},", par_jvalue));
     }
 

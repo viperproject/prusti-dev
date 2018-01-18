@@ -34,7 +34,7 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
             }
             res.join("")
         })
-        .unwrap_or("// No modules".to_string());
+        .unwrap_or_else(|| "// No modules".to_string());
 
     vec![
         "//! Automatically generated code\n".to_string(),

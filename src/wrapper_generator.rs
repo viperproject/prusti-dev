@@ -64,7 +64,7 @@ impl WrapperGenerator {
 
         create_dir_all(out_dir)?;
 
-        for class in self.classes.iter() {
+        for class in &self.classes {
             let class_name = class.get_name();
             debug!("Generate wrapper for '{}'", class_name.full_name());
             let class_rel_mod_path = {
