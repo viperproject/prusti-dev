@@ -12,7 +12,7 @@ impl Viper {
     pub fn new() -> Self {
         let viper_home = env::var("VIPER_HOME").unwrap_or("/usr/lib/viper/".to_owned());
 
-        debug!("Viper home: '{}'", &viper_home);
+        debug!("Using Viper home: '{}'", &viper_home);
 
         let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap()
