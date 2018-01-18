@@ -68,7 +68,7 @@ fn panic_on_type_error() {
     let assignment = ast.local_var_assign(local_var, ast.true_lit()); // type error
 
     let if_stmt = ast.if_stmt(
-        local_var,                                                        // type error
+        local_var,                                                  // type error
         ast.seqn(&[ast.assert(local_var, ast.no_position())], &[]), // type error
         ast.seqn(&[ast.assert(ast.false_lit(), ast.no_position())], &[]),
     );

@@ -40,8 +40,10 @@ impl<'a> AstFactory<'a> {
     fn simple_info(&self, comments: &[&str]) -> JObject {
         self.jni.unwrap_result(
             ast::SimpleInfo::with(self.env).new(
-                self.jni
-                    .new_seq(&comments.iter().map(|x| self.jni.new_string(x)).collect::<Vec<JObject>>()),
+                self.jni.new_seq(&comments
+                    .iter()
+                    .map(|x| self.jni.new_string(x))
+                    .collect::<Vec<JObject>>()),
             ),
         )
     }

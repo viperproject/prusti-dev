@@ -53,13 +53,7 @@ fn success_with_simple_chain() {
     cfg.set_successor(block_2, Successor::Return());
     cfg.set_successor(block_3, Successor::Goto(block_2));
 
-    let program = ast.program(
-        &[],
-        &[],
-        &[],
-        &[],
-        &[cfg.to_ast().ok().unwrap()],
-    );
+    let program = ast.program(&[], &[], &[], &[], &[cfg.to_ast().ok().unwrap()]);
 
     let verifier = verification_context.new_verifier();
 
@@ -115,13 +109,7 @@ fn success_with_simple_loop() {
     cfg.set_successor(block_3, Successor::Goto(block_2));
     cfg.set_successor(block_4, Successor::Return());
 
-    let program = ast.program(
-        &[],
-        &[],
-        &[],
-        &[],
-        &[cfg.to_ast().ok().unwrap()],
-    );
+    let program = ast.program(&[], &[], &[], &[], &[cfg.to_ast().ok().unwrap()]);
 
     let verifier = verification_context.new_verifier();
 

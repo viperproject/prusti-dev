@@ -410,12 +410,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn forall(
-        &self,
-        variables: &[LocalVarDecl],
-        triggers: &[Trigger],
-        expr: Expr,
-    ) -> Expr<'a> {
+    pub fn forall(&self, variables: &[LocalVarDecl], triggers: &[Trigger], expr: Expr) -> Expr<'a> {
         build_ast_node!(
             self,
             Expr,
