@@ -22,46 +22,53 @@ env:
     - RUST_LOG=viper=debug,viper-sys=debug,jni-gen=debug
     - RUST_BACKTRACE=1
 
+git:
+  submodules: false
+
 before_install:
   # Make sure stdout is in blocking mode. Otherwise builds will fail due to large writes to stdout
   # See https://github.com/travis-ci/travis-ci/issues/4704. If this gets fixed, this line can also be removed.
   - python3 -c 'import os,sys,fcntl; flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL); fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags&~os.O_NONBLOCK);'
+  # Replace the SSH URL with the public URL, then init and update submodules
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init --recursive
   # Add Viper's PPA
   - wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
   - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
   - travis_retry sudo apt-get update
   # Download and compile Z3 with a known-to-work version
-  - if [ ! -d .cache/z3 ]; then
-      echo "Building Z3 from scratch";
-      wget -O z3.zip https://github.com/Z3Prover/z3/archive/3865c453827506fc5c9d6c6c7c3d66d17030f158.zip;
-      unzip z3.zip;
-      rm z3.zip;
-      mv z3-3865c453827506fc5c9d6c6c7c3d66d17030f158 tmp-z3;
-      cd tmp-z3;
-      ./configure;
-      cd build;
-      make -j 2;
-      cd ../..;
-      mv tmp-z3 .cache/z3;
-    else
-      echo "Using cached Z3";
+  - if [ ! -d .cache/z3 ]; then (
+      echo "Building Z3 from scratch" &&
+      wget -O z3.zip https://github.com/Z3Prover/z3/archive/3865c453827506fc5c9d6c6c7c3d66d17030f158.zip &&
+      unzip z3.zip &&
+      rm z3.zip &&
+      mv z3-3865c453827506fc5c9d6c6c7c3d66d17030f158 tmp-z3 &&
+      cd tmp-z3 &&
+      ./configure &&
+      cd build &&
+      make -j 2 &&
+      cd ../.. &&
+      mv tmp-z3 .cache/z3
+    ); else
+      echo "Using cached Z3" &&
       ls .cache/z3;
     fi
 
 install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
   - travis_retry sudo apt-get install viper
-  - cd .cache/z3/build; sudo make install; cd ../../..
+  - ( cd .cache/z3/build; sudo make install )
+  - ( cargo install clippy && export CLIPPY=true ) || export CLIPPY=false
 
 script:
   - cargo build --all -vv
   - cargo test --verbose -- --nocapture
+  - if [ $CLIPPY ]]; then cargo clippy fi
 
 after_success:
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
-        cargo doc --all &&
-        git clone https://github.com/davisp/ghp-import.git &&
-        ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
-        echo "Uploaded documentation"
-      fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
+      cargo doc --all &&
+      git clone https://github.com/davisp/ghp-import.git &&
+      ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
+      echo "Uploaded documentation";
+    fi
