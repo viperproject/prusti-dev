@@ -4,6 +4,7 @@ use verifier::Verifier;
 use verifier::state;
 use ast_utils::*;
 use cfg_method::*;
+use std::env;
 
 pub struct VerificationContext<'a> {
     env: AttachGuard<'a>,
@@ -28,7 +29,7 @@ impl<'a> VerificationContext<'a> {
         debug!("Using Z3 path: '{}'", &z3_path);
 
         Verifier::<state::Uninitialized>::new(&self.env)
-            .parse_command_line(vec!["--z3Exe", z3_path, "dummy-program.sil"])
+            .parse_command_line(vec!["--z3Exe", &z3_path, "dummy-program.sil"])
             .start()
     }
 
