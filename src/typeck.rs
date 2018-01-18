@@ -217,8 +217,7 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
                         && def_path == r#"::internal[0]::__trigger[0]"# {
                         self.register_typed_expression(args);
                     }
-                    if crate_name == "prusti_contracts"
-                        && def_path == r#"::internal[0]::__id[0]"# {
+                    if crate_name == "prusti_contracts" && def_path == r#"::internal[0]::__id[0]"# {
                         self.register_typed_args(args);
                     }
                 };

@@ -558,19 +558,15 @@ impl<'tcx> SpecParser<'tcx> {
         spec_string_with_span
     }
 
-    fn parse_assertion_wrap(
-        &mut self,
-        span: Span,
-        spec_string: &str,
-    ) -> Option<UntypedAssertion> {
+    fn parse_assertion_wrap(&mut self, span: Span, spec_string: &str) -> Option<UntypedAssertion> {
         match self.parse_assertion(span, spec_string) {
             Ok(assertion) => Some(assertion),
             Err(AssertionParsingError::NotMatchingParenthesis) => {
                 self.report_error(span, "not matching parenthesis");
                 None
             }
-            Err(AssertionParsingError::ParsingRustExpressionFailed) |
-            Err(AssertionParsingError::FailedForallMatch) => None,
+            Err(AssertionParsingError::ParsingRustExpressionFailed)
+            | Err(AssertionParsingError::FailedForallMatch) => None,
         }
     }
 
@@ -821,8 +817,8 @@ impl<'tcx> SpecParser<'tcx> {
                     last1 = None;
                     continue;
                 }
-                if parenthesis_depth == 0 &&
-                    last2 == Some('=') && last1 == Some('=') && char == '>' {
+                if parenthesis_depth == 0 && last2 == Some('=') && last1 == Some('=') && char == '>'
+                {
                     let expr = substring(&spec_string, 0, position - 2);
                     let expr = self.parse_expression(span, expr)?;
                     let assertion = substring(&spec_string, position + 1, spec_string.len());
