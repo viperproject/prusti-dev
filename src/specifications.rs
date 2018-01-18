@@ -45,7 +45,7 @@ impl<'a> TryFrom<&'a str> for SpecType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
 pub struct SpecID(u64);
@@ -68,7 +68,7 @@ impl ToString for SpecID {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the Rust expression used in the specification.
 pub struct ExpressionId(usize);
 

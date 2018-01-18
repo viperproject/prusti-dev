@@ -83,8 +83,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         //control.keep_ast = true;
         let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
         let specifications = Rc::new(Cell::new(None));
-        let put_specifications = specifications.clone();
-        let get_specifications = specifications.clone();
+        let put_specifications = Rc::clone(&specifications);
+        let get_specifications = Rc::clone(&specifications);
         control.after_parse.callback = Box::new(move |state| {
             trace!("[after_parse.callback] enter");
             {

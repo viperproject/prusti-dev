@@ -10,6 +10,8 @@
 //! Code adapted from the Rust compiler source code, file
 //! `libsyntax/ext/build.rs`.
 
+#![allow(unknown_lints)]
+#![allow(clippy)]
 #![allow(missing_docs)]
 
 use syntax::codemap::CodeMap;

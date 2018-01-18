@@ -276,7 +276,7 @@ impl<'tcx> SpecParser<'tcx> {
 
     /// Convert untyped specifications into a sequence of statements for
     /// type-checking.
-    fn convert_to_statements(&self, specifications: &Vec<UntypedSpecification>) -> Vec<ast::Stmt> {
+    fn convert_to_statements(&self, specifications: &[UntypedSpecification]) -> Vec<ast::Stmt> {
         trace!("[convert_to_statements] enter");
         let mut statements = Vec::new();
         for specification in specifications {
@@ -307,14 +307,14 @@ impl<'tcx> SpecParser<'tcx> {
         &mut self,
         item: &ast::Item,
         spec_id: SpecID,
-        preconditions: &Vec<UntypedSpecification>,
-        postconditions: &Vec<UntypedSpecification>,
+        preconditions: &[UntypedSpecification],
+        postconditions: &[UntypedSpecification],
     ) -> ast::Item {
         let mut name = item.ident.to_string();
         let builder = &self.ast_builder;
         let span = item.span;
-        match &item.node {
-            &ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi, ref _generics, ref _body) => {
+        match item.node {
+            ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi, ref _generics, ref _body) => {
                 // Import contracts.
                 let mut statements = vec![self.build_prusti_contract_import(span)];
 
@@ -389,7 +389,7 @@ impl<'tcx> SpecParser<'tcx> {
         &mut self,
         block: ptr::P<ast::Block>,
         spec_id: SpecID,
-        invariants: &Vec<UntypedSpecification>,
+        invariants: &[UntypedSpecification],
     ) -> ptr::P<ast::Block> {
         trace!("[rewrite_loop_block] enter");
         let mut block = block.into_inner();
@@ -515,8 +515,8 @@ impl<'tcx> SpecParser<'tcx> {
             );
             return None;
         }
-        match &trees[0] {
-            &TokenTree::Token(_, ref token) => {
+        match trees[0] {
+            TokenTree::Token(_, ref token) => {
                 if *token != token::Token::Eq {
                     self.report_error(
                         attribute.span,
@@ -530,15 +530,15 @@ impl<'tcx> SpecParser<'tcx> {
                 return None;
             }
         };
-        let spec_string_with_span = match &trees[1] {
-            &TokenTree::Token(span, ref token) => match token {
-                &token::Token::Literal(ref lit, None) => match lit {
-                    &token::Lit::Str_(ref name) => {
+        let spec_string_with_span = match trees[1] {
+            TokenTree::Token(span, ref token) => match *token {
+                token::Token::Literal(ref lit, None) => match *lit {
+                    token::Lit::Str_(ref name) => {
                         let name: &str = &name.as_str();
                         let spec = String::from(name);
                         Some((spec, span))
                     }
-                    &token::Lit::StrRaw(ref name, delimiter_size) => {
+                    token::Lit::StrRaw(ref name, delimiter_size) => {
                         let name: &str = &name.as_str();
                         let spec = String::from(name);
                         Some((spec, shift_span(span, (delimiter_size + 1) as u32)))
@@ -561,7 +561,7 @@ impl<'tcx> SpecParser<'tcx> {
     fn parse_assertion_wrap(
         &mut self,
         span: Span,
-        spec_string: String,
+        spec_string: &str,
     ) -> Option<UntypedAssertion> {
         match self.parse_assertion(span, spec_string) {
             Ok(assertion) => Some(assertion),
@@ -569,7 +569,7 @@ impl<'tcx> SpecParser<'tcx> {
                 self.report_error(span, "not matching parenthesis");
                 None
             }
-            Err(AssertionParsingError::ParsingRustExpressionFailed) => None,
+            Err(AssertionParsingError::ParsingRustExpressionFailed) |
             Err(AssertionParsingError::FailedForallMatch) => None,
         }
     }
@@ -585,7 +585,7 @@ impl<'tcx> SpecParser<'tcx> {
                 if let Ok(spec_type) = SpecType::try_from(&attribute.path.to_string() as &str) {
                     if let Some((spec_string, span)) = self.extract_spec_string(&attribute) {
                         debug!("spec={:?} spec_type={:?}", spec_string, spec_type);
-                        if let Some(assertion) = self.parse_assertion_wrap(span, spec_string) {
+                        if let Some(assertion) = self.parse_assertion_wrap(span, &spec_string) {
                             debug!("assertion={:?}", assertion);
                             Some(UntypedSpecification {
                                 typ: spec_type,
@@ -663,7 +663,7 @@ impl<'tcx> SpecParser<'tcx> {
         let mut vars = Vec::new();
         let re = Regex::new(r"^\s*([a-z][a-z0-9]*)\s*:\s*([a-z][a-z0-9]*)\s*$").unwrap();
         let builder = &self.ast_builder;
-        for var_string in vars_string.split(",") {
+        for var_string in vars_string.split(',') {
             if let Some(caps) = re.captures(var_string) {
                 let name = &caps[1];
                 let typ = &caps[2];
@@ -693,9 +693,9 @@ impl<'tcx> SpecParser<'tcx> {
         );
         let trigger_set_string = trigger_match.as_str();
         let mut triggers = Vec::new();
-        for trigger_string in trigger_set_string.split(";") {
+        for trigger_string in trigger_set_string.split(';') {
             let mut terms = Vec::new();
-            for term in trigger_string.split(",") {
+            for term in trigger_string.split(',') {
                 let term = self.parse_expression(span, String::from(term))?;
                 let expr = Expression {
                     id: self.get_new_expression_id(),
@@ -723,13 +723,13 @@ impl<'tcx> SpecParser<'tcx> {
             expr_match.start() as u32,
             expr_match.as_str().len() as u32,
         );
-        self.parse_expression(span, String::from(expr_string))
+        self.parse_expression(span, expr_string)
     }
 
     fn parse_forall(
         &mut self,
         span: Span,
-        spec_string: String,
+        spec_string: &str,
     ) -> Result<UntypedAssertion, AssertionParsingError> {
         let re = Regex::new(
             r"(?x)
@@ -738,7 +738,7 @@ impl<'tcx> SpecParser<'tcx> {
             (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
         ",
         ).unwrap();
-        if let Some(caps) = re.captures(&spec_string) {
+        if let Some(caps) = re.captures(spec_string) {
             let vars = self.parse_vars(span, caps.name("vars").unwrap())?;
             let triggers = self.parse_triggers(span, caps.name("triggers").unwrap())?;
             let filter = self.parse_forall_expr(span, caps.name("filter").unwrap())?;
@@ -798,16 +798,16 @@ impl<'tcx> SpecParser<'tcx> {
             && (!spec_string.contains("==>")
                 || spec_string.find("forall").unwrap() < spec_string.find("==>").unwrap())
         {
-            return self.parse_forall(span, spec_string);
+            return self.parse_forall(span, &spec_string);
         }
 
         // Parse the implication.
         {
             let mut parenthesis_depth = 0;
-            let mut iter = spec_string.char_indices().peekable();
+            let iter = spec_string.char_indices().peekable();
             let mut last2 = None;
             let mut last1 = None;
-            while let Some((position, char)) = iter.next() {
+            for (position, char) in iter {
                 if char == '(' {
                     parenthesis_depth += 1;
                     last1 = None;
@@ -821,24 +821,23 @@ impl<'tcx> SpecParser<'tcx> {
                     last1 = None;
                     continue;
                 }
-                if parenthesis_depth == 0 {
-                    if last2 == Some('=') && last1 == Some('=') && char == '>' {
-                        let expr = substring(&spec_string, 0, position - 2);
-                        let expr = self.parse_expression(span, expr)?;
-                        let assertion = substring(&spec_string, position + 1, spec_string.len());
-                        let new_span = shift_span(span, (position + 1) as u32);
-                        let assertion = self.parse_assertion(new_span, assertion)?;
-                        let precondition = Expression {
-                            id: self.get_new_expression_id(),
-                            expr: expr,
-                        };
-                        // TODO: Report the bug that the following line
-                        // gives a compiler error.
-                        //let kind = UntypedAssertionKind::Implies(precondition, assertion);
-                        return Ok(UntypedAssertion {
-                            kind: box AssertionKind::Implies(precondition, assertion),
-                        });
-                    }
+                if parenthesis_depth == 0 &&
+                    last2 == Some('=') && last1 == Some('=') && char == '>' {
+                    let expr = substring(&spec_string, 0, position - 2);
+                    let expr = self.parse_expression(span, expr)?;
+                    let assertion = substring(&spec_string, position + 1, spec_string.len());
+                    let new_span = shift_span(span, (position + 1) as u32);
+                    let assertion = self.parse_assertion(new_span, &assertion)?;
+                    let precondition = Expression {
+                        id: self.get_new_expression_id(),
+                        expr: expr,
+                    };
+                    // TODO: Report the bug that the following line
+                    // gives a compiler error.
+                    //let kind = UntypedAssertionKind::Implies(precondition, assertion);
+                    return Ok(UntypedAssertion {
+                        kind: box AssertionKind::Implies(precondition, assertion),
+                    });
                 }
                 last1 = Some(char);
                 last2 = last1;
@@ -867,7 +866,7 @@ impl<'tcx> SpecParser<'tcx> {
     fn parse_assertion(
         &mut self,
         span: Span,
-        spec_string: String,
+        spec_string: &str,
     ) -> Result<UntypedAssertion, AssertionParsingError> {
         trace!("[parse_assertion] enter spec_string={:?}", spec_string);
         let mut iter = spec_string.char_indices().peekable();
@@ -889,9 +888,9 @@ impl<'tcx> SpecParser<'tcx> {
             if parenthesis_depth == 0 && char == '&' {
                 if let Some(&(_, '&')) = iter.peek() {
                     iter.next();
-                    let block = substring(&spec_string, block_start, position);
+                    let block = substring(spec_string, block_start, position);
                     let new_span = shift_span(span, block_start as u32);
-                    let assertion = self.parse_assertion(new_span, block)?;
+                    let assertion = self.parse_assertion(new_span, &block)?;
                     assertions.push(assertion);
                     block_start = position + 2;
                 }
@@ -900,7 +899,7 @@ impl<'tcx> SpecParser<'tcx> {
         if parenthesis_depth != 0 {
             return Err(AssertionParsingError::NotMatchingParenthesis);
         }
-        let block = substring(&spec_string, block_start, spec_string.len());
+        let block = substring(spec_string, block_start, spec_string.len());
         let new_span = shift_span(span, block_start as u32);
         let last_assertion = self.parse_assertion_simple(new_span, block)?;
         let assertion = if assertions.is_empty() {
@@ -929,14 +928,13 @@ impl<'tcx> Folder for SpecParser<'tcx> {
     }
 
     fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
-        let result = match expr.node {
+        match expr.node {
             ast::ExprKind::While(_, _, _)
             | ast::ExprKind::WhileLet(_, _, _, _)
             | ast::ExprKind::ForLoop(_, _, _, _)
             | ast::ExprKind::Loop(_, _) => self.rewrite_loop(expr),
             _ => expr.map(|e| syntax::fold::noop_fold_expr(e, self)),
-        };
-        result
+        }
     }
 }
 

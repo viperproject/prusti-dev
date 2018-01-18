@@ -204,33 +204,26 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
     }
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr) {
-        match expr.node {
-            hir::Expr_::ExprCall(ref target, ref args) => match target.node {
-                hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref path)) => {
-                    match path.def {
-                        hir::def::Def::Fn(def_id) => {
-                            let def_path = self.tcx.def_path(def_id).to_string_no_crate();
-                            let crate_name = self.tcx.crate_name(def_id.krate);
-                            if crate_name == "prusti_contracts"
-                                && def_path == r#"::internal[0]::__assertion[0]"# {
-                                self.register_typed_expression(args);
-                            }
-                            if crate_name == "prusti_contracts"
-                                && def_path == r#"::internal[0]::__trigger[0]"# {
-                                self.register_typed_expression(args);
-                            }
-                            if crate_name == "prusti_contracts"
-                                && def_path == r#"::internal[0]::__id[0]"# {
-                                self.register_typed_args(args);
-                            }
-                        }
-                        _ => {}
-                    };
-                }
-                _ => {}
-            },
-            _ => {}
-        }
+        if let hir::Expr_::ExprCall(ref target, ref args) = expr.node {
+            if let hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref path)) = target.node {
+                if let hir::def::Def::Fn(def_id) = path.def {
+                    let def_path = self.tcx.def_path(def_id).to_string_no_crate();
+                    let crate_name = self.tcx.crate_name(def_id.krate);
+                    if crate_name == "prusti_contracts"
+                        && def_path == r#"::internal[0]::__assertion[0]"# {
+                        self.register_typed_expression(args);
+                    }
+                    if crate_name == "prusti_contracts"
+                        && def_path == r#"::internal[0]::__trigger[0]"# {
+                        self.register_typed_expression(args);
+                    }
+                    if crate_name == "prusti_contracts"
+                        && def_path == r#"::internal[0]::__id[0]"# {
+                        self.register_typed_args(args);
+                    }
+                };
+            };
+        };
         intravisit::walk_expr(self, expr);
     }
 }

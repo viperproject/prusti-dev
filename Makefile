@@ -45,6 +45,10 @@ doc:
 	cargo rustdoc --lib -- \
 		-Z unstable-options --document-private-items --enable-commonmark
 
+# cargo install --force clippy
+clippy:
+	cargo clippy
+
 # cargo install rustfmt-nightly
 format_code:
 	cargo fmt
