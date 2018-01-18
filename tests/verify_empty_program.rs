@@ -1,6 +1,8 @@
 extern crate env_logger;
 extern crate error_chain;
 extern crate jni;
+#[macro_use]
+extern crate log;
 extern crate viper_sys;
 
 use std::fs;
@@ -12,6 +14,7 @@ use jni::objects::JObject;
 use error_chain::ChainedError;
 use viper_sys::get_system_out;
 use viper_sys::wrappers::*;
+use std::env;
 
 #[test]
 fn verify_empty_program() {
@@ -65,7 +68,7 @@ fn verify_empty_program() {
         env.set_object_array_element(
             silicon_args_array.into_inner(),
             1,
-            From::from(env.new_string(z3_path)?),
+            From::from(env.new_string(&z3_path)?),
         )?;
 
         env.set_object_array_element(
