@@ -32,6 +32,9 @@ impl<'a> ClassGenerator<'a> {
                 "//! Automatically generated code for '{}'\n",
                 self.class.full_name()
             ),
+            "#![allow(new_ret_no_self)]\n".to_string(),
+            "#![allow(wrong_self_convention)]\n".to_string(),
+            "#![allow(dead_code)]\n".to_string(),
             "#![allow(non_snake_case)]\n".to_string(),
             "#![allow(unused_imports)]\n".to_string(),
             self.generate_imports(),
