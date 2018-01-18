@@ -73,8 +73,11 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         self.default
             .late_callback(matches, sess, crate_stores, input, odir, ofile)
     }
-    fn build_controller(&mut self, sess: &session::Session,
-                        matches: &getopts::Matches) -> driver::CompileController<'a> {
+    fn build_controller(
+        &mut self,
+        sess: &session::Session,
+        matches: &getopts::Matches,
+    ) -> driver::CompileController<'a> {
         let mut control = self.default.build_controller(sess, matches);
         //control.make_glob_map = ???
         //control.keep_ast = true;
@@ -86,16 +89,15 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             trace!("[after_parse.callback] enter");
             {
                 let registry = state.registry.as_mut().unwrap();
+                registry.register_attribute(String::from("invariant"), AttributeType::Whitelisted);
+                registry.register_attribute(String::from("requires"), AttributeType::Whitelisted);
+                registry.register_attribute(String::from("ensures"), AttributeType::Whitelisted);
+                registry
+                    .register_attribute(String::from("__PRUSTI_SPEC"), AttributeType::Whitelisted);
                 registry.register_attribute(
-                    String::from("invariant"), AttributeType::Whitelisted);
-                registry.register_attribute(
-                    String::from("requires"), AttributeType::Whitelisted);
-                registry.register_attribute(
-                    String::from("ensures"), AttributeType::Whitelisted);
-                registry.register_attribute(
-                    String::from("__PRUSTI_SPEC"), AttributeType::Whitelisted);
-                registry.register_attribute(
-                    String::from("__PRUSTI_SPEC_ONLY"), AttributeType::Whitelisted);
+                    String::from("__PRUSTI_SPEC_ONLY"),
+                    AttributeType::Whitelisted,
+                );
             }
             let untyped_specifications = prusti::parser::rewrite_crate(state);
             put_specifications.set(Some(untyped_specifications));
@@ -107,8 +109,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         control.after_analysis.callback = Box::new(move |state| {
             trace!("[after_analysis.callback] enter");
             let untyped_specifications = get_specifications.replace(None).unwrap();
-            let typed_specifications = prusti::typeck::type_specifications(
-                state, untyped_specifications);
+            let typed_specifications =
+                prusti::typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
             trace!("[after_analysis.callback] exit");
             old(state);
@@ -122,13 +124,13 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
 
 fn get_sysroot() -> String {
     Command::new("rustc")
-                .arg("--print")
-                .arg("sysroot")
-                .output()
-                .ok()
-                .and_then(|out| String::from_utf8(out.stdout).ok())
-                .map(|s| s.trim().to_owned())
-                .expect("Failed to figure out SYSROOT.")
+        .arg("--print")
+        .arg("sysroot")
+        .output()
+        .ok()
+        .and_then(|out| String::from_utf8(out.stdout).ok())
+        .map(|s| s.trim().to_owned())
+        .expect("Failed to figure out SYSROOT.")
 }
 
 pub fn main() {
@@ -139,8 +141,7 @@ pub fn main() {
     args.push(get_sysroot());
     let mut prusti_compiler_calls = PrustiCompilerCalls::new();
     rustc_driver::in_rustc_thread(move || {
-        let (result, _) = rustc_driver::run_compiler(
-            &args, &mut prusti_compiler_calls, None, None);
+        let (result, _) = rustc_driver::run_compiler(&args, &mut prusti_compiler_calls, None, None);
         if let Err(session::CompileIncomplete::Errored(_)) = result {
             std::process::exit(101);
         }

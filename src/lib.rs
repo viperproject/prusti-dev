@@ -40,7 +40,6 @@
 //! TODO: Implement `prusti_interface`.
 
 #![warn(missing_docs)]
-
 #![feature(plugin_registrar)]
 #![feature(quote)]
 #![feature(box_syntax)]

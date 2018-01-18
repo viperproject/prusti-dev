@@ -7,13 +7,11 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
-
 use rustc;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::string::ToString;
 use syntax::{ast, ptr};
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A specification type.
@@ -35,19 +33,17 @@ pub enum TryFromStringError {
 }
 
 impl<'a> TryFrom<&'a str> for SpecType {
-
     type Error = TryFromStringError;
 
     fn try_from(typ: &str) -> Result<SpecType, TryFromStringError> {
         match typ {
-            "requires" => {Ok(SpecType::Precondition)},
-            "ensures" => {Ok(SpecType::Postcondition)},
-            "invariant" => {Ok(SpecType::Invariant)},
-            _ => {Err(TryFromStringError::UnknownSpecificationType)},
+            "requires" => Ok(SpecType::Precondition),
+            "ensures" => Ok(SpecType::Postcondition),
+            "invariant" => Ok(SpecType::Invariant),
+            _ => Err(TryFromStringError::UnknownSpecificationType),
         }
     }
 }
-
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the specification element such as entire precondition
@@ -57,12 +53,12 @@ pub struct SpecID(u64);
 impl SpecID {
     /// Constructor.
     pub fn new() -> Self {
-        Self{ 0: 100 }
+        Self { 0: 100 }
     }
     /// Increment ID and return a copy of the new value.
     pub fn inc(&mut self) -> Self {
         self.0 += 1;
-        Self{ 0: self.0 }
+        Self { 0: self.0 }
     }
 }
 
@@ -72,7 +68,6 @@ impl ToString for SpecID {
     }
 }
 
-
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the Rust expression used in the specification.
 pub struct ExpressionId(usize);
@@ -80,12 +75,12 @@ pub struct ExpressionId(usize);
 impl ExpressionId {
     /// Constructor.
     pub fn new() -> Self {
-        Self{ 0: 100 }
+        Self { 0: 100 }
     }
     /// Increment ID and return a copy of the new value.
     pub fn inc(&mut self) -> Self {
         self.0 += 1;
-        Self{ 0: self.0 }
+        Self { 0: self.0 }
     }
 }
 
@@ -103,7 +98,7 @@ impl Into<usize> for ExpressionId {
 
 impl From<u128> for ExpressionId {
     fn from(value: u128) -> Self {
-        Self{ 0: value as usize }
+        Self { 0: value as usize }
     }
 }
 
@@ -188,9 +183,13 @@ pub enum AssertionKind<ET, AT> {
     /// Implication ==>
     Implies(Expression<ET>, Assertion<ET, AT>),
     /// Quantifier (forall vars :: {triggers} filter ==> body)
-    ForAll(ForAllVars<AT>, TriggerSet<ET>, Expression<ET>, Expression<ET>),
+    ForAll(
+        ForAllVars<AT>,
+        TriggerSet<ET>,
+        Expression<ET>,
+        Expression<ET>,
+    ),
 }
-
 
 #[derive(Debug, Clone)]
 /// Specification such as precondition, postcondition, or invariant.
@@ -201,7 +200,6 @@ pub struct Specification<ET, AT> {
     pub assertion: Assertion<ET, AT>,
 }
 
-
 #[derive(Debug, Clone)]
 /// Specification of a single element such as procedure or loop.
 pub enum SpecificationSet<ET, AT> {
@@ -210,7 +208,6 @@ pub enum SpecificationSet<ET, AT> {
     /// Loop invariant.
     Loop(Vec<Specification<ET, AT>>),
 }
-
 
 /// A specification that has no types associated with it.
 pub type UntypedSpecification = Specification<ptr::P<ast::Expr>, ast::Arg>;
@@ -226,7 +223,6 @@ pub type UntypedAssertionKind = AssertionKind<ptr::P<ast::Expr>, ast::Arg>;
 pub type UntypedExpression = Expression<ptr::P<ast::Expr>>;
 /// A trigger set that has not types associated with it.
 pub type UntypedTriggerSet = TriggerSet<ptr::P<ast::Expr>>;
-
 
 /// A specification that types associated with it.
 pub type TypedSpecification = Specification<rustc::hir::Expr, rustc::hir::Arg>;

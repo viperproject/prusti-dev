@@ -45,6 +45,10 @@ doc:
 	cargo rustdoc --lib -- \
 		-Z unstable-options --document-private-items --enable-commonmark
 
+# cargo install rustfmt-nightly
+format_code:
+	cargo fmt
+
 build_release:
 	cargo build --release
 

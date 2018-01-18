@@ -2,7 +2,7 @@ extern crate compiletest_rs;
 
 use std::env::set_var;
 use std::path::PathBuf;
-use compiletest_rs::{Config, common, run_tests};
+use compiletest_rs::{common, run_tests, Config};
 
 static RUSTC_FLAGS: &'static str = "-Z mir-emit-validate=1 -Z borrowck=mir -Z nll";
 
