@@ -17,7 +17,13 @@ use viper_sys::wrappers::*;
 fn verify_empty_program() {
     env_logger::init().expect("failed to initialize env_logger");
 
-    let jar_paths: Vec<String> = fs::read_dir("/usr/lib/viper/")
+    let viper_home = env::var("VIPER_HOME").unwrap_or("/usr/lib/viper/".to_owned());
+    debug!("Using Viper home: '{}'", &viper_home);
+
+    let z3_path = env::var("Z3_PATH").unwrap_or("/usr/bin/viper-z3".to_owned());
+    debug!("Using Z3 path: '{}'", &z3_path);
+
+    let jar_paths: Vec<String> = fs::read_dir(viper_home)
         .unwrap()
         .map(|x| x.unwrap().path().to_str().unwrap().to_owned())
         .collect();
@@ -59,7 +65,7 @@ fn verify_empty_program() {
         env.set_object_array_element(
             silicon_args_array.into_inner(),
             1,
-            From::from(env.new_string("/usr/bin/viper-z3")?),
+            From::from(env.new_string(z3_path)?),
         )?;
 
         env.set_object_array_element(
