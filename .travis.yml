@@ -58,29 +58,28 @@ install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
   - travis_retry sudo apt-get install viper
   - ( cd .cache/z3/build && sudo make install )
-  - ( cargo install clippy -f && export CLIPPY=true ) || export CLIPPY=false
-  - cargo install mdbook -f --vers 0.0.26
+  - cargo install mdbook --vers 0.0.26 || true
 
 script:
   - cargo build --all -vv
   - cargo test --verbose -- --nocapture
-  - if [[ $CLIPPY ]]; then cargo clippy fi
 
 after_success:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
-      echo "Build documentation" &&
-      for module in $MODULES; do
-        echo "Build documentation for $module" &&
-        cd $module &&
-        cargo rustdoc --lib -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
-        cd ..;
-      done &&
-      echo "Build design documentation" &&
-      cd design &&
-      mdbook build &&
-      cd .. &&
-      cp -r design/book target/doc/design &&
-      git clone https://github.com/davisp/ghp-import.git &&
-      ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
-      echo "Uploaded documentation";
-    fi
+  - |
+      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
+        echo "Build documentation" &&
+        for module in $MODULES; do
+          echo "Build documentation for $module" &&
+          cd $module &&
+          cargo rustdoc --lib -- -Z unstable-options --document-private-items --enable-commonmark &&
+          cd ..;
+        done &&
+        echo "Build design documentation" &&
+        cd design &&
+        mdbook build &&
+        cd .. &&
+        cp -r design/book target/doc/design &&
+        git clone https://github.com/davisp/ghp-import.git &&
+        ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
+        echo "Uploaded documentation";
+      fi
