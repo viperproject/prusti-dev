@@ -9,4 +9,4 @@ Prusti contracts is a crate that defines functions that can be used in
 
 [build_badge]: https://travis-ci.org/viperproject/prusti_contracts.svg
 [build_status]: https://travis-ci.org/viperproject/prusti_contracts
-[documentation]: https://viperproject.github.io/prusti_contracts/
+[documentation]: https://viperproject.github.io/prusti-dev/prusti_contracts/
