@@ -5,13 +5,31 @@ use std::path::PathBuf;
 use compiletest_rs::{common, run_tests, Config};
 
 static RUSTC_FLAGS: &'static str = "-Z mir-emit-validate=1 -Z borrowck=mir -Z nll";
+static LOCAL_DRIVER_PATH: &'static str = "target/debug/prusti-driver";
+static WORKSPACE_DRIVER_PATH: &'static str = "../target/debug/prusti-driver";
+static WORKSPACE_PRUSTI_CONTRACTS_PATH: &'static str = "../target/debug/libprusti_contracts.rlib";
+
+fn get_driver_path() -> PathBuf {
+    if PathBuf::from(LOCAL_DRIVER_PATH).exists() {
+        return PathBuf::from(LOCAL_DRIVER_PATH)
+    }
+    if PathBuf::from(WORKSPACE_DRIVER_PATH).exists() {
+        return PathBuf::from(WORKSPACE_DRIVER_PATH)
+    }
+    unreachable!();
+}
 
 fn run(group_name: &str) {
     set_var("PRUSTI_TESTS", "true");
 
     let mut config = Config::default();
-    config.rustc_path = PathBuf::from("target/debug/prusti-driver");
-    config.target_rustcflags = Some(RUSTC_FLAGS.to_string());
+    config.rustc_path = get_driver_path();
+    let mut rustc_flags = RUSTC_FLAGS.to_string();
+    if PathBuf::from(WORKSPACE_PRUSTI_CONTRACTS_PATH).exists() {
+        rustc_flags.push_str(" --extern prusti_contracts=");
+        rustc_flags.push_str(WORKSPACE_PRUSTI_CONTRACTS_PATH);
+    }
+    config.target_rustcflags = Some(rustc_flags);
     config.link_deps();
 
     let path = PathBuf::from(format!("tests/{}/ui", group_name));
