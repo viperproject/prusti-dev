@@ -20,7 +20,16 @@ env:
 
 install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
+  - cargo +nightly install rustfmt-nightly || true
+  - cargo +nightly install clippy || true
 
 script:
-  - cargo test
-  - cargo test --manifest-path testcrate/Cargo.toml
+  - cargo +nightly fmt -- --write-mode=diff
+  - cargo build -vv
+  - cargo test --verbose -- --nocapture
+  - cargo +nightly clippy
+  - cd testcrate
+  - cargo +nightly fmt -- --write-mode=diff
+  - cargo build -vv
+  - cargo test --verbose -- --nocapture
+  - cargo +nightly clippy
