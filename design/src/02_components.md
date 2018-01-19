@@ -84,5 +84,5 @@ give it instructions what to verify and get the results back.
 On the other hand, `prusti-viper` needs to call back to `prusti` to
 retrieve information about the program being verified.
 
-This crate is described in more detail in [this
-chapter](./04_prusti_interface.html).
+This crate is described in more detail
+[here](https://viperproject.github.io/prusti-dev/prusti_interface/).
