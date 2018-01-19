@@ -54,12 +54,14 @@ install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
   - travis_retry sudo apt-get install viper
   - cd .cache/z3/build; sudo make install; cd ../../..
-  - rustup install nightly
-  - cargo +nightly install rustfmt-nightly || true
-  - cargo +nightly install clippy || true
+  - if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
+      cargo install rustfmt-nightly clippy --force;
+    fi
 
 script:
-  - cargo +nightly fmt -- --write-mode=diff
+  - if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
+      cargo fmt -- --write-mode=diff &&
+      cargo clippy;
+    fi
   - cargo build -vv
   - cargo test --verbose -- --nocapture
-  - cargo +nightly clippy
