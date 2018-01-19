@@ -26,8 +26,7 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
                     }
                     Some(rec_result) => {
                         res.push(format!("pub mod {} {{\n", name));
-                        let code: String = rec_result.to_string();
-                        res.push(code);
+                        res.push(rec_result.to_string());
                         res.push(format!("}} // end of mod {}\n", name));
                     }
                 }
