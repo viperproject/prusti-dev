@@ -10,7 +10,7 @@ infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
 
 [build_badge]: https://travis-ci.org/viperproject/prusti.svg
 [build_status]: https://travis-ci.org/viperproject/prusti
-[documentation]: https://viperproject.github.io/prusti/
+[documentation]: https://viperproject.github.io/prusti-dev/prusti/
 
 ## Debugging
 
