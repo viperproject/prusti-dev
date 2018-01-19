@@ -3,9 +3,9 @@ Prusti-dev
 
 [![Build Status][build_badge]][build_status]
 
-Workspace project containing all Prusti sub-projects.
-
 [Development documentation][documentation]
+
+Workspace project containing all Prusti sub-projects.
 
 [build_badge]: https://travis-ci.org/viperproject/prusti-dev.svg
 [build_status]: https://travis-ci.org/viperproject/prusti-dev
