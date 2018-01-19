@@ -41,6 +41,10 @@ Get started
     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server/"
     ```
 
+    Note: make sure that `LD_LIBRARY_PATH` does not contain empty
+    segments because it can cause a crash with a “multiple inputs
+    provided” error.
+
 - Set the `ASM_JAR` env var to the location of the ASM Jar. If needed, download it.
 
     ```bash
