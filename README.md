@@ -11,4 +11,4 @@ The generated code uses the `jni` crate to interact with the JVM.
 
 [build_badge]: https://travis-ci.org/viperproject/jni-gen.svg
 [build_status]: https://travis-ci.org/viperproject/jni-gen
-[documentation]: https://viperproject.github.io/viper-dev/jni_gen/
+[documentation]: https://viperproject.github.io/prusti-dev/jni_gen/
