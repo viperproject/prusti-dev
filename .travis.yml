@@ -21,6 +21,7 @@ env:
     - Z3_PATH=/usr/bin/z3
     - RUST_LOG=viper=debug,viper-sys=debug,jni-gen=debug
     - RUST_BACKTRACE=1
+    - MODULES="jni-gen viper-sys viper prusti-viper prusti-interface prusti_contracts prusti"
 
 git:
   submodules: false
@@ -67,7 +68,14 @@ script:
 
 after_success:
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
-      cargo doc --all &&
+      echo "Build documentation" &&
+      for module in $MODULES; do
+        echo "Build documentation for $module" &&
+        cd $module &&
+        cargo rustdoc --lib -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
+        cd ..;
+      done &&
+      echo "Build design documentation" &&
       cd design &&
       mdbook build &&
       cd .. &&
