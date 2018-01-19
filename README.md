@@ -21,7 +21,7 @@ Get started
     wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
     echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
     sudo apt-get install viper
-    ```bash
+    ```
 
 - Install Java 8 or a later version.
 
