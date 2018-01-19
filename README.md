@@ -45,16 +45,6 @@ Get started
     segments because it can cause a crash with a “multiple inputs
     provided” error.
 
-- Set the `ASM_JAR` env var to the location of the ASM Jar. If needed, download it.
-
-    ```bash
-    export ASM_JAR="/usr/share/java/asm4.jar"
-    if [ ! -f "$ASM_JAR" ]; then
-        export ASM_JAR="$HOME/asm.jar"
-        wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
-    fi
-    ```
-
 - You can now build all crates
 
     ```bash
