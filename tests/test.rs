@@ -11,10 +11,10 @@ static WORKSPACE_PRUSTI_CONTRACTS_PATH: &'static str = "../target/debug/libprust
 
 fn get_driver_path() -> PathBuf {
     if PathBuf::from(LOCAL_DRIVER_PATH).exists() {
-        return PathBuf::from(LOCAL_DRIVER_PATH)
+        return PathBuf::from(LOCAL_DRIVER_PATH);
     }
     if PathBuf::from(WORKSPACE_DRIVER_PATH).exists() {
-        return PathBuf::from(WORKSPACE_DRIVER_PATH)
+        return PathBuf::from(WORKSPACE_DRIVER_PATH);
     }
     unreachable!();
 }
