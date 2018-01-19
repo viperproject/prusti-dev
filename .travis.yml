@@ -58,6 +58,7 @@ install:
   - travis_retry sudo apt-get install viper
   - ( cd .cache/z3/build && sudo make install )
   - ( cargo install clippy && export CLIPPY=true ) || export CLIPPY=false
+  - cargo install mdbook --vers 0.0.26
 
 script:
   - cargo build --all -vv
@@ -67,6 +68,10 @@ script:
 after_success:
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" ]]; then
       cargo doc --all &&
+      cd design &&
+      mdbook build &&
+      cd .. &&
+      cp -r design/book target/doc/design &&
       git clone https://github.com/davisp/ghp-import.git &&
       ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
       echo "Uploaded documentation";
