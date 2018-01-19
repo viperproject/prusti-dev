@@ -58,15 +58,15 @@ install:
   - wget "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar" -O "$ASM_JAR"
   - travis_retry sudo apt-get install viper
   - ( cd .cache/z3/build && sudo make install )
-  - ( cargo install clippy -f && export CLIPPY=true ) || export CLIPPY=false
-  - cargo install mdbook -f --vers 0.0.26
-  - cargo install -f rustfmt-nightly
+  - cargo install clippy || true
+  - cargo install rustfmt-nightly || true
+  - cargo install mdbook --vers 0.0.26 || true
 
 script:
   - cargo fmt -- --write-mode=diff
   - cargo build --all -vv
   - cargo test --verbose -- --nocapture
-  - if [[ $CLIPPY ]]; then cargo clippy fi
+  - cargo clippy
 
 after_success:
   - |
