@@ -1,6 +1,6 @@
-extern crate testcrate;
-extern crate jni;
 extern crate error_chain;
+extern crate jni;
+extern crate testcrate;
 
 use error_chain::ChainedError;
 use jni::JavaVM;
@@ -28,9 +28,8 @@ fn test_jvm_builtin_classes() {
         panic!(format!("{}", e.display_chain().to_string()));
     });
 
-    let env = jvm.attach_current_thread().expect(
-        "failed to attach jvm thread",
-    );
+    let env = jvm.attach_current_thread()
+        .expect("failed to attach jvm thread");
 
     for int_value in -10..10 {
         for array_length in 1..50 {
@@ -43,16 +42,16 @@ fn test_jvm_builtin_classes() {
                     integer_value,
                 )?);
 
-                let result = java::util::Arrays::with(&env).call_binarySearch(int_array, integer_value)?;
+                let result =
+                    java::util::Arrays::with(&env).call_binarySearch(int_array, integer_value)?;
 
                 assert!(0 <= result && result < array_length);
 
                 Ok(JObject::null())
-
             }).unwrap_or_else(|e| {
-                    print_exception(&env);
-                    panic!(format!("{}", e.display_chain().to_string()));
-                });
+                print_exception(&env);
+                panic!(format!("{}", e.display_chain().to_string()));
+            });
         }
     }
 }
