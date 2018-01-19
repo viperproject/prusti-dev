@@ -1,3 +1,0 @@
-# Prusti Interface
-
-TODO: Write.
