@@ -1,3 +1,5 @@
+use prusti_interface::data::ProcedureDefId;
+
 #[derive(Debug, Clone)]
 pub struct ProcedureTable {}
 
@@ -17,6 +19,3 @@ impl ProcedureTable {
         unimplemented!()
     }
 }
-
-
-
