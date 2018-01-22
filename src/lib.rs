@@ -51,6 +51,7 @@
 #[macro_use]
 extern crate log;
 extern crate prusti_contracts;
+extern crate prusti_interface;
 extern crate regex;
 #[macro_use]
 extern crate rustc;
