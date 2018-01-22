@@ -6,7 +6,7 @@ use prusti_interface::data::VerificationTask;
 use viper::Viper;
 use viper::Method;
 use viper::VerificationError;
-use viper::VerificationContext as VerificationContext;
+use viper::VerificationContext;
 use viper::VerificationResult as ViperVerificationResult;
 use viper::Verifier as ViperVerifier;
 use viper::state as verifier_state;
@@ -20,7 +20,7 @@ struct VerifierBuilder {
 impl VerifierBuilder {
     pub fn new() -> Self {
         VerifierBuilder {
-            viper: Viper::new()
+            viper: Viper::new(),
         }
     }
 
@@ -45,7 +45,7 @@ impl<'a> Verifier<'a> {
             verification_ctx,
             verifier: None,
             verifier_ast: None,
-            procedure_table: ProcedureTable::new()
+            procedure_table: ProcedureTable::new(),
         }
     }
 
