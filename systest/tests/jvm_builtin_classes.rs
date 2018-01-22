@@ -1,14 +1,14 @@
 extern crate error_chain;
 extern crate jni;
-extern crate testcrate;
+extern crate systest;
 
 use error_chain::ChainedError;
 use jni::JavaVM;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;
 use jni::objects::JObject;
-use testcrate::print_exception;
-use testcrate::wrappers::*;
+use systest::print_exception;
+use systest::wrappers::*;
 
 #[test]
 fn test_jvm_builtin_classes() {
