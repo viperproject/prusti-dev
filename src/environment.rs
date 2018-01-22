@@ -111,5 +111,5 @@ pub trait Environment {
     fn get_current_epoch(&self) -> Epoch;
 
     /// Get a Procedure.
-    fn get_procedure(&self, procedure_id: ProcedureDefId) -> Procedure;
+    fn get_procedure(&self, procedure_id: ProcedureDefId) -> Box<Procedure>;
 }
