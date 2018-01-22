@@ -23,6 +23,7 @@ mod cfg_method;
 pub mod errors;
 
 pub use viper::*;
+pub use verifier::*;
 pub use verification_context::*;
 pub use ast_factory::*;
 pub use verification_result::*;
