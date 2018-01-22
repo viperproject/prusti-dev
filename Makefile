@@ -5,7 +5,7 @@ LOG_LEVEL=error
 RUN_FILE=tests/typecheck/pass/lint.rs
 STDERR_FILE=$(RUN_FILE:.rs=.stderr)
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
-LIB_PATH=~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/:target/debug/
+LIB_PATH=~/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/:target/debug/:$$JAVA_HOME/jre/lib/amd64/server/
 DRIVER=target/debug/prusti-driver
 
 run:

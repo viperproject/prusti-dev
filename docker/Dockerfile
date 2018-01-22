@@ -28,7 +28,7 @@ RUN mkdir -p /tmp/rust && \
     cd /tmp/rust && \
     wget -q -c https://sh.rustup.rs -O install.sh && \
     chmod 755 install.sh && \
-    ./install.sh -y --no-modify-path --default-toolchain nightly-2017-12-10 && \
+    ./install.sh -y --no-modify-path --default-toolchain nightly-2018-01-21 && \
     rm -rf /tmp/rust
 
 # Install NLL Rust.
@@ -59,7 +59,7 @@ RUN apt-get update && \
         && \
     apt-get clean
 ENV JAVA_HOME="/usr/lib/jvm/default-java"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server/"
+ENV LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
 
 # Install Prusti.
 RUN cd /tmp && \
