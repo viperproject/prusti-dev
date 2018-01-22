@@ -13,10 +13,12 @@ extern crate prusti;
 extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_errors;
+extern crate rustc_trans_utils;
 extern crate syntax;
 
 use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
+use rustc_trans_utils::trans_crate::TransCrate;
 use std::env::var;
 use std::path::PathBuf;
 use std::process::Command;
@@ -63,6 +65,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
     }
     fn late_callback(
         &mut self,
+        trans: &TransCrate,
         matches: &getopts::Matches,
         sess: &session::Session,
         crate_stores: &rustc::middle::cstore::CrateStore,
@@ -71,7 +74,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         ofile: &Option<PathBuf>,
     ) -> Compilation {
         self.default
-            .late_callback(matches, sess, crate_stores, input, odir, ofile)
+            .late_callback(trans, matches, sess, crate_stores, input, odir, ofile)
     }
     fn build_controller(
         &mut self,

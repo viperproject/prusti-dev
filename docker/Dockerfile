@@ -47,6 +47,20 @@ RUN cd /tmp && \
     rm -rf /tmp/*
 ENV RUSTC=/rust-nll/bin/rustc
 
+# Install Prusti prerequisites.
+RUN wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
+RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
+RUN apt-get update && \
+    apt-get install -y \
+        default-jre \
+        pkg-config \
+        libssl-dev \
+        viper \
+        && \
+    apt-get clean
+ENV JAVA_HOME="/usr/lib/jvm/default-java"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server/"
+
 # Install Prusti.
 RUN cd /tmp && \
     git clone https://github.com/viperproject/prusti.git prusti && \
