@@ -49,9 +49,3 @@ pub enum VerificationResult {
     /// the verifier.
     Failure,
 }
-
-#[derive(Debug, PartialEq, Eq, Hash)]
-/// A Rust procedure.
-pub struct Procedure {
-    // TODO mir: Mir?
-}
