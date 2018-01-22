@@ -42,6 +42,7 @@ pub struct VerificationTask {
 }
 
 /// Verification result returned by a verifier.
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum VerificationResult {
     /// Verification was successful.
     Success,
