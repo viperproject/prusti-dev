@@ -51,7 +51,7 @@ pub enum VerificationResult {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-/// A Rust procedure
+/// A Rust procedure.
 pub struct Procedure {
     // TODO mir: Mir?
 }

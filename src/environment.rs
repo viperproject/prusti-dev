@@ -30,6 +30,6 @@ pub trait Environment {
     /// Get the current epoch.
     fn get_current_epoch(&self) -> Epoch;
 
-    // Get a Procedure
+    /// Get a Procedure.
     fn get_procedure(&self, procedure_id: ProcedureDefId) -> Procedure;
 }
