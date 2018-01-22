@@ -4,6 +4,9 @@
 
 //! This module defines the interface provided to a verifier.
 
+use data::ProcedureDefId;
+use data::Procedure;
+
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
 /// Epoch uniquely identifies the state of the environment. In other
 /// words, if the epoch is the same, then we are verifying still exactly
@@ -26,4 +29,7 @@ impl Epoch {
 pub trait Environment {
     /// Get the current epoch.
     fn get_current_epoch(&self) -> Epoch;
+
+    // Get a Procedure
+    fn get_procedure(&self, procedure_id: ProcedureDefId) -> Procedure;
 }
