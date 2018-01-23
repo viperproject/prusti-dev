@@ -19,7 +19,7 @@ mod verification_result;
 mod verifier;
 mod jni_utils;
 mod ast_utils;
-mod cfg_method;
+mod cfg_factory;
 pub mod errors;
 
 pub use viper::*;
@@ -28,4 +28,4 @@ pub use verification_context::*;
 pub use ast_factory::*;
 pub use verification_result::*;
 pub use ast_utils::*;
-pub use cfg_method::*;
+pub use cfg_factory::*;

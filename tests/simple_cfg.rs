@@ -26,9 +26,9 @@ fn success_with_simple_chain() {
 
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();
+    let cfg_factory = verification_context.new_cfg_factory();
 
-    let mut cfg = verification_context.new_cfg_method(
-        &ast,
+    let mut cfg = cfg_factory.new_cfg_method(
         "foo",
         vec![],
         vec![],
@@ -68,9 +68,9 @@ fn success_with_simple_loop() {
 
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();
+    let cfg_factory = verification_context.new_cfg_factory();
 
-    let mut cfg = verification_context.new_cfg_method(
-        &ast,
+    let mut cfg = cfg_factory.new_cfg_method(
         "foo",
         vec![],
         vec![],
