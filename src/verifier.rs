@@ -31,14 +31,12 @@ impl VerifierBuilder {
 }
 
 pub struct VerificationContext<'a> {
-    verification_ctx: ViperVerificationContext<'a>
+    verification_ctx: ViperVerificationContext<'a>,
 }
 
 impl<'a> VerificationContext<'a> {
     pub fn new(verification_ctx: ViperVerificationContext<'a>) -> Self {
-        VerificationContext {
-            verification_ctx
-        }
+        VerificationContext { verification_ctx }
     }
 
     pub fn new_verifier(&mut self) -> Verifier {
@@ -58,7 +56,10 @@ pub struct Verifier<'a> {
 }
 
 impl<'a> Verifier<'a> {
-    pub fn new(verifier: ViperVerifier<'a, verifier_state::Started>, verifier_ast: ViperAstFactory<'a>) -> Self {
+    pub fn new(
+        verifier: ViperVerifier<'a, verifier_state::Started>,
+        verifier_ast: ViperAstFactory<'a>,
+    ) -> Self {
         Verifier {
             verifier,
             verifier_ast,

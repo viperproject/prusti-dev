@@ -1,6 +1,6 @@
 extern crate env_logger;
-extern crate prusti_viper;
 extern crate prusti_interface;
+extern crate prusti_viper;
 
 use prusti_viper::verifier::VerifierBuilder;
 use prusti_interface::verifier::Verifier;
@@ -40,9 +40,7 @@ fn verify_empty_program() {
 
     let mut verifier = verification_context.new_verifier();
 
-    let verification_task = VerificationTask {
-        procedures: vec![]
-    };
+    let verification_task = VerificationTask { procedures: vec![] };
 
     let verification_result = verifier.verify(&mut fake_environment, &verification_task);
     assert_eq!(verification_result, VerificationResult::Success);
