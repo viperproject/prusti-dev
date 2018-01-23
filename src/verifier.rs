@@ -6,14 +6,14 @@ use prusti_interface::data::VerificationTask;
 use viper::Viper;
 use viper::Method;
 use viper::VerificationError;
-use viper::VerificationContext;
+use viper::VerificationContext as ViperVerificationContext;
 use viper::VerificationResult as ViperVerificationResult;
 use viper::Verifier as ViperVerifier;
 use viper::state as verifier_state;
 use viper::AstFactory as ViperAstFactory;
 use procedure_table::ProcedureTable;
 
-struct VerifierBuilder {
+pub struct VerifierBuilder {
     viper: Viper,
 }
 
@@ -24,59 +24,51 @@ impl VerifierBuilder {
         }
     }
 
-    fn new_verifier<'a>(&'a mut self) -> Verifier<'a> {
-        let verification_ctx: VerificationContext<'a> = self.viper.new_verification_context();
-        Verifier::new(verification_ctx)
+    pub fn new_verification_context(&mut self) -> VerificationContext {
+        let verification_ctx = self.viper.new_verification_context();
+        VerificationContext::new(verification_ctx)
     }
 }
 
-struct Verifier<'a> {
-    verification_ctx: VerificationContext<'a>,
-    verifier: Option<ViperVerifier<'a, verifier_state::Started>>,
-    verifier_ast: Option<ViperAstFactory<'a>>,
+pub struct VerificationContext<'a> {
+    verification_ctx: ViperVerificationContext<'a>
+}
+
+impl<'a> VerificationContext<'a> {
+    pub fn new(verification_ctx: ViperVerificationContext<'a>) -> Self {
+        VerificationContext {
+            verification_ctx
+        }
+    }
+
+    pub fn new_verifier(&mut self) -> Verifier {
+        Verifier::new(
+            self.verification_ctx.new_verifier(),
+            self.verification_ctx.new_ast_factory(),
+        )
+    }
+}
+
+pub struct Verifier<'a> {
+    verifier: ViperVerifier<'a, verifier_state::Started>,
+    verifier_ast: ViperAstFactory<'a>,
     procedure_table: ProcedureTable,
     // fields_table: FieldsTable,
     // ...
 }
 
 impl<'a> Verifier<'a> {
-    fn new(verification_ctx: VerificationContext<'a>) -> Self {
+    pub fn new(verifier: ViperVerifier<'a, verifier_state::Started>, verifier_ast: ViperAstFactory<'a>) -> Self {
         Verifier {
-            verification_ctx,
-            verifier: None,
-            verifier_ast: None,
+            verifier,
+            verifier_ast,
             procedure_table: ProcedureTable::new(),
-        }
-    }
-
-    fn init(&'a mut self) {
-        let verifier = self.verification_ctx.new_verifier();
-        let verifier_ast = self.verification_ctx.new_ast_factory();
-        self.verifier = Some(verifier);
-        self.verifier_ast = Some(verifier_ast);
-    }
-
-    fn get_verifier(&'a self) -> &ViperVerifier<'a, verifier_state::Started> {
-        if let Some(ref verifier) = self.verifier {
-            verifier
-        } else {
-            panic!()
-        }
-    }
-
-    fn get_verifier_ast(&'a self) -> &ViperAstFactory<'a> {
-        if let Some(ref verifier_ast) = self.verifier_ast {
-            verifier_ast
-        } else {
-            panic!()
         }
     }
 }
 
 impl<'a> VerifierSpec for Verifier<'a> {
     fn verify(&mut self, env: &mut Environment, task: &VerificationTask) -> VerificationResult {
-        let verifier = self.get_verifier();
-        let verifier_ast = self.get_verifier_ast();
         let epoch = env.get_current_epoch();
         let verification_methods: Vec<Method> = vec![];
         let mut verification_errors: Vec<VerificationError> = vec![];
@@ -91,8 +83,8 @@ impl<'a> VerifierSpec for Verifier<'a> {
         let verification_fields: Vec<Field> = fields_table.get_used_definitnions(epoch);
         let program = self.verifier_ast.program(&[], &verification_fields, &[], &[], &verification_methods);
         */
-        let program = verifier_ast.program(&[], &[], &[], &[], &[]);
-        let verification_result: ViperVerificationResult = verifier.verify(program);
+        let program = self.verifier_ast.program(&[], &[], &[], &[], &[]);
+        let verification_result: ViperVerificationResult = self.verifier.verify(program);
         if let ViperVerificationResult::Failure(mut errors) = verification_result {
             verification_errors.append(&mut errors)
         }
