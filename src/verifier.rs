@@ -13,9 +13,9 @@ use data::{VerificationResult, VerificationTask};
 /// a new verifier for each crate he or she wants to verify. The main
 /// motivation for having a builder is to be able to cache the JVM
 /// initialization.
-pub trait VerifierBuilder {
+pub trait VerifierBuilder<VerifierImpl: Verifier> {
     /// Construct a new verifier object.
-    fn new_verifier(&mut self) -> Box<Verifier>;
+    fn new_verifier(&mut self) -> VerifierImpl;
 }
 
 /// A verifier is an object for verifying a single crate, potentially
