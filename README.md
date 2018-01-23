@@ -38,7 +38,7 @@ Get started
 - Add `$JAVA_HOME/jre/lib/amd64/server/` to the `LD_LIBRARY_PATH` env var
 
     ```bash
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server/"
+    export LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
     ```
 
     Note: make sure that `LD_LIBRARY_PATH` does not contain empty
