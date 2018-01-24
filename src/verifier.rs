@@ -9,13 +9,26 @@ use data::{VerificationResult, VerificationTask};
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
-/// verifier instances. The user of this interface is supposed to create
-/// a new verifier for each crate he or she wants to verify. The main
-/// motivation for having a builder is to be able to cache the JVM
+/// verification context instances. The user of this interface is supposed
+/// to create a new verifier for each crate he or she wants to verify.
+/// The main motivation for having a builder is to be able to cache the JVM
 /// initialization.
-pub trait VerifierBuilder<VerifierImpl: Verifier> {
+pub trait VerifierBuilder<'vb> {
+    type VerificationContextImpl: VerificationContext<'vb>;
+
+    /// Construct a new verification context object.
+    fn new_verification_context(&'vb mut self) -> Self::VerificationContextImpl;
+}
+
+/// A verification context is an object that lives entire verification's lifetime.
+/// Its main purpose is to build verifiers.
+/// The main motivation for having a verification context is to be able to detach the current
+/// thread from the JVM when the verification context goes out of scope.
+pub trait VerificationContext<'vc> {
+    type VerifierImpl: Verifier;
+
     /// Construct a new verifier object.
-    fn new_verifier(&mut self) -> VerifierImpl;
+    fn new_verifier(&'vc mut self) -> Self::VerifierImpl;
 }
 
 /// A verifier is an object for verifying a single crate, potentially
