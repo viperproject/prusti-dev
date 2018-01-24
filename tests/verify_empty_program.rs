@@ -2,7 +2,7 @@ extern crate env_logger;
 extern crate prusti_interface;
 extern crate prusti_viper;
 
-use prusti_viper::verifier::VerifierBuilder;
+use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
 use prusti_interface::verifier::Verifier;
 use prusti_interface::environment::*;
 use prusti_interface::data::VerificationTask;
@@ -33,7 +33,7 @@ impl Environment for FakeEnvironment {
 fn verify_empty_program() {
     env_logger::init().expect("failed to initialize env_logger");
 
-    let mut verifier_builder = VerifierBuilder::new();
+    let mut verifier_builder = ViperVerifierBuilder::new();
     let mut verification_context = verifier_builder.new_verification_context();
     let mut verifier = verification_context.new_verifier();
 

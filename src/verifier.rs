@@ -22,7 +22,6 @@ impl VerifierBuilder {
         }
     }
 
-    // TODO: add a trait to prusti_interface::verifier with this method
     pub fn new_verification_context(&mut self) -> VerificationContext {
         let verification_ctx = self.viper.new_verification_context();
         VerificationContext::new(verification_ctx)
@@ -38,7 +37,6 @@ impl<'a> VerificationContext<'a> {
         VerificationContext { verification_ctx }
     }
 
-    // TODO: add a trait to prusti_interface::verifier with this method
     pub fn new_verifier(&mut self) -> Verifier {
         Verifier::new(
             self.verification_ctx.new_verifier(),
