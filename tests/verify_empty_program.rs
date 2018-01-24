@@ -29,13 +29,14 @@ fn verify_empty_program() {
     let jar_paths: Vec<String> = fs::read_dir(viper_home)
         .unwrap()
         .map(|x| x.unwrap().path().to_str().unwrap().to_string())
+        .filter(|x| !x.contains("carbon"))
         .collect();
 
     let jvm_args = InitArgsBuilder::new()
         .version(JNIVersion::V8)
         .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
-        .option("-verbose:gc")
         .option("-Xdebug")
+        //.option("-verbose:gc")
         //.option("-Xcheck:jni")
         //.option("-XX:+CheckJNICalls")
         //.option("-Djava.security.debug=all")
