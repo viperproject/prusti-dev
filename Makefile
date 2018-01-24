@@ -35,7 +35,8 @@ build:
 	cargo build
 
 test:
-	cargo test
+	-LD_LIBRARY_PATH=${LIB_PATH} \
+    cargo test
 
 clean:
 	cargo clean
