@@ -4,4 +4,3 @@ extern crate prusti_interface;
 extern crate viper;
 
 pub mod verifier;
-mod procedure_table;

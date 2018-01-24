@@ -34,11 +34,10 @@ fn verify_empty_program() {
     env_logger::init().expect("failed to initialize env_logger");
 
     let mut verifier_builder = VerifierBuilder::new();
-    let mut fake_environment = FakeEnvironment::new();
-
     let mut verification_context = verifier_builder.new_verification_context();
-
     let mut verifier = verification_context.new_verifier();
+
+    let mut fake_environment = FakeEnvironment::new();
 
     let verification_task = VerificationTask { procedures: vec![] };
 
