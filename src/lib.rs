@@ -47,6 +47,7 @@
 extern crate log;
 extern crate prusti_contracts;
 extern crate prusti_interface;
+extern crate prusti_viper;
 extern crate regex;
 #[macro_use]
 extern crate rustc;
@@ -58,3 +59,5 @@ pub mod ast_builder;
 pub mod specifications;
 pub mod parser;
 pub mod typeck;
+pub mod verifier;
+pub mod environment;

@@ -115,6 +115,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let typed_specifications =
                 prusti::typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
+            // Call the verifier
+            prusti::verifier::verify(state, typed_specifications);
             trace!("[after_analysis.callback] exit");
             old(state);
         });
