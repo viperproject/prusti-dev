@@ -14,6 +14,8 @@ use data::{VerificationResult, VerificationTask};
 /// The main motivation for having a builder is to be able to cache the JVM
 /// initialization.
 pub trait VerifierBuilder<'vb> {
+    /// The type of the VerificationContext implementation that is returned by
+    /// `new_verification_context`.
     type VerificationContextImpl: VerificationContext<'vb>;
 
     /// Construct a new verification context object.
@@ -25,6 +27,7 @@ pub trait VerifierBuilder<'vb> {
 /// The main motivation for having a verification context is to be able to detach the current
 /// thread from the JVM when the verification context goes out of scope.
 pub trait VerificationContext<'vc> {
+    /// The type of the Verifier implementation that is returned by `new_verifier`.
     type VerifierImpl: Verifier;
 
     /// Construct a new verifier object.
