@@ -12,7 +12,7 @@ use rustc_driver::driver;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
-    _state: &'r mut driver::CompileState<'a, 'tcx>
+    _state: &'r mut driver::CompileState<'a, 'tcx>,
 }
 
 impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {

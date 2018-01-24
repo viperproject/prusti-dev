@@ -13,7 +13,10 @@ use prusti_viper::verifier::VerifierBuilder;
 use environment::Environment;
 
 /// Verify a (typed) specification on compiler state.
-pub fn verify<'r, 'a: 'r, 'tcx: 'a>(state: &'r mut driver::CompileState<'a, 'tcx>, typed_specifications: TypedSpecificationMap) {
+pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
+    state: &'r mut driver::CompileState<'a, 'tcx>,
+    typed_specifications: TypedSpecificationMap,
+) {
     trace!("[verify] enter");
 
     debug!("typed_specifications: {:?}", typed_specifications);
@@ -30,7 +33,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(state: &'r mut driver::CompileState<'a, 'tcx
 
     match verification_result {
         VerificationResult::Success => info!("Prusti verification succeded"),
-        VerificationResult::Failure => info!("Prusti verification failed")
+        VerificationResult::Failure => info!("Prusti verification failed"),
     };
 
     trace!("[verify] exit");
