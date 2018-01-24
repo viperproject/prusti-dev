@@ -83,7 +83,8 @@ impl<'a> VerifierSpec for Verifier<'a> {
         let verification_fields: Vec<Field> = fields_table.get_used_definitnions(epoch);
         let program = self.verifier_ast.program(&[], &verification_fields, &[], &[], &verification_methods);
         */
-        let program = self.verifier_ast.program(&[], &[], &[], &[], &verification_methods);
+        let program = self.verifier_ast
+            .program(&[], &[], &[], &[], &verification_methods);
         let verification_result: ViperVerificationResult = self.verifier.verify(program);
         if let ViperVerificationResult::Failure(mut errors) = verification_result {
             verification_errors.append(&mut errors)
