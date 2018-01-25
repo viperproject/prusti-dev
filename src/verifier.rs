@@ -1,4 +1,6 @@
 use prusti_interface::verifier::Verifier as VerifierSpec;
+use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
+use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::environment::Environment;
 use prusti_interface::data::VerificationTask;
@@ -21,23 +23,27 @@ impl VerifierBuilder {
             viper: Viper::new(),
         }
     }
+}
 
-    pub fn new_verification_context(&mut self) -> VerificationContext {
+impl<'v> VerifierBuilderSpec<'v, VerificationContext<'v>, Verifier<'v>> for VerifierBuilder {
+    fn new_verification_context(&'v self) -> VerificationContext<'v> {
         let verification_ctx = self.viper.new_verification_context();
         VerificationContext::new(verification_ctx)
     }
 }
 
-pub struct VerificationContext<'a> {
-    verification_ctx: ViperVerificationContext<'a>,
+pub struct VerificationContext<'vc> {
+    verification_ctx: ViperVerificationContext<'vc>,
 }
 
-impl<'a> VerificationContext<'a> {
-    pub fn new(verification_ctx: ViperVerificationContext<'a>) -> Self {
+impl<'vc> VerificationContext<'vc> {
+    pub fn new(verification_ctx: ViperVerificationContext<'vc>) -> Self {
         VerificationContext { verification_ctx }
     }
+}
 
-    pub fn new_verifier(&mut self) -> Verifier {
+impl<'v> VerificationContextSpec<'v, Verifier<'v>> for VerificationContext<'v> {
+    fn new_verifier(&'v self) -> Verifier<'v> {
         Verifier::new(
             self.verification_ctx.new_verifier(),
             self.verification_ctx.new_ast_factory(),
@@ -67,7 +73,7 @@ impl<'a> Verifier<'a> {
     }
 }
 
-impl<'a> VerifierSpec for Verifier<'a> {
+impl<'v> VerifierSpec<'v> for Verifier<'v> {
     fn verify(&mut self, _env: &mut Environment, _task: &VerificationTask) -> VerificationResult {
         // let epoch = env.get_current_epoch();
         let verification_methods: Vec<Method> = vec![];

@@ -4,6 +4,8 @@ extern crate prusti_viper;
 
 use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
 use prusti_interface::verifier::Verifier;
+use prusti_interface::verifier::VerificationContext;
+use prusti_interface::verifier::VerifierBuilder;
 use prusti_interface::environment::*;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
@@ -33,10 +35,10 @@ impl Environment for FakeEnvironment {
 fn verify_empty_program() {
     env_logger::init().expect("failed to initialize env_logger");
 
-    let mut verifier_builder = ViperVerifierBuilder::new();
-    let mut verification_context = verifier_builder.new_verification_context();
-    let mut verifier = verification_context.new_verifier();
+    let verifier_builder = ViperVerifierBuilder::new();
+    let verification_context = verifier_builder.new_verification_context();
 
+    let mut verifier = verification_context.new_verifier();
     let mut fake_environment = FakeEnvironment::new();
 
     let verification_task = VerificationTask { procedures: vec![] };
