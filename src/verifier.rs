@@ -5,11 +5,13 @@
 //! A module that invokes the verifier `prusti-viper`
 
 use specifications::TypedSpecificationMap;
+use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
+use prusti_interface::verifier::VerifierBuilder;
+use prusti_interface::verifier::VerificationContext;
 use prusti_interface::verifier::Verifier;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
 use rustc_driver::driver;
-use prusti_viper::verifier::VerifierBuilder;
 use environment::Environment;
 
 /// Verify a (typed) specification on compiler state.
@@ -25,8 +27,8 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
     let verification_task = VerificationTask { procedures: vec![] };
 
-    let mut verifier_builder = VerifierBuilder::new();
-    let mut verification_context = verifier_builder.new_verification_context();
+    let verifier_builder = ViperVerifierBuilder::new();
+    let verification_context = verifier_builder.new_verification_context();
     let mut verifier = verification_context.new_verifier();
 
     let verification_result = verifier.verify(&mut environment, &verification_task);
