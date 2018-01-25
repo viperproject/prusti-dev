@@ -25,25 +25,29 @@ impl VerifierBuilder {
     }
 }
 
-impl<'v> VerifierBuilderSpec<'v, VerificationContext<'v>, Verifier<'v>> for VerifierBuilder {
-    fn new_verification_context(&'v self) -> VerificationContext<'v> {
+impl<'a> VerifierBuilderSpec<'a> for VerifierBuilder {
+    type VerificationContextImpl = VerificationContext<'a>;
+
+    fn new_verification_context(&'a self) -> VerificationContext<'a> {
         let verification_ctx = self.viper.new_verification_context();
         VerificationContext::new(verification_ctx)
     }
 }
 
-pub struct VerificationContext<'vc> {
-    verification_ctx: ViperVerificationContext<'vc>,
+pub struct VerificationContext<'a> {
+    verification_ctx: ViperVerificationContext<'a>,
 }
 
-impl<'vc> VerificationContext<'vc> {
-    pub fn new(verification_ctx: ViperVerificationContext<'vc>) -> Self {
+impl<'a> VerificationContext<'a> {
+    pub fn new(verification_ctx: ViperVerificationContext<'a>) -> Self {
         VerificationContext { verification_ctx }
     }
 }
 
-impl<'v> VerificationContextSpec<'v, Verifier<'v>> for VerificationContext<'v> {
-    fn new_verifier(&'v self) -> Verifier<'v> {
+impl<'a> VerificationContextSpec<'a> for VerificationContext<'a> {
+    type VerifierImpl = Verifier<'a>;
+
+    fn new_verifier(&'a self) -> Verifier<'a> {
         Verifier::new(
             self.verification_ctx.new_verifier(),
             self.verification_ctx.new_ast_factory(),
@@ -73,7 +77,7 @@ impl<'a> Verifier<'a> {
     }
 }
 
-impl<'v> VerifierSpec<'v> for Verifier<'v> {
+impl<'a> VerifierSpec for Verifier<'a> {
     fn verify(&mut self, _env: &mut Environment, _task: &VerificationTask) -> VerificationResult {
         // let epoch = env.get_current_epoch();
         let verification_methods: Vec<Method> = vec![];
