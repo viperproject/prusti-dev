@@ -25,6 +25,12 @@ impl VerifierBuilder {
     }
 }
 
+impl Default for VerifierBuilder {
+    fn default() -> Self {
+        VerifierBuilder::new()
+    }
+}
+
 impl<'a> VerifierBuilderSpec<'a> for VerifierBuilder {
     type VerificationContextImpl = VerificationContext<'a>;
 
