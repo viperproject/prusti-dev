@@ -3,8 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![cfg_attr(feature = "cargo-clippy", allow(new_ret_no_self))]
-extern crate jni;
-extern crate viper_sys;
 
 use jni::JNIEnv;
 use jni::objects::JObject;
