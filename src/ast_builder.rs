@@ -832,7 +832,13 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     ) -> P<ast::Expr> {
         self.expr(
             span,
-            ast::ExprKind::Closure(ast::CaptureBy::Ref, fn_decl, body, fn_decl_span),
+            ast::ExprKind::Closure(
+                ast::CaptureBy::Ref,
+                ast::Movability::Movable,
+                fn_decl,
+                body,
+                fn_decl_span,
+            ),
         )
     }
 
@@ -850,7 +856,13 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         // here, but that's not entirely clear.
         self.expr(
             span,
-            ast::ExprKind::Closure(ast::CaptureBy::Ref, fn_decl, body, span),
+            ast::ExprKind::Closure(
+                ast::CaptureBy::Ref,
+                ast::Movability::Movable,
+                fn_decl,
+                body,
+                span,
+            ),
         )
     }
 
