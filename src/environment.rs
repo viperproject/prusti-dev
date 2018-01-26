@@ -12,13 +12,42 @@ use rustc_driver::driver;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
-    _state: &'r mut driver::CompileState<'a, 'tcx>,
+    state: &'r mut driver::CompileState<'a, 'tcx>,
 }
 
 impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     /// Builds an environment given a compiler state.
     pub fn new(state: &'r mut driver::CompileState<'a, 'tcx>) -> Self {
-        Environment { _state: state }
+        Environment { state }
+    }
+
+    /// Dumps useful information
+    pub fn dump(&self) {
+        trace!("[dump] enter");
+
+        //debug!("{:?}", self.state.tcx);
+
+        //self.state.tcx.unwrap().
+
+        trace!("[dump] exit");
+    }
+
+    /// Emits a warning message
+    pub fn warn(&self, msg: &str) {
+        self.state.session.warn(msg);
+    }
+
+    /// Emits an error message.
+    ///
+    /// Note: `abort_if_errors()` has to be called in order to stop the compilation with an
+    /// appropriate message and exit code.
+    pub fn err(&self, msg: &str) {
+        self.state.session.err(msg);
+    }
+
+    /// Aborts the compilation and exits with an error code if some error has been emitted so far.
+    pub fn abort_if_errors(&self) {
+        self.state.session.abort_if_errors();
     }
 }
 

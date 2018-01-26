@@ -21,22 +21,32 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 ) {
     trace!("[verify] enter");
 
-    debug!("typed_specifications: {:?}", typed_specifications);
+    debug!(
+        "Specification consists of {} elements.",
+        typed_specifications.len()
+    );
 
-    let mut environment = Environment::new(state);
+    let mut env = Environment::new(state);
+
+    env.dump();
 
     let verification_task = VerificationTask { procedures: vec![] };
 
+    debug!("Prepare verifier...");
     let verifier_builder = ViperVerifierBuilder::new();
     let verification_context = verifier_builder.new_verification_context();
     let mut verifier = verification_context.new_verifier();
 
-    let verification_result = verifier.verify(&mut environment, &verification_task);
+    debug!("Run verifier...");
+    let verification_result = verifier.verify(&mut env, &verification_task);
+    debug!("Verifier returned {:?}", verification_result);
 
     match verification_result {
         VerificationResult::Success => info!("Prusti verification succeded"),
-        VerificationResult::Failure => info!("Prusti verification failed"),
+        VerificationResult::Failure => env.err("Prusti verification failed"),
     };
+
+    env.abort_if_errors();
 
     trace!("[verify] exit");
 }

@@ -32,10 +32,11 @@ generate_ui_stderr:
 
 
 build:
-	cargo build
+	LD_LIBRARY_PATH=${LIB_PATH} \
+    cargo build
 
 test:
-	-LD_LIBRARY_PATH=${LIB_PATH} \
+	LD_LIBRARY_PATH=${LIB_PATH} \
     cargo test
 
 clean:
