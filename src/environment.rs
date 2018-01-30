@@ -38,14 +38,13 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Emits an error message.
-    ///
-    /// Note: `abort_if_errors()` has to be called in order to stop the compilation with an
-    /// appropriate message and exit code.
     pub fn err(&self, msg: &str) {
         self.state.session.err(msg);
     }
 
     /// Aborts the compilation and exits with an error code if some error has been emitted so far.
+    ///
+    /// TODO: check if compiler plugins have to call this method on their own.
     pub fn abort_if_errors(&self) {
         self.state.session.abort_if_errors();
     }

@@ -46,7 +46,5 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         VerificationResult::Failure => env.err("Prusti verification failed"),
     };
 
-    env.abort_if_errors();
-
     trace!("[verify] exit");
 }
