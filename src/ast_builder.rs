@@ -796,7 +796,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             pats,
             guard: None,
             body: expr,
-            beginning_vert: None,
         }
     }
 
