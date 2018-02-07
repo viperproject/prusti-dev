@@ -61,3 +61,4 @@ pub mod parser;
 pub mod typeck;
 pub mod verifier;
 pub mod environment;
+pub mod hir_visitor;

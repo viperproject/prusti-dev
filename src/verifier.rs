@@ -13,22 +13,30 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
 use rustc_driver::driver;
 use environment::Environment;
+use hir_visitor::HirVisitor;
+use rustc::ty::TyCtxt;
+use rustc::hir;
 
 /// Verify a (typed) specification on compiler state.
 pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
     state: &'r mut driver::CompileState<'a, 'tcx>,
-    typed_specifications: TypedSpecificationMap,
+    spec: TypedSpecificationMap,
 ) {
     trace!("[verify] enter");
 
     debug!(
         "Specification consists of {} elements.",
-        typed_specifications.len()
+        spec.len()
     );
 
     let mut env = Environment::new(state);
 
-    env.dump();
+    let tcx: TyCtxt = env.tcx();
+
+    let krate: &hir::Crate = tcx.hir.krate();
+
+    let mut hir_visitor = HirVisitor::new(tcx, &spec);
+    krate.visit_all_item_likes(&mut hir_visitor);
 
     let verification_task = VerificationTask { procedures: vec![] };
 

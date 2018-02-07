@@ -68,6 +68,12 @@ impl ToString for SpecID {
     }
 }
 
+impl From<u64> for SpecID {
+    fn from(value: u64) -> Self {
+        Self { 0: value }
+    }
+}
+
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the Rust expression used in the specification.
 pub struct ExpressionId(usize);

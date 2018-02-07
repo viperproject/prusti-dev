@@ -80,7 +80,7 @@ impl<'a> MinimalAstBuilder<'a> {
             self.meta_name_value(
                 span,
                 self.name_of(name),
-                ast::LitKind::Str(self.name_of(value), ast::StrStyle::Cooked),
+                ast::LitKind::Str(self.name_of(value), ast::StrStyle::Raw(1)),
             ),
         )
     }
@@ -796,7 +796,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             pats,
             guard: None,
             body: expr,
-            beginning_vert: None,
         }
     }
 
@@ -1192,5 +1191,44 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                 kind: ast::UseTreeKind::Glob,
             }),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use syntax_pos::DUMMY_SP;
+    use syntax::parse::ParseSess;
+    use syntax::codemap::FilePathMapping;
+
+    #[test]
+    fn symbol_test() {
+        let value = "123";
+        let sym = Symbol::intern(value);
+        assert_eq!(value, sym.as_str());
+    }
+
+    fn extract_spec(attribute: &ast::Attribute) -> Option<String> {
+        use syntax::tokenstream::TokenTree;
+        use syntax::parse::token;
+
+        let trees: Vec<TokenTree> = attribute.tokens.trees().collect();
+
+        if let TokenTree::Token(_, token::Token::Literal(token::Lit::StrRaw(ref name, _), None)) = trees[1] {
+            Some(name.as_str().to_string())
+        } else {
+            None
+        }
+    }
+
+    #[test]
+    fn adv_symbol_test() {
+        let value = 1023.to_string();
+        let session = ParseSess::new(FilePathMapping::empty());
+        let ast_builder = MinimalAstBuilder::new(&session);
+        let attr = ast_builder.attribute_name_value(DUMMY_SP, "key", &value);
+        println!("{:?}", attr);
+        let ret_val = extract_spec(&attr).unwrap();
+        assert_eq!(value, ret_val);
     }
 }

@@ -454,6 +454,7 @@ impl<'tcx> SpecParser<'tcx> {
             self.ast_builder
                 .attribute_name_value(expr.span, "__PRUSTI_SPEC", &id.to_string()),
         ].into();
+
         trace!("[rewrite_loop] exit");
         ptr::P(expr)
     }
@@ -486,6 +487,7 @@ impl<'tcx> SpecParser<'tcx> {
             self.ast_builder
                 .attribute_name_value(item.span, "__PRUSTI_SPEC", &id.to_string()),
         ];
+
         debug!(
             "new_item:\n{}",
             syntax::print::pprust::item_to_string(&item)

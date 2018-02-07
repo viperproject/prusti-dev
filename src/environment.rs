@@ -9,6 +9,8 @@ use prusti_interface::environment::Environment as EnvironmentSpec;
 use prusti_interface::environment::Procedure;
 use prusti_interface::data::ProcedureDefId;
 use rustc_driver::driver;
+use rustc::ty::TyCtxt;
+use rustc::hir;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
@@ -21,15 +23,9 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         Environment { state }
     }
 
-    /// Dumps useful information
-    pub fn dump(&self) {
-        trace!("[dump] enter");
-
-        //debug!("{:?}", self.state.tcx);
-
-        //self.state.tcx.unwrap().
-
-        trace!("[dump] exit");
+    /// Returns the typing context
+    pub fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
+        self.state.tcx.unwrap()
     }
 
     /// Emits a warning message
