@@ -61,6 +61,13 @@ impl<'a, 'tcx: 'a> HirVisitor<'a, 'tcx> {
                 debug!("def_id: {:?}", def_id);
                 debug!("spec_set: {:?}", spec_set);
                 debug!("mir: {:?}", mir);
+
+                debug!("This function has {} local variables. With names:", mir.local_decls.len());
+                for local_decl in &mir.local_decls {
+                    if let Some(name) = local_decl.name {
+                        debug!("- {}: {}", name, local_decl.ty);
+                    }
+                }
             }
         }
 
