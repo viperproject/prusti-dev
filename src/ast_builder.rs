@@ -1214,7 +1214,9 @@ mod tests {
 
         let trees: Vec<TokenTree> = attribute.tokens.trees().collect();
 
-        if let TokenTree::Token(_, token::Token::Literal(token::Lit::StrRaw(ref name, _), None)) = trees[1] {
+        if let TokenTree::Token(_, token::Token::Literal(token::Lit::StrRaw(ref name, _), None)) =
+            trees[1]
+        {
             Some(name.as_str().to_string())
         } else {
             None

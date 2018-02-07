@@ -24,10 +24,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 ) {
     trace!("[verify] enter");
 
-    debug!(
-        "Specification consists of {} elements.",
-        spec.len()
-    );
+    debug!("Specification consists of {} elements.", spec.len());
 
     let mut env = Environment::new(state);
 

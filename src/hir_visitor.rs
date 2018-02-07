@@ -5,12 +5,12 @@
 //! A visitor that collects functions from the HIR
 
 use rustc::hir::itemlikevisit::ItemLikeVisitor;
-use rustc::hir::{Item, Item_, TraitItem, ImplItem};
+use rustc::hir::{ImplItem, Item, Item_, TraitItem};
 use rustc::ty::TyCtxt;
 use syntax::tokenstream::TokenTree;
 use syntax::print::pprust;
 use std::fmt;
-use syntax::parse::token::{Token, Lit};
+use syntax::parse::token::{Lit, Token};
 use specifications::TypedSpecificationMap;
 use specifications::SpecID;
 
@@ -38,13 +38,17 @@ impl<'a, 'tcx: 'a> HirVisitor<'a, 'tcx> {
                 let spec_string = match trees[1] {
                     TokenTree::Token(_, Token::Literal(Lit::StrRaw(ref name, _), None)) => {
                         name.as_str().to_string()
-                    },
-                    _=> unreachable!()
+                    }
+                    _ => unreachable!(),
                 };
 
                 let spec_id: SpecID = spec_string.parse::<u64>().unwrap().into();
 
-                debug!("HIR item '{}' has __PRUSTI_SPEC = {}", item.name, spec_id.to_string());
+                debug!(
+                    "HIR item '{}' has __PRUSTI_SPEC = {}",
+                    item.name,
+                    spec_id.to_string()
+                );
 
                 let spec_set = self.spec.get(&spec_id).unwrap();
 
@@ -65,9 +69,7 @@ impl<'a, 'tcx: 'a> ItemLikeVisitor<'tcx> for HirVisitor<'a, 'tcx> {
         trace!("[visit_item] exit");
     }
 
-    fn visit_trait_item(&mut self, _trait_item: &'tcx TraitItem) {
-    }
+    fn visit_trait_item(&mut self, _trait_item: &'tcx TraitItem) {}
 
-    fn visit_impl_item(&mut self, _impl_item: &'tcx ImplItem) {
-    }
+    fn visit_impl_item(&mut self, _impl_item: &'tcx ImplItem) {}
 }
