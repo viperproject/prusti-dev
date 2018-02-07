@@ -75,18 +75,107 @@ use rustc::mir::{Mir, Mutability, Operand, Projection, ProjectionElem, Rvalue};
 use rustc_mir::borrow_check::{MirBorrowckCtxt, do_mir_borrowck};
 use rustc_mir::borrow_check::flows::{Flows};
 use rustc_mir::dataflow::FlowsAtLocation;
-use rustc::mir::BasicBlockData;
+use rustc::mir::{BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
 use rustc::mir::Location;
 use rustc_mir::dataflow::move_paths::HasMoveData;
+use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::indexed_vec::Idx;
 use std::fs::File;
 use std::io::{Write, BufWriter};
+
+fn write_scope_tree(
+    tcx: TyCtxt,
+    mir: &Mir,
+    scope_tree: &FxHashMap<VisibilityScope, Vec<VisibilityScope>>,
+    w: &mut Write,
+    parent: VisibilityScope,
+    depth: usize,
+) {
+    let children = match scope_tree.get(&parent) {
+        Some(childs) => childs,
+        None => return,
+    };
+
+    for &child in children {
+        let data = &mir.visibility_scopes[child];
+        assert_eq!(data.parent_scope, Some(parent));
+        writeln!(w, "subgraph clusterscope{} {{", child.index()).unwrap();
+
+        // User variable types (including the user's name in a comment).
+        for local in mir.vars_iter() {
+            let var = &mir.local_decls[local];
+            let (name, source_info) = if var.source_info.scope == child {
+                (var.name.unwrap(), var.source_info)
+            } else {
+                // Not a variable or not declared in this scope.
+                continue;
+            };
+
+            let mut_str = if var.mutability == Mutability::Mut {
+                "mut "
+            } else {
+                ""
+            };
+
+            writeln!(w,
+                "\"let {}{:?}: {:?}; // {} in scope {} at {}\"",
+                mut_str, local, var.ty,
+                name,
+                source_info.scope.index(),
+                tcx.sess.codemap().span_to_string(source_info.span),
+            ).unwrap();
+        }
+
+        write_scope_tree(tcx, mir, scope_tree, w, child, depth + 1);
+
+        writeln!(w, "}}").unwrap();
+    }
+}
+
 fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
     trace!("[callback] enter");
     debug!("flows: {}", flows);
     //debug!("MIR: {:?}", mbcx.mir);
     let mut graph = File::create("graph.dot").expect("Unable to create file");
     let mut graph = BufWriter::new(graph);
-    graph.write_all(b"digraph {\n").unwrap();
+    graph.write_all(b"digraph G {\n").unwrap();
+    writeln!(graph, "graph [compound=true];").unwrap();
+
+    // Scope tree.
+    let mut scope_tree: FxHashMap<VisibilityScope, Vec<VisibilityScope>> = FxHashMap();
+    for (index, scope_data) in mbcx.mir.visibility_scopes.iter().enumerate() {
+        if let Some(parent) = scope_data.parent_scope {
+            scope_tree
+                .entry(parent)
+                .or_insert(vec![])
+                .push(VisibilityScope::new(index));
+        } else {
+            // Only the argument scope has no parent, because it's the root.
+            assert_eq!(index, ARGUMENT_VISIBILITY_SCOPE.index());
+        }
+    }
+    writeln!(graph, "subgraph clusterscopes {{ style=filled;").unwrap();
+    writeln!(graph, "SCOPE_TREE").unwrap();
+    write_scope_tree(mbcx.tcx, &mbcx.mir, &scope_tree, &mut graph, ARGUMENT_VISIBILITY_SCOPE, 1);
+    writeln!(graph, "}}").unwrap();
+
+    // Temporary variables.
+    writeln!(graph, "VARIABLES [ style=filled shape = \"record\"").unwrap();
+    writeln!(graph, "label =<<table>").unwrap();
+    writeln!(graph, "<tr><td>VARIABLES</td></tr>").unwrap();
+    writeln!(graph, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>").unwrap();
+    for temp in mbcx.mir.vars_and_temps_iter() {
+        let var = &mbcx.mir.local_decls[temp];
+        let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
+        let typ = format!("{}", mbcx.mir.local_decls[temp].ty)
+            .replace("&", "&amp;")
+            .replace("{", "\\{")
+            .replace("}", "\\}");
+        writeln!(graph, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", name, temp, typ).unwrap();
+    }
+    writeln!(graph, "</table>>];").unwrap();
+
+    // CFG
     graph.write_all(format!("Resume\n").as_bytes()).unwrap();
     graph.write_all(format!("Abort\n").as_bytes()).unwrap();
     graph.write_all(format!("Return\n").as_bytes()).unwrap();
@@ -96,7 +185,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
         graph.write_all(format!("\"{:?}\" [ shape = \"record\" \n", bb).as_bytes()).unwrap();
         graph.write_all(format!("label =<<table>\n").as_bytes()).unwrap();
         graph.write_all(format!("<tr><td>{:?}</td></tr>\n", bb).as_bytes()).unwrap();
-        graph.write_all(format!("<tr><td>statements</td><td>borrows</td><td>inits</td><td>uninits</td><td>move out</td></tr>\n"
+        graph.write_all(format!("<tr><td>statements</td><td>original</td><td>borrows</td><td>inits</td><td>uninits</td><td>move out</td><td>ever init</td></tr>\n"
                                 ).as_bytes()).unwrap();
 
         let BasicBlockData { ref statements, ref terminator, is_cleanup: _ } =
@@ -116,7 +205,12 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             let stmt_str = format!("{:?}", stmt).replace("&", "&amp;").replace("{", "\\{").replace("}", "\\}");
             graph.write_all(format!("<tr><td>{}</td>", stmt_str).as_bytes()).unwrap();
 
-            // TODO: sess().codemap().span_to_snippet(span).ok()
+            let snippet = if let Some(snippet) = mbcx.tcx.sess.codemap().span_to_snippet(source_info.span).ok() {
+                snippet.replace("{", "\\{").replace("}", "\\}").replace("&", "&amp;")
+            } else {
+                String::from("")
+            };
+            graph.write_all(format!("<td>{}</td>", snippet).as_bytes()).unwrap();
 
             debug!("borrows in effect:");
             graph.write_all(format!("<td>").as_bytes()).unwrap();
@@ -166,11 +260,15 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             graph.write_all(format!("</td>").as_bytes()).unwrap();
 
             debug!("ever_init:");
+            graph.write_all(format!("<td>").as_bytes()).unwrap();
             flows.ever_inits.each_state_bit(|mpi_ever_init| {
                 let ever_init =
                     &flows.ever_inits.operator().move_data().inits[mpi_ever_init];
                 debug!("{:?}", ever_init);
+                graph.write_all(format!(" {:?}, ", ever_init).as_bytes()).unwrap();
             });
+            graph.write_all(format!("</td>").as_bytes()).unwrap();
+
             graph.write_all(format!("</tr>\n").as_bytes()).unwrap();
 
             flows.apply_local_effect(location);
