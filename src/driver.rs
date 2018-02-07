@@ -142,8 +142,8 @@ pub fn main() {
     env_logger::init().unwrap();
     trace!("[main] enter");
     let mut args: Vec<String> = std::env::args().collect();
-    args.push("--sysroot".to_owned());
-    args.push(get_sysroot());
+    //args.push("--sysroot".to_owned());
+    //args.push(get_sysroot());
     let mut prusti_compiler_calls = PrustiCompilerCalls::new();
     rustc_driver::in_rustc_thread(move || {
         let (result, _) = rustc_driver::run_compiler(&args, &mut prusti_compiler_calls, None, None);

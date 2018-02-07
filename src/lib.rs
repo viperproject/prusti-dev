@@ -52,6 +52,7 @@ extern crate regex;
 #[macro_use]
 extern crate rustc;
 extern crate rustc_driver;
+extern crate rustc_mir;
 extern crate syntax;
 extern crate syntax_pos;
 
