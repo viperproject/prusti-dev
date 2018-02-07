@@ -8,26 +8,24 @@ use rustc::hir::itemlikevisit::ItemLikeVisitor;
 use rustc::hir::{ImplItem, Item, Item_, TraitItem};
 use rustc::ty::TyCtxt;
 use syntax::tokenstream::TokenTree;
-use syntax::print::pprust;
-use std::fmt;
 use syntax::parse::token::{Lit, Token};
 use specifications::TypedSpecificationMap;
 use specifications::SpecID;
 
+/// HIR visitor
 pub struct HirVisitor<'a, 'tcx: 'a> {
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     spec: &'a TypedSpecificationMap,
 }
 
 impl<'a, 'tcx: 'a> HirVisitor<'a, 'tcx> {
+    /// Builds a new HIR visitor
     pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, spec: &'a TypedSpecificationMap) -> Self {
         HirVisitor { tcx, spec }
     }
 
     fn visit_fn(&mut self, item: &'tcx Item) {
         trace!("[visit_fn] enter");
-
-        let hir_id = item.hir_id;
 
         let attrs = &item.attrs;
 
@@ -45,14 +43,24 @@ impl<'a, 'tcx: 'a> HirVisitor<'a, 'tcx> {
                 let spec_id: SpecID = spec_string.parse::<u64>().unwrap().into();
 
                 debug!(
-                    "HIR item '{}' has __PRUSTI_SPEC = {}",
+                    "HIR item '{}' has spec_id = {}",
                     item.name,
                     spec_id.to_string()
                 );
 
                 let spec_set = self.spec.get(&spec_id).unwrap();
 
+                let hir_id = item.hir_id;
+
+                let def_id = self.tcx.hir.local_def_id(item.id);
+
+                let mir = self.tcx.mir_validated(def_id).borrow();
+
+                debug!("spec_id: {:?}", spec_id);
+                debug!("hir_id: {:?}", hir_id);
+                debug!("def_id: {:?}", def_id);
                 debug!("spec_set: {:?}", spec_set);
+                debug!("mir: {:?}", mir);
             }
         }
 

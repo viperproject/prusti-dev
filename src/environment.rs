@@ -10,7 +10,6 @@ use prusti_interface::environment::Procedure;
 use prusti_interface::data::ProcedureDefId;
 use rustc_driver::driver;
 use rustc::ty::TyCtxt;
-use rustc::hir;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
