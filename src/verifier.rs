@@ -78,6 +78,7 @@ use rustc_mir::dataflow::FlowsAtLocation;
 use rustc::mir::{BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
 use rustc::mir::Location;
 use rustc_mir::dataflow::move_paths::HasMoveData;
+use rustc_mir::dataflow::move_paths::MovePath;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::indexed_vec::Idx;
 use std::fs::File;
@@ -258,9 +259,17 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 let move_source = move_out.source;
                 debug!("{:?}", move_out);
 
-                let move_path_index = move_out.path;
-                let move_path = &move_data.move_paths[move_path_index];
-                debug!("move_path: {:?}", move_path);
+                let mut move_path_index = move_out.path;
+                let mut move_path = &move_data.move_paths[move_path_index];
+                let mut full_path: Vec<&MovePath> = vec![move_path];
+
+                while let Some(idx) = move_path.parent {
+                    move_path_index = idx;
+                    move_path = &move_data.move_paths[move_path_index];
+                    full_path.insert(0, move_path);
+                }
+
+                debug!("full_path: {:?}", full_path);
 
                 graph.write_all(format!(" {:?}@{:?}, ", move_path, move_source).replace("&", "&amp;").replace("{", "\\{").replace("}", "\\}").as_bytes()).unwrap();
             });
