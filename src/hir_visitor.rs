@@ -59,8 +59,8 @@ impl<'a, 'tcx: 'a> HirVisitor<'a, 'tcx> {
                 debug!("spec_id: {:?}", spec_id);
                 debug!("hir_id: {:?}", hir_id);
                 debug!("def_id: {:?}", def_id);
-                debug!("spec_set: {:?}", spec_set);
-                debug!("mir: {:?}", mir);
+                debug!("spec_set: '{}...'", &format!("{:?}", spec_set)[..50]);
+                debug!("mir: '{}...'", &format!("{:?}", mir)[..50]);
 
                 debug!(
                     "This function has {} local variables. With names:",
