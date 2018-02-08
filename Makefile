@@ -5,17 +5,18 @@ LOG_LEVEL=error
 RUN_FILE=tests/typecheck/pass/lint.rs
 STDERR_FILE=$(RUN_FILE:.rs=.stderr)
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
-LIB_PATH=$PATH_TO_STAGE2_COMPILER/lib/:../target/debug/:$$JAVA_HOME/jre/lib/amd64/server/
+STAGE2_COMPILER_PATH=../../rust/build/x86_64-unknown-linux-gnu/stage2
+LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:../target/debug/:$$JAVA_HOME/jre/lib/amd64/server/
 DRIVER=../target/debug/prusti-driver
 
 run:
 	RUST_LOG=prusti=${LOG_LEVEL} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \
-		--sysroot $PATH_TO_STAGE2_COMPILER/lib/ \
+		--sysroot ${STAGE2_COMPILER_PATH}/lib/ \
 		-L ../target/debug/ \
-		-L $PATH_TO_STAGE2_COMPILER/stage2/lib/ \
-		-L $PATH_TO_STAGE2_COMPILER/stage2/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		-L ${STAGE2_COMPILER_PATH}/lib/ \
+		-L ${STAGE2_COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z mir-emit-validate=1 \
 		-Z borrowck=mir \
