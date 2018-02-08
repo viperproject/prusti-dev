@@ -253,9 +253,16 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             debug!("move_out:");
             graph.write_all(format!("<td>").as_bytes()).unwrap();
             flows.move_outs.each_state_bit(|mpi_move_out| {
-                let move_out = &flows.move_outs.operator().move_data().moves[mpi_move_out];
+                let move_data = &flows.move_outs.operator().move_data();
+                let move_out = &move_data.moves[mpi_move_out];
+                let move_source = move_out.source;
                 debug!("{:?}", move_out);
-                graph.write_all(format!(" {:?}, ", move_out).as_bytes()).unwrap();
+
+                let move_path_index = move_out.path;
+                let move_path = &move_data.move_paths[move_path_index];
+                debug!("move_path: {:?}", move_path);
+
+                graph.write_all(format!(" {:?}@{:?}, ", move_path, move_source).replace("&", "&amp;").replace("{", "\\{").replace("}", "\\}").as_bytes()).unwrap();
             });
             graph.write_all(format!("</td>").as_bytes()).unwrap();
 
