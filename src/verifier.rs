@@ -120,11 +120,11 @@ fn write_scope_tree(
             };
 
             writeln!(w,
-                "\"let {}{:?}: {:?}; // {} in scope {} at {}\"",
-                mut_str, local, var.ty,
+                "\"// {} in scope {} at {}\\nlet {}{:?}: {:?};\"",
                 name,
                 source_info.scope.index(),
                 tcx.sess.codemap().span_to_string(source_info.span),
+                mut_str, local, var.ty,
             ).unwrap();
         }
 
@@ -132,6 +132,20 @@ fn write_scope_tree(
 
         writeln!(w, "}}").unwrap();
     }
+}
+
+fn escape<S: Into<String>>(s: S) -> String {
+    s.into()
+        .replace("\n", "\\n")
+        .replace("{", "\\{")
+        .replace("}", "\\}")
+}
+
+fn escape_html<S: Into<String>>(s: S) -> String {
+    escape(s)
+        .replace("&", "&amp;")
+        .replace(">", "&gt;")
+        .replace("<", "&lt;")
 }
 
 fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
@@ -169,10 +183,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
     for temp in mbcx.mir.vars_and_temps_iter() {
         let var = &mbcx.mir.local_decls[temp];
         let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
-        let typ = format!("{}", mbcx.mir.local_decls[temp].ty)
-            .replace("&", "&amp;")
-            .replace("{", "\\{")
-            .replace("}", "\\}");
+        let typ = escape_html(format!("{}", mbcx.mir.local_decls[temp].ty));
         writeln!(graph, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", name, temp, typ).unwrap();
     }
     writeln!(graph, "</table>>];").unwrap();
@@ -204,11 +215,11 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             //self.visit_statement_entry(location, stmt, flow_state);
             debug!("location={:?} stmt={:?}", location, stmt);
             let source_info = stmt.source_info;
-            let stmt_str = format!("{:?}", stmt).replace("&", "&amp;").replace("{", "\\{").replace("}", "\\}");
+            let stmt_str = escape_html(format!("{:?}", stmt));
             graph.write_all(format!("<tr><td>{}</td>", stmt_str).as_bytes()).unwrap();
 
             let snippet = if let Some(snippet) = mbcx.tcx.sess.codemap().span_to_snippet(source_info.span).ok() {
-                snippet.replace("{", "\\{").replace("}", "\\}").replace("&", "&amp;")
+                escape_html(snippet)
             } else {
                 String::from("")
             };
@@ -220,7 +231,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 let borrow_data = &flows.borrows.operator().borrows()[borrow.borrow_index()];
                 debug!("{}{}", borrow_data,
                        if borrow.is_activation() { "@active" } else { "" });
-                let borrow = format!(" {}, ", borrow_data).replace("&", "&amp;");
+                let borrow = escape_html(format!(" {}, ", borrow_data));
                 graph.write_all(borrow.as_bytes()).unwrap();
             });
 
@@ -228,7 +239,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             flows.borrows.each_gen_bit(|borrow| {
                 let borrow_data = &flows.borrows.operator().borrows()[borrow.borrow_index()];
                 debug!("{}", borrow_data);
-                let borrow = format!(" {}, ", borrow_data).replace("&", "&amp;");
+                let borrow = escape_html(format!(" {}, ", borrow_data));
                 graph.write_all(borrow.as_bytes()).unwrap();
             });
             graph.write_all(format!("</td>").as_bytes()).unwrap();
@@ -238,7 +249,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             flows.inits.each_state_bit(|mpi_init| {
                 let move_path = &flows.inits.operator().move_data().move_paths[mpi_init];
                 debug!("{}", move_path);
-                graph.write_all(format!(" {}, ", move_path).as_bytes()).unwrap();
+                graph.write_all(escape_html(format!(" {}, ", move_path)).as_bytes()).unwrap();
             });
             graph.write_all(format!("</td>").as_bytes()).unwrap();
 
@@ -248,7 +259,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 let move_path =
                     &flows.uninits.operator().move_data().move_paths[mpi_uninit];
                 debug!("{}", move_path);
-                graph.write_all(format!(" {}, ", move_path).as_bytes()).unwrap();
+                graph.write_all(escape_html(format!(" {}, ", move_path)).as_bytes()).unwrap();
             });
             graph.write_all(format!("</td>").as_bytes()).unwrap();
 
@@ -274,7 +285,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
 //
 //                debug!("full_path: {:?}", full_path);
 
-                graph.write_all(format!(" {:?}, ", move_path.place).replace("&", "&amp;").replace("{", "\\{").replace("}", "\\}").as_bytes()).unwrap();
+                graph.write_all(escape_html(format!(" {:?}, ", move_path.place)).as_bytes()).unwrap();
             });
             graph.write_all(format!("</td>").as_bytes()).unwrap();
 
@@ -296,6 +307,15 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             flows.apply_local_effect(location);
             location.statement_index += 1;
         }
+
+        if let Some(ref term) = *terminator {
+            graph.write_all(format!("<tr>").as_bytes()).unwrap();
+            graph.write_all(format!("<td colspan =\"7\">").as_bytes()).unwrap();
+            graph.write_all(escape_html(format!("{:?}", term.kind)).as_bytes()).unwrap();
+            graph.write_all(format!("</td>").as_bytes()).unwrap();
+            graph.write_all(format!("</tr>\n").as_bytes()).unwrap();
+        }
+
         graph.write_all(format!("</table>> ];\n").as_bytes()).unwrap();
 
         if let Some(ref term) = *terminator {
@@ -321,9 +341,16 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 TerminatorKind::Return => {
                     graph.write_all(format!("\"{:?}\" -> \"Return\"\n", bb).as_bytes()).unwrap();
                 },
-                TerminatorKind::Unreachable => {unimplemented!()},
-                TerminatorKind::Drop {..} => {unimplemented!()},
-                TerminatorKind::DropAndReplace {..} => {unimplemented!()},
+                TerminatorKind::Unreachable => { },
+                TerminatorKind::DropAndReplace { ref target, unwind, .. } |
+                    TerminatorKind::Drop { ref target, unwind, .. } => {
+                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                    if let Some(target) = unwind {
+                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n",
+                                                bb, target).as_bytes()).unwrap();
+                    }
+                },
+
                 TerminatorKind::Call { ref destination, cleanup, ..} => {
                     if let &Some((_, target)) = destination {
                         graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
@@ -338,7 +365,12 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 },
                 TerminatorKind::Yield {..} => {unimplemented!()},
                 TerminatorKind::GeneratorDrop => {unimplemented!()},
-                TerminatorKind::FalseEdges {..} => {unimplemented!()},
+                TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
+                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, real_target).as_bytes()).unwrap();
+                    for target in imaginary_targets {
+                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n", bb, target).as_bytes()).unwrap();
+                    }
+                },
             };
         }
     }
