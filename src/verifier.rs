@@ -83,6 +83,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::indexed_vec::Idx;
 use std::fs::File;
 use std::io::{Write, BufWriter};
+use rustc_mir::dataflow::move_paths::MoveOut;
 
 fn write_scope_tree(
     tcx: TyCtxt,
@@ -263,25 +264,30 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 let mut move_path = &move_data.move_paths[move_path_index];
                 let mut full_path: Vec<&MovePath> = vec![move_path];
 
-                while let Some(idx) = move_path.parent {
-                    move_path_index = idx;
-                    move_path = &move_data.move_paths[move_path_index];
-                    full_path.insert(0, move_path);
-                }
+                debug!("move_path: {:?}", move_path);
 
-                debug!("full_path: {:?}", full_path);
+//                while let Some(idx) = move_path.parent {
+//                    move_path_index = idx;
+//                    move_path = &move_data.move_paths[move_path_index];
+//                    full_path.insert(0, move_path);
+//                }
+//
+//                debug!("full_path: {:?}", full_path);
 
-                graph.write_all(format!(" {:?}@{:?}, ", move_path, move_source).replace("&", "&amp;").replace("{", "\\{").replace("}", "\\}").as_bytes()).unwrap();
+                graph.write_all(format!(" {:?}, ", move_path.place).replace("&", "&amp;").replace("{", "\\{").replace("}", "\\}").as_bytes()).unwrap();
             });
             graph.write_all(format!("</td>").as_bytes()).unwrap();
 
             debug!("ever_init:");
             graph.write_all(format!("<td>").as_bytes()).unwrap();
             flows.ever_inits.each_state_bit(|mpi_ever_init| {
-                let ever_init =
-                    &flows.ever_inits.operator().move_data().inits[mpi_ever_init];
-                debug!("{:?}", ever_init);
-                graph.write_all(format!(" {:?}, ", ever_init).as_bytes()).unwrap();
+                let move_data = &flows.ever_inits.operator().move_data();
+                let ever_init = move_data.inits[mpi_ever_init];
+                debug!("ever_init: {:?}", ever_init);
+                let move_out_path_index = ever_init.path;
+                let move_out_path = &move_data.move_paths[move_out_path_index];
+                debug!("move_out_path: {:?}", move_out_path);
+                graph.write_all(format!(" {:?} ({:?}), ", move_out_path.place, ever_init.kind).as_bytes()).unwrap();
             });
             graph.write_all(format!("</td>").as_bytes()).unwrap();
 
