@@ -429,10 +429,10 @@ impl<'tcx> SpecParser<'tcx> {
         if !invariants
             .iter()
             .all(|spec| spec.typ == SpecType::Invariant)
-        {
-            self.report_error(expr.span, "loops can have only invariants");
-            return ptr::P(expr);
-        }
+            {
+                self.report_error(expr.span, "loops can have only invariants");
+                return ptr::P(expr);
+            }
         let spec_set = SpecificationSet::Loop(invariants.clone());
         let id = self.register_specification(spec_set);
         expr.node = match expr.node {
@@ -798,10 +798,10 @@ impl<'tcx> SpecParser<'tcx> {
         // Parse forall.
         if spec_string.contains("forall")
             && (!spec_string.contains("==>")
-                || spec_string.find("forall").unwrap() < spec_string.find("==>").unwrap())
-        {
-            return self.parse_forall(span, &spec_string);
-        }
+            || spec_string.find("forall").unwrap() < spec_string.find("==>").unwrap())
+            {
+                return self.parse_forall(span, &spec_string);
+            }
 
         // Parse the implication.
         {
@@ -824,23 +824,23 @@ impl<'tcx> SpecParser<'tcx> {
                     continue;
                 }
                 if parenthesis_depth == 0 && last2 == Some('=') && last1 == Some('=') && char == '>'
-                {
-                    let expr = substring(&spec_string, 0, position - 2);
-                    let expr = self.parse_expression(span, expr)?;
-                    let assertion = substring(&spec_string, position + 1, spec_string.len());
-                    let new_span = shift_span(span, (position + 1) as u32);
-                    let assertion = self.parse_assertion(new_span, &assertion)?;
-                    let precondition = Expression {
-                        id: self.get_new_expression_id(),
-                        expr: expr,
-                    };
-                    // TODO: Report the bug that the following line
-                    // gives a compiler error.
-                    //let kind = UntypedAssertionKind::Implies(precondition, assertion);
-                    return Ok(UntypedAssertion {
-                        kind: box AssertionKind::Implies(precondition, assertion),
-                    });
-                }
+                    {
+                        let expr = substring(&spec_string, 0, position - 2);
+                        let expr = self.parse_expression(span, expr)?;
+                        let assertion = substring(&spec_string, position + 1, spec_string.len());
+                        let new_span = shift_span(span, (position + 1) as u32);
+                        let assertion = self.parse_assertion(new_span, &assertion)?;
+                        let precondition = Expression {
+                            id: self.get_new_expression_id(),
+                            expr: expr,
+                        };
+                        // TODO: Report the bug that the following line
+                        // gives a compiler error.
+                        //let kind = UntypedAssertionKind::Implies(precondition, assertion);
+                        return Ok(UntypedAssertion {
+                            kind: box AssertionKind::Implies(precondition, assertion),
+                        });
+                    }
                 last1 = Some(char);
                 last2 = last1;
             }
@@ -937,6 +937,10 @@ impl<'tcx> Folder for SpecParser<'tcx> {
             | ast::ExprKind::Loop(_, _) => self.rewrite_loop(expr),
             _ => expr.map(|e| syntax::fold::noop_fold_expr(e, self)),
         }
+    }
+
+    fn fold_mac(&mut self, mac: ast::Mac) -> ast::Mac {
+        mac
     }
 }
 
