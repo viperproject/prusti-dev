@@ -58,8 +58,8 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
     //debug!("Verifier returned {:?}", verification_result);
 
     //match verification_result {
-        //VerificationResult::Success => info!("Prusti verification succeded"),
-        //VerificationResult::Failure => env.err("Prusti verification failed"),
+    //VerificationResult::Success => info!("Prusti verification succeded"),
+    //VerificationResult::Failure => env.err("Prusti verification failed"),
     //};
 
     trace!("[verify] exit");
@@ -73,7 +73,7 @@ struct InfoPrinter<'a, 'tcx: 'a> {
 
 use rustc::mir::{Mir, Mutability, Operand, Projection, ProjectionElem, Rvalue};
 use rustc_mir::borrow_check::{MirBorrowckCtxt, do_mir_borrowck};
-use rustc_mir::borrow_check::flows::{Flows};
+use rustc_mir::borrow_check::flows::Flows;
 use rustc_mir::borrow_check::prefixes::*;
 use rustc_mir::dataflow::FlowsAtLocation;
 use rustc::mir::{BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
@@ -127,11 +127,11 @@ fn write_scope_tree(
             };
 
             writeln!(w,
-                "\"// {} in scope {} at {}\\nlet {}{:?}: {:?};\"",
-                name,
-                source_info.scope.index(),
-                tcx.sess.codemap().span_to_string(source_info.span),
-                mut_str, local, var.ty,
+                     "\"// {} in scope {} at {}\\nlet {}{:?}: {:?};\"",
+                     name,
+                     source_info.scope.index(),
+                     tcx.sess.codemap().span_to_string(source_info.span),
+                     mut_str, local, var.ty,
             ).unwrap();
         }
 
@@ -163,13 +163,12 @@ impl<'tcx> OurBorrowData<'tcx> {
 
 impl<'tcx> fmt::Debug for OurBorrowData<'tcx> {
     fn fmt(&self, w: &mut fmt::Formatter) -> fmt::Result {
-        write!(w, "{:?} = &{}{}{:?}", self.assigned_place, self.region, self.kind_str(), self.borrowed_place)
+        write!(w, "&{}{}{:?}", self.region, self.kind_str(), self.borrowed_place)
     }
 }
 
 impl<'tcx> Hash for OurBorrowData<'tcx> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.assigned_place.hash(state);
         self.region.hash(state);
         self.kind_str().hash(state);
         self.borrowed_place.hash(state);
@@ -184,6 +183,14 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
     let mut graph = BufWriter::new(graph);
     graph.write_all(b"digraph G {\n").unwrap();
     writeln!(graph, "graph [compound=true];").unwrap();
+
+    let show_source = false;
+    let show_definitely_init = false;
+    let show_unknown_init = false;
+    let show_reserved_borrows = true;
+    let show_active_borrows = true;
+    let show_move_out = true;
+    let show_ever_init = false;
 
     // Scope tree.
     let mut scope_tree: FxHashMap<VisibilityScope, Vec<VisibilityScope>> = FxHashMap();
@@ -226,8 +233,15 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
         graph.write_all(format!("\"{:?}\" [ shape = \"record\" \n", bb).as_bytes()).unwrap();
         graph.write_all(format!("label =<<table>\n").as_bytes()).unwrap();
         graph.write_all(format!("<th><td>{:?}</td></th>\n", bb).as_bytes()).unwrap();
-        graph.write_all(format!("<th><td>statements</td><td>original</td><td>definitely init</td><td>unknown init</td><td>reserved borrows</td><td>active borrows</td><td>move out</td><td>ever init</td></th>\n"
-        ).as_bytes()).unwrap();
+        graph.write_all(format!("<th><td>statement</td>").as_bytes()).unwrap();
+        if show_source { graph.write_all(format!("<td>source</td>").as_bytes()).unwrap(); }
+        if show_definitely_init { graph.write_all(format!("<td>definitely init</td>").as_bytes()).unwrap(); }
+        if show_unknown_init { graph.write_all(format!("<td>unknown init</td>").as_bytes()).unwrap(); }
+        if show_reserved_borrows { graph.write_all(format!("<td>reserved borrows</td>").as_bytes()).unwrap(); }
+        if show_active_borrows { graph.write_all(format!("<td>active borrows</td>").as_bytes()).unwrap(); }
+        if show_move_out { graph.write_all(format!("<td>move out</td>").as_bytes()).unwrap(); }
+        if show_ever_init { graph.write_all(format!("<td>ever init</td>").as_bytes()).unwrap(); }
+        graph.write_all(format!("</th>\n").as_bytes()).unwrap();
 
         let BasicBlockData { ref statements, ref terminator, is_cleanup: _ } =
             mbcx.mir[bb];
@@ -245,12 +259,12 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             if first_run {
                 debug!("location={:?}", bb);
             } else {
-                debug!("location={:?}", location );
+                debug!("location={:?}", location);
             }
             graph.write_all(format!("<tr>").as_bytes()).unwrap();
 
             if first_run {
-                graph.write_all(format!("<td colspan=\"2\">(initial state)</td>").as_bytes()).unwrap();
+                graph.write_all(format!("<td colspan=\"{}\">(initial state)</td>", if show_source { 2 } else { 1 }).as_bytes()).unwrap();
             } else if location.statement_index == terminator_index {
                 debug!("term={:?}", terminator);
                 flows.reconstruct_terminator_effect(location);
@@ -260,7 +274,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 } else {
                     String::from("")
                 };
-                graph.write_all(format!("<td colspan=\"2\">{}</td>", term_str).as_bytes()).unwrap();
+                graph.write_all(format!("<td colspan=\"{}\">{}</td>", if show_source { 2 } else { 1 }, term_str).as_bytes()).unwrap();
             } else {
                 let stmt = &statements[location.statement_index];
                 debug!("stmt={:?}", stmt);
@@ -271,12 +285,14 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 let stmt_str = escape_html(format!("{:?}", stmt));
                 graph.write_all(format!("<td>{}</td>", stmt_str).as_bytes()).unwrap();
 
-                let snippet = if let Some(snippet) = mbcx.tcx.sess.codemap().span_to_snippet(source_info.span).ok() {
-                    escape_html(snippet)
-                } else {
-                    String::from("")
-                };
-                graph.write_all(format!("<td>{}</td>", snippet).as_bytes()).unwrap();
+                if show_source {
+                    let snippet = if let Some(snippet) = mbcx.tcx.sess.codemap().span_to_snippet(source_info.span).ok() {
+                        escape_html(snippet)
+                    } else {
+                        String::from("")
+                    };
+                    graph.write_all(format!("<td>{}</td>", snippet).as_bytes()).unwrap();
+                }
             }
 
             let mut maybe_init: HashSet<Place> = HashSet::new();
@@ -308,21 +324,25 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             for place in &definitely_init {
                 debug!("  state: {:?}", place);
             }
-            graph.write_all(format!("<td>").as_bytes()).unwrap();
-            graph.write_all(escape_html(
-                definitely_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-            ).as_bytes()).unwrap();
-            graph.write_all(format!("</td>").as_bytes()).unwrap();
+            if show_definitely_init {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                graph.write_all(escape_html(
+                    definitely_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+                ).as_bytes()).unwrap();
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
             debug!("unknown initialisation:");
             for place in &unknown_init {
                 debug!("  state: {:?}", place);
             }
-            graph.write_all(format!("<td>").as_bytes()).unwrap();
-            graph.write_all(escape_html(
-                unknown_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-            ).as_bytes()).unwrap();
-            graph.write_all(format!("</td>").as_bytes()).unwrap();
+            if show_unknown_init {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                graph.write_all(escape_html(
+                    unknown_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+                ).as_bytes()).unwrap();
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
             let mut borrows_gen: HashSet<Place> = HashSet::new();
             let mut borrows_kill: HashSet<Place> = HashSet::new();
@@ -342,7 +362,9 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             });
 
             flows.borrows.each_state_bit(|borrow| {
-                let borrow_data = &flows.borrows.operator().borrows()[borrow.borrow_index()];
+                let borrows = &flows.borrows.operator();
+                //debug!("  assigned_map: {:?}", &borrows.0.assigned_map);
+                let borrow_data = &borrows.borrows()[borrow.borrow_index()];
                 let our_borrow_data = OurBorrowData {
                     kind: borrow_data.kind.clone(),
                     region: borrow_data.region,
@@ -358,42 +380,50 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 }
             });
 
-            graph.write_all(format!("<td>").as_bytes()).unwrap();
-            graph.write_all(escape_html(
-                reserved_borrows.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-            ).as_bytes()).unwrap();
-            graph.write_all(format!("</td>").as_bytes()).unwrap();
+            if show_reserved_borrows {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                graph.write_all(escape_html(
+                    reserved_borrows.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+                ).as_bytes()).unwrap();
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
-            graph.write_all(format!("<td>").as_bytes()).unwrap();
-            graph.write_all(escape_html(
-                active_borrows.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-            ).as_bytes()).unwrap();
-            graph.write_all(format!("</td>").as_bytes()).unwrap();
+            if show_active_borrows {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                graph.write_all(escape_html(
+                    active_borrows.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+                ).as_bytes()).unwrap();
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
             debug!("moved out:");
-            graph.write_all(format!("<td>").as_bytes()).unwrap();
-            flows.move_outs.each_state_bit(|mpi_move_out| {
-                let move_data = &flows.move_outs.operator().move_data();
-                let move_out = &move_data.moves[mpi_move_out];
-                let mut move_path_index = move_out.path;
-                let mut move_path = &move_data.move_paths[move_path_index];
-                let place = &move_path.place;
-                debug!("  state: {:?} - {:?}", place, move_out);
-                graph.write_all(escape_html(format!("{:?}, ", place)).as_bytes()).unwrap();
-            });
-            graph.write_all(format!("</td>").as_bytes()).unwrap();
+            if show_move_out {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                flows.move_outs.each_state_bit(|mpi_move_out| {
+                    let move_data = &flows.move_outs.operator().move_data();
+                    let move_out = &move_data.moves[mpi_move_out];
+                    let mut move_path_index = move_out.path;
+                    let mut move_path = &move_data.move_paths[move_path_index];
+                    let place = &move_path.place;
+                    debug!("  state: {:?} - {:?}", place, move_out);
+                    graph.write_all(escape_html(format!("{:?}, ", place)).as_bytes()).unwrap();
+                });
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
             debug!("ever init:");
-            graph.write_all(format!("<td>").as_bytes()).unwrap();
-            flows.ever_inits.each_state_bit(|mpi_ever_init| {
-                let move_data = &flows.ever_inits.operator().move_data();
-                let ever_init = move_data.inits[mpi_ever_init];
-                let move_path = &move_data.move_paths[ever_init.path];
-                let place = &move_path.place;
-                debug!("  state: {:?} - {:?}", place, ever_init);
-                graph.write_all(escape_html(format!("{:?} ({:?}), ", place, ever_init.kind)).as_bytes()).unwrap();
-            });
-            graph.write_all(format!("</td>").as_bytes()).unwrap();
+            if show_ever_init {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                flows.ever_inits.each_state_bit(|mpi_ever_init| {
+                    let move_data = &flows.ever_inits.operator().move_data();
+                    let ever_init = move_data.inits[mpi_ever_init];
+                    let move_path = &move_data.move_paths[ever_init.path];
+                    let place = &move_path.place;
+                    debug!("  state: {:?} - {:?}", place, ever_init);
+                    graph.write_all(escape_html(format!("{:?} ({:?}), ", place, ever_init.kind)).as_bytes()).unwrap();
+                });
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
             graph.write_all(format!("</tr>\n").as_bytes()).unwrap();
 
@@ -411,22 +441,22 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
             match term.kind {
                 TerminatorKind::Goto { target } => {
                     graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
-                },
-                TerminatorKind::SwitchInt { ref targets, ..} => {
+                }
+                TerminatorKind::SwitchInt { ref targets, .. } => {
                     for target in targets {
                         graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
                     }
-                },
+                }
                 TerminatorKind::Resume => {
                     graph.write_all(format!("\"{:?}\" -> \"Resume\"\n", bb).as_bytes()).unwrap();
-                },
+                }
                 TerminatorKind::Abort => {
                     graph.write_all(format!("\"{:?}\" -> \"Abort\"\n", bb).as_bytes()).unwrap();
-                },
+                }
                 TerminatorKind::Return => {
                     graph.write_all(format!("\"{:?}\" -> \"Return\"\n", bb).as_bytes()).unwrap();
-                },
-                TerminatorKind::Unreachable => { },
+                }
+                TerminatorKind::Unreachable => {}
                 TerminatorKind::DropAndReplace { ref target, unwind, .. } |
                 TerminatorKind::Drop { ref target, unwind, .. } => {
                     graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
@@ -434,9 +464,9 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                         graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n",
                                                 bb, target).as_bytes()).unwrap();
                     }
-                },
+                }
 
-                TerminatorKind::Call { ref destination, cleanup, ..} => {
+                TerminatorKind::Call { ref destination, cleanup, .. } => {
                     if let &Some((_, target)) = destination {
                         graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
                     }
@@ -444,18 +474,18 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                         graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n",
                                                 bb, target).as_bytes()).unwrap();
                     }
-                },
+                }
                 TerminatorKind::Assert { target, .. } => {
                     graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
-                },
-                TerminatorKind::Yield {..} => {unimplemented!()},
-                TerminatorKind::GeneratorDrop => {unimplemented!()},
+                }
+                TerminatorKind::Yield { .. } => { unimplemented!() }
+                TerminatorKind::GeneratorDrop => { unimplemented!() }
                 TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
                     graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, real_target).as_bytes()).unwrap();
                     for target in imaginary_targets {
                         graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n", bb, target).as_bytes()).unwrap();
                     }
-                },
+                }
                 TerminatorKind::FalseUnwind { real_target, unwind } => {
                     graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, real_target).as_bytes()).unwrap();
                     if let Some(target) = unwind {
@@ -494,7 +524,6 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
 
     fn visit_fn(&mut self, fk: intravisit::FnKind<'tcx>, _fd: &'tcx hir::FnDecl,
                 _b: hir::BodyId, _s: Span, node_id: ast::NodeId) {
-
         let name = match fk {
             intravisit::FnKind::ItemFn(name, ..) => name,
             _ => unimplemented!(),

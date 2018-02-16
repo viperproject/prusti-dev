@@ -21,6 +21,7 @@ run:
 		-Z mir-emit-validate=1 \
 		-Z borrowck=mir \
 		-Z nll \
+		-Z nll_dump_cause \
 		${RUN_FILE}
 	dot -Tps graph.dot -Ograph.ps
 
