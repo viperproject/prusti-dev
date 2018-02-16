@@ -396,32 +396,45 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
+            let mut move_out: HashSet<Place> = HashSet::new();
+            let mut ever_init: HashSet<Place> = HashSet::new();
+
             debug!("moved out:");
+            flows.move_outs.each_state_bit(|mpi_move_out| {
+                let move_data = &flows.move_outs.operator().move_data();
+                let move_out_data = &move_data.moves[mpi_move_out];
+                let mut move_path_index = move_out_data.path;
+                let mut move_path = &move_data.move_paths[move_path_index];
+                let place = &move_path.place;
+                debug!("  state: {:?} - {:?}", place, move_out_data);
+                move_out.insert(place.clone());
+            });
+
+            debug!("ever init:");
+            flows.ever_inits.each_state_bit(|mpi_ever_init| {
+                let move_data = &flows.ever_inits.operator().move_data();
+                let ever_init_data = move_data.inits[mpi_ever_init];
+                let move_path = &move_data.move_paths[ever_init_data.path];
+                let place = &move_path.place;
+                debug!("  state: {:?} - {:?}", place, ever_init_data);
+                ever_init.insert(place.clone());
+            });
+
+            assert!(places_leq(&maybe_init, &ever_init), "maybe_init <= ever_init does not hold");
+
             if show_move_out {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                flows.move_outs.each_state_bit(|mpi_move_out| {
-                    let move_data = &flows.move_outs.operator().move_data();
-                    let move_out = &move_data.moves[mpi_move_out];
-                    let mut move_path_index = move_out.path;
-                    let mut move_path = &move_data.move_paths[move_path_index];
-                    let place = &move_path.place;
-                    debug!("  state: {:?} - {:?}", place, move_out);
-                    graph.write_all(escape_html(format!("{:?}, ", place)).as_bytes()).unwrap();
-                });
+                graph.write_all(escape_html(
+                    move_out.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+                ).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
-            debug!("ever init:");
             if show_ever_init {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                flows.ever_inits.each_state_bit(|mpi_ever_init| {
-                    let move_data = &flows.ever_inits.operator().move_data();
-                    let ever_init = move_data.inits[mpi_ever_init];
-                    let move_path = &move_data.move_paths[ever_init.path];
-                    let place = &move_path.place;
-                    debug!("  state: {:?} - {:?}", place, ever_init);
-                    graph.write_all(escape_html(format!("{:?} ({:?}), ", place, ever_init.kind)).as_bytes()).unwrap();
-                });
+                graph.write_all(escape_html(
+                    ever_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+                ).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
@@ -514,6 +527,30 @@ fn escape_html<S: Into<String>>(s: S) -> String {
 /// That is, if `b` is a prefix of `a`.
 fn place_leq(a: &Place, b: &Place) -> bool {
     b.is_prefix_of(a)
+}
+
+/// Returns true if place `x` is contained in one of the places of `places`.
+/// That is, if some place of `places` is a prefix of `x`.
+/// That is, if `{x} <= places`.
+fn is_place_in_set(x: &Place, places: &HashSet<Place>) -> bool {
+    for place in places.iter() {
+        if place.is_prefix_of(x) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/// Returns true if the places `a` are contained in the places `b`.
+/// That is, if each place of `a` is contained in some place of `b`.
+/// That is, if `a <= b`.
+fn places_leq(a: &HashSet<Place>, b: &HashSet<Place>) -> bool {
+    for item in a.iter() {
+        if !is_place_in_set(item, b) {
+            return false;
+        }
+    }
+    return true;
 }
 
 impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {

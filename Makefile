@@ -46,7 +46,7 @@ build:
 
 test:
 	LD_LIBRARY_PATH=${LIB_PATH} \
-    cargo test
+    cargo +stage2 test
 
 clean:
 	cargo clean
@@ -65,7 +65,7 @@ format_code:
 	cargo fmt
 
 build_release:
-	cargo build --release
+	cargo +stage2 build --release
 
 build_image:
 	sudo docker build -t ${IMAGE_NAME} docker
