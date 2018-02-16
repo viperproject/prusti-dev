@@ -141,6 +141,7 @@ use specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllV
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
+use syntax::ast::Generics;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -265,6 +266,7 @@ impl<'tcx> SpecParser<'tcx> {
                         ast::Ident::from_str("forall"),
                         vars.vars.clone(),
                         None,
+                        Generics::default(),
                         builder.block(span, stmts),
                     ),
                 );
@@ -314,7 +316,7 @@ impl<'tcx> SpecParser<'tcx> {
         let builder = &self.ast_builder;
         let span = item.span;
         match item.node {
-            ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi, ref _generics, ref _body) => {
+            ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi, ref generics, ref _body) => {
                 // Import contracts.
                 let mut statements = vec![self.build_prusti_contract_import(span)];
 
@@ -360,6 +362,7 @@ impl<'tcx> SpecParser<'tcx> {
                         ast::Ident::from_str(&name),
                         decl.inputs.clone(),
                         return_type,
+                        generics.clone(),
                         builder.block(item.span, statements),
                     )
                     .into_inner();

@@ -102,6 +102,7 @@ impl<'a> MinimalAstBuilder<'a> {
         name: Ident,
         inputs: Vec<ast::Arg>,
         output: Option<P<ast::Ty>>,
+        generics: Generics,
         body: P<ast::Block>,
     ) -> P<ast::Item> {
         let output = match output {
@@ -121,7 +122,7 @@ impl<'a> MinimalAstBuilder<'a> {
                 ast::Unsafety::Normal,
                 dummy_spanned(ast::Constness::NotConst),
                 Abi::Rust,
-                Generics::default(),
+                generics,
                 body,
             ),
         )
