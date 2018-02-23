@@ -329,10 +329,13 @@ impl<'tcx> SpecParser<'tcx> {
                     .clone()
                     .into_iter()
                     .map(|arg| {
-                        if let ast::PatKind::Ident(_, ident, _) = arg.pat.node {
-                            builder.expr_ident(ident.span, ident.node)
-                        } else {
-                            unreachable!();
+                        match arg.pat.node {
+                            ast::PatKind::Ident(_, ident, _) => {
+                                builder.expr_ident(ident.span, ident.node)
+                            }
+                            // TODO
+                            ast::PatKind::Wild => unreachable!(),
+                            _ => unreachable!()
                         }
                     })
                     .collect();

@@ -11,7 +11,7 @@ fn divide(x: i32) -> i32 {
     x
 }
 
-#[requires="0 < n && n < 10"]
+#[requires="0 < n && n < 10"] // ---> acc(n.int_val) && 0 < n.int_val && n.int_val < 10
 #[ensures="result > 0"]
 fn fib(mut n: i32) -> i32 {
     let mut i = 1;

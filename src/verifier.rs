@@ -163,12 +163,13 @@ impl<'tcx> OurBorrowData<'tcx> {
 
 impl<'tcx> fmt::Debug for OurBorrowData<'tcx> {
     fn fmt(&self, w: &mut fmt::Formatter) -> fmt::Result {
-        write!(w, "&{}{}{:?}", self.region, self.kind_str(), self.borrowed_place)
+        write!(w, "{:?} = &{}{}{:?}", self.assigned_place, self.region, self.kind_str(), self.borrowed_place)
     }
 }
 
 impl<'tcx> Hash for OurBorrowData<'tcx> {
     fn hash<H: Hasher>(&self, state: &mut H) {
+        self.assigned_place.hash(state);
         self.region.hash(state);
         self.kind_str().hash(state);
         self.borrowed_place.hash(state);
@@ -191,6 +192,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
     let show_active_borrows = true;
     let show_move_out = true;
     let show_ever_init = false;
+    let show_borrow_regions = false;
 
     // Scope tree.
     let mut scope_tree: FxHashMap<VisibilityScope, Vec<VisibilityScope>> = FxHashMap();
@@ -215,10 +217,9 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
     writeln!(graph, "label =<<table>").unwrap();
     writeln!(graph, "<tr><td>VARIABLES</td></tr>").unwrap();
     writeln!(graph, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>").unwrap();
-    for temp in mbcx.mir.vars_and_temps_iter() {
-        let var = &mbcx.mir.local_decls[temp];
+    for (temp, var) in mbcx.mir.local_decls.iter_enumerated() {
         let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
-        let typ = escape_html(format!("{}", mbcx.mir.local_decls[temp].ty));
+        let typ = escape_html(format!("{}", var.ty));
         writeln!(graph, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", name, temp, typ).unwrap();
     }
     writeln!(graph, "</table>>];").unwrap();
@@ -241,6 +242,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
         if show_active_borrows { graph.write_all(format!("<td>active borrows</td>").as_bytes()).unwrap(); }
         if show_move_out { graph.write_all(format!("<td>move out</td>").as_bytes()).unwrap(); }
         if show_ever_init { graph.write_all(format!("<td>ever init</td>").as_bytes()).unwrap(); }
+        if show_borrow_regions { graph.write_all(format!("<td>borrow regions</td>").as_bytes()).unwrap(); }
         graph.write_all(format!("</th>\n").as_bytes()).unwrap();
 
         let BasicBlockData { ref statements, ref terminator, is_cleanup: _ } =
@@ -438,6 +440,22 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
+            if show_borrow_regions {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                flows.borrows.each_state_bit(|borrow| {
+                    let borrows = &flows.borrows.operator();
+                    //debug!("  assigned_map: {:?}", &borrows.0.assigned_map);
+                    let borrow_data = &borrows.borrows()[borrow.borrow_index()];
+                    let borrow_region = borrow_data.region;
+                    let regioncx = mbcx.nonlexical_regioncx.as_ref().unwrap();
+                    let contains = regioncx.region_contains_point(borrow_region, location);
+                    if contains {
+                        graph.write_all(escape_html(format!("{:?}", "")).as_bytes()).unwrap();
+                    }
+                });
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
+
             graph.write_all(format!("</tr>\n").as_bytes()).unwrap();
 
             if first_run {
@@ -541,7 +559,7 @@ fn is_place_in_set(x: &Place, places: &HashSet<Place>) -> bool {
     return false;
 }
 
-/// Returns true if the places `a` are contained in the places `b`.
+/// Returns true if all the places of `a` are contained in the places of `b`.
 /// That is, if each place of `a` is contained in some place of `b`.
 /// That is, if `a <= b`.
 fn places_leq(a: &HashSet<Place>, b: &HashSet<Place>) -> bool {
@@ -551,6 +569,15 @@ fn places_leq(a: &HashSet<Place>, b: &HashSet<Place>) -> bool {
         }
     }
     return true;
+}
+
+fn has_prusti_with(attrs: &[ast::Attribute], name: &str) -> bool {
+    for attr in attrs {
+        if attr.check_name(name) {
+            return true;
+        }
+    }
+    false
 }
 
 impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
@@ -565,24 +592,28 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             intravisit::FnKind::ItemFn(name, ..) => name,
             _ => unimplemented!(),
         };
-        if name != "main" {
-            return;
-        }
+
         trace!("[visit_fn] enter name={:?}", name);
         let def_id = self.tcx.hir.local_def_id(node_id);
-        //self.tcx.mir_borrowck(def_id);
+        let attributes = self.tcx.get_attrs(def_id);
 
-//        let input_mir = self.tcx.mir_validated(def_id);
-        let input_mir = self.tcx.optimized_mir(def_id);
-        let opt_closure_req = self.tcx.infer_ctxt().enter(|infcx| {
-            let input_mir: &Mir = &input_mir;
-            //let callback: for<'s> Fn(&'s _, &'s _) = |_mbcx, _state| {};
-            do_mir_borrowck(&infcx, input_mir, def_id, Some(box
-                callback))
-        });
+        if name == "foo" {
+            debug!("dump mir for fn {:?}", name);
 
-        //let mir = self.tcx.mir_validated(def_id);
-        //let mir = mir.borrow();
+            //self.tcx.mir_borrowck(def_id);
+
+            let input_mir = &self.tcx.mir_validated(def_id).borrow();
+            //let input_mir = self.tcx.optimized_mir(def_id);
+            let opt_closure_req = self.tcx.infer_ctxt().enter(|infcx| {
+                //let callback: for<'s> Fn(&'s _, &'s _) = |_mbcx, _state| {};
+                do_mir_borrowck(&infcx, input_mir, def_id, Some(box
+                    callback))
+            });
+
+            //let mir = self.tcx.mir_validated(def_id);
+            //let mir = mir.borrow();
+        }
+
         trace!("[visit_fn] exit");
     }
 }

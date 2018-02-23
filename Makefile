@@ -10,7 +10,7 @@ LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:../target/debug/:$$JAVA_HOME/jre/lib/amd64
 DRIVER=../target/debug/prusti-driver
 
 run:
-	RUST_LOG=prusti=${LOG_LEVEL} \
+	RUST_LOG=debug \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \
 		--sysroot ${STAGE2_COMPILER_PATH}/lib/ \
@@ -19,6 +19,10 @@ run:
 		-L ${STAGE2_COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z mir-emit-validate=1 \
+		-Z dump-mir=all \
+		-Z dump-mir-graphviz \
+		-Z identify-regions \
+		-Z verbose \
 		-Z borrowck=mir \
 		-Z nll \
 		-Z nll_dump_cause \
