@@ -1,5 +1,8 @@
 # Introduction
 
+Documentation of our patched version of the Rust compiler can be found
+[here](https://viperproject.github.io/rust/syntax/).
+
 This document aims to describe the design of Prusti. However, be aware
 that this is just a draft.
 
