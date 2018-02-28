@@ -142,6 +142,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
 use syntax::ast::Generics;
+use syntax::codemap::respan;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -294,7 +295,7 @@ impl<'tcx> SpecParser<'tcx> {
             span,
             builder.item_use_glob(
                 span,
-                ast::Visibility::Inherited,
+                respan(span.empty(), ast::VisibilityKind::Inherited),
                 vec![
                     builder.ident_of("prusti_contracts"),
                     builder.ident_of("internal"),

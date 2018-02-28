@@ -22,9 +22,12 @@ run:
 generate_ui_stderr:
 	-LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \
-		-L target/debug/ \
-		--extern prusti_contracts=$(wildcard target/debug/deps/libprusti_contracts-*.rlib) \
-		-Z mir-emit-validate=1 \
+		--sysroot ${STAGE2_COMPILER_PATH}/lib/ \
+        -L ../target/debug/ \
+        -L ${STAGE2_COMPILER_PATH}/lib/ \
+        -L ${STAGE2_COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+        --extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
+        -Z mir-emit-validate=1 \
 		-Z borrowck=mir \
 		-Z nll \
 		${RUN_FILE} 2> ${STDERR_FILE}
