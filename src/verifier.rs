@@ -12,13 +12,12 @@ use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
 //use prusti_interface::data::VerificationTask;
 //use prusti_interface::data::VerificationResult;
 use rustc_driver::driver;
-use rustc::hir::{self, intravisit};
+use rustc::hir::intravisit;
 use rustc::ty::TyCtxt;
 use syntax::{self, ast, parse, ptr};
 use syntax::codemap::Span;
 use environment::Environment;
 use hir_visitor::HirVisitor;
-use rustc::ty::TyCtxt;
 use rustc::hir;
 
 /// Verify a (typed) specification on compiler state.
@@ -36,13 +35,6 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         tcx: tcx,
     };
     intravisit::walk_crate(&mut printer, tcx.hir.krate());
-
-    let tcx: TyCtxt = env.tcx();
-
-    let krate: &hir::Crate = tcx.hir.krate();
-
-    let mut hir_visitor = HirVisitor::new(tcx, &spec);
-    krate.visit_all_item_likes(&mut hir_visitor);
 
     //env.dump();
 
