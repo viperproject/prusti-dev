@@ -19,6 +19,30 @@ use syntax::codemap::Span;
 use environment::Environment;
 use hir_visitor::HirVisitor;
 use rustc::hir;
+use rustc::mir::{Mir, Mutability, Operand, Projection, ProjectionElem, Rvalue};
+use rustc_mir::borrow_check::{MirBorrowckCtxt, do_mir_borrowck};
+use rustc_mir::borrow_check::flows::Flows;
+use rustc_mir::borrow_check::prefixes::*;
+use rustc_mir::dataflow::FlowsAtLocation;
+use rustc::mir::{BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
+use rustc::mir::Location;
+use rustc::mir::Place;
+use rustc::mir::BorrowKind;
+use rustc_mir::dataflow::move_paths::HasMoveData;
+use rustc_mir::dataflow::move_paths::MovePath;
+use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::indexed_vec::Idx;
+use std::fs::File;
+use std::io::{Write, BufWriter};
+use rustc_mir::dataflow::move_paths::MoveOut;
+use std::collections::HashSet;
+use rustc_mir::dataflow::BorrowData;
+use rustc::ty::{Region, RegionKind, FreeRegion, BoundRegion, RegionVid};
+use std::fmt;
+use rustc_mir::borrow_check::nll::ToRegionVid;
+use std::hash::{Hash, Hasher, SipHasher};
+use rustc_mir::borrow_check::nll::region_infer::RegionDefinition;
+
 
 /// Verify a (typed) specification on compiler state.
 pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
@@ -62,28 +86,6 @@ struct InfoPrinter<'a, 'tcx: 'a> {
     pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
 }
 
-
-use rustc::mir::{Mir, Mutability, Operand, Projection, ProjectionElem, Rvalue};
-use rustc_mir::borrow_check::{MirBorrowckCtxt, do_mir_borrowck};
-use rustc_mir::borrow_check::flows::Flows;
-use rustc_mir::borrow_check::prefixes::*;
-use rustc_mir::dataflow::FlowsAtLocation;
-use rustc::mir::{BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
-use rustc::mir::Location;
-use rustc::mir::Place;
-use rustc::mir::BorrowKind;
-use rustc_mir::dataflow::move_paths::HasMoveData;
-use rustc_mir::dataflow::move_paths::MovePath;
-use rustc_data_structures::fx::FxHashMap;
-use rustc_data_structures::indexed_vec::Idx;
-use std::fs::File;
-use std::io::{Write, BufWriter};
-use rustc_mir::dataflow::move_paths::MoveOut;
-use std::collections::HashSet;
-use rustc_mir::dataflow::BorrowData;
-use rustc::ty::Region;
-use std::fmt;
-use rustc_mir::borrow_check::nll::ToRegionVid;
 
 fn write_scope_tree(
     tcx: TyCtxt,
@@ -134,8 +136,6 @@ fn write_scope_tree(
     }
 }
 
-use std::hash::{Hash, Hasher, SipHasher};
-
 #[derive(Clone, PartialEq, Eq)]
 struct OurBorrowData<'tcx> {
     kind: BorrowKind,
@@ -169,7 +169,7 @@ impl<'tcx> Hash for OurBorrowData<'tcx> {
     }
 }
 
-fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
+fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
     trace!("[callback] enter");
     debug!("flows: {}", flows);
     //debug!("MIR: {:?}", mbcx.mir);
@@ -209,7 +209,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
     writeln!(graph, "}}").unwrap();
 
     // Temporary variables.
-    writeln!(graph, "VARIABLES [ style=filled shape = \"record\"").unwrap();
+    writeln!(graph, "Variables [ style=filled shape = \"record\"").unwrap();
     writeln!(graph, "label =<<table>").unwrap();
     writeln!(graph, "<tr><td>VARIABLES</td></tr>").unwrap();
     writeln!(graph, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>").unwrap();
@@ -217,6 +217,23 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
         let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
         let typ = escape_html(format!("{}", var.ty));
         writeln!(graph, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", name, temp, typ).unwrap();
+    }
+    writeln!(graph, "</table>>];").unwrap();
+
+    // Lifetimes
+    writeln!(graph, "Lifetimes [ style=filled shape = \"record\"").unwrap();
+    writeln!(graph, "label =<<table>").unwrap();
+    writeln!(graph, "<tr><td>Lifetimes</td></tr>").unwrap();
+    writeln!(graph, "<tr><td>Name</td><td>Temporary</td></tr>").unwrap();
+    for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
+        let name = match region_definition.external_name {
+            Some(&RegionKind::ReStatic) => String::from("'static"),
+            Some(&RegionKind::ReFree(FreeRegion { bound_region: BoundRegion::BrNamed(_, name), .. })) => escape_html(format!("{}", name)),
+            Some(region) => escape_html(format!("{}", region)),
+            None => String::from("")
+        };
+        let temp = escape_html(format!("{:?}", region_vid));
+        writeln!(graph, "<tr><td>{}</td><td>{}</td></tr>", name, temp).unwrap();
     }
     writeln!(graph, "</table>>];").unwrap();
 
@@ -238,13 +255,17 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
         if show_active_borrows { graph.write_all(format!("<td>active borrows</td>").as_bytes()).unwrap(); }
         if show_move_out { graph.write_all(format!("<td>move out</td>").as_bytes()).unwrap(); }
         if show_ever_init { graph.write_all(format!("<td>ever init</td>").as_bytes()).unwrap(); }
-        if show_lifetime_regions { graph.write_all(format!("<td>lifetime regions</td>").as_bytes()).unwrap(); }
+        if show_lifetime_regions { graph.write_all(format!("<td>gen lifetimes</td>").as_bytes()).unwrap(); }
+        if show_lifetime_regions { graph.write_all(format!("<td>kill lifetimes</td>").as_bytes()).unwrap(); }
         graph.write_all(format!("</th>\n").as_bytes()).unwrap();
 
         let BasicBlockData { ref statements, ref terminator, is_cleanup: _ } =
             mbcx.mir[bb];
         let mut location = Location { block: bb, statement_index: 0 };
         let mut first_run = true;
+        let mut lifetime_regions_state: HashSet<RegionVid> = HashSet::new();
+        let mut gen_lifetime_regions: HashSet<RegionVid> = HashSet::new();
+        let mut kill_lifetime_regions: HashSet<RegionVid> = HashSet::new();
 
         debug!("--------------------");
         debug!("--------------------");
@@ -260,6 +281,27 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 debug!("location={:?}", location);
             }
             graph.write_all(format!("<tr>").as_bytes()).unwrap();
+
+            if first_run {
+                lifetime_regions_state.clear();
+                for region_vid in regioncx.definitions.indices() {
+                    let contains = regioncx.region_contains_point(region_vid, location);
+                    if contains {
+                        lifetime_regions_state.insert(region_vid);
+                    }
+                }
+            } else {
+                let mut new_lifetime_regions_state: HashSet<RegionVid> = HashSet::new();
+                for region_vid in regioncx.definitions.indices() {
+                    let contains = regioncx.region_contains_point(region_vid, location);
+                    if contains {
+                        new_lifetime_regions_state.insert(region_vid);
+                    }
+                }
+                gen_lifetime_regions = new_lifetime_regions_state.difference(&lifetime_regions_state).cloned().collect();
+                kill_lifetime_regions = lifetime_regions_state.difference(&new_lifetime_regions_state).cloned().collect();
+                lifetime_regions_state = new_lifetime_regions_state;
+            }
 
             if first_run {
                 graph.write_all(format!("<td colspan=\"{}\">(initial state)</td>", if show_source { 2 } else { 1 }).as_bytes()).unwrap();
@@ -438,23 +480,36 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
 
             if show_lifetime_regions {
                 debug!("lifetime regions:");
-                graph.write_all(format!("<td>").as_bytes()).unwrap();
-                let mut is_first = true;
-                for borrow_data in flows.borrows.operator().borrows().iter() {
-                    let borrow_region = borrow_data.region;
-                    let contains = regioncx.region_contains_point(borrow_region, location);
-                    let cause = region_values.cause(borrow_region.to_region_vid(), location).unwrap().root_cause();
-                    if contains {
-                        debug!("  region: {:?} - {:?}", borrow_region, cause);
-                        if !is_first {
-                            graph.write_all("<br/>".as_bytes()).unwrap();
-                        } else {
-                            is_first = false;
-                        }
-                        graph.write_all(escape_html(format!("{:?}: {:?}", borrow_region, cause)).as_bytes()).unwrap();
+
+                if first_run {
+                    graph.write_all(format!("<td>").as_bytes()).unwrap();
+                    for region_vid in &lifetime_regions_state {
+                        let region_definition = &regioncx.definitions[*region_vid];
+                        let cause = regioncx.why_region_contains_point(*region_vid, location).unwrap();
+                        let root_cause = cause.root_cause();
+                        debug!("  state: {:?} - {:?}", region_vid, root_cause);
+                        graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
                     }
+                    graph.write_all(format!("</td>").as_bytes()).unwrap();
+                } else {
+                    graph.write_all(format!("<td>").as_bytes()).unwrap();
+                    for region_vid in &gen_lifetime_regions {
+                        let region_definition = &regioncx.definitions[*region_vid];
+                        let cause = regioncx.why_region_contains_point(*region_vid, location).unwrap();
+                        let root_cause = cause.root_cause();
+                        debug!("  gen: {:?} - {:?}", region_vid, root_cause);
+                        graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
+                    }
+                    graph.write_all(format!("</td>").as_bytes()).unwrap();
+
+                    graph.write_all(format!("<td>").as_bytes()).unwrap();
+                    for region_vid in &kill_lifetime_regions {
+                        let region_definition = &regioncx.definitions[*region_vid];
+                        debug!("  kill: {:?}", region_vid);
+                        graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
+                    }
+                    graph.write_all(format!("</td>").as_bytes()).unwrap();
                 }
-                graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
             graph.write_all(format!("</tr>\n").as_bytes()).unwrap();
