@@ -921,7 +921,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             attrs,
             id: ast::DUMMY_NODE_ID,
             node,
-            vis: ast::Visibility::Inherited,
+            vis: respan(span.empty(), ast::VisibilityKind::Inherited),
             span,
             tokens: None,
         })
@@ -968,7 +968,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                 span: ty.span,
                 ty,
                 ident: None,
-                vis: ast::Visibility::Inherited,
+                vis: respan(span.empty(), ast::VisibilityKind::Inherited),
                 attrs: Vec::new(),
                 id: ast::DUMMY_NODE_ID,
             })
