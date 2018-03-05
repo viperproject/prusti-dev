@@ -83,6 +83,7 @@ use std::collections::HashSet;
 use rustc_mir::dataflow::BorrowData;
 use rustc::ty::Region;
 use std::fmt;
+use rustc_mir::borrow_check::nll::ToRegionVid;
 
 fn write_scope_tree(
     tcx: TyCtxt,
@@ -184,7 +185,10 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
     let show_active_borrows = true;
     let show_move_out = true;
     let show_ever_init = false;
-    let show_borrow_regions = false;
+    let show_lifetime_regions = true;
+
+    let regioncx = mbcx.nonlexical_regioncx.as_ref().unwrap();
+    let region_values = regioncx.inferred_values();
 
     // Scope tree.
     let mut scope_tree: FxHashMap<VisibilityScope, Vec<VisibilityScope>> = FxHashMap();
@@ -234,7 +238,7 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
         if show_active_borrows { graph.write_all(format!("<td>active borrows</td>").as_bytes()).unwrap(); }
         if show_move_out { graph.write_all(format!("<td>move out</td>").as_bytes()).unwrap(); }
         if show_ever_init { graph.write_all(format!("<td>ever init</td>").as_bytes()).unwrap(); }
-        if show_borrow_regions { graph.write_all(format!("<td>borrow regions</td>").as_bytes()).unwrap(); }
+        if show_lifetime_regions { graph.write_all(format!("<td>lifetime regions</td>").as_bytes()).unwrap(); }
         graph.write_all(format!("</th>\n").as_bytes()).unwrap();
 
         let BasicBlockData { ref statements, ref terminator, is_cleanup: _ } =
@@ -432,19 +436,24 @@ fn callback<'s>(mbcx: &'s mut MirBorrowckCtxt, flows: &'s mut Flows) {
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
-            if show_borrow_regions {
+            if show_lifetime_regions {
+                debug!("lifetime regions:");
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                flows.borrows.each_state_bit(|borrow| {
-                    let borrows = &flows.borrows.operator();
-                    //debug!("  assigned_map: {:?}", &borrows.0.assigned_map);
-                    let borrow_data = &borrows.borrows()[borrow.borrow_index()];
+                let mut is_first = true;
+                for borrow_data in flows.borrows.operator().borrows().iter() {
                     let borrow_region = borrow_data.region;
-                    let regioncx = mbcx.nonlexical_regioncx.as_ref().unwrap();
                     let contains = regioncx.region_contains_point(borrow_region, location);
+                    let cause = region_values.cause(borrow_region.to_region_vid(), location).unwrap().root_cause();
                     if contains {
-                        graph.write_all(escape_html(format!("{:?}", "")).as_bytes()).unwrap();
+                        debug!("  region: {:?} - {:?}", borrow_region, cause);
+                        if !is_first {
+                            graph.write_all("<br/>".as_bytes()).unwrap();
+                        } else {
+                            is_first = false;
+                        }
+                        graph.write_all(escape_html(format!("{:?}: {:?}", borrow_region, cause)).as_bytes()).unwrap();
                     }
-                });
+                }
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
@@ -598,8 +607,7 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             //let input_mir = self.tcx.optimized_mir(def_id);
             let opt_closure_req = self.tcx.infer_ctxt().enter(|infcx| {
                 //let callback: for<'s> Fn(&'s _, &'s _) = |_mbcx, _state| {};
-                do_mir_borrowck(&infcx, input_mir, def_id, Some(box
-                    callback))
+                do_mir_borrowck(&infcx, input_mir, def_id, Some(box callback))
             });
 
             //let mir = self.tcx.mir_validated(def_id);
