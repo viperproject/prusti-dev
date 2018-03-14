@@ -11,7 +11,7 @@ LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:../target/debug/:${JAVA_HOME}/jre/lib/amd6
 DRIVER=../target/debug/prusti-driver
 
 run:
-	RUST_LOG=debug \
+	RUST_LOG=${LOG_LEVEL} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \
 		--sysroot ${STAGE2_COMPILER_PATH}/lib/ \
