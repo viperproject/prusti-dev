@@ -41,7 +41,7 @@ use rustc::ty::{Region, RegionKind, FreeRegion, BoundRegion, RegionVid};
 use std::fmt;
 use rustc_mir::borrow_check::nll::ToRegionVid;
 use std::hash::{Hash, Hasher, SipHasher};
-use rustc_mir::borrow_check::nll::region_infer::RegionDefinition;
+use rustc_mir::borrow_check::nll::region_infer::{RegionDefinition, Constraint};
 
 
 /// Verify a (typed) specification on compiler state.
@@ -236,6 +236,22 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
         writeln!(graph, "<tr><td>{}</td><td>{}</td></tr>", name, temp).unwrap();
     }
     writeln!(graph, "</table>>];").unwrap();
+
+    // Lifetime constraints
+    writeln!(graph, "subgraph clusterconstraints {{").unwrap();
+    writeln!(graph, "label = \"Lifetime constraints\";").unwrap();
+    writeln!(graph, "node[shape=box];").unwrap();
+    for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
+        let region_name = escape_html(format!("{:?}", region_vid));
+        writeln!(graph, "\"{}\";", region_name).unwrap();
+    }
+    for constraint in &regioncx.constraints {
+        let from_name = escape_html(format!("{:?}", constraint.sub));
+        let edge_name = escape_html(format!("{:?}", constraint.point));
+        let to_name = escape_html(format!("{:?}", constraint.sup));
+        writeln!(graph, "\"{}\" -> \"{}\" [label=\"{}\"];", from_name, to_name, edge_name).unwrap();
+    }
+    writeln!(graph, "}}").unwrap();
 
     // CFG
     graph.write_all(format!("Resume\n").as_bytes()).unwrap();
