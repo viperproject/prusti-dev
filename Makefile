@@ -6,11 +6,12 @@ RUN_FILE=tests/typecheck/pass/lint.rs
 STDERR_FILE=$(RUN_FILE:.rs=.stderr)
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
 STAGE2_COMPILER_PATH=../../rust/build/x86_64-unknown-linux-gnu/stage2
-LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:../target/debug/:$$JAVA_HOME/jre/lib/amd64/server/
+JAVA_HOME=/usr/lib/jvm/default-java
+LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:../target/debug/:${JAVA_HOME}/jre/lib/amd64/server/
 DRIVER=../target/debug/prusti-driver
 
 run:
-	RUST_LOG=debug \
+	RUST_LOG=${LOG_LEVEL} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \
 		--sysroot ${STAGE2_COMPILER_PATH}/lib/ \
@@ -27,7 +28,8 @@ run:
 		-Z nll \
 		-Z nll_dump_cause \
 		${RUN_FILE}
-	dot -Tps graph.dot -Ograph.ps
+	dot -Tpdf graph.dot -O
+	dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
 
 generate_ui_stderr:
 	-LD_LIBRARY_PATH=${LIB_PATH} \

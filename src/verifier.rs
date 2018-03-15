@@ -382,9 +382,7 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
             }
             if show_definitely_init {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(escape_html(
-                    definitely_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-                ).as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&definitely_init).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
@@ -394,9 +392,7 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
             }
             if show_unknown_init {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(escape_html(
-                    unknown_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-                ).as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&unknown_init).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
@@ -438,17 +434,13 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
 
             if show_reserved_borrows {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(escape_html(
-                    reserved_borrows.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-                ).as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&reserved_borrows).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
             if show_active_borrows {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(escape_html(
-                    active_borrows.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-                ).as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&active_borrows).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
@@ -480,17 +472,13 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
 
             if show_move_out {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(escape_html(
-                    move_out.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-                ).as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&move_out).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
             if show_ever_init {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(escape_html(
-                    ever_init.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-                ).as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&ever_init).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
@@ -601,6 +589,17 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
     }
     graph.write_all(b"}").unwrap();
     trace!("[callback] exit");
+}
+
+fn as_sorted_string<T>(set: &HashSet<T>) -> String
+    where
+        T: Eq,
+        T: Hash,
+        T: fmt::Debug,
+{
+    let mut vector = set.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>();
+    vector.sort();
+    escape_html(vector.join(", "))
 }
 
 fn escape_html<S: Into<String>>(s: S) -> String {
