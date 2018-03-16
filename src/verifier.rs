@@ -24,7 +24,7 @@ use rustc_mir::borrow_check::{MirBorrowckCtxt, do_mir_borrowck};
 use rustc_mir::borrow_check::flows::Flows;
 use rustc_mir::borrow_check::prefixes::*;
 use rustc_mir::dataflow::FlowsAtLocation;
-use rustc::mir::{BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
+use rustc::mir::{BasicBlock, BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
 use rustc::mir::Location;
 use rustc::mir::Place;
 use rustc::mir::BorrowKind;
@@ -35,7 +35,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::fs::File;
 use std::io::{Write, BufWriter};
 use rustc_mir::dataflow::move_paths::MoveOut;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use rustc_mir::dataflow::BorrowData;
 use rustc::ty::{Region, RegionKind, FreeRegion, BoundRegion, RegionVid};
 use std::fmt;
@@ -205,6 +205,11 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
     graph.write_all(b"digraph G {\n").unwrap();
     writeln!(graph, "graph [compound=true];").unwrap();
 
+    let mut loop_heads = Vec::new();
+    let mut forward_edges = HashMap::new();
+    let mut back_edges = HashMap::new();
+
+    let show_statement_indices = true;
     let show_source = false;
     let show_definitely_init = false;
     let show_unknown_init = false;
@@ -316,7 +321,9 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         graph.write_all(format!("\"{:?}\" [ shape = \"record\" \n", bb).as_bytes()).unwrap();
         graph.write_all(format!("label =<<table>\n").as_bytes()).unwrap();
         graph.write_all(format!("<th><td>{:?}</td></th>\n", bb).as_bytes()).unwrap();
-        graph.write_all(format!("<th><td>statement</td>").as_bytes()).unwrap();
+        graph.write_all(format!("<th>").as_bytes()).unwrap();
+        if show_statement_indices { graph.write_all(format!("<td>Nr</td>").as_bytes()).unwrap(); }
+        graph.write_all(format!("<td>statement</td>").as_bytes()).unwrap();
         if show_source { graph.write_all(format!("<td>source</td>").as_bytes()).unwrap(); }
         if show_definitely_init { graph.write_all(format!("<td>definitely init</td>").as_bytes()).unwrap(); }
         if show_unknown_init { graph.write_all(format!("<td>unknown init</td>").as_bytes()).unwrap(); }
@@ -370,6 +377,14 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
                 gen_lifetime_regions = new_lifetime_regions_state.difference(&lifetime_regions_state).cloned().collect();
                 kill_lifetime_regions = lifetime_regions_state.difference(&new_lifetime_regions_state).cloned().collect();
                 lifetime_regions_state = new_lifetime_regions_state;
+            }
+
+            if show_statement_indices {
+                if first_run {
+                    graph.write_all("<td></td>".as_bytes()).unwrap();
+                } else {
+                    graph.write_all(format!("<td>{}</td>", location.statement_index).as_bytes()).unwrap();
+                }
             }
 
             if first_run {
@@ -580,66 +595,200 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
 
         graph.write_all(format!("</table>> ];\n").as_bytes()).unwrap();
 
+        fn write_normal_edge_str_target(graph: &mut BufWriter<File>, source: BasicBlock, target: &str) {
+            graph.write_all(format!("\"{:?}\" -> \"{}\"\n", source, target).as_bytes()).unwrap();
+        };
+        fn write_unwind_edge(graph: &mut BufWriter<File>, source: BasicBlock, target: BasicBlock) {
+            graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n", source, target).as_bytes()).unwrap();
+        };
+        fn write_imaginary_edge(graph: &mut BufWriter<File>, source: BasicBlock, target: BasicBlock) {
+            graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n", source, target).as_bytes()).unwrap();
+        };
+
         if let Some(ref term) = *terminator {
+            let mut write_normal_edge = |graph: &mut BufWriter<File>, source: BasicBlock, target: BasicBlock| {
+                forward_edges.entry(source).or_insert(Vec::new()).push(target);
+                back_edges.entry(target).or_insert(Vec::new()).push(source);
+                let dominators = mbcx.mir.dominators();
+                if dominators.is_dominated_by(source, target) {
+                    loop_heads.push(target);
+                    graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=green]\n", source, target).as_bytes()).unwrap();
+                } else {
+                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", source, target).as_bytes()).unwrap();
+                }
+            };
             use rustc::mir::TerminatorKind;
             match term.kind {
                 TerminatorKind::Goto { target } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, target);
                 }
                 TerminatorKind::SwitchInt { ref targets, .. } => {
                     for target in targets {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                        write_normal_edge(&mut graph, bb, *target);
                     }
                 }
                 TerminatorKind::Resume => {
-                    graph.write_all(format!("\"{:?}\" -> \"Resume\"\n", bb).as_bytes()).unwrap();
+                    write_normal_edge_str_target(&mut graph, bb, "Resume");
                 }
                 TerminatorKind::Abort => {
-                    graph.write_all(format!("\"{:?}\" -> \"Abort\"\n", bb).as_bytes()).unwrap();
+                    write_normal_edge_str_target(&mut graph, bb, "Abort");
                 }
                 TerminatorKind::Return => {
-                    graph.write_all(format!("\"{:?}\" -> \"Return\"\n", bb).as_bytes()).unwrap();
+                    write_normal_edge_str_target(&mut graph, bb, "Return");
                 }
                 TerminatorKind::Unreachable => {}
                 TerminatorKind::DropAndReplace { ref target, unwind, .. } |
                 TerminatorKind::Drop { ref target, unwind, .. } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, *target);
                     if let Some(target) = unwind {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n",
-                                                bb, target).as_bytes()).unwrap();
+                        write_unwind_edge(&mut graph, bb, target);
                     }
                 }
 
                 TerminatorKind::Call { ref destination, cleanup, .. } => {
                     if let &Some((_, target)) = destination {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                        write_normal_edge(&mut graph, bb, target);
                     }
                     if let Some(target) = cleanup {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n",
-                                                bb, target).as_bytes()).unwrap();
+                        write_unwind_edge(&mut graph, bb, target);
                     }
                 }
                 TerminatorKind::Assert { target, .. } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, target);
                 }
                 TerminatorKind::Yield { .. } => { unimplemented!() }
                 TerminatorKind::GeneratorDrop => { unimplemented!() }
                 TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, real_target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, *real_target);
                     for target in imaginary_targets {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n", bb, target).as_bytes()).unwrap();
+                        write_imaginary_edge(&mut graph, bb, *target);
                     }
                 }
                 TerminatorKind::FalseUnwind { real_target, unwind } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, real_target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, real_target);
                     if let Some(target) = unwind {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n",
-                                                bb, target).as_bytes()).unwrap();
+                        write_imaginary_edge(&mut graph, bb, target);
                     }
                 }
             };
         }
     }
+
+    // Lifetime constraints
+    let mut is_reachable = |from: BasicBlock, to: BasicBlock| {
+        let mut work_list = vec![from];
+        let mut visited = HashSet::new();
+        visited.insert(from);
+        while let Some(current) = work_list.pop() {
+            if current == to {
+                return true;
+            }
+            for target in forward_edges.entry(current).or_insert(Vec::new()) {
+                if !visited.contains(target) {
+                    work_list.push(*target);
+                    visited.insert(*target);
+                }
+            }
+        }
+        false
+    };
+    fn tarjan(nodes: &Vec<RegionVid>, edges: &Vec<Constraint>) -> HashMap<RegionVid, u32> {
+        struct State<'a> {
+            nodes: Vec<RegionVid>,
+            edges: &'a Vec<Constraint>,
+            low_link: HashMap<RegionVid, u32>,
+            indices: HashMap<RegionVid, u32>,
+            index: u32,
+            stack: Vec<RegionVid>,
+        };
+
+        impl<'a> State<'a> {
+
+            fn min(&self, node1: RegionVid, node2: RegionVid) -> u32 {
+                trace!("[min] node1={:?} node2={:?}", node1, node2);
+                let low_link1 = self.low_link.get(&node1).unwrap();
+                let low_link2 = self.low_link.get(&node2).unwrap();
+                if low_link1 < low_link2 {
+                    *low_link1
+                } else {
+                    *low_link2
+                }
+            }
+
+            fn strong_connect(&mut self, node: RegionVid) {
+                trace!("[strong_connect] enter node={:?}", node);
+                self.indices.insert(node, self.index);
+                self.low_link.insert(node, self.index);
+                self.index += 1;
+                self.stack.push(node);
+                for edge in self.edges.iter() {
+                    if edge.sub == node {
+                        if !self.indices.contains_key(&edge.sup) {
+                            self.strong_connect(edge.sup);
+                            let min = self.min(node, edge.sup);
+                            self.low_link.insert(node, min);
+                        } else if self.stack.contains(&edge.sup) {
+                            let min = self.min(node, edge.sup);
+                            self.low_link.insert(node, min);
+                        }
+                    }
+                }
+                trace!("[strong_connect] exit");
+            }
+
+        };
+
+        let mut state = State {
+            nodes: nodes.clone(),
+            edges: edges,
+            low_link: HashMap::new(),
+            indices: HashMap::new(),
+            index: 0,
+            stack: Vec::new(),
+        };
+
+        while let Some(initial) = state.nodes.pop() {
+            if !state.indices.contains_key(&initial) {
+                state.strong_connect(initial);
+            }
+        }
+
+        state.low_link
+    };
+    for loop_head in loop_heads {
+        writeln!(graph, "subgraph clusterconstraints{:?} {{", loop_head).unwrap();
+        writeln!(graph, "label = \"Lifetime constraints for {:?}\";", loop_head).unwrap();
+        writeln!(graph, "node[shape=box];").unwrap();
+        let mut nodes = Vec::new();
+        for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
+            nodes.push(region_vid);
+        }
+        let mut edges = Vec::new();
+        for constraint in &regioncx.constraints {
+            if constraint.point.block != loop_head &&
+                is_reachable(constraint.point.block, loop_head) {
+                edges.push(*constraint);
+            }
+        }
+        let cluster_assignment = tarjan(&nodes, &edges);
+        let mut clusters = HashMap::new();
+        for (node, cluster) in &cluster_assignment {
+            clusters.entry(cluster).or_insert(Vec::new()).push(node)
+        }
+        for (cluster_id, nodes) in &clusters {
+            let mut nodes: Vec<_> = nodes.iter().map(|node| escape_html(format!("{:?}", node))).collect();
+            nodes.sort();
+            writeln!(graph, "\"{:?}__{}\" [label=\"{}\"];", loop_head, cluster_id, nodes.join(", ")).unwrap();
+        }
+        for edge in edges {
+            let from_name = escape_html(format!("{:?}__{}", loop_head, cluster_assignment.get(&edge.sub).unwrap()));
+            let to_name = escape_html(format!("{:?}__{}", loop_head, cluster_assignment.get(&edge.sup).unwrap()));
+            writeln!(graph, "\"{}\" -> \"{}\";", from_name, to_name).unwrap();
+        }
+        debug!("clusters: {:?}", clusters);
+        writeln!(graph, "}}").unwrap();
+    }
+
     graph.write_all(b"}").unwrap();
     trace!("[callback] exit");
 }
