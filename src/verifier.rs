@@ -45,6 +45,7 @@ use rustc_mir::borrow_check::nll::region_infer::{RegionDefinition, Constraint};
 use rustc::ty::TypeVariants;
 use rustc::ty;
 use std::collections::hash_map::DefaultHasher;
+use rustc::hir::def_id::DefId;
 
 
 /// Verify a (typed) specification on compiler state.
@@ -181,7 +182,21 @@ fn get_hash<T>(obj: T) -> u64
     hasher.finish()
 }
 
-fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
+fn get_type_def_id<'tcx>(ty: ty::Ty<'tcx>) -> Option<DefId> {
+    match ty.sty {
+        ty::TyAdt(def, _) => Some(def.did),
+        _ => None
+    }
+}
+
+fn clean_type<'a, 'gcx, 'tcx>(tcx: TyCtxt<'a, 'gcx, 'tcx>, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+    match get_type_def_id(ty) {
+        Some(def_id) => tcx.type_of(def_id),
+        None => ty
+    }
+}
+
+fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, flows: &'s mut Flows<'g, 'gcx, 'tcx>) {
     trace!("[callback] enter");
     debug!("flows: {}", flows);
     //debug!("MIR: {:?}", mbcx.mir);
@@ -269,19 +284,24 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
     let mut types: HashSet<ty::Ty> = HashSet::new();
     for var in &mbcx.mir.local_decls {
         for ty in var.ty.walk() {
-            types.insert(ty);
+            //let cleaned_ty = clean_type(mbcx.tcx, ty);
+            let cleaned_ty = mbcx.tcx.erase_regions(&ty);
+            types.insert(cleaned_ty);
         }
     }
     writeln!(graph, "subgraph clustertypes {{").unwrap();
     writeln!(graph, "label = \"Types\";").unwrap();
     writeln!(graph, "node[shape=box];").unwrap();
     for ty in &types {
-        let type_name = escape_html(format!("{}", ty));
-        writeln!(graph, "\"type_{}\" [label=\"{}\"];", get_hash(ty), type_name).unwrap();
+        let ty_name = escape_html(format!("{}", ty));
+        writeln!(graph, "\"type_{}\" [label=\"{}\"];", get_hash(ty), ty_name).unwrap();
     }
     for ty in &types {
         for subty in ty.walk_shallow() {
-            writeln!(graph, "\"type_{:?}\" -> \"type_{:?}\";", get_hash(ty), get_hash(subty)).unwrap();
+            //let cleaned_subty = clean_type(mbcx.tcx, subty);
+            let subty_name = escape_html(format!("{}", subty));
+            let cleaned_subty = mbcx.tcx.erase_regions(&subty);
+            writeln!(graph, "\"type_{:?}\" -> \"type_{:?}\" [label=\"{}\"];", get_hash(ty), get_hash(cleaned_subty), subty_name).unwrap();
         }
     }
     writeln!(graph, "}}").unwrap();
@@ -684,7 +704,7 @@ fn has_prusti_with(attrs: &[ast::Attribute], name: &str) -> bool {
     false
 }
 
-impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
+impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
     fn nested_visit_map<'this>(&'this mut self) -> intravisit::NestedVisitorMap<'this, 'tcx> {
         let map = &self.tcx.hir;
         intravisit::NestedVisitorMap::All(map)

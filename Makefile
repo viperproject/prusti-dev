@@ -48,7 +48,7 @@ generate_ui_stderr:
 
 build:
 	LD_LIBRARY_PATH=${LIB_PATH} \
-    cargo +stage2 build
+    RUSTFLAGS="--verbose" cargo +stage2 build
 
 test:
 	LD_LIBRARY_PATH=${LIB_PATH} \
