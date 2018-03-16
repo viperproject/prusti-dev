@@ -24,7 +24,7 @@ use rustc_mir::borrow_check::{MirBorrowckCtxt, do_mir_borrowck};
 use rustc_mir::borrow_check::flows::Flows;
 use rustc_mir::borrow_check::prefixes::*;
 use rustc_mir::dataflow::FlowsAtLocation;
-use rustc::mir::{BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
+use rustc::mir::{BasicBlock, BasicBlockData, VisibilityScope, ARGUMENT_VISIBILITY_SCOPE};
 use rustc::mir::Location;
 use rustc::mir::Place;
 use rustc::mir::BorrowKind;
@@ -571,61 +571,79 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
 
         graph.write_all(format!("</table>> ];\n").as_bytes()).unwrap();
 
+        //fn write_normal_edge(graph: &mut BufWriter<File>, source: BasicBlock, target: BasicBlock) {
+            //graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", source, target).as_bytes()).unwrap();
+        //};
+        fn write_normal_edge_str_target(graph: &mut BufWriter<File>, source: BasicBlock, target: &str) {
+            graph.write_all(format!("\"{:?}\" -> \"{}\"\n", source, target).as_bytes()).unwrap();
+        };
+        fn write_unwind_edge(graph: &mut BufWriter<File>, source: BasicBlock, target: BasicBlock) {
+            graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n", source, target).as_bytes()).unwrap();
+        };
+        fn write_imaginary_edge(graph: &mut BufWriter<File>, source: BasicBlock, target: BasicBlock) {
+            graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n", source, target).as_bytes()).unwrap();
+        };
+
         if let Some(ref term) = *terminator {
+            let write_normal_edge = |graph: &mut BufWriter<File>, source: BasicBlock, target: BasicBlock| {
+                let dominators = mbcx.mir.dominators();
+                if dominators.is_dominated_by(source, target) {
+                    graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=green]\n", source, target).as_bytes()).unwrap();
+                } else {
+                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", source, target).as_bytes()).unwrap();
+                }
+            };
             use rustc::mir::TerminatorKind;
             match term.kind {
                 TerminatorKind::Goto { target } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, target);
                 }
                 TerminatorKind::SwitchInt { ref targets, .. } => {
                     for target in targets {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                        write_normal_edge(&mut graph, bb, *target);
                     }
                 }
                 TerminatorKind::Resume => {
-                    graph.write_all(format!("\"{:?}\" -> \"Resume\"\n", bb).as_bytes()).unwrap();
+                    write_normal_edge_str_target(&mut graph, bb, "Resume");
                 }
                 TerminatorKind::Abort => {
-                    graph.write_all(format!("\"{:?}\" -> \"Abort\"\n", bb).as_bytes()).unwrap();
+                    write_normal_edge_str_target(&mut graph, bb, "Abort");
                 }
                 TerminatorKind::Return => {
-                    graph.write_all(format!("\"{:?}\" -> \"Return\"\n", bb).as_bytes()).unwrap();
+                    write_normal_edge_str_target(&mut graph, bb, "Return");
                 }
                 TerminatorKind::Unreachable => {}
                 TerminatorKind::DropAndReplace { ref target, unwind, .. } |
                 TerminatorKind::Drop { ref target, unwind, .. } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, *target);
                     if let Some(target) = unwind {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n",
-                                                bb, target).as_bytes()).unwrap();
+                        write_unwind_edge(&mut graph, bb, target);
                     }
                 }
 
                 TerminatorKind::Call { ref destination, cleanup, .. } => {
                     if let &Some((_, target)) = destination {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                        write_normal_edge(&mut graph, bb, target);
                     }
                     if let Some(target) = cleanup {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [color=red]\n",
-                                                bb, target).as_bytes()).unwrap();
+                        write_unwind_edge(&mut graph, bb, target);
                     }
                 }
                 TerminatorKind::Assert { target, .. } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, target);
                 }
                 TerminatorKind::Yield { .. } => { unimplemented!() }
                 TerminatorKind::GeneratorDrop => { unimplemented!() }
                 TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, real_target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, *real_target);
                     for target in imaginary_targets {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n", bb, target).as_bytes()).unwrap();
+                        write_imaginary_edge(&mut graph, bb, *target);
                     }
                 }
                 TerminatorKind::FalseUnwind { real_target, unwind } => {
-                    graph.write_all(format!("\"{:?}\" -> \"{:?}\"\n", bb, real_target).as_bytes()).unwrap();
+                    write_normal_edge(&mut graph, bb, real_target);
                     if let Some(target) = unwind {
-                        graph.write_all(format!("\"{:?}\" -> \"{:?}\" [style=\"dashed\"]\n",
-                                                bb, target).as_bytes()).unwrap();
+                        write_imaginary_edge(&mut graph, bb, target);
                     }
                 }
             };
