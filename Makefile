@@ -29,7 +29,7 @@ run:
 		-Z nll_dump_cause \
 		${RUN_FILE}
 	dot -Tpdf graph.dot -O
-	dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
+	#dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
 
 generate_ui_stderr:
 	-LD_LIBRARY_PATH=${LIB_PATH} \

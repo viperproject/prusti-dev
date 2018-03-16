@@ -42,6 +42,9 @@ use std::fmt;
 use rustc_mir::borrow_check::nll::ToRegionVid;
 use std::hash::{Hash, Hasher, SipHasher};
 use rustc_mir::borrow_check::nll::region_infer::{RegionDefinition, Constraint};
+use rustc::ty::TypeVariants;
+use rustc::ty;
+use std::collections::hash_map::DefaultHasher;
 
 
 /// Verify a (typed) specification on compiler state.
@@ -169,6 +172,15 @@ impl<'tcx> Hash for OurBorrowData<'tcx> {
     }
 }
 
+fn get_hash<T>(obj: T) -> u64
+    where
+        T: Hash,
+{
+    let mut hasher = DefaultHasher::new();
+    obj.hash(&mut hasher);
+    hasher.finish()
+}
+
 fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
     trace!("[callback] enter");
     debug!("flows: {}", flows);
@@ -250,6 +262,27 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
         let edge_name = escape_html(format!("{:?}", constraint.point));
         let to_name = escape_html(format!("{:?}", constraint.sup));
         writeln!(graph, "\"{}\" -> \"{}\" [label=\"{}\"];", from_name, to_name, edge_name).unwrap();
+    }
+    writeln!(graph, "}}").unwrap();
+
+    // Types
+    let mut types: HashSet<ty::Ty> = HashSet::new();
+    for var in &mbcx.mir.local_decls {
+        for ty in var.ty.walk() {
+            types.insert(ty);
+        }
+    }
+    writeln!(graph, "subgraph clustertypes {{").unwrap();
+    writeln!(graph, "label = \"Types\";").unwrap();
+    writeln!(graph, "node[shape=box];").unwrap();
+    for ty in &types {
+        let type_name = escape_html(format!("{}", ty));
+        writeln!(graph, "\"type_{}\" [label=\"{}\"];", get_hash(ty), type_name).unwrap();
+    }
+    for ty in &types {
+        for subty in ty.walk_shallow() {
+            writeln!(graph, "\"type_{:?}\" -> \"type_{:?}\";", get_hash(ty), get_hash(subty)).unwrap();
+        }
     }
     writeln!(graph, "}}").unwrap();
 
