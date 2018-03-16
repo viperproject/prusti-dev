@@ -190,6 +190,7 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
     graph.write_all(b"digraph G {\n").unwrap();
     writeln!(graph, "graph [compound=true];").unwrap();
 
+    let show_statement_indices = true;
     let show_source = false;
     let show_definitely_init = false;
     let show_unknown_init = false;
@@ -296,7 +297,9 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
         graph.write_all(format!("\"{:?}\" [ shape = \"record\" \n", bb).as_bytes()).unwrap();
         graph.write_all(format!("label =<<table>\n").as_bytes()).unwrap();
         graph.write_all(format!("<th><td>{:?}</td></th>\n", bb).as_bytes()).unwrap();
-        graph.write_all(format!("<th><td>statement</td>").as_bytes()).unwrap();
+        graph.write_all(format!("<th>").as_bytes()).unwrap();
+        if show_statement_indices { graph.write_all(format!("<td>Nr</td>").as_bytes()).unwrap(); }
+        graph.write_all(format!("<td>statement</td>").as_bytes()).unwrap();
         if show_source { graph.write_all(format!("<td>source</td>").as_bytes()).unwrap(); }
         if show_definitely_init { graph.write_all(format!("<td>definitely init</td>").as_bytes()).unwrap(); }
         if show_unknown_init { graph.write_all(format!("<td>unknown init</td>").as_bytes()).unwrap(); }
@@ -350,6 +353,14 @@ fn callback<'tcx>(mbcx: &'tcx mut MirBorrowckCtxt, flows: &'tcx mut Flows) {
                 gen_lifetime_regions = new_lifetime_regions_state.difference(&lifetime_regions_state).cloned().collect();
                 kill_lifetime_regions = lifetime_regions_state.difference(&new_lifetime_regions_state).cloned().collect();
                 lifetime_regions_state = new_lifetime_regions_state;
+            }
+
+            if show_statement_indices {
+                if first_run {
+                    graph.write_all("<td></td>".as_bytes()).unwrap();
+                } else {
+                    graph.write_all(format!("<td>{}</td>", location.statement_index).as_bytes()).unwrap();
+                }
             }
 
             if first_run {
