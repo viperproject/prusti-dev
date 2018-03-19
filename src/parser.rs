@@ -143,6 +143,7 @@ use std::convert::TryFrom;
 use std::mem;
 use syntax::ast::Generics;
 use syntax::codemap::respan;
+use constants::PRUSTI_SPEC_ATTR;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -492,7 +493,7 @@ impl<'tcx> SpecParser<'tcx> {
         item.node = self.fold_item_kind(node);
         item.attrs = vec![
             self.ast_builder
-                .attribute_name_value(item.span, "__PRUSTI_SPEC", &id.to_string()),
+                .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
         ];
 
         debug!(

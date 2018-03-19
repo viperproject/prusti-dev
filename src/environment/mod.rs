@@ -10,6 +10,13 @@ use prusti_interface::environment::Procedure;
 use prusti_interface::data::ProcedureDefId;
 use rustc_driver::driver;
 use rustc::ty::TyCtxt;
+use rustc::hir::def_id::DefId;
+use rustc::hir;
+
+mod collect_prusti_spec_visitor;
+mod dump_borrowck_info;
+use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
+use self::dump_borrowck_info::dump_borrowck_info;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
@@ -42,6 +49,20 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     /// TODO: check if compiler plugins have to call this method on their own.
     pub fn abort_if_errors(&self) {
         self.state.session.abort_if_errors();
+    }
+
+    pub fn get_annotated_procedures(&self) -> Vec<DefId> {
+        let mut annotated_procedures: Vec<DefId> = vec![];
+        let tcx = self.tcx();
+        {
+            let mut visitor = CollectPrustiSpecVisitor::new(tcx, &mut annotated_procedures);
+            tcx.hir.krate().visit_all_item_likes(&mut visitor);
+        }
+        annotated_procedures
+    }
+
+    pub fn dump_borrowck_info(&self) {
+        dump_borrowck_info(self.tcx())
     }
 }
 
