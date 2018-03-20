@@ -10,11 +10,13 @@ use std::collections::HashSet;
 use rustc::mir::Mir;
 use prusti_interface::environment::OnceCFGVisitor;
 use std::cell::Ref;
+use rustc::mir::BasicBlock;
 
 pub struct Procedure<'a, 'tcx: 'a> {
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     proc_def_id: ProcedureDefId,
     mir: Ref<'a, Mir<'tcx>>,
+    spec_basic_blocks: HashSet<BasicBlock>,
 }
 
 fn get_type_def_id<'tcx>(ty: Ty<'tcx>) -> Option<DefId> {
@@ -31,10 +33,15 @@ fn clean_type<'a, 'gcx, 'tcx>(tcx: TyCtxt<'a, 'gcx, 'tcx>, ty: Ty<'tcx>) -> Ty<'
     }
 }
 
+fn build_spec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
+    unimplemented!();
+}
+
 impl<'a, 'tcx> Procedure<'a, 'tcx> {
     pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, proc_def_id: ProcedureDefId) -> Self {
         let mir = tcx.mir_validated(proc_def_id).borrow();
-        Procedure { tcx, proc_def_id, mir }
+        let spec_basic_blocks = build_spec_basic_blocks(&mir);
+        Procedure { tcx, proc_def_id, mir, spec_basic_blocks }
     }
 
     pub fn get_declared_types(&self) -> Vec<Ty<'tcx>> {
@@ -49,10 +56,26 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         }
         types.into_iter().collect()
     }
+
+    pub fn walk_once_raw_cfg(&self, visitor: &mut OnceCFGVisitor) {
+        let basic_blocks = self.mir.basic_blocks();
+        for bb in basic_blocks.indices() {
+            let bb_data = &basic_blocks[bb];
+            visitor.visit_block(bb, bb_data);
+        }
+    }
+
+    pub fn walk_once_cfg(&self, visitor: &mut OnceCFGVisitor) {
+        let basic_blocks = self.mir.basic_blocks();
+        for bb in basic_blocks.indices() {
+            if !self.spec_basic_blocks.contains(&bb) {
+                let bb_data = &basic_blocks[bb];
+                visitor.visit_block(bb, bb_data);
+            }
+        }
+    }
 }
 
 impl<'a, 'tcx> ProcedureSpec for Procedure<'a, 'tcx> {
     fn get_id(&self) -> ProcedureDefId { self.proc_def_id }
-
-    fn walk_once(&self, visitor: &mut OnceCFGVisitor)  { unimplemented!(); }
 }

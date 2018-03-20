@@ -4,7 +4,6 @@
 
 //! A module that defines the compiler's facade used by the verifier.
 
-use prusti_interface::environment::Epoch;
 use prusti_interface::environment::Environment as EnvironmentSpec;
 use prusti_interface::environment::Procedure as ProcedureSpec;
 use prusti_interface::data::ProcedureDefId;
@@ -71,10 +70,6 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
 }
 
 impl<'r, 'a, 'tcx> EnvironmentSpec for Environment<'r, 'a, 'tcx> {
-    fn get_current_epoch(&self) -> Epoch {
-        Epoch::new()
-    }
-
     fn get_procedure(&self, _: ProcedureDefId) -> Box<ProcedureSpec> {
         unimplemented!()
     }
