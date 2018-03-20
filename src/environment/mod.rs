@@ -6,7 +6,7 @@
 
 use prusti_interface::environment::Epoch;
 use prusti_interface::environment::Environment as EnvironmentSpec;
-use prusti_interface::environment::Procedure;
+use prusti_interface::environment::Procedure as ProcedureSpec;
 use prusti_interface::data::ProcedureDefId;
 use rustc_driver::driver;
 use rustc::ty::TyCtxt;
@@ -15,8 +15,10 @@ use rustc::hir;
 
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
+mod procedure;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::dump_borrowck_info::dump_borrowck_info;
+use self::procedure::Procedure;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
@@ -44,15 +46,9 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         self.state.session.err(msg);
     }
 
-    /// Aborts the compilation and exits with an error code if some error has been emitted so far.
-    ///
-    /// TODO: check if compiler plugins have to call this method on their own.
-    pub fn abort_if_errors(&self) {
-        self.state.session.abort_if_errors();
-    }
-
-    pub fn get_annotated_procedures(&self) -> Vec<DefId> {
-        let mut annotated_procedures: Vec<DefId> = vec![];
+    /// Get ids of Rust procedures that are annotated with a Prusti specification
+    pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
+        let mut annotated_procedures: Vec<ProcedureDefId> = vec![];
         let tcx = self.tcx();
         {
             let mut visitor = CollectPrustiSpecVisitor::new(tcx, &mut annotated_procedures);
@@ -61,6 +57,14 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         annotated_procedures
     }
 
+    /// Get a Procedure.
+    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
+        Procedure::new(self.tcx(), proc_def_id)
+    }
+
+    /// Dump various information from the borrow checker.
+    ///
+    /// Mostly used for experiments and debugging.
     pub fn dump_borrowck_info(&self) {
         dump_borrowck_info(self.tcx())
     }
@@ -71,7 +75,7 @@ impl<'r, 'a, 'tcx> EnvironmentSpec for Environment<'r, 'a, 'tcx> {
         Epoch::new()
     }
 
-    fn get_procedure(&self, _: ProcedureDefId) -> Box<Procedure> {
+    fn get_procedure(&self, _: ProcedureDefId) -> Box<ProcedureSpec> {
         unimplemented!()
     }
 }
