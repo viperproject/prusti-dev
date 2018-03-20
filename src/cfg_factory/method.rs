@@ -8,8 +8,8 @@ use uuid::Uuid;
 
 const LABEL_PREFIX: &str = "__viper";
 
-pub struct CfgMethod<'a> {
-    ast_factory: &'a AstFactory<'a>,
+pub struct CfgMethod<'a: 'b, 'b> {
+    ast_factory: &'b AstFactory<'a>,
     uuid: Uuid,
     method_name: String,
     formal_args: Vec<LocalVarDecl<'a>>,
@@ -40,9 +40,9 @@ pub struct CfgBlockIndex {
     block_index: usize,
 }
 
-impl<'a> CfgMethod<'a> {
+impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
     pub fn new(
-        ast_factory: &'a AstFactory,
+        ast_factory: &'b AstFactory<'a>,
         method_name: String,
         formal_args: Vec<LocalVarDecl<'a>>,
         formal_returns: Vec<LocalVarDecl<'a>>,
