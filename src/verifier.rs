@@ -15,9 +15,9 @@ use ast_utils::AstUtils;
 use std::marker::PhantomData;
 
 pub mod state {
-    pub enum Uninitialized {}
-    pub enum Stopped {}
-    pub enum Started {}
+    pub struct Uninitialized;
+    pub struct Stopped;
+    pub struct Started;
 }
 
 pub struct Verifier<'a, VerifierState> {

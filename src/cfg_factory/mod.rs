@@ -10,6 +10,7 @@ use ast_factory::LocalVarDecl;
 
 pub use self::method::*;
 
+#[derive(Clone, Copy)]
 pub struct CfgFactory<'a> {
     ast: AstFactory<'a>,
 }

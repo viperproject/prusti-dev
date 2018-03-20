@@ -8,6 +8,7 @@ use ast_factory::Program;
 use viper_sys::wrappers::viper::*;
 use jni_utils::JniUtils;
 
+#[derive(Clone, Copy)]
 pub struct AstUtils<'a> {
     env: &'a JNIEnv<'a>,
     jni: JniUtils<'a>,

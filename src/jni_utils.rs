@@ -10,6 +10,7 @@ use jni::sys::jsize;
 use viper_sys::wrappers::*;
 use error_chain::ChainedError;
 
+#[derive(Clone, Copy)]
 pub struct JniUtils<'a> {
     env: &'a JNIEnv<'a>,
 }

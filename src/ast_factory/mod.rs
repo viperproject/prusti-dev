@@ -23,6 +23,7 @@ pub use self::program::*;
 pub use self::ast_type::*;
 pub use self::structs::*;
 
+#[derive(Clone, Copy)]
 pub struct AstFactory<'a> {
     env: &'a JNIEnv<'a>,
     jni: JniUtils<'a>,
