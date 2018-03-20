@@ -5,40 +5,15 @@
 //! This module defines data structures exchanged between a verifier and
 //! its environment.
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+use rustc::hir::def_id::DefId;
+
 /// A unique identifier of the Rust procedure.
-pub struct ProcedureDefId(usize);
-
-/// A generator that generates unique procedure def ids.
-#[derive(Debug)]
-pub struct ProcedureDefIdGenerator {
-    last_value: ProcedureDefId,
-}
-
-impl ProcedureDefIdGenerator {
-    /// Constructor.
-    pub fn new() -> Self {
-        Self {
-            last_value: ProcedureDefId(1),
-        }
-    }
-    /// Generate a new unique ID.
-    pub fn get_new_id(&mut self) -> ProcedureDefId {
-        self.last_value = ProcedureDefId(self.last_value.0 + 1);
-        self.last_value
-    }
-}
-
-impl Default for ProcedureDefIdGenerator {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub type ProcedureDefId = DefId;
 
 /// A list of items to verify that is passed to a verifier.
 pub struct VerificationTask {
     /// A list of procedures to verify.
-    pub procedures: Vec<ProcedureDefId>,
+    pub procedures: Vec<DefId>,
 }
 
 /// Verification result returned by a verifier.
