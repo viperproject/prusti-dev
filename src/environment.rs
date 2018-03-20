@@ -8,7 +8,7 @@ use data::ProcedureDefId;
 use rustc::mir;
 
 pub type BasicBlockIndex = mir::BasicBlock;
-pub type BasicBlockData = mir::BasicBlockData;
+pub type BasicBlockData<'tcx> = mir::BasicBlockData<'tcx>;
 
 /// A CFG visitor that visits each basic block exactly once.
 ///
