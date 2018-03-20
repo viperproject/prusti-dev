@@ -12,22 +12,32 @@ use prusti_interface::environment::BasicBlockIndex;
 use rustc::mir::TerminatorKind;
 use viper::Successor;
 
-pub struct ProceduresTable<'a, P: 'a + Procedure> {
-    ast_factory: viper::AstFactory<'a>,
-    cfg_factory: viper::CfgFactory<'a>,
-    env: &'a Environment<ProcedureImpl=P>,
+pub struct ProceduresTable<'v, P: 'v + Procedure> {
+    ast_factory: viper::AstFactory<'v>,
+    cfg_factory: viper::CfgFactory<'v>,
+    env: &'v Environment<ProcedureImpl=P>,
+    procedures: HashMap<ProcedureDefId, Method<'v>>
 }
 
-impl<'a, P: Procedure> ProceduresTable<'a, P> {
-    pub fn new(verification_ctx: &'a viper::VerificationContext<'a>, env: &'a Environment<ProcedureImpl=P>) -> Self {
+impl<'v, P: Procedure> ProceduresTable<'v, P> {
+    pub fn new(
+        ast_factory: viper::AstFactory<'v>,
+        cfg_factory: viper::CfgFactory<'v>,
+        env: &'v Environment<ProcedureImpl=P>
+    ) -> Self {
         ProceduresTable {
-            ast_factory: verification_ctx.new_ast_factory(),
-            cfg_factory: verification_ctx.new_cfg_factory(),
-            env
+            ast_factory,
+            cfg_factory,
+            env,
+            procedures: HashMap::new()
         }
     }
 
-    pub fn get_definition(&self, proc_def_id: ProcedureDefId) -> Method<'a> {
+    pub fn get_used_definitions(&self) -> Vec<Method> {
+        self.procedures.values().cloned().collect()
+    }
+
+    pub fn set_used(&mut self, proc_def_id: ProcedureDefId) {
         let procedure = self.env.get_procedure(proc_def_id);
         let mut cfg = self.cfg_factory.new_cfg_method(
             // method name
@@ -121,6 +131,7 @@ impl<'a, P: Procedure> ProceduresTable<'a, P> {
             }
         });
 
-        unimplemented!();
+        let method = cfg.to_ast().ok().unwrap();
+        self.procedures.insert(proc_def_id, method);
     }
 }

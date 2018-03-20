@@ -6,20 +6,22 @@ use viper::{self, Viper, Method, Field, VerificationError};
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 
-pub struct FieldsTable<'a, P: 'a + Procedure> {
-    ast_factory: viper::AstFactory<'a>,
-    env: &'a Environment<ProcedureImpl=P>,
+pub struct FieldsTable<'v, P: 'v + Procedure> {
+    ast_factory: viper::AstFactory<'v>,
+    env: &'v Environment<ProcedureImpl=P>,
 }
 
-impl<'a, P: Procedure> FieldsTable<'a, P> {
-    pub fn new(verification_ctx: &'a viper::VerificationContext<'a>, env: &'a Environment<ProcedureImpl=P>) -> Self {
+impl<'v, P: Procedure> FieldsTable<'v, P> {
+    pub fn new(ast_factory: viper::AstFactory<'v>, env: &'v Environment<ProcedureImpl=P>) -> Self {
         FieldsTable {
-            ast_factory: verification_ctx.new_ast_factory(),
+            ast_factory,
             env
         }
     }
 
-    pub fn get_used_definitions(&self) -> Vec<Field<'a>> {
-        unimplemented!();
+    // pub fn get_use(&self) { .. }
+
+    pub fn get_used_definitions(&self) -> Vec<Field<'v>> {
+        vec![]
     }
 }

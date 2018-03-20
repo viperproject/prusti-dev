@@ -31,77 +31,78 @@ impl Default for VerifierBuilder {
     }
 }
 
-impl<'a, P: 'a + Procedure> VerifierBuilderSpec<'a, P> for VerifierBuilder {
-    type VerificationContextImpl = VerificationContext<'a>;
+impl<'v, P: 'v + Procedure> VerifierBuilderSpec<'v, P> for VerifierBuilder {
+    type VerificationContextImpl = VerificationContext<'v>;
 
-    fn new_verification_context(&'a self) -> VerificationContext<'a> {
+    fn new_verification_context(&'v self) -> VerificationContext<'v> {
         let verification_ctx = self.viper.new_verification_context();
         VerificationContext::new(verification_ctx)
     }
 }
 
-pub struct VerificationContext<'a> {
-    verification_ctx: viper::VerificationContext<'a>
+pub struct VerificationContext<'v> {
+    verification_ctx: viper::VerificationContext<'v>
 }
 
-impl<'a> VerificationContext<'a> {
-    pub fn new(verification_ctx: viper::VerificationContext<'a>) -> Self {
+impl<'v> VerificationContext<'v> {
+    pub fn new(verification_ctx: viper::VerificationContext<'v>) -> Self {
         VerificationContext { verification_ctx }
     }
 }
 
-impl<'a, P: 'a + Procedure> VerificationContextSpec<'a, P> for VerificationContext<'a> {
-    type VerifierImpl = Verifier<'a, P>;
+impl<'v, P: 'v + Procedure> VerificationContextSpec<'v, P> for VerificationContext<'v> {
+    type VerifierImpl = Verifier<'v, P>;
 
-    fn new_verifier(&'a self, env: &'a Environment<ProcedureImpl=P>) -> Verifier<'a, P> {
-        Verifier::new(&self.verification_ctx, env)
+    fn new_verifier(&'v self, env: &'v Environment<ProcedureImpl=P>) -> Verifier<'v, P> {
+        Verifier::new(
+            self.verification_ctx.new_ast_factory(),
+            self.verification_ctx.new_cfg_factory(),
+            self.verification_ctx.new_verifier(),
+            env
+        )
     }
 }
 
-pub struct Verifier<'a, P: 'a + Procedure> {
-    verification_ctx: &'a viper::VerificationContext<'a>,
-    env: &'a Environment<ProcedureImpl=P>,
-    verifier: viper::Verifier<'a, viper::state::Started>,
-    procedures_table: ProceduresTable<'a, P>,
-    fields_table: FieldsTable<'a, P>,
+pub struct Verifier<'v, P: 'v + Procedure> {
+    ast_factory: viper::AstFactory<'v>,
+    cfg_factory: viper::CfgFactory<'v>,
+    verifier: viper::Verifier<'v, viper::state::Started>,
+    env: &'v Environment<ProcedureImpl=P>,
+    procedures_table: ProceduresTable<'v, P>,
+    fields_table: FieldsTable<'v, P>,
 }
 
-impl<'a, P: Procedure> Verifier<'a, P> {
+impl<'v, P: Procedure> Verifier<'v, P> {
     pub fn new(
-        verification_ctx: &'a viper::VerificationContext<'a>,
-        env: &'a Environment<ProcedureImpl=P>,
+        ast_factory: viper::AstFactory<'v>,
+        cfg_factory: viper::CfgFactory<'v>,
+        verifier: viper::Verifier<'v, viper::state::Started>,
+        env: &'v Environment<ProcedureImpl=P>,
     ) -> Self {
         Verifier {
-            verification_ctx,
+            ast_factory,
+            cfg_factory,
+            verifier,
             env,
-            verifier: verification_ctx.new_verifier(),
-            procedures_table: ProceduresTable::new(verification_ctx, env),
-            fields_table: FieldsTable::new(verification_ctx, env),
+            procedures_table: ProceduresTable::new(ast_factory, cfg_factory, env),
+            fields_table: FieldsTable::new(ast_factory, env),
         }
     }
 }
 
-impl<'a, P: Procedure> VerifierSpec for Verifier<'a, P> {
+impl<'v, P: 'v + Procedure> VerifierSpec for Verifier<'v, P> {
     fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
-        let ast_factory = self.verification_ctx.new_ast_factory();
-
         // let epoch = self.env.get_current_epoch();
-        let mut verification_methods: Vec<Method> = vec![];
         let mut verification_errors: Vec<VerificationError> = vec![];
 
         for proc_id in &task.procedures {
-            /* TODO: cache old results
-            let method_or_result = self.procedures_table.get_use(procedure, epoch);
-            match method_or_result {
-                Left(method) => verification_methods.push(method),
-                Right(errors) => verification_errors.append(errors)
-            }
-            */
-            let method = self.procedures_table.get_definition(*proc_id);
-            verification_methods.push(method)
+            self.procedures_table.set_used(*proc_id);
         }
+
         let verification_fields: Vec<Field> = self.fields_table.get_used_definitions();
-        let program = ast_factory.program(&[], &verification_fields, &[], &[], &verification_methods);
+        let verification_methods: Vec<Method> = self.procedures_table.get_used_definitions();
+
+        let program = self.ast_factory.program(&[], &verification_fields, &[], &[], &verification_methods);
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
         if let viper::VerificationResult::Failure(mut errors) = verification_result {
