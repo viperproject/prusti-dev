@@ -21,11 +21,6 @@ impl FakeEnvironment {
 }
 
 impl Environment for FakeEnvironment {
-    /// Get the current epoch.
-    fn get_current_epoch(&self) -> Epoch {
-        Epoch::new()
-    }
-
     fn get_procedure(&self, _: ProcedureDefId) -> Box<Procedure> {
         unimplemented!()
     }

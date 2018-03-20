@@ -1,17 +1,16 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::environment::Environment;
 use prusti_interface::data::VerificationTask;
-use viper::Viper;
-use viper::Method;
-use viper::VerificationError;
-use viper::VerificationContext as ViperVerificationContext;
-use viper::VerificationResult as ViperVerificationResult;
-use viper::Verifier as ViperVerifier;
-use viper::state as verifier_state;
-use viper::AstFactory as ViperAstFactory;
+use viper::{self, Viper, Method, Field, VerificationError};
+use procedures_table::ProceduresTable;
+use fields_table::FieldsTable;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -41,11 +40,11 @@ impl<'a> VerifierBuilderSpec<'a> for VerifierBuilder {
 }
 
 pub struct VerificationContext<'a> {
-    verification_ctx: ViperVerificationContext<'a>,
+    verification_ctx: viper::VerificationContext<'a>,
 }
 
 impl<'a> VerificationContext<'a> {
-    pub fn new(verification_ctx: ViperVerificationContext<'a>) -> Self {
+    pub fn new(verification_ctx: viper::VerificationContext<'a>) -> Self {
         VerificationContext { verification_ctx }
     }
 }
@@ -54,55 +53,55 @@ impl<'a> VerificationContextSpec<'a> for VerificationContext<'a> {
     type VerifierImpl = Verifier<'a>;
 
     fn new_verifier(&'a self) -> Verifier<'a> {
-        Verifier::new(
-            self.verification_ctx.new_verifier(),
-            self.verification_ctx.new_ast_factory(),
-        )
+        Verifier::new(&self.verification_ctx)
     }
 }
 
 pub struct Verifier<'a> {
-    verifier: ViperVerifier<'a, verifier_state::Started>,
-    verifier_ast: ViperAstFactory<'a>,
-    // procedure_table: ProcedureTable,
-    // fields_table: FieldsTable,
-    // ...
+    verification_ctx: &'a viper::VerificationContext<'a>,
+    verifier: viper::Verifier<'a, viper::state::Started>,
+    procedures_table: ProceduresTable<'a>,
+    fields_table: FieldsTable<'a>,
 }
 
 impl<'a> Verifier<'a> {
     pub fn new(
-        verifier: ViperVerifier<'a, verifier_state::Started>,
-        verifier_ast: ViperAstFactory<'a>,
+        verification_ctx: &'a viper::VerificationContext<'a>,
     ) -> Self {
         Verifier {
-            verifier,
-            verifier_ast,
-            // procedure_table: ProcedureTable::new(),
-            // ...
+            verification_ctx,
+            verifier: verification_ctx.new_verifier(),
+            procedures_table: ProceduresTable::new(verification_ctx),
+            fields_table: FieldsTable::new(verification_ctx),
         }
     }
 }
 
 impl<'a> VerifierSpec for Verifier<'a> {
-    fn verify(&mut self, _env: &mut Environment, _task: &VerificationTask) -> VerificationResult {
+    fn verify(&mut self, env: &mut Environment, task: &VerificationTask) -> VerificationResult {
+        let ast_factory = self.verification_ctx.new_ast_factory();
+
         // let epoch = env.get_current_epoch();
-        let verification_methods: Vec<Method> = vec![];
+        let mut verification_methods: Vec<Method> = vec![];
         let mut verification_errors: Vec<VerificationError> = vec![];
-        /* TODO
+
         for proc_id in &task.procedures {
-            let method_or_result = self.procedure_table.get_use(procedure, epoch);
+            /* TODO: cache old results
+            let method_or_result = self.procedures_table.get_use(procedure, epoch);
             match method_or_result {
                 Left(method) => verification_methods.push(method),
                 Right(errors) => verification_errors.append(errors)
             }
+            */
+            let method = self.procedures_table.get_definition(*proc_id);
+            verification_methods.push(method)
         }
-        let verification_fields: Vec<Field> = fields_table.get_used_definitnions(epoch);
-        let program = self.verifier_ast.program(&[], &verification_fields, &[], &[], &verification_methods);
-        */
-        let program = self.verifier_ast
-            .program(&[], &[], &[], &[], &verification_methods);
-        let verification_result: ViperVerificationResult = self.verifier.verify(program);
-        if let ViperVerificationResult::Failure(mut errors) = verification_result {
+        let verification_fields: Vec<Field> = self.fields_table.get_used_definitions();
+        let program = ast_factory.program(&[], &verification_fields, &[], &[], &verification_methods);
+
+        let verification_result: viper::VerificationResult = self.verifier.verify(program);
+        if let viper::VerificationResult::Failure(mut errors) = verification_result {
+            // TODO: register errors in corresponding self.procedures_table
             verification_errors.append(&mut errors)
         }
 
@@ -118,6 +117,6 @@ impl<'a> VerifierSpec for Verifier<'a> {
     }
 
     fn invalidate_all(&mut self, _env: &mut Environment) {
-        // self.procedure_table = ProcedureTable::new()
+        // TODO
     }
 }
