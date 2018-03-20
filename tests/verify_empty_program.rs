@@ -21,7 +21,8 @@ impl FakeEnvironment {
 }
 
 impl Environment for FakeEnvironment {
-    fn get_procedure(&self, _: ProcedureDefId) -> Box<Procedure> {
+    type ProcedureImpl = ();
+    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Self::ProcedureImpl {
         unimplemented!()
     }
 }

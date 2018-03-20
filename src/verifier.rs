@@ -7,6 +7,7 @@ use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::environment::Environment;
+use prusti_interface::environment::Procedure;
 use prusti_interface::data::VerificationTask;
 use viper::{self, Viper, Method, Field, VerificationError};
 use procedures_table::ProceduresTable;
@@ -30,7 +31,7 @@ impl Default for VerifierBuilder {
     }
 }
 
-impl<'a> VerifierBuilderSpec<'a> for VerifierBuilder {
+impl<'a, P: 'a + Procedure> VerifierBuilderSpec<'a, P> for VerifierBuilder {
     type VerificationContextImpl = VerificationContext<'a>;
 
     fn new_verification_context(&'a self) -> VerificationContext<'a> {
@@ -40,7 +41,7 @@ impl<'a> VerifierBuilderSpec<'a> for VerifierBuilder {
 }
 
 pub struct VerificationContext<'a> {
-    verification_ctx: viper::VerificationContext<'a>,
+    verification_ctx: viper::VerificationContext<'a>
 }
 
 impl<'a> VerificationContext<'a> {
@@ -49,39 +50,42 @@ impl<'a> VerificationContext<'a> {
     }
 }
 
-impl<'a> VerificationContextSpec<'a> for VerificationContext<'a> {
-    type VerifierImpl = Verifier<'a>;
+impl<'a, P: 'a + Procedure> VerificationContextSpec<'a, P> for VerificationContext<'a> {
+    type VerifierImpl = Verifier<'a, P>;
 
-    fn new_verifier(&'a self) -> Verifier<'a> {
-        Verifier::new(&self.verification_ctx)
+    fn new_verifier(&'a self, env: &'a Environment<ProcedureImpl=P>) -> Verifier<'a, P> {
+        Verifier::new(&self.verification_ctx, env)
     }
 }
 
-pub struct Verifier<'a> {
+pub struct Verifier<'a, P: 'a + Procedure> {
     verification_ctx: &'a viper::VerificationContext<'a>,
+    env: &'a Environment<ProcedureImpl=P>,
     verifier: viper::Verifier<'a, viper::state::Started>,
-    procedures_table: ProceduresTable<'a>,
-    fields_table: FieldsTable<'a>,
+    procedures_table: ProceduresTable<'a, P>,
+    fields_table: FieldsTable<'a, P>,
 }
 
-impl<'a> Verifier<'a> {
+impl<'a, P: Procedure> Verifier<'a, P> {
     pub fn new(
         verification_ctx: &'a viper::VerificationContext<'a>,
+        env: &'a Environment<ProcedureImpl=P>,
     ) -> Self {
         Verifier {
             verification_ctx,
+            env,
             verifier: verification_ctx.new_verifier(),
-            procedures_table: ProceduresTable::new(verification_ctx),
-            fields_table: FieldsTable::new(verification_ctx),
+            procedures_table: ProceduresTable::new(verification_ctx, env),
+            fields_table: FieldsTable::new(verification_ctx, env),
         }
     }
 }
 
-impl<'a> VerifierSpec for Verifier<'a> {
-    fn verify(&mut self, env: &mut Environment, task: &VerificationTask) -> VerificationResult {
+impl<'a, P: Procedure> VerifierSpec for Verifier<'a, P> {
+    fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
         let ast_factory = self.verification_ctx.new_ast_factory();
 
-        // let epoch = env.get_current_epoch();
+        // let epoch = self.env.get_current_epoch();
         let mut verification_methods: Vec<Method> = vec![];
         let mut verification_errors: Vec<VerificationError> = vec![];
 
@@ -116,7 +120,7 @@ impl<'a> VerifierSpec for Verifier<'a> {
         }
     }
 
-    fn invalidate_all(&mut self, _env: &mut Environment) {
+    fn invalidate_all(&mut self) {
         // TODO
     }
 }
