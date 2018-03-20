@@ -8,9 +8,9 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Procedure as ProcedureSpec;
 use std::collections::HashSet;
 use rustc::mir::Mir;
-use prusti_interface::environment::OnceCFGVisitor;
 use std::cell::Ref;
 use rustc::mir::BasicBlock;
+use rustc::mir::BasicBlockData;
 
 pub struct Procedure<'a, 'tcx: 'a> {
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
@@ -56,26 +56,26 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         }
         types.into_iter().collect()
     }
-
-    pub fn walk_once_raw_cfg(&self, visitor: &mut OnceCFGVisitor) {
-        let basic_blocks = self.mir.basic_blocks();
-        for bb in basic_blocks.indices() {
-            let bb_data = &basic_blocks[bb];
-            visitor.visit_block(bb, bb_data);
-        }
-    }
-
-    pub fn walk_once_cfg(&self, visitor: &mut OnceCFGVisitor) {
-        let basic_blocks = self.mir.basic_blocks();
-        for bb in basic_blocks.indices() {
-            if !self.spec_basic_blocks.contains(&bb) {
-                let bb_data = &basic_blocks[bb];
-                visitor.visit_block(bb, bb_data);
-            }
-        }
-    }
 }
 
 impl<'a, 'tcx> ProcedureSpec for Procedure<'a, 'tcx> {
     fn get_id(&self) -> ProcedureDefId { self.proc_def_id }
+
+    fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData) {
+        let basic_blocks = self.mir.basic_blocks();
+        for bbi in basic_blocks.indices() {
+            let bb_data = &basic_blocks[bbi];
+            visitor(bbi, bb_data);
+        }
+    }
+
+    fn walk_once_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData) {
+        let basic_blocks = self.mir.basic_blocks();
+        for bbi in basic_blocks.indices() {
+            if !self.spec_basic_blocks.contains(&bbi) {
+                let bb_data = &basic_blocks[bbi];
+                visitor(bbi, bb_data);
+            }
+        }
+    }
 }

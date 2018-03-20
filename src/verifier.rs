@@ -16,6 +16,7 @@ use rustc::hir::intravisit;
 use syntax::{self, ast, parse, ptr, attr};
 use syntax::codemap::Span;
 use environment::Environment;
+use environment::Procedure;
 use hir_visitor::HirVisitor;
 use rustc::hir;
 use rustc::mir::{Mir, Mutability, Operand, Projection, ProjectionElem, Rvalue};
@@ -56,7 +57,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
     debug!("Specification consists of {} elements.", spec.len());
 
-    let mut env = Environment::new(state);
+    let env = Environment::new(state);
 
     debug!("Dump borrow checker info...");
     env.dump_borrowck_info();
@@ -67,11 +68,11 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
     debug!("Prepare verifier...");
     let verifier_builder = ViperVerifierBuilder::new();
-    let verification_context = verifier_builder.new_verification_context();
-    let mut verifier = verification_context.new_verifier();
+    let verification_context = VerifierBuilder::<Procedure>::new_verification_context(&verifier_builder);
+    let mut verifier = verification_context.new_verifier(&env);
 
     debug!("Run verifier...");
-    let verification_result = verifier.verify(&mut env, &verification_task);
+    let verification_result = verifier.verify(&verification_task);
     debug!("Verifier returned {:?}", verification_result);
 
     match verification_result {

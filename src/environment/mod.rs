@@ -17,7 +17,7 @@ mod dump_borrowck_info;
 mod procedure;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::dump_borrowck_info::dump_borrowck_info;
-use self::procedure::Procedure;
+pub use self::procedure::Procedure;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
@@ -56,11 +56,6 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         annotated_procedures
     }
 
-    /// Get a Procedure.
-    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
-        Procedure::new(self.tcx(), proc_def_id)
-    }
-
     /// Dump various information from the borrow checker.
     ///
     /// Mostly used for experiments and debugging.
@@ -70,7 +65,10 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
 }
 
 impl<'r, 'a, 'tcx> EnvironmentSpec for Environment<'r, 'a, 'tcx> {
-    fn get_procedure(&self, _: ProcedureDefId) -> Box<ProcedureSpec> {
-        unimplemented!()
+    type ProcedureImpl = Procedure<'a, 'tcx>;
+
+    /// Get a Procedure.
+    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
+        Procedure::new(self.tcx(), proc_def_id)
     }
 }
