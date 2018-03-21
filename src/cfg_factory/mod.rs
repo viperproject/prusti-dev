@@ -21,15 +21,16 @@ impl<'a> CfgFactory<'a> {
         CfgFactory { ast }
     }
 
-    pub fn new_cfg_method<IntoString>(
-        &self,
+    pub fn new_cfg_method<'b, IntoString>(
+        &'b self,
         method_name: IntoString,
         formal_args: Vec<LocalVarDecl<'a>>,
         formal_returns: Vec<LocalVarDecl<'a>>,
         local_vars: Vec<LocalVarDecl<'a>>,
-    ) -> CfgMethod
+    ) -> CfgMethod<'a, 'b>
     where
         IntoString: Into<String>,
+        'a: 'b
     {
         CfgMethod::new(
             &self.ast,
