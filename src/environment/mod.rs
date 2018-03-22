@@ -64,7 +64,7 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 }
 
-impl<'r, 'a, 'tcx> EnvironmentSpec for Environment<'r, 'a, 'tcx> {
+impl<'r, 'a, 'tcx> EnvironmentSpec<'tcx> for Environment<'r, 'a, 'tcx> {
     type ProcedureImpl = Procedure<'a, 'tcx>;
 
     /// Get a Procedure.

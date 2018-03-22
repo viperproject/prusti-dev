@@ -159,14 +159,18 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
 }
 
-impl<'a, 'tcx> ProcedureSpec for Procedure<'a, 'tcx> {
+impl<'a, 'tcx> ProcedureSpec<'tcx> for Procedure<'a, 'tcx> {
     fn get_id(&self) -> ProcedureDefId { self.proc_def_id }
+
+    fn get_mir(&self) -> &Mir<'tcx> {
+        &self.mir
+    }
 
     fn get_name(&self) -> String {
         self.tcx.item_path_str(self.proc_def_id)
     }
 
-    fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData) {
+    fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData<'tcx>) {
         let basic_blocks = self.mir.basic_blocks();
         for bbi in basic_blocks.indices() {
             let bb_data = &basic_blocks[bbi];
@@ -174,7 +178,7 @@ impl<'a, 'tcx> ProcedureSpec for Procedure<'a, 'tcx> {
         }
     }
 
-    fn walk_once_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData) {
+    fn walk_once_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData<'tcx>) {
         let basic_blocks = self.mir.basic_blocks();
         for bbi in basic_blocks.indices() {
             if self.nonspec_basic_blocks.contains(&bbi) {
