@@ -12,9 +12,9 @@ pub struct CfgMethod<'a: 'b, 'b> {
     ast_factory: &'b AstFactory<'a>,
     uuid: Uuid,
     method_name: String,
-    formal_args: Vec<LocalVarDecl<'a>>,
-    formal_returns: Vec<LocalVarDecl<'a>>,
-    local_vars: Vec<LocalVarDecl<'a>>,
+    formal_args: Vec<(String, Type)>,
+    formal_returns: Vec<(String, Type)>,
+    local_vars: Vec<(String, Type)>,
     basic_blocks: Vec<CfgBlock<'a>>,
     basic_blocks_labels: Vec<String>,
     fresh_var_index: i32,
@@ -23,7 +23,7 @@ pub struct CfgMethod<'a: 'b, 'b> {
 #[derive(Clone)]
 struct CfgBlock<'a> {
     invs: Vec<Expr<'a>>,
-    stmt: Stmt<'a>,
+    stmts: Vec<Stmt<'a>>,
     successor: Successor<'a>,
 }
 
@@ -47,9 +47,9 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
     pub fn new(
         ast_factory: &'b AstFactory<'a>,
         method_name: String,
-        formal_args: Vec<LocalVarDecl<'a>>,
-        formal_returns: Vec<LocalVarDecl<'a>>,
-        local_vars: Vec<LocalVarDecl<'a>>,
+        formal_args: Vec<(String, Type)>,
+        formal_returns: Vec<(String, Type)>,
+        local_vars: Vec<(String, Type)>,
     ) -> Self {
         CfgMethod {
             ast_factory,
@@ -64,43 +64,60 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
         }
     }
 
-    fn generate_fresh_local_var_decl(&mut self, typ: Type) -> (String, LocalVarDecl<'a>) {
+    fn is_fresh_local_var_name(&self, name: &str) -> bool {
+        self.formal_args.iter().forall(|x| x.0 != name) &&
+        self.formal_returns.iter().forall(|x| x.0 != name) &&
+        self.local_vars.iter().forall(|x| x.0 != name)
+    }
+
+    fn generate_fresh_local_var_name(&mut self) -> String {
         let mut candidate_name = format!("_{}", self.fresh_var_index);
         self.fresh_var_index += 1;
-        while
-            formal_args.contains(candidate_name) ||
-            formal_returns.contains(candidate_name) ||
-            local_vars.contains(candidate_name)
-        {
+        while !self.is_fresh_local_var_name(candidate_name) {
             candidate_name = format!("_{}", self.fresh_var_index);
             self.fresh_var_index += 1;
         }
-        let decl = self.ast_factory.local_var_decl(
-            &candidate_name,
-            typ
-        );
-        (candidate_name, decl)
+        candidate_name
     }
 
     pub fn add_fresh_local_var(&mut self, typ: Type) -> String {
-        let (name, decl) = generate_fresh_local_var_decl(typ);
-        self.local_vars.push(decl);
+        let name = generate_fresh_local_var_decl(typ);
+        self.local_vars.push((name, typ));
         name
     }
 
     pub fn add_fresh_formal_arg(&mut self, typ: Type) -> String {
-        let (name, decl) = generate_fresh_local_var_decl(typ);
-        self.formal_args.push(decl);
+        let name = generate_fresh_local_var_decl(typ);
+        self.formal_args.push((name, typ));
         name
     }
 
     pub fn add_fresh_formal_return(&mut self, typ: Type) -> String {
-        let (name, decl) = generate_fresh_local_var_decl(typ);
-        self.formal_returns.push(decl);
+        let name = generate_fresh_local_var_decl(typ);
+        self.formal_returns.push((name, typ));
         name
     }
 
-    pub fn add_block(&mut self, label: &str, invs: Vec<Expr<'a>>, stmt: Stmt<'a>) -> CfgBlockIndex {
+    pub fn add_local_var(&mut self, name: String, typ: Type) {
+        assert!(self.is_fresh_local_var_name(name));
+        self.local_vars.push((name, typ));
+    }
+
+    pub fn add_formal_arg(&mut self, name: String, typ: Type) {
+        assert!(self.is_fresh_local_var_name(name));
+        self.formal_args.push((name, typ));
+    }
+
+    pub fn add_formal_return(&mut self, name: String, typ: Type) {
+        assert!(self.is_fresh_local_var_name(name));
+        self.formal_returns.push((name, typ));
+    }
+
+    pub fn add_stmt(&mut self, index: CfgBlockIndex, stmt: Stmt) {
+        self.basic_blocks[index.block_index].stmts.push(stmt);
+    }
+
+    pub fn add_block(&mut self, label: &str, invs: Vec<Expr<'a>>, stmts: Vec<Stmt<'a>>) -> CfgBlockIndex {
         assert!(label.chars().take(1).all(|c| c.is_alphabetic() || c == '_'));
         assert!(label.chars().skip(1).all(|c| c.is_alphanumeric() || c == '_'));
         assert!(self.basic_blocks_labels.iter().all(|l| l != label));
@@ -109,7 +126,7 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
         self.basic_blocks_labels.push(label.to_string());
         self.basic_blocks.push(CfgBlock {
             invs,
-            stmt,
+            stmts,
             successor: Successor::Undefined,
         });
         CfgBlockIndex {
@@ -131,8 +148,9 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
         let mut blocks_ast: Vec<Stmt> = vec![];
         let mut declarations: Vec<Declaration> = vec![];
 
-        for &local_var in &self.local_vars {
-            declarations.push(local_var.into());
+        for (name, typ) in self.local_vars.drain() {
+            let decl = self.ast_factory.local_var_decl(&name, typ);
+            declarations.push(decl.into());
         }
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
@@ -160,10 +178,22 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
 
         let method_body = Some(self.ast_factory.seqn(&blocks_ast, &declarations));
 
+        let mut formal_args_decl: Vec<LocalVarDecl<'a>> = vec![];
+        for (name, typ) in self.formal_args.drain() {
+            let decl = self.ast_factory.local_var_decl(&name, typ);
+            formal_args_decl.push(decl);
+        }
+
+        let mut formal_returns_decl: Vec<LocalVarDecl<'a>> = vec![];
+        for (name, typ) in self.formal_returns.drain() {
+            let decl = self.ast_factory.local_var_decl(&name, typ);
+            formal_returns_decl.push(decl);
+        }
+
         let method = self.ast_factory.method(
             &self.method_name,
-            &self.formal_args,
-            &self.formal_returns,
+            &formal_args_decl,
+            &formal_returns_decl,
             &[],
             &[],
             method_body,
@@ -224,7 +254,7 @@ fn block_to_ast<'a>(
     ast.seqn(
         &[
             ast.label(&label, &block.invs),
-            block.stmt,
+            ast.seqn(&block.stmts, &[]),
             successor_to_ast(ast, index, basic_block_labels, &block.successor),
         ],
         &[],
