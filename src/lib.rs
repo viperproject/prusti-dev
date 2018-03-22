@@ -10,6 +10,7 @@ extern crate log;
 extern crate prusti_interface;
 extern crate viper;
 extern crate rustc;
+extern crate rustc_data_structures;
 
 mod encoder;
 pub mod verifier;

@@ -4,5 +4,6 @@
 
 mod encoder;
 mod procedure_encoder;
+mod borrows;
 
 pub use self::encoder::Encoder;
