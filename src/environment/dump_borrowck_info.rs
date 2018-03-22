@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::env;
 use specifications::TypedSpecificationMap;
 use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
 use prusti_interface::verifier::VerifierBuilder;
@@ -166,6 +167,23 @@ fn clean_type<'a, 'gcx, 'tcx>(tcx: TyCtxt<'a, 'gcx, 'tcx>, ty: Ty<'tcx>) -> Ty<'
     }
 }
 
+fn get_config_option(name: &str, default: bool) -> bool {
+    match env::var_os(name).and_then(|value| value.into_string().ok()).as_ref() {
+        Some(value) => {
+            match value as &str {
+                "true" => true,
+                "false" => false,
+                "1" => true,
+                "0" => false,
+                _ => unreachable!("Uknown configuration value “{}” for “{}”.", value, name),
+            }
+        },
+        None => {
+            default
+        },
+    }
+}
+
 fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, flows: &'s mut Flows<'g, 'gcx, 'tcx>) {
     trace!("[callback] enter");
     debug!("flows: {}", flows);
@@ -179,15 +197,20 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
     let mut forward_edges = HashMap::new();
     let mut back_edges = HashMap::new();
 
-    let show_statement_indices = true;
-    let show_source = false;
-    let show_definitely_init = false;
-    let show_unknown_init = false;
-    let show_reserved_borrows = true;
-    let show_active_borrows = true;
-    let show_move_out = true;
-    let show_ever_init = false;
-    let show_lifetime_regions = true;
+    let show_statement_indices = get_config_option("PRUSTI_DUMP_SHOW_STATEMENT_INDICES", true);
+    let show_source = get_config_option("PRUSTI_DUMP_SHOW_SOURCE", false);
+    let show_definitely_init = get_config_option("PRUSTI_DUMP_SHOW_DEFINITELY_INIT", false);
+    let show_unknown_init = get_config_option("PRUSTI_DUMP_SHOW_UNKNOWN_INIT", false);
+    let show_reserved_borrows = get_config_option("PRUSTI_DUMP_SHOW_RESERVED_BORROWS", true);
+    let show_active_borrows = get_config_option("PRUSTI_DUMP_SHOW_ACTIVE_BORROWS", true);
+    let show_move_out = get_config_option("PRUSTI_DUMP_SHOW_MOVE_OUT", true);
+    let show_ever_init = get_config_option("PRUSTI_DUMP_SHOW_EVER_INIT", false);
+    let show_lifetime_regions = get_config_option("PRUSTI_DUMP_SHOW_LIFETIME_REGIONS", true);
+    let show_scope_tree =  get_config_option("PRUSTI_DUMP_SHOW_SCOPE_TREE", true);
+    let show_temp_variables =  get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true);
+    let show_lifetimes =  get_config_option("PRUSTI_DUMP_SHOW_LIFETIMES", true);
+    let show_lifetime_constraints =  get_config_option("PRUSTI_DUMP_SHOW_LIFETIME_CONSTRAINTS", true);
+    let show_types =  get_config_option("PRUSTI_DUMP_SHOW_TYPES", true);
 
     let regioncx = mbcx.nonlexical_regioncx.as_ref().unwrap();
     let region_values = regioncx.inferred_values();
@@ -205,81 +228,91 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
             assert_eq!(index, ARGUMENT_VISIBILITY_SCOPE.index());
         }
     }
-    writeln!(graph, "subgraph clusterscopes {{ style=filled;").unwrap();
-    writeln!(graph, "SCOPE_TREE").unwrap();
-    write_scope_tree(mbcx.tcx, &mbcx.mir, &scope_tree, &mut graph, ARGUMENT_VISIBILITY_SCOPE, 1);
-    writeln!(graph, "}}").unwrap();
+    if show_scope_tree {
+        writeln!(graph, "subgraph clusterscopes {{ style=filled;").unwrap();
+        writeln!(graph, "SCOPE_TREE").unwrap();
+        write_scope_tree(mbcx.tcx, &mbcx.mir, &scope_tree, &mut graph, ARGUMENT_VISIBILITY_SCOPE, 1);
+        writeln!(graph, "}}").unwrap();
+    }
 
     // Temporary variables.
-    writeln!(graph, "Variables [ style=filled shape = \"record\"").unwrap();
-    writeln!(graph, "label =<<table>").unwrap();
-    writeln!(graph, "<tr><td>VARIABLES</td></tr>").unwrap();
-    writeln!(graph, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>").unwrap();
-    for (temp, var) in mbcx.mir.local_decls.iter_enumerated() {
-        let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
-        let typ = escape_html(format!("{}", var.ty));
-        writeln!(graph, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", name, temp, typ).unwrap();
+    if show_temp_variables {
+        writeln!(graph, "Variables [ style=filled shape = \"record\"").unwrap();
+        writeln!(graph, "label =<<table>").unwrap();
+        writeln!(graph, "<tr><td>VARIABLES</td></tr>").unwrap();
+        writeln!(graph, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>").unwrap();
+        for (temp, var) in mbcx.mir.local_decls.iter_enumerated() {
+            let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
+            let typ = escape_html(format!("{}", var.ty));
+            writeln!(graph, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", name, temp, typ).unwrap();
+        }
+        writeln!(graph, "</table>>];").unwrap();
     }
-    writeln!(graph, "</table>>];").unwrap();
 
     // Lifetimes
-    writeln!(graph, "Lifetimes [ style=filled shape = \"record\"").unwrap();
-    writeln!(graph, "label =<<table>").unwrap();
-    writeln!(graph, "<tr><td>Lifetimes</td></tr>").unwrap();
-    writeln!(graph, "<tr><td>Name</td><td>Temporary</td></tr>").unwrap();
-    for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
-        let name = match region_definition.external_name {
-            Some(&RegionKind::ReStatic) => String::from("'static"),
-            Some(&RegionKind::ReFree(FreeRegion { bound_region: BoundRegion::BrNamed(_, name), .. })) => escape_html(format!("{}", name)),
-            Some(region) => escape_html(format!("{}", region)),
-            None => String::from("")
-        };
-        let temp = escape_html(format!("{:?}", region_vid));
-        writeln!(graph, "<tr><td>{}</td><td>{}</td></tr>", name, temp).unwrap();
+    if show_lifetimes {
+        writeln!(graph, "Lifetimes [ style=filled shape = \"record\"").unwrap();
+        writeln!(graph, "label =<<table>").unwrap();
+        writeln!(graph, "<tr><td>Lifetimes</td></tr>").unwrap();
+        writeln!(graph, "<tr><td>Name</td><td>Temporary</td></tr>").unwrap();
+        for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
+            let name = match region_definition.external_name {
+                Some(&RegionKind::ReStatic) => String::from("'static"),
+                Some(&RegionKind::ReFree(FreeRegion { bound_region: BoundRegion::BrNamed(_, name), .. })) => escape_html(format!("{}", name)),
+                Some(region) => escape_html(format!("{}", region)),
+                None => String::from("")
+            };
+            let temp = escape_html(format!("{:?}", region_vid));
+            writeln!(graph, "<tr><td>{}</td><td>{}</td></tr>", name, temp).unwrap();
+        }
+        writeln!(graph, "</table>>];").unwrap();
     }
-    writeln!(graph, "</table>>];").unwrap();
 
     // Lifetime constraints
-    writeln!(graph, "subgraph clusterconstraints {{").unwrap();
-    writeln!(graph, "label = \"Lifetime constraints\";").unwrap();
-    writeln!(graph, "node[shape=box];").unwrap();
-    for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
-        let region_name = escape_html(format!("{:?}", region_vid));
-        writeln!(graph, "\"{}\";", region_name).unwrap();
+    if show_lifetime_constraints {
+        writeln!(graph, "subgraph clusterconstraints {{").unwrap();
+        writeln!(graph, "label = \"Lifetime constraints\";").unwrap();
+        writeln!(graph, "node[shape=box];").unwrap();
+        for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
+            let region_name = escape_html(format!("{:?}", region_vid));
+            writeln!(graph, "\"{}\";", region_name).unwrap();
+        }
+        for constraint in &regioncx.constraints {
+            let from_name = escape_html(format!("{:?}", constraint.sub));
+            let edge_name = escape_html(format!("{:?}", constraint.point));
+            let to_name = escape_html(format!("{:?}", constraint.sup));
+            writeln!(graph, "\"{}\" -> \"{}\" [label=\"{}\"];", from_name, to_name, edge_name).unwrap();
+        }
+        writeln!(graph, "}}").unwrap();
     }
-    for constraint in &regioncx.constraints {
-        let from_name = escape_html(format!("{:?}", constraint.sub));
-        let edge_name = escape_html(format!("{:?}", constraint.point));
-        let to_name = escape_html(format!("{:?}", constraint.sup));
-        writeln!(graph, "\"{}\" -> \"{}\" [label=\"{}\"];", from_name, to_name, edge_name).unwrap();
-    }
-    writeln!(graph, "}}").unwrap();
 
     // Types
-    let mut types: HashSet<ty::Ty> = HashSet::new();
-    for var in &mbcx.mir.local_decls {
-        for ty in var.ty.walk() {
-            let cleaned_ty = clean_type(mbcx.tcx, ty);
-            //let cleaned_ty = mbcx.tcx.erase_regions(&ty);
-            types.insert(cleaned_ty);
+    if show_types {
+        let mut types: HashSet<ty::Ty> = HashSet::new();
+        for var in &mbcx.mir.local_decls {
+            for ty in var.ty.walk() {
+                let cleaned_ty = clean_type(mbcx.tcx, ty);
+                //let cleaned_ty = mbcx.tcx.erase_regions(&ty);
+                types.insert(cleaned_ty);
+            }
         }
-    }
-    writeln!(graph, "subgraph clustertypes {{").unwrap();
-    writeln!(graph, "label = \"Types\";").unwrap();
-    writeln!(graph, "node[shape=box];").unwrap();
-    for ty in &types {
-        let ty_name = escape_html(format!("{}", ty));
-        writeln!(graph, "\"type_{}\" [label=\"{}\"];", get_hash(ty), ty_name).unwrap();
-    }
-    for ty in &types {
-        for subty in ty.walk_shallow() {
-            let cleaned_subty = clean_type(mbcx.tcx, subty);
-            //let cleaned_subty = mbcx.tcx.erase_regions(&subty);
-            let subty_name = escape_html(format!("{}", subty));
-            writeln!(graph, "\"type_{:?}\" -> \"type_{:?}\" [label=\"{}\"];", get_hash(ty), get_hash(cleaned_subty), subty_name).unwrap();
+        writeln!(graph, "subgraph clustertypes {{").unwrap();
+        writeln!(graph, "label = \"Types\";").unwrap();
+        writeln!(graph, "node[shape=box];").unwrap();
+        for ty in &types {
+            let ty_name = escape_html(format!("{}", ty));
+            writeln!(graph, "\"type_{}\" [label=\"{}\"];", get_hash(ty), ty_name).unwrap();
         }
+        for ty in &types {
+            for subty in ty.walk_shallow() {
+                let cleaned_subty = clean_type(mbcx.tcx, subty);
+                //let cleaned_subty = mbcx.tcx.erase_regions(&subty);
+                let subty_name = escape_html(format!("{}", subty));
+                writeln!(graph, "\"type_{:?}\" -> \"type_{:?}\" [label=\"{}\"];", get_hash(ty), get_hash(cleaned_subty), subty_name).unwrap();
+            }
+        }
+        writeln!(graph, "}}").unwrap();
     }
-    writeln!(graph, "}}").unwrap();
 
     // CFG
     graph.write_all(format!("Resume\n").as_bytes()).unwrap();
@@ -840,20 +873,18 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let def_id = self.tcx.hir.local_def_id(node_id);
         let attributes = self.tcx.get_attrs(def_id);
 
-        if name == "foo" {
-            debug!("dump mir for fn {:?}", name);
+        match env::var_os("PRUSTI_DUMP_PROC").and_then(|value| value.into_string().ok()) {
+            Some(value) => {
+                if name == value {
+                    debug!("dump mir for fn {:?}", name);
 
-            //self.tcx.mir_borrowck(def_id);
-
-            let input_mir = &self.tcx.mir_validated(def_id).borrow();
-            //let input_mir = self.tcx.optimized_mir(def_id);
-            let opt_closure_req = self.tcx.infer_ctxt().enter(|infcx| {
-                //let callback: for<'s> Fn(&'s _, &'s _) = |_mbcx, _state| {};
-                do_mir_borrowck(&infcx, input_mir, def_id, Some(box callback))
-            });
-
-            //let mir = self.tcx.mir_validated(def_id);
-            //let mir = mir.borrow();
+                    let input_mir = &self.tcx.mir_validated(def_id).borrow();
+                    let opt_closure_req = self.tcx.infer_ctxt().enter(|infcx| {
+                        do_mir_borrowck(&infcx, input_mir, def_id, Some(box callback))
+                    });
+                }
+            },
+            _ => {},
         }
 
         trace!("[visit_fn] exit");
