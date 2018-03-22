@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper::{self, Viper, Expr, VerificationError};
+use viper::{self, Viper, Stmt, Expr, VerificationError};
 use viper::{Domain, Field, Function, Predicate, Method};
 use viper::AstFactory;
 use rustc::mir;
@@ -36,7 +36,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
     }
 
     fn encode_local(&self, local: mir::Local) -> viper::LocalVarDecl<'v> {
-        debug!("Encode local {:?}", self.encode_local_var_name(local));
+        trace!("Encode local {:?}", self.encode_local_var_name(local));
         self.encoder.ast_factory.local_var_decl(
             &self.encode_local_var_name(local),
             self.encoder.encode_type(self.get_rust_local_ty(local))
@@ -57,6 +57,19 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         ).map(|x| self.encode_local(x)).collect()
     }
 
+    fn encode_statement(&self, stmt: &mir::Statement) -> Stmt {
+        debug!("Encode statement '{:?}'", stmt);
+        // TODO!
+        self.encoder.ast_factory.seqn(&[], &[])
+    }
+
+    fn encode_terminator(&self, term: &mir::Terminator) -> Stmt {
+        debug!("Encode terminator '{:?}'", term);
+        match term.kind {
+            x => unimplemented!("{:?}", x)
+        }
+    }
+
     pub fn set_used(&mut self) {
         let ast = self.encoder.ast_factory;
         let mut cfg = self.encoder.cfg_factory.new_cfg_method(
@@ -73,7 +86,19 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
 
         // Build CFG blocks
         self.procedure.walk_once_cfg(|bbi, bb_data| {
-            let statements = &bb_data.statements;
+            let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
+            let mut viper_statements: Vec<Stmt> = vec![];
+
+            // Encode statements
+            for (stmt_index, stmt) in statements.iter().enumerate() {
+                debug!("Encode statement {:?}:{}", bbi, stmt_index);
+                viper_statements.push(self.encode_statement(stmt))
+            }
+
+            // Encode effect of terminator (assert, function call, ...)
+            if let Some(ref term) = bb_data.terminator {
+                viper_statements.push(self.encode_terminator(term));
+            }
 
             let cfg_block = cfg.add_block(
                 // label
@@ -81,7 +106,10 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
                 // invariants
                 vec![],
                 // statements
-                ast.seqn(&vec![], &vec![])
+                ast.seqn(
+                    &viper_statements,
+                    &vec![]
+                )
             );
             cfg_blocks.insert(bbi, cfg_block);
         });
@@ -92,14 +120,9 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
             // invariants
             vec![],
             // statements
-            ast.seqn(&vec![
-                ast.assert_with_comment(
-                    ast.false_lit(),
-                    ast.no_position(),
-                    "Spec type-checking block: "
-                )
-            ], &vec![])
+            ast.seqn(&[], &[])
         );
+        cfg.set_successor(spec_cfg_block, Successor::Unreachable);
 
         let abort_cfg_block = cfg.add_block(
             // label
@@ -107,14 +130,9 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
             // invariants
             vec![],
             // statements
-            ast.seqn(&vec![
-                ast.assert_with_comment(
-                    ast.false_lit(),
-                    ast.no_position(),
-                    "Abort block: "
-                )
-            ], &vec![])
+            ast.seqn(&vec![], &vec![])
         );
+        cfg.set_successor(abort_cfg_block, Successor::Unreachable);
 
         // Build CFG edges
         self.procedure.walk_once_cfg(|bbi, bb_data| {
@@ -122,14 +140,14 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
             let cfg_block = *cfg_blocks.get(&bbi).unwrap();
 
             if let Some(ref term) = *terminator {
-                match term.kind {
-                    TerminatorKind::Return => {
-                        cfg.set_successor(cfg_block, Successor::Return());
-                    }
+                let successor = match term.kind {
+                    TerminatorKind::Return => Successor::Return,
+
                     TerminatorKind::Goto { target } => {
                         let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                        cfg.set_successor(cfg_block, Successor::Goto(*target_cfg_block));
-                    }
+                        Successor::Goto(*target_cfg_block)
+                    },
+
                     TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
                         trace!("SwitchInt ty '{:?}', discr '{:?}', values '{:?}'", switch_ty, discr, values);
                         let mut cfg_targets: Vec<(Expr, CfgBlockIndex)> = vec![];
@@ -151,40 +169,50 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
                         }
                         let default_target = targets[values.len()];
                         let cfg_default_target = cfg_blocks.get(&default_target).unwrap_or(&spec_cfg_block);
-                        cfg.set_successor(cfg_block, Successor::GotoSwitch(cfg_targets, *cfg_default_target));
-                    }
-                    TerminatorKind::Resume => { }
-                    TerminatorKind::Abort => {
-                        cfg.set_successor(cfg_block, Successor::Goto(abort_cfg_block));
-                    }
-                    TerminatorKind::Unreachable => {}
+                        Successor::GotoSwitch(cfg_targets, *cfg_default_target)
+                    },
+
+                    TerminatorKind::Resume => unimplemented!(),
+
+                    TerminatorKind::Unreachable => Successor::Unreachable,
+
+                    TerminatorKind::Abort => Successor::Goto(abort_cfg_block),
+
                     TerminatorKind::DropAndReplace { ref target, unwind, .. } |
                     TerminatorKind::Drop { ref target, unwind, .. } => {
                         let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                        cfg.set_successor(cfg_block, Successor::Goto(*target_cfg_block));
-                    }
+                        Successor::Goto(*target_cfg_block)
+                    },
 
                     TerminatorKind::Call { ref destination, cleanup, .. } => {
                         if let &Some((_, target)) = destination {
                             let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                            cfg.set_successor(cfg_block, Successor::Goto(*target_cfg_block));
+                            Successor::Goto(*target_cfg_block)
+                        } else {
+                            Successor::Unreachable
                         }
-                    }
+                    },
+
                     TerminatorKind::Assert { target, .. } => {
                         let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                        cfg.set_successor(cfg_block, Successor::Goto(*target_cfg_block));
-                    }
-                    TerminatorKind::Yield { .. } => { unimplemented!() }
-                    TerminatorKind::GeneratorDrop => { unimplemented!() }
+                        Successor::Goto(*target_cfg_block)
+                    },
+
+                    TerminatorKind::Yield { .. } => unimplemented!(),
+
+                    TerminatorKind::GeneratorDrop => unimplemented!(),
+
                     TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
                         let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
-                        cfg.set_successor(cfg_block, Successor::Goto(*target_cfg_block));
-                    }
+                        Successor::Goto(*target_cfg_block)
+                    },
+
                     TerminatorKind::FalseUnwind { real_target, unwind } => {
                         let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
-                        cfg.set_successor(cfg_block, Successor::Goto(*target_cfg_block));
+                        Successor::Goto(*target_cfg_block)
                     }
                 };
+                cfg.set_successor(cfg_block, successor);
             }
         });
 
