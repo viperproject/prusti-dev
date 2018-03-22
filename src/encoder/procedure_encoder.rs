@@ -67,7 +67,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
     fn encode_terminator(&self, term: &mir::Terminator) -> Stmt {
         debug!("Encode terminator '{:?}'", term);
         match term.kind {
-            x => unimplemented!("{:?}", x)
+            ref x => unimplemented!("{:?}", x)
         }
     }
 
