@@ -10,7 +10,7 @@ use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::data::VerificationTask;
 use viper::{self, Viper, Method, Field, VerificationError};
-use encoder::ViperEncoder;
+use encoder::Encoder;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -30,7 +30,7 @@ impl Default for VerifierBuilder {
     }
 }
 
-impl<'v, P: 'v + Procedure> VerifierBuilderSpec<'v, P> for VerifierBuilder {
+impl<'v, 'tcx: 'v, P: 'v + Procedure<'tcx>> VerifierBuilderSpec<'v, 'tcx, P> for VerifierBuilder {
     type VerificationContextImpl = VerificationContext<'v>;
 
     fn new_verification_context(&'v self) -> VerificationContext<'v> {
@@ -49,10 +49,10 @@ impl<'v> VerificationContext<'v> {
     }
 }
 
-impl<'v, P: 'v + Procedure> VerificationContextSpec<'v, P> for VerificationContext<'v> {
-    type VerifierImpl = Verifier<'v, P>;
+impl<'v, 'tcx: 'v, P: 'v + Procedure<'tcx>> VerificationContextSpec<'v, 'tcx, P> for VerificationContext<'v> {
+    type VerifierImpl = Verifier<'v, 'tcx, P>;
 
-    fn new_verifier(&'v self, env: &'v Environment<ProcedureImpl=P>) -> Verifier<'v, P> {
+    fn new_verifier(&'v self, env: &'v Environment<'tcx, ProcedureImpl=P>) -> Verifier<'v, 'tcx, P> {
         Verifier::new(
             self.verification_ctx.new_ast_factory(),
             self.verification_ctx.new_cfg_factory(),
@@ -62,32 +62,32 @@ impl<'v, P: 'v + Procedure> VerificationContextSpec<'v, P> for VerificationConte
     }
 }
 
-pub struct Verifier<'v, P: 'v + Procedure> {
+pub struct Verifier<'v, 'tcx: 'v, P: 'v + Procedure<'tcx>> {
     ast_factory: viper::AstFactory<'v>,
     cfg_factory: viper::CfgFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
-    env: &'v Environment<ProcedureImpl=P>,
-    encoder: ViperEncoder<'v, P>
+    env: &'v Environment<'tcx, ProcedureImpl=P>,
+    encoder: Encoder<'v, 'tcx, P>
 }
 
-impl<'v, P: Procedure> Verifier<'v, P> {
+impl<'v, 'tcx, P: Procedure<'tcx>> Verifier<'v, 'tcx, P> {
     pub fn new(
         ast_factory: viper::AstFactory<'v>,
         cfg_factory: viper::CfgFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
-        env: &'v Environment<ProcedureImpl=P>,
+        env: &'v Environment<'tcx, ProcedureImpl=P>,
     ) -> Self {
         Verifier {
             ast_factory,
             cfg_factory,
             verifier,
             env,
-            encoder: ViperEncoder::new(ast_factory, cfg_factory, env)
+            encoder: Encoder::new(ast_factory, cfg_factory, env)
         }
     }
 }
 
-impl<'v, P: 'v + Procedure> VerifierSpec for Verifier<'v, P> {
+impl<'v, 'tcx, P: 'v + Procedure<'tcx>> VerifierSpec for Verifier<'v, 'tcx, P> {
     fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
         // let epoch = self.env.get_current_epoch();
         let mut verification_errors: Vec<VerificationError> = vec![];
