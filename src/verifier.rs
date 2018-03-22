@@ -13,10 +13,10 @@ use data::{VerificationResult, VerificationTask};
 /// to create a new verifier for each crate he or she wants to verify.
 /// The main motivation for having a builder is to be able to cache the JVM
 /// initialization.
-pub trait VerifierBuilder<'v, P: Procedure> {
+pub trait VerifierBuilder<'v, 'tcx, P: Procedure<'tcx>> {
     /// The type of the VerificationContext implementation that is returned by
     /// `new_verification_context`.
-    type VerificationContextImpl: VerificationContext<'v, P>;
+    type VerificationContextImpl: VerificationContext<'v, 'tcx, P>;
 
     /// Construct a new verification context object.
     fn new_verification_context(&'v self) -> Self::VerificationContextImpl;
@@ -26,12 +26,12 @@ pub trait VerifierBuilder<'v, P: Procedure> {
 /// Its main purpose is to build verifiers.
 /// The main motivation for having a verification context is to be able to detach the current
 /// thread from the JVM when the verification context goes out of scope.
-pub trait VerificationContext<'v, P: Procedure> {
+pub trait VerificationContext<'v, 'tcx, P: Procedure<'tcx>> {
     /// The type of the Verifier implementation that is returned by `new_verifier`.
     type VerifierImpl: Verifier;
 
     /// Construct a new verifier object.
-    fn new_verifier(&'v self, env: &'v Environment<ProcedureImpl=P>) -> Self::VerifierImpl;
+    fn new_verifier(&'v self, env: &'v Environment<'tcx, ProcedureImpl=P>) -> Self::VerifierImpl;
 }
 
 /// A verifier is an object for verifying a single crate, potentially

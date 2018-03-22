@@ -11,22 +11,24 @@ pub type BasicBlockIndex = mir::BasicBlock;
 pub type BasicBlockData<'tcx> = mir::BasicBlockData<'tcx>;
 
 /// A facade that provides information about the Rust procedure.
-pub trait Procedure {
+pub trait Procedure<'tcx> {
     /// Get definition ID of the procedure.
     fn get_id(&self) -> ProcedureDefId;
+
+    fn get_mir(&self) -> &mir::Mir<'tcx>;
 
     fn get_name(&self) -> String;
 
     /// Iterate over all CFG basic blocks
-    fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData);
+    fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData<'tcx>);
 
     /// Iterate over all CFG basic blocks that are not part of the specification type checking
-    fn walk_once_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData);
+    fn walk_once_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData<'tcx>);
 }
 
 /// A facade to the Rust compiler.
-pub trait Environment {
-    type ProcedureImpl: Procedure;
+pub trait Environment<'tcx> {
+    type ProcedureImpl: Procedure<'tcx>;
 
     /// Get a Procedure.
     fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Self::ProcedureImpl;
