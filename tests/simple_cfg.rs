@@ -51,7 +51,7 @@ fn success_with_simple_chain() {
     let block_3 = cfg.add_block("_3", vec![], ast.local_var_assign(local_var, ast.int_lit(2)));
 
     cfg.set_successor(block_1, Successor::Goto(block_3));
-    cfg.set_successor(block_2, Successor::Return());
+    cfg.set_successor(block_2, Successor::Return);
     cfg.set_successor(block_3, Successor::Goto(block_2));
 
     let program = ast.program(&[], &[], &[], &[], &[cfg.to_ast().ok().unwrap()]);
@@ -111,7 +111,7 @@ fn success_with_simple_loop() {
         Successor::GotoIf(ast.lt_cmp(local_var, ast.int_lit(10)), block_3, block_4),
     );
     cfg.set_successor(block_3, Successor::Goto(block_2));
-    cfg.set_successor(block_4, Successor::Return());
+    cfg.set_successor(block_4, Successor::Return);
 
     let program = ast.program(&[], &[], &[], &[], &[cfg.to_ast().ok().unwrap()]);
 

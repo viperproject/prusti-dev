@@ -28,8 +28,9 @@ struct CfgBlock<'a> {
 
 #[derive(Clone)]
 pub enum Successor<'a> {
-    Unreachable(),
-    Return(),
+    Undefined,
+    Unreachable,
+    Return,
     Goto(CfgBlockIndex),
     GotoSwitch(Vec<(Expr<'a>, CfgBlockIndex)>, CfgBlockIndex),
     GotoIf(Expr<'a>, CfgBlockIndex, CfgBlockIndex),
@@ -71,7 +72,7 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
         self.basic_blocks.push(CfgBlock {
             invs,
             stmt,
-            successor: Successor::Unreachable(),
+            successor: Successor::Undefined,
         });
         CfgBlockIndex {
             method_uuid: self.uuid,
@@ -144,12 +145,16 @@ fn return_label() -> String {
 
 fn successor_to_ast<'a>(
     ast: &'a AstFactory,
+    index: usize,
     basic_block_labels: &Vec<String>,
     successor: &Successor<'a>,
 ) -> Stmt<'a> {
     match *successor {
-        Successor::Unreachable() => ast.assert(ast.false_lit(), ast.no_position()),
-        Successor::Return() => ast.goto(&return_label()),
+        Successor::Undefined =>
+            panic!("CFG block '{}' has no successor.", index_to_label(basic_block_labels, index)),
+        Successor::Unreachable =>
+            ast.assert_with_comment(ast.false_lit(), ast.no_position(), "Unreachable: "),
+        Successor::Return => ast.goto(&return_label()),
         Successor::Goto(target) => ast.goto(&index_to_label(basic_block_labels, target.block_index)),
         Successor::GotoSwitch(ref successors, ref default_target) => {
             let skip = ast.seqn(&[], &[]);
@@ -182,7 +187,7 @@ fn block_to_ast<'a>(
         &[
             ast.label(&label, &block.invs),
             block.stmt,
-            successor_to_ast(ast, basic_block_labels, &block.successor),
+            successor_to_ast(ast, index, basic_block_labels, &block.successor),
         ],
         &[],
     )
