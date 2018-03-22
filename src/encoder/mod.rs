@@ -66,7 +66,7 @@ impl<'v, P: Procedure> ViperEncoder<'v, P> {
         let procedure = self.env.get_procedure(proc_def_id);
         let mut cfg = self.cfg_factory.new_cfg_method(
             // method name
-            encode_procedure_name(&procedure),
+            self.encode_procedure_name(&procedure),
             // formal args
             vec![],
             // formal returns
@@ -193,7 +193,7 @@ impl<'v, P: Procedure> ViperEncoder<'v, P> {
         self.procedures.insert(proc_def_id, method);
     }
 
-    fn encode_const_int<'tcx>(&self, const_int: &ConstInt<'tcx>) -> Expr<'v> {
+    fn encode_const_int(&self, const_int: &ConstInt) -> Expr<'v> {
         match const_int {
             &ConstInt::U8(ref val) => self.ast_factory.int_lit_from_ref(val),
             _ => unimplemented!(),
@@ -220,7 +220,7 @@ impl<'v, P: Procedure> ViperEncoder<'v, P> {
         match place {
             &mir::Place::Local(ref local) => {
                 let var_name = format!("{:?}", local);
-                let var_type = ast.int_type(); // FIXME
+                let var_type = self.ast_factory.int_type(); // FIXME
                 self.ast_factory.local_var(&var_name, var_type)
             }
             _ => unimplemented!(),
@@ -231,8 +231,8 @@ impl<'v, P: Procedure> ViperEncoder<'v, P> {
         match operand {
             &mir::Operand::Copy(ref place) |
             &mir::Operand::Move(ref place) => self.encode_place_eval(place),
-            &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref const_val, .. } }, ..}) =>
-                self.encode_const_val(const_val),
+            &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) =>
+                self.encode_const_val(val),
             _ => unimplemented!()
         }
     }
