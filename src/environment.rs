@@ -15,6 +15,8 @@ pub trait Procedure {
     /// Get definition ID of the procedure.
     fn get_id(&self) -> ProcedureDefId;
 
+    fn get_name(&self) -> String;
+
     /// Iterate over all CFG basic blocks
     fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData);
 
