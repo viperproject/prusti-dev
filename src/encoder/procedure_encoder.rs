@@ -35,17 +35,39 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         }
     }
 
+    fn encode_local(&self, local: mir::Local) -> viper::LocalVarDecl<'v> {
+        debug!("Encode local {:?}", self.encode_local_var_name(local));
+        self.encoder.ast_factory.local_var_decl(
+            &self.encode_local_var_name(local),
+            self.encoder.encode_type(self.get_rust_local_ty(local))
+        )
+    }
+
+    fn encode_formal_args_decl(&self) -> Vec<viper::LocalVarDecl<'v>> {
+        self.mir.args_iter().map(|x| self.encode_local(x)).collect()
+    }
+
+    fn encode_formal_returns_decl(&self) -> Vec<viper::LocalVarDecl<'v>> {
+        self.mir.local_decls.indices().take(1).map(|x| self.encode_local(x)).collect()
+    }
+
+    fn encode_local_vars_decl(&self) -> Vec<viper::LocalVarDecl<'v>> {
+        self.mir.vars_and_temps_iter().filter(
+            |l| !self.get_rust_local_ty(*l).is_never()
+        ).map(|x| self.encode_local(x)).collect()
+    }
+
     pub fn set_used(&mut self) {
         let ast = self.encoder.ast_factory;
         let mut cfg = self.encoder.cfg_factory.new_cfg_method(
             // method name
             self.encode_procedure_name(),
             // formal args
-            vec![],
+            self.encode_formal_args_decl(),
             // formal returns
-            vec![],
+            self.encode_formal_returns_decl(),
             // local vars
-            vec![ast.local_var_decl("a", ast.int_type())],
+            self.encode_local_vars_decl()
         );
         let mut cfg_blocks: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
 
@@ -170,16 +192,16 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         self.encoder.procedures.insert(self.proc_def_id, method);
     }
 
-    fn get_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {
+    fn get_rust_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {
         &self.mir.local_decls[local]
     }
 
-    fn get_local_ty(&self, local: mir::Local) -> &ty::Ty<'tcx> {
-        &self.get_local_decl(local).ty
+    fn get_rust_local_ty(&self, local: mir::Local) -> &ty::Ty<'tcx> {
+        &self.get_rust_local_decl(local).ty
     }
 
     fn encode_local_var_name(&self, local: mir::Local) -> String {
-        let local_decl = self.get_local_decl(local);
+        let local_decl = self.get_rust_local_decl(local);
         match local_decl.name {
             Some(ref name) => format!("{:?}", name),
             None => format!("{:?}", local)
@@ -190,7 +212,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         match place {
             &mir::Place::Local(local) => {
                 let var_name = self.encode_local_var_name(local);
-                let var_type = self.encoder.encode_type(self.get_local_ty(local));
+                let var_type = self.encoder.encode_type(self.get_rust_local_ty(local));
                 self.encoder.ast_factory.local_var(&var_name, var_type)
             }
             x => unimplemented!("{:?}", x),
@@ -208,6 +230,6 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
     }
 
     fn encode_procedure_name(&self) -> String {
-        format!("_{}", self.procedure.get_name())
+        self.procedure.get_name()
     }
 }

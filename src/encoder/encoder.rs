@@ -85,6 +85,9 @@ impl<'v, 'tcx, P: Procedure<'tcx>> Encoder<'v, 'tcx, P> {
             ty::TypeVariants::TyRawPtr(_) |
             ty::TypeVariants::TyRef(_, _) => self.ast_factory.ref_type(),
 
+            ty::TypeVariants::TyAdt(_, _) |
+            ty::TypeVariants::TyTuple(_, _) => self.ast_factory.ref_type(),
+
             ref x => unimplemented!("{:?}", x),
         }
     }
