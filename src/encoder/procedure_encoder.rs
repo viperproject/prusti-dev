@@ -17,6 +17,7 @@ use rustc::mir::TerminatorKind;
 use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::Encoder;
+use encoder::borrows::compute_borrow_infos;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> {
     encoder: &'p mut Encoder<'v, 'tcx, P>,
@@ -71,6 +72,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
     }
 
     pub fn set_used(&mut self) {
+        compute_borrow_infos(self.procedure);
         let ast = self.encoder.ast_factory;
         let mut cfg = self.encoder.cfg_factory.new_cfg_method(
             // method name
