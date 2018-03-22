@@ -71,6 +71,7 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
     }
 }
 
+/// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
 fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
     let dominators = mir.dominators();
     let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
@@ -155,10 +156,15 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         }
         types.into_iter().collect()
     }
+
 }
 
 impl<'a, 'tcx> ProcedureSpec for Procedure<'a, 'tcx> {
     fn get_id(&self) -> ProcedureDefId { self.proc_def_id }
+
+    fn get_name(&self) -> String {
+        self.tcx.item_path_str(self.proc_def_id)
+    }
 
     fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData) {
         let basic_blocks = self.mir.basic_blocks();
