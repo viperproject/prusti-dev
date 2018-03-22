@@ -85,7 +85,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Rust number to a Java BigInt
-    pub fn new_big_int(&self, number: i32) -> JObject {
+    pub fn new_big_int(&self, number: &ToString) -> JObject {
         let number_string = self.new_string(&number.to_string());
 
         let java_big_integer =

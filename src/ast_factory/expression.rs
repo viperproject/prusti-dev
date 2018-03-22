@@ -96,7 +96,11 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn int_lit(&self, i: i32) -> Expr<'a> {
-        // TODO: take a Java BigInt as parameter
+        let big_i = self.jni.new_big_int(&i);
+        build_ast_node!(self, Expr, ast::IntLit, big_i)
+    }
+
+    pub fn int_lit_from_ref(&self, i: &ToString) -> Expr<'a> {
         let big_i = self.jni.new_big_int(i);
         build_ast_node!(self, Expr, ast::IntLit, big_i)
     }

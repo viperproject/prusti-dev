@@ -38,16 +38,17 @@ fn success_with_simple_chain() {
     let local_var = ast.local_var("a", ast.int_type());
 
     // a = 1
-    let block_1 = cfg.add_block(vec![], ast.local_var_assign(local_var, ast.int_lit(1)));
+    let block_1 = cfg.add_block("_1", vec![], ast.local_var_assign(local_var, ast.int_lit(1)));
 
     // assert(a == 2)
     let block_2 = cfg.add_block(
+        "_2",
         vec![],
         ast.assert(ast.eq_cmp(local_var, ast.int_lit(2)), ast.no_position()),
     );
 
     // a = 2
-    let block_3 = cfg.add_block(vec![], ast.local_var_assign(local_var, ast.int_lit(2)));
+    let block_3 = cfg.add_block("_3", vec![], ast.local_var_assign(local_var, ast.int_lit(2)));
 
     cfg.set_successor(block_1, Successor::Goto(block_3));
     cfg.set_successor(block_2, Successor::Return());
@@ -80,23 +81,26 @@ fn success_with_simple_loop() {
     let local_var = ast.local_var("a", ast.int_type());
 
     // a = 0
-    let block_1 = cfg.add_block(vec![], ast.local_var_assign(local_var, ast.int_lit(0)));
+    let block_1 = cfg.add_block("_1", vec![], ast.local_var_assign(local_var, ast.int_lit(0)));
 
     // invariant a <= 10
     // skip
     let block_2 = cfg.add_block(
+        "_2",
         vec![ast.le_cmp(local_var, ast.int_lit(10))],
         ast.seqn(&[], &[]),
     );
 
     // a = a + 1
     let block_3 = cfg.add_block(
+        "_3",
         vec![],
         ast.local_var_assign(local_var, ast.add(local_var, ast.int_lit(1))),
     );
 
     // assert(a == 10)
     let block_4 = cfg.add_block(
+        "_4",
         vec![],
         ast.assert(ast.eq_cmp(local_var, ast.int_lit(10)), ast.no_position()),
     );
