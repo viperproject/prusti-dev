@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(rustc_private)]
+#![feature(box_patterns)]
 
 #[macro_use]
 extern crate log;
@@ -10,6 +11,5 @@ extern crate prusti_interface;
 extern crate viper;
 extern crate rustc;
 
-mod procedures_table;
-mod fields_table;
+mod encoder;
 pub mod verifier;

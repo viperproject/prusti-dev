@@ -10,8 +10,7 @@ use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::data::VerificationTask;
 use viper::{self, Viper, Method, Field, VerificationError};
-use procedures_table::ProceduresTable;
-use fields_table::FieldsTable;
+use encoder::ViperEncoder;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -68,8 +67,7 @@ pub struct Verifier<'v, P: 'v + Procedure> {
     cfg_factory: viper::CfgFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v Environment<ProcedureImpl=P>,
-    procedures_table: ProceduresTable<'v, P>,
-    fields_table: FieldsTable<'v, P>,
+    encoder: ViperEncoder<'v, P>
 }
 
 impl<'v, P: Procedure> Verifier<'v, P> {
@@ -84,8 +82,7 @@ impl<'v, P: Procedure> Verifier<'v, P> {
             cfg_factory,
             verifier,
             env,
-            procedures_table: ProceduresTable::new(ast_factory, cfg_factory, env),
-            fields_table: FieldsTable::new(ast_factory, env),
+            encoder: ViperEncoder::new(ast_factory, cfg_factory, env)
         }
     }
 }
@@ -96,19 +93,24 @@ impl<'v, P: 'v + Procedure> VerifierSpec for Verifier<'v, P> {
         let mut verification_errors: Vec<VerificationError> = vec![];
 
         for proc_id in &task.procedures {
-            self.procedures_table.set_used(*proc_id);
+            self.encoder.use_rust_procedure(*proc_id);
         }
 
-        let verification_fields: Vec<Field> = self.fields_table.get_used_definitions();
-        let verification_methods: Vec<Method> = self.procedures_table.get_used_definitions();
-
-        let program = self.ast_factory.program(&[], &verification_fields, &[], &[], &verification_methods);
+        let program = self.ast_factory.program(
+            &self.encoder.get_used_viper_domains(),
+            &self.encoder.get_used_viper_fields(),
+            &self.encoder.get_used_viper_functions(),
+            &self.encoder.get_used_viper_predicates(),
+            &self.encoder.get_used_viper_methods()
+        );
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
-        if let viper::VerificationResult::Failure(mut errors) = verification_result {
-            // TODO: register errors in corresponding self.procedures_table
-            verification_errors.append(&mut errors)
-        }
+
+        let verification_errors = if let viper::VerificationResult::Failure(mut errors) = verification_result {
+            errors
+        } else {
+            vec![]
+        };
 
         if verification_errors.is_empty() {
             VerificationResult::Success
@@ -122,6 +124,6 @@ impl<'v, P: 'v + Procedure> VerifierSpec for Verifier<'v, P> {
     }
 
     fn invalidate_all(&mut self) {
-        // TODO
+        unimplemented!()
     }
 }
