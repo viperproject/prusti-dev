@@ -242,7 +242,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         match place {
             &mir::Place::Local(local) => {
                 let var_name = self.encode_local_var_name(local);
-                let var_type = self.encoder.encode_type(self.get_rust_local_ty(local));
+                let var_type = self.encoder.ast_factory.ref_type();
                 self.encoder.ast_factory.local_var(&var_name, var_type)
             }
             x => unimplemented!("{:?}", x),
