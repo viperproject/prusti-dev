@@ -17,6 +17,7 @@ pub struct CfgMethod<'a: 'b, 'b> {
     local_vars: Vec<LocalVarDecl<'a>>,
     basic_blocks: Vec<CfgBlock<'a>>,
     basic_blocks_labels: Vec<String>,
+    fresh_var_index: i32,
 }
 
 #[derive(Clone)]
@@ -59,7 +60,44 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
             local_vars,
             basic_blocks: vec![],
             basic_blocks_labels: vec![],
+            fresh_var_index: 0
         }
+    }
+
+    fn generate_fresh_local_var_decl(&mut self, typ: Type) -> (String, LocalVarDecl<'a>) {
+        let mut candidate_name = format!("_{}", self.fresh_var_index);
+        self.fresh_var_index += 1;
+        while
+            formal_args.contains(candidate_name) ||
+            formal_returns.contains(candidate_name) ||
+            local_vars.contains(candidate_name)
+        {
+            candidate_name = format!("_{}", self.fresh_var_index);
+            self.fresh_var_index += 1;
+        }
+        let decl = self.ast_factory.local_var_decl(
+            &candidate_name,
+            typ
+        );
+        (candidate_name, decl)
+    }
+
+    pub fn add_fresh_local_var(&mut self, typ: Type) -> String {
+        let (name, decl) = generate_fresh_local_var_decl(typ);
+        self.local_vars.push(decl);
+        name
+    }
+
+    pub fn add_fresh_formal_arg(&mut self, typ: Type) -> String {
+        let (name, decl) = generate_fresh_local_var_decl(typ);
+        self.formal_args.push(decl);
+        name
+    }
+
+    pub fn add_fresh_formal_return(&mut self, typ: Type) -> String {
+        let (name, decl) = generate_fresh_local_var_decl(typ);
+        self.formal_returns.push(decl);
+        name
     }
 
     pub fn add_block(&mut self, label: &str, invs: Vec<Expr<'a>>, stmt: Stmt<'a>) -> CfgBlockIndex {
