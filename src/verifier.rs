@@ -37,7 +37,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
     debug!("Prepare verifier...");
     let verifier_builder = ViperVerifierBuilder::new();
-    let verification_context = VerifierBuilder::<Procedure>::new_verification_context(&verifier_builder);
+    let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
     let mut verifier = verification_context.new_verifier(&env);
 
     debug!("Run verifier...");
