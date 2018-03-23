@@ -1,10 +1,3 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-//! This module defines the interface provided to a verifier.
-
-use data::ProcedureDefId;
 use rustc::mir;
 use rustc::ty::{self, Ty, TyCtxt};
 use rustc::hir::def_id::DefId;
@@ -15,6 +8,7 @@ use rustc::mir::Terminator;
 use rustc::mir::BasicBlock;
 use rustc::mir::TerminatorKind;
 use rustc::middle::const_val::ConstInt;
+use data::ProcedureDefId;
 
 pub type BasicBlockIndex = mir::BasicBlock;
 pub type BasicBlockData<'tcx> = mir::BasicBlockData<'tcx>;
@@ -207,14 +201,4 @@ impl<'a, 'tcx> Procedure<'tcx> for ProcedureImpl<'a, 'tcx> {
             }
         }
     }
-}
-
-/// A facade to the Rust compiler.
-pub trait Environment<'tcx> {
-    type ProcedureImpl: Procedure<'tcx>;
-
-    fn get_procedure_name(&self, proc_def_id: ProcedureDefId) -> String;
-
-    /// Get a Procedure.
-    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Self::ProcedureImpl;
 }
