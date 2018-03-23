@@ -7,6 +7,8 @@
 #![warn(missing_docs)]
 #![feature(rustc_private)]
 
+#[macro_use]
+extern crate log;
 extern crate rustc;
 
 pub mod environment;
