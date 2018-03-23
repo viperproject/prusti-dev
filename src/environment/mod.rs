@@ -11,10 +11,9 @@ use rustc::ty::TyCtxt;
 
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
-mod procedure;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::dump_borrowck_info::dump_borrowck_info;
-pub use self::procedure::Procedure;
+pub use prusti_interface::environment::ProcedureImpl as Procedure;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
