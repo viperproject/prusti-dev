@@ -20,9 +20,14 @@ impl FakeEnvironment {
     }
 }
 
-impl Environment for FakeEnvironment {
+impl<'tcx> Environment<'tcx> for FakeEnvironment {
     type ProcedureImpl = ();
+
     fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Self::ProcedureImpl {
+        unimplemented!()
+    }
+
+    fn get_procedure_name(&self, proc_def_id: ProcedureDefId) -> String {
         unimplemented!()
     }
 }

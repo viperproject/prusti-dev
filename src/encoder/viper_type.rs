@@ -2,9 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-mod encoder;
-mod procedure_encoder;
-mod borrows;
-mod viper_type;
-
-pub use self::encoder::Encoder;
+#[derive(Debug,Copy,Clone,PartialEq,Eq,Hash)]
+pub enum ViperType {
+    Int,
+    Bool,
+    Ref
+}

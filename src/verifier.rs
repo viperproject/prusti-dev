@@ -93,7 +93,7 @@ impl<'v, 'tcx, P: 'v + Procedure<'tcx>> VerifierSpec for Verifier<'v, 'tcx, P> {
         let mut verification_errors: Vec<VerificationError> = vec![];
 
         for proc_id in &task.procedures {
-            self.encoder.use_rust_procedure(*proc_id);
+            let _ = self.encoder.encode_procedure(*proc_id);
         }
 
         let program = self.ast_factory.program(

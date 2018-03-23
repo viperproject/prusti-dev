@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper::{self, Viper, Stmt, Expr, VerificationError};
+use viper::{self, Viper, Stmt, Expr, VerificationError, CfgMethod};
 use viper::{Domain, Field, Function, Predicate, Method};
 use viper::AstFactory;
 use rustc::mir;
@@ -18,75 +18,226 @@ use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::Encoder;
 use encoder::borrows::compute_borrow_infos;
+use encoder::viper_type::ViperType;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> {
-    encoder: &'p mut Encoder<'v, 'tcx, P>,
+    encoder: &'p Encoder<'v, 'tcx, P>,
     proc_def_id: ProcedureDefId,
     procedure: &'p P,
     mir: &'p mir::Mir<'tcx>,
+    cfg_method: CfgMethod<'v, 'p>
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tcx, P> {
-    pub fn new(encoder: &'p mut Encoder<'v, 'tcx, P>, procedure: &'p P) -> Self {
+    pub fn new(encoder: &'p Encoder<'v, 'tcx, P>, procedure: &'p P) -> Self {
+        let mut cfg_method = encoder.cfg_factory().new_cfg_method(
+            // method name
+            encoder.encode_procedure_name(procedure.get_id()),
+            // formal args
+            vec![],
+            // formal returns
+            vec![],
+            // local vars
+            vec![],
+        );
+
         ProcedureEncoder {
             encoder,
             proc_def_id: procedure.get_id(),
             procedure,
-            mir: procedure.get_mir()
+            mir: procedure.get_mir(),
+            cfg_method
         }
     }
 
-    fn encode_local(&self, local: mir::Local) -> viper::LocalVarDecl<'v> {
-        trace!("Encode local {:?}", self.encode_local_var_name(local));
-        self.encoder.ast_factory.local_var_decl(
-            &self.encode_local_var_name(local),
-            self.encoder.encode_type(self.get_rust_local_ty(local))
-        )
+    fn ast(&self) -> &AstFactory {
+        self.encoder.ast_factory()
     }
 
-    fn encode_formal_args_decl(&self) -> Vec<viper::LocalVarDecl<'v>> {
-        self.mir.args_iter().map(|x| self.encode_local(x)).collect()
-    }
-
-    fn encode_formal_returns_decl(&self) -> Vec<viper::LocalVarDecl<'v>> {
-        self.mir.local_decls.indices().take(1).map(|x| self.encode_local(x)).collect()
-    }
-
-    fn encode_local_vars_decl(&self) -> Vec<viper::LocalVarDecl<'v>> {
-        self.mir.vars_and_temps_iter().filter(
-            |l| !self.get_rust_local_ty(*l).is_never()
-        ).map(|x| self.encode_local(x)).collect()
-    }
-
-    fn encode_statement(&self, stmt: &mir::Statement) -> Stmt {
+    fn encode_statement(&self, stmt: &mir::Statement) -> Vec<Stmt<'v>> {
         debug!("Encode statement '{:?}'", stmt);
         // TODO!
-        self.encoder.ast_factory.seqn(&[], &[])
+        vec![]
     }
 
-    fn encode_terminator(&self, term: &mir::Terminator) -> Stmt {
+    fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>,
+                         cfg_blocks: &HashMap<BasicBlockIndex, CfgBlockIndex>,
+                         spec_cfg_block: CfgBlockIndex,
+                         abort_cfg_block: CfgBlockIndex) -> (Vec<Stmt<'v>>, Successor<'v>) {
         debug!("Encode terminator '{:?}'", term);
+        let ast = self.encoder.ast_factory();
+
         match term.kind {
-            ref x => unimplemented!("{:?}", x)
+            TerminatorKind::Return => (vec![], Successor::Return),
+
+            TerminatorKind::Goto { target } => {
+                let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
+                (vec![], Successor::Goto(*target_cfg_block))
+            },
+
+            TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
+                trace!("SwitchInt ty '{:?}', discr '{:?}', values '{:?}'", switch_ty, discr, values);
+                let mut stmts: Vec<Stmt> = vec![];
+                let mut cfg_targets: Vec<(Expr, CfgBlockIndex)> = vec![];
+                for (i, value) in values.iter().enumerate() {
+                    let target = targets[i as usize];
+                    // Convert int to bool, if required
+                    let viper_guard = if (switch_ty.sty == ty::TypeVariants::TyBool) {
+                        if self.encoder.const_int_is_zero(value) {
+                            // If discr is 0 (false)
+                            ast.not(self.eval_operand(discr))
+                        } else {
+                            // If discr is not 0 (true)
+                            self.eval_operand(discr)
+                        }
+                    } else {
+                        ast.eq_cmp(
+                            self.eval_operand(discr),
+                            self.encoder.eval_const_int(value)
+                        )
+                    };
+                    let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
+                    cfg_targets.push((viper_guard, *target_cfg_block))
+                }
+                let default_target = targets[values.len()];
+                let cfg_default_target = cfg_blocks.get(&default_target).unwrap_or(&spec_cfg_block);
+                (vec![], Successor::GotoSwitch(cfg_targets, *cfg_default_target))
+            },
+
+            TerminatorKind::Unreachable => (vec![], Successor::Unreachable),
+
+            TerminatorKind::Abort => (vec![], Successor::Goto(abort_cfg_block)),
+
+            TerminatorKind::DropAndReplace { ref target, unwind, .. } |
+            TerminatorKind::Drop { ref target, unwind, .. } => {
+                let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
+                (vec![], Successor::Goto(*target_cfg_block))
+            },
+
+            TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
+                let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
+                (vec![], Successor::Goto(*target_cfg_block))
+            },
+
+            TerminatorKind::FalseUnwind { real_target, unwind } => {
+                let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
+                (vec![], Successor::Goto(*target_cfg_block))
+            },
+
+            TerminatorKind::DropAndReplace { .. } => {
+                // TODO
+                unimplemented!()
+            },
+
+            TerminatorKind::Call {
+                ref args,
+                ref destination,
+                func: mir::Operand::Constant(
+                    box mir::Constant {
+                        literal: mir::Literal::Value {
+                            value: &ty::Const {
+                                val: ConstVal::Function(def_id, _),
+                                ..
+                            }
+                        },
+                        ..
+                    }
+                ),
+                ..
+            } => {
+                let ast = self.encoder.ast_factory();
+                let func_proc_name = self.encoder.env().get_procedure_name(def_id);
+                let mut stmts;
+                if (func_proc_name == "std::rt::begin_panic") {
+                    // This is called when a Rust assertion fails
+                    stmts = vec![ast.assert_with_comment(
+                        ast.false_lit(),
+                        ast.no_position(),
+                        &format!("Rust panic - {:?}: ", args[0])
+                    )];
+                } else {
+                    stmts = vec![];
+                    let mut encoded_args: Vec<Expr> = vec![];
+
+                    for operand in args.iter() {
+                        let (encoded, side_effects) = self.encode_operand(operand);
+                        encoded_args.push(encoded);
+                        stmts.extend(side_effects);
+                    }
+
+                    for operand in args.iter() {
+                        let (encoded, side_effects) = self.encode_operand(operand);
+                        encoded_args.push(encoded);
+                        stmts.extend(side_effects);
+                    }
+
+                    let encoded_target: Vec<Expr> = destination.iter().map(|d| self.encode_place(&d.0)).collect();
+
+                    stmts.push(ast.method_call(
+                        &self.encoder.encode_procedure_name(def_id),
+                        &encoded_args,
+                        &encoded_target
+                    ));
+                }
+
+                if let &Some((_, target)) = destination {
+                    let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
+                    (stmts, Successor::Goto(*target_cfg_block))
+                } else {
+                    (stmts, Successor::Unreachable)
+                }
+            },
+
+            TerminatorKind::Call { .. } => {
+                // Other kind of calls?
+                unimplemented!()
+            },
+
+            TerminatorKind::Call { .. } |
+            TerminatorKind::Resume |
+            TerminatorKind::Assert { .. } |
+            TerminatorKind::Yield { .. } |
+            TerminatorKind::GeneratorDrop => unimplemented!(),
         }
     }
 
-    pub fn set_used(&mut self) {
+    pub fn encode(mut self) -> Method<'v> {
         compute_borrow_infos(self.procedure);
-        let ast = self.encoder.ast_factory;
-        let mut cfg = self.encoder.cfg_factory.new_cfg_method(
-            // method name
-            self.encode_procedure_name(),
-            // formal args
-            self.encode_formal_args_decl(),
-            // formal returns
-            self.encode_formal_returns_decl(),
-            // local vars
-            self.encode_local_vars_decl()
-        );
+        let ast = self.encoder.ast_factory();
+
+        // Formal args
+        for local in self.mir.args_iter() {
+            let name = self.encode_local_var_name(local);
+            self.cfg_method.add_formal_arg(name, ast.ref_type())
+        }
+
+        // Formal return
+        for local in self.mir.local_decls.indices().take(1) {
+            let name = self.encode_local_var_name(local);
+            self.cfg_method.add_formal_return(name, ast.ref_type())
+        }
+
+        // Local vars
+        for local in self.mir.vars_and_temps_iter() {
+            let name = self.encode_local_var_name(local);
+            self.cfg_method.add_local_var(name, ast.ref_type())
+        }
+
         let mut cfg_blocks: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
 
-        // Build CFG blocks
+        // Initialize CFG blocks
+        self.procedure.walk_once_cfg(|bbi, _| {
+            let cfg_block = self.cfg_method.add_block(&format!("{:?}", bbi), vec![], vec![]);
+            cfg_blocks.insert(bbi, cfg_block);
+        });
+
+        let spec_cfg_block = self.cfg_method.add_block("spec", vec![], vec![]);
+        self.cfg_method.set_successor(spec_cfg_block, Successor::Unreachable);
+
+        let abort_cfg_block = self.cfg_method.add_block("abort", vec![], vec![]);
+        self.cfg_method.set_successor(abort_cfg_block, Successor::Unreachable);
+
+        // Encode statements
         self.procedure.walk_once_cfg(|bbi, bb_data| {
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
             let mut viper_statements: Vec<Stmt> = vec![];
@@ -94,132 +245,28 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
             // Encode statements
             for (stmt_index, stmt) in statements.iter().enumerate() {
                 debug!("Encode statement {:?}:{}", bbi, stmt_index);
-                viper_statements.push(self.encode_statement(stmt))
+                let stmts = self.encode_statement(stmt);
+                let cfg_block = *cfg_blocks.get(&bbi).unwrap();
+                for stmt in stmts.into_iter() {
+                    self.cfg_method.add_stmt(cfg_block, stmt);
+                }
             }
-
-            // Encode effect of terminator (assert, function call, ...)
-            if let Some(ref term) = bb_data.terminator {
-                viper_statements.push(self.encode_terminator(term));
-            }
-
-            let cfg_block = cfg.add_block(
-                // label
-                &format!("{:?}", bbi),
-                // invariants
-                vec![],
-                // statements
-                ast.seqn(
-                    &viper_statements,
-                    &vec![]
-                )
-            );
-            cfg_blocks.insert(bbi, cfg_block);
         });
 
-        let spec_cfg_block = cfg.add_block(
-            // label
-            "spec",
-            // invariants
-            vec![],
-            // statements
-            ast.seqn(&[], &[])
-        );
-        cfg.set_successor(spec_cfg_block, Successor::Unreachable);
-
-        let abort_cfg_block = cfg.add_block(
-            // label
-            "abort",
-            // invariants
-            vec![],
-            // statements
-            ast.seqn(&vec![], &vec![])
-        );
-        cfg.set_successor(abort_cfg_block, Successor::Unreachable);
-
-        // Build CFG edges
+        // Encode terminators and set CFG edges
         self.procedure.walk_once_cfg(|bbi, bb_data| {
-            let terminator = &bb_data.terminator;
-            let cfg_block = *cfg_blocks.get(&bbi).unwrap();
-
-            if let Some(ref term) = *terminator {
-                let successor = match term.kind {
-                    TerminatorKind::Return => Successor::Return,
-
-                    TerminatorKind::Goto { target } => {
-                        let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                        Successor::Goto(*target_cfg_block)
-                    },
-
-                    TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
-                        trace!("SwitchInt ty '{:?}', discr '{:?}', values '{:?}'", switch_ty, discr, values);
-                        let mut cfg_targets: Vec<(Expr, CfgBlockIndex)> = vec![];
-                        for (i, value) in values.iter().enumerate() {
-                            let target = targets[i as usize];
-                            // Convert int to bool, if required
-                            let viper_value = if (switch_ty.sty == ty::TypeVariants::TyBool) {
-                                let viper_num_value = self.encoder.encode_const_int(value);
-                                ast.not(ast.eq_cmp(viper_num_value, ast.int_lit(0)))
-                            } else {
-                                self.encoder.encode_const_int(value)
-                            };
-                            let viper_guard = ast.eq_cmp(
-                                self.encode_operand_eval(discr),
-                                viper_value
-                            );
-                            let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                            cfg_targets.push((viper_guard, *target_cfg_block))
-                        }
-                        let default_target = targets[values.len()];
-                        let cfg_default_target = cfg_blocks.get(&default_target).unwrap_or(&spec_cfg_block);
-                        Successor::GotoSwitch(cfg_targets, *cfg_default_target)
-                    },
-
-                    TerminatorKind::Resume => unimplemented!(),
-
-                    TerminatorKind::Unreachable => Successor::Unreachable,
-
-                    TerminatorKind::Abort => Successor::Goto(abort_cfg_block),
-
-                    TerminatorKind::DropAndReplace { ref target, unwind, .. } |
-                    TerminatorKind::Drop { ref target, unwind, .. } => {
-                        let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                        Successor::Goto(*target_cfg_block)
-                    },
-
-                    TerminatorKind::Call { ref destination, cleanup, .. } => {
-                        if let &Some((_, target)) = destination {
-                            let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                            Successor::Goto(*target_cfg_block)
-                        } else {
-                            Successor::Unreachable
-                        }
-                    },
-
-                    TerminatorKind::Assert { target, .. } => {
-                        let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
-                        Successor::Goto(*target_cfg_block)
-                    },
-
-                    TerminatorKind::Yield { .. } => unimplemented!(),
-
-                    TerminatorKind::GeneratorDrop => unimplemented!(),
-
-                    TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
-                        let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
-                        Successor::Goto(*target_cfg_block)
-                    },
-
-                    TerminatorKind::FalseUnwind { real_target, unwind } => {
-                        let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
-                        Successor::Goto(*target_cfg_block)
-                    }
-                };
-                cfg.set_successor(cfg_block, successor);
+            if let Some(ref term) = bb_data.terminator {
+                debug!("Encode terminator of {:?}", bbi);
+                let (stmts, successor) = self.encode_terminator(term, &cfg_blocks, spec_cfg_block, abort_cfg_block);
+                let cfg_block = *cfg_blocks.get(&bbi).unwrap();
+                for stmt in stmts.into_iter() {
+                    self.cfg_method.add_stmt(cfg_block, stmt);
+                }
+                self.cfg_method.set_successor(cfg_block, successor);
             }
         });
 
-        let method = cfg.to_ast().ok().unwrap();
-        self.encoder.procedures.insert(self.proc_def_id, method);
+        self.cfg_method.to_ast().ok().unwrap()
     }
 
     fn get_rust_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {
@@ -230,6 +277,14 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         &self.get_rust_local_decl(local).ty
     }
 
+    fn get_rust_place_ty(&self, place: &mir::Place<'tcx>) -> &ty::Ty<'tcx> {
+        match place {
+            &mir::Place::Local(local) => self.get_rust_local_ty(local),
+            // TODO
+            x => unimplemented!("{:?}", x),
+        }
+    }
+
     fn encode_local_var_name(&self, local: mir::Local) -> String {
         let local_decl = self.get_rust_local_decl(local);
         match local_decl.name {
@@ -238,28 +293,49 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         }
     }
 
-    fn encode_place_eval(&self, place: &mir::Place<'tcx>) -> Expr<'v> {
+    fn encode_place(&self, place: &mir::Place<'tcx>) -> Expr<'v> {
         match place {
             &mir::Place::Local(local) => {
                 let var_name = self.encode_local_var_name(local);
-                let var_type = self.encoder.ast_factory.ref_type();
-                self.encoder.ast_factory.local_var(&var_name, var_type)
+                let var_type = self.encoder.ast_factory().ref_type();
+                self.encoder.ast_factory().local_var(&var_name, var_type)
             }
             x => unimplemented!("{:?}", x),
         }
     }
 
-    fn encode_operand_eval(&self, operand: &mir::Operand<'tcx>) -> Expr<'v> {
+    fn eval_place(&mut self, place: &mir::Place<'tcx>) -> Expr<'v> {
+        let encoded_place = self.encode_place(place);
+        let place_ty = self.get_rust_place_ty(place);
+        let field_type = self.encoder.viper_field_type(place_ty);
+        let value_field = self.encoder.encode_value_field(field_type);
+
+        self.encoder.ast_factory().field_access(
+            encoded_place,
+            value_field
+        )
+    }
+
+    fn eval_operand(&mut self, operand: &mir::Operand<'tcx>) -> Expr<'v> {
         match operand {
-            &mir::Operand::Copy(ref place) |
-            &mir::Operand::Move(ref place) => self.encode_place_eval(place),
             &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) =>
-                self.encoder.encode_const_val(val),
+                self.encoder.eval_const_val(val),
+            &mir::Operand::Move(ref place) =>
+                self.eval_place(place),
             x => unimplemented!("{:?}", x)
         }
     }
 
-    fn encode_procedure_name(&self) -> String {
-        self.procedure.get_name()
+    fn encode_operand(&self, operand: &mir::Operand<'tcx>) -> (Expr<'v>, Vec<Stmt<'v>>) {
+        match operand {
+            &mir::Operand::Move(ref place) => (self.encode_place(place), vec![]),
+            &mir::Operand::Copy(ref place) =>
+                // TODO allocate memory in Viper
+                unimplemented!(),
+            &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) =>
+                // TODO allocate memory in Viper
+                unimplemented!(),
+            x => unimplemented!("{:?}", x)
+        }
     }
 }

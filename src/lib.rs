@@ -4,6 +4,7 @@
 
 #![feature(rustc_private)]
 #![feature(box_patterns)]
+#![feature(nll)]
 
 #[macro_use]
 extern crate log;
