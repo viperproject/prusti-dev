@@ -67,6 +67,10 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
 impl<'r, 'a, 'tcx> EnvironmentSpec<'tcx> for Environment<'r, 'a, 'tcx> {
     type ProcedureImpl = Procedure<'a, 'tcx>;
 
+    fn get_procedure_name(&self, proc_def_id: ProcedureDefId) -> String {
+        self.tcx().item_path_str(proc_def_id)
+    }
+
     /// Get a Procedure.
     fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
