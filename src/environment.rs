@@ -30,6 +30,8 @@ pub trait Procedure<'tcx> {
 pub trait Environment<'tcx> {
     type ProcedureImpl: Procedure<'tcx>;
 
+    fn get_procedure_name(&self, proc_def_id: ProcedureDefId) -> String;
+
     /// Get a Procedure.
     fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Self::ProcedureImpl;
 }
