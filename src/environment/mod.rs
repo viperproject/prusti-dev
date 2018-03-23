@@ -5,12 +5,9 @@
 //! A module that defines the compiler's facade used by the verifier.
 
 use prusti_interface::environment::Environment as EnvironmentSpec;
-use prusti_interface::environment::Procedure as ProcedureSpec;
 use prusti_interface::data::ProcedureDefId;
 use rustc_driver::driver;
 use rustc::ty::TyCtxt;
-use rustc::hir::def_id::DefId;
-use rustc::hir;
 
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;

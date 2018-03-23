@@ -3,21 +3,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::env;
-use specifications::TypedSpecificationMap;
-use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
-use prusti_interface::verifier::VerifierBuilder;
-use prusti_interface::verifier::VerificationContext;
-use prusti_interface::verifier::Verifier;
-use prusti_interface::data::VerificationTask;
-use prusti_interface::data::VerificationResult;
-use rustc_driver::driver;
 use rustc::hir::intravisit;
-use syntax::{self, ast, parse, ptr, attr};
+use syntax::ast;
 use syntax::codemap::Span;
-use environment::Environment;
-use hir_visitor::HirVisitor;
 use rustc::hir;
-use rustc::mir::{Mir, Mutability, Operand, Projection, ProjectionElem, Rvalue};
+use rustc::mir::{Mir, Mutability};
 use rustc_mir::borrow_check::{MirBorrowckCtxt, do_mir_borrowck};
 use rustc_mir::borrow_check::flows::Flows;
 use rustc_mir::borrow_check::prefixes::*;
@@ -27,22 +17,17 @@ use rustc::mir::Location;
 use rustc::mir::Place;
 use rustc::mir::BorrowKind;
 use rustc_mir::dataflow::move_paths::HasMoveData;
-use rustc_mir::dataflow::move_paths::MovePath;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_data_structures::indexed_vec::Idx;
 use std::fs::File;
 use std::io::{Write, BufWriter};
-use rustc_mir::dataflow::move_paths::MoveOut;
 use std::collections::{HashSet, HashMap};
-use rustc_mir::dataflow::BorrowData;
-use rustc::ty::{Region, RegionKind, FreeRegion, BoundRegion, RegionVid, TypeVariants};
+use rustc::ty::{Region, RegionKind, FreeRegion, BoundRegion, RegionVid};
 use std::fmt;
-use rustc_mir::borrow_check::nll::ToRegionVid;
-use std::hash::{Hash, Hasher, SipHasher};
-use rustc_mir::borrow_check::nll::region_infer::{RegionDefinition, Constraint};
+use std::hash::{Hash, Hasher};
+use rustc_mir::borrow_check::nll::region_infer::Constraint;
 use std::collections::hash_map::DefaultHasher;
 use rustc::hir::def_id::DefId;
-use rustc::hir::itemlikevisit::ItemLikeVisitor;
 use rustc::ty::{self, Ty, TyCtxt};
 
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>) {
