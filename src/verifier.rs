@@ -12,8 +12,8 @@ use prusti_interface::verifier::Verifier;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
 use rustc_driver::driver;
-use environment::Environment;
-use environment::Procedure;
+use prusti_interface::environment::EnvironmentImpl as Environment;
+use prusti_interface::environment::ProcedureImpl as Procedure;
 use rustc_data_structures::indexed_vec::Idx;
 
 
