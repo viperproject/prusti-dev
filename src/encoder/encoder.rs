@@ -10,11 +10,12 @@ use rustc::hir::def_id::DefId;
 use rustc::ty;
 use prusti_interface::environment::Procedure;
 use prusti_interface::data::ProcedureDefId;
+use prusti_interface::environment::EnvironmentImpl;
+use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use viper::CfgBlockIndex;
-use prusti_interface::environment::BasicBlockIndex;
 use rustc::mir::TerminatorKind;
 use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
@@ -23,20 +24,25 @@ use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
 use encoder::utils::*;
 
-pub struct Encoder<'v, 'tcx: 'v, P: 'v + Procedure<'tcx>> {
+pub struct Encoder<'v, 'r, 'a, 'tcx>
+    where
+        'r: 'v,
+        'a: 'r,
+        'tcx: 'a
+{
     ast_factory: viper::AstFactory<'v>,
     cfg_factory: viper::CfgFactory<'v>,
-    env: &'v Environment<'tcx, ProcedureImpl=P>,
+    pub(crate) env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     procedures: RefCell<HashMap<ProcedureDefId, Method<'v>>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_predicates: RefCell<HashMap<String, Predicate<'v>>>,
     fields: RefCell<HashMap<String, Field<'v>>>,
 }
 
-impl<'v, 'tcx, P: Procedure<'tcx>> Encoder<'v, 'tcx, P> {
+impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn new(ast_factory: viper::AstFactory<'v>,
                cfg_factory: viper::CfgFactory<'v>,
-               env: &'v Environment<'tcx, ProcedureImpl=P>) -> Self {
+               env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Self {
         Encoder {
             ast_factory,
             cfg_factory,
@@ -56,7 +62,7 @@ impl<'v, 'tcx, P: Procedure<'tcx>> Encoder<'v, 'tcx, P> {
         &self.cfg_factory
     }
 
-    pub fn env(&self) -> &'v Environment<'tcx, ProcedureImpl=P> {
+    pub fn env(&self) -> &'v EnvironmentImpl<'r, 'a, 'tcx> {
         self.env
     }
 

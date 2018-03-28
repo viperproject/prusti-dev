@@ -7,9 +7,10 @@ use viper::{Domain, Field, Function, Predicate, Method};
 use viper::AstFactory;
 use rustc::mir;
 use rustc::ty;
-use prusti_interface::environment::Procedure;
+use prusti_interface::environment::ProcedureImpl;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
+use prusti_interface::environment::Procedure;
 use std::collections::HashMap;
 use viper::CfgBlockIndex;
 use prusti_interface::environment::BasicBlockIndex;
@@ -20,16 +21,28 @@ use encoder::Encoder;
 use encoder::borrows::compute_borrow_infos;
 use encoder::utils::*;
 
-pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> {
-    encoder: &'p Encoder<'v, 'tcx, P>,
+pub struct ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx>
+    where
+        'v: 'p,
+        'r: 'v,
+        'a: 'r,
+        'tcx: 'a
+{
+    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     proc_def_id: ProcedureDefId,
-    procedure: &'p P,
+    procedure: &'p ProcedureImpl<'a, 'tcx>,
     mir: &'p mir::Mir<'tcx>,
     cfg_method: CfgMethod<'v, 'p>
 }
 
-impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tcx, P> {
-    pub fn new(encoder: &'p Encoder<'v, 'tcx, P>, procedure: &'p P) -> Self {
+impl<'p, 'v, 'r, 'a, 'tcx> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx>
+    where
+        'v: 'p,
+        'r: 'v,
+        'a: 'r,
+        'tcx: 'a
+{
+    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p ProcedureImpl<'a, 'tcx>) -> Self {
         let mut cfg_method = encoder.cfg_factory().new_cfg_method(
             // method name
             encoder.encode_procedure_name(procedure.get_id()),
@@ -199,7 +212,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
     }
 
     pub fn encode(mut self) -> Method<'v> {
-        compute_borrow_infos(self.procedure);
+        compute_borrow_infos(self.procedure, self.encoder.env.tcx());
         let ast = self.encoder.ast_factory();
 
         // Formal args
