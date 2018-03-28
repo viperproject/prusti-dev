@@ -143,7 +143,7 @@ use std::convert::TryFrom;
 use std::mem;
 use syntax::ast::Generics;
 use syntax::codemap::respan;
-use constants::PRUSTI_SPEC_ATTR;
+use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.

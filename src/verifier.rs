@@ -12,8 +12,8 @@ use prusti_interface::verifier::Verifier;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
 use rustc_driver::driver;
-use environment::Environment;
-use environment::Procedure;
+use prusti_interface::environment::EnvironmentImpl as Environment;
+use prusti_interface::environment::ProcedureImpl as Procedure;
 use rustc_data_structures::indexed_vec::Idx;
 
 
@@ -37,7 +37,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
     debug!("Prepare verifier...");
     let verifier_builder = ViperVerifierBuilder::new();
-    let verification_context = VerifierBuilder::<Procedure>::new_verification_context(&verifier_builder);
+    let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
     let mut verifier = verification_context.new_verifier(&env);
 
     debug!("Run verifier...");
