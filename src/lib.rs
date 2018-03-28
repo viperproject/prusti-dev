@@ -6,9 +6,17 @@
 
 #![warn(missing_docs)]
 #![feature(rustc_private)]
+#![feature(box_syntax)]
 
+#[macro_use]
+extern crate log;
 extern crate rustc;
+extern crate syntax;
+extern crate rustc_driver;
+extern crate rustc_mir;
+extern crate rustc_data_structures;
 
 pub mod environment;
 pub mod verifier;
 pub mod data;
+pub mod constants;
