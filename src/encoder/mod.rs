@@ -5,6 +5,7 @@
 mod encoder;
 mod procedure_encoder;
 mod borrows;
-mod viper_type;
+mod type_encoder;
+mod utils;
 
 pub use self::encoder::Encoder;

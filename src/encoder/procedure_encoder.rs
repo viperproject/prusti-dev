@@ -18,7 +18,7 @@ use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::Encoder;
 use encoder::borrows::compute_borrow_infos;
-use encoder::viper_type::ViperType;
+use encoder::utils::*;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> {
     encoder: &'p Encoder<'v, 'tcx, P>,
@@ -50,10 +50,6 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         }
     }
 
-    fn ast(&self) -> &AstFactory {
-        self.encoder.ast_factory()
-    }
-
     fn encode_statement(&self, stmt: &mir::Statement) -> Vec<Stmt<'v>> {
         debug!("Encode statement '{:?}'", stmt);
         // TODO!
@@ -63,12 +59,13 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
     fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>,
                          cfg_blocks: &HashMap<BasicBlockIndex, CfgBlockIndex>,
                          spec_cfg_block: CfgBlockIndex,
-                         abort_cfg_block: CfgBlockIndex) -> (Vec<Stmt<'v>>, Successor<'v>) {
+                         abort_cfg_block: CfgBlockIndex,
+                         return_cfg_block: CfgBlockIndex) -> (Vec<Stmt<'v>>, Successor<'v>) {
         debug!("Encode terminator '{:?}'", term);
         let ast = self.encoder.ast_factory();
 
         match term.kind {
-            TerminatorKind::Return => (vec![], Successor::Return),
+            TerminatorKind::Return => (vec![], Successor::Goto(return_cfg_block)),
 
             TerminatorKind::Goto { target } => {
                 let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
@@ -83,7 +80,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
                     let target = targets[i as usize];
                     // Convert int to bool, if required
                     let viper_guard = if (switch_ty.sty == ty::TypeVariants::TyBool) {
-                        if self.encoder.const_int_is_zero(value) {
+                        if const_int_is_zero(value) {
                             // If discr is 0 (false)
                             ast.not(self.eval_operand(discr))
                         } else {
@@ -146,7 +143,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
                 ..
             } => {
                 let ast = self.encoder.ast_factory();
-                let func_proc_name = self.encoder.env().get_procedure_name(def_id);
+                let func_proc_name = self.encoder.env().get_item_name(def_id);
                 let mut stmts;
                 if (func_proc_name == "std::rt::begin_panic") {
                     // This is called when a Rust assertion fails
@@ -226,8 +223,15 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         let mut cfg_blocks: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
 
         // Initialize CFG blocks
+        let start_cfg_block = self.cfg_method.add_block("start", vec![], vec![]);
+
+        let mut first_cfg_block = true;
         self.procedure.walk_once_cfg(|bbi, _| {
             let cfg_block = self.cfg_method.add_block(&format!("{:?}", bbi), vec![], vec![]);
+            if first_cfg_block {
+                self.cfg_method.set_successor(start_cfg_block, Successor::Goto(cfg_block));
+                first_cfg_block = false;
+            }
             cfg_blocks.insert(bbi, cfg_block);
         });
 
@@ -236,6 +240,48 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
 
         let abort_cfg_block = self.cfg_method.add_block("abort", vec![], vec![]);
         self.cfg_method.set_successor(abort_cfg_block, Successor::Unreachable);
+
+        let return_cfg_block = self.cfg_method.add_block("return", vec![], vec![]);
+        self.cfg_method.set_successor(return_cfg_block, Successor::Return);
+
+        // Encode preconditions
+        for local in self.mir.args_iter() {
+            let ty = self.get_rust_local_ty(local);
+            let predicate_name = self.encoder.encode_type_predicate_use(ty);
+            let inhale_stmt = ast.inhale(
+                ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &[
+                            self.encode_local(local)
+                        ],
+                        &predicate_name
+                    ),
+                    ast.full_perm(),
+                ),
+                ast.no_position()
+            );
+            self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
+        }
+        self.cfg_method.add_stmt(start_cfg_block, ast.label("precondition", &[]));
+
+        // Encode postcondition
+        for local in self.mir.local_decls.indices().take(1) {
+            let ty = self.get_rust_local_ty(local);
+            let predicate_name = self.encoder.encode_type_predicate_use(ty);
+            let exhale_stmt = ast.exhale(
+                ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &[
+                            self.encode_local(local)
+                        ],
+                        &predicate_name
+                    ),
+                    ast.full_perm(),
+                ),
+                ast.no_position()
+            );
+            self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
+        }
 
         // Encode statements
         self.procedure.walk_once_cfg(|bbi, bb_data| {
@@ -257,7 +303,13 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         self.procedure.walk_once_cfg(|bbi, bb_data| {
             if let Some(ref term) = bb_data.terminator {
                 debug!("Encode terminator of {:?}", bbi);
-                let (stmts, successor) = self.encode_terminator(term, &cfg_blocks, spec_cfg_block, abort_cfg_block);
+                let (stmts, successor) = self.encode_terminator(
+                    term,
+                    &cfg_blocks,
+                    spec_cfg_block,
+                    abort_cfg_block,
+                    return_cfg_block
+                );
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
@@ -273,11 +325,11 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         &self.mir.local_decls[local]
     }
 
-    fn get_rust_local_ty(&self, local: mir::Local) -> &ty::Ty<'tcx> {
-        &self.get_rust_local_decl(local).ty
+    fn get_rust_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
+        self.get_rust_local_decl(local).ty
     }
 
-    fn get_rust_place_ty(&self, place: &mir::Place<'tcx>) -> &ty::Ty<'tcx> {
+    fn get_rust_place_ty(&self, place: &mir::Place<'tcx>) -> ty::Ty<'tcx> {
         match place {
             &mir::Place::Local(local) => self.get_rust_local_ty(local),
             // TODO
@@ -293,13 +345,15 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
         }
     }
 
+    fn encode_local(&self, local: mir::Local) -> Expr<'v> {
+        let var_name = self.encode_local_var_name(local);
+        let var_type = self.encoder.ast_factory().ref_type();
+        self.encoder.ast_factory().local_var(&var_name, var_type)
+    }
+
     fn encode_place(&self, place: &mir::Place<'tcx>) -> Expr<'v> {
         match place {
-            &mir::Place::Local(local) => {
-                let var_name = self.encode_local_var_name(local);
-                let var_type = self.encoder.ast_factory().ref_type();
-                self.encoder.ast_factory().local_var(&var_name, var_type)
-            }
+            &mir::Place::Local(local) => self.encode_local(local),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -307,8 +361,7 @@ impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> ProcedureEncoder<'p, 'v, 'tc
     fn eval_place(&mut self, place: &mir::Place<'tcx>) -> Expr<'v> {
         let encoded_place = self.encode_place(place);
         let place_ty = self.get_rust_place_ty(place);
-        let field_type = self.encoder.viper_field_type(place_ty);
-        let value_field = self.encoder.encode_value_field(field_type);
+        let value_field = self.encoder.encode_value_field(place_ty);
 
         self.encoder.ast_factory().field_access(
             encoded_place,
