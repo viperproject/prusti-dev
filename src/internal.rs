@@ -18,3 +18,6 @@ pub fn __assertion(_uuid: usize, _spec: bool) {}
 /// first argument is the unique id of the expression. The second
 /// argument is the expression itself.
 pub fn __trigger<T>(_uuid: usize, _spec: T) {}
+
+
+pub fn old<T>(arg: T) -> T { arg }
