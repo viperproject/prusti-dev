@@ -20,13 +20,13 @@ use encoder::Encoder;
 use encoder::borrows::compute_borrow_infos;
 use encoder::utils::*;
 
-pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> {
-    encoder: &'p Encoder<'v, 'tcx, P>,
+pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
+    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     ty: ty::Ty<'tcx>
 }
 
-impl<'p, 'v: 'p, 'tcx: 'v, P: 'v + Procedure<'tcx>> TypeEncoder<'p, 'v, 'tcx, P> {
-    pub fn new(encoder: &'p Encoder<'v, 'tcx, P>, ty: ty::Ty<'tcx>) -> Self {
+impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
+    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, ty: ty::Ty<'tcx>) -> Self {
         TypeEncoder {
             encoder,
             ty

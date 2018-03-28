@@ -24,12 +24,7 @@ use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
 use encoder::utils::*;
 
-pub struct Encoder<'v, 'r, 'a, 'tcx>
-    where
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a
-{
+pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     ast_factory: viper::AstFactory<'v>,
     cfg_factory: viper::CfgFactory<'v>,
     pub(crate) env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
