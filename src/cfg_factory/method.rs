@@ -6,7 +6,7 @@ use ast_factory::*;
 use errors::Result as LocalResult;
 use uuid::Uuid;
 
-const RETURN_LABEL: &str = "return";
+const RETURN_LABEL: &str = "end_of_method";
 
 pub struct CfgMethod<'a: 'b, 'b> {
     ast_factory: &'b AstFactory<'a>,
