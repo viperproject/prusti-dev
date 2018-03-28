@@ -150,7 +150,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             for ty in var.ty.walk() {
                 let declared_ty = ty;
                 //let declared_ty = clean_type(tcx, ty);
-                //let declared_ty = tcx.erase_regions(&ty);
+                //let declared_ty = tcx.erase_regions(ty);
                 types.insert(declared_ty);
             }
         }

@@ -277,7 +277,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         for var in &mbcx.mir.local_decls {
             for ty in var.ty.walk() {
                 let cleaned_ty = clean_type(mbcx.tcx, ty);
-                //let cleaned_ty = mbcx.tcx.erase_regions(&ty);
+                //let cleaned_ty = mbcx.tcx.erase_regions(ty);
                 types.insert(cleaned_ty);
             }
         }

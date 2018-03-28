@@ -8,6 +8,7 @@ use prusti_interface::environment::Environment as EnvironmentSpec;
 use prusti_interface::data::ProcedureDefId;
 use rustc_driver::driver;
 use rustc::ty::TyCtxt;
+use rustc::hir::def_id::DefId;
 
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
@@ -64,8 +65,8 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
 impl<'r, 'a, 'tcx> EnvironmentSpec<'tcx> for Environment<'r, 'a, 'tcx> {
     type ProcedureImpl = Procedure<'a, 'tcx>;
 
-    fn get_procedure_name(&self, proc_def_id: ProcedureDefId) -> String {
-        self.tcx().item_path_str(proc_def_id)
+    fn get_item_name(&self, def_id: DefId) -> String {
+        self.tcx().item_path_str(def_id)
     }
 
     /// Get a Procedure.
