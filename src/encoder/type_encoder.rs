@@ -33,64 +33,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    /*pub fn encode_type_predicate_def(&self, self_loc: Expr<'v>, self_ty: ty::Ty<'tcx>) -> Predicate<'v> {
-        let ast = self.encoder.ast_factory();
-
-        let preds = match self_ty.sty {
-            ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => {
-                vec![
-                    ast.field_access_predicate(
-                        ast.field_access(
-                            self_loc,
-                            self.encoder.encode_value_field(self_ty)
-                        ),
-                        ast.full_perm()
-                    )
-                ]
-            }
-
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ref ty, .. }) => {
-                let field_loc = ast.field_access(
-                    self_loc,
-                    self.encoder.encode_value_field(self_ty)
-                );
-                let mut perms = self.encode_field_permission(field_loc, ty);
-                perms.push(
-                    ast.field_access_predicate(
-                        ast.field_access(
-                            self_loc,
-                            self.encoder.encode_value_field(self_ty)
-                        ),
-                        ast.full_perm()
-                    )
-                );
-                perms
-            }
-
-            ty::TypeVariants::TyTuple(elems, _) => {
-                elems.iter().enumerate().flat_map(|(field_num, ty)| {
-                    let field_name = format!("pos_{}", field_num);
-                    let elem_field = self.encoder.encode_type_field(self_ty, &field_name, ty);
-                    let predicate_name = self.encoder.encode_type_predicate_use(ty);
-                    let elem_loc = ast.field_access(
-                        self_loc,
-                        elem_field
-                    );
-                    self.encode_field_permission(elem_loc, ty)
-                }).collect()
-            },
-
-            ty::TypeVariants::TyAdt(_, _) => unimplemented!(),
-
-            ref x => unimplemented!("{:?}", x),
-        };
-
-
-    }*/
-
     pub fn encode_field_type(self) -> viper::Type<'v> {
         debug!("Encode field type '{:?}'", self.ty);
         let ast = self.encoder.ast_factory();
@@ -263,6 +205,36 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ).collect();
                 format!("tuple{}${}", elems.len(), elem_predicate_names.connect("$"))
             }
+
+            ref x => unimplemented!("{:?}", x),
+        }
+    }
+
+    pub fn encode_fields(self) -> Vec<(String, ty::Ty<'tcx>)> {
+        debug!("Encode fields of '{:?}'", self.ty);
+
+        match self.ty.sty {
+            ty::TypeVariants::TyBool |
+            ty::TypeVariants::TyInt(_) |
+            ty::TypeVariants::TyUint(_) =>
+                vec![
+                    (self.encoder.encode_value_field_name(self.ty), self.ty)
+                ],
+
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
+            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ty, .. }) => {
+                vec![
+                    ("val_ref".to_string(), ty)
+                ]
+            }
+
+            ty::TypeVariants::TyTuple(elems, _) => {
+                elems.iter().enumerate().map(|(field_num, ty)| {
+                    (format!("pos_{}", field_num), *ty)
+                }).collect()
+            },
+
+            ty::TypeVariants::TyAdt(_, _) => unimplemented!(),
 
             ref x => unimplemented!("{:?}", x),
         }

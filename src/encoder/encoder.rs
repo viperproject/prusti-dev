@@ -27,7 +27,7 @@ use encoder::utils::*;
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     ast_factory: viper::AstFactory<'v>,
     cfg_factory: viper::CfgFactory<'v>,
-    pub(crate) env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     procedures: RefCell<HashMap<ProcedureDefId, Method<'v>>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_predicates: RefCell<HashMap<String, Predicate<'v>>>,
@@ -116,6 +116,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.encode_field(&field_name, ty)
     }
 
+    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<(String, ty::Ty<'tcx>)> {
+        let mut type_encoder = TypeEncoder::new(self, ty);
+        type_encoder.encode_fields()
+    }
+
     /*pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> Field<'v> {
         let field_name = self.encode_value_field_name(ty);
         if !self.fields.borrow().contains_key(&field_name) {
@@ -159,6 +164,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             &ConstInt::I32(ref val) => self.ast_factory.int_lit_from_ref(val),
             &ConstInt::U8(ref val) => self.ast_factory.int_lit_from_ref(val),
             &ConstInt::Isize(ref val) => self.ast_factory.int_lit_from_ref(&val.as_i64()),
+            &ConstInt::Usize(ref val) => self.ast_factory.int_lit_from_ref(&val.as_u64()),
             x => unimplemented!("{:?}", x),
         }
     }

@@ -21,13 +21,7 @@ use encoder::Encoder;
 use encoder::borrows::compute_borrow_infos;
 use encoder::utils::*;
 
-pub struct ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx>
-    where
-        'v: 'p,
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a
-{
+pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     proc_def_id: ProcedureDefId,
     procedure: &'p ProcedureImpl<'a, 'tcx>,
@@ -35,13 +29,7 @@ pub struct ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx>
     cfg_method: CfgMethod<'v, 'p>
 }
 
-impl<'p, 'v, 'r, 'a, 'tcx> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx>
-    where
-        'v: 'p,
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a
-{
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p ProcedureImpl<'a, 'tcx>) -> Self {
         let mut cfg_method = encoder.cfg_factory().new_cfg_method(
             // method name
@@ -207,12 +195,12 @@ impl<'p, 'v, 'r, 'a, 'tcx> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx>
             TerminatorKind::Resume |
             TerminatorKind::Assert { .. } |
             TerminatorKind::Yield { .. } |
-            TerminatorKind::GeneratorDrop => unimplemented!(),
+            TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
         }
     }
 
     pub fn encode(mut self) -> Method<'v> {
-        compute_borrow_infos(self.procedure, self.encoder.env.tcx());
+        compute_borrow_infos(self.procedure, self.encoder.env().tcx());
         let ast = self.encoder.ast_factory();
 
         // Formal args
@@ -392,16 +380,33 @@ impl<'p, 'v, 'r, 'a, 'tcx> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx>
         }
     }
 
-    fn encode_operand(&self, operand: &mir::Operand<'tcx>) -> (Expr<'v>, Vec<Stmt<'v>>) {
+    fn encode_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Expr<'v>, Vec<Stmt<'v>>) {
         match operand {
             &mir::Operand::Move(ref place) => (self.encode_place(place), vec![]),
             &mir::Operand::Copy(ref place) =>
                 // TODO allocate memory in Viper
                 unimplemented!(),
-            &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) =>
-                // TODO allocate memory in Viper
-                unimplemented!(),
+            &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, ty } }, ..}) => {
+                // TODO initialize values
+                let ast = self.encoder.ast_factory();
+                let fresh_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
+                let fresh_var = ast.local_var(&fresh_var_name, ast.ref_type());
+                let alloc = self.encode_allocation(fresh_var, ty);
+                let const_val = self.encoder.eval_const_val(val);
+                let field = self.encoder.encode_value_field(ty);
+                let assign = ast.field_assign(ast.field_access(fresh_var, field), const_val);
+                (fresh_var, vec![alloc, assign])
+            },
             x => unimplemented!("{:?}", x)
         }
+    }
+
+    fn encode_allocation(&self, lhs: Expr<'v>, ty: ty::Ty<'tcx>) -> Stmt<'v> {
+        let field_name_type = self.encoder.encode_type_fields(ty);
+        let fields: Vec<Field<'v>> = field_name_type.iter().map(|x| self.encoder.encode_field(&x.0, x.1)).collect();
+        self.encoder.ast_factory().new_stmt(
+            lhs,
+            &fields
+        )
     }
 }
