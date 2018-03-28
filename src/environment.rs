@@ -6,6 +6,7 @@
 
 use data::ProcedureDefId;
 use rustc::mir;
+use rustc::hir::def_id::DefId;
 
 pub type BasicBlockIndex = mir::BasicBlock;
 pub type BasicBlockData<'tcx> = mir::BasicBlockData<'tcx>;
@@ -30,7 +31,7 @@ pub trait Procedure<'tcx> {
 pub trait Environment<'tcx> {
     type ProcedureImpl: Procedure<'tcx>;
 
-    fn get_procedure_name(&self, proc_def_id: ProcedureDefId) -> String;
+    fn get_item_name(&self, proc_def_id: DefId) -> String;
 
     /// Get a Procedure.
     fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Self::ProcedureImpl;
