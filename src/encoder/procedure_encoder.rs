@@ -53,10 +53,43 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_statement(&self, stmt: &mir::Statement) -> Vec<Stmt<'v>> {
+    fn encode_statement(&mut self, stmt: &mir::Statement<'tcx>) -> Vec<Stmt<'v>> {
         trace!("Encode statement '{:?}'", stmt);
-        // TODO!
-        vec![]
+
+        match stmt.kind {
+            mir::StatementKind::StorageDead(_) |
+            mir::StatementKind::StorageLive(_) => vec![],
+
+            mir::StatementKind::Assign(ref lhs, ref rhs) => {
+                let (encoded_lhs, _, _) = self.encode_place(lhs);
+                let (encoded_value, side_effects) = match rhs {
+                    &mir::Rvalue::Use(ref operand) => {
+                        self.encode_operand(operand)
+                    },
+
+                    ref x => unimplemented!("{:?}", x)
+                };
+                let mut stmts = side_effects.clone();
+                if (self.is_place_encoded_as_local_var(lhs)) {
+                    stmts.push(
+                        self.encoder.ast_factory().local_var_assign(
+                            encoded_lhs,
+                            encoded_value
+                        )
+                    );
+                } else {
+                    stmts.push(
+                        self.encoder.ast_factory().field_assign(
+                            encoded_lhs,
+                            encoded_value
+                        )
+                    );
+                }
+                stmts
+            },
+
+            ref x => unimplemented!("{:?}", x)
+        }
     }
 
     fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>,
@@ -126,7 +159,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::DropAndReplace { ref target, unwind, ref location, ref value } => {
                 let (encoded_loc, _, _) = self.encode_place(location);
                 let (encoded_value, side_effects) = self.encode_operand(value);
-                let stmts = vec![];
+                let mut stmts = vec![];
                 stmts.extend(side_effects);
                 if (self.is_place_encoded_as_local_var(location)) {
                     stmts.push(
@@ -389,13 +422,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
                         let variant_index = opt_variant_index.unwrap_or(0);
                         let tcx = self.encoder.env().tcx();
-                        let discriminant = adt_def.discriminant_for_variant(tcx, variant_index);
+                        assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
                         let field = &adt_def.variants[variant_index].fields[field.index()];
                         let num_variants = adt_def.variants.len();
                         let field_name = if (num_variants == 1) {
                             format!("struct_{}", field.name)
                         } else {
-                            format!("enum_{}_{}", discriminant.to_u128().unwrap(), field.name)
+                            format!("enum_{}_{}", variant_index, field.name)
                         };
                         let field_ty = tcx.type_of(field.did);
                         let encoded_field = self.encoder.encode_field(&field_name, field_ty);
@@ -458,7 +491,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // TODO allocate memory in Viper
                 unimplemented!(),
             &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, ty } }, ..}) => {
-                // TODO initialize values
                 let ast = self.encoder.ast_factory();
                 let fresh_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
                 let fresh_var = ast.local_var(&fresh_var_name, ast.ref_type());

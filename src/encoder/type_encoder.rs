@@ -207,12 +207,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     );
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
-                        let discriminant = adt_def.discriminant_for_variant(tcx, variant_index);
-                        let discriminant_val = self.encoder.eval_const_int(&discriminant);
+                        assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
                         let mut variant_perms: Vec<Expr<'v>> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
-                            let field_name = format!("enum_{}_{}", discriminant.to_u128().unwrap(), field.name);
+                            let field_name = format!("enum_{}_{}", variant_index, field.name);
                             let field_ty = field.ty(tcx, subst);
                             let elem_field = self.encoder.encode_ref_field(&field_name);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
@@ -237,13 +236,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             )
                         }
                         if (variant_perms.is_empty()) {
-                            debug!("Variant {} of '{:?}' is empty", discriminant, self.ty)
+                            debug!("Variant {} of '{:?}' is empty", variant_index, self.ty)
                         } else {
                             perms.push(
                                 ast.implies(
                                     ast.eq_cmp(
                                         discriminan_loc,
-                                        discriminant_val
+                                        ast.int_lit(variant_index as i32)
                                     ),
                                     // implies
                                     variant_perms.iter().skip(1).fold(
@@ -335,12 +334,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let tcx = self.encoder.env().tcx();
                 let num_variants = adt_def.variants.len();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-                    let discriminant = adt_def.discriminant_for_variant(tcx, variant_index);
+                    assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
                     for field in &variant_def.fields {
                         let name = if (num_variants == 1) {
                             format!("struct_{}", field.name)
                         } else {
-                            format!("enum_{}_{}", discriminant.to_u128().unwrap(), field.name)
+                            format!("enum_{}_{}", variant_index, field.name)
                         };
                         let ty = field.ty(tcx, subst);
                         fields.push((name, ty))
@@ -383,12 +382,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let tcx = self.encoder.env().tcx();
                 let num_variants = adt_def.variants.len();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-                    let discriminant = adt_def.discriminant_for_variant(tcx, variant_index);
+                    assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
                     for field in &variant_def.fields {
                         let name = if (num_variants == 1) {
                             format!("struct_{}", field.name)
                         } else {
-                            format!("enum_{}_{}", discriminant.to_u128().unwrap(), field.name)
+                            format!("enum_{}_{}", variant_index, field.name)
                         };
                         let ty = field.ty(tcx, subst);
                         fields.push((name, ty))
