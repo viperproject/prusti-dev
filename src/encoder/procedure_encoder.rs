@@ -20,6 +20,8 @@ use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::Encoder;
 use encoder::borrows::compute_borrow_infos;
 use encoder::utils::*;
+use rustc_data_structures::indexed_vec::Idx;
+use rustc::ty::layout::LayoutOf;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -52,7 +54,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_statement(&self, stmt: &mir::Statement) -> Vec<Stmt<'v>> {
-        debug!("Encode statement '{:?}'", stmt);
+        trace!("Encode statement '{:?}'", stmt);
         // TODO!
         vec![]
     }
@@ -62,7 +64,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                          spec_cfg_block: CfgBlockIndex,
                          abort_cfg_block: CfgBlockIndex,
                          return_cfg_block: CfgBlockIndex) -> (Vec<Stmt<'v>>, Successor<'v>) {
-        debug!("Encode terminator '{:?}'", term);
+        trace!("Encode terminator '{:?}'", term);
         let ast = self.encoder.ast_factory();
 
         match term.kind {
@@ -169,7 +171,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(side_effects);
                     }
 
-                    let encoded_target: Vec<Expr> = destination.iter().map(|d| self.encode_place(&d.0)).collect();
+                    let encoded_target: Vec<Expr> = destination.iter().map(|d| self.encode_place(&d.0).0).collect();
 
                     stmts.push(ast.method_call(
                         &self.encoder.encode_procedure_name(def_id),
@@ -190,6 +192,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Other kind of calls?
                 unimplemented!()
             },
+
+            TerminatorKind::Assert { ref cond, expected, ref target, .. } => {
+                trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
+                let mut stmts: Vec<Stmt> = vec![];
+                let viper_guard = if (expected) {
+                    self.eval_operand(cond)
+                } else {
+                    ast.not(self.eval_operand(cond))
+                };
+                let target_cfg_block = *cfg_blocks.get(&target).unwrap();
+                (vec![], Successor::GotoSwitch(vec![(viper_guard, target_cfg_block)], abort_cfg_block))
+            }
 
             TerminatorKind::Call { .. } |
             TerminatorKind::Resume |
@@ -291,7 +305,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Encode statements
             for (stmt_index, stmt) in statements.iter().enumerate() {
-                debug!("Encode statement {:?}:{}", bbi, stmt_index);
+                trace!("Encode statement {:?}:{}", bbi, stmt_index);
                 let stmts = self.encode_statement(stmt);
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
                 for stmt in stmts.into_iter() {
@@ -303,7 +317,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode terminators and set CFG edges
         self.procedure.walk_once_cfg(|bbi, bb_data| {
             if let Some(ref term) = bb_data.terminator {
-                debug!("Encode terminator of {:?}", bbi);
+                trace!("Encode terminator of {:?}", bbi);
                 let (stmts, successor) = self.encode_terminator(
                     term,
                     &cfg_blocks,
@@ -330,14 +344,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.get_rust_local_decl(local).ty
     }
 
-    fn get_rust_place_ty(&self, place: &mir::Place<'tcx>) -> ty::Ty<'tcx> {
-        match place {
-            &mir::Place::Local(local) => self.get_rust_local_ty(local),
-            // TODO
-            x => unimplemented!("{:?}", x),
-        }
-    }
-
     fn encode_local_var_name(&self, local: mir::Local) -> String {
         let local_decl = self.get_rust_local_decl(local);
         match local_decl.name {
@@ -352,16 +358,64 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.encoder.ast_factory().local_var(&var_name, var_type)
     }
 
-    fn encode_place(&self, place: &mir::Place<'tcx>) -> Expr<'v> {
+    fn encode_projection(&self, place_projection: &mir::PlaceProjection<'tcx>) -> (Expr<'v>, ty::Ty<'tcx>, Option<usize>) {
+        let (encoded_base, base_ty, opt_variant_index) = self.encode_place(&place_projection.base);
+        match &place_projection.elem {
+            &mir::ProjectionElem::Field(ref field, ty) => {
+                match base_ty.sty {
+                    ty::TypeVariants::TyBool |
+                    ty::TypeVariants::TyInt(_) |
+                    ty::TypeVariants::TyUint(_) |
+                    ty::TypeVariants::TyRawPtr(_) |
+                    ty::TypeVariants::TyRef(_, _) => panic!("Type {:?} has no fields", base_ty),
+
+                    ty::TypeVariants::TyTuple(elems, _) => {
+                        let field_name = format!("pos_{}", field.index());
+                        let field_ty = elems[field.index()];
+                        let encoded_field = self.encoder.encode_field(&field_name, field_ty);
+                        let encoded_projection = self.encoder.ast_factory().field_access(encoded_base, encoded_field);
+                        (encoded_projection, field_ty, None)
+                    },
+
+                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
+                        let variant_index = opt_variant_index.unwrap_or(0);
+                        let tcx = self.encoder.env().tcx();
+                        let discriminant = adt_def.discriminant_for_variant(tcx, variant_index);
+                        let field = &adt_def.variants[variant_index].fields[field.index()];
+                        let num_variants = adt_def.variants.len();
+                        let field_name = if (num_variants == 1) {
+                            format!("struct_{}", field.name)
+                        } else {
+                            format!("enum_{}_{}", discriminant.to_u128().unwrap(), field.name)
+                        };
+                        let field_ty = tcx.type_of(field.did);
+                        let encoded_field = self.encoder.encode_field(&field_name, field_ty);
+                        let encoded_projection = self.encoder.ast_factory().field_access(encoded_base, encoded_field);
+                        (encoded_projection, field_ty, None)
+                    },
+
+                    ref x => unimplemented!("{:?}", x),
+                }
+            },
+            x => unimplemented!("{:?}", x),
+        }
+    }
+
+    fn encode_place(&self, place: &mir::Place<'tcx>) -> (Expr<'v>, ty::Ty<'tcx>, Option<usize>) {
         match place {
-            &mir::Place::Local(local) => self.encode_local(local),
+            &mir::Place::Local(local) => (
+                self.encode_local(local),
+                self.get_rust_local_ty(local),
+                None
+            ),
+            &mir::Place::Projection(ref place_projection) =>
+                self.encode_projection(place_projection),
             x => unimplemented!("{:?}", x),
         }
     }
 
     fn eval_place(&mut self, place: &mir::Place<'tcx>) -> Expr<'v> {
-        let encoded_place = self.encode_place(place);
-        let place_ty = self.get_rust_place_ty(place);
+        let (encoded_place, place_ty, opt_variant_index) = self.encode_place(place);
         let value_field = self.encoder.encode_value_field(place_ty);
 
         self.encoder.ast_factory().field_access(
@@ -382,7 +436,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Expr<'v>, Vec<Stmt<'v>>) {
         match operand {
-            &mir::Operand::Move(ref place) => (self.encode_place(place), vec![]),
+            &mir::Operand::Move(ref place) => (self.encode_place(place).0, vec![]),
             &mir::Operand::Copy(ref place) =>
                 // TODO allocate memory in Viper
                 unimplemented!(),

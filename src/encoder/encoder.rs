@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use viper::CfgBlockIndex;
 use rustc::mir::TerminatorKind;
+use syntax::ast;
 use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::procedure_encoder::ProcedureEncoder;
@@ -113,6 +114,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> Field<'v> {
         let field_name = self.encode_value_field_name(ty);
+        self.encode_field(&field_name, ty)
+    }
+
+    pub fn encode_discriminant_field(&self) -> Field<'v> {
+        let field_name = "discriminant";
+        let st = ty::TypeVariants::TyUint(ast::UintTy::U32);
+        let ty = self.env.tcx().mk_ty(st);
         self.encode_field(&field_name, ty)
     }
 
