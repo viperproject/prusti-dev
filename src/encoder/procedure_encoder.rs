@@ -108,7 +108,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             TerminatorKind::Abort => (vec![], Successor::Goto(abort_cfg_block)),
 
-            TerminatorKind::DropAndReplace { ref target, unwind, .. } |
             TerminatorKind::Drop { ref target, unwind, .. } => {
                 let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                 (vec![], Successor::Goto(*target_cfg_block))
@@ -124,9 +123,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (vec![], Successor::Goto(*target_cfg_block))
             },
 
-            TerminatorKind::DropAndReplace { .. } => {
-                // TODO
-                unimplemented!()
+            TerminatorKind::DropAndReplace { ref target, unwind, ref location, ref value } => {
+                let (encoded_loc, _, _) = self.encode_place(location);
+                let (encoded_value, side_effects) = self.encode_operand(value);
+                let stmts = vec![];
+                stmts.extend(side_effects);
+                if (self.is_place_encoded_as_local_var(location)) {
+                    stmts.push(
+                        ast.local_var_assign(encoded_loc, encoded_value)
+                    );
+                } else {
+                    stmts.push(
+                        ast.field_assign(encoded_loc, encoded_value)
+                    );
+                }
+                let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
+                (stmts, Successor::Goto(*target_cfg_block))
             },
 
             TerminatorKind::Call {
@@ -148,7 +160,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let ast = self.encoder.ast_factory();
                 let func_proc_name = self.encoder.env().get_item_name(def_id);
                 let mut stmts;
-                if (func_proc_name == "std::rt::begin_panic") {
+                if (func_proc_name == "prusti_contracts::internal::__assertion") {
+                    // This is a Prusti loop invariant
+                    panic!("Unreachable");
+                } else if (func_proc_name == "std::rt::begin_panic") {
                     // This is called when a Rust assertion fails
                     stmts = vec![ast.assert_with_comment(
                         ast.false_lit(),
@@ -158,12 +173,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else {
                     stmts = vec![];
                     let mut encoded_args: Vec<Expr> = vec![];
-
-                    for operand in args.iter() {
-                        let (encoded, side_effects) = self.encode_operand(operand);
-                        encoded_args.push(encoded);
-                        stmts.extend(side_effects);
-                    }
 
                     for operand in args.iter() {
                         let (encoded, side_effects) = self.encode_operand(operand);
@@ -422,6 +431,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             encoded_place,
             value_field
         )
+    }
+
+    fn is_place_encoded_as_local_var(&self, place: &mir::Place<'tcx>) -> bool {
+        match place {
+            &mir::Place::Local(local) => true,
+            &mir::Place::Projection(_) => false,
+            x => unimplemented!("{:?}", x),
+        }
     }
 
     fn eval_operand(&mut self, operand: &mir::Operand<'tcx>) -> Expr<'v> {
