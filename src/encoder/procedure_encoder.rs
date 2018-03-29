@@ -489,7 +489,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::Operand::Move(ref place) => (self.encode_place(place).0, vec![]),
             &mir::Operand::Copy(ref place) =>
                 // TODO allocate memory in Viper
-                unimplemented!(),
+                unimplemented!("{:?}", operand),
             &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, ty } }, ..}) => {
                 let ast = self.encoder.ast_factory();
                 let fresh_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
