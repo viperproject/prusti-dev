@@ -135,8 +135,8 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
 
                                 // Do not visit the 'then' branch.
                                 // So, it will not be put into nonspec_basic_blocks.
-                                debug!("MIR block {:?} is the head of a specification branch", targets[0]);
-                                visited.insert(targets[0]);
+                                debug!("MIR block {:?} is the head of a specification branch", targets[1]);
+                                visited.insert(targets[1]);
                             }
                         }
                     }
