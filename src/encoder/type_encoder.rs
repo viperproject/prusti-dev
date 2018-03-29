@@ -199,10 +199,24 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         self_local_var,
                         discriminant_field
                     );
+                    // acc(self.discriminant)
                     perms.push(
                         ast.field_access_predicate(
                             discriminan_loc,
                             ast.full_perm()
+                        )
+                    );
+                    // 0 <= self.discriminant < num_variants
+                    perms.push(
+                        ast.and(
+                            ast.le_cmp(
+                                ast.int_lit(-1),
+                                discriminan_loc
+                            ),
+                            ast.le_cmp(
+                                discriminan_loc,
+                                ast.int_lit(num_variants as i32)
+                            )
                         )
                     );
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
