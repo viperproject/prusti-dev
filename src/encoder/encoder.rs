@@ -124,9 +124,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.encode_field(&field_name, ty)
     }
 
-    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<(String, ty::Ty<'tcx>)> {
+    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>, variant_index: Option<usize>) -> Vec<(String, ty::Ty<'tcx>)> {
         let mut type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_fields()
+        type_encoder.encode_fields(variant_index)
     }
 
     /*pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> Field<'v> {
