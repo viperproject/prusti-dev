@@ -71,10 +71,10 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
     }
 
     fn generate_fresh_local_var_name(&mut self) -> String {
-        let mut candidate_name = format!("_{}", self.fresh_var_index);
+        let mut candidate_name = format!("__{}", self.fresh_var_index);
         self.fresh_var_index += 1;
         while !self.is_fresh_local_var_name(&candidate_name) {
-            candidate_name = format!("_{}", self.fresh_var_index);
+            candidate_name = format!("__{}", self.fresh_var_index);
             self.fresh_var_index += 1;
         }
         candidate_name
@@ -221,7 +221,7 @@ fn successor_to_ast<'a>(
         Successor::Undefined =>
             panic!("CFG block '{}' has no successor.", index_to_label(basic_block_labels, index)),
         Successor::Unreachable =>
-            ast.assert_with_comment(ast.false_lit(), ast.no_position(), "Unreachable: "),
+            ast.assert(ast.false_lit(), ast.no_position()),
         Successor::Return => ast.goto(&return_label()),
         Successor::Goto(target) => ast.goto(&index_to_label(basic_block_labels, target.block_index)),
         Successor::GotoSwitch(ref successors, ref default_target) => {

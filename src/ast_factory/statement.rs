@@ -22,6 +22,14 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn assign(&self, lhs: Expr, rhs: Expr, lhs_is_local_var: bool) -> Stmt<'a> {
+        if lhs_is_local_var {
+            self.local_var_assign(lhs, rhs)
+        } else {
+            self.field_assign(lhs, rhs)
+        }
+    }
+
     pub fn local_var_assign(&self, lhs: Expr, rhs: Expr) -> Stmt<'a> {
         build_ast_node!(
             self,
@@ -143,6 +151,17 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(&map_to_jobjects!(stmts)),
             self.jni.new_seq(&map_to_jobjects!(scoped_decls))
         )
+    }
+
+    pub fn comment(&self, comment: &str) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Seqn::with(self.env).new(
+            self.jni.new_seq(&[]),
+            self.jni.new_seq(&[]),
+            self.no_position().to_jobject(),
+            self.simple_info(&[comment]),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
     }
 
     pub fn if_stmt(&self, cond: Expr, then_body: Stmt, else_body: Stmt) -> Stmt<'a> {
