@@ -10,7 +10,7 @@ use rustc::hir::Mutability;
 use rustc::ty::subst::Substs;
 use rustc::ty::TypeVariants::*;
 
-pub trait TypeVisitor<'a, 'tcx> {
+pub trait TypeVisitor<'a, 'tcx> : Sized {
 
     fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx>;
 
@@ -63,39 +63,74 @@ pub trait TypeVisitor<'a, 'tcx> {
 
     fn visit_adt(&mut self, adt_def: &'tcx AdtDef, substs: &'tcx Substs<'tcx>) {
         trace!("visit_adt({:?})", adt_def);
-        for variant in adt_def.variants.iter() {
-            self.visit_adt_variant(variant, substs);
-        }
+        walk_adt(self, adt_def, substs);
     }
 
     fn visit_adt_variant(&mut self, variant: &VariantDef, substs: &'tcx Substs<'tcx>) {
         trace!("visit_adt_variant({:?})", variant);
-        for field in variant.fields.iter() {
-            self.visit_field(field, substs);
-        }
+        walk_adt_variant(self, variant, substs);
     }
 
     fn visit_field(&mut self, field: &FieldDef, substs: &'tcx Substs<'tcx>) {
         trace!("visit_field({:?})", field);
-        let ty = field.ty(self.tcx(), substs);
-        self.visit_ty(ty);
+        walk_field(self, field, substs);
     }
 
     fn visit_ref(&mut self, region: Region<'tcx>, tym: TypeAndMut<'tcx>) {
         trace!("visit_ref({:?}, {:?})", region, tym);
-        self.visit_ref_type(tym.ty, tym.mutbl);
+        walk_ref(self, region, tym);
     }
 
     fn visit_ref_type(&mut self, ty: Ty<'tcx>, mutability: Mutability) {
         trace!("visit_ref_type({:?}, {:?})", ty, mutability);
-        self.visit_ty(ty);
+        walk_ref_type(self, ty, mutability);
     }
 
     fn visit_tuple(&mut self, parts: &'tcx Slice<Ty<'tcx>>) {
         trace!("visit_tuple({:?})", parts);
-        for part in parts.iter() {
-            self.visit_ty(part);
-        }
+        walk_tuple(self, parts);
     }
 
+}
+
+pub fn walk_adt<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
+                                                    adt_def: &'tcx AdtDef,
+                                                    substs: &'tcx Substs<'tcx>) {
+    for variant in adt_def.variants.iter() {
+        visitor.visit_adt_variant(variant, substs);
+    }
+}
+
+pub fn walk_adt_variant<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
+                                                            variant: &VariantDef,
+                                                            substs: &'tcx Substs<'tcx>) {
+    for field in variant.fields.iter() {
+        visitor.visit_field(field, substs);
+    }
+}
+
+pub fn walk_field<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
+                                                      field: &FieldDef,
+                                                      substs: &'tcx Substs<'tcx>) {
+    let ty = field.ty(visitor.tcx(), substs);
+    visitor.visit_ty(ty);
+}
+
+pub fn walk_ref<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
+                                                    region: Region<'tcx>,
+                                                    tym: TypeAndMut<'tcx>) {
+    visitor.visit_ref_type(tym.ty, tym.mutbl);
+}
+
+pub fn walk_ref_type<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
+                                                         ty: Ty<'tcx>,
+                                                         mutability: Mutability) {
+    visitor.visit_ty(ty);
+}
+
+pub fn walk_tuple<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
+                                                      parts: &'tcx Slice<Ty<'tcx>>) {
+    for part in parts.iter() {
+        visitor.visit_ty(part);
+    }
 }
