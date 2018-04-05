@@ -84,14 +84,30 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.procedures.borrow().values().cloned().collect()
     }
 
-    pub fn encode_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> Field<'v> {
-        if !self.fields.borrow().contains_key(field_name) {
+    pub fn encode_value_field_name(&self, ty: ty::Ty<'tcx>) -> String {
+        let mut type_encoder = TypeEncoder::new(self, ty);
+        let field_name = type_encoder.encode_value_field_name();
+        // Trigger encoding of definition
+        self.encode_value_field_with_name(&field_name, ty);
+        field_name
+    }
+
+    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> Field<'v> {
+        let field_name = self.encode_value_field_name(ty);
+        self.encode_value_field_with_name(&field_name, ty)
+    }
+
+    fn encode_value_field_with_name(&self, field_name: &str, ty: ty::Ty<'tcx>) -> Field<'v> {
+        *self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
             let mut type_encoder = TypeEncoder::new(self, ty);
-            let field_type = type_encoder.encode_field_type();
-            let field = self.ast_factory.field(field_name, field_type);
-            self.fields.borrow_mut().insert(field_name.to_string(), field);
-        }
-        self.fields.borrow()[field_name].clone()
+            type_encoder.encode_value_field()
+        })
+    }
+
+    pub fn encode_ref_field(&self, field_name: &str) -> Field<'v> {
+        *self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
+            self.ast_factory.field(field_name, self.ast_factory.ref_type())
+        })
     }
 
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> Method<'v> {
@@ -104,46 +120,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.procedures.borrow()[&proc_def_id].clone()
     }
 
-    pub fn encode_value_field_name(&self, ty: ty::Ty<'tcx>) -> String {
-        let mut type_encoder = TypeEncoder::new(self, ty);
-        let field_name = type_encoder.encode_value_field_name();
-        // Trigger encoding of definition
-        self.encode_field(&field_name, ty);
-        field_name
-    }
-
-    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> Field<'v> {
-        let field_name = self.encode_value_field_name(ty);
-        self.encode_field(&field_name, ty)
-    }
-
     pub fn encode_discriminant_field(&self) -> Field<'v> {
-        let field_name = "discriminant";
-        let st = ty::TypeVariants::TyUint(ast::UintTy::U32);
-        let ty = self.env.tcx().mk_ty(st);
-        self.encode_field(&field_name, ty)
-    }
-
-    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>, variant_index: Option<usize>) -> Vec<(String, ty::Ty<'tcx>)> {
-        let mut type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_fields(variant_index)
-    }
-
-    /*pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> Field<'v> {
-        let field_name = self.encode_value_field_name(ty);
-        if !self.fields.borrow().contains_key(&field_name) {
-            let mut type_encoder = TypeEncoder::new(self, ty);
-            let result = type_encoder.encode_value_field();
-            self.fields.borrow_mut().insert(field_name.clone(), result);
-        }
-        self.fields.borrow()[&field_name].clone()
-    }
-    */
-
-    pub fn encode_ref_field(&self, name: &str) -> Field<'v> {
+        let name = "discriminant";
         *self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| {
-            self.ast_factory.field(name, self.ast_factory.ref_type())
+            self.ast_factory.field(name, self.ast_factory.int_type())
         })
+    }
+
+    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<(String, ty::Ty<'tcx>)> {
+        let mut type_encoder = TypeEncoder::new(self, ty);
+        type_encoder.encode_fields()
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {

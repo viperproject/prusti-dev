@@ -33,31 +33,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_field_type(self) -> viper::Type<'v> {
-        debug!("Encode field type '{:?}'", self.ty);
-        let ast = self.encoder.ast_factory();
-
-        match self.ty.sty {
-            ty::TypeVariants::TyBool => ast.bool_type(),
-
-            ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => ast.int_type(),
-
-            ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _) |
-            ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_, _) => ast.ref_type(),
-
-            ref x => unimplemented!("{:?}", x),
-        }
-    }
-
     pub fn encode_value_field(self) -> Field<'v> {
         debug!("Encode value field for type '{:?}'", self.ty);
         let ast = self.encoder.ast_factory();
-
-        let field_name = self.encoder.encode_value_field_name(self.ty);
-
         match self.ty.sty {
             ty::TypeVariants::TyBool => ast.field("val_bool", ast.bool_type()),
 
@@ -65,9 +43,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(_) => ast.field("val_uint", ast.int_type()),
 
             ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _) |
+            ty::TypeVariants::TyRef(_, _) => ast.field("val_ref", ast.ref_type()),
+
             ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_, _) => ast.field("val_ref", ast.ref_type()),
+            ty::TypeVariants::TyTuple(_, _) => unimplemented!(),
 
             ref x => unimplemented!("{:?}", x),
         }
@@ -222,7 +201,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
                         assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
-                        let mut variant_perms: Vec<Expr<'v>> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
                             let field_name = format!("enum_{}_{}", variant_index, field.name);
@@ -233,36 +211,19 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                 self_local_var,
                                 elem_field
                             );
-                            variant_perms.push(
+                            perms.push(
                                 ast.field_access_predicate(
                                     elem_loc,
                                     ast.full_perm()
                                 )
                             );
-                            variant_perms.push(
+                            perms.push(
                                 ast.predicate_access_predicate(
                                     ast.predicate_access(
                                         &[ elem_loc ],
                                         &predicate_name
                                     ),
                                     ast.full_perm()
-                                )
-                            )
-                        }
-                        if (variant_perms.is_empty()) {
-                            debug!("Variant {} of '{:?}' is empty", variant_index, self.ty)
-                        } else {
-                            perms.push(
-                                ast.implies(
-                                    ast.eq_cmp(
-                                        discriminan_loc,
-                                        ast.int_lit(variant_index as i32)
-                                    ),
-                                    // implies
-                                    variant_perms.iter().skip(1).fold(
-                                        variant_perms[0],
-                                        |a, b| ast.and(a, *b)
-                                    )
                                 )
                             )
                         }
@@ -319,7 +280,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_fields(self, opt_variant_index: Option<usize>) -> Vec<(String, ty::Ty<'tcx>)> {
+    pub fn encode_fields(self) -> Vec<(String, ty::Ty<'tcx>)> {
         debug!("Encode fields of '{:?}'", self.ty);
 
         match self.ty.sty {
@@ -327,6 +288,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) =>
                 vec![
+                    // FIXME: here the second element is not really used
                     (self.encoder.encode_value_field_name(self.ty), self.ty)
                 ],
 
@@ -347,17 +309,17 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let mut fields: Vec<(String, ty::Ty<'tcx>)> = vec![];
                 let tcx = self.encoder.env().tcx();
                 let num_variants = adt_def.variants.len();
-                let variant_index = opt_variant_index.unwrap();
-                let variant_def = &adt_def.variants[variant_index];
-                assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
-                for field in &variant_def.fields {
-                    let name = if (num_variants == 1) {
-                        format!("struct_{}", field.name)
-                    } else {
-                        format!("enum_{}_{}", variant_index, field.name)
-                    };
-                    let ty = field.ty(tcx, subst);
-                    fields.push((name, ty))
+                for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
+                    assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
+                    for field in &variant_def.fields {
+                        let name = if (num_variants == 1) {
+                            format!("struct_{}", field.name)
+                        } else {
+                            format!("enum_{}_{}", variant_index, field.name)
+                        };
+                        let ty = field.ty(tcx, subst);
+                        fields.push((name, ty))
+                    }
                 }
                 fields
             },
@@ -375,6 +337,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) =>
                 vec![
+                    // FIXME: here the second element is not really used
                     (self.encoder.encode_value_field_name(self.ty), self.ty)
                 ],
 
