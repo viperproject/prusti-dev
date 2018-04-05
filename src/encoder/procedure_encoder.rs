@@ -142,7 +142,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     &mir::Rvalue::NullaryOp(op, ref ty) => unimplemented!("{:?}", rhs),
 
-                    &mir::Rvalue::Discriminant(ref place) => unimplemented!("{:?}", rhs),
+                    &mir::Rvalue::Discriminant(ref src) => {
+                        let discr_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
+                        let discr_var = ast.local_var(&discr_var_name, ast.ref_type());
+                        stmts.extend(
+                            self.encode_allocation(discr_var, ty, true)
+                        );
+                        let int_field = self.encoder.encode_value_field(ty);
+                        let discr_field = self.encoder.encode_discriminant_field().1;
+                        let (encoded_src, _, _) = self.encode_place(src);
+                        stmts.push(
+                            ast.assign(
+                                encoded_lhs,
+                                discr_var,
+                                self.is_place_encoded_as_local_var(lhs)
+                            )
+                        );
+                        stmts.push(
+                            ast.field_assign(
+                                ast.field_access(
+                                    encoded_lhs,
+                                    int_field
+                                ),
+                                ast.field_access(
+                                    encoded_src,
+                                    discr_field
+                                )
+                            )
+                        );
+                        stmts
+                    }
 
                     &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
                         let (encoded_value, before_stmts) = self.encode_assign_aggregate(ty, aggregate, operands);
@@ -571,6 +600,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - `ty::Ty<'tcx>`: the type of the expression;
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_projection(&self, place_projection: &mir::PlaceProjection<'tcx>) -> (Expr<'v>, ty::Ty<'tcx>, Option<usize>) {
+        debug!("Encode projection {:?}", place_projection);
         let (encoded_base, base_ty, opt_variant_index) = self.encode_place(&place_projection.base);
         let ast = self.encoder.ast_factory();
         match &place_projection.elem {
@@ -591,6 +621,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     },
 
                     ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
+                        debug!("subst {:?}", subst);
                         let variant_index = opt_variant_index.unwrap_or(0);
                         let tcx = self.encoder.env().tcx();
                         assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
@@ -625,6 +656,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     _ => unreachable!(),
                 }
+            },
+
+            &mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
+                debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
+                (encoded_base, base_ty, Some(variant_index))
             },
 
             x => unimplemented!("{:?}", x),
@@ -692,6 +728,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Expr<'v>, Vec<Stmt<'v>>, Vec<Stmt<'v>>) {
+        debug!("Encode operand {:?}", operand);
         let ast = self.encoder.ast_factory();
         match operand {
             &mir::Operand::Move(ref place) => {
@@ -729,7 +766,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_allocation(&mut self, dst: Expr<'v>, ty: ty::Ty<'tcx>, dst_is_local_var: bool) -> Vec<Stmt<'v>> {
-        info!("Encode allocation {:?}", ty);
+        debug!("Encode allocation {:?}", ty);
         let ast = self.encoder.ast_factory();
 
         let field_name_type = self.encoder.encode_type_fields(ty);
@@ -763,7 +800,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_copy(&mut self, src: Expr<'v>, dst: Expr<'v>, self_ty: ty::Ty<'tcx>, dst_is_local_var: bool) -> Vec<Stmt<'v>> {
-        info!("Encode copy {:?}, {:?}", self_ty, dst_is_local_var);
+        debug!("Encode copy {:?}, {:?}", self_ty, dst_is_local_var);
         let ast = self.encoder.ast_factory();
         let mut stmts: Vec<Stmt> = vec![];
 
@@ -846,7 +883,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         aggregate: &mir::AggregateKind<'tcx>,
         operands: &Vec<mir::Operand<'tcx>>
     ) -> (Expr<'v>, Vec<Stmt<'v>>) {
-        warn!("TODO: Encode aggregate {:?}, {:?}", aggregate, operands);
+        debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
         let ast = self.encoder.ast_factory();
         let dst_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
         let dst_var = ast.local_var(&dst_var_name, ast.ref_type());
