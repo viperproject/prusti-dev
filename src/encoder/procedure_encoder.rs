@@ -158,8 +158,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     &mir::Rvalue::Ref(ref region, borrow_kind, ref place) => {
+                        let ref_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
+                        let ref_var = ast.local_var(&ref_var_name, ast.ref_type());
+                        stmts.extend(
+                            self.encode_allocation(ref_var, ty, true)
+                        );
                         let field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.encode_place(place);
+                        stmts.push(
+                            ast.assign(
+                                encoded_lhs,
+                                ref_var,
+                                self.is_place_encoded_as_local_var(lhs)
+                            )
+                        );
                         stmts.push(
                             ast.field_assign(
                                 ast.field_access(
@@ -774,6 +786,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     );
                 }
             }
+
+            ty::TypeVariants::TyRawPtr(_) |
+            ty::TypeVariants::TyRef(_, _) => {
+                let ref_field = self.encoder.encode_ref_field("val_ref");
+                stmts.push(
+                    ast.field_assign(
+                        ast.field_access(dst, ref_field),
+                        ast.field_access(src, ref_field)
+                    )
+                );
+            },
 
             _ => {
                 for (field_name, field, opt_field_ty) in fields_name_ty.drain(..) {
