@@ -171,9 +171,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             )
                         )
                     }
-                } else if (num_variants >= 1) {
+                } else if (num_variants > 1) {
                     debug!("ADT has {} variants: {:?}", num_variants, adt_def);
-                    let discriminant_field = self.encoder.encode_discriminant_field();
+                    let (_, discriminant_field) = self.encoder.encode_discriminant_field();
                     let discriminan_loc = ast.field_access(
                         self_local_var,
                         discriminant_field
@@ -185,16 +185,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             ast.full_perm()
                         )
                     );
-                    // 0 <= self.discriminant < num_variants
+                    // 0 <= self.discriminant <= num_variants - 1
                     perms.push(
                         ast.and(
                             ast.le_cmp(
-                                ast.int_lit(-1),
+                                ast.int_lit(0),
                                 discriminan_loc
                             ),
                             ast.le_cmp(
                                 discriminan_loc,
-                                ast.int_lit(num_variants as i32)
+                                ast.int_lit(num_variants as i32 - 1)
                             )
                         )
                     );
@@ -280,94 +280,63 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_fields(self) -> Vec<(String, ty::Ty<'tcx>)> {
+    pub fn encode_fields(self) -> Vec<(String, Field<'v>, Option<ty::Ty<'tcx>>)> {
         debug!("Encode fields of '{:?}'", self.ty);
 
         match self.ty.sty {
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) =>
+            ty::TypeVariants::TyUint(_) => {
                 vec![
-                    // FIXME: here the second element is not really used
-                    (self.encoder.encode_value_field_name(self.ty), self.ty)
-                ],
+                    (
+                        self.encoder.encode_value_field_name(self.ty),
+                        self.encoder.encode_value_field(self.ty),
+                        None
+                    )
+                ]
+            }
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ty, .. }) => {
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut{ ty, .. }) |
+            ty::TypeVariants::TyRef(_, ty::TypeAndMut{ ty, .. }) => {
                 vec![
-                    ("val_ref".to_string(), ty)
+                    (
+                        self.encoder.encode_value_field_name(self.ty),
+                        self.encoder.encode_value_field(self.ty),
+                        Some(ty)
+                    )
                 ]
             }
 
             ty::TypeVariants::TyTuple(elems, _) => {
                 elems.iter().enumerate().map(|(field_num, ty)| {
-                    (format!("tuple_{}", field_num), *ty)
+                    let field_name = format!("tuple_{}", field_num);
+                    let encoded_field = self.encoder.encode_ref_field(&field_name);
+                    (
+                        field_name,
+                        encoded_field,
+                        Some(*ty)
+                    )
                 }).collect()
             },
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
-                let mut fields: Vec<(String, ty::Ty<'tcx>)> = vec![];
+                let (discr_field_name, discr_field) = self.encoder.encode_discriminant_field();
+                let mut fields = vec![
+                    (discr_field_name, discr_field, None)
+                ];
                 let tcx = self.encoder.env().tcx();
                 let num_variants = adt_def.variants.len();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                     assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
                     for field in &variant_def.fields {
-                        let name = if (num_variants == 1) {
+                        let field_name = if (num_variants == 1) {
                             format!("struct_{}", field.name)
                         } else {
                             format!("enum_{}_{}", variant_index, field.name)
                         };
+                        let encoded_field = self.encoder.encode_ref_field(&field_name);
                         let ty = field.ty(tcx, subst);
-                        fields.push((name, ty))
-                    }
-                }
-                fields
-            },
-
-            ref x => unimplemented!("{:?}", x),
-        }
-    }
-
-
-    pub fn get_fields(self) -> Vec<(String, ty::Ty<'tcx>)> {
-        debug!("Encode fields of '{:?}'", self.ty);
-
-        match self.ty.sty {
-            ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) =>
-                vec![
-                    // FIXME: here the second element is not really used
-                    (self.encoder.encode_value_field_name(self.ty), self.ty)
-                ],
-
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ty, .. }) => {
-                vec![
-                    ("val_ref".to_string(), ty)
-                ]
-            }
-
-            ty::TypeVariants::TyTuple(elems, _) => {
-                elems.iter().enumerate().map(|(field_num, ty)| {
-                    (format!("tuple_{}", field_num), *ty)
-                }).collect()
-            },
-
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
-                let mut fields: Vec<(String, ty::Ty<'tcx>)> = vec![];
-                let tcx = self.encoder.env().tcx();
-                let num_variants = adt_def.variants.len();
-                for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-                    assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
-                    for field in &variant_def.fields {
-                        let name = if (num_variants == 1) {
-                            format!("struct_{}", field.name)
-                        } else {
-                            format!("enum_{}_{}", variant_index, field.name)
-                        };
-                        let ty = field.ty(tcx, subst);
-                        fields.push((name, ty))
+                        fields.push((field_name, encoded_field, Some(ty)))
                     }
                 }
                 fields

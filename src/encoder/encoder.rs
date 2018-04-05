@@ -110,6 +110,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         })
     }
 
+    pub fn encode_discriminant_field(&self) -> (String, Field<'v>) {
+        let name = "discriminant";
+        let field = *self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| {
+            self.ast_factory.field(name, self.ast_factory.int_type())
+        });
+        (name.to_string(), field)
+    }
+
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> Method<'v> {
         if !self.procedures.borrow().contains_key(&proc_def_id) {
             let procedure = self.env.get_procedure(proc_def_id);
@@ -120,16 +128,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.procedures.borrow()[&proc_def_id].clone()
     }
 
-    pub fn encode_discriminant_field(&self) -> Field<'v> {
-        let name = "discriminant";
-        *self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| {
-            self.ast_factory.field(name, self.ast_factory.int_type())
-        })
-    }
-
-    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<(String, ty::Ty<'tcx>)> {
+    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<(String, Field<'v>, Option<ty::Ty<'tcx>>)> {
         let mut type_encoder = TypeEncoder::new(self, ty);
-        type_encoder.encode_fields()
+        let fields = type_encoder.encode_fields();
+        for &(ref field_name, field, opt_field_ty) in &fields {
+            self.fields.borrow_mut().entry(field_name.to_string()).or_insert(field);
+        }
+        fields
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {

@@ -60,7 +60,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         match stmt.kind {
             mir::StatementKind::StorageDead(_) |
-            mir::StatementKind::StorageLive(_) => stmts,
+            mir::StatementKind::StorageLive(_) |
+            mir::StatementKind::EndRegion(_) => stmts,
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.encode_place(lhs);
@@ -764,8 +765,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) => {
-                for (field_name, field_ty) in fields_name_ty.drain(..) {
-                    let field = self.encoder.encode_ref_field(&field_name);
+                for (field_name, field, opt_field_ty) in fields_name_ty.drain(..) {
                     stmts.push(
                         ast.field_assign(
                             ast.field_access(dst, field),
@@ -776,13 +776,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             _ => {
-                for (field_name, field_ty) in fields_name_ty.drain(..) {
-                    let field = self.encoder.encode_ref_field(&field_name);
+                for (field_name, field, opt_field_ty) in fields_name_ty.drain(..) {
                     let inner_src = ast.field_access(src, field);
                     let inner_dst = ast.field_access(dst, field);
-                    stmts.extend(
-                        self.encode_copy(inner_src, inner_dst, field_ty, false)
-                    );
+                    if let Some(field_ty) = opt_field_ty {
+                        stmts.extend(
+                            self.encode_copy(inner_src, inner_dst, field_ty, false)
+                        );
+                    } else {
+                        stmts.push(
+                            ast.field_assign(
+                                ast.field_access(dst, field),
+                                ast.field_access(src, field)
+                            )
+                        );
+                    }
                 }
             }
         };
