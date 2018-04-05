@@ -118,6 +118,8 @@ fn main() {
             ]),
             java_class!("viper.silicon.Silicon", vec![
                 constructor!("()V"),
+                method!("name"),
+                method!("buildVersion"),
                 method!("parseCommandLine"),
                 method!("start"),
                 method!("stop"),
