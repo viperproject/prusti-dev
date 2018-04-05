@@ -145,8 +145,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Discriminant(ref place) => unimplemented!("{:?}", rhs),
 
                     &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
-                        stmts.extend(
-                            self.encode_assign_aggregate(aggregate, operands)
+                        let (encoded_value, before_stmts) = self.encode_assign_aggregate(ty, aggregate, operands);
+                        stmts.extend(before_stmts);
+                        stmts.push(
+                            ast.assign(
+                                encoded_lhs,
+                                encoded_value,
+                                self.is_place_encoded_as_local_var(lhs)
+                            )
                         );
                         stmts
                     }
@@ -711,7 +717,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_allocation(&mut self, dst: Expr<'v>, ty: ty::Ty<'tcx>, dst_is_local_var: bool) -> Vec<Stmt<'v>> {
-        warn!("Encode allocation {:?}", ty);
+        info!("Encode allocation {:?}", ty);
         let ast = self.encoder.ast_factory();
 
         let field_name_type = self.encoder.encode_type_fields(ty);
@@ -744,14 +750,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_ref_allocation(&self, lhs: Expr<'v>) -> Stmt<'v> {
-        warn!("Encode ref allocation");
-        let field = self.encoder.encode_ref_field("val_ref");
-        self.encoder.ast_factory().new_stmt(lhs, &[ field ])
-    }
-
-    pub fn encode_copy(&mut self, src: Expr<'v>, dst: Expr<'v>, self_ty: ty::Ty<'tcx>, dst_is_local_var: bool) -> Vec<Stmt<'v>> {
-        warn!("Encode copy {:?}, {:?}", self_ty, dst_is_local_var);
+    fn encode_copy(&mut self, src: Expr<'v>, dst: Expr<'v>, self_ty: ty::Ty<'tcx>, dst_is_local_var: bool) -> Vec<Stmt<'v>> {
+        info!("Encode copy {:?}, {:?}", self_ty, dst_is_local_var);
         let ast = self.encoder.ast_factory();
         let mut stmts: Vec<Stmt> = vec![];
 
@@ -798,7 +798,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    pub fn encode_bin_op_value(&mut self, op: mir::BinOp, left: Expr<'v>, right: Expr<'v>) -> Expr<'v> {
+    fn encode_bin_op_value(&mut self, op: mir::BinOp, left: Expr<'v>, right: Expr<'v>) -> Expr<'v> {
         let ast = self.encoder.ast_factory();
         match op {
             mir::BinOp::Gt => ast.gt_cmp(left, right),
@@ -811,17 +811,79 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    pub fn encode_bin_op_check(&mut self, op: mir::BinOp, left: Expr<'v>, right: Expr<'v>) -> Expr<'v> {
-        warn!("Encode bin op check {:?} ", op);
+    fn encode_bin_op_check(&mut self, op: mir::BinOp, left: Expr<'v>, right: Expr<'v>) -> Expr<'v> {
+        warn!("TODO: Encode bin op check {:?} ", op);
         // TODO
         self.encoder.ast_factory().true_lit()
     }
 
-    pub fn encode_assign_aggregate(&self, aggregate: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>) -> Vec<Stmt<'v>> {
-        warn!("Encode aggregate {:?}, {:?}", aggregate, operands);
+    fn encode_assign_aggregate(
+        &mut self,
+        ty: ty::Ty<'tcx>,
+        aggregate: &mir::AggregateKind<'tcx>,
+        operands: &Vec<mir::Operand<'tcx>>
+    ) -> (Expr<'v>, Vec<Stmt<'v>>) {
+        warn!("TODO: Encode aggregate {:?}, {:?}", aggregate, operands);
+        let ast = self.encoder.ast_factory();
+        let dst_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
+        let dst_var = ast.local_var(&dst_var_name, ast.ref_type());
+        let mut stmts: Vec<Stmt> = vec![];
+        stmts.extend(
+            self.encode_allocation(dst_var, ty, true)
+        );
 
-        // TODO
-        vec![]
+        match aggregate {
+            &mir::AggregateKind::Tuple => {
+                for (field_num, operand) in operands.iter().enumerate() {
+                    let field_name = format!("tuple_{}", field_num);
+                    let encoded_field = self.encoder.encode_ref_field(&field_name);
+                    let (encoded_operand, before_stmts, after_stmts) = self.encode_operand(operand);
+                    stmts.extend(before_stmts);
+                    stmts.push(
+                        ast.field_assign(
+                            ast.field_access(dst_var, encoded_field),
+                            encoded_operand
+                        )
+                    );
+                    stmts.extend(after_stmts);
+                }
+                (dst_var, stmts)
+            },
+
+            &mir::AggregateKind::Adt(adt_def, variant_index, substs, n) => {
+                let num_variants = adt_def.variants.len();
+                if num_variants > 1 {
+                    let discr_field = self.encoder.encode_discriminant_field().1;
+                    stmts.push(
+                        ast.field_assign(
+                            ast.field_access(dst_var, discr_field),
+                            ast.int_lit(variant_index as i32)
+                        )
+                    );
+                };
+                let variant_def = &adt_def.variants[variant_index];
+                for (field_index, field) in variant_def.fields.iter().enumerate() {
+                    let operand = &operands[field_index];
+                    let field_name = if (num_variants == 1) {
+                        format!("struct_{}", field.name)
+                    } else {
+                        format!("enum_{}_{}", variant_index, field.name)
+                    };
+                    let encoded_field = self.encoder.encode_ref_field(&field_name);
+                    let (encoded_operand, before_stmts, after_stmts) = self.encode_operand(operand);
+                    stmts.extend(before_stmts);
+                    stmts.push(
+                        ast.field_assign(
+                            ast.field_access(dst_var, encoded_field),
+                            encoded_operand
+                        )
+                    );
+                    stmts.extend(after_stmts);
+                }
+                (dst_var, stmts)
+            },
+
+            ref x => unimplemented!("{:?}", x)
+        }
     }
-
 }

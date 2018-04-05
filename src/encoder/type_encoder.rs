@@ -320,12 +320,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             },
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
-                let (discr_field_name, discr_field) = self.encoder.encode_discriminant_field();
-                let mut fields = vec![
-                    (discr_field_name, discr_field, None)
-                ];
-                let tcx = self.encoder.env().tcx();
+                let mut fields = vec![];
                 let num_variants = adt_def.variants.len();
+                if num_variants > 1 {
+                    let (discr_field_name, discr_field) = self.encoder.encode_discriminant_field();
+                    fields.push(
+                        (discr_field_name, discr_field, None)
+                    );
+                }
+                let tcx = self.encoder.env().tcx();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                     assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
                     for field in &variant_def.fields {
