@@ -75,7 +75,7 @@ impl<'a> AstFactory<'a> {
         let obj = self.jni.unwrap_result(ast::Exhale::with(self.env).new(
             expr.to_jobject(),
             pos.to_jobject(),
-            self.simple_info(&[comment]),
+            self.simple_info(&[comment, ""]),
             self.no_trafos(),
         ));
         Stmt::new(obj)
@@ -95,7 +95,7 @@ impl<'a> AstFactory<'a> {
         let obj = self.jni.unwrap_result(ast::Inhale::with(self.env).new(
             expr.to_jobject(),
             pos.to_jobject(),
-            self.simple_info(&[comment]),
+            self.simple_info(&[comment, ""]),
             self.no_trafos(),
         ));
         Stmt::new(obj)
@@ -115,7 +115,7 @@ impl<'a> AstFactory<'a> {
         let obj = self.jni.unwrap_result(ast::Assert::with(self.env).new(
             expr.to_jobject(),
             pos.to_jobject(),
-            self.simple_info(&[comment]),
+            self.simple_info(&[comment, ""]),
             self.no_trafos(),
         ));
         Stmt::new(obj)

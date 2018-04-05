@@ -98,19 +98,19 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
         name
     }
 
-    pub fn add_local_var(&mut self, name: String, typ: Type<'a>) {
-        assert!(self.is_fresh_local_var_name(&name));
-        self.local_vars.push((name, typ));
+    pub fn add_local_var(&mut self, name: &str, typ: Type<'a>) {
+        assert!(self.is_fresh_local_var_name(name));
+        self.local_vars.push((name.to_string(), typ));
     }
 
-    pub fn add_formal_arg(&mut self, name: String, typ: Type<'a>) {
-        assert!(self.is_fresh_local_var_name(&name));
-        self.formal_args.push((name, typ));
+    pub fn add_formal_arg(&mut self, name: &str, typ: Type<'a>) {
+        assert!(self.is_fresh_local_var_name(name));
+        self.formal_args.push((name.to_string(), typ));
     }
 
-    pub fn add_formal_return(&mut self, name: String, typ: Type<'a>) {
-        assert!(self.is_fresh_local_var_name(&name));
-        self.formal_returns.push((name, typ));
+    pub fn add_formal_return(&mut self, name: &str, typ: Type<'a>) {
+        assert!(self.is_fresh_local_var_name(name));
+        self.formal_returns.push((name.to_string(), typ));
     }
 
     pub fn add_stmt(&mut self, index: CfgBlockIndex, stmt: Stmt<'a>) {
@@ -251,12 +251,15 @@ fn block_to_ast<'a>(
     index: usize,
 ) -> Stmt<'a> {
     let label = index_to_label(basic_block_labels, index);
-    ast.seqn(
-        &[
-            ast.label(&label, &block.invs),
-            ast.seqn(&block.stmts, &[]),
-            successor_to_ast(ast, index, basic_block_labels, &block.successor),
-        ],
-        &[],
-    )
+    let mut stmts: Vec<Stmt> = vec![];
+    stmts.push(
+        ast.label(&label, &block.invs)
+    );
+    stmts.extend(
+        &block.stmts
+    );
+    stmts.push(
+        successor_to_ast(ast, index, basic_block_labels, &block.successor)
+    );
+    ast.seqn(&stmts, &[])
 }

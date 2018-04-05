@@ -34,6 +34,14 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         let silicon_wrapper = silicon::Silicon::with(env);
         let silicon_instance = jni.unwrap_result(silicon_wrapper.new());
 
+        let name = jni.to_string(
+            jni.unwrap_result(silicon_wrapper.call_name(silicon_instance))
+        );
+        let build_version = jni.to_string(
+            jni.unwrap_result(silicon_wrapper.call_buildVersion(silicon_instance))
+        );
+        debug!("Using {} version {}", name, build_version);
+
         Verifier {
             env,
             silicon_wrapper,
