@@ -55,9 +55,12 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.is_path_blocking = true;
         self.current_path = vec![String::from("_0")];
         self.visit_ty(ty);
-        for borrow_info in self.borrow_infos.iter() {
-            debug!("borrow_info: {:?}", borrow_info);
-        }
+    }
+
+    fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
+        self.is_path_blocking = false;
+        self.current_path = vec![format!("{:?}", arg)];
+        self.visit_ty(ty);
     }
 
     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> ty::BoundRegion {
@@ -110,7 +113,9 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         } else {
             borrow_info.blocked_paths.push(current_path);
         }
+        self.is_path_blocking = true;
         type_visitor::walk_ref(self, region, tym);
+        self.is_path_blocking = is_path_blocking;
         self.current_path.pop();
     }
 
@@ -127,16 +132,19 @@ pub fn compute_borrow_infos<'p, 'a, 'tcx>(
     let mir = procedure.get_mir();
     let return_ty = mir.return_ty();
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
+    for arg in mir.args_iter() {
+        let arg_decl = &mir.local_decls[arg];
+        visitor.analyse_arg(arg, arg_decl.ty);
+    }
     visitor.analyse_return_ty(return_ty);
-    //extract_top_references(return_ty, tcx);
-    //let arg_count = mir.arg_count;
-    //let mut args_ty = Vec::new();
-    //for i in 1..arg_count+1 {
-        //let local = mir::Local::new(i);
-        //let arg_ty = mir.local_decls[local].ty;
-        //args_ty.push(arg_ty);
-        //trace!("arg ({}): {:?}", i, arg_ty);
-    //}
+    let borrow_infos: Vec<_> = visitor
+        .borrow_infos
+        .into_iter()
+        .filter(|info| !info.blocked_paths.is_empty())
+        .collect();
+    for borrow_info in borrow_infos.iter() {
+        debug!("borrow_info: {:?}", borrow_info);
+    }
     trace!("[compute_borrow_infos] exit");
-    vec![]
+    borrow_infos
 }
