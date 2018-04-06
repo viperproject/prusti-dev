@@ -546,7 +546,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             contract: &mut ProcedureContract<'tcx>) {
         let ast = self.encoder.ast_factory();
         self.cfg_method.add_stmt(start_cfg_block, ast.comment("Preconditions:"));
-        for &local in contract.permissions_in.iter() {
+        for &local in contract.args.iter() {
             let ty = self.get_rust_local_ty(local);
             let predicate_name = self.encoder.encode_type_predicate_use(ty);
             let inhale_stmt = ast.inhale(
@@ -572,7 +572,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let ast = self.encoder.ast_factory();
         self.cfg_method.add_stmt(return_cfg_block, ast.comment("Postconditions:"));
         let mut conjuncts = Vec::new();
-        for place in contract.permissions_out.iter() {
+        for place in contract.returned_refs.iter() {
             let (encoded_place, place_ty, _) = self.encode_place(place);
             let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
             conjuncts.push(
@@ -585,11 +585,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             );
         }
-        let mut iter = conjuncts.into_iter();
-        let first = iter.next().unwrap();   // This should always succeed
-                                            // because we should have at least
-                                            // the rturn value in this list.
-        let postcondition = iter.fold(first, |acc, conjunct| ast.and(acc, conjunct));
+        let return_value_pred = {
+            let ty = self.get_rust_local_ty(contract.returned_value);
+            let predicate_name = self.encoder.encode_type_predicate_use(ty);
+            ast.predicate_access_predicate(
+                ast.predicate_access(
+                    &[self.encode_local(contract.returned_value)],
+                    &predicate_name
+                ),
+                ast.full_perm(),
+            )
+        };
+        let postcondition = conjuncts
+            .into_iter()
+            .fold(return_value_pred, |acc, conjunct| ast.and(acc, conjunct));
         let exhale_stmt = ast.exhale(postcondition, ast.no_position());
         self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
     }

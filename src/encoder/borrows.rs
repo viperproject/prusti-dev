@@ -54,13 +54,19 @@ impl<'tcx> fmt::Display for BorrowInfo<'tcx> {
 }
 
 pub struct ProcedureContract<'tcx> {
-    /// Permissions passed into the procedure. For example, if `_2` is in the
-    /// vector, this means that we have `T(_2)` in the precondition.
-    pub permissions_in: Vec<mir::Local>,
-    /// Permissions dirrectly passed out from the procedure. For example, if
-    /// `*(_2.1).0` is in the vector, this means that we have
-    /// `T(old[precondition](_2.1.ref.0))` in the postcondition.
-    pub permissions_out: Vec<mir::Place<'tcx>>,
+    /// Formal arguments for which we should have permissions in the
+    /// precondition. This includes both borrows and moved in values.
+    /// For example, if `_2` is in the vector, this means that we have
+    /// `T(_2)` in the precondition.
+    pub args: Vec<mir::Local>,
+    /// Borrowed arguments that are directly returned to the caller (not via
+    /// a magic wand). For example, if `*(_2.1).0` is in the vector, this
+    /// means that we have `T(old[precondition](_2.1.ref.0))` in the
+    /// postcondition.
+    pub returned_refs: Vec<mir::Place<'tcx>>,
+    /// The returned value for which we should have permission in
+    /// the postcondition.
+    pub returned_value: mir::Local,
     /// Magic wands passed out of the procedure.
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
     pub borrow_infos: Vec<BorrowInfo<'tcx>>,
@@ -71,11 +77,11 @@ impl<'tcx> fmt::Display for ProcedureContract<'tcx> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "ProcedureContract {{")?;
         writeln!(f, "IN:")?;
-        for path in self.permissions_in.iter() {
+        for path in self.args.iter() {
             writeln!(f, "  {:?}", path)?;
         }
         writeln!(f, "OUT:")?;
-        for path in self.permissions_out.iter() {
+        for path in self.returned_refs.iter() {
             writeln!(f, "  {:?}", path)?;
         }
         writeln!(f, "MAGIC:")?;
@@ -194,9 +200,9 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     let mir = procedure.get_mir();
     let return_ty = mir.return_ty();
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
-    let mut permissions_in = Vec::new();
+    let mut args = Vec::new();
     for arg in mir.args_iter() {
-        permissions_in.push(arg);
+        args.push(arg);
         let arg_decl = &mir.local_decls[arg];
         visitor.analyse_arg(arg, arg_decl.ty);
     }
@@ -213,15 +219,15 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
             .iter()
             .any(|info| info.blocked_paths.contains(place))
     };
-    let mut permissions_out: Vec<_> = visitor
+    let mut returned_refs: Vec<_> = visitor
         .references_in
         .into_iter()
         .filter(is_not_blocked)
         .collect();
-    permissions_out.push(mir::Place::Local(mir::RETURN_PLACE));
     let contract = ProcedureContract {
-        permissions_in: permissions_in,
-        permissions_out: permissions_out,
+        args: args,
+        returned_refs: returned_refs,
+        returned_value: mir::RETURN_PLACE,
         borrow_infos: borrow_infos,
     };
     trace!("[compute_borrow_infos] exit result={}", contract);
