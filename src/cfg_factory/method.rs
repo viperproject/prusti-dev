@@ -15,6 +15,7 @@ pub struct CfgMethod<'a: 'b, 'b> {
     formal_args: Vec<(String, Type<'a>)>,
     formal_returns: Vec<(String, Type<'a>)>,
     local_vars: Vec<(String, Type<'a>)>,
+    labels: Vec<String>,
     basic_blocks: Vec<CfgBlock<'a>>,
     basic_blocks_labels: Vec<String>,
     fresh_var_index: i32,
@@ -58,22 +59,24 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
             formal_args,
             formal_returns,
             local_vars,
+            labels: Vec::new(),
             basic_blocks: vec![],
             basic_blocks_labels: vec![],
             fresh_var_index: 0
         }
     }
 
-    fn is_fresh_local_var_name(&self, name: &str) -> bool {
+    fn is_fresh_local_name(&self, name: &str) -> bool {
         self.formal_args.iter().all(|x| x.0 != name) &&
         self.formal_returns.iter().all(|x| x.0 != name) &&
-        self.local_vars.iter().all(|x| x.0 != name)
+        self.local_vars.iter().all(|x| x.0 != name) &&
+        self.labels.iter().all(|x| x != name)
     }
 
     fn generate_fresh_local_var_name(&mut self) -> String {
         let mut candidate_name = format!("__{}", self.fresh_var_index);
         self.fresh_var_index += 1;
-        while !self.is_fresh_local_var_name(&candidate_name) {
+        while !self.is_fresh_local_name(&candidate_name) {
             candidate_name = format!("__{}", self.fresh_var_index);
             self.fresh_var_index += 1;
         }
@@ -99,21 +102,28 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
     }
 
     pub fn add_local_var(&mut self, name: &str, typ: Type<'a>) {
-        assert!(self.is_fresh_local_var_name(name));
+        assert!(self.is_fresh_local_name(name));
         self.local_vars.push((name.to_string(), typ));
     }
 
     pub fn add_formal_arg(&mut self, name: &str, typ: Type<'a>) {
-        assert!(self.is_fresh_local_var_name(name));
+        assert!(self.is_fresh_local_name(name));
         self.formal_args.push((name.to_string(), typ));
     }
 
     pub fn add_formal_return(&mut self, name: &str, typ: Type<'a>) {
-        assert!(self.is_fresh_local_var_name(name));
+        assert!(self.is_fresh_local_name(name));
         self.formal_returns.push((name.to_string(), typ));
     }
 
     pub fn add_stmt(&mut self, index: CfgBlockIndex, stmt: Stmt<'a>) {
+        self.basic_blocks[index.block_index].stmts.push(stmt);
+    }
+
+    pub fn add_label_stmt(&mut self, index: CfgBlockIndex, label: &str) {
+        assert!(self.is_fresh_local_name(label));
+        let stmt = self.ast_factory.label(label, &[]);
+        self.labels.push(label.to_string());
         self.basic_blocks[index.block_index].stmts.push(stmt);
     }
 
@@ -148,8 +158,12 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
         let mut blocks_ast: Vec<Stmt> = vec![];
         let mut declarations: Vec<Declaration> = vec![];
 
-        for &(ref name, ref typ) in &self.local_vars {
+        for &(ref name, ref typ) in self.local_vars.iter() {
             let decl = self.ast_factory.local_var_decl(name, *typ);
+            declarations.push(decl.into());
+        }
+        for label in self.labels.iter() {
+            let decl = self.ast_factory.label(label, &[]);
             declarations.push(decl.into());
         }
 
