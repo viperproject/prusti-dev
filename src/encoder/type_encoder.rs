@@ -17,7 +17,6 @@ use rustc::mir::TerminatorKind;
 use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::Encoder;
-use encoder::borrows::compute_borrow_infos;
 use encoder::utils::*;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {

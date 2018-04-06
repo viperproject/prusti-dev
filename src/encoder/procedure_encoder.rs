@@ -18,7 +18,7 @@ use rustc::mir::TerminatorKind;
 use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::Encoder;
-use encoder::borrows::compute_borrow_infos;
+use encoder::borrows::compute_procedure_contract;
 use encoder::utils::*;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::layout::LayoutOf;
@@ -419,7 +419,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     pub fn encode(mut self) -> Method<'v> {
-        compute_borrow_infos(self.procedure, self.encoder.env().tcx());
+        // TODO: Make this into a query on the encoder to handle nicely method calls.
+        let procedure_contract = compute_procedure_contract(self.procedure, self.encoder.env().tcx());
+
         let ast = self.encoder.ast_factory();
 
         // Formal args

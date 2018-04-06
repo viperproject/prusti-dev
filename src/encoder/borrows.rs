@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt;
 use rustc::ty::{self, TyCtxt, Ty, TypeVariants, TypeFlags};
 use rustc::mir;
 use rustc_data_structures::indexed_vec::Idx;
@@ -19,6 +20,19 @@ pub struct BorrowInfo<'tcx> {
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
 }
 
+pub struct ProcedureContract<'tcx> {
+    /// Permissions passed into the procedure. For example, if `_2` is in the
+    /// vector, this means that we have `T(_2)` in the precondition.
+    permissions_in: Vec<mir::Local>,
+    /// Permissions dirrectly passed out from the procedure. For example, if
+    /// `*(_2.1).0` is in the vector, this means that we have
+    /// `T(old[precondition](_2.1.ref.0))` in the postcondition.
+    permissions_out: Vec<mir::Place<'tcx>>,
+    /// Magic wands passed out of the procedure.
+    /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
+    borrow_infos: Vec<BorrowInfo<'tcx>>,
+}
+
 impl<'tcx> BorrowInfo<'tcx> {
 
     fn new(region: ty::BoundRegion) -> Self {
@@ -27,6 +41,27 @@ impl<'tcx> BorrowInfo<'tcx> {
             blocking_paths: Vec::new(),
             blocked_paths: Vec::new(),
         }
+    }
+
+}
+
+impl<'tcx> fmt::Display for BorrowInfo<'tcx> {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let lifetime = match self.region {
+            ty::BoundRegion::BrAnon(id) => format!("#{}", id),
+            ty::BoundRegion::BrNamed(_, name) => name.as_str().to_string(),
+            _ => unimplemented!(),
+        };
+        writeln!(f, "BorrowInfo<{}> {{", lifetime)?;
+        for path in self.blocking_paths.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "  --*")?;
+        for path in self.blocked_paths.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "}}")
     }
 
 }
@@ -122,9 +157,9 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
 
 }
 
-pub fn compute_borrow_infos<'p, 'a, 'tcx>(
+pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     procedure: &'p ProcedureImpl<'a, 'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Vec<BorrowInfo<'tcx>>
+    tcx: TyCtxt<'a, 'tcx, 'tcx>) -> ProcedureContract<'tcx>
     where
         'a: 'p,
         'tcx: 'a
@@ -139,13 +174,17 @@ pub fn compute_borrow_infos<'p, 'a, 'tcx>(
     }
     visitor.analyse_return_ty(return_ty);
     let borrow_infos: Vec<_> = visitor
-        .borrow_infos;
-        //.into_iter()
-        //.filter(|info| !info.blocked_paths.is_empty())
-        //.collect();
+        .borrow_infos
+        .into_iter()
+        .filter(|info| !info.blocked_paths.is_empty())
+        .collect();
     for borrow_info in borrow_infos.iter() {
-        debug!("borrow_info: {:?}", borrow_info);
+        debug!("{}", borrow_info);
     }
     trace!("[compute_borrow_infos] exit");
-    borrow_infos
+    ProcedureContract {
+        permissions_in: Vec::new(),
+        permissions_out: Vec::new(),
+        borrow_infos: borrow_infos,
+    }
 }
