@@ -160,6 +160,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn eval_const_int(&self, const_int: &ConstInt) -> Expr<'v> {
         match const_int {
+            &ConstInt::U32(ref val) => self.ast_factory.int_lit_from_ref(val),
             &ConstInt::I32(ref val) => self.ast_factory.int_lit_from_ref(val),
             &ConstInt::U8(ref val) => self.ast_factory.int_lit_from_ref(val),
             &ConstInt::Isize(ref val) => self.ast_factory.int_lit_from_ref(&val.as_i64()),
