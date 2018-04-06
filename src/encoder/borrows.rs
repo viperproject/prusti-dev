@@ -20,19 +20,6 @@ pub struct BorrowInfo<'tcx> {
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
 }
 
-pub struct ProcedureContract<'tcx> {
-    /// Permissions passed into the procedure. For example, if `_2` is in the
-    /// vector, this means that we have `T(_2)` in the precondition.
-    permissions_in: Vec<mir::Local>,
-    /// Permissions dirrectly passed out from the procedure. For example, if
-    /// `*(_2.1).0` is in the vector, this means that we have
-    /// `T(old[precondition](_2.1.ref.0))` in the postcondition.
-    permissions_out: Vec<mir::Place<'tcx>>,
-    /// Magic wands passed out of the procedure.
-    /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
-    borrow_infos: Vec<BorrowInfo<'tcx>>,
-}
-
 impl<'tcx> BorrowInfo<'tcx> {
 
     fn new(region: ty::BoundRegion) -> Self {
@@ -66,8 +53,45 @@ impl<'tcx> fmt::Display for BorrowInfo<'tcx> {
 
 }
 
+pub struct ProcedureContract<'tcx> {
+    /// Permissions passed into the procedure. For example, if `_2` is in the
+    /// vector, this means that we have `T(_2)` in the precondition.
+    permissions_in: Vec<mir::Local>,
+    /// Permissions dirrectly passed out from the procedure. For example, if
+    /// `*(_2.1).0` is in the vector, this means that we have
+    /// `T(old[precondition](_2.1.ref.0))` in the postcondition.
+    permissions_out: Vec<mir::Place<'tcx>>,
+    /// Magic wands passed out of the procedure.
+    /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
+    borrow_infos: Vec<BorrowInfo<'tcx>>,
+}
+
+impl<'tcx> fmt::Display for ProcedureContract<'tcx> {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "ProcedureContract {{")?;
+        writeln!(f, "IN:")?;
+        for path in self.permissions_in.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "OUT:")?;
+        for path in self.permissions_out.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "MAGIC:")?;
+        for borrow_info in self.borrow_infos.iter() {
+            writeln!(f, "{}", borrow_info)?;
+        }
+        writeln!(f, "}}")
+    }
+
+}
+
 pub struct BorrowInfoCollectingVisitor<'a, 'tcx: 'a> {
     borrow_infos: Vec<BorrowInfo<'tcx>>,
+    /// References that were passed as arguments. We are interested only in
+    /// references that can be blocked.
+    references_in: Vec<mir::Place<'tcx>>,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     /// Can the currently analysed path block other paths? For return
     /// type this is initially true, and for parameters it is true below
@@ -81,6 +105,7 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
     fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Self {
         BorrowInfoCollectingVisitor {
             borrow_infos: Vec::new(),
+            references_in: Vec::new(),
             tcx: tcx,
             is_path_blocking: false,
             current_path: None,
@@ -147,7 +172,8 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         if is_path_blocking {
             borrow_info.blocking_paths.push(current_path);
         } else {
-            borrow_info.blocked_paths.push(current_path);
+            borrow_info.blocked_paths.push(current_path.clone());
+            self.references_in.push(current_path);
         }
         self.is_path_blocking = true;
         type_visitor::walk_ref(self, region, tym);
@@ -168,7 +194,9 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     let mir = procedure.get_mir();
     let return_ty = mir.return_ty();
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
+    let mut permissions_in = Vec::new();
     for arg in mir.args_iter() {
+        permissions_in.push(arg);
         let arg_decl = &mir.local_decls[arg];
         visitor.analyse_arg(arg, arg_decl.ty);
     }
@@ -176,15 +204,26 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     let borrow_infos: Vec<_> = visitor
         .borrow_infos
         .into_iter()
-        .filter(|info| !info.blocked_paths.is_empty())
+        .filter(|info|
+                !info.blocked_paths.is_empty() &&
+                !info.blocking_paths.is_empty())
         .collect();
-    for borrow_info in borrow_infos.iter() {
-        debug!("{}", borrow_info);
-    }
-    trace!("[compute_borrow_infos] exit");
-    ProcedureContract {
-        permissions_in: Vec::new(),
-        permissions_out: Vec::new(),
+    let is_not_blocked = |place: &mir::Place<'tcx>| {
+        !borrow_infos
+            .iter()
+            .any(|info| info.blocked_paths.contains(place))
+    };
+    let mut permissions_out: Vec<_> = visitor
+        .references_in
+        .into_iter()
+        .filter(is_not_blocked)
+        .collect();
+    permissions_out.push(mir::Place::Local(mir::RETURN_PLACE));
+    let contract = ProcedureContract {
+        permissions_in: permissions_in,
+        permissions_out: permissions_out,
         borrow_infos: borrow_infos,
-    }
+    };
+    trace!("[compute_borrow_infos] exit result={}", contract);
+    contract
 }
