@@ -18,10 +18,12 @@ use rustc::mir::TerminatorKind;
 use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
 use encoder::Encoder;
-use encoder::borrows::compute_procedure_contract;
+use encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use encoder::utils::*;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::layout::LayoutOf;
+
+static PRECONDITION_LABEL: &'static str = "pre";
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -420,7 +422,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     pub fn encode(mut self) -> Method<'v> {
         // TODO: Make this into a query on the encoder to handle nicely method calls.
-        let procedure_contract = compute_procedure_contract(self.procedure, self.encoder.env().tcx());
+        let mut procedure_contract = compute_procedure_contract(self.procedure, self.encoder.env().tcx());
 
         let ast = self.encoder.ast_factory();
 
@@ -494,45 +496,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.set_successor(return_cfg_block, Successor::Return);
 
         // Encode preconditions
-        self.cfg_method.add_stmt(start_cfg_block, ast.comment("Preconditions:"));
-        for local in self.mir.args_iter() {
-            let ty = self.get_rust_local_ty(local);
-            let predicate_name = self.encoder.encode_type_predicate_use(ty);
-            let inhale_stmt = ast.inhale(
-                ast.predicate_access_predicate(
-                    ast.predicate_access(
-                        &[
-                            self.encode_local(local)
-                        ],
-                        &predicate_name
-                    ),
-                    ast.full_perm(),
-                ),
-                ast.no_position()
-            );
-            self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
-        }
-        self.cfg_method.add_stmt(start_cfg_block, ast.label("precondition", &[]));
+        self.encode_preconditions(start_cfg_block, &mut procedure_contract);
 
         // Encode postcondition
-        self.cfg_method.add_stmt(return_cfg_block, ast.comment("Postconditions:"));
-        for local in self.mir.local_decls.indices().take(1) {
-            let ty = self.get_rust_local_ty(local);
-            let predicate_name = self.encoder.encode_type_predicate_use(ty);
-            let exhale_stmt = ast.exhale(
-                ast.predicate_access_predicate(
-                    ast.predicate_access(
-                        &[
-                            self.encode_local(local)
-                        ],
-                        &predicate_name
-                    ),
-                    ast.full_perm(),
-                ),
-                ast.no_position()
-            );
-            self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
-        }
+        self.encode_postconditions(return_cfg_block, &mut procedure_contract);
 
         // Encode statements
         self.procedure.walk_once_cfg(|bbi, bb_data| {
@@ -572,6 +539,59 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         });
 
         self.cfg_method.to_ast().ok().unwrap()
+    }
+
+    /// Encode precondition inhale on the definition side.
+    fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
+                            contract: &mut ProcedureContract<'tcx>) {
+        let ast = self.encoder.ast_factory();
+        self.cfg_method.add_stmt(start_cfg_block, ast.comment("Preconditions:"));
+        for &local in contract.permissions_in.iter() {
+            let ty = self.get_rust_local_ty(local);
+            let predicate_name = self.encoder.encode_type_predicate_use(ty);
+            let inhale_stmt = ast.inhale(
+                ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &[
+                            self.encode_local(local)
+                        ],
+                        &predicate_name
+                    ),
+                    ast.full_perm(),
+                ),
+                ast.no_position()
+            );
+            self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
+        }
+        self.cfg_method.add_label_stmt(start_cfg_block, PRECONDITION_LABEL);
+    }
+
+    /// Encode postcondition exhale on the definition side.
+    fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
+                             contract: &mut ProcedureContract<'tcx>) {
+        let ast = self.encoder.ast_factory();
+        self.cfg_method.add_stmt(return_cfg_block, ast.comment("Postconditions:"));
+        let mut conjuncts = Vec::new();
+        for place in contract.permissions_out.iter() {
+            let (encoded_place, place_ty, _) = self.encode_place(place);
+            let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
+            conjuncts.push(
+                ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &[ast.labelled_old(encoded_place, PRECONDITION_LABEL)],
+                        &predicate_name
+                    ),
+                    ast.full_perm(),
+                )
+            );
+        }
+        let mut iter = conjuncts.into_iter();
+        let first = iter.next().unwrap();   // This should always succeed
+                                            // because we should have at least
+                                            // the rturn value in this list.
+        let postcondition = iter.fold(first, |acc, conjunct| ast.and(acc, conjunct));
+        let exhale_stmt = ast.exhale(postcondition, ast.no_position());
+        self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
     }
 
     fn get_rust_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {
@@ -669,6 +689,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
+    /// TODO: Need to take into account how much the place is already unfolded.
     /// Returns
     /// - `Expr<'v>`: the expression of the projection;
     /// - `ty::Ty<'tcx>`: the type of the expression;

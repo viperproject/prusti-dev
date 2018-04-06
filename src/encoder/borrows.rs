@@ -14,9 +14,9 @@ use prusti_interface::environment::{ProcedureImpl, Procedure};
 #[derive(Debug)]
 pub struct BorrowInfo<'tcx> {
     /// Region of this borrow.
-    region: ty::BoundRegion,
-    blocking_paths: Vec<mir::Place<'tcx>>,
-    blocked_paths: Vec<mir::Place<'tcx>>,
+    pub region: ty::BoundRegion,
+    pub blocking_paths: Vec<mir::Place<'tcx>>,
+    pub blocked_paths: Vec<mir::Place<'tcx>>,
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
 }
 
@@ -56,14 +56,14 @@ impl<'tcx> fmt::Display for BorrowInfo<'tcx> {
 pub struct ProcedureContract<'tcx> {
     /// Permissions passed into the procedure. For example, if `_2` is in the
     /// vector, this means that we have `T(_2)` in the precondition.
-    permissions_in: Vec<mir::Local>,
+    pub permissions_in: Vec<mir::Local>,
     /// Permissions dirrectly passed out from the procedure. For example, if
     /// `*(_2.1).0` is in the vector, this means that we have
     /// `T(old[precondition](_2.1.ref.0))` in the postcondition.
-    permissions_out: Vec<mir::Place<'tcx>>,
+    pub permissions_out: Vec<mir::Place<'tcx>>,
     /// Magic wands passed out of the procedure.
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
-    borrow_infos: Vec<BorrowInfo<'tcx>>,
+    pub borrow_infos: Vec<BorrowInfo<'tcx>>,
 }
 
 impl<'tcx> fmt::Display for ProcedureContract<'tcx> {
