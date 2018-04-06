@@ -11,17 +11,17 @@ use prusti_interface::environment::{ProcedureImpl, Procedure};
 
 
 #[derive(Debug)]
-pub struct BorrowInfo {
+pub struct BorrowInfo<'tcx> {
     /// Region of this borrow.
     region: ty::BoundRegion,
-    blocking_paths: Vec<String>,    // Vec<rustc::mir::Lvalue>
-    blocked_paths: Vec<String>,     // Vec<rustc::mir::Lvalue>
+    blocking_paths: Vec<mir::Place<'tcx>>,
+    blocked_paths: Vec<mir::Place<'tcx>>,
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
 }
 
-impl BorrowInfo {
+impl<'tcx> BorrowInfo<'tcx> {
 
-    fn new(region: ty::BoundRegion) -> BorrowInfo {
+    fn new(region: ty::BoundRegion) -> Self {
         BorrowInfo {
             region: region,
             blocking_paths: Vec::new(),
@@ -32,13 +32,13 @@ impl BorrowInfo {
 }
 
 pub struct BorrowInfoCollectingVisitor<'a, 'tcx: 'a> {
-    borrow_infos: Vec<BorrowInfo>,
+    borrow_infos: Vec<BorrowInfo<'tcx>>,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     /// Can the currently analysed path block other paths? For return
     /// type this is initially true, and for parameters it is true below
     /// the first reference.
     is_path_blocking: bool,
-    current_path: Vec<String>,
+    current_path: Option<mir::Place<'tcx>>,
 }
 
 impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
@@ -48,20 +48,22 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
             borrow_infos: Vec::new(),
             tcx: tcx,
             is_path_blocking: false,
-            current_path: Vec::new(),
+            current_path: None,
         }
     }
 
     fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
         self.is_path_blocking = true;
-        self.current_path = vec![String::from("_0")];
+        self.current_path = Some(mir::Place::Local(mir::RETURN_PLACE));
         self.visit_ty(ty);
+        self.current_path = None;
     }
 
     fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
         self.is_path_blocking = false;
-        self.current_path = vec![format!("{:?}", arg)];
+        self.current_path = Some(mir::Place::Local(arg));
         self.visit_ty(ty);
+        self.current_path = None;
     }
 
     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> ty::BoundRegion {
@@ -71,7 +73,7 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
         }
     }
 
-    fn get_or_create_borrow_info(&mut self, region: ty::BoundRegion) -> &mut BorrowInfo {
+    fn get_or_create_borrow_info(&mut self, region: ty::BoundRegion) -> &mut BorrowInfo<'tcx> {
         if let Some(index) = self.borrow_infos.iter().position(|info| info.region == region) {
             &mut self.borrow_infos[index]
         } else {
@@ -89,19 +91,23 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.tcx
     }
 
-    fn visit_field(&mut self, field: &ty::FieldDef, substs: &'tcx ty::subst::Substs<'tcx>) {
-        trace!("visit_field({:?})", field);
-        self.current_path.push(field.name.as_str().to_string());
+    fn visit_field(&mut self, index: usize, field: &ty::FieldDef, substs: &'tcx ty::subst::Substs<'tcx>) {
+        trace!("visit_field({}, {:?})", index, field);
+        let old_path = self.current_path.take().unwrap();
+        let ty = field.ty(self.tcx(), substs);
+        let field_id = mir::Field::new(index);
+        self.current_path = Some(old_path.clone().field(field_id, ty));
         type_visitor::walk_field(self, field, substs);
-        self.current_path.pop();
+        self.current_path = Some(old_path);
     }
 
     fn visit_ref(&mut self, region: ty::Region<'tcx>, tym: ty::TypeAndMut<'tcx>) {
         trace!("visit_ref({:?}, {:?}) current_path={:?}", region, tym, self.current_path);
-        self.current_path.push(String::from("*"));
         let bound_region = self.extract_bound_region(region);
         let is_path_blocking = self.is_path_blocking;
-        let current_path = self.current_path.join(".");
+        let old_path = self.current_path.take().unwrap();
+        let current_path = old_path.clone().deref();
+        self.current_path = Some(current_path.clone());
         let borrow_info = self.get_or_create_borrow_info(bound_region);
         if is_path_blocking {
             borrow_info.blocking_paths.push(current_path);
@@ -111,14 +117,14 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.is_path_blocking = true;
         type_visitor::walk_ref(self, region, tym);
         self.is_path_blocking = is_path_blocking;
-        self.current_path.pop();
+        self.current_path = Some(old_path);
     }
 
 }
 
 pub fn compute_borrow_infos<'p, 'a, 'tcx>(
     procedure: &'p ProcedureImpl<'a, 'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Vec<BorrowInfo>
+    tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Vec<BorrowInfo<'tcx>>
     where
         'a: 'p,
         'tcx: 'a

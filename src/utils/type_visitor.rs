@@ -71,8 +71,8 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
         walk_adt_variant(self, variant, substs);
     }
 
-    fn visit_field(&mut self, field: &FieldDef, substs: &'tcx Substs<'tcx>) {
-        trace!("visit_field({:?})", field);
+    fn visit_field(&mut self, index: usize, field: &FieldDef, substs: &'tcx Substs<'tcx>) {
+        trace!("visit_field({}, {:?})", index, field);
         walk_field(self, field, substs);
     }
 
@@ -104,8 +104,8 @@ pub fn walk_adt<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
 pub fn walk_adt_variant<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
                                                             variant: &VariantDef,
                                                             substs: &'tcx Substs<'tcx>) {
-    for field in variant.fields.iter() {
-        visitor.visit_field(field, substs);
+    for (index, field) in variant.fields.iter().enumerate() {
+        visitor.visit_field(index, field, substs);
     }
 }
 
