@@ -613,7 +613,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     ty::TypeVariants::TyRef(_, _) => panic!("Type {:?} has no fields", base_ty),
 
                     ty::TypeVariants::TyTuple(elems, _) => {
-                        let field_name = format!("pos_{}", field.index());
+                        let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()];
                         let encoded_field = self.encoder.encode_ref_field(&field_name);
                         let encoded_projection = self.encoder.ast_factory().field_access(encoded_base, encoded_field);
