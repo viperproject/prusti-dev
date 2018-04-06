@@ -12,7 +12,8 @@ use prusti_interface::environment::{ProcedureImpl, Procedure};
 
 #[derive(Debug)]
 pub struct BorrowInfo {
-    lifetime: String,
+    /// Region of this borrow.
+    region: ty::BoundRegion,
     blocking_paths: Vec<String>,    // Vec<rustc::mir::Lvalue>
     blocked_paths: Vec<String>,     // Vec<rustc::mir::Lvalue>
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
@@ -20,9 +21,9 @@ pub struct BorrowInfo {
 
 impl BorrowInfo {
 
-    fn new(lifetime: String) -> BorrowInfo {
+    fn new(region: ty::BoundRegion) -> BorrowInfo {
         BorrowInfo {
-            lifetime: lifetime,
+            region: region,
             blocking_paths: Vec::new(),
             blocked_paths: Vec::new(),
         }
@@ -71,16 +72,10 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
     }
 
     fn get_or_create_borrow_info(&mut self, region: ty::BoundRegion) -> &mut BorrowInfo {
-        let lifetime = match region {
-            ty::BoundRegion::BrNamed(_, name) => {
-                name.as_str().to_string()
-            },
-            _ => unimplemented!(),
-        };
-        if let Some(index) = self.borrow_infos.iter().position(|info| info.lifetime == lifetime) {
+        if let Some(index) = self.borrow_infos.iter().position(|info| info.region == region) {
             &mut self.borrow_infos[index]
         } else {
-            let borrow_info = BorrowInfo::new(lifetime);
+            let borrow_info = BorrowInfo::new(region);
             self.borrow_infos.push(borrow_info);
             self.borrow_infos.last_mut().unwrap()
         }
@@ -138,10 +133,10 @@ pub fn compute_borrow_infos<'p, 'a, 'tcx>(
     }
     visitor.analyse_return_ty(return_ty);
     let borrow_infos: Vec<_> = visitor
-        .borrow_infos
-        .into_iter()
-        .filter(|info| !info.blocked_paths.is_empty())
-        .collect();
+        .borrow_infos;
+        //.into_iter()
+        //.filter(|info| !info.blocked_paths.is_empty())
+        //.collect();
     for borrow_info in borrow_infos.iter() {
         debug!("borrow_info: {:?}", borrow_info);
     }
