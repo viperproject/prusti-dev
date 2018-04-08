@@ -5,6 +5,7 @@
 use viper::{self, Viper, Stmt, Expr, VerificationError, CfgMethod};
 use viper::{Domain, Field, Function, Predicate, Method};
 use viper::AstFactory;
+use viper::utils::ExprIterator;
 use rustc::mir;
 use rustc::ty;
 use prusti_interface::environment::ProcedureImpl;
@@ -541,29 +542,55 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.to_ast().ok().unwrap()
     }
 
+    /// Encode permissions that are implicitly carried by the given local variable.
+    fn encode_local_variable_permission(&mut self, local: mir::Local) -> Expr<'v> {
+        let ast = self.encoder.ast_factory();
+        let ty = self.get_rust_local_ty(local);
+        let predicate_name = self.encoder.encode_type_predicate_use(ty);
+        ast.predicate_access_predicate(
+            ast.predicate_access(
+                &[self.encode_local(local)],
+                &predicate_name
+            ),
+            ast.full_perm(),
+        )
+    }
+
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
                             contract: &mut ProcedureContract<'tcx>) {
         let ast = self.encoder.ast_factory();
         self.cfg_method.add_stmt(start_cfg_block, ast.comment("Preconditions:"));
         for &local in contract.args.iter() {
-            let ty = self.get_rust_local_ty(local);
-            let predicate_name = self.encoder.encode_type_predicate_use(ty);
             let inhale_stmt = ast.inhale(
-                ast.predicate_access_predicate(
-                    ast.predicate_access(
-                        &[
-                            self.encode_local(local)
-                        ],
-                        &predicate_name
-                    ),
-                    ast.full_perm(),
-                ),
+                self.encode_local_variable_permission(local),
                 ast.no_position()
             );
             self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
         }
         self.cfg_method.add_label_stmt(start_cfg_block, PRECONDITION_LABEL);
+    }
+
+    /// Encode permissions that are implicitly carried by the given place.
+    /// `state_label` – the label of the state in which the place should
+    /// be evaluated (the place expression is wrapped in the labelled old).
+    fn encode_place_permission(&mut self, place: &mir::Place<'tcx>, state_label: Option<&str>) -> Expr<'v> {
+        let ast = self.encoder.ast_factory();
+        let (encoded_place, place_ty, _) = self.encode_place(place);
+        let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
+        ast.predicate_access_predicate(
+            ast.predicate_access(
+                &[
+                    if let Some(label) = state_label {
+                        ast.labelled_old(encoded_place, label)
+                    } else {
+                        encoded_place
+                    }
+                ],
+                &predicate_name
+            ),
+            ast.full_perm(),
+        )
     }
 
     /// Encode postcondition exhale on the definition side.
@@ -573,32 +600,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.add_stmt(return_cfg_block, ast.comment("Postconditions:"));
         let mut conjuncts = Vec::new();
         for place in contract.returned_refs.iter() {
-            let (encoded_place, place_ty, _) = self.encode_place(place);
-            let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
-            conjuncts.push(
-                ast.predicate_access_predicate(
-                    ast.predicate_access(
-                        &[ast.labelled_old(encoded_place, PRECONDITION_LABEL)],
-                        &predicate_name
-                    ),
-                    ast.full_perm(),
-                )
-            );
+            conjuncts.push(self.encode_place_permission(place, Some(PRECONDITION_LABEL)));
         }
-        let return_value_pred = {
-            let ty = self.get_rust_local_ty(contract.returned_value);
-            let predicate_name = self.encoder.encode_type_predicate_use(ty);
-            ast.predicate_access_predicate(
-                ast.predicate_access(
-                    &[self.encode_local(contract.returned_value)],
-                    &predicate_name
-                ),
-                ast.full_perm(),
-            )
-        };
+        for borrow_info in contract.borrow_infos.iter() {
+            let mut lhs = borrow_info.blocking_paths
+                .iter()
+                .map(|place| self.encode_place_permission(place, None))
+                .conjoin(ast);
+            let mut rhs = borrow_info.blocked_paths
+                .iter()
+                .map(|place| self.encode_place_permission(place, Some(PRECONDITION_LABEL)))
+                .conjoin(ast);
+            conjuncts.push(ast.magic_wand(lhs, rhs));
+        }
+        let return_value_pred = self.encode_local_variable_permission(contract.returned_value);
         let postcondition = conjuncts
             .into_iter()
-            .fold(return_value_pred, |acc, conjunct| ast.and(acc, conjunct));
+            .conjoin_with_init(ast, return_value_pred);
         let exhale_stmt = ast.exhale(postcondition, ast.no_position());
         self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
     }
