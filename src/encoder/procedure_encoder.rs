@@ -345,16 +345,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ),
                 ..
             } => {
+                let mut procedure_contract = self.encoder.get_procedure_contract(def_id);
                 let ast = self.encoder.ast_factory();
-                let func_proc_name = self.encoder.env().get_item_name(def_id);
-                if (func_proc_name == "prusti_contracts::internal::__assertion") {
-                    // This is a Prusti loop invariant
-                    unreachable!();
-                } else if (func_proc_name == "std::rt::begin_panic") {
-                    // This is called when a Rust assertion fails
-                    stmts.push(ast.comment(&format!("Rust panic - {:?}", args[0])));
-                    stmts.push(ast.assert(ast.false_lit(), ast.no_position()));
-                } else {
+                let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
+                match func_proc_name {
+                    "prusti_contracts::internal::__assertion" => {
+                        // This is a Prusti loop invariant
+                        unreachable!();
+                    },
+                    "std::rt::begin_panic" => {
+                        // This is called when a Rust assertion fails
+                        stmts.push(ast.comment(&format!("Rust panic - {:?}", args[0])));
+                        stmts.push(ast.assert(ast.false_lit(), ast.no_position()));
+                    },
+                    _ => {
                     let mut stmts_after: Vec<Stmt> = vec![];
                     let mut encoded_args: Vec<Expr> = vec![];
 
@@ -365,7 +369,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts_after.extend(effects_after);
                     }
 
-                    let encoded_target: Vec<Expr> = destination.iter().map(|d| self.encode_place(&d.0).0).collect();
+                    let encoded_target: Vec<Expr> = destination
+                        .iter()
+                        .map(|d| self.encode_place(&d.0).0)
+                        .collect();
 
                     stmts.push(ast.method_call(
                         &self.encoder.encode_procedure_name(def_id),
@@ -374,6 +381,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     ));
 
                     stmts.extend(stmts_after);
+                    }
                 }
 
                 if let &Some((_, target)) = destination {
