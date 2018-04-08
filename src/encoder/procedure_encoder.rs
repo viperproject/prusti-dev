@@ -349,7 +349,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let func_proc_name = self.encoder.env().get_item_name(def_id);
                 if (func_proc_name == "prusti_contracts::internal::__assertion") {
                     // This is a Prusti loop invariant
-                    panic!("Unreachable");
+                    unreachable!();
                 } else if (func_proc_name == "std::rt::begin_panic") {
                     // This is called when a Rust assertion fails
                     stmts.push(ast.comment(&format!("Rust panic - {:?}", args[0])));
