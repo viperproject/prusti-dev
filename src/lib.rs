@@ -21,6 +21,7 @@ mod jni_utils;
 mod ast_utils;
 mod cfg_factory;
 pub mod errors;
+pub mod utils;
 
 pub use viper::*;
 pub use verifier::*;
