@@ -9,9 +9,10 @@ use rustc_data_structures::indexed_vec::Idx;
 use utils::type_visitor::{self, TypeVisitor};
 
 use prusti_interface::environment::{ProcedureImpl, Procedure};
+use prusti_interface::data::ProcedureDefId;
 
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct BorrowInfo<'tcx> {
     /// Region of this borrow.
     pub region: ty::BoundRegion,
@@ -53,6 +54,11 @@ impl<'tcx> fmt::Display for BorrowInfo<'tcx> {
 
 }
 
+/// Contract of a specific procedure. It is a separate struct from a
+/// general procedure info because we want to be able to translate
+/// procedure calls before translating call targets.
+/// TODO: Move to some properly named module.
+#[derive(Clone)]
 pub struct ProcedureContract<'tcx> {
     /// Formal arguments for which we should have permissions in the
     /// precondition. This includes both borrows and moved in values.
@@ -190,14 +196,14 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
 }
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
-    procedure: &'p ProcedureImpl<'a, 'tcx>,
+    proc_def_id: ProcedureDefId,
     tcx: TyCtxt<'a, 'tcx, 'tcx>) -> ProcedureContract<'tcx>
     where
         'a: 'p,
         'tcx: 'a
 {
-    trace!("[compute_borrow_infos] enter name={}", procedure.get_name());
-    let mir = procedure.get_mir();
+    trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
+    let mir = tcx.mir_validated(proc_def_id).borrow();
     let return_ty = mir.return_ty();
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
     let mut args = Vec::new();

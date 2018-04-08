@@ -422,8 +422,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     pub fn encode(mut self) -> Method<'v> {
-        // TODO: Make this into a query on the encoder to handle nicely method calls.
-        let mut procedure_contract = compute_procedure_contract(self.procedure, self.encoder.env().tcx());
+        let mut procedure_contract = self.encoder.get_procedure_contract(self.proc_def_id);
 
         let ast = self.encoder.ast_factory();
 
