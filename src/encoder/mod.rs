@@ -7,5 +7,6 @@ mod procedure_encoder;
 mod borrows;
 mod type_encoder;
 mod utils;
+mod places;
 
 pub use self::encoder::Encoder;
