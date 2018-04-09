@@ -1,10 +1,12 @@
+SHELL := /bin/bash
+JAVA_HOME = /usr/lib/jvm/default-java
+LD_LIBRARY_PATH = ${JAVA_HOME}/jre/lib/amd64/server
+#LD_LIBRARY_PATH = "/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/"
+#LD_LIBRARY_PATH = "/usr/lib/jvm/java-8-oracle/jre/lib/amd64/server/"
+#LD_LIBRARY_PATH = "$$HOME/hg/jdk8u/build/linux-x86_64-normal-server-fastdebug/jdk/lib/amd64/server/"
 RUST_LOG ?= viper=debug,viper-sys=debug,jni-gen=debug
 RUST_BACKTRACE ?= 1
 ASM_JAR ?= /usr/share/java/asm4.jar
-LD_LIBRARY_PATH = "$$LD_LIBRARY_PATH:$$JAVA_HOME/jre/lib/amd64/server/"
-#LD_LIBRARY_PATH = "$$LD_LIBRARY_PATH:/home/fpoli/hg/jdk8u/build/linux-x86_64-normal-server-fastdebug/jdk/lib/amd64/server/"
-#LD_LIBRARY_PATH = "$$LD_LIBRARY_PATH:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server/"
-#LD_LIBRARY_PATH = "$$LD_LIBRARY_PATH:/usr/lib/jvm/java-8-oracle/jre/lib/amd64/server/"
 
 SET_ENV_VARS = RUST_LOG=$(RUST_LOG) RUST_BACKTRACE=$(RUST_BACKTRACE) LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) ASM_JAR=$(ASM_JAR)
 
@@ -20,13 +22,13 @@ build:
 	$(SET_ENV_VARS) cargo build -vv
 
 test:
-	$(SET_ENV_VARS) cargo test
+	$(SET_ENV_VARS) cargo test --verbose -- --nocapture
 
 test-local-viper:
-	$(SET_ENV_VARS) VIPER_HOME=/home/fpoli/opt/viper cargo test -- --nocapture
+	$(SET_ENV_VARS) VIPER_HOME=$$HOME/opt/viper cargo test -- --nocapture
 
 test-local-viper-bug:
-	$(SET_ENV_VARS) VIPER_HOME=/home/fpoli/opt/viper cargo test --test=concurrent_verifiers -- --nocapture
+	$(SET_ENV_VARS) VIPER_HOME=$$HOME/opt/viper cargo test --test=concurrent_verifiers -- --nocapture
 
 bench:
 	$(SET_ENV_VARS) cargo bench
