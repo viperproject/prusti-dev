@@ -7,21 +7,26 @@ use rustc::ty::{self, TyCtxt, Ty, TypeVariants, TypeFlags};
 use rustc::mir;
 use rustc_data_structures::indexed_vec::Idx;
 use utils::type_visitor::{self, TypeVisitor};
+use encoder::places;
+use std::collections::HashMap;
 
 use prusti_interface::environment::{ProcedureImpl, Procedure};
 use prusti_interface::data::ProcedureDefId;
 
 
 #[derive(Clone, Debug)]
-pub struct BorrowInfo<'tcx> {
+pub struct BorrowInfo<P>
+    where
+        P: fmt::Debug
+{
     /// Region of this borrow.
     pub region: ty::BoundRegion,
-    pub blocking_paths: Vec<mir::Place<'tcx>>,
-    pub blocked_paths: Vec<mir::Place<'tcx>>,
+    pub blocking_paths: Vec<P>,
+    pub blocked_paths: Vec<P>,
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
 }
 
-impl<'tcx> BorrowInfo<'tcx> {
+impl<P: fmt::Debug> BorrowInfo<P> {
 
     fn new(region: ty::BoundRegion) -> Self {
         BorrowInfo {
@@ -33,7 +38,7 @@ impl<'tcx> BorrowInfo<'tcx> {
 
 }
 
-impl<'tcx> fmt::Display for BorrowInfo<'tcx> {
+impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
@@ -59,26 +64,37 @@ impl<'tcx> fmt::Display for BorrowInfo<'tcx> {
 /// procedure calls before translating call targets.
 /// TODO: Move to some properly named module.
 #[derive(Clone)]
-pub struct ProcedureContract<'tcx> {
+pub struct ProcedureContractGeneric<L, P>
+    where
+        L: fmt::Debug,
+        P: fmt::Debug
+{
     /// Formal arguments for which we should have permissions in the
     /// precondition. This includes both borrows and moved in values.
     /// For example, if `_2` is in the vector, this means that we have
     /// `T(_2)` in the precondition.
-    pub args: Vec<mir::Local>,
+    pub args: Vec<L>,
     /// Borrowed arguments that are directly returned to the caller (not via
     /// a magic wand). For example, if `*(_2.1).0` is in the vector, this
     /// means that we have `T(old[precondition](_2.1.ref.0))` in the
     /// postcondition.
-    pub returned_refs: Vec<mir::Place<'tcx>>,
+    pub returned_refs: Vec<P>,
     /// The returned value for which we should have permission in
     /// the postcondition.
-    pub returned_value: mir::Local,
+    pub returned_value: L,
     /// Magic wands passed out of the procedure.
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
-    pub borrow_infos: Vec<BorrowInfo<'tcx>>,
+    pub borrow_infos: Vec<BorrowInfo<P>>,
 }
 
-impl<'tcx> fmt::Display for ProcedureContract<'tcx> {
+/// Procedure contract as it is defined in MIR.
+pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<mir::Local, mir::Place<'tcx>>;
+
+/// Specialized procedure contract for use in translation.
+pub type ProcedureContract<'tcx> = ProcedureContractGeneric<places::Local, places::Place<'tcx>>;
+
+impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, P>
+{
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "ProcedureContract {{")?;
@@ -99,8 +115,72 @@ impl<'tcx> fmt::Display for ProcedureContract<'tcx> {
 
 }
 
+fn get_place_root<'tcx>(place: &mir::Place<'tcx>) -> mir::Local {
+    match place {
+        &mir::Place::Local(local) => local,
+        &mir::Place::Projection(ref projection) => get_place_root(&projection.base),
+        _ => unimplemented!(),
+    }
+}
+
+impl<'tcx> ProcedureContractMirDef<'tcx> {
+
+    /// Specialize to the definition site contract.
+    pub fn to_def_site_contract(&self) -> ProcedureContract<'tcx> {
+        let borrow_infos = self.borrow_infos
+            .iter()
+            .map(|info| {
+                BorrowInfo {
+                    region: info.region,
+                    blocking_paths: info.blocking_paths.iter().map(|p| p.into()).collect(),
+                    blocked_paths: info.blocked_paths.iter().map(|p| p.into()).collect(),
+                }
+            })
+            .collect();
+        ProcedureContract {
+            args: self.args.iter().map(|&a| a.into()).collect(),
+            returned_refs: self.returned_refs.iter().map(|r| r.into()).collect(),
+            returned_value: self.returned_value.into(),
+            borrow_infos: borrow_infos,
+        }
+    }
+
+    /// Specialize to the call site contract.
+    pub fn to_call_site_contract(&self, args: &Vec<places::Local>, target: places::Local
+                                 ) -> ProcedureContract<'tcx> {
+        assert!(self.args.len() == args.len());
+        let mut substitutions = HashMap::new();
+        for (from, to) in self.args.iter().zip(args) {
+            substitutions.insert(from, to);
+        }
+        let substitute = |place| {
+            places::Place::SubstitutedPlace {
+                substituted_root: **substitutions.get(&get_place_root(place)).unwrap(),
+                place: place.clone(),
+            }
+        };
+        let borrow_infos = self.borrow_infos
+            .iter()
+            .map(|info| {
+                BorrowInfo {
+                    region: info.region,
+                    blocking_paths: info.blocking_paths.iter().map(&substitute).collect(),
+                    blocked_paths: info.blocked_paths.iter().map(&substitute).collect(),
+                }
+            })
+            .collect();
+        ProcedureContract {
+            args: args.clone(),
+            returned_refs: self.returned_refs.iter().map(&substitute).collect(),
+            returned_value: target,
+            borrow_infos: borrow_infos,
+        }
+    }
+
+}
+
 pub struct BorrowInfoCollectingVisitor<'a, 'tcx: 'a> {
-    borrow_infos: Vec<BorrowInfo<'tcx>>,
+    borrow_infos: Vec<BorrowInfo<mir::Place<'tcx>>>,
     /// References that were passed as arguments. We are interested only in
     /// references that can be blocked.
     references_in: Vec<mir::Place<'tcx>>,
@@ -145,7 +225,8 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
         }
     }
 
-    fn get_or_create_borrow_info(&mut self, region: ty::BoundRegion) -> &mut BorrowInfo<'tcx> {
+    fn get_or_create_borrow_info(&mut self,
+                                 region: ty::BoundRegion) -> &mut BorrowInfo<mir::Place<'tcx>> {
         if let Some(index) = self.borrow_infos.iter().position(|info| info.region == region) {
             &mut self.borrow_infos[index]
         } else {
@@ -197,7 +278,7 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>) -> ProcedureContract<'tcx>
+    tcx: TyCtxt<'a, 'tcx, 'tcx>) -> ProcedureContractMirDef<'tcx>
     where
         'a: 'p,
         'tcx: 'a
@@ -230,7 +311,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
         .into_iter()
         .filter(is_not_blocked)
         .collect();
-    let contract = ProcedureContract {
+    let contract = ProcedureContractGeneric {
         args: args,
         returned_refs: returned_refs,
         returned_value: mir::RETURN_PLACE,
