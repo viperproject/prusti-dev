@@ -32,7 +32,7 @@ fn success_with_simple_chain() {
         "foo",
         vec![],
         vec![],
-        vec![ast.local_var_decl("a", ast.int_type())],
+        vec![("a".to_string(), ast.int_type())],
     );
 
     let local_var = ast.local_var("a", ast.int_type());
@@ -83,7 +83,7 @@ fn success_with_simple_loop() {
         "foo",
         vec![],
         vec![],
-        vec![ast.local_var_decl("a", ast.int_type())],
+        vec![("a".to_string(), ast.int_type())],
     );
 
     let local_var = ast.local_var("a", ast.int_type());
