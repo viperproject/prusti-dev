@@ -375,19 +375,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     let mut encoded_targets = Vec::new();
-                    for &(ref target_place, _) in destination.iter() {
+                    let target = {
+                        let &(ref target_place, _) = destination.as_ref().unwrap();
                         let (src, ty, _) = self.encode_place(target_place);
                         let local = self.locals.get_fresh(ty);
                         let viper_local = self.encode_prusti_local(local);
                         stmts_after.push(ast.assign(src, viper_local,
                                                     self.is_place_encoded_as_local_var(target_place)));
                         encoded_targets.push(viper_local);
-                    }
+                        local
+                    };
 
-                    //let mut procedure_contract = self.encoder
-                        //.get_procedure_contract_for_call(def_id, arg_places, destination);
-                    // TODO: Emit label.
-                    // TODO: Exhale precondition.
+                    let mut procedure_contract = self.encoder
+                        .get_procedure_contract_for_call(def_id, &arg_vars, target);
+
+                    let label = self.cfg_method.get_fresh_label_name();
+                    stmts.push(ast.label(&label, &[]));
+
+                    let precondition = self.encode_precondition_expr(&procedure_contract);
+                    stmts.push(ast.exhale(precondition, ast.no_position()));
 
                     stmts.push(ast.method_call(
                         &self.encoder.encode_procedure_name(def_id),
@@ -395,7 +401,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         &encoded_targets
                     ));
 
-                    // TODO: Inhale postcondition.
+                    let postcondition = self.encode_postcondition_expr(&procedure_contract, &label);
+                    stmts.push(ast.inhale(postcondition, ast.no_position()));
 
                     stmts.extend(stmts_after);
                     }
@@ -553,7 +560,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.
-    fn encode_local_variable_permission(&mut self, local: Local) -> Expr<'v> {
+    fn encode_local_variable_permission(&self, local: Local) -> Expr<'v> {
         let ast = self.encoder.ast_factory();
         let ty = self.locals.get_type(local);
         let predicate_name = self.encoder.encode_type_predicate_use(ty);
@@ -566,29 +573,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
-//  // TODO
-//  fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> Expr<'v> {
-//  }
+    /// Encode the precondition as a single expression.
+    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> Expr<'v> {
+        let ast = self.encoder.ast_factory();
+        contract.args
+            .iter()
+            .map(|&local| self.encode_local_variable_permission(local))
+            .conjoin_with_init(ast, ast.true_lit())
+    }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
                             contract: &ProcedureContract<'tcx>) {
         let ast = self.encoder.ast_factory();
         self.cfg_method.add_stmt(start_cfg_block, ast.comment("Preconditions:"));
-        for &local in contract.args.iter() {
-            let inhale_stmt = ast.inhale(
-                self.encode_local_variable_permission(local),
-                ast.no_position()
-            );
-            self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
-        }
+        let expr = self.encode_precondition_expr(contract);
+        let inhale_stmt = ast.inhale(expr, ast.no_position());
+        self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
         self.cfg_method.add_label_stmt(start_cfg_block, PRECONDITION_LABEL);
     }
 
     /// Encode permissions that are implicitly carried by the given place.
     /// `state_label` – the label of the state in which the place should
     /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_place_permission(&mut self, place: &Place<'tcx>, state_label: Option<&str>) -> Expr<'v> {
+    fn encode_place_permission(&self, place: &Place<'tcx>, state_label: Option<&str>) -> Expr<'v> {
         let ast = self.encoder.ast_factory();
         let (encoded_place, place_ty, _) = self.encode_generic_place(place);
         let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
@@ -607,30 +615,41 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
-    /// Encode postcondition exhale on the definition side.
-    fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
-                             contract: &mut ProcedureContract<'tcx>) {
+    /// Encode the postcondition as a single expression.
+    fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
+                                 label: &str) -> Expr<'v> {
         let ast = self.encoder.ast_factory();
-        self.cfg_method.add_stmt(return_cfg_block, ast.comment("Postconditions:"));
         let mut conjuncts = Vec::new();
         for place in contract.returned_refs.iter() {
-            conjuncts.push(self.encode_place_permission(place, Some(PRECONDITION_LABEL)));
+            conjuncts.push(self.encode_place_permission(place, Some(label)));
         }
         for borrow_info in contract.borrow_infos.iter() {
+            debug!("{:?}", borrow_info);
             let mut lhs = borrow_info.blocking_paths
                 .iter()
-                .map(|place| self.encode_place_permission(place, None))
+                .map(|place| {
+                    debug!("{:?}", place);
+                    self.encode_place_permission(place, None)
+                })
                 .conjoin(ast);
             let mut rhs = borrow_info.blocked_paths
                 .iter()
-                .map(|place| self.encode_place_permission(place, Some(PRECONDITION_LABEL)))
+                .map(|place| self.encode_place_permission(place, Some(label)))
                 .conjoin(ast);
             conjuncts.push(ast.magic_wand(lhs, rhs));
         }
         let return_value_pred = self.encode_local_variable_permission(contract.returned_value);
-        let postcondition = conjuncts
+        conjuncts
             .into_iter()
-            .conjoin_with_init(ast, return_value_pred);
+            .conjoin_with_init(ast, return_value_pred)
+    }
+
+    /// Encode postcondition exhale on the definition side.
+    fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
+                             contract: &ProcedureContract<'tcx>) {
+        let ast = self.encoder.ast_factory();
+        self.cfg_method.add_stmt(return_cfg_block, ast.comment("Postconditions:"));
+        let postcondition = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
         let exhale_stmt = ast.exhale(postcondition, ast.no_position());
         self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
     }
@@ -729,7 +748,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         );
                         (access, ty, None)
                     },
-
                     _ => unreachable!(),
                 }
             },
