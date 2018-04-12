@@ -20,6 +20,7 @@ use rustc::mir::TerminatorKind;
 use syntax::ast;
 use viper::Successor;
 use rustc::middle::const_val::{ConstInt, ConstVal};
+use encoder::places;
 use encoder::borrows::{ProcedureContractMirDef, ProcedureContract, compute_procedure_contract};
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
@@ -93,6 +94,15 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         map.entry(proc_def_id).or_insert_with(|| {
             compute_procedure_contract(proc_def_id, self.env().tcx())
         }).to_def_site_contract()
+    }
+
+    pub fn get_procedure_contract_for_call(&self, proc_def_id: ProcedureDefId,
+                                           args: &Vec<places::Local>, target: places::Local
+                                           ) -> ProcedureContract<'tcx> {
+        let mut map = self.procedure_contracts.borrow_mut();
+        map.entry(proc_def_id).or_insert_with(|| {
+            compute_procedure_contract(proc_def_id, self.env().tcx())
+        }).to_call_site_contract(args, target)
     }
 
     pub fn encode_value_field_name(&self, ty: ty::Ty<'tcx>) -> String {
