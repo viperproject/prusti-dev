@@ -150,12 +150,14 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
                                  ) -> ProcedureContract<'tcx> {
         assert!(self.args.len() == args.len());
         let mut substitutions = HashMap::new();
+        substitutions.insert(self.returned_value, target);
         for (from, to) in self.args.iter().zip(args) {
-            substitutions.insert(from, to);
+            substitutions.insert(*from, *to);
         }
         let substitute = |place| {
+            let root = &get_place_root(place);
             places::Place::SubstitutedPlace {
-                substituted_root: **substitutions.get(&get_place_root(place)).unwrap(),
+                substituted_root: *substitutions.get(root).unwrap(),
                 place: place.clone(),
             }
         };
