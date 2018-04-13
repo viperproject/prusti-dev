@@ -350,6 +350,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 ),
                 ..
+            } |
+            TerminatorKind::Call {
+                ref args,
+                ref destination,
+                func: mir::Operand::Constant(
+                    box mir::Constant {
+                        literal: mir::Literal::Value {
+                            value: ty::Const {
+                                ty: &ty::TyS {
+                                    sty: ty::TyFnDef(def_id, ..),
+                                    ..
+                                },
+                                ..
+                            }
+                        },
+                        ..
+                    }
+                ),
+                ..
             } => {
                 let ast = self.encoder.ast_factory();
                 let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
@@ -416,9 +435,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
             },
 
-            TerminatorKind::Call { .. } => {
+            TerminatorKind::Call { ..} => {
                 // Other kind of calls?
-                unimplemented!()
+                unimplemented!();
             },
 
             TerminatorKind::Assert { ref cond, expected, ref target, .. } => {
