@@ -24,6 +24,7 @@ use encoder::utils::*;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::ty::layout::LayoutOf;
 use encoder::places::{Local, LocalVariableManager, Place};
+use encoder::loop_encoder::LoopEncoder;
 
 static PRECONDITION_LABEL: &'static str = "pre";
 
@@ -34,6 +35,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir: &'p mir::Mir<'tcx>,
     cfg_method: CfgMethod<'v, 'p>,
     locals: LocalVariableManager<'tcx>,
+    loops: LoopEncoder,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -51,6 +53,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let mir = procedure.get_mir();
         let locals = LocalVariableManager::new(&mir.local_decls);
+        let loops = LoopEncoder::new(mir);
 
         ProcedureEncoder {
             encoder,
@@ -59,6 +62,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir: mir,
             cfg_method,
             locals: locals,
+            loops: loops,
         }
     }
 
