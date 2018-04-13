@@ -33,7 +33,7 @@ use rustc::ty::{self, Ty, TyCtxt};
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>) {
     trace!("[dump_useful_info] enter");
 
-    assert!(tcx.sess.nll());
+    assert!(tcx.nll());
     let mut printer = InfoPrinter {
         tcx: tcx,
     };
@@ -545,9 +545,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
                     graph.write_all(format!("<td>").as_bytes()).unwrap();
                     for region_vid in &lifetime_regions_state {
                         let region_definition = &regioncx.definitions[*region_vid];
-                        let cause = regioncx.why_region_contains_point(*region_vid, location).unwrap();
-                        let root_cause = cause.root_cause();
-                        debug!("  state: {:?} - {:?}", region_vid, root_cause);
+                        debug!("  state: {:?}", region_vid);
                         graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
                     }
                     graph.write_all(format!("</td>").as_bytes()).unwrap();
@@ -555,9 +553,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
                     graph.write_all(format!("<td>").as_bytes()).unwrap();
                     for region_vid in &gen_lifetime_regions {
                         let region_definition = &regioncx.definitions[*region_vid];
-                        let cause = regioncx.why_region_contains_point(*region_vid, location).unwrap();
-                        let root_cause = cause.root_cause();
-                        debug!("  gen: {:?} - {:?}", region_vid, root_cause);
+                        debug!("  gen: {:?}", region_vid);
                         graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
                     }
                     graph.write_all(format!("</td>").as_bytes()).unwrap();

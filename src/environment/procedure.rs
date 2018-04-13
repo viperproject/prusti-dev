@@ -7,7 +7,6 @@ use std::cell::Ref;
 use rustc::mir::Terminator;
 use rustc::mir::BasicBlock;
 use rustc::mir::TerminatorKind;
-use rustc::middle::const_val::ConstInt;
 use data::ProcedureDefId;
 
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -130,7 +129,7 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
                         if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
                             if format!("{:?}", discr) == "const false" {
                                 // Some assumptions
-                                assert!(values[0] == ConstInt::U8(0));
+                                assert!(values[0] == 0 as u128);
                                 assert!(values.len() == 1);
 
                                 // Do not visit the 'then' branch.
