@@ -55,11 +55,19 @@ before_install:
       echo "Using cached Z3" &&
       ls .cache/z3;
     fi
+  # Download our version of rustc.
+  - echo "Getting rustc." &&
+    wget -O rustc-stage2.tar.gz http://pmserver.inf.ethz.ch/viper/debs/trusty/rust/rustc-stage2.tar.gz &&
+    tar -xf rustc-stage2.tar.gz &&
+    rm -f rustc-stage2.tar.gz &&
+    mv stage2 .cache/rustc-stage2
 
 install:
   - travis_retry sudo apt-get install viper
   - ( cd .cache/z3/build && sudo make install )
   - cargo install mdbook --vers 0.0.26 || true
+  - rustup toolchain link stage2 .cache/rustc-stage2/
+  - rustup default stage2
 
 script:
   - cargo build --all -vv
