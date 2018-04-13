@@ -19,6 +19,7 @@ pub struct CfgMethod<'a: 'b, 'b> {
     basic_blocks: Vec<CfgBlock<'a>>,
     basic_blocks_labels: Vec<String>,
     fresh_var_index: i32,
+    fresh_label_index: i32,
 }
 
 #[derive(Clone)]
@@ -62,7 +63,8 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
             labels: Vec::new(),
             basic_blocks: vec![],
             basic_blocks_labels: vec![],
-            fresh_var_index: 0
+            fresh_var_index: 0,
+            fresh_label_index: 0,
         }
     }
 
@@ -125,6 +127,17 @@ impl<'a: 'b, 'b> CfgMethod<'a, 'b> {
         let stmt = self.ast_factory.label(label, &[]);
         self.labels.push(label.to_string());
         self.basic_blocks[index.block_index].stmts.push(stmt);
+    }
+
+    pub fn get_fresh_label_name(&mut self) -> String {
+        let mut candidate_name = format!("l{}", self.fresh_label_index);
+        self.fresh_label_index += 1;
+        while !self.is_fresh_local_name(&candidate_name) {
+            candidate_name = format!("l{}", self.fresh_label_index);
+            self.fresh_label_index += 1;
+        }
+        self.labels.push(candidate_name.clone());
+        candidate_name
     }
 
     pub fn add_block(&mut self, label: &str, invs: Vec<Expr<'a>>, stmts: Vec<Stmt<'a>>) -> CfgBlockIndex {
