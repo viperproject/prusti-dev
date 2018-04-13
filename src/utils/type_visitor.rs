@@ -38,8 +38,7 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyRef(region, tym) => {
                 self.visit_ref(region, tym);
             },
-            TyTuple(parts, diverging) => {
-                assert!(!diverging);
+            TyTuple(parts) => {
                 self.visit_tuple(parts);
             },
             _ => {

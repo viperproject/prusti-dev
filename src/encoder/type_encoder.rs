@@ -15,7 +15,7 @@ use viper::CfgBlockIndex;
 use prusti_interface::environment::BasicBlockIndex;
 use rustc::mir::TerminatorKind;
 use viper::Successor;
-use rustc::middle::const_val::{ConstInt, ConstVal};
+use rustc::middle::const_val::ConstVal;
 use encoder::Encoder;
 use encoder::utils::*;
 
@@ -45,7 +45,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRef(_, _) => ast.field("val_ref", ast.ref_type()),
 
             ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_, _) => unimplemented!(),
+            ty::TypeVariants::TyTuple(_) => unimplemented!(),
 
             ref x => unimplemented!("{:?}", x),
         }
@@ -63,7 +63,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRef(_, _) => "val_ref",
 
             ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_, _) => unimplemented!(),
+            ty::TypeVariants::TyTuple(_) => unimplemented!(),
 
             ref x => unimplemented!("{:?}", x),
         }.to_string()
@@ -113,7 +113,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ]
             }
 
-            ty::TypeVariants::TyTuple(elems, _) => {
+            ty::TypeVariants::TyTuple(elems) => {
                 elems.iter().enumerate().flat_map(|(field_num, ty)| {
                     let field_name = format!("tuple_{}", field_num);
                     let elem_field = self.encoder.encode_ref_field(&field_name);
@@ -199,7 +199,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     );
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
-                        assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
+                        assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
                             let field_name = format!("enum_{}_{}", variant_index, field.name);
@@ -268,7 +268,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyAdt(&ty::AdtDef { did, .. }, _) =>
                 self.encoder.encode_type_name(did),
 
-            ty::TypeVariants::TyTuple(elems, _) => {
+            ty::TypeVariants::TyTuple(elems) => {
                 let elem_predicate_names: Vec<String> = elems.iter().map(
                     |ty| self.encoder.encode_type_predicate_use(ty)
                 ).collect();
@@ -306,7 +306,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ]
             }
 
-            ty::TypeVariants::TyTuple(elems, _) => {
+            ty::TypeVariants::TyTuple(elems) => {
                 elems.iter().enumerate().map(|(field_num, ty)| {
                     let field_name = format!("tuple_{}", field_num);
                     let encoded_field = self.encoder.encode_ref_field(&field_name);
@@ -329,7 +329,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
                 let tcx = self.encoder.env().tcx();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-                    assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
+                    assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                     for field in &variant_def.fields {
                         let field_name = if (num_variants == 1) {
                             format!("struct_{}", field.name)

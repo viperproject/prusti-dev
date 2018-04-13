@@ -16,7 +16,7 @@ use viper::CfgBlockIndex;
 use prusti_interface::environment::BasicBlockIndex;
 use rustc::mir::TerminatorKind;
 use viper::Successor;
-use rustc::middle::const_val::{ConstInt, ConstVal};
+use rustc::middle::const_val::ConstVal;
 use encoder::Encoder;
 use encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use encoder::utils::*;
@@ -106,7 +106,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let (encoded_right, effects_after_right) = self.eval_operand(right);
                         let encoded_value = self.encode_bin_op_value(op, encoded_left, encoded_right);
                         let encoded_check = self.encode_bin_op_check(op, encoded_left, encoded_right);
-                        let elems = if let ty::TypeVariants::TyTuple(ref x, _) = ty.sty { x } else { unreachable!() };
+                        let elems = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                         let value_field = self.encoder.encode_ref_field("tuple_0");
                         let value_field_value = self.encoder.encode_value_field(elems[0]);
                         let check_field = self.encoder.encode_ref_field("tuple_1");
@@ -262,11 +262,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 stmts.extend(
                     effect_stmts
                 );
-                for (i, value) in values.iter().enumerate() {
+                for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
                     let viper_guard = if (switch_ty.sty == ty::TypeVariants::TyBool) {
-                        if const_int_is_zero(value) {
+                        if value == 0 {
                             // If discr is 0 (false)
                             ast.not(discr_var)
                         } else {
@@ -276,7 +276,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     } else {
                         ast.eq_cmp(
                             discr_var,
-                            self.encoder.eval_const_int(value)
+                            ast.int_lit(value as i32)
                         )
                     };
                     let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
@@ -335,7 +335,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     box mir::Constant {
                         literal: mir::Literal::Value {
                             value: &ty::Const {
-                                val: ConstVal::Function(def_id, _),
+                                val: ConstVal::Unevaluated(def_id, _),
                                 ..
                             }
                         },
@@ -643,7 +643,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     ty::TypeVariants::TyRawPtr(_) |
                     ty::TypeVariants::TyRef(_, _) => panic!("Type {:?} has no fields", base_ty),
 
-                    ty::TypeVariants::TyTuple(elems, _) => {
+                    ty::TypeVariants::TyTuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()];
                         let encoded_field = self.encoder.encode_ref_field(&field_name);
@@ -655,7 +655,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         debug!("subst {:?}", subst);
                         let variant_index = opt_variant_index.unwrap_or(0);
                         let tcx = self.encoder.env().tcx();
-                        assert!(variant_index as u64 == adt_def.discriminant_for_variant(tcx, variant_index).to_u64().unwrap());
+                        assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
                         let num_variants = adt_def.variants.len();
                         let field_name = if (num_variants == 1) {
@@ -740,8 +740,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn eval_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Expr<'v>, Vec<Stmt<'v>>) {
         let ast = self.encoder.ast_factory();
         match operand {
-            &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) => {
-                (self.encoder.eval_const_val(val), vec![])
+            &mir::Operand::Constant(box mir::Constant{ ty, literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) => {
+                let is_bool_ty = ty.sty == ty::TypeVariants::TyBool;
+                (self.encoder.eval_const_val(val, is_bool_ty), vec![])
             }
             &mir::Operand::Copy(ref place) => {
                 (self.eval_place(place), vec![])
@@ -779,14 +780,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let stmts = self.encode_copy(src, fresh_var, ty, true);
                 (fresh_var, stmts, vec![])
             },
-            &mir::Operand::Constant(box mir::Constant{ literal: mir::Literal::Value{ value: &ty::Const{ ref val, ty } }, ..}) => {
+            &mir::Operand::Constant(box mir::Constant{ ty, literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) => {
                 let mut stmts: Vec<Stmt> = vec![];
                 let fresh_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
                 let fresh_var = ast.local_var(&fresh_var_name, ast.ref_type());
                 stmts.extend(
                     self.encode_allocation(fresh_var, ty, true)
                 );
-                let const_val = self.encoder.eval_const_val(val);
+                let is_bool_ty = ty.sty == ty::TypeVariants::TyBool;
+                let const_val = self.encoder.eval_const_val(val, is_bool_ty);
                 let field = self.encoder.encode_value_field(ty);
                 stmts.push(
                     ast.field_assign(ast.field_access(fresh_var, field), const_val)

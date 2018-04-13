@@ -19,7 +19,7 @@ use viper::CfgBlockIndex;
 use rustc::mir::TerminatorKind;
 use syntax::ast;
 use viper::Successor;
-use rustc::middle::const_val::{ConstInt, ConstVal};
+use rustc::middle::const_val::ConstVal;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
@@ -158,17 +158,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    pub fn eval_const_int(&self, const_int: &ConstInt) -> Expr<'v> {
-        match const_int {
-            &ConstInt::U32(ref val) => self.ast_factory.int_lit_from_ref(val),
-            &ConstInt::I32(ref val) => self.ast_factory.int_lit_from_ref(val),
-            &ConstInt::U8(ref val) => self.ast_factory.int_lit_from_ref(val),
-            &ConstInt::Isize(ref val) => self.ast_factory.int_lit_from_ref(&val.as_i64()),
-            &ConstInt::Usize(ref val) => self.ast_factory.int_lit_from_ref(&val.as_u64()),
-            x => unimplemented!("{:?}", x),
-        }
-    }
-
     pub fn eval_bool(&self, val: bool) -> Expr<'v> {
         if val {
             self.ast_factory.true_lit()
@@ -177,11 +166,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>) -> Expr<'v> {
-        match const_val {
-            &ConstVal::Integral(ref const_int) => self.eval_const_int(const_int),
-            &ConstVal::Bool(val) => self.eval_bool(val),
-            x => unimplemented!("{:?}", x)
+    pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, as_bool: bool) -> Expr<'v> {
+        if as_bool {
+            self.ast_factory.eq_cmp(
+                self.ast_factory.int_lit(const_val.unwrap_u64() as i32),
+                self.ast_factory.int_lit(1)
+            )
+        } else {
+            self.ast_factory.int_lit(const_val.unwrap_u64() as i32)
         }
     }
 
