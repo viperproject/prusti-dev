@@ -49,16 +49,15 @@ impl<'a> MinimalAstBuilder<'a> {
                     directory: PathBuf::new(),
                 }),
                 directory_ownership: DirectoryOwnership::Owned { relative: None },
+                crate_span: None,
             },
         }
     }
 
     pub fn std_path(&self, components: &[&str]) -> Vec<ast::Ident> {
-        let def_site = SyntaxContext::empty().apply_mark(self.current_expansion.mark);
-        iter::once(Ident {
-            ctxt: def_site,
-            ..keywords::DollarCrate.ident()
-        }).chain(components.iter().map(|s| self.ident_of(s)))
+        let def_site = DUMMY_SP.apply_mark(self.current_expansion.mark);
+        iter::once(Ident::new(keywords::DollarCrate.name(), def_site))
+            .chain(components.iter().map(|s| self.ident_of(s)))
             .collect()
     }
 
@@ -139,96 +138,69 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     fn path_global(&self, span: Span, strs: Vec<ast::Ident>) -> ast::Path {
         self.path_all(span, true, strs, Vec::new(), Vec::new(), Vec::new())
     }
-    fn path_all(
-        &self,
-        span: Span,
-        global: bool,
-        mut idents: Vec<ast::Ident>,
-        lifetimes: Vec<ast::Lifetime>,
-        types: Vec<P<ast::Ty>>,
-        bindings: Vec<ast::TypeBinding>,
-    ) -> ast::Path {
-        use syntax::parse::token;
-
-        let last_identifier = idents.pop().unwrap();
+    fn path_all(&self,
+                span: Span,
+                global: bool,
+                mut idents: Vec<ast::Ident> ,
+                lifetimes: Vec<ast::Lifetime>,
+                types: Vec<P<ast::Ty>>,
+                bindings: Vec<ast::TypeBinding> )
+                -> ast::Path {
+        let last_ident = idents.pop().unwrap();
         let mut segments: Vec<ast::PathSegment> = Vec::new();
-        if global && !idents.first().map_or(false, |&ident| {
-            token::Ident(ident).is_path_segment_keyword()
-        }) {
-            segments.push(ast::PathSegment::crate_root(span));
-        }
 
-        segments.extend(
-            idents
-                .into_iter()
-                .map(|i| ast::PathSegment::from_ident(i, span)),
-        );
+        segments.extend(idents.into_iter().map(|ident| {
+            ast::PathSegment::from_ident(ident.with_span_pos(span))
+        }));
         let parameters = if !lifetimes.is_empty() || !types.is_empty() || !bindings.is_empty() {
-            ast::AngleBracketedParameterData {
-                lifetimes,
-                types,
-                bindings,
-                span,
-            }.into()
+            ast::AngleBracketedParameterData { lifetimes, types, bindings, span }.into()
         } else {
             None
         };
-        segments.push(ast::PathSegment {
-            identifier: last_identifier,
-            span,
-            parameters,
-        });
-        ast::Path { span, segments }
+        segments.push(ast::PathSegment { ident: last_ident.with_span_pos(span), parameters });
+        let mut path = ast::Path { span, segments };
+        if global {
+            if let Some(seg) = path.make_root() {
+                path.segments.insert(0, seg);
+            }
+        }
+        path
     }
 
     /// Constructs a qualified path.
     ///
     /// Constructs a path like `<self_type as trait_path>::ident`.
-    fn qpath(
-        &self,
-        self_type: P<ast::Ty>,
-        trait_path: ast::Path,
-        ident: ast::SpannedIdent,
-    ) -> (ast::QSelf, ast::Path) {
+    fn qpath(&self,
+             self_type: P<ast::Ty>,
+             trait_path: ast::Path,
+             ident: ast::Ident)
+             -> (ast::QSelf, ast::Path) {
         self.qpath_all(self_type, trait_path, ident, vec![], vec![], vec![])
     }
 
     /// Constructs a qualified path.
     ///
     /// Constructs a path like `<self_type as trait_path>::ident<'a, T, A=Bar>`.
-    fn qpath_all(
-        &self,
-        self_type: P<ast::Ty>,
-        trait_path: ast::Path,
-        ident: ast::SpannedIdent,
-        lifetimes: Vec<ast::Lifetime>,
-        types: Vec<P<ast::Ty>>,
-        bindings: Vec<ast::TypeBinding>,
-    ) -> (ast::QSelf, ast::Path) {
+    fn qpath_all(&self,
+                 self_type: P<ast::Ty>,
+                 trait_path: ast::Path,
+                 ident: ast::Ident,
+                 lifetimes: Vec<ast::Lifetime>,
+                 types: Vec<P<ast::Ty>>,
+                 bindings: Vec<ast::TypeBinding>)
+                 -> (ast::QSelf, ast::Path) {
         let mut path = trait_path;
         let parameters = if !lifetimes.is_empty() || !types.is_empty() || !bindings.is_empty() {
-            ast::AngleBracketedParameterData {
-                lifetimes,
-                types,
-                bindings,
-                span: ident.span,
-            }.into()
+            ast::AngleBracketedParameterData { lifetimes, types, bindings, span: ident.span }.into()
         } else {
             None
         };
-        path.segments.push(ast::PathSegment {
-            identifier: ident.node,
-            span: ident.span,
-            parameters,
-        });
+        path.segments.push(ast::PathSegment { ident, parameters });
 
-        (
-            ast::QSelf {
-                ty: self_type,
-                position: path.segments.len() - 1,
-            },
-            path,
-        )
+        (ast::QSelf {
+            ty: self_type,
+            position: path.segments.len() - 1
+        }, path)
     }
 
     fn ty_mt(&self, ty: P<ast::Ty>, mutbl: ast::Mutability) -> ast::MutTy {
@@ -282,21 +254,18 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         self.ty(span, ast::TyKind::Infer)
     }
 
-    fn typaram(
-        &self,
-        span: Span,
-        id: ast::Ident,
-        attrs: Vec<ast::Attribute>,
-        bounds: ast::TyParamBounds,
-        default: Option<P<ast::Ty>>,
-    ) -> ast::TyParam {
+    fn typaram(&self,
+               span: Span,
+               ident: ast::Ident,
+               attrs: Vec<ast::Attribute>,
+               bounds: ast::TyParamBounds,
+               default: Option<P<ast::Ty>>) -> ast::TyParam {
         ast::TyParam {
-            ident: id,
+            ident: ident.with_span_pos(span),
             id: ast::DUMMY_NODE_ID,
             attrs: attrs.into(),
             bounds,
             default,
-            span,
         }
     }
 
@@ -323,11 +292,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
 
     fn lifetime(&self, span: Span, ident: ast::Ident) -> ast::Lifetime {
-        ast::Lifetime {
-            id: ast::DUMMY_NODE_ID,
-            span: span,
-            ident: ident,
-        }
+        ast::Lifetime { id: ast::DUMMY_NODE_ID, ident: ident.with_span_pos(span) }
     }
 
     fn lifetime_def(
@@ -504,18 +469,11 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
 
     fn expr_field_access(&self, sp: Span, expr: P<ast::Expr>, ident: ast::Ident) -> P<ast::Expr> {
-        let id = Spanned {
-            node: ident,
-            span: sp,
-        };
-        self.expr(sp, ast::ExprKind::Field(expr, id))
+        self.expr(sp, ast::ExprKind::Field(expr, ident.with_span_pos(sp)))
     }
     fn expr_tup_field_access(&self, sp: Span, expr: P<ast::Expr>, idx: usize) -> P<ast::Expr> {
-        let id = Spanned {
-            node: idx,
-            span: sp,
-        };
-        self.expr(sp, ast::ExprKind::TupField(expr, id))
+        let ident = Ident::from_str(&idx.to_string()).with_span_pos(sp);
+        self.expr(sp, ast::ExprKind::Field(expr, ident))
     }
     fn expr_addr_of(&self, sp: Span, e: P<ast::Expr>) -> P<ast::Expr> {
         self.expr(sp, ast::ExprKind::AddrOf(ast::Mutability::Immutable, e))
@@ -539,25 +497,20 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         let pathexpr = self.expr_path(self.path_global(sp, fn_path));
         self.expr_call(sp, pathexpr, args)
     }
-    fn expr_method_call(
-        &self,
-        span: Span,
-        expr: P<ast::Expr>,
-        ident: ast::Ident,
-        mut args: Vec<P<ast::Expr>>,
-    ) -> P<ast::Expr> {
+    fn expr_method_call(&self, span: Span,
+                        expr: P<ast::Expr>,
+                        ident: ast::Ident,
+                        mut args: Vec<P<ast::Expr>> ) -> P<ast::Expr> {
         args.insert(0, expr);
-        self.expr(
-            span,
-            ast::ExprKind::MethodCall(ast::PathSegment::from_ident(ident, span), args),
-        )
+        let segment = ast::PathSegment::from_ident(ident.with_span_pos(span));
+        self.expr(span, ast::ExprKind::MethodCall(segment, args))
     }
     fn expr_block(&self, b: P<ast::Block>) -> P<ast::Expr> {
         self.expr(b.span, ast::ExprKind::Block(b))
     }
-    fn field_imm(&self, span: Span, name: Ident, e: P<ast::Expr>) -> ast::Field {
+    fn field_imm(&self, span: Span, ident: Ident, e: P<ast::Expr>) -> ast::Field {
         ast::Field {
-            ident: respan(span, name),
+            ident: ident.with_span_pos(span),
             expr: e,
             span,
             is_shorthand: false,
@@ -727,21 +680,11 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         let binding_mode = ast::BindingMode::ByValue(ast::Mutability::Immutable);
         self.pat_ident_binding_mode(span, ident, binding_mode)
     }
-
-    fn pat_ident_binding_mode(
-        &self,
-        span: Span,
-        ident: ast::Ident,
-        bm: ast::BindingMode,
-    ) -> P<ast::Pat> {
-        let pat = PatKind::Ident(
-            bm,
-            Spanned {
-                span: span,
-                node: ident,
-            },
-            None,
-        );
+    fn pat_ident_binding_mode(&self,
+                              span: Span,
+                              ident: ast::Ident,
+                              bm: ast::BindingMode) -> P<ast::Pat> {
+        let pat = PatKind::Ident(bm, ident.with_span_pos(span), None);
         self.pat(span, pat)
     }
     fn pat_path(&self, span: Span, path: ast::Path) -> P<ast::Pat> {
@@ -842,28 +785,24 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         )
     }
 
-    fn lambda(&self, span: Span, ids: Vec<ast::Ident>, body: P<ast::Expr>) -> P<ast::Expr> {
+    fn lambda(&self,
+              span: Span,
+              ids: Vec<ast::Ident>,
+              body: P<ast::Expr>)
+              -> P<ast::Expr> {
         let fn_decl = self.fn_decl(
-            ids.iter()
-                .map(|id| self.arg(span, *id, self.ty_infer(span)))
-                .collect(),
-            self.ty_infer(span),
-        );
+            ids.iter().map(|id| self.arg(span, *id, self.ty_infer(span))).collect(),
+            ast::FunctionRetTy::Default(span));
 
         // FIXME -- We are using `span` as the span of the `|...|`
         // part of the lambda, but it probably (maybe?) corresponds to
         // the entire lambda body. Probably we should extend the API
         // here, but that's not entirely clear.
-        self.expr(
-            span,
-            ast::ExprKind::Closure(
-                ast::CaptureBy::Ref,
-                ast::Movability::Movable,
-                fn_decl,
-                body,
-                span,
-            ),
-        )
+        self.expr(span, ast::ExprKind::Closure(ast::CaptureBy::Ref,
+                                               ast::Movability::Movable,
+                                               fn_decl,
+                                               body,
+                                               span))
     }
 
     fn lambda0(&self, span: Span, body: P<ast::Expr>) -> P<ast::Expr> {
@@ -899,21 +838,16 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
 
     // FIXME unused self
-    fn fn_decl(&self, inputs: Vec<ast::Arg>, output: P<ast::Ty>) -> P<ast::FnDecl> {
+    fn fn_decl(&self, inputs: Vec<ast::Arg>, output: ast::FunctionRetTy) -> P<ast::FnDecl> {
         P(ast::FnDecl {
             inputs,
-            output: ast::FunctionRetTy::Ty(output),
-            variadic: false,
+            output,
+            variadic: false
         })
     }
 
-    fn item(
-        &self,
-        span: Span,
-        name: Ident,
-        attrs: Vec<ast::Attribute>,
-        node: ast::ItemKind,
-    ) -> P<ast::Item> {
+    fn item(&self, span: Span, name: Ident,
+            attrs: Vec<ast::Attribute>, node: ast::ItemKind) -> P<ast::Item> {
         // FIXME: Would be nice if our generated code didn't violate
         // Rust coding conventions
         P(ast::Item {
@@ -921,34 +855,28 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             attrs,
             id: ast::DUMMY_NODE_ID,
             node,
-            vis: respan(span.empty(), ast::VisibilityKind::Inherited),
+            vis: respan(span.shrink_to_lo(), ast::VisibilityKind::Inherited),
             span,
             tokens: None,
         })
     }
 
-    fn item_fn_poly(
-        &self,
-        span: Span,
-        name: Ident,
-        inputs: Vec<ast::Arg>,
-        output: P<ast::Ty>,
-        generics: Generics,
-        body: P<ast::Block>,
-    ) -> P<ast::Item> {
-        self.item(
-            span,
-            name,
-            Vec::new(),
-            ast::ItemKind::Fn(
-                self.fn_decl(inputs, output),
-                ast::Unsafety::Normal,
-                dummy_spanned(ast::Constness::NotConst),
-                Abi::Rust,
-                generics,
-                body,
-            ),
-        )
+    fn item_fn_poly(&self,
+                    span: Span,
+                    name: Ident,
+                    inputs: Vec<ast::Arg> ,
+                    output: P<ast::Ty>,
+                    generics: Generics,
+                    body: P<ast::Block>) -> P<ast::Item> {
+        self.item(span,
+                  name,
+                  Vec::new(),
+                  ast::ItemKind::Fn(self.fn_decl(inputs, ast::FunctionRetTy::Ty(output)),
+                              ast::Unsafety::Normal,
+                              dummy_spanned(ast::Constness::NotConst),
+                              Abi::Rust,
+                              generics,
+                              body))
     }
 
     fn item_fn(
@@ -962,17 +890,17 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         self.item_fn_poly(span, name, inputs, output, Generics::default(), body)
     }
 
-    fn variant(&self, span: Span, name: Ident, tys: Vec<P<ast::Ty>>) -> ast::Variant {
-        let fields: Vec<_> = tys.into_iter()
-            .map(|ty| ast::StructField {
+    fn variant(&self, span: Span, ident: Ident, tys: Vec<P<ast::Ty>> ) -> ast::Variant {
+        let fields: Vec<_> = tys.into_iter().map(|ty| {
+            ast::StructField {
                 span: ty.span,
                 ty,
                 ident: None,
-                vis: respan(span.empty(), ast::VisibilityKind::Inherited),
+                vis: respan(span.shrink_to_lo(), ast::VisibilityKind::Inherited),
                 attrs: Vec::new(),
                 id: ast::DUMMY_NODE_ID,
-            })
-            .collect();
+            }
+        }).collect();
 
         let vdata = if fields.is_empty() {
             ast::VariantData::Unit(ast::DUMMY_NODE_ID)
@@ -980,15 +908,13 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             ast::VariantData::Tuple(fields, ast::DUMMY_NODE_ID)
         };
 
-        respan(
-            span,
-            ast::Variant_ {
-                name,
-                attrs: Vec::new(),
-                data: vdata,
-                disr_expr: None,
-            },
-        )
+        respan(span,
+               ast::Variant_ {
+                   ident,
+                   attrs: Vec::new(),
+                   data: vdata,
+                   disr_expr: None,
+               })
     }
 
     fn item_enum_poly(
@@ -1097,22 +1023,22 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
 
     fn meta_word(&self, sp: Span, w: ast::Name) -> ast::MetaItem {
-        attr::mk_spanned_word_item(sp, w)
+        attr::mk_word_item(Ident::with_empty_ctxt(w).with_span_pos(sp))
     }
 
     fn meta_list_item_word(&self, sp: Span, w: ast::Name) -> ast::NestedMetaItem {
-        respan(
-            sp,
-            ast::NestedMetaItemKind::MetaItem(attr::mk_spanned_word_item(sp, w)),
-        )
+        attr::mk_nested_word_item(Ident::with_empty_ctxt(w).with_span_pos(sp))
     }
 
-    fn meta_list(&self, sp: Span, name: ast::Name, mis: Vec<ast::NestedMetaItem>) -> ast::MetaItem {
-        attr::mk_spanned_list_item(sp, name, mis)
+    fn meta_list(&self, sp: Span, name: ast::Name, mis: Vec<ast::NestedMetaItem>)
+                 -> ast::MetaItem {
+        attr::mk_list_item(sp, Ident::with_empty_ctxt(name).with_span_pos(sp), mis)
     }
 
-    fn meta_name_value(&self, sp: Span, name: ast::Name, value: ast::LitKind) -> ast::MetaItem {
-        attr::mk_spanned_name_value_item(sp, name, respan(sp, value))
+    fn meta_name_value(&self, sp: Span, name: ast::Name, value: ast::LitKind)
+                       -> ast::MetaItem {
+        attr::mk_name_value_item(sp, Ident::with_empty_ctxt(name).with_span_pos(sp),
+                                 respan(sp, value))
     }
 
     fn item_use(&self, sp: Span, vis: ast::Visibility, vp: P<ast::UseTree>) -> P<ast::Item> {
@@ -1128,58 +1054,33 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
 
     fn item_use_simple(&self, sp: Span, vis: ast::Visibility, path: ast::Path) -> P<ast::Item> {
-        let last = path.segments.last().unwrap().identifier;
-        self.item_use_simple_(sp, vis, last, path)
+        self.item_use_simple_(sp, vis, None, path)
     }
 
-    fn item_use_simple_(
-        &self,
-        sp: Span,
-        vis: ast::Visibility,
-        ident: ast::Ident,
-        path: ast::Path,
-    ) -> P<ast::Item> {
-        self.item_use(
-            sp,
-            vis,
-            P(ast::UseTree {
-                span: sp,
-                prefix: path,
-                kind: ast::UseTreeKind::Simple(ident),
-            }),
-        )
+    fn item_use_simple_(&self, sp: Span, vis: ast::Visibility,
+                        rename: Option<ast::Ident>, path: ast::Path) -> P<ast::Item> {
+        self.item_use(sp, vis, P(ast::UseTree {
+            span: sp,
+            prefix: path,
+            kind: ast::UseTreeKind::Simple(rename),
+        }))
     }
 
-    fn item_use_list(
-        &self,
-        sp: Span,
-        vis: ast::Visibility,
-        path: Vec<ast::Ident>,
-        imports: &[ast::Ident],
-    ) -> P<ast::Item> {
-        let imports = imports
-            .iter()
-            .map(|id| {
-                (
-                    ast::UseTree {
-                        span: sp,
-                        prefix: self.path(sp, vec![*id]),
-                        kind: ast::UseTreeKind::Simple(*id),
-                    },
-                    ast::DUMMY_NODE_ID,
-                )
-            })
-            .collect();
-
-        self.item_use(
-            sp,
-            vis,
-            P(ast::UseTree {
+    fn item_use_list(&self, sp: Span, vis: ast::Visibility,
+                     path: Vec<ast::Ident>, imports: &[ast::Ident]) -> P<ast::Item> {
+        let imports = imports.iter().map(|id| {
+            (ast::UseTree {
                 span: sp,
-                prefix: self.path(sp, path),
-                kind: ast::UseTreeKind::Nested(imports),
-            }),
-        )
+                prefix: self.path(sp, vec![*id]),
+                kind: ast::UseTreeKind::Simple(None),
+            }, ast::DUMMY_NODE_ID)
+        }).collect();
+
+        self.item_use(sp, vis, P(ast::UseTree {
+            span: sp,
+            prefix: self.path(sp, path),
+            kind: ast::UseTreeKind::Nested(imports),
+        }))
     }
 
     fn item_use_glob(&self, sp: Span, vis: ast::Visibility, path: Vec<ast::Ident>) -> P<ast::Item> {

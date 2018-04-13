@@ -296,7 +296,7 @@ impl<'tcx> SpecParser<'tcx> {
             span,
             builder.item_use_glob(
                 span,
-                respan(span.empty(), ast::VisibilityKind::Inherited),
+                respan(span.shrink_to_lo(), ast::VisibilityKind::Inherited),
                 vec![
                     builder.ident_of("prusti_contracts"),
                     builder.ident_of("internal"),
@@ -332,7 +332,7 @@ impl<'tcx> SpecParser<'tcx> {
                     .map(|arg| {
                         match arg.pat.node {
                             ast::PatKind::Ident(_, ident, _) => {
-                                builder.expr_ident(ident.span, ident.node)
+                                builder.expr_ident(ident.span, ident)
                             }
                             // TODO
                             ast::PatKind::Wild => unreachable!(),
