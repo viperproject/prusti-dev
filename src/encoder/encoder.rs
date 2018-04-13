@@ -20,6 +20,8 @@ use rustc::mir::TerminatorKind;
 use syntax::ast;
 use viper::Successor;
 use rustc::middle::const_val::ConstVal;
+use encoder::places;
+use encoder::borrows::{ProcedureContractMirDef, ProcedureContract, compute_procedure_contract};
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
@@ -29,6 +31,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     ast_factory: viper::AstFactory<'v>,
     cfg_factory: viper::CfgFactory<'v>,
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     procedures: RefCell<HashMap<ProcedureDefId, Method<'v>>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_predicates: RefCell<HashMap<String, Predicate<'v>>>,
@@ -43,6 +46,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ast_factory,
             cfg_factory,
             env,
+            procedure_contracts: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             type_predicates: RefCell::new(HashMap::new()),
@@ -82,6 +86,23 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn get_used_viper_methods(&self) -> Vec<Method<'v>> {
         self.procedures.borrow().values().cloned().collect()
+    }
+
+    pub fn get_procedure_contract_for_def(&self, proc_def_id: ProcedureDefId
+                                          ) -> ProcedureContract<'tcx> {
+        let mut map = self.procedure_contracts.borrow_mut();
+        map.entry(proc_def_id).or_insert_with(|| {
+            compute_procedure_contract(proc_def_id, self.env().tcx())
+        }).to_def_site_contract()
+    }
+
+    pub fn get_procedure_contract_for_call(&self, proc_def_id: ProcedureDefId,
+                                           args: &Vec<places::Local>, target: places::Local
+                                           ) -> ProcedureContract<'tcx> {
+        let mut map = self.procedure_contracts.borrow_mut();
+        map.entry(proc_def_id).or_insert_with(|| {
+            compute_procedure_contract(proc_def_id, self.env().tcx())
+        }).to_call_site_contract(args, target)
     }
 
     pub fn encode_value_field_name(&self, ty: ty::Ty<'tcx>) -> String {
