@@ -32,6 +32,40 @@ impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
 
 }
 
+/// A visitor for loopless code that visits a basic block only after all
+/// predecessors of that basic block were already visited.
+/// TODO: Either remove this trait or move it to a proper location.
+trait PredecessorsFirstVisitor<'tcx>: Visitor<'tcx> {
+
+    /// Should the given basic block be ignored?
+    fn is_ignored(&mut self, bb: BasicBlockIndex) -> bool;
+
+    fn visit_mir_from(&mut self, mir: &mir::Mir<'tcx>, start_block: BasicBlockIndex) {
+        let mut work_queue = vec![start_block];
+        let mut analysed_blocks = HashSet::new();
+        while !work_queue.is_empty() {
+            let current = work_queue.pop().unwrap();
+            let basic_block_data = &mir.basic_blocks()[current];
+            self.visit_basic_block_data(current, basic_block_data);
+            analysed_blocks.insert(current);
+            for &successor in basic_block_data.terminator().successors().iter() {
+                let mut all_predecessors_analysed = mir
+                    .predecessors_for(successor)
+                    .iter()
+                    .all(|predecessor| {
+                        analysed_blocks.contains(predecessor) ||
+                        self.is_ignored(*predecessor)
+                    });
+                if all_predecessors_analysed {
+                    assert!(!analysed_blocks.contains(&successor));
+                    work_queue.push(successor);
+                }
+            }
+        }
+    }
+
+}
+
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
 fn collect_loop_body<'tcx>(head: BasicBlockIndex, back_edge_source: BasicBlockIndex,
                            mir: &mir::Mir<'tcx>, body: &mut HashSet<BasicBlockIndex>) {
