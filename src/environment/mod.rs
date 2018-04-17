@@ -16,8 +16,8 @@ mod dataflow;
 
 use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};
-pub use self::loops::{ProcedureLoops, PlaceAccess};
-pub use self::dataflow::MirDataflowInfo;
+pub use self::loops::{ProcedureLoops, PlaceAccess, PlaceAccessKind};
+pub use self::dataflow::DataflowInfo;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::dump_borrowck_info::dump_borrowck_info;
 

@@ -38,8 +38,8 @@ fn collect_loop_body<'tcx>(head: BasicBlockIndex, back_edge_source: BasicBlockIn
     let mut work_queue = vec![back_edge_source];
     body.insert(back_edge_source);
     while !work_queue.is_empty() {
-        let currect = work_queue.pop().unwrap();
-        for &predecessor in mir.predecessors_for(currect).iter() {
+        let current = work_queue.pop().unwrap();
+        for &predecessor in mir.predecessors_for(current).iter() {
             if body.contains(&predecessor) {
                 continue;
             }
@@ -52,6 +52,7 @@ fn collect_loop_body<'tcx>(head: BasicBlockIndex, back_edge_source: BasicBlockIn
     debug!("Loop body (head={:?}): {:?}", head, body);
 }
 
+#[derive(Clone, Debug)]
 pub enum PlaceAccessKind {
     /// The place is assigned to.
     Store,
@@ -66,16 +67,22 @@ pub enum PlaceAccessKind {
 }
 
 /// A place access inside a loop.
+#[derive(Clone, Debug)]
 pub struct PlaceAccess<'tcx> {
     pub location: mir::Location,
     pub place: mir::Place<'tcx>,
     pub kind: PlaceAccessKind,
 }
 
-/// A visitor that collects information about what paths are accessed
-/// inside a loop.
+/// A visitor that collects places that are defined before the loop and
+/// accessed inside a loop.
+///
+/// Note that it is not guaranteed that `accessed_places` and
+/// `defined_places` are disjoint
 struct AccessCollector<'b, 'tcx> {
+    /// Loop body.
     pub body: &'b HashSet<BasicBlockIndex>,
+    /// The places that are defined before the loop and accessed inside a loop.
     pub accessed_places: Vec<PlaceAccess<'tcx>>,
 }
 
@@ -99,6 +106,12 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 Borrow { kind: mir::BorrowKind::Mut { .. }, .. } => PlaceAccessKind::MutableBorrow,
                 _ => unimplemented!(),
             };
+            let access = PlaceAccess {
+                location: location,
+                place: place.clone(),
+                kind: access_kind,
+            };
+            self.accessed_places.push(access);
         }
     }
 
@@ -141,6 +154,8 @@ impl ProcedureLoops {
         }
     }
 
+    /// Compute what paths that come from the outside of the loop are accessed
+    /// inside the loop.
     pub fn compute_used_paths<'a, 'tcx: 'a>(&self, loop_head: BasicBlockIndex,
                                             mir: &'a mir::Mir<'tcx>) -> Vec<PlaceAccess<'tcx>> {
         let body = self.loop_bodies.get(&loop_head).unwrap();

@@ -12,27 +12,45 @@ use rustc_mir::dataflow::FlowsAtLocation;
 use rustc_mir::dataflow::move_paths::HasMoveData;
 
 /// Stores the results of MIR dataflow analyses.
-pub struct MirDataflowInfo<'tcx> {
+///
+/// Note that MIR dataflow analyses tracks only local variables and
+/// places that matter. For example, if `_2.0.1` is never accessed in
+/// the program, it will not be tracked by the flow analysis.
+struct MirDataflowInfo<'tcx> {
     /// Places that are maybe initialized at each program point.
     pub maybe_init: HashMap<mir::Location, Vec<mir::Place<'tcx>>>,
     pub maybe_uninit: HashMap<mir::Location, Vec<mir::Place<'tcx>>>,
+}
+
+/// A querable interface to MIR dataflow analysis results.
+pub struct DataflowInfo<'tcx> {
+    mir_info: MirDataflowInfo<'tcx>,
+}
+
+impl<'tcx> DataflowInfo<'tcx> {
+
+    pub fn get_maybe_uninit_at(&mut self, location: mir::Location) -> &Vec<mir::Place<'tcx>> {
+        self.mir_info.maybe_uninit.get(&location).unwrap()
+    }
 }
 
 static mut data: Option<MirDataflowInfo<'static>> = None;
 
 /// This function uses global mutable state and it should not be invoked
 /// concurrently.
-pub fn get_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId,
-                          mir: &mir::Mir<'tcx>) -> MirDataflowInfo<'tcx> {
+pub fn construct_dataflow_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId,
+                                         mir: &mir::Mir<'tcx>) -> DataflowInfo<'tcx> {
     debug!("Def id = {:?}", def_id);
     assert!(tcx.nll());
     let opt_closure_req = tcx.infer_ctxt().enter(|infcx| {
         do_mir_borrowck(&infcx, mir, def_id, Some(box callback))
     });
-    let dataflow_info = unsafe {
+    let mir_info = unsafe {
         transmute::<MirDataflowInfo<'static>, MirDataflowInfo<'tcx>>(data.take().unwrap())
     };
-    dataflow_info
+    DataflowInfo {
+        mir_info: mir_info,
+    }
 }
 
 /// Information we use:

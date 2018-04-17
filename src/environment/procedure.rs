@@ -12,6 +12,7 @@ use rustc::mir::Terminator;
 use rustc::mir::BasicBlock;
 use rustc::mir::TerminatorKind;
 use data::ProcedureDefId;
+use environment::dataflow;
 
 pub type BasicBlockIndex = mir::BasicBlock;
 pub type BasicBlockData<'tcx> = mir::BasicBlockData<'tcx>;
@@ -158,8 +159,6 @@ impl<'a, 'tcx> ProcedureImpl<'a, 'tcx> {
     pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, proc_def_id: ProcedureDefId) -> Self {
         let mir = tcx.mir_validated(proc_def_id).borrow();
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
-        use environment::dataflow::get_info;
-        let dataflow_info = get_info(tcx, proc_def_id, &mir);
         ProcedureImpl { tcx, proc_def_id, mir, nonspec_basic_blocks }
     }
 
@@ -174,6 +173,10 @@ impl<'a, 'tcx> ProcedureImpl<'a, 'tcx> {
             }
         }
         types.into_iter().collect()
+    }
+
+    pub fn construct_dataflow_info(&self) -> dataflow::DataflowInfo<'tcx> {
+        dataflow::construct_dataflow_info(self.tcx, self.proc_def_id, &self.mir)
     }
 
 }

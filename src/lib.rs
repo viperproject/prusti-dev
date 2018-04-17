@@ -7,6 +7,7 @@
 #![warn(missing_docs)]
 #![feature(rustc_private)]
 #![feature(box_syntax)]
+#![feature(box_patterns)]
 
 #[macro_use]
 extern crate log;
