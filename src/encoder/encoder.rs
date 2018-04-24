@@ -169,14 +169,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    pub fn eval_bool(&self, val: bool) -> Expr<'v> {
-        if val {
-            self.ast_factory.true_lit()
-        } else {
-            self.ast_factory.false_lit()
-        }
-    }
-
     pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, as_bool: bool) -> Expr<'v> {
         if as_bool {
             self.ast_factory.eq_cmp(

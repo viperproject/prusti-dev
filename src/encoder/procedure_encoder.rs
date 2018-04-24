@@ -688,8 +688,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_loop_invariant_exhale(&mut self, loop_head: BasicBlockIndex,
-                                    source: BasicBlockIndex) {
-        let invariant = self.loops.compute_loop_invariant(loop_head, &mut self.dataflow_info);
+                                    _source: BasicBlockIndex) {
+        let _invariant = self.loops.compute_loop_invariant(loop_head, &mut self.dataflow_info);
         unimplemented!();
     }
 
