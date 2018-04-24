@@ -2,9 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper::{self, Viper, Stmt, Expr, VerificationError, CfgMethod};
-use viper::{Domain, Field, Function, Predicate, Method};
-use viper::AstFactory;
+use viper::{Stmt, Expr, CfgMethod};
+use viper::{Field, Method};
 use viper::utils::ExprIterator;
 use rustc::mir;
 use rustc::ty;
@@ -19,10 +18,8 @@ use rustc::mir::TerminatorKind;
 use viper::Successor;
 use rustc::middle::const_val::ConstVal;
 use encoder::Encoder;
-use encoder::borrows::{compute_procedure_contract, ProcedureContractMirDef, ProcedureContract};
-use encoder::utils::*;
+use encoder::borrows::ProcedureContract;
 use rustc_data_structures::indexed_vec::Idx;
-use rustc::ty::layout::LayoutOf;
 use encoder::places::{Local, LocalVariableManager, Place};
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -38,7 +35,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p ProcedureImpl<'a, 'tcx>) -> Self {
-        let mut cfg_method = encoder.cfg_factory().new_cfg_method(
+        let cfg_method = encoder.cfg_factory().new_cfg_method(
             // method name
             encoder.encode_procedure_name(procedure.get_id()),
             // formal args
@@ -147,9 +144,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     },
 
-                    &mir::Rvalue::UnaryOp(op, ref operand) => unimplemented!("{:?}", rhs),
+                    &mir::Rvalue::UnaryOp(_op, ref _operand) => unimplemented!("{:?}", rhs),
 
-                    &mir::Rvalue::NullaryOp(op, ref ty) => unimplemented!("{:?}", rhs),
+                    &mir::Rvalue::NullaryOp(_op, ref _ty) => unimplemented!("{:?}", rhs),
 
                     &mir::Rvalue::Discriminant(ref src) => {
                         let discr_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
@@ -195,7 +192,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     }
 
-                    &mir::Rvalue::Ref(ref region, borrow_kind, ref place) => {
+                    &mir::Rvalue::Ref(ref _region, _borrow_kind, ref place) => {
                         let ref_var_name = self.cfg_method.add_fresh_local_var(ast.ref_type());
                         let ref_var = ast.local_var(&ref_var_name, ast.ref_type());
                         stmts.extend(
@@ -252,7 +249,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
                 trace!("SwitchInt ty '{:?}', discr '{:?}', values '{:?}'", switch_ty, discr, values);
                 let mut cfg_targets: Vec<(Expr, CfgBlockIndex)> = vec![];
-                let discr_var = if (switch_ty.sty == ty::TypeVariants::TyBool) {
+                let discr_var = if switch_ty.sty == ty::TypeVariants::TyBool {
                     let discr_var_name = self.cfg_method.add_fresh_local_var(ast.bool_type());
                     ast.local_var(&discr_var_name, ast.bool_type())
                 } else {
@@ -272,7 +269,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
-                    let viper_guard = if (switch_ty.sty == ty::TypeVariants::TyBool) {
+                    let viper_guard = if switch_ty.sty == ty::TypeVariants::TyBool {
                         if value == 0 {
                             // If discr is 0 (false)
                             ast.not(discr_var)
@@ -302,26 +299,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::Goto(abort_cfg_block))
             },
 
-            TerminatorKind::Drop { ref target, unwind, .. } => {
+            TerminatorKind::Drop { ref target, .. } => {
                 let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
             },
 
-            TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => {
+            TerminatorKind::FalseEdges { ref real_target, .. } => {
                 let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
             },
 
-            TerminatorKind::FalseUnwind { real_target, unwind } => {
+            TerminatorKind::FalseUnwind { real_target, .. } => {
                 let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
             },
 
-            TerminatorKind::DropAndReplace { ref target, unwind, ref location, ref value } => {
+            TerminatorKind::DropAndReplace { ref target, ref location, ref value, .. } => {
                 let (encoded_loc, _, _) = self.encode_place(location);
                 let (_, encoded_value, effects_before, effects_after) = self.encode_operand(value);
                 stmts.extend(effects_before);
-                if (self.is_place_encoded_as_local_var(location)) {
+                if self.is_place_encoded_as_local_var(location) {
                     stmts.push(
                         ast.local_var_assign(encoded_loc, encoded_value)
                     );
@@ -423,7 +420,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             TerminatorKind::Assert { ref cond, expected, ref target, .. } => {
                 trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
-                let mut cfg_targets: Vec<(Expr, CfgBlockIndex)> = vec![];
                 let cond_var_name = self.cfg_method.add_fresh_local_var(ast.bool_type());
                 let cond_var = ast.local_var(&cond_var_name, ast.bool_type());
                 let (cond_tmp_val, effect_stmts) = self.eval_operand(cond);
@@ -436,7 +432,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 stmts.extend(
                     effect_stmts
                 );
-                let viper_guard = if (expected) {
+                let viper_guard = if expected {
                     cond_var
                 } else {
                     ast.not(cond_var)
@@ -445,9 +441,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::GotoSwitch(vec![(viper_guard, target_cfg_block)], abort_cfg_block))
             }
 
-            TerminatorKind::Call { .. } |
             TerminatorKind::Resume |
-            TerminatorKind::Assert { .. } |
             TerminatorKind::Yield { .. } |
             TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
         }
@@ -458,7 +452,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let ast = self.encoder.ast_factory();
 
-        let mut start_block_stmts: Vec<Stmt> = vec![
+        let start_block_stmts: Vec<Stmt> = vec![
             ast.comment(&format!("========== start =========="))
         ];
 
@@ -513,7 +507,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode statements
         self.procedure.walk_once_cfg(|bbi, bb_data| {
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
-            let mut viper_statements: Vec<Stmt> = vec![];
 
             // Encode statements
             for (stmt_index, stmt) in statements.iter().enumerate() {
@@ -663,8 +656,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_local_var_name(&self, local: mir::Local) -> String {
-        let local_decl = self.get_rust_local_decl(local);
-        /*match local_decl.name {
+        /*let local_decl = self.get_rust_local_decl(local);
+        match local_decl.name {
             Some(ref name) => format!("{:?}", name),
             None => format!("{:?}", local)
         }*/
@@ -694,7 +687,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &place_projection.base, root);
         let ast = self.encoder.ast_factory();
         match &place_projection.elem {
-            &mir::ProjectionElem::Field(ref field, ty) => {
+            &mir::ProjectionElem::Field(ref field, _) => {
                 match base_ty.sty {
                     ty::TypeVariants::TyBool |
                     ty::TypeVariants::TyInt(_) |
@@ -719,7 +712,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
                         let num_variants = adt_def.variants.len();
-                        let field_name = if (num_variants == 1) {
+                        let field_name = if num_variants == 1 {
                             format!("struct_{}", field.name)
                         } else {
                             format!("enum_{}_{}", variant_index, field.name)
@@ -803,7 +796,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn eval_place(&mut self, place: &mir::Place<'tcx>) -> Expr<'v> {
-        let (encoded_place, place_ty, opt_variant_index) = self.encode_place(place);
+        let (encoded_place, place_ty, _) = self.encode_place(place);
         let value_field = self.encoder.encode_value_field(place_ty);
 
         self.encoder.ast_factory().field_access(
@@ -814,7 +807,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn is_place_encoded_as_local_var(&self, place: &mir::Place<'tcx>) -> bool {
         match place {
-            &mir::Place::Local(local) => true,
+            &mir::Place::Local(_) => true,
             &mir::Place::Projection(_) => false,
             x => unimplemented!("{:?}", x),
         }
@@ -894,7 +887,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .map(|x| self.encoder.encode_ref_field(&x.0))
             .collect();
 
-        if (dst_is_local_var) {
+        if dst_is_local_var {
             vec![
                 ast.new_stmt(
                     dst,
@@ -933,7 +926,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) => {
-                for (field_name, field, opt_field_ty) in fields_name_ty.drain(..) {
+                for (_, field, _) in fields_name_ty.drain(..) {
                     stmts.push(
                         ast.field_assign(
                             ast.field_access(dst, field),
@@ -955,7 +948,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
 
             _ => {
-                for (field_name, field, opt_field_ty) in fields_name_ty.drain(..) {
+                for (_, field, opt_field_ty) in fields_name_ty.drain(..) {
                     let inner_src = ast.field_access(src, field);
                     let inner_dst = ast.field_access(dst, field);
                     if let Some(field_ty) = opt_field_ty {
@@ -990,7 +983,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_bin_op_check(&mut self, op: mir::BinOp, left: Expr<'v>, right: Expr<'v>) -> Expr<'v> {
+    fn encode_bin_op_check(&mut self, op: mir::BinOp, _left: Expr<'v>, _right: Expr<'v>) -> Expr<'v> {
         warn!("TODO: Encode bin op check {:?} ", op);
         // TODO
         self.encoder.ast_factory().true_lit()
@@ -1029,7 +1022,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (dst_var, stmts)
             },
 
-            &mir::AggregateKind::Adt(adt_def, variant_index, substs, n) => {
+            &mir::AggregateKind::Adt(adt_def, variant_index, _, _) => {
                 let num_variants = adt_def.variants.len();
                 if num_variants > 1 {
                     let discr_field = self.encoder.encode_discriminant_field().1;
@@ -1043,7 +1036,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let variant_def = &adt_def.variants[variant_index];
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                     let operand = &operands[field_index];
-                    let field_name = if (num_variants == 1) {
+                    let field_name = if num_variants == 1 {
                         format!("struct_{}", field.name)
                     } else {
                         format!("enum_{}_{}", variant_index, field.name)

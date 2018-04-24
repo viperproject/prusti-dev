@@ -2,30 +2,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper::{self, Viper, Expr, VerificationError};
+use viper::{self, Expr};
 use viper::{Domain, Field, Function, Predicate, Method};
-use viper::AstFactory;
-use rustc::mir;
 use rustc::hir::def_id::DefId;
 use rustc::ty;
-use prusti_interface::environment::Procedure;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::EnvironmentImpl;
-use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use std::collections::HashMap;
-use std::collections::HashSet;
-use viper::CfgBlockIndex;
-use rustc::mir::TerminatorKind;
-use syntax::ast;
-use viper::Successor;
 use rustc::middle::const_val::ConstVal;
 use encoder::places;
 use encoder::borrows::{ProcedureContractMirDef, ProcedureContract, compute_procedure_contract};
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
-use encoder::utils::*;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     ast_factory: viper::AstFactory<'v>,
@@ -106,7 +96,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_value_field_name(&self, ty: ty::Ty<'tcx>) -> String {
-        let mut type_encoder = TypeEncoder::new(self, ty);
+        let type_encoder = TypeEncoder::new(self, ty);
         let field_name = type_encoder.encode_value_field_name();
         // Trigger encoding of definition
         self.encode_value_field_with_name(&field_name, ty);
@@ -120,7 +110,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     fn encode_value_field_with_name(&self, field_name: &str, ty: ty::Ty<'tcx>) -> Field<'v> {
         *self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
-            let mut type_encoder = TypeEncoder::new(self, ty);
+            let type_encoder = TypeEncoder::new(self, ty);
             type_encoder.encode_value_field()
         })
     }
@@ -142,7 +132,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> Method<'v> {
         if !self.procedures.borrow().contains_key(&proc_def_id) {
             let procedure = self.env.get_procedure(proc_def_id);
-            let mut procedure_encoder = ProcedureEncoder::new(self, &procedure);
+            let procedure_encoder = ProcedureEncoder::new(self, &procedure);
             let result = procedure_encoder.encode();
             self.procedures.borrow_mut().insert(proc_def_id, result);
         }
@@ -150,9 +140,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<(String, Field<'v>, Option<ty::Ty<'tcx>>)> {
-        let mut type_encoder = TypeEncoder::new(self, ty);
+        let type_encoder = TypeEncoder::new(self, ty);
         let fields = type_encoder.encode_fields();
-        for &(ref field_name, field, opt_field_ty) in &fields {
+        for &(ref field_name, field, _) in &fields {
             self.fields.borrow_mut().entry(field_name.to_string()).or_insert(field);
         }
         fields
@@ -160,7 +150,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
         if !self.type_predicate_names.borrow().contains_key(&ty.sty) {
-            let mut type_encoder = TypeEncoder::new(self, ty);
+            let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_predicate_use();
             self.type_predicate_names.borrow_mut().insert(ty.sty.clone(), result);
             // Trigger encoding of definition
@@ -172,7 +162,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> Predicate<'v> {
         let predicate_name = self.encode_type_predicate_use(ty);
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
-            let mut type_encoder = TypeEncoder::new(self, ty);
+            let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_predicate_def();
             self.type_predicates.borrow_mut().insert(predicate_name.clone(), result);
         }

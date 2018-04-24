@@ -7,9 +7,8 @@ use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::environment::EnvironmentImpl;
-use prusti_interface::environment::Procedure;
 use prusti_interface::data::VerificationTask;
-use viper::{self, Viper, Method, Field, VerificationError};
+use viper::{self, Viper};
 use encoder::Encoder;
 
 pub struct VerifierBuilder {

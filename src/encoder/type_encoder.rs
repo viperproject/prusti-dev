@@ -2,22 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper::{self, Viper, Stmt, Expr, VerificationError, CfgMethod};
-use viper::{Domain, Field, Function, Predicate, Method};
-use viper::AstFactory;
-use rustc::mir;
+use viper::Expr;
+use viper::{Field, Predicate};
 use rustc::ty;
-use prusti_interface::environment::Procedure;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::Environment;
-use std::collections::HashMap;
-use viper::CfgBlockIndex;
-use prusti_interface::environment::BasicBlockIndex;
-use rustc::mir::TerminatorKind;
-use viper::Successor;
-use rustc::middle::const_val::ConstVal;
 use encoder::Encoder;
-use encoder::utils::*;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -142,7 +130,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let mut perms: Vec<Expr<'v>> = vec![];
                 let num_variants = adt_def.variants.len();
                 let tcx = self.encoder.env().tcx();
-                if (num_variants == 1) {
+                if num_variants == 1 {
                     debug!("ADT has only one variant: {:?}", adt_def);
                     for field in &adt_def.variants[0].fields {
                         debug!("Encoding field {:?}", field);
@@ -170,7 +158,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             )
                         )
                     }
-                } else if (num_variants > 1) {
+                } else if num_variants > 1 {
                     debug!("ADT has {} variants: {:?}", num_variants, adt_def);
                     let (_, discriminant_field) = self.encoder.encode_discriminant_field();
                     let discriminan_loc = ast.field_access(
@@ -331,7 +319,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                     assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                     for field in &variant_def.fields {
-                        let field_name = if (num_variants == 1) {
+                        let field_name = if num_variants == 1 {
                             format!("struct_{}", field.name)
                         } else {
                             format!("enum_{}_{}", variant_index, field.name)

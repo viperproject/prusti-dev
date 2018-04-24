@@ -3,14 +3,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
-use rustc::ty::{self, TyCtxt, Ty, TypeVariants, TypeFlags};
+use rustc::ty::{self, TyCtxt, Ty};
 use rustc::mir;
 use rustc_data_structures::indexed_vec::Idx;
 use utils::type_visitor::{self, TypeVisitor};
 use encoder::places;
 use std::collections::HashMap;
 
-use prusti_interface::environment::{ProcedureImpl, Procedure};
 use prusti_interface::data::ProcedureDefId;
 
 
@@ -43,7 +42,7 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
             ty::BoundRegion::BrAnon(id) => format!("#{}", id),
-            ty::BoundRegion::BrNamed(_, name) => name.as_str().to_string(),
+            ty::BoundRegion::BrNamed(_, name) => name.to_string(),
             _ => unimplemented!(),
         };
         writeln!(f, "BorrowInfo<{}> {{", lifetime)?;
@@ -308,7 +307,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
             .iter()
             .any(|info| info.blocked_paths.contains(place))
     };
-    let mut returned_refs: Vec<_> = visitor
+    let returned_refs: Vec<_> = visitor
         .references_in
         .into_iter()
         .filter(is_not_blocked)

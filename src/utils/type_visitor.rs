@@ -116,14 +116,14 @@ pub fn walk_field<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
 }
 
 pub fn walk_ref<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
-                                                    region: Region<'tcx>,
+                                                    _: Region<'tcx>,
                                                     tym: TypeAndMut<'tcx>) {
     visitor.visit_ref_type(tym.ty, tym.mutbl);
 }
 
 pub fn walk_ref_type<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
                                                          ty: Ty<'tcx>,
-                                                         mutability: Mutability) {
+                                                         _: Mutability) {
     visitor.visit_ty(ty);
 }
 
