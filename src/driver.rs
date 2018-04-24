@@ -127,6 +127,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
     }
 }
 
+#[allow(dead_code)]
 fn get_sysroot() -> String {
     Command::new("rustc")
         .arg("--print")
@@ -141,7 +142,7 @@ fn get_sysroot() -> String {
 pub fn main() {
     env_logger::init().unwrap();
     trace!("[main] enter");
-    let mut args: Vec<String> = std::env::args().collect();
+    let args: Vec<String> = std::env::args().collect();
     //args.push("--sysroot".to_owned());
     //args.push(get_sysroot());
     let mut prusti_compiler_calls = PrustiCompilerCalls::new();

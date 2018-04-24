@@ -41,7 +41,6 @@
 #![feature(rustc_private)]
 #![feature(macro_vis_matcher)]
 #![feature(try_from)]
-#![feature(i128_type)]
 
 #[macro_use]
 extern crate log;

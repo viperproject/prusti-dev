@@ -25,8 +25,6 @@ run:
 		-Z identify-regions \
 		-Z verbose \
 		-Z borrowck=mir \
-		-Z nll \
-		-Z nll_dump_cause \
 		${RUN_FILE}
 	dot -Tpdf graph.dot -O
 	#dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
@@ -41,7 +39,6 @@ generate_ui_stderr:
         --extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
         -Z mir-emit-validate=1 \
 		-Z borrowck=mir \
-		-Z nll \
 		${RUN_FILE} 2> ${STDERR_FILE}
 	sed -e "s|${RUN_FILE_FOLDER}|\$$DIR|g" -i ${STDERR_FILE}
 
