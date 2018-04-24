@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 use rustc_data_structures::control_flow_graph::dominators::Dominators;
 use rustc::mir;
 use rustc::mir::visit::Visitor;
-use environment::procedure::{BasicBlockIndex, BasicBlockData, Procedure};
+use environment::procedure::BasicBlockIndex;
 
 /// A visitor that collects the loop heads and bodies.
 struct LoopHeadCollector<'d> {
@@ -166,7 +166,7 @@ impl ProcedureLoops {
 
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Mir<'tcx>) -> ProcedureLoops {
         let dominators = mir.dominators();
-        let mut back_edges;
+        let back_edges;
         {
             let mut visitor = LoopHeadCollector {
                 back_edges: Vec::new(),
@@ -180,7 +180,7 @@ impl ProcedureLoops {
             let body = loop_bodies.entry(target).or_insert(HashSet::new());
             collect_loop_body(target, source, mir, body);
         }
-        let mut loop_heads: Vec<_> = loop_bodies.keys().map(|k| *k).collect();
+        let loop_heads: Vec<_> = loop_bodies.keys().map(|k| *k).collect();
         ProcedureLoops {
             loop_heads: loop_heads,
             loop_bodies: loop_bodies,

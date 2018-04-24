@@ -169,6 +169,7 @@ impl<'a, 'tcx> ProcedureImpl<'a, 'tcx> {
         types.into_iter().collect()
     }
 
+    /// Constructs a querable interface to MIR dataflow analysis results.
     pub fn construct_dataflow_info(&self) -> dataflow::DataflowInfo<'tcx> {
         dataflow::construct_dataflow_info(self.tcx, self.proc_def_id, &self.mir)
     }

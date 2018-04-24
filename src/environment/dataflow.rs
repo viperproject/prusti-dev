@@ -34,19 +34,19 @@ impl<'tcx> DataflowInfo<'tcx> {
     }
 }
 
-static mut data: Option<MirDataflowInfo<'static>> = None;
+static mut DATA: Option<MirDataflowInfo<'static>> = None;
 
 /// This function uses global mutable state and it should not be invoked
 /// concurrently.
 pub fn construct_dataflow_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId,
                                          mir: &mir::Mir<'tcx>) -> DataflowInfo<'tcx> {
     debug!("Def id = {:?}", def_id);
-    assert!(tcx.nll());
-    let opt_closure_req = tcx.infer_ctxt().enter(|infcx| {
+    assert!(tcx.features().nll);
+    tcx.infer_ctxt().enter(|infcx| {
         do_mir_borrowck(&infcx, mir, def_id, Some(box callback))
     });
     let mir_info = unsafe {
-        transmute::<MirDataflowInfo<'static>, MirDataflowInfo<'tcx>>(data.take().unwrap())
+        transmute::<MirDataflowInfo<'static>, MirDataflowInfo<'tcx>>(DATA.take().unwrap())
     };
     DataflowInfo {
         mir_info: mir_info,
@@ -72,8 +72,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
 
         flows.reset_to_entry_of(bb);
 
-        let mir::BasicBlockData { ref statements, ref terminator, is_cleanup: _ } =
-            mbcx.mir[bb];
+        let mir::BasicBlockData { ref statements, .. } = mbcx.mir[bb];
         let mut location = mir::Location { block: bb, statement_index: 0 };
 
         let terminator_index = statements.len();
@@ -111,6 +110,6 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
 
     unsafe {
         let dataflow_info = transmute::<MirDataflowInfo<'tcx>, MirDataflowInfo<'static>>(dataflow_info);
-        data = Some(dataflow_info);
+        DATA = Some(dataflow_info);
     }
 }
