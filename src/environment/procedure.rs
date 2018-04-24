@@ -1,6 +1,5 @@
 use rustc::mir;
-use rustc::ty::{self, Ty, TyCtxt};
-use rustc::hir::def_id::DefId;
+use rustc::ty::{Ty, TyCtxt};
 use std::collections::HashSet;
 use rustc::mir::Mir;
 use std::cell::Ref;
@@ -9,7 +8,10 @@ use rustc::mir::BasicBlock;
 use rustc::mir::TerminatorKind;
 use data::ProcedureDefId;
 
+/// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
+
+/// A Basic Block Data
 pub type BasicBlockData<'tcx> = mir::BasicBlockData<'tcx>;
 
 /// A facade that provides information about the Rust procedure.
@@ -17,36 +19,25 @@ pub trait Procedure<'tcx> {
     /// Get definition ID of the procedure.
     fn get_id(&self) -> ProcedureDefId;
 
+    /// Get the MIR of the procedure
     fn get_mir(&self) -> &mir::Mir<'tcx>;
 
+    /// Get the name of the procedure
     fn get_name(&self) -> String;
 
     /// Iterate over all CFG basic blocks
-    fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData<'tcx>);
+    fn walk_once_raw_cfg<F>(&self, visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData<'tcx>);
 
     /// Iterate over all CFG basic blocks that are not part of the specification type checking
-    fn walk_once_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData<'tcx>);
+    fn walk_once_cfg<F>(&self, visitor: F) where F: FnMut(BasicBlockIndex, &BasicBlockData<'tcx>);
 }
 
+/// An implementation of the Procedure interface
 pub struct ProcedureImpl<'a, 'tcx: 'a> {
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     proc_def_id: ProcedureDefId,
     mir: Ref<'a, Mir<'tcx>>,
     nonspec_basic_blocks: HashSet<BasicBlock>,
-}
-
-fn get_type_def_id<'tcx>(ty: Ty<'tcx>) -> Option<DefId> {
-    match ty.sty {
-        ty::TyAdt(def, _) => Some(def.did),
-        _ => None
-    }
-}
-
-fn clean_type<'a, 'gcx, 'tcx>(tcx: TyCtxt<'a, 'gcx, 'tcx>, ty: Ty<'tcx>) -> Ty<'tcx> {
-    match get_type_def_id(ty) {
-        Some(def_id) => tcx.type_of(def_id),
-        None => ty
-    }
 }
 
 fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
@@ -64,20 +55,20 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
         TerminatorKind::Unreachable =>
             vec![],
 
-        TerminatorKind::DropAndReplace { ref target, ref unwind, .. } |
-        TerminatorKind::Drop { ref target, ref unwind, .. } =>
+        TerminatorKind::DropAndReplace { ref target, .. } |
+        TerminatorKind::Drop { ref target, .. } =>
             vec![*target],
 
-        TerminatorKind::Call { ref destination, ref cleanup, .. } => {
+        TerminatorKind::Call { ref destination, .. } => {
             match *destination {
                 Some((_, target)) => vec![target],
                 None => vec![]
             }
         }
 
-        TerminatorKind::FalseEdges { ref real_target, ref imaginary_targets } => vec![*real_target],
+        TerminatorKind::FalseEdges { ref real_target, .. } => vec![*real_target],
 
-        TerminatorKind::FalseUnwind { ref real_target, ref unwind } => vec![*real_target],
+        TerminatorKind::FalseUnwind { ref real_target, .. } => vec![*real_target],
 
         TerminatorKind::Yield { .. } |
         TerminatorKind::GeneratorDrop => unimplemented!(),
@@ -151,12 +142,15 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
 }
 
 impl<'a, 'tcx> ProcedureImpl<'a, 'tcx> {
+    /// Builds an implementation of the Procedure interface, given a typing context and the
+    /// identifier of a procedure
     pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, proc_def_id: ProcedureDefId) -> Self {
         let mir = tcx.mir_validated(proc_def_id).borrow();
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
         ProcedureImpl { tcx, proc_def_id, mir, nonspec_basic_blocks }
     }
 
+    /// Returns all the types used in the procedure, and any types reachable from them
     pub fn get_declared_types(&self) -> Vec<Ty<'tcx>> {
         let mut types: HashSet<Ty> = HashSet::new();
         for var in &self.mir.local_decls {
@@ -169,7 +163,6 @@ impl<'a, 'tcx> ProcedureImpl<'a, 'tcx> {
         }
         types.into_iter().collect()
     }
-
 }
 
 impl<'a, 'tcx> Procedure<'tcx> for ProcedureImpl<'a, 'tcx> {

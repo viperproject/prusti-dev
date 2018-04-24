@@ -4,7 +4,7 @@
 
 //! This module defines the verifier's interface.
 
-use environment::{EnvironmentImpl, Procedure};
+use environment::EnvironmentImpl;
 use data::{VerificationResult, VerificationTask};
 
 /// A verifier builder is an object that lives entire program's

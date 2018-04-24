@@ -33,7 +33,7 @@ use rustc::ty::{self, Ty, TyCtxt};
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>) {
     trace!("[dump_useful_info] enter");
 
-    assert!(tcx.nll());
+    assert!(tcx.features().nll);
     let mut printer = InfoPrinter {
         tcx: tcx,
     };
@@ -173,8 +173,8 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
     trace!("[callback] enter");
     debug!("flows: {}", flows);
     //debug!("MIR: {:?}", mbcx.mir);
-    let mut graph = File::create("graph.dot").expect("Unable to create file");
-    let mut graph = BufWriter::new(graph);
+    let graph_file = File::create("graph.dot").expect("Unable to create file");
+    let mut graph = BufWriter::new(graph_file);
     graph.write_all(b"digraph G {\n").unwrap();
     writeln!(graph, "graph [compound=true];").unwrap();
 
@@ -186,8 +186,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
     let show_source = get_config_option("PRUSTI_DUMP_SHOW_SOURCE", false);
     let show_definitely_init = get_config_option("PRUSTI_DUMP_SHOW_DEFINITELY_INIT", false);
     let show_unknown_init = get_config_option("PRUSTI_DUMP_SHOW_UNKNOWN_INIT", false);
-    let show_reserved_borrows = get_config_option("PRUSTI_DUMP_SHOW_RESERVED_BORROWS", true);
-    let show_active_borrows = get_config_option("PRUSTI_DUMP_SHOW_ACTIVE_BORROWS", true);
+    let show_borrows = get_config_option("PRUSTI_DUMP_SHOW_BORROWS", true);
     let show_move_out = get_config_option("PRUSTI_DUMP_SHOW_MOVE_OUT", true);
     let show_ever_init = get_config_option("PRUSTI_DUMP_SHOW_EVER_INIT", false);
     let show_lifetime_regions = get_config_option("PRUSTI_DUMP_SHOW_LIFETIME_REGIONS", true);
@@ -197,8 +196,8 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
     let show_lifetime_constraints =  get_config_option("PRUSTI_DUMP_SHOW_LIFETIME_CONSTRAINTS", true);
     let show_types =  get_config_option("PRUSTI_DUMP_SHOW_TYPES", true);
 
-    let regioncx = mbcx.nonlexical_regioncx.as_ref().unwrap();
-    let region_values = regioncx.inferred_values();
+    let regioncx = mbcx.nonlexical_regioncx.as_ref();
+    //let region_values = regioncx.inferred_values();
 
     // Scope tree.
     let mut scope_tree: FxHashMap<VisibilityScope, Vec<VisibilityScope>> = FxHashMap();
@@ -258,7 +257,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         writeln!(graph, "subgraph clusterconstraints {{").unwrap();
         writeln!(graph, "label = \"Lifetime constraints\";").unwrap();
         writeln!(graph, "node[shape=box];").unwrap();
-        for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
+        for (region_vid, _) in regioncx.definitions.iter_enumerated() {
             let region_name = escape_html(format!("{:?}", region_vid));
             writeln!(graph, "\"{}\";", region_name).unwrap();
         }
@@ -315,8 +314,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         if show_source { graph.write_all(format!("<td>source</td>").as_bytes()).unwrap(); }
         if show_definitely_init { graph.write_all(format!("<td>definitely init</td>").as_bytes()).unwrap(); }
         if show_unknown_init { graph.write_all(format!("<td>unknown init</td>").as_bytes()).unwrap(); }
-        if show_reserved_borrows { graph.write_all(format!("<td>reserved borrows</td>").as_bytes()).unwrap(); }
-        if show_active_borrows { graph.write_all(format!("<td>active borrows</td>").as_bytes()).unwrap(); }
+        if show_borrows { graph.write_all(format!("<td>borrows</td>").as_bytes()).unwrap(); }
         if show_move_out { graph.write_all(format!("<td>move out</td>").as_bytes()).unwrap(); }
         if show_ever_init { graph.write_all(format!("<td>ever init</td>").as_bytes()).unwrap(); }
         if show_lifetime_regions { graph.write_all(format!("<td>gen lifetimes</td>").as_bytes()).unwrap(); }
@@ -430,7 +428,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
 
             let definitely_init: HashSet<Place> = maybe_init.difference(&maybe_uninit).cloned().collect();
             let unknown_init: HashSet<Place> = maybe_init.intersection(&maybe_uninit).cloned().collect();
-            let definitely_uninit: HashSet<Place> = maybe_uninit.difference(&maybe_init).cloned().collect();
+            //let definitely_uninit: HashSet<Place> = maybe_uninit.difference(&maybe_init).cloned().collect();
 
             debug!("definitely initialised:");
             for place in &definitely_init {
@@ -454,17 +452,16 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
 
             let mut borrows_gen: HashSet<Place> = HashSet::new();
             let mut borrows_kill: HashSet<Place> = HashSet::new();
-            let mut reserved_borrows: HashSet<OurBorrowData> = HashSet::new();
-            let mut active_borrows: HashSet<OurBorrowData> = HashSet::new();
+            let mut borrows_state: HashSet<OurBorrowData> = HashSet::new();
 
             debug!("borrows:");
             flows.borrows.each_gen_bit(|borrow| {
-                let borrow_data = &flows.borrows.operator().borrows()[borrow.borrow_index()];
+                let borrow_data = &flows.borrows.operator().borrows()[borrow];
                 debug!("  gen: {}", &borrow_data);
                 borrows_gen.insert(borrow_data.borrowed_place.clone());
             });
             flows.borrows.each_kill_bit(|borrow| {
-                let borrow_data = &flows.borrows.operator().borrows()[borrow.borrow_index()];
+                let borrow_data = &flows.borrows.operator().borrows()[borrow];
                 debug!("  kill: {}", &borrow_data);
                 borrows_kill.insert(borrow_data.borrowed_place.clone());
             });
@@ -472,31 +469,21 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
             flows.borrows.each_state_bit(|borrow| {
                 let borrows = &flows.borrows.operator();
                 //debug!("  assigned_map: {:?}", &borrows.0.assigned_map);
-                let borrow_data = &borrows.borrows()[borrow.borrow_index()];
+                let borrow_data = &borrows.borrows()[borrow];
                 let our_borrow_data = OurBorrowData {
                     kind: borrow_data.kind.clone(),
                     region: borrow_data.region,
                     borrowed_place: borrow_data.borrowed_place.clone(),
                     assigned_place: borrow_data.assigned_place.clone(),
                 };
-                if borrow.is_activation() {
-                    debug!("  state: ({:?} =) {} @active", &borrow_data.assigned_place, &borrow_data);
-                    active_borrows.insert(our_borrow_data);
-                } else {
-                    debug!("  state: ({:?} =) {}", &borrow_data.assigned_place, &borrow_data);
-                    reserved_borrows.insert(our_borrow_data);
-                }
+
+                debug!("  state: ({:?} =) {}", &borrow_data.assigned_place, &borrow_data);
+                borrows_state.insert(our_borrow_data);
             });
 
-            if show_reserved_borrows {
+            if show_borrows {
                 graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(as_sorted_string(&reserved_borrows).as_bytes()).unwrap();
-                graph.write_all(format!("</td>").as_bytes()).unwrap();
-            }
-
-            if show_active_borrows {
-                graph.write_all(format!("<td>").as_bytes()).unwrap();
-                graph.write_all(as_sorted_string(&active_borrows).as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&borrows_state).as_bytes()).unwrap();
                 graph.write_all(format!("</td>").as_bytes()).unwrap();
             }
 
@@ -507,8 +494,8 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
             flows.move_outs.each_state_bit(|mpi_move_out| {
                 let move_data = &flows.move_outs.operator().move_data();
                 let move_out_data = &move_data.moves[mpi_move_out];
-                let mut move_path_index = move_out_data.path;
-                let mut move_path = &move_data.move_paths[move_path_index];
+                let move_path_index = move_out_data.path;
+                let move_path = &move_data.move_paths[move_path_index];
                 let place = &move_path.place;
                 debug!("  state: {:?} - {:?}", place, move_out_data);
                 move_out.insert(place.clone());
@@ -544,7 +531,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
                 if first_run {
                     graph.write_all(format!("<td>").as_bytes()).unwrap();
                     for region_vid in &lifetime_regions_state {
-                        let region_definition = &regioncx.definitions[*region_vid];
+                        // let region_definition = &regioncx.definitions[*region_vid];
                         debug!("  state: {:?}", region_vid);
                         graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
                     }
@@ -552,7 +539,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
                 } else {
                     graph.write_all(format!("<td>").as_bytes()).unwrap();
                     for region_vid in &gen_lifetime_regions {
-                        let region_definition = &regioncx.definitions[*region_vid];
+                        // let region_definition = &regioncx.definitions[*region_vid];
                         debug!("  gen: {:?}", region_vid);
                         graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
                     }
@@ -560,7 +547,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
 
                     graph.write_all(format!("<td>").as_bytes()).unwrap();
                     for region_vid in &kill_lifetime_regions {
-                        let region_definition = &regioncx.definitions[*region_vid];
+                        // let region_definition = &regioncx.definitions[*region_vid];
                         debug!("  kill: {:?}", region_vid);
                         graph.write_all(escape_html(format!("{:?}, ", region_vid)).as_bytes()).unwrap();
                     }
@@ -744,7 +731,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         writeln!(graph, "label = \"Lifetime constraints for {:?}\";", loop_head).unwrap();
         writeln!(graph, "node[shape=box];").unwrap();
         let mut nodes = Vec::new();
-        for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
+        for (region_vid, _) in regioncx.definitions.iter_enumerated() {
             nodes.push(region_vid);
         }
         let mut edges = Vec::new();
@@ -800,6 +787,7 @@ fn escape_html<S: Into<String>>(s: S) -> String {
 
 /// Returns true if place `a` is contained in place `b`.
 /// That is, if `b` is a prefix of `a`.
+#[allow(dead_code)]
 fn place_leq(a: &Place, b: &Place) -> bool {
     b.is_prefix_of(a)
 }
@@ -828,6 +816,7 @@ fn places_leq(a: &HashSet<Place>, b: &HashSet<Place>) -> bool {
     return true;
 }
 
+#[allow(dead_code)]
 fn has_prusti_with(attrs: &[ast::Attribute], name: &str) -> bool {
     for attr in attrs {
         if attr.check_name(name) {
@@ -852,15 +841,14 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
 
         trace!("[visit_fn] enter name={:?}", name);
         let def_id = self.tcx.hir.local_def_id(node_id);
-        let attributes = self.tcx.get_attrs(def_id);
+        //let attributes = self.tcx.get_attrs(def_id);
 
         match env::var_os("PRUSTI_DUMP_PROC").and_then(|value| value.into_string().ok()) {
             Some(value) => {
                 if name == value {
                     debug!("dump mir for fn {:?}", name);
-
                     let input_mir = &self.tcx.mir_validated(def_id).borrow();
-                    let opt_closure_req = self.tcx.infer_ctxt().enter(|infcx| {
+                    self.tcx.infer_ctxt().enter(|infcx| {
                         do_mir_borrowck(&infcx, input_mir, def_id, Some(box callback))
                     });
                 }

@@ -19,8 +19,10 @@ use self::dump_borrowck_info::dump_borrowck_info;
 
 /// A facade to the Rust compiler.
 pub trait Environment<'tcx> {
+    /// The concrete type that implements the Procedure interface
     type ProcedureImpl: Procedure<'tcx>;
 
+    /// Get the name of an item
     fn get_item_name(&self, proc_def_id: DefId) -> String;
 
     /// Get a Procedure.
