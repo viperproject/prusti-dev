@@ -1,5 +1,6 @@
 extern crate prusti_contracts;
 
+/*
 struct F<'a> {
     f: &'a mut u32,
 }
@@ -11,6 +12,16 @@ struct T<'a> {
 fn use_t<'a, 'b>(x: &'a mut T<'b>) -> &'a mut F<'b> {
     x.f
 }
+
+fn borrow(_x: &mut u32) {
+}
+
+*/
+fn reborrow(x: &mut u32) -> &mut u32 {
+    x
+}
+fn test2() {}
+/*
 
 fn test() {
     let mut y = 4;
@@ -35,5 +46,9 @@ fn assign_f<'a, 'b>(x: &'a mut F<'b>, y: &'b mut u32) -> &'a mut u32 {
     x.f
 }
 
+*/
 fn main() {
+    let mut x = 4;
+    let y = reborrow(&mut x);
+    test2();
 }
