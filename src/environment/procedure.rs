@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 use rustc::mir;
 use rustc::ty::{Ty, TyCtxt};
 use std::collections::HashSet;
@@ -7,6 +11,7 @@ use rustc::mir::Terminator;
 use rustc::mir::BasicBlock;
 use rustc::mir::TerminatorKind;
 use data::ProcedureDefId;
+use environment::dataflow;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -162,6 +167,10 @@ impl<'a, 'tcx> ProcedureImpl<'a, 'tcx> {
             }
         }
         types.into_iter().collect()
+    }
+
+    pub fn construct_dataflow_info(&self) -> dataflow::DataflowInfo<'tcx> {
+        dataflow::construct_dataflow_info(self.tcx, self.proc_def_id, &self.mir)
     }
 }
 

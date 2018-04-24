@@ -184,6 +184,8 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
 
     let show_statement_indices = get_config_option("PRUSTI_DUMP_SHOW_STATEMENT_INDICES", true);
     let show_source = get_config_option("PRUSTI_DUMP_SHOW_SOURCE", false);
+    let show_maybe_init = get_config_option("PRUSTI_DUMP_SHOW_MAYBE_INIT", false);
+    let show_maybe_uninit = get_config_option("PRUSTI_DUMP_SHOW_MAYBE_UNINIT", false);
     let show_definitely_init = get_config_option("PRUSTI_DUMP_SHOW_DEFINITELY_INIT", false);
     let show_unknown_init = get_config_option("PRUSTI_DUMP_SHOW_UNKNOWN_INIT", false);
     let show_borrows = get_config_option("PRUSTI_DUMP_SHOW_BORROWS", true);
@@ -312,6 +314,8 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         if show_statement_indices { graph.write_all(format!("<td>Nr</td>").as_bytes()).unwrap(); }
         graph.write_all(format!("<td>statement</td>").as_bytes()).unwrap();
         if show_source { graph.write_all(format!("<td>source</td>").as_bytes()).unwrap(); }
+        if show_maybe_init { graph.write_all(format!("<td>maybe init</td>").as_bytes()).unwrap(); }
+        if show_maybe_uninit { graph.write_all(format!("<td>maybe uninit</td>").as_bytes()).unwrap(); }
         if show_definitely_init { graph.write_all(format!("<td>definitely init</td>").as_bytes()).unwrap(); }
         if show_unknown_init { graph.write_all(format!("<td>unknown init</td>").as_bytes()).unwrap(); }
         if show_borrows { graph.write_all(format!("<td>borrows</td>").as_bytes()).unwrap(); }
@@ -416,6 +420,11 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
                 maybe_init.insert(place.clone());
                 debug!("  state: {:?} - {:?}", place, move_path);
             });
+            if show_maybe_init {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&maybe_init).as_bytes()).unwrap();
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
             debug!("maybe uninitialised:");
             flows.uninits.each_state_bit(|mpi_uninit| {
@@ -425,6 +434,11 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
                 maybe_uninit.insert(place.clone());
                 debug!("  state: {:?} - {:?}", place, move_path);
             });
+            if show_maybe_uninit {
+                graph.write_all(format!("<td>").as_bytes()).unwrap();
+                graph.write_all(as_sorted_string(&maybe_uninit).as_bytes()).unwrap();
+                graph.write_all(format!("</td>").as_bytes()).unwrap();
+            }
 
             let definitely_init: HashSet<Place> = maybe_init.difference(&maybe_uninit).cloned().collect();
             let unknown_init: HashSet<Place> = maybe_init.intersection(&maybe_uninit).cloned().collect();

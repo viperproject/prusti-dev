@@ -9,11 +9,15 @@ use rustc::ty::TyCtxt;
 use rustc::hir::def_id::DefId;
 
 mod procedure;
+mod loops;
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
+mod dataflow;
 
 use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};
+pub use self::loops::{ProcedureLoops, PlaceAccess, PlaceAccessKind};
+pub use self::dataflow::DataflowInfo;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::dump_borrowck_info::dump_borrowck_info;
 
