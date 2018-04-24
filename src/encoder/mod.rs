@@ -4,6 +4,7 @@
 
 mod encoder;
 mod procedure_encoder;
+mod loop_encoder;
 mod borrows;
 mod type_encoder;
 mod utils;

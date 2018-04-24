@@ -21,6 +21,8 @@ use encoder::Encoder;
 use encoder::borrows::ProcedureContract;
 use rustc_data_structures::indexed_vec::Idx;
 use encoder::places::{Local, LocalVariableManager, Place};
+use encoder::loop_encoder::LoopEncoder;
+use prusti_interface::environment::DataflowInfo;
 
 static PRECONDITION_LABEL: &'static str = "pre";
 
@@ -31,6 +33,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir: &'p mir::Mir<'tcx>,
     cfg_method: CfgMethod<'v, 'p>,
     locals: LocalVariableManager<'tcx>,
+    loops: LoopEncoder<'tcx>,
+    dataflow_info: DataflowInfo<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -48,6 +52,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let mir = procedure.get_mir();
         let locals = LocalVariableManager::new(&mir.local_decls);
+        let loops = LoopEncoder::new(mir);
+        let dataflow_info = procedure.construct_dataflow_info();
 
         ProcedureEncoder {
             encoder,
@@ -56,6 +62,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir: mir,
             cfg_method,
             locals: locals,
+            loops: loops,
+            dataflow_info: dataflow_info,
         }
     }
 
@@ -347,6 +355,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 ),
                 ..
+            } |
+            TerminatorKind::Call {
+                ref args,
+                ref destination,
+                func: mir::Operand::Constant(
+                    box mir::Constant {
+                        literal: mir::Literal::Value {
+                            value: ty::Const {
+                                ty: &ty::TyS {
+                                    sty: ty::TyFnDef(def_id, ..),
+                                    ..
+                                },
+                                ..
+                            }
+                        },
+                        ..
+                    }
+                ),
+                ..
             } => {
                 let ast = self.encoder.ast_factory();
                 let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
@@ -413,9 +440,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
             },
 
-            TerminatorKind::Call { .. } => {
+            TerminatorKind::Call { ..} => {
                 // Other kind of calls?
-                unimplemented!()
+                unimplemented!();
             },
 
             TerminatorKind::Assert { ref cond, expected, ref target, .. } => {
@@ -508,6 +535,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.procedure.walk_once_cfg(|bbi, bb_data| {
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
 
+            //TODO: Implement:
+            //if self.loop_encoder.is_loop_head(bbi) {
+                //self.encode_loop_invariant_inhale(bbi);
+            //}
+
             // Encode statements
             for (stmt_index, stmt) in statements.iter().enumerate() {
                 trace!("Encode statement {:?}:{}", bbi, stmt_index);
@@ -516,6 +548,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let stmts = self.encode_statement(stmt);
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
+                }
+            }
+
+            let successor_count = bb_data.terminator().successors().len();
+            for successor in bb_data.terminator().successors().iter() {
+                if self.loops.is_loop_head(successor) {
+                    assert!(successor_count == 1);
+                    self.encode_loop_invariant_exhale(*successor, bbi);
                 }
             }
         });
@@ -645,6 +685,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let postcondition = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
         let exhale_stmt = ast.exhale(postcondition, ast.no_position());
         self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
+    }
+
+    fn encode_loop_invariant_exhale(&mut self, loop_head: BasicBlockIndex,
+                                    source: BasicBlockIndex) {
+        let invariant = self.loops.compute_loop_invariant(loop_head, &mut self.dataflow_info);
+        unimplemented!();
     }
 
     fn get_rust_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {
