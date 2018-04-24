@@ -659,6 +659,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         let binding_mode = ast::BindingMode::ByValue(ast::Mutability::Immutable);
         self.pat_ident_binding_mode(span, ident, binding_mode)
     }
+
     fn pat_ident_binding_mode(&self,
                               span: Span,
                               ident: ast::Ident,
@@ -732,7 +733,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         self.expr(span, ast::ExprKind::Loop(block, None))
     }
 
-<<<<<<< HEAD
     fn lambda_fn_decl(&self,
                       span: Span,
                       fn_decl: P<ast::FnDecl>,
@@ -751,53 +751,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
               ids: Vec<ast::Ident>,
               body: P<ast::Expr>)
               -> P<ast::Expr> {
-||||||| merged common ancestors
-    fn lambda_fn_decl(
-        &self,
-        span: Span,
-        fn_decl: P<ast::FnDecl>,
-        body: P<ast::Expr>,
-        fn_decl_span: Span,
-    ) -> P<ast::Expr> {
-        self.expr(
-            span,
-            ast::ExprKind::Closure(
-                ast::CaptureBy::Ref,
-                ast::Movability::Movable,
-                fn_decl,
-                body,
-                fn_decl_span,
-            ),
-        )
-    }
-
-    fn lambda(&self, span: Span, ids: Vec<ast::Ident>, body: P<ast::Expr>) -> P<ast::Expr> {
-=======
-    fn lambda_fn_decl(
-        &self,
-        span: Span,
-        fn_decl: P<ast::FnDecl>,
-        body: P<ast::Expr>,
-        fn_decl_span: Span,
-    ) -> P<ast::Expr> {
-        self.expr(
-            span,
-            ast::ExprKind::Closure(
-                ast::CaptureBy::Ref,
-                ast::Movability::Movable,
-                fn_decl,
-                body,
-                fn_decl_span,
-            ),
-        )
-    }
-
-    fn lambda(&self,
-              span: Span,
-              ids: Vec<ast::Ident>,
-              body: P<ast::Expr>)
-              -> P<ast::Expr> {
->>>>>>> ff43adef669bf7eea6d86859235253a45058932a
         let fn_decl = self.fn_decl(
             ids.iter().map(|id| self.arg(span, *id, self.ty_infer(span))).collect(),
             ast::FunctionRetTy::Default(span));
@@ -869,7 +822,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         })
     }
 
-<<<<<<< HEAD
     fn item_fn_poly(&self,
                     span: Span,
                     name: Ident,
@@ -902,69 +854,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             output,
             Generics::default(),
             body)
-||||||| merged common ancestors
-    fn item_fn_poly(
-        &self,
-        span: Span,
-        name: Ident,
-        inputs: Vec<ast::Arg>,
-        output: P<ast::Ty>,
-        generics: Generics,
-        body: P<ast::Block>,
-    ) -> P<ast::Item> {
-        self.item(
-            span,
-            name,
-            Vec::new(),
-            ast::ItemKind::Fn(
-                self.fn_decl(inputs, output),
-                ast::Unsafety::Normal,
-                dummy_spanned(ast::Constness::NotConst),
-                Abi::Rust,
-                generics,
-                body,
-            ),
-        )
-    }
-
-    fn item_fn(
-        &self,
-        span: Span,
-        name: Ident,
-        inputs: Vec<ast::Arg>,
-        output: P<ast::Ty>,
-        body: P<ast::Block>,
-    ) -> P<ast::Item> {
-        self.item_fn_poly(span, name, inputs, output, Generics::default(), body)
-=======
-    fn item_fn_poly(&self,
-                    span: Span,
-                    name: Ident,
-                    inputs: Vec<ast::Arg> ,
-                    output: P<ast::Ty>,
-                    generics: Generics,
-                    body: P<ast::Block>) -> P<ast::Item> {
-        self.item(span,
-                  name,
-                  Vec::new(),
-                  ast::ItemKind::Fn(self.fn_decl(inputs, ast::FunctionRetTy::Ty(output)),
-                              ast::Unsafety::Normal,
-                              dummy_spanned(ast::Constness::NotConst),
-                              Abi::Rust,
-                              generics,
-                              body))
-    }
-
-    fn item_fn(
-        &self,
-        span: Span,
-        name: Ident,
-        inputs: Vec<ast::Arg>,
-        output: P<ast::Ty>,
-        body: P<ast::Block>,
-    ) -> P<ast::Item> {
-        self.item_fn_poly(span, name, inputs, output, Generics::default(), body)
->>>>>>> ff43adef669bf7eea6d86859235253a45058932a
     }
 
     fn variant(&self, span: Span, ident: Ident, tys: Vec<P<ast::Ty>> ) -> ast::Variant {
@@ -985,7 +874,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             ast::VariantData::Tuple(fields, ast::DUMMY_NODE_ID)
         };
 
-<<<<<<< HEAD
         respan(span,
                ast::Variant_ {
                    ident,
@@ -993,55 +881,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                    data: vdata,
                    disr_expr: None,
                })
-||||||| merged common ancestors
-        respan(
-            span,
-            ast::Variant_ {
-                name,
-                attrs: Vec::new(),
-                data: vdata,
-                disr_expr: None,
-            },
-        )
-    }
-
-    fn item_enum_poly(
-        &self,
-        span: Span,
-        name: Ident,
-        enum_definition: ast::EnumDef,
-        generics: Generics,
-    ) -> P<ast::Item> {
-        self.item(
-            span,
-            name,
-            Vec::new(),
-            ast::ItemKind::Enum(enum_definition, generics),
-        )
-=======
-        respan(span,
-               ast::Variant_ {
-                   ident,
-                   attrs: Vec::new(),
-                   data: vdata,
-                   disr_expr: None,
-               })
-    }
-
-    fn item_enum_poly(
-        &self,
-        span: Span,
-        name: Ident,
-        enum_definition: ast::EnumDef,
-        generics: Generics,
-    ) -> P<ast::Item> {
-        self.item(
-            span,
-            name,
-            Vec::new(),
-            ast::ItemKind::Enum(enum_definition, generics),
-        )
->>>>>>> ff43adef669bf7eea6d86859235253a45058932a
     }
 
     fn item_enum_poly(&self, span: Span, name: Ident,
@@ -1154,30 +993,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
 
     fn item_use_simple(&self, sp: Span, vis: ast::Visibility, path: ast::Path) -> P<ast::Item> {
-<<<<<<< HEAD
-        self.item_use_simple_(sp, vis, None, path)
-||||||| merged common ancestors
-        let last = path.segments.last().unwrap().identifier;
-        self.item_use_simple_(sp, vis, last, path)
-    }
-
-    fn item_use_simple_(
-        &self,
-        sp: Span,
-        vis: ast::Visibility,
-        ident: ast::Ident,
-        path: ast::Path,
-    ) -> P<ast::Item> {
-        self.item_use(
-            sp,
-            vis,
-            P(ast::UseTree {
-                span: sp,
-                prefix: path,
-                kind: ast::UseTreeKind::Simple(ident),
-            }),
-        )
-=======
         self.item_use_simple_(sp, vis, None, path)
     }
 
@@ -1188,65 +1003,6 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             prefix: path,
             kind: ast::UseTreeKind::Simple(rename),
         }))
->>>>>>> ff43adef669bf7eea6d86859235253a45058932a
-    }
-
-<<<<<<< HEAD
-    fn item_use_simple_(&self, sp: Span, vis: ast::Visibility,
-                        rename: Option<ast::Ident>, path: ast::Path) -> P<ast::Item> {
-        self.item_use(sp, vis, P(ast::UseTree {
-            span: sp,
-            prefix: path,
-            kind: ast::UseTreeKind::Simple(rename),
-        }))
-||||||| merged common ancestors
-    fn item_use_list(
-        &self,
-        sp: Span,
-        vis: ast::Visibility,
-        path: Vec<ast::Ident>,
-        imports: &[ast::Ident],
-    ) -> P<ast::Item> {
-        let imports = imports
-            .iter()
-            .map(|id| {
-                (
-                    ast::UseTree {
-                        span: sp,
-                        prefix: self.path(sp, vec![*id]),
-                        kind: ast::UseTreeKind::Simple(*id),
-                    },
-                    ast::DUMMY_NODE_ID,
-                )
-            })
-            .collect();
-
-        self.item_use(
-            sp,
-            vis,
-            P(ast::UseTree {
-                span: sp,
-                prefix: self.path(sp, path),
-                kind: ast::UseTreeKind::Nested(imports),
-            }),
-        )
-=======
-    fn item_use_list(&self, sp: Span, vis: ast::Visibility,
-                     path: Vec<ast::Ident>, imports: &[ast::Ident]) -> P<ast::Item> {
-        let imports = imports.iter().map(|id| {
-            (ast::UseTree {
-                span: sp,
-                prefix: self.path(sp, vec![*id]),
-                kind: ast::UseTreeKind::Simple(None),
-            }, ast::DUMMY_NODE_ID)
-        }).collect();
-
-        self.item_use(sp, vis, P(ast::UseTree {
-            span: sp,
-            prefix: self.path(sp, path),
-            kind: ast::UseTreeKind::Nested(imports),
-        }))
->>>>>>> ff43adef669bf7eea6d86859235253a45058932a
     }
 
     fn item_use_list(&self, sp: Span, vis: ast::Visibility,
