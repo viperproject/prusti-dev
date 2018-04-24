@@ -20,4 +20,6 @@ pub fn __assertion(_uuid: usize, _spec: bool) {}
 pub fn __trigger<T>(_uuid: usize, _spec: T) {}
 
 
+/// This function is used to evaluate an expression in the "old" context, that is at the beginning
+/// of the method call.
 pub fn old<T>(arg: T) -> T { arg }
