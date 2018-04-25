@@ -7,6 +7,8 @@ use std::fs;
 use verification_context::*;
 use error_chain::ChainedError;
 use std::env;
+use jni_utils::JniUtils;
+use viper_sys::wrappers::*;
 
 pub struct Viper {
     jvm: JavaVM,
@@ -52,6 +54,35 @@ impl Viper {
         let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
             panic!(format!("{}", e.display_chain().to_string()));
         });
+
+        // Log JVM and Java version
+        {
+            let env = jvm
+                .attach_current_thread()
+                .expect("failed to attach jvm thread");
+
+            let jni = JniUtils::new(&env);
+
+            let system_wrapper = java::lang::System::with(&env);
+
+            let vm_name = jni.to_string(
+                jni.unwrap_result(
+                    system_wrapper.call_getProperty(
+                        jni.new_string("java.vm.name")
+                    )
+                )
+            );
+
+            let java_version = jni.to_string(
+                jni.unwrap_result(
+                    system_wrapper.call_getProperty(
+                        jni.new_string("java.version")
+                    )
+                )
+            );
+
+            debug!("Using {}, Java {}", vm_name, java_version);
+        }
 
         let this = Viper { jvm };
 
