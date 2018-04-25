@@ -70,6 +70,9 @@ fn main() {
                 constructor!(),
                 method!("toString"),
             ]),
+            java_class!("java.lang.System", vec![
+                method!("getProperty", "(Ljava/lang/String;)Ljava/lang/String;"),
+            ]),
             java_class!("java.lang.Throwable", vec![
                 method!("printStackTrace", "(Ljava/io/PrintWriter;)V")
             ]),
