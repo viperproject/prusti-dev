@@ -22,7 +22,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_value_field(self) -> vil::Field {
         debug!("Encode value field for type '{:?}'", self.ty);
-        let ast = self.encoder.ast_factory();
         match self.ty.sty {
             ty::TypeVariants::TyBool => vil::Field::new("val_bool", vil::Type::Bool),
 
@@ -59,8 +58,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_predicate_def(self) -> vil::Predicate {
         debug!("Encode type predicate '{:?}'", self.ty);
-        let ast = self.encoder.ast_factory();
-
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
         let self_local_var = vil::LocalVar::new("self", vil::Type::Ref);
 
@@ -264,7 +261,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyTuple(elems) => {
-                elems.iter().enumerate().map(|(field_num, ty)| {
+                elems.iter().enumerate().map(|(field_num, _ty)| {
                     let field_name = format!("tuple_{}", field_num);
                     let encoded_field = self.encoder.encode_ref_field(&field_name);
                     encoded_field

@@ -93,7 +93,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             ast_factory,
             verifier,
             env,
-            encoder: Encoder::new(ast_factory, env)
+            encoder: Encoder::new(env)
         }
     }
 }
@@ -101,7 +101,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
     fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
         for proc_id in &task.procedures {
-            let _ = self.encoder.encode_procedure(*proc_id);
+            self.encoder.encode_procedure(*proc_id);
         }
 
         let ast = &self.ast_factory;

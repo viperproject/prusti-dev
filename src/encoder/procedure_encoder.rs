@@ -660,13 +660,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_local(&self, local: mir::Local) -> vil::LocalVar {
         let var_name = self.encode_local_var_name(local);
-        let var_type = self.encoder.ast_factory().ref_type();
         vil::LocalVar::new(var_name, vil::Type::Ref)
     }
 
     fn encode_prusti_local(&self, local: Local) -> vil::LocalVar {
         let var_name = self.locals.get_name(local);
-        let var_type = self.encoder.ast_factory().ref_type();
         vil::LocalVar::new(var_name, vil::Type::Ref)
     }
 

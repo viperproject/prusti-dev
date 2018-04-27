@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper;
 use viper::{Domain, Function};
 use rustc::hir::def_id::DefId;
 use rustc::ty;
@@ -19,7 +18,6 @@ use std::cell::RefCell;
 use encoder::vil;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    ast_factory: viper::AstFactory<'v>,
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     procedures: RefCell<HashMap<ProcedureDefId, vil::CfgMethod>>,
@@ -30,10 +28,8 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
-    pub fn new(ast_factory: viper::AstFactory<'v>,
-               env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Self {
+    pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Self {
         Encoder {
-            ast_factory,
             env,
             procedure_contracts: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
@@ -42,10 +38,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             type_predicates: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
         }
-    }
-
-    pub fn ast_factory(&self) -> &viper::AstFactory<'v> {
-        &self.ast_factory
     }
 
     pub fn env(&self) -> &'v EnvironmentImpl<'r, 'a, 'tcx> {
