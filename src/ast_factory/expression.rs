@@ -95,7 +95,7 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn int_lit(&self, i: i32) -> Expr<'a> {
+    pub fn int_lit(&self, i: i64) -> Expr<'a> {
         let big_i = self.jni.new_big_int(&i);
         build_ast_node!(self, Expr, ast::IntLit, big_i)
     }

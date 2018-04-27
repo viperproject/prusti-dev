@@ -7,7 +7,6 @@ use ast_factory::*;
 use verifier::Verifier;
 use verifier::state;
 use ast_utils::*;
-use cfg_factory::*;
 use std::env;
 
 pub struct VerificationContext<'a> {
@@ -25,10 +24,6 @@ impl<'a> VerificationContext<'a> {
 
     pub fn new_ast_utils(&self) -> AstUtils {
         AstUtils::new(&self.env)
-    }
-
-    pub fn new_cfg_factory(&self) -> CfgFactory {
-        CfgFactory::new(&self.env)
     }
 
     pub fn new_verifier(&self) -> Verifier<state::Started> {

@@ -40,7 +40,7 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         let build_version = jni.to_string(
             jni.unwrap_result(silicon_wrapper.call_buildVersion(silicon_instance))
         );
-        debug!("Using {} version {}", name, build_version);
+        debug!("Using backend {} version {}", name, build_version);
 
         Verifier {
             env,

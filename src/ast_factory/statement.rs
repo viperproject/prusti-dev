@@ -22,12 +22,20 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn assign(&self, lhs: Expr, rhs: Expr, lhs_is_local_var: bool) -> Stmt<'a> {
-        if lhs_is_local_var {
-            self.local_var_assign(lhs, rhs)
-        } else {
-            self.field_assign(lhs, rhs)
-        }
+    pub fn abstract_assign(&self, lhs: Expr, rhs: Expr) -> Stmt<'a> {
+        let abstract_assign_wrapper = ast::AbstractAssign_object::with(self.env);
+        let abstract_assign_instance = self.jni.unwrap_result(
+            abstract_assign_wrapper.singleton()
+        );
+        let obj = self.jni.unwrap_result(abstract_assign_wrapper.call_apply(
+            abstract_assign_instance,
+            lhs.to_jobject(),
+            rhs.to_jobject(),
+            self.no_position().to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
     }
 
     pub fn local_var_assign(&self, lhs: Expr, rhs: Expr) -> Stmt<'a> {
