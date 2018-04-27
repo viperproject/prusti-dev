@@ -132,6 +132,10 @@ fn main() {
                 object_getter!(),
                 method!("pretty", "(Lviper/silver/ast/Node;)Ljava/lang/String;")
             ]),
+            java_class!("viper.silver.ast.AbstractAssign$", vec![
+                object_getter!(),
+                method!("apply"),
+            ]),
             java_class!("viper.silver.ast.Add", vec![
                 constructor!(),
             ]),
