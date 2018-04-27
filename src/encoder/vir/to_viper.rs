@@ -4,7 +4,7 @@
 
 use viper;
 use viper::AstFactory;
-use encoder::vil::ast::*;
+use encoder::vir::ast::*;
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;

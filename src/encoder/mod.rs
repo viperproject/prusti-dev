@@ -10,6 +10,6 @@ mod type_encoder;
 mod utils;
 mod places;
 
-pub mod vil;
+pub mod vir;
 
 pub use self::encoder::Encoder;

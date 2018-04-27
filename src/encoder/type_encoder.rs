@@ -4,8 +4,8 @@
 
 use rustc::ty;
 use encoder::Encoder;
-use encoder::vil;
-use encoder::vil::utils::ExprIterator;
+use encoder::vir;
+use encoder::vir::utils::ExprIterator;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -20,16 +20,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_value_field(self) -> vil::Field {
+    pub fn encode_value_field(self) -> vir::Field {
         debug!("Encode value field for type '{:?}'", self.ty);
         match self.ty.sty {
-            ty::TypeVariants::TyBool => vil::Field::new("val_bool", vil::Type::Bool),
+            ty::TypeVariants::TyBool => vir::Field::new("val_bool", vir::Type::Bool),
 
-            ty::TypeVariants::TyInt(_) => vil::Field::new("val_int", vil::Type::Int),
-            ty::TypeVariants::TyUint(_) => vil::Field::new("val_uint", vil::Type::Int),
+            ty::TypeVariants::TyInt(_) => vir::Field::new("val_int", vir::Type::Int),
+            ty::TypeVariants::TyUint(_) => vir::Field::new("val_uint", vir::Type::Int),
 
             ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _) => vil::Field::new("val_ref", vil::Type::Ref),
+            ty::TypeVariants::TyRef(_, _) => vir::Field::new("val_ref", vir::Type::Ref),
 
             ty::TypeVariants::TyAdt(_, _) |
             ty::TypeVariants::TyTuple(_) => unimplemented!(),
@@ -56,21 +56,21 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }.to_string()
     }
 
-    pub fn encode_predicate_def(self) -> vil::Predicate {
+    pub fn encode_predicate_def(self) -> vir::Predicate {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
-        let self_local_var = vil::LocalVar::new("self", vil::Type::Ref);
+        let self_local_var = vir::LocalVar::new("self", vir::Type::Ref);
 
         let field_predicates = match self.ty.sty {
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) =>
                 vec![
-                    vil::Expr::FieldAccessPredicate(
-                        box vil::Place::from(self_local_var).access(
+                    vir::Expr::FieldAccessPredicate(
+                        box vir::Place::from(self_local_var).access(
                             self.encoder.encode_value_field(self.ty)
                         ).into(),
-                        vil::Perm::full()
+                        vir::Perm::full()
                     )
                 ],
 
@@ -78,18 +78,18 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRef(_, ty::TypeAndMut { ref ty, .. }) => {
                 let predicate_name = self.encoder.encode_type_predicate_use(ty);
                 let elem_field = self.encoder.encode_ref_field("val_ref");
-                let elem_loc = vil::Place::from(self_local_var).access(elem_field);
+                let elem_loc = vir::Place::from(self_local_var).access(elem_field);
                 vec![
-                    vil::Expr::FieldAccessPredicate(
+                    vir::Expr::FieldAccessPredicate(
                         box elem_loc.clone().into(),
-                        vil::Perm::full()
+                        vir::Perm::full()
                     ),
-                    vil::Expr::PredicateAccessPredicate(
-                        box vil::Expr::PredicateAccess(
+                    vir::Expr::PredicateAccessPredicate(
+                        box vir::Expr::PredicateAccess(
                             predicate_name,
                             vec![ elem_loc.into() ]
                         ),
-                        vil::Perm::full()
+                        vir::Perm::full()
                     ),
                 ]
             }
@@ -99,25 +99,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let field_name = format!("tuple_{}", field_num);
                     let elem_field = self.encoder.encode_ref_field(&field_name);
                     let predicate_name = self.encoder.encode_type_predicate_use(ty);
-                    let elem_loc = vil::Place::from(self_local_var.clone()).access(elem_field);
+                    let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
                     vec![
-                        vil::Expr::FieldAccessPredicate(
+                        vir::Expr::FieldAccessPredicate(
                             box elem_loc.clone().into(),
-                            vil::Perm::full()
+                            vir::Perm::full()
                         ),
-                        vil::Expr::PredicateAccessPredicate(
-                            box vil::Expr::PredicateAccess(
+                        vir::Expr::PredicateAccessPredicate(
+                            box vir::Expr::PredicateAccess(
                                 predicate_name,
                                 vec![ elem_loc.into() ]
                             ),
-                            vil::Perm::full()
+                            vir::Perm::full()
                         ),
                     ]
                 }).collect()
             },
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst)  => {
-                let mut perms: Vec<vil::Expr> = vec![];
+                let mut perms: Vec<vir::Expr> = vec![];
                 let num_variants = adt_def.variants.len();
                 let tcx = self.encoder.env().tcx();
                 if num_variants == 1 {
@@ -128,42 +128,42 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let field_ty = field.ty(tcx, subst);
                         let elem_field = self.encoder.encode_ref_field(&field_name);
                         let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                        let elem_loc = vil::Place::from(self_local_var.clone()).access(elem_field);
+                        let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
                         perms.push(
-                            vil::Expr::FieldAccessPredicate(
+                            vir::Expr::FieldAccessPredicate(
                                 box elem_loc.clone().into(),
-                                vil::Perm::full()
+                                vir::Perm::full()
                             )
                         );
                         perms.push(
-                            vil::Expr::PredicateAccessPredicate(
-                                box vil::Expr::PredicateAccess(
+                            vir::Expr::PredicateAccessPredicate(
+                                box vir::Expr::PredicateAccess(
                                     predicate_name,
                                     vec![ elem_loc.into() ]
                                 ),
-                                vil::Perm::full()
+                                vir::Perm::full()
                             )
                         )
                     }
                 } else if num_variants > 1 {
                     debug!("ADT has {} variants: {:?}", num_variants, adt_def);
                     let discriminant_field = self.encoder.encode_discriminant_field();
-                    let discriminan_loc = vil::Place::from(self_local_var.clone()).access(discriminant_field);
+                    let discriminan_loc = vir::Place::from(self_local_var.clone()).access(discriminant_field);
                     // acc(self.discriminant)
                     perms.push(
-                        vil::Expr::FieldAccessPredicate(
+                        vir::Expr::FieldAccessPredicate(
                             box discriminan_loc.clone().into(),
-                            vil::Perm::full()
+                            vir::Perm::full()
                         )
                     );
                     // 0 <= self.discriminant <= num_variants - 1
                     perms.push(
-                        vil::Expr::and(
-                            vil::Expr::le_cmp(
+                        vir::Expr::and(
+                            vir::Expr::le_cmp(
                                 0.into(),
                                 discriminan_loc.clone().into()
                             ),
-                            vil::Expr::le_cmp(
+                            vir::Expr::le_cmp(
                                 discriminan_loc.into(),
                                 (num_variants - 1).into()
                             )
@@ -178,20 +178,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             let field_ty = field.ty(tcx, subst);
                             let elem_field = self.encoder.encode_ref_field(&field_name);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                            let elem_loc = vil::Place::from(self_local_var.clone()).access(elem_field);
+                            let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
                             perms.push(
-                                vil::Expr::FieldAccessPredicate(
+                                vir::Expr::FieldAccessPredicate(
                                     box elem_loc.clone().into(),
-                                    vil::Perm::full()
+                                    vir::Perm::full()
                                 )
                             );
                             perms.push(
-                                vil::Expr::PredicateAccessPredicate(
-                                    box vil::Expr::PredicateAccess(
+                                vir::Expr::PredicateAccessPredicate(
+                                    box vir::Expr::PredicateAccess(
                                         predicate_name,
                                         vec![ elem_loc.into() ]
                                     ),
-                                    vil::Perm::full()
+                                    vir::Perm::full()
                                 )
                             )
                         }
@@ -203,10 +203,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ref x => unimplemented!("{:?}", x),
         };
 
-        vil::Predicate::new(
+        vir::Predicate::new(
             predicate_name,
             vec![
-                vil::LocalVar::new("self", vil::Type::Ref)
+                vir::LocalVar::new("self", vir::Type::Ref)
             ],
             Some(
                 field_predicates.into_iter().conjoin()
@@ -241,7 +241,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_fields(self) -> Vec<vil::Field> {
+    pub fn encode_fields(self) -> Vec<vir::Field> {
         debug!("Encode fields of '{:?}'", self.ty);
 
         match self.ty.sty {

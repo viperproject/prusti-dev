@@ -5,8 +5,8 @@
 use viper;
 use viper::AstFactory;
 use uuid::Uuid;
-use encoder::vil::ast::*;
-use encoder::vil::to_viper::{ToViper, ToViperDecl};
+use encoder::vir::ast::*;
+use encoder::vir::to_viper::{ToViper, ToViperDecl};
 
 const RETURN_LABEL: &str = "end_of_method";
 

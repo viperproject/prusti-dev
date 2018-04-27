@@ -10,7 +10,7 @@ use prusti_interface::environment::EnvironmentImpl;
 use prusti_interface::data::VerificationTask;
 use viper::{self, Viper};
 use encoder::Encoder;
-use encoder::vil::ToViper;
+use encoder::vir::ToViper;
 
 pub struct VerifierBuilder {
     viper: Viper,

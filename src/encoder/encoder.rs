@@ -15,16 +15,16 @@ use encoder::borrows::{ProcedureContractMirDef, ProcedureContract, compute_proce
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
-use encoder::vil;
+use encoder::vir;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
-    procedures: RefCell<HashMap<ProcedureDefId, vil::CfgMethod>>,
+    procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
-    type_predicates: RefCell<HashMap<String, vil::Predicate>>,
-    fields: RefCell<HashMap<String, vil::Field>>,
+    type_predicates: RefCell<HashMap<String, vir::Predicate>>,
+    fields: RefCell<HashMap<String, vir::Field>>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -49,7 +49,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         vec![]
     }
 
-    pub fn get_used_viper_fields(&self) -> Vec<vil::Field> {
+    pub fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         self.fields.borrow().values().cloned().collect()
     }
 
@@ -58,11 +58,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         vec![]
     }
 
-    pub fn get_used_viper_predicates(&self) -> Vec<vil::Predicate> {
+    pub fn get_used_viper_predicates(&self) -> Vec<vir::Predicate> {
         self.type_predicates.borrow().values().cloned().collect()
     }
 
-    pub fn get_used_viper_methods(&self) -> Vec<vil::CfgMethod> {
+    pub fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
         self.procedures.borrow().values().cloned().collect()
     }
 
@@ -91,33 +91,33 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         field_name
     }
 
-    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vil::Field {
+    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
         let field_name = self.encode_value_field_name(ty);
         self.encode_value_field_with_name(&field_name, ty)
     }
 
-    fn encode_value_field_with_name(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vil::Field {
+    fn encode_value_field_with_name(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
         self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
             let type_encoder = TypeEncoder::new(self, ty);
             type_encoder.encode_value_field()
         }).clone()
     }
 
-    pub fn encode_ref_field(&self, field_name: &str) -> vil::Field {
+    pub fn encode_ref_field(&self, field_name: &str) -> vir::Field {
         self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
-            vil::Field::new(field_name, vil::Type::Ref)
+            vir::Field::new(field_name, vir::Type::Ref)
         }).clone()
     }
 
-    pub fn encode_discriminant_field(&self) -> vil::Field {
+    pub fn encode_discriminant_field(&self) -> vir::Field {
         let name = "discriminant";
         let field = self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| {
-            vil::Field::new(name, vil::Type::Int)
+            vir::Field::new(name, vir::Type::Int)
         }).clone();
         field
     }
 
-    pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vil::CfgMethod {
+    pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
         if !self.procedures.borrow().contains_key(&proc_def_id) {
             let procedure = self.env.get_procedure(proc_def_id);
             let procedure_encoder = ProcedureEncoder::new(self, &procedure);
@@ -127,7 +127,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.procedures.borrow()[&proc_def_id].clone()
     }
 
-    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<vil::Field> {
+    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<vir::Field> {
         let type_encoder = TypeEncoder::new(self, ty);
         let fields = type_encoder.encode_fields();
         for field in &fields {
@@ -153,7 +153,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.predicate_types.borrow().get(&predicate_name).map(|x| x.clone())
     }
 
-    pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vil::Predicate {
+    pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
         let predicate_name = self.encode_type_predicate_use(ty);
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
@@ -163,9 +163,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, as_bool: bool) -> vil::Expr {
+    pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, as_bool: bool) -> vir::Expr {
         if as_bool {
-            vil::Expr::eq_cmp(
+            vir::Expr::eq_cmp(
                 const_val.unwrap_u64().into(),
                 1.into()
             )
