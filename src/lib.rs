@@ -5,6 +5,7 @@
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(nll)]
+#![feature(box_syntax)]
 
 #[macro_use]
 extern crate log;
@@ -14,6 +15,7 @@ extern crate viper;
 extern crate prusti_interface;
 extern crate prusti_utils;
 extern crate syntax;
+extern crate uuid;
 
 mod encoder;
 mod utils;

@@ -10,6 +10,7 @@ use prusti_interface::environment::EnvironmentImpl;
 use prusti_interface::data::VerificationTask;
 use viper::{self, Viper};
 use encoder::Encoder;
+use encoder::vil::ToViper;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -64,7 +65,6 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
     fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Verifier<'v, 'r, 'a, 'tcx> {
         Verifier::new(
             self.verification_ctx.new_ast_factory(),
-            self.verification_ctx.new_cfg_factory(),
             self.verification_ctx.new_verifier(),
             env
         )
@@ -78,7 +78,6 @@ pub struct Verifier<'v, 'r, 'a, 'tcx>
         'tcx: 'a
 {
     ast_factory: viper::AstFactory<'v>,
-    cfg_factory: viper::CfgFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     encoder: Encoder<'v, 'r, 'a, 'tcx>,
@@ -87,16 +86,14 @@ pub struct Verifier<'v, 'r, 'a, 'tcx>
 impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
     pub fn new(
         ast_factory: viper::AstFactory<'v>,
-        cfg_factory: viper::CfgFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
         env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     ) -> Self {
         Verifier {
             ast_factory,
-            cfg_factory,
             verifier,
             env,
-            encoder: Encoder::new(ast_factory, cfg_factory, env)
+            encoder: Encoder::new(ast_factory, env)
         }
     }
 }
@@ -107,12 +104,14 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             let _ = self.encoder.encode_procedure(*proc_id);
         }
 
-        let program = self.ast_factory.program(
+        let ast = &self.ast_factory;
+
+        let program = ast.program(
             &self.encoder.get_used_viper_domains(),
-            &self.encoder.get_used_viper_fields(),
+            &self.encoder.get_used_viper_fields().to_viper(ast),
             &self.encoder.get_used_viper_functions(),
-            &self.encoder.get_used_viper_predicates(),
-            &self.encoder.get_used_viper_methods()
+            &self.encoder.get_used_viper_predicates().to_viper(ast),
+            &self.encoder.get_used_viper_methods().to_viper(ast)
         );
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
