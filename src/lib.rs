@@ -17,6 +17,6 @@ extern crate prusti_utils;
 extern crate syntax;
 extern crate uuid;
 
-mod encoder;
+pub mod encoder;
 mod utils;
 pub mod verifier;

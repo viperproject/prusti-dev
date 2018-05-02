@@ -2,15 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-mod encoder;
-mod procedure_encoder;
-mod loop_encoder;
-mod borrows;
-mod type_encoder;
-mod utils;
-mod places;
-mod foldunfold;
+mod method;
+mod to_viper;
+mod augmenter;
 
-pub mod vir;
-
-pub use self::encoder::Encoder;
+pub use self::method::*;
+pub use self::to_viper::*;
+pub use self::augmenter::*;

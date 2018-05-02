@@ -20,6 +20,7 @@ use encoder::loop_encoder::LoopEncoder;
 use prusti_interface::environment::DataflowInfo;
 use encoder::vir::{self, Successor, CfgBlockIndex};
 use encoder::vir::utils::ExprIterator;
+use encoder::foldunfold;
 
 static PRECONDITION_LABEL: &'static str = "pre";
 
@@ -545,7 +546,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_local_var(&name, vir::Type::Ref);
         }
 
-        self.cfg_method
+        // Add fold/unfold
+        foldunfold::add_fold_unfold(self.cfg_method)
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.

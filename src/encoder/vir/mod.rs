@@ -5,10 +5,10 @@
 mod ast;
 mod conversions;
 mod to_viper;
-mod cfg_method;
+mod cfg;
 pub mod utils;
 
 pub use self::ast::*;
 pub use self::conversions::*;
 pub use self::to_viper::*;
-pub use self::cfg_method::*;
+pub use self::cfg::*;

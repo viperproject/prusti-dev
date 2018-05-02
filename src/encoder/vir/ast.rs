@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Id();
 
@@ -51,6 +53,12 @@ impl LocalVar {
     }
 }
 
+impl fmt::Display for LocalVar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Field {
     pub name: String,
@@ -66,6 +74,12 @@ impl Field {
     }
 }
 
+impl fmt::Display for Field {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Place {
     Base(LocalVar),
@@ -75,6 +89,49 @@ pub enum Place {
 impl Place {
     pub fn access(self, field: Field) -> Self {
         Place::Field(box self, field)
+    }
+
+    pub fn parent(&self) -> Option<&Place> {
+        match self {
+            &Place::Base(_) => None,
+            &Place::Field(ref place, _) => Some(place)
+        }
+    }
+
+    pub fn base(&self) -> &LocalVar {
+        match self {
+            &Place::Base(ref var) => var,
+            &Place::Field(ref place, _) => place.base(),
+        }
+    }
+
+    pub fn has_prefix(&self, other: &Place) -> bool {
+        if self == other {
+            true
+        } else {
+            match self.parent() {
+                Some(parent) => parent.has_prefix(other),
+                None => false
+            }
+        }
+    }
+
+    pub fn all_prefixes(&self) -> Vec<&Place> {
+        let mut res = match self.parent() {
+            Some(parent) => parent.all_prefixes(),
+            None => vec![]
+        };
+        res.push(self);
+        res
+    }
+}
+
+impl fmt::Display for Place {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Place::Base(ref var) => write!(f, "{}", var),
+            &Place::Field(ref place, ref field) => write!(f, "{}.{}", place, field)
+        }
     }
 }
 

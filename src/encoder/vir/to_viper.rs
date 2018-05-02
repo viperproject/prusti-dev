@@ -61,8 +61,8 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Comment(ref comment) => ast.comment(&comment),
             &Stmt::Label(ref label) => ast.label(&label, &[]),
             &Stmt::Inhale(ref expr) => ast.inhale(expr.to_viper(ast), ast.no_position()),
-            &Stmt::Exhale(ref expr, id) => ast.inhale(expr.to_viper(ast), ast.no_position()),
-            &Stmt::Assert(ref expr, id) => ast.inhale(expr.to_viper(ast), ast.no_position()),
+            &Stmt::Exhale(ref expr, _) => ast.exhale(expr.to_viper(ast), ast.no_position()),
+            &Stmt::Assert(ref expr, _) => ast.inhale(expr.to_viper(ast), ast.no_position()),
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => ast.method_call(
                 &method_name,
                 &args.to_viper(ast),

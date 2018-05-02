@@ -253,8 +253,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ]
             }
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut{ ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut{ ty, .. }) => {
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut{ .. }) |
+            ty::TypeVariants::TyRef(_, ty::TypeAndMut{ .. }) => {
                 vec![
                     self.encoder.encode_value_field(self.ty)
                 ]
@@ -268,7 +268,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }).collect()
             },
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
+            ty::TypeVariants::TyAdt(ref adt_def, ref _subst) => {
                 let mut fields = vec![];
                 let num_variants = adt_def.variants.len();
                 if num_variants > 1 {
