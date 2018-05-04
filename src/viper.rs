@@ -48,11 +48,11 @@ impl Viper {
             //.option("-XX:+TraceJNICalls")
             .build()
             .unwrap_or_else(|e| {
-                panic!(format!("{}", e.display_chain().to_string()));
+                panic!(e.display_chain().to_string());
             });
 
         let jvm = JavaVM::new(jvm_args).unwrap_or_else(|e| {
-            panic!(format!("{}", e.display_chain().to_string()));
+            panic!(e.display_chain().to_string());
         });
 
         // Log JVM and Java version
