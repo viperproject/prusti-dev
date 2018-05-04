@@ -46,7 +46,7 @@ pub fn generate_return_jni_type(signature: &str) -> String {
 pub fn generate_jni_type_char(signature: &str) -> String {
     match signature.chars().nth(0).unwrap() {
         '[' => "l".to_string(),
-        x => format!("{}", x.to_lowercase()),
+        x => x.to_lowercase().to_string(),
     }
 }
 
