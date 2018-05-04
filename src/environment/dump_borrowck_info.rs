@@ -229,7 +229,7 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         writeln!(graph, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>").unwrap();
         for (temp, var) in mbcx.mir.local_decls.iter_enumerated() {
             let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
-            let typ = escape_html(format!("{}", var.ty));
+            let typ = escape_html(var.ty.to_string());
             writeln!(graph, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", name, temp, typ).unwrap();
         }
         writeln!(graph, "</table>>];").unwrap();
@@ -244,8 +244,8 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         for (region_vid, region_definition) in regioncx.definitions.iter_enumerated() {
             let name = match region_definition.external_name {
                 Some(&RegionKind::ReStatic) => String::from("'static"),
-                Some(&RegionKind::ReFree(FreeRegion { bound_region: BoundRegion::BrNamed(_, name), .. })) => escape_html(format!("{}", name)),
-                Some(region) => escape_html(format!("{}", region)),
+                Some(&RegionKind::ReFree(FreeRegion { bound_region: BoundRegion::BrNamed(_, name), .. })) => escape_html(name.to_string()),
+                Some(region) => escape_html(region.to_string()),
                 None => String::from("")
             };
             let temp = escape_html(format!("{:?}", region_vid));
@@ -286,14 +286,14 @@ fn callback<'s, 'g, 'gcx, 'tcx>(mbcx: &'s mut MirBorrowckCtxt<'g, 'gcx, 'tcx>, f
         writeln!(graph, "label = \"Types\";").unwrap();
         writeln!(graph, "node[shape=box];").unwrap();
         for ty in &types {
-            let ty_name = escape_html(format!("{}", ty));
+            let ty_name = escape_html(ty.to_string());
             writeln!(graph, "\"type_{}\" [label=\"{}\"];", get_hash(ty), ty_name).unwrap();
         }
         for ty in &types {
             for subty in ty.walk_shallow() {
                 let cleaned_subty = clean_type(mbcx.tcx, subty);
                 //let cleaned_subty = mbcx.tcx.erase_regions(&subty);
-                let subty_name = escape_html(format!("{}", subty));
+                let subty_name = escape_html(subty.to_string());
                 writeln!(graph, "\"type_{:?}\" -> \"type_{:?}\" [label=\"{}\"];", get_hash(ty), get_hash(cleaned_subty), subty_name).unwrap();
             }
         }
