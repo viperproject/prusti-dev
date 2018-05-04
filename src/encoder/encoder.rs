@@ -16,6 +16,7 @@ use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
 use encoder::vir;
+use report::Log;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -62,6 +63,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().values().cloned().collect()
     }
 
+    pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
+        self.type_predicates.borrow().clone()
+    }
+
     pub fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
         self.procedures.borrow().values().cloned().collect()
     }
@@ -103,9 +108,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }).clone()
     }
 
-    pub fn encode_ref_field(&self, field_name: &str) -> vir::Field {
+    pub fn encode_ref_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
+        let type_name = self.encode_type_predicate_use(ty);
         self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
-            vir::Field::new(field_name, vir::Type::Ref)
+            vir::Field::new(field_name, vir::Type::TypedRef(type_name))
         }).clone()
     }
 
@@ -121,8 +127,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.procedures.borrow().contains_key(&proc_def_id) {
             let procedure = self.env.get_procedure(proc_def_id);
             let procedure_encoder = ProcedureEncoder::new(self, &procedure);
-            let result = procedure_encoder.encode();
-            self.procedures.borrow_mut().insert(proc_def_id, result);
+            let method = procedure_encoder.encode();
+            Log::report("vir_method", method.name(), method.to_string());
+            self.procedures.borrow_mut().insert(proc_def_id, method);
         }
         self.procedures.borrow()[&proc_def_id].clone()
     }
@@ -157,8 +164,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let predicate_name = self.encode_type_predicate_use(ty);
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let result = type_encoder.encode_predicate_def();
-            self.type_predicates.borrow_mut().insert(predicate_name.clone(), result);
+            let predicate = type_encoder.encode_predicate_def();
+            Log::report("vir_predicate", &predicate_name, format!("{:?}", &predicate));
+            self.type_predicates.borrow_mut().insert(predicate_name.clone(), predicate);
         }
         self.type_predicates.borrow()[&predicate_name].clone()
     }

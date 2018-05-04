@@ -15,16 +15,16 @@ pub trait CfgAugmenter<BranchCtxt: Clone> {
     fn initial_context(&self) -> BranchCtxt;
 
     /// Prepend some statements to an existing statement, mutating the branch context
-    fn prepend_stmt(&self, stmt: &Stmt, bc: &mut BranchCtxt) -> Vec<Stmt>;
+    fn prepend_stmt(&self, stmt: &Stmt, bctxt: &mut BranchCtxt) -> Vec<Stmt>;
 
     /// Prepend some statements to an existing successor, mutating the branch context
-    fn prepend_successor(&self, succ: &Successor, bc: &mut BranchCtxt) -> Vec<Stmt>;
+    fn prepend_successor(&self, succ: &Successor, bctxt: &mut BranchCtxt) -> Vec<Stmt>;
 
     /// Prepend some statements to an existing join point, returning the merged branch context.
-    fn prepend_join(&self, bcs: Vec<&BranchCtxt>) -> (Vec<Vec<Stmt>>, BranchCtxt);
+    fn prepend_join(&self, bctxts: Vec<&BranchCtxt>) -> (Vec<Vec<Stmt>>, BranchCtxt);
 
     /// Prepend some statements to a back jump
-    fn prepend_back_jump(&self, bc: &BranchCtxt, target_bc: &BranchCtxt) -> Vec<Stmt>;
+    fn prepend_back_jump(&self, bctxt: &BranchCtxt, target_bctxt: &BranchCtxt) -> Vec<Stmt>;
 }
 
 impl CfgMethod {
@@ -82,7 +82,7 @@ impl CfgMethod {
                     if !stmts_to_add.is_empty() {
                         // TODO: add to previous block, if possible
                         let src_block_index = new_method.block_index(src_index);
-                        debug!("Prepend to {:?} coming from {:?}: {:?}", curr_block_index, src_block_index, &stmts_to_add);
+                        trace!("Prepend to {:?} coming from {:?}: {:?}", curr_block_index, src_block_index, &stmts_to_add);
                         let new_label = new_method.get_fresh_label_name();
                         let new_block_index = new_method.add_block(&new_label, vec![], stmts_to_add.clone());
                         new_method.set_successor(
@@ -101,13 +101,13 @@ impl CfgMethod {
             }
 
             // Store initial bctxt
-            debug!("Initial bctxt of {:?}: {:?}", curr_block_index, &bctxt);
+            trace!("Initial bctxt of {:?}: {:?}", curr_block_index, &bctxt);
             initial_bctxt[curr_index] = Some(bctxt.clone());
 
             // Prepend statements
             for stmt in &curr_block.stmts {
                 let new_stmts = augmenter.prepend_stmt(stmt, &mut bctxt);
-                debug!("Prepend {:?} to stmt {:?}", &new_stmts, &stmt);
+                trace!("Prepend {:?} to stmt '{}'", &new_stmts, &stmt);
                 for new_stmt in new_stmts {
                     new_method.add_stmt(curr_block_index, new_stmt);
                 }
@@ -117,7 +117,7 @@ impl CfgMethod {
 
             // Prepend successor
             let new_stmts = augmenter.prepend_successor(&curr_block.successor, &mut bctxt);
-            debug!("Prepend {:?} to successor of {:?}", &new_stmts, curr_block_index);
+            trace!("Prepend {:?} to successor of {:?}", &new_stmts, curr_block_index);
             for new_stmt in new_stmts {
                 new_method.add_stmt(curr_block_index, new_stmt);
             }
@@ -154,7 +154,7 @@ impl CfgMethod {
             }
 
             // Store final bctxt
-            debug!("Final bctxt of {:?}: {:?}", curr_block_index, &bctxt);
+            trace!("Final bctxt of {:?}: {:?}", curr_block_index, &bctxt);
             final_bctxt[curr_index] = Some(bctxt);
         }
 

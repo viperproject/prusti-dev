@@ -19,7 +19,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
         match self {
             &Type::Int => ast.int_type(),
             &Type::Bool => ast.bool_type(),
-            &Type::Ref |
+            //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
         }
     }
@@ -62,7 +62,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Label(ref label) => ast.label(&label, &[]),
             &Stmt::Inhale(ref expr) => ast.inhale(expr.to_viper(ast), ast.no_position()),
             &Stmt::Exhale(ref expr, _) => ast.exhale(expr.to_viper(ast), ast.no_position()),
-            &Stmt::Assert(ref expr, _) => ast.inhale(expr.to_viper(ast), ast.no_position()),
+            &Stmt::Assert(ref expr, _) => ast.assert(expr.to_viper(ast), ast.no_position()),
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => ast.method_call(
                 &method_name,
                 &args.to_viper(ast),
@@ -75,7 +75,19 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::New(ref local_var, ref fields) => ast.new_stmt(
                 local_var.to_viper(ast),
                 &fields.to_viper(ast)
-            )
+            ),
+            &Stmt::Fold(ref pred_name, ref args) => ast.fold(
+                ast.predicate_access(
+                    &args.to_viper(ast),
+                    &pred_name
+                )
+            ),
+            &Stmt::Unfold(ref pred_name, ref args) => ast.unfold(
+                ast.predicate_access(
+                    &args.to_viper(ast),
+                    &pred_name
+                )
+            ),
         }
     }
 }

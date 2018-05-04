@@ -3,9 +3,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod method;
+mod display;
 mod to_viper;
 mod augmenter;
 
 pub use self::method::*;
+pub use self::display::*;
 pub use self::to_viper::*;
 pub use self::augmenter::*;

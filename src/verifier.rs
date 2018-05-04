@@ -11,6 +11,7 @@ use prusti_interface::data::VerificationTask;
 use viper::{self, Viper};
 use encoder::Encoder;
 use encoder::vir::ToViper;
+use report::Log;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -64,6 +65,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
 
     fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Verifier<'v, 'r, 'a, 'tcx> {
         Verifier::new(
+            self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
             self.verification_ctx.new_verifier(),
             env
@@ -77,6 +79,7 @@ pub struct Verifier<'v, 'r, 'a, 'tcx>
         'a: 'r,
         'tcx: 'a
 {
+    ast_utils: viper::AstUtils<'v>,
     ast_factory: viper::AstFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -85,11 +88,13 @@ pub struct Verifier<'v, 'r, 'a, 'tcx>
 
 impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
     pub fn new(
+        ast_utils: viper::AstUtils<'v>,
         ast_factory: viper::AstFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
         env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     ) -> Self {
         Verifier {
+            ast_utils,
             ast_factory,
             verifier,
             env,
@@ -113,6 +118,8 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             &self.encoder.get_used_viper_predicates().to_viper(ast),
             &self.encoder.get_used_viper_methods().to_viper(ast)
         );
+
+        Log::report("viper_program", "program.vpr", self.ast_utils.pretty_print(program));
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
 

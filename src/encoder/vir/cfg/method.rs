@@ -143,6 +143,10 @@ impl CfgMethod {
         }
     }
 
+    pub fn name(&self) -> String {
+        self.method_name.clone()
+    }
+
     pub(super) fn block_index(&self, index: usize) -> CfgBlockIndex {
         CfgBlockIndex {
             method_uuid: self.uuid,
@@ -165,6 +169,15 @@ impl CfgMethod {
             self.fresh_var_index += 1;
         }
         candidate_name
+    }
+
+    /// Returns all formal arguments, formal returns, and local variables
+    pub fn get_all_vars(&self) -> Vec<LocalVar> {
+        let mut vars: Vec<LocalVar> = vec![];
+        vars.append(&mut self.formal_args.clone());
+        vars.append(&mut self.formal_returns.clone());
+        vars.append(&mut self.local_vars.clone());
+        vars
     }
 
     pub fn add_fresh_local_var(&mut self, typ: Type) -> LocalVar {

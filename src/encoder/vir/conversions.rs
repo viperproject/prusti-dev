@@ -78,7 +78,7 @@ impl From<i64> for Expr {
 
 impl From<u64> for Const {
     fn from(val: u64) -> Self {
-        Const::BigInt(format!("{}", val))
+        Const::BigInt(val.to_string())
     }
 }
 
@@ -90,7 +90,7 @@ impl From<u64> for Expr {
 
 impl From<u128> for Const {
     fn from(val: u128) -> Self {
-        Const::BigInt(format!("{}", val))
+        Const::BigInt(val.to_string())
     }
 }
 
@@ -102,7 +102,7 @@ impl From<u128> for Expr {
 
 impl From<usize> for Const {
     fn from(val: usize) -> Self {
-        Const::BigInt(format!("{}", val))
+        Const::BigInt(val.to_string())
     }
 }
 

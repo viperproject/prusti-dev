@@ -21,6 +21,7 @@ use prusti_interface::environment::DataflowInfo;
 use encoder::vir::{self, Successor, CfgBlockIndex};
 use encoder::vir::utils::ExprIterator;
 use encoder::foldunfold;
+use report::Log;
 
 static PRECONDITION_LABEL: &'static str = "pre";
 
@@ -76,6 +77,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.encode_place(lhs);
+                let type_name = self.encoder.encode_type_predicate_use(ty);
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         let (_, encoded_value, effects_before, effects_after) = self.encode_operand(operand);
@@ -108,11 +110,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let (encoded_right, effects_after_right) = self.eval_operand(right);
                         let encoded_value = self.encode_bin_op_value(op, encoded_left.clone(), encoded_right.clone());
                         let encoded_check = self.encode_bin_op_check(op, encoded_left, encoded_right);
-                        let elems = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
-                        let value_field = self.encoder.encode_ref_field("tuple_0");
-                        let value_field_value = self.encoder.encode_value_field(elems[0]);
-                        let check_field = self.encoder.encode_ref_field("tuple_1");
-                        let check_field_value = self.encoder.encode_value_field(elems[1]);
+                        let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
+                        let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
+                        let value_field_value = self.encoder.encode_value_field(field_types[0]);
+                        let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
+                        let check_field_value = self.encoder.encode_value_field(field_types[1]);
                         stmts.push(
                             vir::Stmt::Assign(
                                 encoded_lhs.clone()
@@ -139,7 +141,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::NullaryOp(_op, ref _ty) => unimplemented!("{:?}", rhs),
 
                     &mir::Rvalue::Discriminant(ref src) => {
-                        let discr_var = self.cfg_method.add_fresh_local_var(vir::Type::Ref);
+                        let discr_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
                         stmts.extend(
                             self.encode_allocation(discr_var.clone().into(), ty)
                         );
@@ -174,7 +176,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     &mir::Rvalue::Ref(ref _region, _borrow_kind, ref place) => {
-                        let ref_var = self.cfg_method.add_fresh_local_var(vir::Type::Ref);
+                        let ref_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
                         stmts.extend(
                             self.encode_allocation(ref_var.clone().into(), ty)
                         );
@@ -182,14 +184,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let (encoded_value, _, _) = self.encode_place(place);
                         stmts.push(
                             vir::Stmt::Assign(
-                                encoded_lhs.clone(),
-                                ref_var.into()
+                                vir::Place::Base(ref_var.clone()).access(field),
+                                encoded_value.into(),
                             )
                         );
                         stmts.push(
                             vir::Stmt::Assign(
-                                encoded_lhs.access(field),
-                                encoded_value.into(),
+                                encoded_lhs.clone(),
+                                ref_var.into()
                             )
                         );
                         stmts
@@ -442,7 +444,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Formal return
         for local in self.mir.local_decls.indices().take(1) {
             let name = self.encode_local_var_name(local);
-            self.cfg_method.add_formal_return(&name, vir::Type::Ref)
+            let type_name = self.encoder.encode_type_predicate_use(self.get_rust_local_ty(local));
+            self.cfg_method.add_formal_return(&name, vir::Type::TypedRef(type_name))
         }
 
         let mut cfg_blocks: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
@@ -537,17 +540,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         });
 
-        let var_names: Vec<_> = self.locals
+        let local_vars: Vec<_> = self.locals
             .iter()
             .filter(|local| !self.locals.is_return(*local))
-            .map(|local| self.locals.get_name(local))
             .collect();
-        for name in var_names.iter() {
-            self.cfg_method.add_local_var(&name, vir::Type::Ref);
+        for local in local_vars.iter() {
+            let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(*local));
+            let var_name = self.locals.get_name(*local);
+            self.cfg_method.add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
 
+        Log::report("vir_method_before_foldunfold", self.cfg_method.name(), self.cfg_method.to_string());
+
         // Add fold/unfold
-        foldunfold::add_fold_unfold(self.cfg_method)
+        foldunfold::add_fold_unfold(self.cfg_method, self.encoder.get_used_viper_predicates_map())
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.
@@ -662,12 +668,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
         let var_name = self.encode_local_var_name(local);
-        vir::LocalVar::new(var_name, vir::Type::Ref)
+        let type_name = self.encoder.encode_type_predicate_use(self.get_rust_local_ty(local));
+        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
     }
 
     fn encode_prusti_local(&self, local: Local) -> vir::LocalVar {
         let var_name = self.locals.get_name(local);
-        vir::LocalVar::new(var_name, vir::Type::Ref)
+        let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(local));
+        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
     }
 
     /// Returns
@@ -691,7 +699,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     ty::TypeVariants::TyTuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()];
-                        let encoded_field = self.encoder.encode_ref_field(&field_name);
+                        let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let encoded_projection = encoded_base.access(encoded_field);
                         (encoded_projection, field_ty, None)
                     },
@@ -709,7 +717,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             format!("enum_{}_{}", variant_index, field.name)
                         };
                         let field_ty = tcx.type_of(field.did);
-                        let encoded_field = self.encoder.encode_ref_field(&field_name);
+                        let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let encoded_projection = encoded_base.access(encoded_field);
                         (encoded_projection, field_ty, None)
                     },
@@ -722,7 +730,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 match base_ty.sty {
                     ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
                     ty::TypeVariants::TyRef(_, ty::TypeAndMut { ty, .. }) => {
-                        let ref_field = self.encoder.encode_ref_field("val_ref");
+                        let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                         let access = vir::Place::Field(
                             box encoded_base,
                             ref_field
@@ -872,7 +880,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ),
             ]
         } else {
-            let tmp_var = self.cfg_method.add_fresh_local_var(vir::Type::Ref);
+            let type_name = self.encoder.encode_type_predicate_use(ty);
+            let tmp_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
             vec![
                 vir::Stmt::New(
                     tmp_var.clone(),
@@ -910,9 +919,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
             }
 
-            ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _) => {
-                let ref_field = self.encoder.encode_ref_field("val_ref");
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
+            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ty, .. }) => {
+                let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                 stmts.push(
                     vir::Stmt::Assign(
                         dst.access(ref_field.clone()),
@@ -970,7 +979,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         operands: &Vec<mir::Operand<'tcx>>
     ) -> (vir::Expr, Vec<vir::Stmt>) {
         debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
-        let dst_var = self.cfg_method.add_fresh_local_var(vir::Type::Ref);
+        let type_name = self.encoder.encode_type_predicate_use(ty);
+        let dst_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
         let mut stmts: Vec<vir::Stmt> = vec![];
         stmts.extend(
             self.encode_allocation(dst_var.clone().into(), ty)
@@ -978,9 +988,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         match aggregate {
             &mir::AggregateKind::Tuple => {
+                let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                 for (field_num, operand) in operands.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
-                    let encoded_field = self.encoder.encode_ref_field(&field_name);
+                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_types[field_num]);
                     let (_, encoded_operand, before_stmts, after_stmts) = self.encode_operand(operand);
                     stmts.extend(before_stmts);
                     stmts.push(
@@ -1013,7 +1024,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     } else {
                         format!("enum_{}_{}", variant_index, field.name)
                     };
-                    let encoded_field = self.encoder.encode_ref_field(&field_name);
+                    let tcx = self.encoder.env().tcx();
+                    let field_ty = tcx.type_of(field.did);
+                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                     let (_, encoded_operand, before_stmts, after_stmts) = self.encode_operand(operand);
                     stmts.extend(before_stmts);
                     stmts.push(

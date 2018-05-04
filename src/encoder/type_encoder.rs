@@ -29,7 +29,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(_) => vir::Field::new("val_uint", vir::Type::Int),
 
             ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _) => vir::Field::new("val_ref", vir::Type::Ref),
+            ty::TypeVariants::TyRef(_, _) => {
+                let type_name = self.encoder.encode_type_predicate_use(self.ty);
+                vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
+            },
 
             ty::TypeVariants::TyAdt(_, _) |
             ty::TypeVariants::TyTuple(_) => unimplemented!(),
@@ -59,7 +62,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_predicate_def(self) -> vir::Predicate {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
-        let self_local_var = vir::LocalVar::new("self", vir::Type::Ref);
+        let self_local_var = vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
 
         let field_predicates = match self.ty.sty {
             ty::TypeVariants::TyBool |
@@ -67,7 +70,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(_) =>
                 vec![
                     vir::Expr::FieldAccessPredicate(
-                        box vir::Place::from(self_local_var).access(
+                        box vir::Place::from(self_local_var.clone()).access(
                             self.encoder.encode_value_field(self.ty)
                         ).into(),
                         vir::Perm::full()
@@ -77,8 +80,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ty::TypeAndMut { ref ty, .. }) => {
                 let predicate_name = self.encoder.encode_type_predicate_use(ty);
-                let elem_field = self.encoder.encode_ref_field("val_ref");
-                let elem_loc = vir::Place::from(self_local_var).access(elem_field);
+                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
+                let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
                 vec![
                     vir::Expr::FieldAccessPredicate(
                         box elem_loc.clone().into(),
@@ -97,7 +100,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyTuple(elems) => {
                 elems.iter().enumerate().flat_map(|(field_num, ty)| {
                     let field_name = format!("tuple_{}", field_num);
-                    let elem_field = self.encoder.encode_ref_field(&field_name);
+                    let elem_field = self.encoder.encode_ref_field(&field_name, ty);
                     let predicate_name = self.encoder.encode_type_predicate_use(ty);
                     let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
                     vec![
@@ -126,7 +129,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("Encoding field {:?}", field);
                         let field_name = format!("struct_{}", field.name);
                         let field_ty = field.ty(tcx, subst);
-                        let elem_field = self.encoder.encode_ref_field(&field_name);
+                        let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
                         let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
                         perms.push(
@@ -176,7 +179,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             debug!("Encoding field {:?}", field);
                             let field_name = format!("enum_{}_{}", variant_index, field.name);
                             let field_ty = field.ty(tcx, subst);
-                            let elem_field = self.encoder.encode_ref_field(&field_name);
+                            let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
                             let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
                             perms.push(
@@ -205,9 +208,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         vir::Predicate::new(
             predicate_name,
-            vec![
-                vir::LocalVar::new("self", vir::Type::Ref)
-            ],
+            vec![ self_local_var ],
             Some(
                 field_predicates.into_iter().conjoin()
             )
@@ -261,14 +262,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyTuple(elems) => {
-                elems.iter().enumerate().map(|(field_num, _ty)| {
+                elems.iter().enumerate().map(|(field_num, ty)| {
                     let field_name = format!("tuple_{}", field_num);
-                    let encoded_field = self.encoder.encode_ref_field(&field_name);
+                    let encoded_field = self.encoder.encode_ref_field(&field_name, ty);
                     encoded_field
                 }).collect()
             },
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref _subst) => {
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
                 let mut fields = vec![];
                 let num_variants = adt_def.variants.len();
                 if num_variants > 1 {
@@ -284,7 +285,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         } else {
                             format!("enum_{}_{}", variant_index, field.name)
                         };
-                        let encoded_field = self.encoder.encode_ref_field(&field_name);
+                        let field_ty = field.ty(tcx, subst);
+                        let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         //let ty = field.ty(tcx, subst);
                         fields.push(encoded_field)
                     }

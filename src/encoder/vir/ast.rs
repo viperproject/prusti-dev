@@ -33,12 +33,33 @@ impl Perm {
 pub enum Type {
     Int,
     Bool,
-    Ref,
+    //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+impl Type {
+    pub fn is_ref(&self) -> bool {
+        match self {
+            //&Type::Ref |
+            &Type::TypedRef(_) => true,
+            _ => false
+        }
+    }
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Type::Int => write!(f, "Int"),
+            &Type::Bool => write!(f, "Bool"),
+            //&Type::Ref => write!(f, "Ref"),
+            &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type
@@ -59,7 +80,13 @@ impl fmt::Display for LocalVar {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+impl fmt::Debug for LocalVar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", self.name, self.typ)
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Field {
     pub name: String,
     pub typ: Type
@@ -80,7 +107,13 @@ impl fmt::Display for Field {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+impl fmt::Debug for Field {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", self.name, self.typ)
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Place {
     Base(LocalVar),
     Field(Box<Place>, Field)
@@ -105,6 +138,13 @@ impl Place {
         }
     }
 
+    pub fn is_base(&self) -> bool {
+        match self {
+            &Place::Base(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn has_prefix(&self, other: &Place) -> bool {
         if self == other {
             true
@@ -124,6 +164,31 @@ impl Place {
         res.push(self);
         res
     }
+
+    pub fn get_type(&self) -> &Type {
+        match self {
+            &Place::Base(LocalVar { ref typ, .. }) |
+            &Place::Field(_, Field { ref typ, .. }) => &typ
+        }
+    }
+
+    pub fn typed_ref_name(&self) -> Option<String> {
+        match self.get_type() {
+            &Type::TypedRef(ref name) => Some(name.clone()),
+            _ => None
+        }
+    }
+
+    pub fn replace_prefix(self, target: &Place, replacement: Place) -> Self {
+        if &self == target {
+            replacement
+        } else {
+            match self {
+                Place::Field(box base, field) => Place::Field(box base.replace_prefix(target, replacement), field),
+                x => x,
+            }
+        }
+    }
 }
 
 impl fmt::Display for Place {
@@ -131,6 +196,15 @@ impl fmt::Display for Place {
         match self {
             &Place::Base(ref var) => write!(f, "{}", var),
             &Place::Field(ref place, ref field) => write!(f, "{}.{}", place, field)
+        }
+    }
+}
+
+impl fmt::Debug for Place {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Place::Base(ref var) => write!(f, "{:?}", var),
+            &Place::Field(ref place, ref field) => write!(f, "({:?}).{:?}", place, field)
         }
     }
 }
@@ -146,11 +220,54 @@ pub enum Stmt {
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Place, Expr),
     New(LocalVar, Vec<Field>),
+    Fold(String, Vec<Expr>),
+    Unfold(String, Vec<Expr>),
 }
 
 impl Stmt {
     pub fn comment<S: ToString>(comment: S) -> Self {
         Stmt::Comment(comment.to_string())
+    }
+}
+
+impl fmt::Display for Stmt {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Stmt::Comment(ref comment) => write!(f, "// {}", comment),
+            Stmt::Label(ref label) => write!(f, "label {}", label),
+            Stmt::Inhale(ref expr) => write!(f, "inhale {}", expr),
+            Stmt::Exhale(ref expr, _) => write!(f, "exhale {}", expr),
+            Stmt::Assert(ref expr, _) => write!(f, "assert {}", expr),
+            Stmt::MethodCall(ref name, ref args, ref vars) => write!(
+                f,
+                "{} := {}({})",
+                vars.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                name,
+                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+            ),
+            Stmt::Assign(ref lhs, ref rhs) => write!(f, "{} := {}", lhs, rhs),
+            Stmt::New(ref lhs, ref fields) => write!(
+                f,
+                "{} := new({})",
+                lhs,
+                fields.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", ")
+            ),
+
+
+            Stmt::Fold(ref pred_name, ref args) => write!(
+                f,
+                "fold {}({})",
+                pred_name,
+                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+            ),
+
+            Stmt::Unfold(ref pred_name, ref args) => write!(
+                f,
+                "unfold {}({})",
+                pred_name,
+                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+            ),
+        }
     }
 }
 
@@ -167,6 +284,15 @@ pub enum Expr {
     FieldAccessPredicate(Box<Expr>, Perm),
     UnaryOp(UnaryOpKind, Box<Expr>),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>),
+}
+
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Expr::Place(ref place) => write!(f, "{}", place),
+            otherwise => write!(f, "{:?}", otherwise)
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
