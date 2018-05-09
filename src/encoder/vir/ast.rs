@@ -145,6 +145,10 @@ impl Place {
         }
     }
 
+    pub fn has_proper_prefix(&self, other: &Place) -> bool {
+        self != other && self.has_prefix(other)
+    }
+
     pub fn has_prefix(&self, other: &Place) -> bool {
         if self == other {
             true

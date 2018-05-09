@@ -157,7 +157,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn get_predicate_type(&self, predicate_name: String) -> Option<ty::Ty<'tcx>> {
-        self.predicate_types.borrow().get(&predicate_name).map(|x| x.clone())
+        self.predicate_types.borrow().get(&predicate_name).cloned()
     }
 
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
