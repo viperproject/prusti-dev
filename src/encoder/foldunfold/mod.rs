@@ -49,14 +49,35 @@ impl vir::CfgAugmenter<BranchCtxt> for FoldUnfold {
 
     /// Prepend some statements to an existing join point, returning the merged branch context.
     fn prepend_join(&self, bcs: Vec<&BranchCtxt>) -> (Vec<Vec<vir::Stmt>>, BranchCtxt) {
-        (
-            vec![
-                vec![
-                    // TODO
-                ]
-            ],
-            bcs[0].clone()
-        )
+        assert!(bcs.len() > 0);
+        if bcs.len() == 1 {
+            (vec![], bcs[0].clone())
+        } else {
+            // Define two subgroups
+            let mid = bcs.len() / 2;
+            let left_bcs = &bcs[..mid];
+            let right_bcs = &bcs[mid..];
+
+            // Join the subgroups
+            let (left_stmts_vec, left_bc) = self.prepend_join(left_bcs.to_vec());
+            let (right_stmts_vec, right_bc) = self.prepend_join(right_bcs.to_vec());
+
+            // Join the recursive calls
+            let (mut merge_stmts_vec, merge_bc) = self.prepend_join(vec![&left_bc, &right_bc]);
+            let mut branch_stmts_vec: Vec<Vec<vir::Stmt>> = vec![];
+            for left_stmts in left_stmts_vec {
+                let mut branch_stmts = left_stmts.clone();
+                branch_stmts.append(&mut merge_stmts_vec[0]);
+                branch_stmts_vec.push(branch_stmts);
+            }
+            for right_stmts in right_stmts_vec {
+                let mut branch_stmts = right_stmts.clone();
+                branch_stmts.append(&mut merge_stmts_vec[1]);
+                branch_stmts_vec.push(branch_stmts);
+            }
+
+            (branch_stmts_vec, merge_bc)
+        }
     }
 
     /// Prepend some statements to a back jump

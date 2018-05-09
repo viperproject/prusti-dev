@@ -77,15 +77,21 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 &fields.to_viper(ast)
             ),
             &Stmt::Fold(ref pred_name, ref args) => ast.fold(
-                ast.predicate_access(
-                    &args.to_viper(ast),
-                    &pred_name
+                ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &args.to_viper(ast),
+                        &pred_name
+                    ),
+                    ast.full_perm()
                 )
             ),
             &Stmt::Unfold(ref pred_name, ref args) => ast.unfold(
-                ast.predicate_access(
-                    &args.to_viper(ast),
-                    &pred_name
+                ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &args.to_viper(ast),
+                        &pred_name
+                    ),
+                    ast.full_perm()
                 )
             ),
         }

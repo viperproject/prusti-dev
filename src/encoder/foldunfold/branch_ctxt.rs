@@ -28,8 +28,16 @@ impl BranchCtxt {
         }
     }
 
+    fn join(&self, other: &BranchCtxt) -> (Vec<vir::Stmt>, Vec<vir::Stmt>) {
+        if self.state == other.state {
+            return (vec![], vec![]);
+        } else {
+            unimplemented!()
+        }
+    }
+
     fn obtain(&mut self, mut reqs: Vec<AccOrPred>) -> Vec<vir::Stmt> {
-        let mut stmts: Vec<vir::Stmt> = vec![];
+            let mut stmts: Vec<vir::Stmt> = vec![];
 
         while !reqs.is_empty() {
             debug!("Acc state: {{{}}}", self.state.display_acc());
