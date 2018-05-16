@@ -41,8 +41,8 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyTuple(parts) => {
                 self.visit_tuple(parts);
             },
-            _ => {
-                unimplemented!();
+            ref x => {
+                unimplemented!("{:?}", x);
             }
         }
 

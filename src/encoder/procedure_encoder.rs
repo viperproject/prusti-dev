@@ -33,7 +33,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     cfg_method: vir::CfgMethod,
     locals: LocalVariableManager<'tcx>,
     loops: LoopEncoder<'tcx>,
-    dataflow_info: DataflowInfo<'tcx>,
+    //dataflow_info: DataflowInfo<'tcx>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -52,7 +52,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mir = procedure.get_mir();
         let locals = LocalVariableManager::new(&mir.local_decls);
         let loops = LoopEncoder::new(mir);
-        let dataflow_info = procedure.construct_dataflow_info();
+        // let dataflow_info = procedure.construct_dataflow_info();
 
         ProcedureEncoder {
             encoder,
@@ -62,7 +62,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             cfg_method,
             locals: locals,
             loops: loops,
-            dataflow_info: dataflow_info,
+            //dataflow_info: dataflow_info,
         }
     }
 
@@ -136,7 +136,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     },
 
-                    &mir::Rvalue::UnaryOp(_op, ref _operand) => unimplemented!("{:?}", rhs),
+                    &mir::Rvalue::UnaryOp(op, ref operand)  => {
+                        let (encoded_operand, effects_after) = self.eval_operand(operand);
+                        let field = self.encoder.encode_value_field(ty);
+                        let encoded_value = self.encode_unary_op_value(op, encoded_operand);
+                        stmts.push(
+                            vir::Stmt::Assign(
+                                encoded_lhs.access(field),
+                                encoded_value
+                            )
+                        );
+                        stmts.extend(effects_after);
+                        stmts
+                    },
 
                     &mir::Rvalue::NullaryOp(_op, ref _ty) => unimplemented!("{:?}", rhs),
 
@@ -643,10 +655,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
     }
 
-    fn encode_loop_invariant_exhale(&mut self, loop_head: BasicBlockIndex,
+    fn encode_loop_invariant_exhale(&mut self, _loop_head: BasicBlockIndex,
                                     _source: BasicBlockIndex) {
-        let _invariant = self.loops.compute_loop_invariant(loop_head, &mut self.dataflow_info);
-        unimplemented!();
+        // TODO: commented out because we need access to dataflow analysis (it requires a patch to rustc)
+        //let _invariant = self.loops.compute_loop_invariant(loop_head, &mut self.dataflow_info);
     }
 
     fn get_rust_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {
@@ -961,6 +973,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir::BinOp::Add => vir::Expr::add(left, right),
 
             mir::BinOp::Sub => vir::Expr::sub(left, right),
+
+            x => unimplemented!("{:?}", x)
+        }
+    }
+
+    fn encode_unary_op_value(&mut self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
+        match op {
+            mir::UnOp::Not => vir::Expr::not(expr),
 
             x => unimplemented!("{:?}", x)
         }
