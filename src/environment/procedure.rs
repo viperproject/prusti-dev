@@ -11,7 +11,6 @@ use rustc::mir::Terminator;
 use rustc::mir::BasicBlock;
 use rustc::mir::TerminatorKind;
 use data::ProcedureDefId;
-use environment::dataflow;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -167,11 +166,6 @@ impl<'a, 'tcx> ProcedureImpl<'a, 'tcx> {
             }
         }
         types.into_iter().collect()
-    }
-
-    /// Constructs a querable interface to MIR dataflow analysis results.
-    pub fn construct_dataflow_info(&self) -> dataflow::DataflowInfo<'tcx> {
-        dataflow::construct_dataflow_info(self.tcx, self.proc_def_id, &self.mir)
     }
 }
 
