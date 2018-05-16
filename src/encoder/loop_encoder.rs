@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use rustc::mir;
 use prusti_interface::environment::{
-    BasicBlockIndex, DataflowInfo, PlaceAccess, PlaceAccessKind, ProcedureLoops};
+    BasicBlockIndex, PlaceAccess, PlaceAccessKind, ProcedureLoops};
 
 pub struct LoopEncoder<'tcx> {
     pub loop_info: ProcedureLoops,
@@ -140,7 +140,7 @@ impl<'tcx> LoopEncoder<'tcx> {
     /// 9.  Remove all places from `read_access_paths` that are already in
     ///     `read_places`, `written_places`, or `write_access_paths`.
     pub fn compute_loop_invariant(&self, loop_head: BasicBlockIndex,
-                                  dataflow_info: &mut DataflowInfo
+                                  //dataflow_info: &mut DataflowInfo
                                   ) -> LoopInvariant<'tcx> {
         let location = mir::Location { block: loop_head, statement_index: 0 };
 
@@ -162,7 +162,7 @@ impl<'tcx> LoopEncoder<'tcx> {
         debug!("written_places2 = {:?}", written_places);
         let mut written_places = written_places;
         let mut changes = true;
-        let maybe_uninit = dataflow_info.get_maybe_uninit_at(location);
+        //let maybe_uninit = dataflow_info.get_maybe_uninit_at(location);
         while changes {
             changes = false;
             // TODO: Finish the implementation based on the description

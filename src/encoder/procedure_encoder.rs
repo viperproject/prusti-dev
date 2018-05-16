@@ -17,7 +17,6 @@ use encoder::borrows::ProcedureContract;
 use rustc_data_structures::indexed_vec::Idx;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::loop_encoder::LoopEncoder;
-use prusti_interface::environment::DataflowInfo;
 use encoder::vir::{self, Successor, CfgBlockIndex};
 use encoder::vir::utils::ExprIterator;
 use encoder::foldunfold;
