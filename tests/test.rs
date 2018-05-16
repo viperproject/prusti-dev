@@ -58,4 +58,5 @@ fn run(group_name: &str) {
 fn typecheck_test() {
     run("parse");
     run("typecheck");
+    run("verify");
 }

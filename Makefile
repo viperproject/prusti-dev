@@ -7,7 +7,7 @@ STDERR_FILE=$(RUN_FILE:.rs=.stderr)
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
 STAGE2_COMPILER_PATH=../../rust/build/x86_64-unknown-linux-gnu/stage2
 JAVA_HOME=/usr/lib/jvm/default-java
-LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:../target/debug/:${JAVA_HOME}/jre/lib/amd64/server/
+LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:${STAGE2_COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/:../target/debug/:${JAVA_HOME}/jre/lib/amd64/server/
 DRIVER=../target/debug/prusti-driver
 
 run:
