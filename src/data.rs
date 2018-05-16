@@ -11,6 +11,7 @@ use rustc::hir::def_id::DefId;
 pub type ProcedureDefId = DefId;
 
 /// A list of items to verify that is passed to a verifier.
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct VerificationTask {
     /// A list of procedures to verify.
     pub procedures: Vec<DefId>,

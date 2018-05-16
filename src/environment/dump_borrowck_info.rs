@@ -33,11 +33,15 @@ use rustc::ty::{self, Ty, TyCtxt};
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>) {
     trace!("[dump_useful_info] enter");
 
-    assert!(tcx.features().nll);
-    let mut printer = InfoPrinter {
-        tcx: tcx,
-    };
-    intravisit::walk_crate(&mut printer, tcx.hir.krate());
+    if tcx.features().nll {
+        let mut printer = InfoPrinter {
+            tcx: tcx,
+        };
+        intravisit::walk_crate(&mut printer, tcx.hir.krate());
+    } else {
+        warn!("NLL is not enabled, thus it is not possible to dump borrowck info.");
+        warn!("To enable NLL use '#![feature(nll)]'.");
+    }
 
     trace!("[dump_useful_info] exit");
 }
