@@ -5,19 +5,19 @@ LOG_LEVEL=error
 RUN_FILE=tests/typecheck/pass/lint.rs
 STDERR_FILE=$(RUN_FILE:.rs=.stderr)
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
-STAGE2_COMPILER_PATH=../../rust/build/x86_64-unknown-linux-gnu/stage2
 JAVA_HOME=/usr/lib/jvm/default-java
-LIB_PATH=${STAGE2_COMPILER_PATH}/lib/:${STAGE2_COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/:../target/debug/:${JAVA_HOME}/jre/lib/amd64/server/
+COMPILER_PATH=$$HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/
+LIB_PATH=${COMPILER_PATH}/lib/:${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/:../target/debug/:${JAVA_HOME}/jre/lib/amd64/server/
 DRIVER=../target/debug/prusti-driver
 
 run:
 	RUST_LOG=${LOG_LEVEL} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \
-		--sysroot ${STAGE2_COMPILER_PATH}/lib/ \
+		--sysroot ${COMPILER_PATH}/lib/ \
 		-L ../target/debug/ \
-		-L ${STAGE2_COMPILER_PATH}/lib/ \
-		-L ${STAGE2_COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		-L ${COMPILER_PATH}/lib/ \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z mir-emit-validate=1 \
 		-Z dump-mir=all \
@@ -32,12 +32,12 @@ run:
 generate_ui_stderr:
 	-LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \
-		--sysroot ${STAGE2_COMPILER_PATH}/lib/ \
-        -L ../target/debug/ \
-        -L ${STAGE2_COMPILER_PATH}/lib/ \
-        -L ${STAGE2_COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-        --extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
-        -Z mir-emit-validate=1 \
+		--sysroot ${COMPILER_PATH}/lib/ \
+		-L ../target/debug/ \
+		-L ${COMPILER_PATH}/lib/ \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
+		-Z mir-emit-validate=1 \
 		-Z borrowck=mir \
 		-Awarnings \
 		${RUN_FILE} 2> ${STDERR_FILE}
@@ -47,11 +47,11 @@ generate_ui_stderr:
 build:
 	JAVA_HOME=${JAVA_HOME} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
-    RUSTFLAGS="--verbose" cargo +stage2 build
+	RUSTFLAGS="--verbose" cargo +nightly build
 
 test:
 	LD_LIBRARY_PATH=${LIB_PATH} \
-    cargo +stage2 test
+	cargo +nightly test
 
 clean:
 	cargo clean
@@ -70,7 +70,7 @@ format_code:
 	cargo fmt
 
 build_release:
-	cargo +stage2 build --release
+	cargo +nightly build --release
 
 build_image:
 	sudo docker build -t ${IMAGE_NAME} docker

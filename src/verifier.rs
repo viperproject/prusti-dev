@@ -26,9 +26,6 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
     let env = Environment::new(state);
 
-    debug!("Dump borrow checker info...");
-    env.dump_borrowck_info();
-
     debug!("Prepare verification task...");
     let annotated_procedures = env.get_annotated_procedures();
     let verification_task = VerificationTask { procedures: annotated_procedures };
