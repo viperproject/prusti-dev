@@ -1,5 +1,7 @@
 #![feature(nll)]
 
+extern crate prusti_contracts;
+
 struct MyStruct {
     a: i32,
     b: (i32, i32)
@@ -14,5 +16,4 @@ fn foo<'a>(arg: MyStruct) -> (i32, i32) {
 }
 
 fn main() {
-
 }

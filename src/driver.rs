@@ -116,7 +116,11 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                 prusti::typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
             // Call the verifier
-            prusti::verifier::verify(state, typed_specifications);
+            if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {
+                prusti::verifier::verify(state, typed_specifications);
+            } else {
+                warn!("Verification skipped due to PRUSTI_NO_VERIFY env variable");
+            }
             trace!("[after_analysis.callback] exit");
             old(state);
         });

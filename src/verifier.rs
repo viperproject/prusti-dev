@@ -32,6 +32,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
     debug!("Prepare verification task...");
     let annotated_procedures = env.get_annotated_procedures();
     let verification_task = VerificationTask { procedures: annotated_procedures };
+    debug!("Verification task: {:?}", &verification_task);
 
     debug!("Prepare verifier...");
     let verifier_builder = ViperVerifierBuilder::new();

@@ -1,6 +1,6 @@
 extern crate compiletest_rs;
 
-use std::env::set_var;
+use std::env::{set_var, remove_var};
 use std::path::PathBuf;
 use compiletest_rs::{common, run_tests, Config};
 
@@ -19,8 +19,14 @@ fn get_driver_path() -> PathBuf {
     unreachable!();
 }
 
-fn run(group_name: &str) {
+fn run(group_name: &str, verify: bool) {
     set_var("PRUSTI_TESTS", "true");
+
+    if !verify {
+        set_var("PRUSTI_NO_VERIFY", "true");
+    } else {
+        remove_var("PRUSTI_NO_VERIFY");
+    }
 
     let mut config = Config::default();
     config.rustc_path = get_driver_path();
@@ -56,7 +62,7 @@ fn run(group_name: &str) {
 
 #[test]
 fn typecheck_test() {
-    run("parse");
-    run("typecheck");
-    run("verify");
+    run("parse", false);
+    run("typecheck", false);
+    run("verify", true);
 }
