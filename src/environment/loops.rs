@@ -22,7 +22,7 @@ impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
         block: BasicBlockIndex,
         kind: &mir::TerminatorKind<'tcx>,
         _: mir::Location) {
-        for successor in kind.successors().iter() {
+        for successor in kind.successors() {
             if self.dominators.is_dominated_by(block, *successor) {
                 self.back_edges.push((block, *successor));
                 debug!("Loop head: {:?}", successor);
@@ -48,7 +48,7 @@ trait PredecessorsFirstVisitor<'tcx>: Visitor<'tcx> {
             let basic_block_data = &mir.basic_blocks()[current];
             self.visit_basic_block_data(current, basic_block_data);
             analysed_blocks.insert(current);
-            for &successor in basic_block_data.terminator().successors().iter() {
+            for &successor in basic_block_data.terminator().successors() {
                 let mut all_predecessors_analysed = mir
                     .predecessors_for(successor)
                     .iter()
