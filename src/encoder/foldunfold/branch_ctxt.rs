@@ -17,6 +17,29 @@ pub struct BranchCtxt {
     predicates: HashMap<String, vir::Predicate>
 }
 
+
+/// Returns the elements of A1 or A2 that have a prefix in the other set.
+///
+/// e.g.
+/// definitely_preserved(
+///   { a, b.c, d.e.f, d.g },
+///   { a, b.c.d, b.c.e, d.e,h }
+/// ) = { a, b.c.d, b.c.e, d.e.f }
+fn definitely_preserved(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+    let mut res = HashSet::new();
+    for left_item in left.iter() {
+        for right_item in right.iter() {
+            if right_item.has_prefix(left_item) {
+                res.insert(right_item.clone());
+            }
+            if left_item.has_prefix(right_item) {
+                res.insert(left_item.clone());
+            }
+        }
+    }
+    res
+}
+
 impl BranchCtxt {
     pub fn new(local_vars: Vec<vir::LocalVar>, predicates: HashMap<String, vir::Predicate>) -> Self {
         BranchCtxt {
@@ -28,11 +51,107 @@ impl BranchCtxt {
         }
     }
 
-    fn join(&self, other: &BranchCtxt) -> (Vec<vir::Stmt>, Vec<vir::Stmt>) {
-        if self.state == other.state {
-            return (vec![], vec![]);
-        } else {
-            unimplemented!()
+    /// Simulate an unfold
+    fn unfold(&mut self, pred_place: &vir::Place) -> vir::Stmt {
+        debug!("We want to unfold {:?}", pred_place);
+        assert!(self.state.pred().contains(&pred_place));
+
+        let predicate_name = pred_place.typed_ref_name().unwrap();
+        let predicate = self.predicates.get(&predicate_name).unwrap();
+
+        let pred_self_place: vir::Place = predicate.args[0].clone().into();
+        let places_in_pred: Vec<AccOrPred> = predicate.get_contained_places().into_iter()
+            .map( |aop| aop.map( |p|
+                p.replace_prefix(&pred_self_place, pred_place.clone())
+            )).collect();
+
+        // Simulate unfolding of `pred_place`
+        self.state.remove_pred(&pred_place);
+        self.state.insert_all(places_in_pred.into_iter());
+
+        debug!("We unfolded {:?}", pred_place);
+
+        vir::Stmt::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ])
+    }
+
+    fn exhale(&mut self, pred_place: &vir::Place) -> vir::Stmt {
+        debug!("We want to exhale/drop {:?}", pred_place);
+        assert!(self.state.pred().contains(&pred_place));
+
+        let predicate_name = pred_place.typed_ref_name().unwrap();
+
+        // Simulate exhaling/dropping of `pred_place`
+        self.state.remove_pred(&pred_place);
+
+        // Done.
+        debug!("We exhaled/dropped {:?}", pred_place);
+
+        vir::Stmt::Exhale(
+            vir::Expr::PredicateAccessPredicate(
+                box vir::Expr::PredicateAccess(
+                    predicate_name.clone(),
+                    vec![ pred_place.clone().into() ]
+                ),
+                vir::Perm::full()
+            ),
+            vir::Id()
+        )
+    }
+
+    pub fn join(&mut self, mut other: BranchCtxt) -> (Vec<vir::Stmt>, Vec<vir::Stmt>) {
+        let mut left_stmts: Vec<vir::Stmt> = vec![];
+        let mut right_stmts: Vec<vir::Stmt> = vec![];
+
+        loop {
+            debug!("Iteration for join");
+
+            debug!("Predicates in left branch: {:?}", self.state.pred());
+            debug!("Predicates in right branch: {:?}", other.state.pred());
+
+            if self.state == other.state {
+                self.state.intersect_acc(other.state.acc());
+                return (left_stmts, right_stmts);
+            } else {
+                let preserved_pred = definitely_preserved(self.state.pred(), other.state.pred());
+                debug!("Preserved predicates: {:?}", preserved_pred);
+
+                let original_self_pred = self.state.pred().clone();
+                let original_other_pred = other.state.pred().clone();
+
+                for pred_place in original_self_pred.difference(&preserved_pred) {
+                    debug!("The left branch has an extra predicate: {}", pred_place);
+                    if other.state.is_proper_prefix_of_some_acc(pred_place) {
+                        // Unfold `pred_place`
+                        let stmt = self.unfold(pred_place);
+                        left_stmts.push(stmt);
+                    } else {
+                        // Here it's better not to unfold `x`, because it may be a recursive
+                        // data structure and we may end up unfolding forever.
+                        // So, we drop or exhale the permission.
+                        let stmt = self.exhale(pred_place);
+                        left_stmts.push(stmt);
+                    }
+                }
+
+                for pred_place in original_other_pred.difference(&preserved_pred) {
+                    debug!("The right branch has an extra predicate: {}", pred_place);
+                    if self.state.is_proper_prefix_of_some_acc(pred_place) {
+                        // Unfold `pred_place`
+                        let stmt = other.unfold(pred_place);
+                        right_stmts.push(stmt);
+                    } else {
+                        // Here it's better not to unfold `x`, because it may be a recursive
+                        // data structure and we may end up unfolding forever.
+                        // So, we drop or exhale the permission.
+                        let stmt = other.exhale(pred_place);
+                        right_stmts.push(stmt);
+                    }
+                }
+
+                // Iterate once more, to check that self.state == other.state
+                trace!("Statements in left branch: {:?}", &left_stmts);
+                trace!("Statements in left branch: {:?}", &right_stmts);
+            }
         }
     }
 
@@ -69,27 +188,9 @@ impl BranchCtxt {
             match existing_pred_opt {
                 Some(existing_pred) => {
                     // We want to unfold `existing_pred`
-                    debug!("We want to unfold {:?}", existing_pred);
-                    let predicate_name = existing_pred.typed_ref_name().unwrap();
-                    let predicate = self.predicates.get(&predicate_name).unwrap();
-
-                    let pred_self_place: vir::Place = predicate.args[0].clone().into();
-                    let places_in_pred: Vec<AccOrPred> = predicate.get_contained_places().into_iter()
-                        .map( |aop| aop.map( |p|
-                            p.replace_prefix(&pred_self_place, existing_pred.clone())
-                        )).collect();
-
-                    stmts.push(
-                        vir::Stmt::Unfold(predicate_name.clone(), vec![ existing_pred.clone().into() ])
-                    );
-
-                    // Simulate unfolding of `exising_pred`
-                    assert!(self.state.pred().contains(&existing_pred));
-                    self.state.remove_pred(&existing_pred);
-                    self.state.insert_all(places_in_pred.into_iter());
-
-                    // Done. Continue checking the remaining requirements
-                    debug!("We unfolded {:?}", existing_pred);
+                    let stmt = self.unfold(&existing_pred);
+                    stmts.push(stmt);
+                    // Continue checking the remaining requirements
                 },
 
                 None => {

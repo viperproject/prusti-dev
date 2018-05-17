@@ -6,6 +6,7 @@ use std::collections::HashSet;
 use encoder::vir;
 use encoder::vir::utils::ExprIterator;
 use encoder::foldunfold::acc_or_pred::*;
+use std::iter::FromIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
@@ -35,6 +36,40 @@ impl State {
 
     pub fn set_pred(&mut self, pred: HashSet<vir::Place>) {
         self.pred = pred
+    }
+
+    pub fn contains_acc(&self, place: &vir::Place) -> bool {
+        self.acc.contains(&place)
+    }
+
+    pub fn contains_pred(&self, place: &vir::Place) -> bool {
+        self.pred.contains(&place)
+    }
+
+    pub fn is_proper_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {
+        for place in &self.pred {
+            if place.has_proper_prefix(prefix) {
+                return true
+            }
+        }
+        return false
+    }
+
+    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
+        for place in &self.acc {
+            if place.has_proper_prefix(prefix) {
+                return true
+            }
+        }
+        return false
+    }
+
+    pub fn intersect_acc(&mut self, other_acc: &HashSet<vir::Place>) {
+        self.acc = HashSet::from_iter(self.acc.intersection(other_acc).cloned());
+    }
+
+    pub fn intersect_pred(&mut self, other_pred: &HashSet<vir::Place>) {
+        self.pred = HashSet::from_iter(self.pred.intersection(other_pred).cloned());
     }
 
     pub fn remove_matching<P>(&mut self, pred: P)
