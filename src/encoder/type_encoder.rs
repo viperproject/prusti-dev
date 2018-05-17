@@ -203,6 +203,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 perms
             },
 
+            ty::TypeVariants::TyNever => {
+                vec![
+                    vir::Expr::Const(false.into())
+                ]
+            },
+
             ref x => unimplemented!("{:?}", x),
         };
 
@@ -237,6 +243,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ).collect();
                 format!("tuple{}${}", elems.len(), elem_predicate_names.join("$"))
             }
+
+            ty::TypeVariants::TyNever => "never".to_string(),
 
             ref x => unimplemented!("{:?}", x),
         }
