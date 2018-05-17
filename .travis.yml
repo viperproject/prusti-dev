@@ -1,12 +1,22 @@
 language: rust
 dist: trusty
-sudo: true
+sudo: false
 
 rust:
   - nightly
 
 jdk:
   - oraclejdk8
+
+# Add Viper's PPA and install Viper
+addons:
+  apt:
+    sources:
+      - sourceline: 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /'
+        key_url: 'http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc'
+    update: true
+    packages:
+      - viper
 
 cache:
   cargo: true
@@ -20,7 +30,8 @@ env:
     - JAVA_HOME=/usr/lib/jvm/java-8-oracle
     - LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/amd64/server
     # Required to run Viper on Ubuntu Trusty
-    - Z3_PATH=/usr/bin/z3
+    - USR_LOCAL=$HOME/local
+    - Z3_PATH=$USR_LOCAL/bin/z3
     # Debug settings
     - RUST_BACKTRACE=1
 
@@ -35,10 +46,8 @@ before_install:
   # Replace the SSH URL with the public URL, then init and update submodules
   - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
   - git submodule update --init --recursive
-  # Add Viper's PPA
-  - wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
-  - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
-  - travis_retry sudo apt-get update
+  # Prepare directory for local installations
+  - mkdir -p $USR_LOCAL
   # Download and compile Z3 with a known-to-work version
   - if [ ! -d .cache/z3 ]; then (
       echo "Building Z3 from scratch" &&
@@ -46,7 +55,7 @@ before_install:
       unzip z3.zip &&
       rm z3.zip &&
       cd z3-* &&
-      ./configure &&
+      ./configure --prefix=$USR_LOCAL &&
       cd build &&
       make -j 2 &&
       cd ../.. &&
@@ -57,12 +66,11 @@ before_install:
     fi
 
 install:
-  - travis_retry sudo apt-get install viper
-  - ( cd .cache/z3/build && sudo make install )
+  - ( cd .cache/z3/build && make install )
   - cargo install mdbook --vers 0.0.26 || true
 
 script:
-  - cargo build --all -vv
+  - cargo build --all
   - cargo test --verbose -- --nocapture
 
 after_success:
