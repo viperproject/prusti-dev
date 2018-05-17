@@ -553,7 +553,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         )
     }
     fn expr_block(&self, b: P<ast::Block>) -> P<ast::Expr> {
-        self.expr(b.span, ast::ExprKind::Block(b))
+        self.expr(b.span, ast::ExprKind::Block(b, None))
     }
     fn field_imm(&self, span: Span, name: Ident, e: P<ast::Expr>) -> ast::Field {
         ast::Field {

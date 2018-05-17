@@ -50,6 +50,7 @@ build:
 	RUSTFLAGS="--verbose" cargo +nightly build
 
 test:
+	RUST_BACKTRACE=1 \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	cargo +nightly test
 
