@@ -522,8 +522,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
             }
 
-            let successor_count = bb_data.terminator().successors().len();
-            for successor in bb_data.terminator().successors().iter() {
+            let successor_count = bb_data.terminator().successors().count();
+            for successor in bb_data.terminator().successors() {
                 if self.loops.is_loop_head(successor) {
                     assert!(successor_count == 1);
                     self.encode_loop_invariant_exhale(*successor, bbi);
@@ -705,7 +705,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     ty::TypeVariants::TyInt(_) |
                     ty::TypeVariants::TyUint(_) |
                     ty::TypeVariants::TyRawPtr(_) |
-                    ty::TypeVariants::TyRef(_, _) => panic!("Type {:?} has no fields", base_ty),
+                    ty::TypeVariants::TyRef(_, _, _) => panic!("Type {:?} has no fields", base_ty),
 
                     ty::TypeVariants::TyTuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
@@ -740,7 +740,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::ProjectionElem::Deref => {
                 match base_ty.sty {
                     ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
-                    ty::TypeVariants::TyRef(_, ty::TypeAndMut { ty, .. }) => {
+                    ty::TypeVariants::TyRef(_, ty, _) => {
                         let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                         let access = vir::Place::Field(
                             box encoded_base,
@@ -931,7 +931,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ty, .. }) => {
+            ty::TypeVariants::TyRef(_, ty, _) => {
                 let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                 stmts.push(
                     vir::Stmt::Assign(

@@ -172,13 +172,18 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, as_bool: bool) -> vir::Expr {
-        if as_bool {
-            vir::Expr::eq_cmp(
-                const_val.unwrap_u64().into(),
-                1.into()
-            )
-        } else {
-            const_val.unwrap_u64().into()
+        match const_val {
+            ConstVal::Value(ref const_value) => {
+                if as_bool {
+                    vir::Expr::eq_cmp(
+                        const_value.to_primval().unwrap().to_bool().ok().unwrap().into(),
+                        true.into()
+                    )
+                } else {
+                    const_value.to_primval().unwrap().to_i64().ok().unwrap().into()
+                }
+            },
+            _ => unimplemented!()
         }
     }
 

@@ -4,6 +4,7 @@
 
 use std::fmt;
 use rustc::ty::{self, TyCtxt, Ty};
+use rustc::hir;
 use rustc::mir;
 use rustc_data_structures::indexed_vec::Idx;
 use utils::type_visitor::{self, TypeVisitor};
@@ -255,8 +256,8 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.current_path = Some(old_path);
     }
 
-    fn visit_ref(&mut self, region: ty::Region<'tcx>, tym: ty::TypeAndMut<'tcx>) {
-        trace!("visit_ref({:?}, {:?}) current_path={:?}", region, tym, self.current_path);
+    fn visit_ref(&mut self, region: ty::Region<'tcx>, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
+        trace!("visit_ref({:?}, {:?}, {:?}) current_path={:?}", region, ty, mutability, self.current_path);
         let bound_region = self.extract_bound_region(region);
         let is_path_blocking = self.is_path_blocking;
         let old_path = self.current_path.take().unwrap();
@@ -270,7 +271,7 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
             self.references_in.push(current_path);
         }
         self.is_path_blocking = true;
-        type_visitor::walk_ref(self, region, tym);
+        type_visitor::walk_ref(self, region, ty, mutability);
         self.is_path_blocking = is_path_blocking;
         self.current_path = Some(old_path);
     }

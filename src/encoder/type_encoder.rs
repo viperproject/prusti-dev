@@ -29,7 +29,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(_) => vir::Field::new("val_uint", vir::Type::Int),
 
             ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _) => {
+            ty::TypeVariants::TyRef(_, _, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty);
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             },
@@ -50,7 +50,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(_) => "val_uint",
 
             ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _) => "val_ref",
+            ty::TypeVariants::TyRef(_, _, _) => "val_ref",
 
             ty::TypeVariants::TyAdt(_, _) |
             ty::TypeVariants::TyTuple(_) => unimplemented!(),
@@ -78,7 +78,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ],
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ref ty, .. }) => {
+            ty::TypeVariants::TyRef(_, ref ty, _) => {
                 let predicate_name = self.encoder.encode_type_predicate_use(ty);
                 let elem_field = self.encoder.encode_ref_field("val_ref", ty);
                 let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
@@ -225,7 +225,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(_) => "uint".to_string(),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut { ref ty, .. }) =>
+            ty::TypeVariants::TyRef(_, ref ty, _) =>
                 format!("ref${}", self.encoder.encode_type_predicate_use(ty)),
 
             ty::TypeVariants::TyAdt(&ty::AdtDef { did, .. }, _) =>
@@ -254,8 +254,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ]
             }
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut{ .. }) |
-            ty::TypeVariants::TyRef(_, ty::TypeAndMut{ .. }) => {
+            ty::TypeVariants::TyRawPtr(_) |
+            ty::TypeVariants::TyRef(_, _, _) => {
                 vec![
                     self.encoder.encode_value_field(self.ty)
                 ]

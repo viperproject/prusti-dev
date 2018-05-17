@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc::ty::{
-    Ty, TyCtxt, TypeVariants, TypeFlags, AdtDef, Region, TypeAndMut, Slice,
+    Ty, TyCtxt, TypeVariants, TypeFlags, AdtDef, Region, Slice,
     VariantDef, FieldDef};
 use syntax::ast::{IntTy, UintTy};
 use rustc::hir::Mutability;
@@ -35,8 +35,8 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyAdt(adt_def, substs) => {
                 self.visit_adt(adt_def, substs);
             },
-            TyRef(region, tym) => {
-                self.visit_ref(region, tym);
+            TyRef(region, ty, mutability) => {
+                self.visit_ref(region, ty, mutability);
             },
             TyTuple(parts) => {
                 self.visit_tuple(parts);
@@ -75,9 +75,9 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
         walk_field(self, field, substs);
     }
 
-    fn visit_ref(&mut self, region: Region<'tcx>, tym: TypeAndMut<'tcx>) {
-        trace!("visit_ref({:?}, {:?})", region, tym);
-        walk_ref(self, region, tym);
+    fn visit_ref(&mut self, region: Region<'tcx>, ty: Ty<'tcx>, mutability: Mutability) {
+        trace!("visit_ref({:?}, {:?}, {:?})", region, ty, mutability);
+        walk_ref(self, region, ty, mutability);
     }
 
     fn visit_ref_type(&mut self, ty: Ty<'tcx>, mutability: Mutability) {
@@ -117,8 +117,9 @@ pub fn walk_field<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
 
 pub fn walk_ref<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
                                                     _: Region<'tcx>,
-                                                    tym: TypeAndMut<'tcx>) {
-    visitor.visit_ref_type(tym.ty, tym.mutbl);
+                                                    ty: Ty<'tcx>,
+                                                    _: Mutability) {
+    visitor.visit_ty(ty);
 }
 
 pub fn walk_ref_type<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
