@@ -86,6 +86,15 @@ impl Viper {
 
         let this = Viper { jvm };
 
+        {
+            // Initialize the logging context
+            // See:
+            // - https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances
+            // - https://stackoverflow.com/a/16013093/2491528
+            let ver_context = this.new_verification_context();
+            ver_context.new_verifier();
+        }
+
         this
     }
 
