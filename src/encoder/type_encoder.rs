@@ -167,7 +167,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                 discriminan_loc.clone().into()
                             ),
                             vir::Expr::le_cmp(
-                                discriminan_loc.into(),
+                                discriminan_loc.clone().into(),
                                 (num_variants - 1).into()
                             )
                         )
@@ -175,6 +175,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
                         assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
+                        let mut variant_perms: Vec<vir::Expr> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
                             let field_name = format!("enum_{}_{}", variant_index, field.name);
@@ -182,19 +183,33 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
                             let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
-                            perms.push(
+                            variant_perms.push(
                                 vir::Expr::FieldAccessPredicate(
                                     box elem_loc.clone().into(),
                                     vir::Perm::full()
                                 )
                             );
-                            perms.push(
+                            variant_perms.push(
                                 vir::Expr::PredicateAccessPredicate(
                                     box vir::Expr::PredicateAccess(
                                         predicate_name,
                                         vec![ elem_loc.into() ]
                                     ),
                                     vir::Perm::full()
+                                )
+                            )
+                        }
+                        if variant_perms.is_empty() {
+                            debug!("Variant {} of '{:?}' is empty", variant_index, self.ty)
+                        } else {
+                            perms.push(
+                                vir::Expr::implies(
+                                    vir::Expr::eq_cmp(
+                                        discriminan_loc.clone().into(),
+                                        variant_index.into()
+                                    ),
+                                    // implies
+                                    variant_perms.into_iter().conjoin()
                                 )
                             )
                         }

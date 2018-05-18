@@ -386,7 +386,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         local
                     };
 
-                    let mut procedure_contract = self.encoder
+                    let procedure_contract = self.encoder
                         .get_procedure_contract_for_call(def_id, &arg_vars, target);
 
                     let label = self.cfg_method.get_fresh_label_name();
@@ -628,14 +628,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
         for borrow_info in contract.borrow_infos.iter() {
             debug!("{:?}", borrow_info);
-            let mut lhs = borrow_info.blocking_paths
+            let lhs = borrow_info.blocking_paths
                 .iter()
                 .map(|place| {
                     debug!("{:?}", place);
                     self.encode_place_permission(place, None)
                 })
                 .conjoin();
-            let mut rhs = borrow_info.blocked_paths
+            let rhs = borrow_info.blocked_paths
                 .iter()
                 .map(|place| self.encode_place_permission(place, Some(label)))
                 .conjoin();

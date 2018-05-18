@@ -35,7 +35,7 @@ impl vir::Stmt {
             },
 
             &vir::Stmt::Assign(ref lhs_place, ref rhs) => {
-                let mut original_state = state.clone();
+                let original_state = state.clone();
 
                 // First of all, remove places that will not have a name
                 state.remove_pred_matching( |p| p.has_prefix(&lhs_place));

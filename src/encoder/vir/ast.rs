@@ -301,7 +301,7 @@ impl fmt::Display for Expr {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinOpKind {
-    EqCmp, GtCmp, LeCmp, Add, Sub, And
+    EqCmp, GtCmp, LeCmp, Add, Sub, And, Implies
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -340,6 +340,10 @@ impl Expr {
 
     pub fn sub(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Sub, box left, box right)
+    }
+
+    pub fn implies(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Implies, box left, box right)
     }
 }
 

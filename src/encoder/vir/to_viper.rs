@@ -138,6 +138,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     BinOpKind::Add => ast.add(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Sub => ast.sub(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::And => ast.and(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::Implies => ast.implies(left.to_viper(ast), right.to_viper(ast)),
                 }
             }
         }

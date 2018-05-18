@@ -123,10 +123,9 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
 
-        let verification_errors = if let viper::VerificationResult::Failure(mut errors) = verification_result {
-            errors
-        } else {
-            vec![]
+        let verification_errors = match verification_result {
+            viper::VerificationResult::Failure(errors) => errors,
+            _ => vec![]
         };
 
         if verification_errors.is_empty() {
