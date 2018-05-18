@@ -906,63 +906,115 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_copy(&mut self, src: vir::Place, dst: vir::Place, self_ty: ty::Ty<'tcx>) -> Vec<vir::Stmt> {
-        debug!("Encode copy {:?}", self_ty);
-        let mut stmts: Vec<vir::Stmt> = vec![];
+    fn encode_copy_expr(&mut self, src: vir::Place, dst: vir::Place, self_ty: ty::Ty<'tcx>) -> vir::Expr {
+        debug!("Encode copy expr {:?}", self_ty);
 
-        stmts.extend(
-            self.encode_allocation(dst.clone(), self_ty)
-        );
-
-        let mut fields = self.encoder.encode_type_fields(self_ty);
-
-        match self_ty.sty {
+        let copy_exprs = match self_ty.sty {
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => {
-                for field in fields.drain(..) {
-                    stmts.push(
-                        vir::Stmt::Assign(
+            ty::TypeVariants::TyUint(_) |
+            ty::TypeVariants::TyRawPtr(_) |
+            ty::TypeVariants::TyRef(_, _, _) => {
+                let field = self.encoder.encode_value_field(self_ty);
+                vec![
+                    // Permission
+                    vir::Expr::FieldAccessPredicate(
+                        box dst.clone().access(field.clone()).into(),
+                        vir::Perm::full()
+                    ),
+                    // Equality
+                    vir::Expr::eq_cmp(
+                        dst.clone().access(field.clone()).into(),
+                        src.clone().access(field.clone()).into()
+                    )
+                ]
+            },
+
+            ty::TypeVariants::TyTuple(elems) => {
+                let mut exprs: Vec<vir::Expr> = vec![];
+                for (field_num, ty) in elems.iter().enumerate() {
+                    let field_name = format!("tuple_{}", field_num);
+                    let field = self.encoder.encode_ref_field(&field_name, ty);
+                    exprs.push(
+                        // Permission
+                        vir::Expr::FieldAccessPredicate(
+                            box dst.clone().access(field.clone()).into(),
+                            vir::Perm::full()
+                        )
+                    );
+                    exprs.push(
+                        // Equality
+                        self.encode_copy_expr(
+                            src.clone().access(field.clone()),
                             dst.clone().access(field.clone()),
-                            src.clone().access(field.clone()).into()
+                            ty
                         )
                     );
                 }
-            }
-
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
-            ty::TypeVariants::TyRef(_, ty, _) => {
-                let ref_field = self.encoder.encode_ref_field("val_ref", ty);
-                stmts.push(
-                    vir::Stmt::Assign(
-                        dst.access(ref_field.clone()),
-                        src.access(ref_field).into()
-                    )
-                );
+                exprs
             },
 
-            _ => {
-                for field in fields.drain(..) {
-                    let inner_src = src.clone().access(field.clone());
-                    let inner_dst = dst.clone().access(field.clone());
-                    if let vir::Type::TypedRef(predicate_name) = field.typ {
-                        let field_ty = self.encoder.get_predicate_type(predicate_name).unwrap();
-                        stmts.extend(
-                            self.encode_copy(inner_src, inner_dst, field_ty)
-                        );
-                    } else {
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                dst.clone().access(field.clone()),
-                                src.clone().access(field.clone()).into()
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
+                let mut exprs: Vec<vir::Expr> = vec![];
+                let discriminant_field = self.encoder.encode_discriminant_field();
+                let tcx = self.encoder.env().tcx();
+                for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
+                    let mut variant_exprs: Vec<vir::Expr> = vec![];
+                    for field in &variant_def.fields {
+                        let field_name = format!("enum_{}_{}", variant_index, field.name);
+                        let field_ty = field.ty(tcx, subst);
+                        let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                        variant_exprs.push(
+                            // Permission
+                            vir::Expr::FieldAccessPredicate(
+                                box dst.clone().access(elem_field.clone()).into(),
+                                vir::Perm::full()
                             )
                         );
+                        variant_exprs.push(
+                            // Equality
+                            self.encode_copy_expr(
+                                src.clone().access(elem_field.clone()),
+                                dst.clone().access(elem_field.clone()),
+                                field_ty
+                            )
+                        )
                     }
+                    exprs.push(
+                        vir::Expr::implies(
+                            vir::Expr::eq_cmp(
+                                src.clone().access(discriminant_field.clone()).into(),
+                                variant_index.into()
+                            ),
+                            variant_exprs.into_iter().conjoin()
+                        )
+                    );
                 }
-            }
+                exprs
+            },
+
+            ref x => unimplemented!("{:?}", x),
         };
 
-        stmts
+        copy_exprs.into_iter().conjoin()
+    }
+
+    fn encode_copy(&mut self, src: vir::Place, dst: vir::Place, ty: ty::Ty<'tcx>) -> Vec<vir::Stmt> {
+        debug!("Encode copy {:?}", ty);
+
+        let type_name = self.encoder.encode_type_predicate_use(ty);
+        let tmp_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
+        let inhale_expr = self.encode_copy_expr(src, tmp_var.clone().into(), ty);
+
+        vec![
+            // Inhale permissions on `tmp_var` and equality with `src`
+            vir::Stmt::Inhale(inhale_expr),
+            // Assign and havoc `dst`
+            vir::Stmt::Assign(
+                dst.into(),
+                tmp_var.into()
+            )
+        ]
     }
 
     fn encode_bin_op_value(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr) -> vir::Expr {
