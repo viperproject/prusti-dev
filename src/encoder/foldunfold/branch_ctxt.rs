@@ -112,6 +112,9 @@ impl BranchCtxt {
                 self.state.intersect_acc(other.state.acc());
                 return (left_stmts, right_stmts);
             } else {
+                debug!("self state: {:?}", self.state);
+                debug!("other state: {:?}", other.state);
+
                 let preserved_pred = definitely_preserved(self.state.pred(), other.state.pred());
                 debug!("Preserved predicates: {:?}", preserved_pred);
 
@@ -225,7 +228,12 @@ impl BranchCtxt {
 
                         AccOrPred::Acc(_) => {
                             // Unreachable
-                            assert!(false);
+                            // We have no predicate to obtain the access permission `curr_req`
+                            unreachable!(
+                                    "There is no predicate to obtain {:?}. Predicates: {:?}",
+                                    curr_req,
+                                    self.state.pred()
+                            );
                         },
                     }
                 }

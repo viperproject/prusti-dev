@@ -103,7 +103,7 @@ impl RequiredPlacesGetter for vir::Expr {
                 }
             },
 
-            vir::Expr::MagicWand(_, _) => unimplemented!(),
+            vir::Expr::MagicWand(_, _) => unimplemented!("Fold/unfold does not support magic wands (yet)"),
         }
     }
 }

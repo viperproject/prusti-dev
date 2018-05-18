@@ -717,7 +717,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
                         debug!("subst {:?}", subst);
-                        let variant_index = opt_variant_index.unwrap_or(0);
+                        let variant_index = opt_variant_index.unwrap();
                         let tcx = self.encoder.env().tcx();
                         assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
@@ -958,10 +958,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut exprs: Vec<vir::Expr> = vec![];
                 let discriminant_field = self.encoder.encode_discriminant_field();
                 let tcx = self.encoder.env().tcx();
+                let num_variants = adt_def.variants.len();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                     let mut variant_exprs: Vec<vir::Expr> = vec![];
                     for field in &variant_def.fields {
-                        let field_name = format!("enum_{}_{}", variant_index, field.name);
+                        let field_name = if num_variants == 1 {
+                            format!("struct_{}", field.name)
+                        } else {
+                            format!("enum_{}_{}", variant_index, field.name)
+                        };
                         let field_ty = field.ty(tcx, subst);
                         let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         variant_exprs.push(

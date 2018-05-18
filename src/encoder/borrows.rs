@@ -286,6 +286,10 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
         'tcx: 'a
 {
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
+    // TODO: this function should use HIR instead of MIR
+    if let None = tcx.hir.as_local_node_id(proc_def_id) {
+        unimplemented!("We don't support non-local procedure calls (yet)")
+    }
     let mir = tcx.mir_validated(proc_def_id).borrow();
     let return_ty = mir.return_ty();
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);

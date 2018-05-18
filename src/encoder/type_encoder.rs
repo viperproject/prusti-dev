@@ -178,7 +178,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let mut variant_perms: Vec<vir::Expr> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
-                            let field_name = format!("enum_{}_{}", variant_index, field.name);
+                            let field_name = if num_variants == 1 {
+                                format!("struct_{}", field.name)
+                            } else {
+                                format!("enum_{}_{}", variant_index, field.name)
+                            };
                             let field_ty = field.ty(tcx, subst);
                             let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
