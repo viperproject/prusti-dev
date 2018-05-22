@@ -717,11 +717,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
                         debug!("subst {:?}", subst);
-                        let variant_index = opt_variant_index.unwrap();
+                        let num_variants = adt_def.variants.len();
+                        // FIXME: why this can be None?
+                        let variant_index = opt_variant_index.unwrap_or_else(|| {
+                            assert!(num_variants == 1);
+                            0
+                        });
                         let tcx = self.encoder.env().tcx();
                         assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
-                        let num_variants = adt_def.variants.len();
                         let field_name = if num_variants == 1 {
                             format!("struct_{}", field.name)
                         } else {
