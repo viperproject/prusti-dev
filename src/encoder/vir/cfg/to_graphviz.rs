@@ -18,13 +18,13 @@ fn escape_html<S: ToString>(s: S) -> String {
 impl CfgMethod {
     pub fn to_graphviz(&self, graph: &mut Write) {
         writeln!(graph, "digraph CFG {{").unwrap();
-        writeln!(graph, "node[shape=plaintext];").unwrap();
+        writeln!(graph, "node[shape=box];").unwrap();
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let label = self.index_to_label(index);
             writeln!(
                 graph,
-                "\"{}\" node[label=<{}>];",
+                "\"block_{}\" [shape=plaintext,label=<{}>];",
                 escape_html(&label),
                 self.block_to_graphviz(&label, block),
             ).unwrap();
@@ -37,7 +37,7 @@ impl CfgMethod {
                 let target_label = self.index_to_label(target.block_index);
                 writeln!(
                     graph,
-                    "\"{}\" -> \"{}\";",
+                    "\"block_{}\" -> \"block_{}\";",
                     escape_html(&block_label),
                     escape_html(&target_label),
                 ).unwrap();
