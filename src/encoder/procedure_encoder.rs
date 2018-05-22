@@ -561,10 +561,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
 
-        Log::report("vir_method_before_foldunfold", self.cfg_method.name(), self.cfg_method.to_string());
+        let method_name = self.cfg_method.name();
+
+        Log::report("vir_initial_method", &method_name, self.cfg_method.to_string());
+
+        // Dump initial CFG
+        Log::report_with_writer("graphviz_initial_method", &method_name, |x| self.cfg_method.to_graphviz(x));
 
         // Add fold/unfold
-        foldunfold::add_fold_unfold(self.cfg_method, self.encoder.get_used_viper_predicates_map())
+        let final_method = foldunfold::add_fold_unfold(self.cfg_method, self.encoder.get_used_viper_predicates_map());
+
+        // Dump final CFG
+        Log::report_with_writer("graphviz_final_method", &method_name, |x| final_method.to_graphviz(x));
+
+        final_method
     }
 
     /// Encode permissions that are implicitly carried by the given local variable.
@@ -916,9 +926,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let copy_exprs = match self_ty.sty {
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) |
-            ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _, _) => {
+            ty::TypeVariants::TyUint(_) => {
                 let field = self.encoder.encode_value_field(self_ty);
                 vec![
                     // Permission
@@ -932,6 +940,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         src.clone().access(field.clone()).into()
                     )
                 ]
+            },
+
+            ty::TypeVariants::TyRawPtr(_) |
+            ty::TypeVariants::TyRef(_, _, _) => {
+                // It is not sound to copy a struct containing a mutable reference (full ownership)
+                // Regarding mutable references, we dont' support them yet
+                unimplemented!();
             },
 
             ty::TypeVariants::TyTuple(elems) => {

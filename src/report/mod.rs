@@ -41,4 +41,10 @@ impl Log {
         writer.write_all(data.to_string().as_bytes()).ok().unwrap();
         writer.flush().ok().unwrap();
     }
+
+    pub fn report_with_writer<S: ToString, F: FnOnce(&mut Write)>(namespace: &str, name: S, func: F) {
+        let mut writer = Self::writer(namespace, name).ok().unwrap();
+        func(&mut writer);
+        writer.flush().ok().unwrap();
+    }
 }
