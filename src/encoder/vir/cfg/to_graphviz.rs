@@ -18,15 +18,15 @@ fn escape_html<S: ToString>(s: S) -> String {
 impl CfgMethod {
     pub fn to_graphviz(&self, graph: &mut Write) {
         writeln!(graph, "digraph CFG {{").unwrap();
-        writeln!(graph, "node[shape=box];").unwrap();
+        writeln!(graph, "node[shape=plaintext];").unwrap();
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let label = self.index_to_label(index);
             writeln!(
                 graph,
-                "\"{}\" node[label=\"{}\"];",
+                "\"{}\" node[label=<{}>];",
                 escape_html(&label),
-                escape_html(self.block_to_graphviz(&label, block)),
+                self.block_to_graphviz(&label, block),
             ).unwrap();
         }
 
@@ -55,6 +55,25 @@ impl CfgMethod {
     }
 
     fn block_to_graphviz(&self, label: &str, block: &CfgBlock) -> String {
-        label.to_string()
+        let mut lines: Vec<String> = vec![];
+        lines.push("<table>".to_string());
+
+        lines.push("<th><td>".to_string());
+        lines.push(escape_html(label));
+        lines.push("</td></th>".to_string());
+
+        for stmt in &block.stmts {
+            lines.push("<tr><td>".to_string());
+            lines.push(escape_html(stmt.to_string()));
+            lines.push("</td></tr>".to_string());
+        }
+
+        lines.push("<tr><td>".to_string());
+        lines.push(escape_html(format!("{:?}", &block.successor)));
+        lines.push("</td></tr>".to_string());
+
+        lines.push("</table>".to_string());
+
+        lines.join("")
     }
 }
