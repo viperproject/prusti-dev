@@ -32,8 +32,15 @@ env:
     - LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/amd64/server
     # Required to run Viper on Ubuntu Trusty
     - Z3_PATH=$USR_LOCAL/bin/z3
+  matrix:
     # Use a specific Rust version
-    - TOOLCHAIN_VERSION=nightly-2018-05-20-x86_64-unknown-linux-gnu
+    - RUST_VERSION=nightly-2018-05-20-x86_64-unknown-linux-gnu
+    - RUST_VERSION=nightly
+
+matrix:
+  fast_finish: true
+  allow_failures:
+  - RUST_VERSION: nightly
 
 before_install:
   # Make sure stdout is in blocking mode. Otherwise builds will fail due to large writes to stdout
@@ -59,8 +66,10 @@ before_install:
       ls .cache/z3;
     fi
   # Use a specific Rust version
-  - rustup install $TOOLCHAIN_VERSION
-  - rustup override set $TOOLCHAIN_VERSION
+  - if [ "$RUST_VERSION" != "$TRAVIS_RUST_VERSION" ]; then
+      rustup install "$RUST_VERSION";
+      rustup default "$RUST_VERSION";
+    fi
 
 install:
   - ( cd .cache/z3/build; sudo make install )
