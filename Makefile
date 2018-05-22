@@ -47,12 +47,12 @@ generate_ui_stderr:
 build:
 	JAVA_HOME=${JAVA_HOME} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
-	RUSTFLAGS="--verbose" cargo +nightly build
+	RUSTFLAGS="--verbose" cargo build
 
 test:
 	RUST_BACKTRACE=1 \
 	LD_LIBRARY_PATH=${LIB_PATH} \
-	cargo +nightly test
+	cargo test
 
 clean:
 	cargo clean
@@ -71,7 +71,7 @@ format_code:
 	cargo fmt
 
 build_release:
-	cargo +nightly build --release
+	cargo build --release
 
 build_image:
 	sudo docker build -t ${IMAGE_NAME} docker
