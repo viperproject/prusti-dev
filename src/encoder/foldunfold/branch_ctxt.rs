@@ -10,13 +10,15 @@ use encoder::foldunfold::acc_or_pred::*;
 use encoder::foldunfold::requirements::*;
 use encoder::foldunfold::state::*;
 
+// Useful for debugging
+const GENERATE_ASSERTIONS: bool = true;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BranchCtxt {
     state: State,
     /// The definition of the predicates
     predicates: HashMap<String, vir::Predicate>
 }
-
 
 /// Returns the elements of A1 or A2 that have a prefix in the other set.
 ///
@@ -108,7 +110,7 @@ impl BranchCtxt {
             debug!("Predicates in left branch: {:?}", self.state.pred());
             debug!("Predicates in right branch: {:?}", other.state.pred());
 
-            if self.state == other.state {
+            if self.state.pred() == other.state.pred() {
                 self.state.intersect_acc(other.state.acc());
                 return (left_stmts, right_stmts);
             } else {
@@ -254,7 +256,9 @@ impl BranchCtxt {
 
         stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
         stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
-        stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+        if GENERATE_ASSERTIONS {
+            stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+        }
 
         stmts.append(
             &mut self.obtain(required_places)
@@ -283,7 +287,9 @@ impl BranchCtxt {
 
         stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
         stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
-        stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+        if GENERATE_ASSERTIONS {
+            stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+        }
 
         stmts.append(
             &mut self.obtain(

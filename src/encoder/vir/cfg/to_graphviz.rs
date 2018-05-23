@@ -7,8 +7,6 @@ use std::io::Write;
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()
-        .replace("{", "\\{")
-        .replace("}", "\\}")
         .replace("&", "&amp;")
         .replace(">", "&gt;")
         .replace("<", "&lt;")
@@ -62,13 +60,17 @@ impl CfgMethod {
         lines.push(escape_html(label));
         lines.push("</td></th>".to_string());
 
+        lines.push("<tr><td>".to_string());
+        lines.push("<table BORDER=\"0\">".to_string());
         for stmt in &block.stmts {
-            lines.push("<tr><td>".to_string());
+            lines.push("<tr><td ALIGN=\"LEFT\">".to_string());
             lines.push(escape_html(stmt.to_string()));
             lines.push("</td></tr>".to_string());
         }
+        lines.push("</table>".to_string());
+        lines.push("</td></tr>".to_string());
 
-        lines.push("<tr><td>".to_string());
+        lines.push("<tr><td ALIGN=\"LEFT\">".to_string());
         lines.push(escape_html(format!("{:?}", &block.successor)));
         lines.push("</td></tr>".to_string());
 

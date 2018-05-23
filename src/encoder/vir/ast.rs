@@ -29,6 +29,12 @@ impl Perm {
     }
 }
 
+impl fmt::Display for Perm {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}/{}", self.num, self.den)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
     Int,
@@ -293,8 +299,19 @@ pub enum Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            &Expr::Const(ref value) => write!(f, "{}", value),
             &Expr::Place(ref place) => write!(f, "{}", place),
-            otherwise => write!(f, "{:?}", otherwise)
+            &Expr::BinOp(op, ref left, ref right) => write!(f, "({}) {} ({})", left, op, right),
+            &Expr::UnaryOp(op, ref expr) => write!(f, "{}({})", op, expr),
+            &Expr::PredicateAccessPredicate(ref expr, perm) => write!(f, "acc({}, {})", expr, perm),
+            &Expr::FieldAccessPredicate(ref expr, perm) => write!(f, "acc({}, {})", expr, perm),
+            &Expr::PredicateAccess(ref pred_name, ref args) => write!(
+                f, "{}({})", pred_name,
+                args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+            ),
+            &Expr::Old(ref expr) => write!(f, "old({})", expr),
+            &Expr::LabelledOld(ref expr, ref label) => write!(f, "old[{}]({})", label, expr),
+            &Expr::MagicWand(ref left, ref right) => write!(f, "({}) --* ({})", left, right),
         }
     }
 }
@@ -304,9 +321,32 @@ pub enum BinOpKind {
     EqCmp, GtCmp, LeCmp, Add, Sub, And, Implies
 }
 
+impl fmt::Display for BinOpKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &BinOpKind::EqCmp => write!(f, "="),
+            &BinOpKind::GtCmp => write!(f, ">="),
+            &BinOpKind::LeCmp => write!(f, "<="),
+            &BinOpKind::Add => write!(f, "+"),
+            &BinOpKind::Sub => write!(f, "-"),
+            &BinOpKind::And => write!(f, "&&"),
+            &BinOpKind::Implies => write!(f, "==>"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UnaryOpKind {
     Not, Minus
+}
+
+impl fmt::Display for UnaryOpKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &UnaryOpKind::Not => write!(f, "!"),
+            &UnaryOpKind::Minus => write!(f, "-"),
+        }
+    }
 }
 
 impl Expr {
@@ -353,6 +393,17 @@ pub enum Const {
     Null,
     Int(i64),
     BigInt(String),
+}
+
+impl fmt::Display for Const {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Const::Bool(val) => write!(f, "{}", val),
+            &Const::Null => write!(f, "null"),
+            &Const::Int(val) => write!(f, "{}", val),
+            &Const::BigInt(ref val) => write!(f, "{}", val),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
