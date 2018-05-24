@@ -94,6 +94,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     ast.full_perm()
                 )
             ),
+            &Stmt::Obtain(ref expr) => {
+                // This could be encoded as a skip statement
+                ast.assert(expr.to_viper(ast), ast.no_position())
+            }
         }
     }
 }
@@ -140,7 +144,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     BinOpKind::And => ast.and(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Implies => ast.implies(left.to_viper(ast), right.to_viper(ast)),
                 }
-            }
+            },
+            &Expr::Unfolding(ref predicate_name, ref args, ref expr) => ast.unfolding(
+                ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &args.to_viper(ast)[..],
+                        &predicate_name
+                    ),
+                    ast.full_perm()
+                ),
+                expr.to_viper(ast)
+            ),
         }
     }
 }

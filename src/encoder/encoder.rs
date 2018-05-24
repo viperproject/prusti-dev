@@ -165,7 +165,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
             let predicate = type_encoder.encode_predicate_def();
-            Log::report("vir_predicate", &predicate_name, format!("{:?}", &predicate));
+            Log::report("vir_predicate", &predicate_name, format!("{}", &predicate));
             self.type_predicates.borrow_mut().insert(predicate_name.clone(), predicate);
         }
         self.type_predicates.borrow()[&predicate_name].clone()

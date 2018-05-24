@@ -174,9 +174,9 @@ impl CfgMethod {
     /// Returns all formal arguments, formal returns, and local variables
     pub fn get_all_vars(&self) -> Vec<LocalVar> {
         let mut vars: Vec<LocalVar> = vec![];
-        vars.append(&mut self.formal_args.clone());
-        vars.append(&mut self.formal_returns.clone());
-        vars.append(&mut self.local_vars.clone());
+        vars.extend(self.formal_args.clone());
+        vars.extend(self.formal_returns.clone());
+        vars.extend(self.local_vars.clone());
         vars
     }
 

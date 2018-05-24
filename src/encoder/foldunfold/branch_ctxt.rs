@@ -10,9 +10,6 @@ use encoder::foldunfold::acc_or_pred::*;
 use encoder::foldunfold::requirements::*;
 use encoder::foldunfold::state::*;
 
-// Useful for debugging
-const GENERATE_ASSERTIONS: bool = true;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BranchCtxt {
     state: State,
@@ -248,30 +245,34 @@ impl BranchCtxt {
     pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Vec<vir::Stmt> {
         debug!("");
         debug!("Apply on stmt: {}", stmt);
-        debug!("Acc state before: {{{}}}", self.state.display_acc());
-        debug!("Pred state before: {{{}}}", self.state.display_pred());
-        let required_places: Vec<AccOrPred> = stmt.get_required_places().into_iter().collect();
+        let required_places: Vec<AccOrPred> = stmt.get_required_places(&self.predicates).into_iter().collect();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
-        stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
-        if GENERATE_ASSERTIONS {
-            stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+        if !required_places.is_empty() {
+            debug!("Acc state before: {{{}}}", self.state.display_acc());
+            debug!("Pred state before: {{{}}}", self.state.display_pred());
+
+            stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
+            stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
+
+            // We can not assert this, because the state is an overapproximation
+            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+
+            stmts.append(
+                &mut self.obtain(required_places)
+            );
+
+            stmt.apply_on_state(&mut self.state, &self.predicates);
+
+            debug!("Acc state after: {{{}}}", self.state.display_acc());
+            debug!("Pred state after: {{{}}}", self.state.display_pred());
+        } else {
+            stmt.apply_on_state(&mut self.state, &self.predicates);
         }
-
-        stmts.append(
-            &mut self.obtain(required_places)
-        );
-
-        stmt.apply_on_state(&mut self.state);
-
-        debug!("Acc state after: {{{}}}", self.state.display_acc());
-        debug!("Pred state after: {{{}}}", self.state.display_pred());
 
         stmts
     }
-
 
     pub fn apply_successor(&mut self, succ: &vir::Successor) -> Vec<vir::Stmt> {
         debug!("Apply succ: {:?}", succ);
@@ -283,21 +284,29 @@ impl BranchCtxt {
             _ => vec![]
         };
 
+        let required_places: Vec<AccOrPred> = exprs.iter().flat_map(
+            |e| e.get_required_places(&self.predicates).into_iter().collect::<Vec<AccOrPred>>()
+        ).collect();
+
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
-        stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
-        if GENERATE_ASSERTIONS {
-            stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
-        }
+        if !required_places.is_empty() {
+            debug!("Acc state before: {{{}}}", self.state.display_acc());
+            debug!("Pred state before: {{{}}}", self.state.display_pred());
 
-        stmts.append(
-            &mut self.obtain(
-                exprs.iter().flat_map(
-                    |e| e.get_required_places().into_iter().collect::<Vec<AccOrPred>>()
-                ).collect()
-            )
-        );
+            stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
+            stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
+
+            // We can not assert this, because the state is an overapproximation
+            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+
+            stmts.append(
+                &mut self.obtain(required_places)
+            );
+
+            debug!("Acc state after: {{{}}}", self.state.display_acc());
+            debug!("Pred state after: {{{}}}", self.state.display_pred());
+        }
 
         stmts
     }

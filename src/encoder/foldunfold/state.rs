@@ -38,6 +38,13 @@ impl State {
         self.pred = pred
     }
 
+    pub fn contains(&self, item: &AccOrPred) -> bool {
+        match item {
+            &AccOrPred::Acc(ref place) => self.contains_acc(&place),
+            &AccOrPred::Pred(ref place) => self.contains_pred(&place),
+        }
+    }
+
     pub fn contains_acc(&self, place: &vir::Place) -> bool {
         self.acc.contains(&place)
     }

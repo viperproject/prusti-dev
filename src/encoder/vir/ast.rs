@@ -78,6 +78,13 @@ impl LocalVar {
             typ
         }
     }
+
+    pub fn typed_ref_name(&self) -> Option<String> {
+        match self.typ {
+            Type::TypedRef(ref name) => Some(name.clone()),
+            _ => None
+        }
+    }
 }
 
 impl fmt::Display for LocalVar {
@@ -232,11 +239,47 @@ pub enum Stmt {
     New(LocalVar, Vec<Field>),
     Fold(String, Vec<Expr>),
     Unfold(String, Vec<Expr>),
+    /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
+    /// They will be used by the fold/unfold algorithm
+    Obtain(Expr),
 }
 
 impl Stmt {
     pub fn comment<S: ToString>(comment: S) -> Self {
         Stmt::Comment(comment.to_string())
+    }
+
+    pub fn obtain_acc(place: Place) -> Self {
+        assert!(!place.is_base());
+        Stmt::Obtain(
+            Expr::FieldAccessPredicate(
+                box place.into(),
+                Perm::full(),
+            )
+        )
+    }
+
+    pub fn obtain_pred(place: Place) -> Self {
+        let predicate_name = place.typed_ref_name().unwrap();
+        Stmt::Obtain(
+            Expr::PredicateAccessPredicate(
+                box Expr::PredicateAccess(
+                    predicate_name,
+                    vec![place.into()],
+                ),
+                Perm::full(),
+            )
+        )
+    }
+
+    pub fn fold_pred(place: Place) -> Self {
+        let predicate_name = place.typed_ref_name().unwrap();
+        Stmt::Fold(
+            predicate_name,
+            vec![
+                place.into()
+            ]
+        )
     }
 }
 
@@ -263,7 +306,6 @@ impl fmt::Display for Stmt {
                 fields.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", ")
             ),
 
-
             Stmt::Fold(ref pred_name, ref args) => write!(
                 f,
                 "fold {}({})",
@@ -277,6 +319,8 @@ impl fmt::Display for Stmt {
                 pred_name,
                 args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
             ),
+
+            Stmt::Obtain(ref expr) => write!(f, "obtain {}", expr),
         }
     }
 }
@@ -294,6 +338,8 @@ pub enum Expr {
     FieldAccessPredicate(Box<Expr>, Perm),
     UnaryOp(UnaryOpKind, Box<Expr>),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>),
+    // Unfolding: predicate name, predicate_args, in_expr
+    Unfolding(String, Vec<Expr>, Box<Expr>),
 }
 
 impl fmt::Display for Expr {
@@ -312,6 +358,12 @@ impl fmt::Display for Expr {
             &Expr::Old(ref expr) => write!(f, "old({})", expr),
             &Expr::LabelledOld(ref expr, ref label) => write!(f, "old[{}]({})", label, expr),
             &Expr::MagicWand(ref left, ref right) => write!(f, "({}) --* ({})", left, right),
+            &Expr::Unfolding(ref pred_name, ref args, ref expr) => write!(
+                f, "unfolding {}({}) in ({})",
+                pred_name,
+                args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                expr
+            ),
         }
     }
 }
@@ -385,6 +437,21 @@ impl Expr {
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right)
     }
+
+    pub fn as_place(&mut self) -> Option<Place> {
+        match self {
+            Expr::Place(ref place) => Some(place.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn unfolding(place: Place, expr: Expr) -> Self {
+        Expr::Unfolding(
+            place.typed_ref_name().unwrap(),
+            vec![ place.into() ],
+            box expr
+        )
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -419,6 +486,30 @@ impl Predicate {
             name: name.into(),
             args,
             body
+        }
+    }
+}
+
+impl fmt::Display for Predicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "predicate {}(", self.name)?;
+        let mut first = true;
+        for arg in &self.args {
+            if !first {
+                write!(f, ", ")?;
+            }
+            write!(f, "{:?}", arg)?;
+            first = false
+        }
+        match self.body {
+            None => {
+                writeln!(f, ");")
+            },
+            Some(ref body) => {
+                writeln!(f, "){{")?;
+                writeln!(f, "  {}", body)?;
+                writeln!(f, "}}")
+            }
         }
     }
 }

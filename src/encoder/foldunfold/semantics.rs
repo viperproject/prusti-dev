@@ -4,13 +4,16 @@
 
 use encoder::vir;
 use encoder::foldunfold::state::*;
+use encoder::foldunfold::acc_or_pred::*;
+use std::collections::HashMap;
 
 impl vir::Stmt {
-    pub fn apply_on_state(&self, state: &mut State) {
+    pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
         match self {
             &vir::Stmt::Comment(_) |
             &vir::Stmt::Label(_) |
-            &vir::Stmt::Assert(_, _) => {},
+            &vir::Stmt::Assert(_, _) |
+            &vir::Stmt::Obtain(_) => {},
 
             &vir::Stmt::New(ref var, ref fields) => {
                 state.remove_pred_matching(|p| p.base() == var);
@@ -21,11 +24,11 @@ impl vir::Stmt {
             },
 
             &vir::Stmt::Inhale(ref expr) => {
-                state.insert_all(expr.get_access_places().into_iter());
+                state.insert_all(expr.get_access_places(predicates).into_iter());
             },
 
             &vir::Stmt::Exhale(ref expr, _) => {
-                state.remove_all(expr.get_access_places().iter());
+                state.remove_all(expr.get_access_places(predicates).iter());
             },
 
             &vir::Stmt::MethodCall(_, _, ref vars) => {
@@ -65,11 +68,35 @@ impl vir::Stmt {
                 }
             },
 
-            &vir::Stmt::Fold(ref _pred_name, ref _args) => {
-                unimplemented!()
+            &vir::Stmt::Fold(ref pred_name, ref args) => {
+                assert!(args.len() == 1);
+                let place = &args[0].clone().as_place().unwrap();
+                assert!(!state.contains_pred(&place));
+
+                // We want to fold place
+                let predicate_name = place.typed_ref_name().unwrap();
+                let predicate = predicates.get(&predicate_name).unwrap();
+
+                let pred_self_place: vir::Place = predicate.args[0].clone().into();
+                let places_in_pred: Vec<AccOrPred> = predicate.get_contained_places().into_iter()
+                    .map( |aop| aop.map( |p|
+                        p.replace_prefix(&pred_self_place, place.clone())
+                    )).collect();
+
+                for contained_place in &places_in_pred {
+                    assert!(state.contains(contained_place));
+                }
+
+                // Simulate folding of `place`
+                state.remove_all(places_in_pred.iter());
+                state.insert_pred(place.clone());
             },
 
-            &vir::Stmt::Unfold(ref _pred_name, ref _args) => {
+            &vir::Stmt::Unfold(ref pred_name, ref args) => {
+                assert!(args.len() == 1);
+                let place = &args[0].clone().as_place().unwrap();
+                assert!(state.contains_pred(&place));
+
                 unimplemented!()
             },
         }

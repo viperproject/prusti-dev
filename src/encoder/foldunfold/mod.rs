@@ -61,21 +61,21 @@ impl vir::CfgAugmenter<BranchCtxt> for FoldUnfold {
 
             // Join the subgroups
             let (left_stmts_vec, mut left_bc) = self.prepend_join(left_bcs.to_vec());
-            let (right_stmts_vec, mut right_bc) = self.prepend_join(right_bcs.to_vec());
+            let (right_stmts_vec, right_bc) = self.prepend_join(right_bcs.to_vec());
 
             // Join the recursive calls
-            let (mut merge_stmts_left, mut merge_stmts_right) = left_bc.join(right_bc);
+            let (merge_stmts_left, merge_stmts_right) = left_bc.join(right_bc);
             let merge_bc = left_bc;
 
             let mut branch_stmts_vec: Vec<Vec<vir::Stmt>> = vec![];
             for left_stmts in left_stmts_vec {
                 let mut branch_stmts = left_stmts.clone();
-                branch_stmts.append(&mut merge_stmts_left);
+                branch_stmts.extend(merge_stmts_left.clone());
                 branch_stmts_vec.push(branch_stmts);
             }
             for right_stmts in right_stmts_vec {
                 let mut branch_stmts = right_stmts.clone();
-                branch_stmts.append(&mut merge_stmts_right);
+                branch_stmts.extend(merge_stmts_right.clone());
                 branch_stmts_vec.push(branch_stmts);
             }
 
