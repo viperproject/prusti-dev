@@ -907,14 +907,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
             &mir::Operand::Move(ref place) =>{
                 let (encoded_place, _, _) = self.encode_place(place);
-                // Before, fold the moved place
-                let obtain_stmt = vir::Stmt::obtain_pred(encoded_place.clone());
+                let val_place = self.eval_place(&place);
+                // Before, obtain the place that is read
+                let obtain_stmt = vir::Stmt::obtain_acc(val_place.clone());
                 // After, uninitialize place
                 let null_stmt  = vir::Stmt::Assign(
                     encoded_place,
                     vir::Const::Null.into()
                 );
-                (self.eval_place(place).into(), vec![obtain_stmt], vec![null_stmt])
+                (val_place.into(), vec![obtain_stmt], vec![null_stmt])
             },
             x => unimplemented!("{:?}", x)
         }
