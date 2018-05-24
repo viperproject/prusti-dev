@@ -49,8 +49,8 @@ impl WrapperGenerator {
         self
     }
 
-    pub fn wrap_all(&mut self, mut classes: Vec<ClassWrapperSpec>) -> &mut Self {
-        self.classes.append(&mut classes);
+    pub fn wrap_all(&mut self, classes: Vec<ClassWrapperSpec>) -> &mut Self {
+        self.classes.extend(classes);
         self
     }
 

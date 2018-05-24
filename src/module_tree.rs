@@ -73,7 +73,7 @@ impl ModuleTree {
                     } else {
                         sub_results = vec![vec![name.to_string()]];
                     }
-                    result.append(&mut sub_results);
+                    result.extend(sub_results);
                 }
                 result
             }
