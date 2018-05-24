@@ -165,21 +165,14 @@ impl BranchCtxt {
             debug!("Pred state: {{{}}}", self.state.display_pred());
             debug!("Requirements: {{{}}}", display(&reqs));
 
-            let curr_req = reqs.pop().unwrap();
+            let curr_req = &reqs[0];
             let req_place = curr_req.get_place();
 
             // Check if the requirement is satisfied
-            match &curr_req {
-                &AccOrPred::Acc(ref place) => {
-                    if self.state.acc().contains(place) {
-                        continue
-                    }
-                },
-                &AccOrPred::Pred(ref place) => {
-                    if self.state.pred().contains(place) {
-                        continue
-                    }
-                }
+            if self.state.contains(curr_req) {
+                // `curr_req` is satisfied, so we can remove it from `reqs`
+                reqs.pop();
+                continue
             }
 
             // Find a predicate on a prefix of req_place
