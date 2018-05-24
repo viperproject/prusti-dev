@@ -121,7 +121,7 @@ impl RequiredPlacesGetter for vir::Expr {
                     vir::Expr::Place(ref place) |
                     vir::Expr::Old(box vir::Expr::Place(ref place)) |
                     vir::Expr::LabelledOld(box vir::Expr::Place(ref place), _) =>
-                        Some(Pred(place.clone())).into_iter().collect(),
+                        vec![Pred(place.clone()), Acc(place.clone())].into_iter().collect(),
 
                     _ => {
                         // Unreachable

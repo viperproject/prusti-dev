@@ -158,22 +158,27 @@ impl BranchCtxt {
     }
 
     fn obtain(&mut self, mut reqs: Vec<AccOrPred>) -> Vec<vir::Stmt> {
-            let mut stmts: Vec<vir::Stmt> = vec![];
+        debug!("Obtain: {{{}}}", display(&reqs));
+
+        let mut stmts: Vec<vir::Stmt> = vec![];
 
         while !reqs.is_empty() {
             debug!("Acc state: {{{}}}", self.state.display_acc());
             debug!("Pred state: {{{}}}", self.state.display_pred());
             debug!("Requirements: {{{}}}", display(&reqs));
 
-            let curr_req = &reqs[0];
+            let curr_req = &reqs[reqs.len() - 1];
             let req_place = curr_req.get_place();
 
             // Check if the requirement is satisfied
             if self.state.contains(curr_req) {
                 // `curr_req` is satisfied, so we can remove it from `reqs`
+                debug!("Requirement {} is satisfied", curr_req);
                 reqs.pop();
                 continue
             }
+
+            debug!("Try to satisfy requirement {}", curr_req);
 
             // Find a predicate on a prefix of req_place
             let existing_pred_opt: Option<vir::Place> = self.state.pred().iter()
@@ -182,9 +187,10 @@ impl BranchCtxt {
 
             match existing_pred_opt {
                 Some(existing_pred) => {
-                    // We want to unfold `existing_pred`
+                    debug!("We want to unfold {:?}", existing_pred);
                     let stmt = self.unfold(&existing_pred);
                     stmts.push(stmt);
+                    debug!("We unfold {:?}", existing_pred);
                     // Continue checking the remaining requirements
                 },
 
