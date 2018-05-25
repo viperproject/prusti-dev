@@ -22,28 +22,32 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 ) {
     trace!("[verify] enter");
 
-    debug!("Specification consists of {} elements.", spec.len());
-
     let env = Environment::new(state);
 
-    debug!("Prepare verification task...");
-    let annotated_procedures = env.get_annotated_procedures();
-    let verification_task = VerificationTask { procedures: annotated_procedures };
-    debug!("Verification task: {:?}", &verification_task);
+    if env.has_errors() {
+        warn!("The compiler reported an error, so the program will not be verified.");
+    } else {
+        debug!("Specification consists of {} elements.", spec.len());
 
-    debug!("Prepare verifier...");
-    let verifier_builder = ViperVerifierBuilder::new();
-    let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
-    let mut verifier = verification_context.new_verifier(&env);
+        debug!("Prepare verification task...");
+        let annotated_procedures = env.get_annotated_procedures();
+        let verification_task = VerificationTask { procedures: annotated_procedures };
+        debug!("Verification task: {:?}", &verification_task);
 
-    debug!("Run verifier...");
-    let verification_result = verifier.verify(&verification_task);
-    debug!("Verifier returned {:?}", verification_result);
+        debug!("Prepare verifier...");
+        let verifier_builder = ViperVerifierBuilder::new();
+        let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
+        let mut verifier = verification_context.new_verifier(&env);
 
-    match verification_result {
-        VerificationResult::Success => info!("Prusti verification succeded"),
-        VerificationResult::Failure => env.err("Prusti verification failed"),
-    };
+        debug!("Run verifier...");
+        let verification_result = verifier.verify(&verification_task);
+        debug!("Verifier returned {:?}", verification_result);
+
+        match verification_result {
+            VerificationResult::Success => info!("Prusti verification succeded"),
+            VerificationResult::Failure => env.err("Prusti verification failed"),
+        };
+    }
 
     trace!("[verify] exit");
 }

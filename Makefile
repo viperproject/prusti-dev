@@ -22,6 +22,7 @@ run:
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z mir-emit-validate=1 \
 		-Z dump-mir=all \
+		-Z dump-mir-dir=log/mir/ \
 		-Z dump-mir-graphviz \
 		-Z identify-regions \
 		-Z verbose \
