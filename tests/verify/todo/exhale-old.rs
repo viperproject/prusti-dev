@@ -6,7 +6,7 @@ struct C(B, B);
 
 fn consume_a(a: A) {}
 
-fn consume_a_ref(a: &A) {}
+fn consume_a_ref(a: &mut A) {}
 
 fn main() {
     let mut c = C(B(A, A), B(A, A));
@@ -22,8 +22,4 @@ fn main() {
     consume_a_ref(y);
 
     consume_a_ref(x);
-
-    consume_a((c.0).0);
-
-    consume_a((c.0).1);
 }

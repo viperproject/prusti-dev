@@ -4,21 +4,26 @@ extern crate prusti_contracts;
 
 struct S {}
 
+enum OptionRefS<'a> {
+    None,
+    Some(&'a mut S)
+}
+
 fn random() -> bool {
     true
 }
 
-fn use_ab(a: Option<&mut S>, b: Option<&mut S>) {}
+fn consume(a: OptionRefS) {}
 
-fn foo<'a>(mut x: S, y: &'a mut S) {
-    let mut a: Option<&mut S>;
-    let mut b: Option<&mut S>;
+fn foo<'a>(mut x: S) {
+    let mut a: OptionRefS;
+    let mut b: OptionRefS;
     if random() {
-        a = Some(&mut x);
-        b = None;
+        a = OptionRefS::Some(&mut x);
+        b = OptionRefS::None;
     } else {
-        a = None;
-        b = Some(&mut x);
+        a = OptionRefS::None;
+        b = OptionRefS::Some(&mut x);
     }
     while random() {
         // inv: Option<S>(a) && Option<S>(b)
@@ -26,8 +31,8 @@ fn foo<'a>(mut x: S, y: &'a mut S) {
         a = b;
         b = tmp;
     }
-    // in order to preserve permissions: use a magic wand
-    use_ab(a, b);
+    consume(a);
+    consume(b);
 }
 
 fn main() {}
