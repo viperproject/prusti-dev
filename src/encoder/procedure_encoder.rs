@@ -498,6 +498,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     pub fn encode(mut self) -> vir::CfgMethod {
+        debug!("Encode procedure {}", self.cfg_method.name());
+
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
         // Formal return
@@ -563,7 +565,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             for (stmt_index, stmt) in statements.iter().enumerate() {
                 trace!("Encode statement {:?}:{}", bbi, stmt_index);
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
-                self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("{:?}", stmt)));
+                self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
                 let stmts = self.encode_statement(stmt);
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
@@ -584,7 +586,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             if let Some(ref term) = bb_data.terminator {
                 trace!("Encode terminator of {:?}", bbi);
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
-                self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("{:?}", term.kind)));
+                self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", term.kind)));
                 let (stmts, successor) = self.encode_terminator(
                     term,
                     &cfg_blocks,
@@ -614,13 +616,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         Log::report("vir_initial_method", &method_name, self.cfg_method.to_string());
 
         // Dump initial CFG
-        Log::report_with_writer("graphviz_initial_method", &method_name, |x| self.cfg_method.to_graphviz(x));
+        Log::report_with_writer("graphviz_initial_method", &method_name, |writer| self.cfg_method.to_graphviz(writer));
 
         // Add fold/unfold
         let final_method = foldunfold::add_fold_unfold(self.cfg_method, self.encoder.get_used_viper_predicates_map());
 
         // Dump final CFG
-        Log::report_with_writer("graphviz_method", &method_name, |x| final_method.to_graphviz(x));
+        Log::report_with_writer("graphviz_method", &method_name, |writer| final_method.to_graphviz(writer));
 
         final_method
     }
@@ -1021,7 +1023,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_copy_expr(&mut self, src: vir::Place, dst: vir::Place, self_ty: ty::Ty<'tcx>) -> vir::Expr {
-        debug!("Encode copy expr {:?}", self_ty);
+        debug!("Encode copy expr {:?}, {:?}, {:?}", src, dst, self_ty);
 
         let copy_exprs = match self_ty.sty {
             ty::TypeVariants::TyBool |
@@ -1064,6 +1066,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
                 let mut exprs: Vec<vir::Expr> = vec![];
                 let discriminant_field = self.encoder.encode_discriminant_field();
+                exprs.push(
+                    // Copy discriminant
+                    vir::Expr::eq_cmp(
+                        src.clone().access(discriminant_field.clone()).into(),
+                        dst.clone().access(discriminant_field.clone()).into()
+                    )
+                );
                 let tcx = self.encoder.env().tcx();
                 let num_variants = adt_def.variants.len();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
@@ -1111,7 +1120,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_copy(&mut self, src: vir::Place, dst: vir::Place, ty: ty::Ty<'tcx>) -> Vec<vir::Stmt> {
-        debug!("Encode copy {:?}", ty);
+        debug!("Encode copy {:?}, {:?}, {:?}", src, dst, ty);
 
         let type_name = self.encoder.encode_type_predicate_use(ty);
         let tmp_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
@@ -1120,7 +1129,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vec![
             // Inhale permissions on `tmp_var`
             vir::Stmt::Inhale(self.encode_place_predicate_permission(tmp_var.clone().into())),
-            // Inhale permissions on `tmp_var` and equality with `src`
+            // Assume equality with `src`
             vir::Stmt::Inhale(inhale_expr),
             // Assign and havoc `dst`
             vir::Stmt::Assign(

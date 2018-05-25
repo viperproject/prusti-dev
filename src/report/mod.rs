@@ -42,7 +42,7 @@ impl Log {
         writer.flush().ok().unwrap();
     }
 
-    pub fn report_with_writer<S: ToString, F: FnOnce(&mut Write)>(namespace: &str, name: S, func: F) {
+    pub fn report_with_writer<S: ToString, F: FnOnce(&mut Box<Write>)>(namespace: &str, name: S, func: F) {
         let mut writer = Self::writer(namespace, name).ok().unwrap();
         func(&mut writer);
         writer.flush().ok().unwrap();

@@ -112,6 +112,13 @@ impl Field {
             typ
         }
     }
+
+    pub fn typed_ref_name(&self) -> Option<String> {
+        match self.typ {
+            Type::TypedRef(ref name) => Some(name.clone()),
+            _ => None
+        }
+    }
 }
 
 impl fmt::Display for Field {

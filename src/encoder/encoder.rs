@@ -111,8 +111,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_ref_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_name = self.encode_type_predicate_use(ty);
         self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
-            vir::Field::new(field_name, vir::Type::TypedRef(type_name))
-        }).clone()
+            // Do not store the name of the type in self.fields
+            vir::Field::new(field_name, vir::Type::TypedRef("never".to_string()))
+        });
+        vir::Field::new(field_name, vir::Type::TypedRef(type_name))
     }
 
     pub fn encode_discriminant_field(&self) -> vir::Field {
@@ -124,11 +126,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
+        trace!("encode_procedure({:?})", proc_def_id);
         if !self.procedures.borrow().contains_key(&proc_def_id) {
+            let procedure_name = self.env().tcx().item_path_str(proc_def_id);
             let procedure = self.env.get_procedure(proc_def_id);
             let procedure_encoder = ProcedureEncoder::new(self, &procedure);
             let method = procedure_encoder.encode();
-            Log::report("vir_method", method.name(), method.to_string());
+            Log::report("vir_method", &procedure_name, method.to_string());
             self.procedures.borrow_mut().insert(proc_def_id, method);
         }
         self.procedures.borrow()[&proc_def_id].clone()
