@@ -55,6 +55,16 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         self.state.session.err(msg);
     }
 
+    /// Returns true if an error has been emitted
+    pub fn has_errors(&self) -> bool {
+        self.state.session.has_errors()
+    }
+
+    /// Aborts in case of error.
+    pub fn abort_if_errors(&self) {
+        self.state.session.abort_if_errors();
+    }
+
     /// Get ids of Rust procedures that are annotated with a Prusti specification
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
         let mut annotated_procedures: Vec<ProcedureDefId> = vec![];
