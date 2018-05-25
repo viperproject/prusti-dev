@@ -219,16 +219,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Ref(ref _region, _borrow_kind, ref place) => {
                         let ref_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
                         // Obtain acc(encoded_lhs)
-                        stmts.push(
-                            vir::Stmt::obtain_acc(encoded_lhs.clone())
-                        );
+                        if !encoded_lhs.is_base() {
+                            stmts.push(
+                                vir::Stmt::obtain_acc(encoded_lhs.clone())
+                            );
+                        }
                         // Allocate the ref_var
                         stmts.extend(
                             self.encode_allocation(ref_var.clone().into(), ty)
                         );
-                        // Initialize ref_var.ref_field
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.encode_place(place);
+                        // Obtain the rhs folded
+                        stmts.push(
+                            vir::Stmt::obtain_pred(encoded_value.clone())
+                        );
+                        // Initialize ref_var.ref_field
                         stmts.push(
                             vir::Stmt::Assign(
                                 vir::Place::Base(ref_var.clone()).access(ref_field),
@@ -237,7 +243,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         );
                         // Fold ref_var
                         stmts.push(
-                            vir::Stmt::fold_pred(ref_var.clone().into())
+                            vir::Stmt::obtain_pred(ref_var.clone().into())
                         );
                         // Assign ref_var to encoded_lhs
                         stmts.push(
@@ -690,6 +696,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut obtain_stmts = Vec::new();
         let mut conjuncts = Vec::new();
         for place in contract.returned_refs.iter() {
+            debug!("Put permission {:?} in postcondition", place);
             conjuncts.push(self.encode_place_permission(place, Some(label)));
         }
         for borrow_info in contract.borrow_infos.iter() {
@@ -903,21 +910,31 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
             &mir::Operand::Copy(ref place) => {
                 let val_place = self.eval_place(place);
+                let mut before_stmts = vec![];
                 // Before, obtain the place that is read
-                let obtain_stmt = vir::Stmt::obtain_acc(val_place.clone());
-                (val_place.into(), vec![obtain_stmt], vec![])
+                if !val_place.is_base() {
+                    before_stmts.push(
+                        vir::Stmt::obtain_acc(val_place.clone())
+                    );
+                }
+                (val_place.into(), before_stmts, vec![])
             },
             &mir::Operand::Move(ref place) =>{
                 let (encoded_place, _, _) = self.encode_place(place);
                 let val_place = self.eval_place(&place);
+                let mut before_stmts = vec![];
                 // Before, obtain the place that is read
-                let obtain_stmt = vir::Stmt::obtain_acc(val_place.clone());
+                if !val_place.is_base() {
+                    before_stmts.push(
+                        vir::Stmt::obtain_acc(val_place.clone())
+                    );
+                }
                 // After, uninitialize place
                 let null_stmt  = vir::Stmt::Assign(
                     encoded_place,
                     vir::Const::Null.into()
                 );
-                (val_place.into(), vec![obtain_stmt], vec![null_stmt])
+                (val_place.into(), before_stmts, vec![null_stmt])
             },
             x => unimplemented!("{:?}", x)
         }
@@ -934,7 +951,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let local = self.locals.get_fresh(ty);
                 let viper_local = self.encode_prusti_local(local);
                 // Before, obtain the folded src
-                let obtain_stmt = vir::Stmt::Obtain(self.encode_place_predicate_permission(src.clone()));
+                let obtain_stmt = vir::Stmt::obtain_pred(src.clone());
                 // Before, move to a temporary variable (used to encode procedure calls)
                 let stmt_before = vir::Stmt::Assign(viper_local.clone().into(), src.clone().into());
                 // After, uninitialize src
@@ -948,7 +965,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut stmts: Vec<vir::Stmt> = vec![] ;
                 // Before, obtain the folded src
                 stmts.push(
-                    vir::Stmt::Obtain(self.encode_place_predicate_permission(src.clone()))
+                    vir::Stmt::obtain_pred(src.clone())
                 );
                 // Before, copy the values from src to viper_local
                 stmts.extend(

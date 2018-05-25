@@ -88,40 +88,26 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }).to_call_site_contract(args, target)
     }
 
-    pub fn encode_value_field_name(&self, ty: ty::Ty<'tcx>) -> String {
-        let type_encoder = TypeEncoder::new(self, ty);
-        let field_name = type_encoder.encode_value_field_name();
-        // Trigger encoding of definition
-        self.encode_value_field_with_name(&field_name, ty);
-        field_name
-    }
-
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
-        let field_name = self.encode_value_field_name(ty);
-        self.encode_value_field_with_name(&field_name, ty)
-    }
-
-    fn encode_value_field_with_name(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
-        self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
-            let type_encoder = TypeEncoder::new(self, ty);
-            type_encoder.encode_value_field()
-        }).clone()
+        let type_encoder = TypeEncoder::new(self, ty);
+        let mut field = type_encoder.encode_value_field();
+        self.fields.borrow_mut().entry(field.name.clone()).or_insert_with(|| field.clone());
+        field
     }
 
     pub fn encode_ref_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_name = self.encode_type_predicate_use(ty);
         self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
             // Do not store the name of the type in self.fields
-            vir::Field::new(field_name, vir::Type::TypedRef("never".to_string()))
+            vir::Field::new(field_name, vir::Type::TypedRef("".to_string()))
         });
         vir::Field::new(field_name, vir::Type::TypedRef(type_name))
     }
 
     pub fn encode_discriminant_field(&self) -> vir::Field {
         let name = "discriminant";
-        let field = self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| {
-            vir::Field::new(name, vir::Type::Int)
-        }).clone();
+        let field = vir::Field::new(name, vir::Type::Int);
+        self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| field.clone());
         field
     }
 

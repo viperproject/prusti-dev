@@ -28,9 +28,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyInt(_) => vir::Field::new("val_int", vir::Type::Int),
             ty::TypeVariants::TyUint(_) => vir::Field::new("val_uint", vir::Type::Int),
 
-            ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _, _) => {
-                let type_name = self.encoder.encode_type_predicate_use(self.ty);
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
+            ty::TypeVariants::TyRef(_, ref ty, _) => {
+                let type_name = self.encoder.encode_type_predicate_use(ty);
                 vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
             },
 
@@ -39,24 +39,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ref x => unimplemented!("{:?}", x),
         }
-    }
-
-    pub fn encode_value_field_name(self) -> String {
-        debug!("Encode value field name for type '{:?}'", self.ty);
-        match self.ty.sty {
-            ty::TypeVariants::TyBool => "val_bool",
-
-            ty::TypeVariants::TyInt(_) => "val_int",
-            ty::TypeVariants::TyUint(_) => "val_uint",
-
-            ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _, _) => "val_ref",
-
-            ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_) => unimplemented!(),
-
-            ref x => unimplemented!("{:?}", x),
-        }.to_string()
     }
 
     pub fn encode_predicate_def(self) -> vir::Predicate {
@@ -124,7 +106,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let num_variants = adt_def.variants.len();
                 let tcx = self.encoder.env().tcx();
                 if num_variants == 1 {
-                    debug!("ADT has only one variant: {:?}", adt_def);
+                    debug!("ADT {:?} has only one variant", adt_def);
                     for field in &adt_def.variants[0].fields {
                         debug!("Encoding field {:?}", field);
                         let field_name = format!("struct_{}", field.name);
@@ -149,7 +131,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         )
                     }
                 } else if num_variants > 1 {
-                    debug!("ADT has {} variants: {:?}", num_variants, adt_def);
+                    debug!("ADT {:?} has {} variants", adt_def, num_variants);
                     let discriminant_field = self.encoder.encode_discriminant_field();
                     let discriminan_loc = vir::Place::from(self_local_var.clone()).access(discriminant_field);
                     // acc(self.discriminant)
@@ -178,11 +160,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let mut variant_perms: Vec<vir::Expr> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
-                            let field_name = if num_variants == 1 {
-                                format!("struct_{}", field.name)
-                            } else {
-                                format!("enum_{}_{}", variant_index, field.name)
-                            };
+                            let field_name = format!("enum_{}_{}", variant_index, field.name);
                             let field_ty = field.ty(tcx, subst);
                             let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);

@@ -180,11 +180,15 @@ impl Place {
         }
     }
 
-    pub fn all_prefixes(&self) -> Vec<&Place> {
-        let mut res = match self.parent() {
+    pub fn all_proper_prefixes(&self) -> Vec<&Place> {
+        match self.parent() {
             Some(parent) => parent.all_prefixes(),
             None => vec![]
-        };
+        }
+    }
+
+    pub fn all_prefixes(&self) -> Vec<&Place> {
+        let mut res = self.all_proper_prefixes();
         res.push(self);
         res
     }

@@ -9,6 +9,9 @@ use std::collections::HashMap;
 
 impl vir::Stmt {
     pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
+        debug!("apply_on_state '{}'", self);
+        debug!("State acc {{{}}}", state.display_acc());
+        debug!("State pred {{{}}}", state.display_pred());
         match self {
             &vir::Stmt::Comment(_) |
             &vir::Stmt::Label(_) |
@@ -47,6 +50,10 @@ impl vir::Stmt {
                 // Then, in case of aliasing, add new places
                 match rhs {
                     &vir::Expr::Place(ref rhs_place) if rhs_place.get_type().is_ref() => {
+                        for prefix in rhs_place.all_proper_prefixes() {
+                            assert!(!state.contains_pred(prefix));
+                        }
+
                         // In Prusti, we lose permission on the rhs
                         state.remove_pred_matching( |p| p.has_prefix(&rhs_place));
                         state.remove_acc_matching( |p| p.has_proper_prefix(&rhs_place));
@@ -72,6 +79,7 @@ impl vir::Stmt {
                 assert!(args.len() == 1);
                 let place = &args[0].clone().as_place().unwrap();
                 assert!(!state.contains_pred(&place));
+                assert!(state.contains_acc(&place));
 
                 // We want to fold place
                 let predicate_name = place.typed_ref_name().unwrap();

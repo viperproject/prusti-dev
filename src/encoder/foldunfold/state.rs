@@ -22,6 +22,22 @@ impl State {
         }
     }
 
+    pub fn consistent(&self) -> bool {
+        for place in &self.pred {
+            if !self.contains_acc(place) {
+                return false
+            }
+        }
+        for place in &self.acc {
+            if !place.is_base() {
+                if !self.contains_acc(place.parent().unwrap()) {
+                    return false
+                }
+            }
+        }
+        true
+    }
+
     pub fn acc(&self) -> &HashSet<vir::Place> {
         &self.acc
     }
@@ -104,6 +120,14 @@ impl State {
 
     pub fn display_pred(&self) -> String {
         self.pred.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+    }
+
+    pub fn display_debug_acc(&self) -> String {
+        self.acc.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+    }
+
+    pub fn display_debug_pred(&self) -> String {
+        self.pred.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
     }
 
     pub fn insert_acc(&mut self, place: vir::Place) {

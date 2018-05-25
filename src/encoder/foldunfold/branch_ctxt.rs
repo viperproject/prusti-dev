@@ -53,7 +53,8 @@ impl BranchCtxt {
     /// Simulate an unfold
     fn unfold(&mut self, pred_place: &vir::Place) -> vir::Stmt {
         debug!("We want to unfold {:?}", pred_place);
-        assert!(self.state.pred().contains(&pred_place));
+        assert!(self.state.contains_acc(&pred_place));
+        assert!(self.state.contains_pred(&pred_place));
 
         let predicate_name = pred_place.typed_ref_name().unwrap();
         let predicate = self.predicates.get(&predicate_name).unwrap();
@@ -106,9 +107,11 @@ impl BranchCtxt {
 
             debug!("Predicates in left branch: {:?}", self.state.pred());
             debug!("Predicates in right branch: {:?}", other.state.pred());
+            assert!(self.state.consistent());
 
             if self.state.pred() == other.state.pred() {
                 self.state.intersect_acc(other.state.acc());
+                assert!(self.state.consistent());
                 return (left_stmts, right_stmts);
             } else {
                 debug!("self state: {:?}", self.state);
@@ -163,8 +166,8 @@ impl BranchCtxt {
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         while !reqs.is_empty() {
-            debug!("Acc state: {{{}}}", self.state.display_acc());
-            debug!("Pred state: {{{}}}", self.state.display_pred());
+            debug!("Acc state: {{{}}}", self.state.display_debug_acc());
+            debug!("Pred state: {{{}}}", self.state.display_debug_pred());
             debug!("Requirements: {{{}}}", display(&reqs));
 
             let curr_req = &reqs[reqs.len() - 1];
@@ -178,7 +181,7 @@ impl BranchCtxt {
                 continue
             }
 
-            debug!("Try to satisfy requirement {}", curr_req);
+            debug!("Try to satisfy requirement {:?}", curr_req);
 
             // Find a predicate on a prefix of req_place
             let existing_pred_opt: Option<vir::Place> = self.state.pred().iter()
@@ -217,6 +220,7 @@ impl BranchCtxt {
                             );
 
                             // Simulate folding of `req_place`
+                            assert!(self.state.contains_acc(&req_place));
                             self.state.remove_all(places_in_pred.iter());
                             self.state.insert_pred(req_place.clone());
 
@@ -247,6 +251,7 @@ impl BranchCtxt {
         let required_places: Vec<AccOrPred> = stmt.get_required_places(&self.predicates).into_iter().collect();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
+        assert!(self.state.consistent());
 
         if !required_places.is_empty() {
             debug!("Acc state before: {{{}}}", self.state.display_acc());
@@ -270,6 +275,8 @@ impl BranchCtxt {
             stmt.apply_on_state(&mut self.state, &self.predicates);
         }
 
+        assert!(self.state.consistent());
+
         stmts
     }
 
@@ -288,6 +295,7 @@ impl BranchCtxt {
         ).collect();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
+        assert!(self.state.consistent());
 
         if !required_places.is_empty() {
             debug!("Acc state before: {{{}}}", self.state.display_acc());
@@ -306,6 +314,8 @@ impl BranchCtxt {
             debug!("Acc state after: {{{}}}", self.state.display_acc());
             debug!("Pred state after: {{{}}}", self.state.display_pred());
         }
+
+        assert!(self.state.consistent());
 
         stmts
     }
