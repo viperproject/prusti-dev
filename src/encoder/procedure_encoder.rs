@@ -1138,6 +1138,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             mir::BinOp::Sub => vir::Expr::sub(left, right),
 
+            mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
+
+            mir::BinOp::Ne => vir::Expr::not(vir::Expr::eq_cmp(left, right)),
+
             x => unimplemented!("{:?}", x)
         }
     }
