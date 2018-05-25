@@ -41,6 +41,8 @@ impl<'tcx> LoopEncoder<'tcx> {
     pub fn new<'a>(mir: &'a mir::Mir<'tcx>) -> LoopEncoder<'tcx>
         where 'tcx: 'a
     {
+        debug!("LoopEncoder constructor");
+
         let loop_info = ProcedureLoops::new(mir);
         let mut accessed_places = HashMap::new();
         for &loop_head in loop_info.loop_heads.iter() {
