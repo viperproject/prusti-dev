@@ -11,7 +11,7 @@ enum IntPairOption<'a> { Some(&'a mut IntPair), None }
 fn foo<'a>(arg: IntPairOption<'a>) -> (i32, i32) {
     let mut x = IntPair { a: 111, b: (222, 333) };
     x.b.0 = 444;
-    let y = x;
+    let mut y = x;
     let z = IntPairOption::Some(&mut y);
     y.b
 }
