@@ -57,12 +57,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Place {
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        let fake_position = ast.identifier_position(0, 0, "TODO");
         match self {
             &Stmt::Comment(ref comment) => ast.comment(&comment),
             &Stmt::Label(ref label) => ast.label(&label, &[]),
-            &Stmt::Inhale(ref expr) => ast.inhale(expr.to_viper(ast), ast.no_position()),
-            &Stmt::Exhale(ref expr, _) => ast.exhale(expr.to_viper(ast), ast.no_position()),
-            &Stmt::Assert(ref expr, _) => ast.assert(expr.to_viper(ast), ast.no_position()),
+            &Stmt::Inhale(ref expr) => ast.inhale(expr.to_viper(ast), fake_position),
+            &Stmt::Exhale(ref expr, _) => ast.exhale(expr.to_viper(ast), fake_position),
+            &Stmt::Assert(ref expr, _) => ast.assert(expr.to_viper(ast), fake_position),
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => ast.method_call(
                 &method_name,
                 &args.to_viper(ast),
@@ -96,7 +97,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             ),
             &Stmt::Obtain(ref expr) => {
                 // This could be encoded as a skip statement
-                ast.assert(expr.to_viper(ast), ast.no_position())
+                ast.assert(expr.to_viper(ast), fake_position)
             }
         }
     }
