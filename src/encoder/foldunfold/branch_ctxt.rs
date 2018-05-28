@@ -251,11 +251,13 @@ impl BranchCtxt {
         let required_places: Vec<AccOrPred> = stmt.get_required_places(&self.predicates).into_iter().collect();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
+
+        debug!("Acc state before: {{{}}}", self.state.display_acc());
+        debug!("Pred state before: {{{}}}", self.state.display_pred());
+
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-            debug!("Acc state before: {{{}}}", self.state.display_acc());
-            debug!("Pred state before: {{{}}}", self.state.display_pred());
 
             stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
             stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
@@ -269,11 +271,12 @@ impl BranchCtxt {
 
             stmt.apply_on_state(&mut self.state, &self.predicates);
 
-            debug!("Acc state after: {{{}}}", self.state.display_acc());
-            debug!("Pred state after: {{{}}}", self.state.display_pred());
         } else {
             stmt.apply_on_state(&mut self.state, &self.predicates);
         }
+
+        debug!("Acc state after: {{{}}}", self.state.display_acc());
+        debug!("Pred state after: {{{}}}", self.state.display_pred());
 
         assert!(self.state.consistent());
 
@@ -295,12 +298,13 @@ impl BranchCtxt {
         ).collect();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
+
+        debug!("Acc state before: {{{}}}", self.state.display_acc());
+        debug!("Pred state before: {{{}}}", self.state.display_pred());
+
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-            debug!("Acc state before: {{{}}}", self.state.display_acc());
-            debug!("Pred state before: {{{}}}", self.state.display_pred());
-
             stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
             stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
 
@@ -311,9 +315,10 @@ impl BranchCtxt {
                 &mut self.obtain(required_places)
             );
 
-            debug!("Acc state after: {{{}}}", self.state.display_acc());
-            debug!("Pred state after: {{{}}}", self.state.display_pred());
         }
+
+        debug!("Acc state after: {{{}}}", self.state.display_acc());
+        debug!("Pred state after: {{{}}}", self.state.display_pred());
 
         assert!(self.state.consistent());
 

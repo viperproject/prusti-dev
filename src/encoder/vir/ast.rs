@@ -292,6 +292,16 @@ impl Stmt {
             ]
         )
     }
+
+    pub fn unfold_pred(place: Place) -> Self {
+        let predicate_name = place.typed_ref_name().unwrap();
+        Stmt::Unfold(
+            predicate_name,
+            vec![
+                place.into()
+            ]
+        )
+    }
 }
 
 impl fmt::Display for Stmt {

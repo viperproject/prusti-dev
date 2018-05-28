@@ -206,6 +206,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ]
             },
 
+            ty::TypeVariants::TyStr => {
+                // FIXME: is this encoding ok?
+                vec![
+                    vir::Expr::Const(true.into())
+                ]
+            },
+
             ref x => unimplemented!("{:?}", x),
         };
 
@@ -242,6 +249,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyNever => "never".to_string(),
+
+            ty::TypeVariants::TyStr => "str".to_string(),
 
             ref x => unimplemented!("{:?}", x),
         }

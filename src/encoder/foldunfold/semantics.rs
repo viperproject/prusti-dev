@@ -105,7 +105,23 @@ impl vir::Stmt {
                 let place = &args[0].clone().as_place().unwrap();
                 assert!(state.contains_pred(&place));
 
-                unimplemented!()
+                // We want to unfold place
+                let predicate_name = place.typed_ref_name().unwrap();
+                let predicate = predicates.get(&predicate_name).unwrap();
+
+                let pred_self_place: vir::Place = predicate.args[0].clone().into();
+                let places_in_pred: Vec<AccOrPred> = predicate.get_contained_places().into_iter()
+                    .map( |aop| aop.map( |p|
+                        p.replace_prefix(&pred_self_place, place.clone())
+                    )).collect();
+
+                for contained_place in &places_in_pred {
+                    assert!(!state.contains(contained_place));
+                }
+
+                // Simulate unfolding of `place`
+                state.remove_pred(&place);
+                state.insert_all(places_in_pred.into_iter());
             },
         }
     }
