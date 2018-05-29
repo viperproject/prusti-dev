@@ -32,6 +32,9 @@ env:
     - LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/amd64/server
     # Required to run Viper on Ubuntu Trusty
     - Z3_PATH=$USR_LOCAL/bin/z3
+    # Debug settings
+    - RUST_BACKTRACE=1
+    - RUST_LOG=prusti=debug,prusti-viper=debug,viper=debug,viper-sys=debug,jni-gen=debug
   matrix:
     # Use a specific Rust version
     - RUST_VERSION=nightly-2018-05-20-x86_64-unknown-linux-gnu
@@ -73,7 +76,9 @@ before_install:
 
 install:
   - ( cd .cache/z3/build; sudo make install )
-  - cargo install --force clippy rustfmt-nightly
+  - if [ "$RUST_VERSION" == "nightly" ]; then
+      cargo install --force clippy rustfmt-nightly;
+    fi
 
 before_script:
   # Avoid having multiple matching crates for `prusti_contracts`
@@ -82,6 +87,8 @@ before_script:
 script:
   - cargo build
   - cargo test --verbose -- --nocapture
-  - cargo clean
-  - cargo fmt -- --write-mode=diff || true
-  - cargo clippy || true
+  - if [ "$RUST_VERSION" == "nightly" ]; then
+      cargo clean;
+      cargo fmt -- --write-mode=diff || true;
+      cargo clippy || true;
+    fi
