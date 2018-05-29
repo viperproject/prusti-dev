@@ -4,6 +4,7 @@ sudo: false
 
 rust:
   - nightly
+  - nightly-2018-05-20
 
 jdk:
   - oraclejdk8
@@ -34,15 +35,10 @@ env:
     - Z3_PATH=$USR_LOCAL/bin/z3
     # Debug settings
     - RUST_BACKTRACE=1
-  matrix:
-    # Use a specific Rust version
-    - RUST_VERSION=nightly-2018-05-20-x86_64-unknown-linux-gnu
-    - RUST_VERSION=nightly
 
 matrix:
-  fast_finish: true
   allow_failures:
-  - env: RUST_VERSION=nightly
+  - rust: nightly
 
 git:
   # We need to change .gitmodules before getting submodules
@@ -73,11 +69,6 @@ before_install:
       echo "Using cached Z3" &&
       ls .cache/z3;
     fi
-  # Use a specific Rust version
-  - if [ "$RUST_VERSION" != "$TRAVIS_RUST_VERSION" ]; then
-      rustup install "$RUST_VERSION";
-      rustup default "$RUST_VERSION";
-    fi
 
 install:
   - ( cd .cache/z3/build && make install )
@@ -89,7 +80,7 @@ script:
 
 after_success:
   - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" && "$RUST_VERSION" != "nightly" ]]; then
+      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_RUST_VERSION" != "nightly" ]]; then
         echo "Build documentation" &&
         git submodule foreach 'echo "Build documentation for $name"; cargo rustdoc --lib -- --document-private-items' &&
         echo "Build design documentation" &&
