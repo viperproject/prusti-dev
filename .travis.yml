@@ -21,16 +21,29 @@ addons:
 cache:
   cargo: true
   directories:
+  # Cache the Z3 build
   - .cache
 
 env:
   global:
     - USR_LOCAL=$HOME/local
+    # Required to call the JVM
     - JAVA_HOME=/usr/lib/jvm/java-8-oracle
     - LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/amd64/server
-    - RUST_BACKTRACE=1
-    - RUST_LOG=viper=debug,viper-sys=debug,jni-gen=debug
+    # Required to run Viper on Ubuntu Trusty
     - Z3_PATH=$USR_LOCAL/bin/z3
+    # Debug settings
+    - RUST_BACKTRACE=1
+    - RUST_LOG=prusti-viper=debug,viper=debug,viper-sys=debug,jni-gen=debug
+  matrix:
+    # Use a specific Rust version
+    - RUST_VERSION=nightly-2018-05-20-x86_64-unknown-linux-gnu
+    - RUST_VERSION=nightly
+
+matrix:
+  fast_finish: true
+  allow_failures:
+  - env: RUST_VERSION=nightly
 
 before_install:
   # Make sure stdout is in blocking mode. Otherwise builds will fail due to large writes to stdout
@@ -55,14 +68,23 @@ before_install:
       echo "Using cached Z3";
       ls .cache/z3;
     fi
+  # Use a specific Rust version
+  - if [ "$RUST_VERSION" != "$TRAVIS_RUST_VERSION" ]; then
+      rustup install "$RUST_VERSION";
+      rustup default "$RUST_VERSION";
+    fi
 
 install:
   - ( cd .cache/z3/build; sudo make install )
-  - cargo install --force clippy rustfmt-nightly
+  - if [ "$RUST_VERSION" == "nightly" ]; then
+      cargo install --force clippy rustfmt-nightly;
+    fi
 
 script:
   - cargo build
   - cargo test --verbose -- --nocapture
-  - cargo clean
-  - cargo fmt -- --write-mode=diff || true
-  - cargo clippy || true
+  - if [ "$RUST_VERSION" == "nightly" ]; then
+      cargo clean;
+      cargo fmt -- --write-mode=diff || true;
+      cargo clippy || true;
+    fi
