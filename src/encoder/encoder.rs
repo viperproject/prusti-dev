@@ -165,10 +165,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         match const_val {
             ConstVal::Value(ref const_value) => {
                 if as_bool {
-                    vir::Expr::eq_cmp(
-                        const_value.to_primval().unwrap().to_bool().ok().unwrap().into(),
-                        true.into()
-                    )
+                    const_value.to_primval().unwrap().to_bool().ok().unwrap().into()
                 } else {
                     const_value.to_primval().unwrap().to_i64().ok().unwrap().into()
                 }

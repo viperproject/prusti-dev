@@ -258,9 +258,8 @@ impl BranchCtxt {
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-
-            stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
-            stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
+            //stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
+            //stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
 
             // We can not assert this, because the state is an overapproximation
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
@@ -268,12 +267,9 @@ impl BranchCtxt {
             stmts.append(
                 &mut self.obtain(required_places)
             );
-
-            stmt.apply_on_state(&mut self.state, &self.predicates);
-
-        } else {
-            stmt.apply_on_state(&mut self.state, &self.predicates);
         }
+
+        stmt.apply_on_state(&mut self.state, &self.predicates);
 
         debug!("Acc state after: {{{}}}", self.state.display_acc());
         debug!("Pred state after: {{{}}}", self.state.display_pred());
@@ -305,8 +301,8 @@ impl BranchCtxt {
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-            stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
-            stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
+            //stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
+            //stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
 
             // We can not assert this, because the state is an overapproximation
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
