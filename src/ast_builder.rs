@@ -200,6 +200,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
 
         (ast::QSelf {
             ty: self_type,
+            path_span: path.span,
             position: path.segments.len() - 1
         }, path)
     }
