@@ -162,15 +162,15 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, ty: ty::Ty<'tcx>) -> vir::Expr {
-        let scalar_value = match const_val {
-            ConstVal::Value(ref const_value) => {
-                const_value.to_scalar().unwrap()
+    pub fn eval_const(&self, value: &ty::Const<'tcx>) -> vir::Expr {
+        let scalar_value = match value.val {
+            ConstVal::Value(ref value) => {
+                value.to_scalar().unwrap()
             },
             x => unimplemented!("{:?}", x)
         };
 
-        match ty.sty {
+        match value.ty.sty {
             ty::TypeVariants::TyBool => scalar_value.to_bool().ok().unwrap().into(),
             ty::TypeVariants::TyInt(ast::IntTy::I8) => (scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap() as i8).into(),
             ty::TypeVariants::TyInt(ast::IntTy::I16) => (scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap() as i16).into(),

@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc::ty;
+use rustc::middle::const_val::ConstVal;
 use encoder::Encoder;
 use encoder::vir;
 use encoder::vir::utils::ExprIterator;
@@ -206,14 +207,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ]
             },
 
-            ty::TypeVariants::TyStr => {
-                // FIXME: is this encoding ok?
+            ref ty_variant => {
+                warn!("TODO: encoding of type '{}' is incomplete", ty_variant);
                 vec![
                     vir::Expr::Const(true.into())
                 ]
             },
-
-            ref x => unimplemented!("{:?}", x),
         };
 
         vir::Predicate::new(
@@ -251,6 +250,27 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyNever => "never".to_string(),
 
             ty::TypeVariants::TyStr => "str".to_string(),
+
+            ty::TypeVariants::TyArray(elem_ty, size) => {
+                let scalar_size = match size.val {
+                    ConstVal::Value(ref value) => {
+                        value.to_scalar().unwrap()
+                    },
+                    x => unimplemented!("{:?}", x)
+                };
+                format!(
+                    "array${}${}",
+                    self.encoder.encode_type_predicate_use(elem_ty),
+                    scalar_size.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap()
+                )
+            },
+
+            ty::TypeVariants::TySlice(array_ty) => {
+                format!(
+                    "slice${}",
+                    self.encoder.encode_type_predicate_use(array_ty)
+                )
+            },
 
             ref x => unimplemented!("{:?}", x),
         }

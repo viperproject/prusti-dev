@@ -936,8 +936,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - a vector `Vec<vir::Stmt>` of post side effects.
     fn eval_operand(&mut self, operand: &mir::Operand<'tcx>) -> (vir::Expr, Vec<vir::Stmt>, Vec<vir::Stmt>) {
         match operand {
-            &mir::Operand::Constant(box mir::Constant{ ty, literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) => {
-                (self.encoder.eval_const_val(val, ty), vec![], vec![])
+            &mir::Operand::Constant(box mir::Constant{ ty, literal: mir::Literal::Value{ value }, ..}) => {
+                (self.encoder.eval_const(value), vec![], vec![])
             }
             &mir::Operand::Copy(ref place) => {
                 let val_place = self.eval_place(place);
@@ -1016,11 +1016,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let tcx = self.encoder.env().tcx();
                 let const_prop = ConstPropagator::new(self.mir, tcx, MirSource::item(self.proc_def_id));
                 let evaluated_const = const_prop.eval_constant(constant);
-                let const_val = self.encoder.eval_const_val(val, is_bool_ty);
+                let const_val = self.encoder.eval_const(value);
                 */
                 match literal {
-                    mir::Literal::Value { value: &ty::Const{ ref val, .. } } => {
-                        let const_val = self.encoder.eval_const_val(val, ty);
+                    mir::Literal::Value { value } => {
+                        let const_val = self.encoder.eval_const(value);
                         // Before, initialize viper_local
                         stmts.push(
                             vir::Stmt::Assign(vir::Place::from(viper_local.clone()).access(field), const_val)
@@ -1036,7 +1036,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let tcx = self.encoder.env().tcx();
                         let const_prop = ConstPropagator::new(self.mir, tcx, MirSource::item(self.proc_def_id));
                         let evaluated_const = const_prop.eval_constant(constant);
-                        let const_val = self.encoder.eval_const_val(val, is_bool_ty);
+                        let const_val = self.encoder.eval_const(value);
                         */
                         // Workaround: allocate viper_local.field
                         stmts.push(
