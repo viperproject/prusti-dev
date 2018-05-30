@@ -109,7 +109,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     debug!("ADT {:?} has only one variant", adt_def);
                     for field in &adt_def.variants[0].fields {
                         debug!("Encoding field {:?}", field);
-                        let field_name = format!("struct_{}", field.name);
+                        let field_name = format!("struct_{}", field.ident.as_str());
                         let field_ty = field.ty(tcx, subst);
                         let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
@@ -160,7 +160,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let mut variant_perms: Vec<vir::Expr> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
-                            let field_name = format!("enum_{}_{}", variant_index, field.name);
+                            let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                             let field_ty = field.ty(tcx, subst);
                             let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
@@ -295,9 +295,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                     for field in &variant_def.fields {
                         let field_name = if num_variants == 1 {
-                            format!("struct_{}", field.name)
+                            format!("struct_{}", field.ident.as_str())
                         } else {
-                            format!("enum_{}_{}", variant_index, field.name)
+                            format!("enum_{}_{}", variant_index, field.ident.as_str())
                         };
                         let field_ty = field.ty(tcx, subst);
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);

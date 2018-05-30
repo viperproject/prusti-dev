@@ -68,7 +68,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_statement(&mut self, stmt: &mir::Statement<'tcx>) -> Vec<vir::Stmt> {
-        debug!("Encode statement '{:?}'", stmt);
+        debug!("Encode statement '{:?}', span: {:?}", stmt.kind, stmt.source_info.span);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         match stmt.kind {
@@ -300,7 +300,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                          spec_cfg_block: CfgBlockIndex,
                          abort_cfg_block: CfgBlockIndex,
                          return_cfg_block: CfgBlockIndex) -> (Vec<vir::Stmt>, Successor) {
-        trace!("Encode terminator '{:?}'", term.kind);
+        trace!("Encode terminator '{:?}', span: {:?}", term.kind, term.source_info.span);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         match term.kind {
@@ -624,7 +624,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             if let Some(ref term) = bb_data.terminator {
                 trace!("Encode terminator of {:?}", bbi);
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
-                self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", term.kind)));
+                self.cfg_method.add_stmt    (cfg_block, vir::Stmt::comment(format!("[mir] {:?}", term.kind)));
                 let (stmts, successor) = self.encode_terminator(
                     term,
                     &cfg_blocks,
@@ -836,9 +836,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
                         let field_name = if num_variants == 1 {
-                            format!("struct_{}", field.name)
+                            format!("struct_{}", field.ident.as_str())
                         } else {
-                            format!("enum_{}_{}", variant_index, field.name)
+                            format!("enum_{}_{}", variant_index, field.ident.as_str())
                         };
                         let field_ty = tcx.type_of(field.did);
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
@@ -937,8 +937,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn eval_operand(&mut self, operand: &mir::Operand<'tcx>) -> (vir::Expr, Vec<vir::Stmt>, Vec<vir::Stmt>) {
         match operand {
             &mir::Operand::Constant(box mir::Constant{ ty, literal: mir::Literal::Value{ value: &ty::Const{ ref val, .. } }, ..}) => {
-                let is_bool_ty = ty.sty == ty::TypeVariants::TyBool;
-                (self.encoder.eval_const_val(val, is_bool_ty), vec![], vec![])
+                (self.encoder.eval_const_val(val, ty), vec![], vec![])
             }
             &mir::Operand::Copy(ref place) => {
                 let val_place = self.eval_place(place);
@@ -1011,7 +1010,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut stmts = Vec::new();
                 // Before, allocate viper_local
                 stmts.extend(self.encode_allocation(viper_local.clone().into(), ty));
-                let is_bool_ty = ty.sty == ty::TypeVariants::TyBool;
                 let field = self.encoder.encode_value_field(ty);
                 // Evaluate the constant
                 /* TODO: in the future use thw followng commented code
@@ -1022,7 +1020,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 */
                 match literal {
                     mir::Literal::Value { value: &ty::Const{ ref val, .. } } => {
-                        let const_val = self.encoder.eval_const_val(val, is_bool_ty);
+                        let const_val = self.encoder.eval_const_val(val, ty);
                         // Before, initialize viper_local
                         stmts.push(
                             vir::Stmt::Assign(vir::Place::from(viper_local.clone()).access(field), const_val)
@@ -1160,9 +1158,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let mut variant_exprs: Vec<vir::Expr> = vec![];
                     for field in &variant_def.fields {
                         let field_name = if num_variants == 1 {
-                            format!("struct_{}", field.name)
+                            format!("struct_{}", field.ident.as_str())
                         } else {
-                            format!("enum_{}_{}", variant_index, field.name)
+                            format!("enum_{}_{}", variant_index, field.ident.as_str())
                         };
                         let field_ty = field.ty(tcx, subst);
                         let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
@@ -1222,16 +1220,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_bin_op_value(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr) -> vir::Expr {
         match op {
-            mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
-
-            mir::BinOp::Add => vir::Expr::add(left, right),
-
-            mir::BinOp::Sub => vir::Expr::sub(left, right),
-
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
-
             mir::BinOp::Ne => vir::Expr::not(vir::Expr::eq_cmp(left, right)),
-
+            mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
+            mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
+            mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
+            mir::BinOp::Le => vir::Expr::le_cmp(left, right),
+            mir::BinOp::Add => vir::Expr::add(left, right),
+            mir::BinOp::Sub => vir::Expr::sub(left, right),
+            mir::BinOp::Mul => vir::Expr::mul(left, right),
+            mir::BinOp::Div => vir::Expr::div(left, right),
+            mir::BinOp::Rem => vir::Expr::rem(left, right),
             x => unimplemented!("{:?}", x)
         }
     }
@@ -1239,7 +1238,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_unary_op_value(&mut self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
         match op {
             mir::UnOp::Not => vir::Expr::not(expr),
-
+            mir::UnOp::Neg => vir::Expr::minus(expr),
             x => unimplemented!("{:?}", x)
         }
     }
@@ -1298,9 +1297,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                     let operand = &operands[field_index];
                     let field_name = if num_variants == 1 {
-                        format!("struct_{}", field.name)
+                        format!("struct_{}", field.ident.as_str())
                     } else {
-                        format!("enum_{}_{}", variant_index, field.name)
+                        format!("enum_{}_{}", variant_index, field.ident.as_str())
                     };
                     let tcx = self.encoder.env().tcx();
                     let field_ty = tcx.type_of(field.did);

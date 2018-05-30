@@ -16,13 +16,19 @@ fn escape_html<S: ToString>(s: S) -> String {
 impl CfgMethod {
     pub fn to_graphviz(&self, graph: &mut Write) {
         writeln!(graph, "digraph CFG {{").unwrap();
-        writeln!(graph, "node[shape=box];").unwrap();
+        writeln!(graph, "graph [fontname=monospace];").unwrap();
+        writeln!(graph, "node [fontname=monospace];").unwrap();
+        writeln!(graph, "edge [fontname=monospace];").unwrap();
+
+        // Add title
+        writeln!(graph, "labelloc=\"t\";").unwrap();
+        writeln!(graph, "label=\"Method {}\";", escape_html(self.name())).unwrap();
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let label = self.index_to_label(index);
             writeln!(
                 graph,
-                "\"block_{}\" [shape=plaintext,label=<{}>];",
+                "\"block_{}\" [shape=none,label=<{}>];",
                 escape_html(&label),
                 self.block_to_graphviz(&label, block),
             ).unwrap();
@@ -42,10 +48,7 @@ impl CfgMethod {
             }
         }
 
-        // Add title
-        writeln!(graph, "labelloc=\"t\";").unwrap();
-        writeln!(graph, "label=\"Method {}\";", escape_html(self.name())).unwrap();
-        writeln!(graph, "}}").unwrap();
+         writeln!(graph, "}}").unwrap();
     }
 
     fn index_to_label(&self, index: usize) -> String {
@@ -54,23 +57,24 @@ impl CfgMethod {
 
     fn block_to_graphviz(&self, label: &str, block: &CfgBlock) -> String {
         let mut lines: Vec<String> = vec![];
-        lines.push("<table>".to_string());
+        lines.push("<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">".to_string());
 
-        lines.push("<th><td>".to_string());
+        lines.push("<tr><td bgcolor=\"gray\" align=\"center\">".to_string());
         lines.push(escape_html(label));
-        lines.push("</td></th>".to_string());
-
-        lines.push("<tr><td>".to_string());
-        lines.push("<table BORDER=\"0\">".to_string());
-        for stmt in &block.stmts {
-            lines.push("<tr><td ALIGN=\"LEFT\">".to_string());
-            lines.push(escape_html(stmt.to_string()));
-            lines.push("</td></tr>".to_string());
-        }
-        lines.push("</table>".to_string());
         lines.push("</td></tr>".to_string());
 
-        lines.push("<tr><td ALIGN=\"LEFT\">".to_string());
+        lines.push("<tr><td align=\"left\" balign=\"left\">".to_string());
+        let mut first_row = true;
+        for stmt in &block.stmts {
+            if !first_row {
+                lines.push("<br/>".to_string());
+            }
+            first_row = false;
+            lines.push(escape_html(stmt.to_string()));
+        }
+        lines.push("</td></tr>".to_string());
+
+        lines.push("<tr><td align=\"left\">".to_string());
         lines.push(escape_html(format!("{:?}", &block.successor)));
         lines.push("</td></tr>".to_string());
 

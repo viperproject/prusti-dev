@@ -17,6 +17,7 @@ use encoder::type_encoder::TypeEncoder;
 use std::cell::RefCell;
 use encoder::vir;
 use report::Log;
+use syntax::ast;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -161,16 +162,27 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, as_bool: bool) -> vir::Expr {
-        match const_val {
+    pub fn eval_const_val(&self, const_val: &ConstVal<'tcx>, ty: ty::Ty<'tcx>) -> vir::Expr {
+        let scalar_value = match const_val {
             ConstVal::Value(ref const_value) => {
-                if as_bool {
-                    const_value.to_primval().unwrap().to_bool().ok().unwrap().into()
-                } else {
-                    const_value.to_primval().unwrap().to_i64().ok().unwrap().into()
-                }
+                const_value.to_scalar().unwrap()
             },
-            _ => unimplemented!()
+            x => unimplemented!("{:?}", x)
+        };
+
+        match ty.sty {
+            ty::TypeVariants::TyBool => scalar_value.to_bool().ok().unwrap().into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I8) => (scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap() as i8).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I16) => (scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap() as i16).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I32) => (scalar_value.to_bits(ty::layout::Size::from_bits(32)).ok().unwrap() as i32).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I64) => (scalar_value.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap() as i64).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I128) => (scalar_value.to_bits(ty::layout::Size::from_bits(128)).ok().unwrap() as i128).into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U8) => (scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap() as u8).into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U16) => (scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap() as u16).into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U32) => (scalar_value.to_bits(ty::layout::Size::from_bits(32)).ok().unwrap() as u32).into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U64) => (scalar_value.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap() as u64).into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U128) => (scalar_value.to_bits(ty::layout::Size::from_bits(128)).ok().unwrap() as u128).into(),
+            ref x => unimplemented!("{:?}", x)
         }
     }
 

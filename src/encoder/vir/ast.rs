@@ -391,18 +391,24 @@ impl fmt::Display for Expr {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinOpKind {
-    EqCmp, GtCmp, LeCmp, Add, Sub, And, Implies
+    EqCmp, GtCmp, GeCmp, LtCmp, LeCmp, Add, Sub, Mul, Div, Rem, And, Or, Implies
 }
 
 impl fmt::Display for BinOpKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &BinOpKind::EqCmp => write!(f, "="),
-            &BinOpKind::GtCmp => write!(f, ">="),
+            &BinOpKind::EqCmp => write!(f, "=="),
+            &BinOpKind::GtCmp => write!(f, ">"),
+            &BinOpKind::GeCmp => write!(f, ">="),
+            &BinOpKind::LtCmp => write!(f, "<"),
             &BinOpKind::LeCmp => write!(f, "<="),
             &BinOpKind::Add => write!(f, "+"),
             &BinOpKind::Sub => write!(f, "-"),
+            &BinOpKind::Mul => write!(f, "-"),
+            &BinOpKind::Div => write!(f, "\\"),
+            &BinOpKind::Rem => write!(f, "%"),
             &BinOpKind::And => write!(f, "&&"),
+            &BinOpKind::Or => write!(f, "||"),
             &BinOpKind::Implies => write!(f, "==>"),
         }
     }
@@ -431,12 +437,16 @@ impl Expr {
         Expr::UnaryOp(UnaryOpKind::Minus, box expr)
     }
 
-    pub fn and(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::And, box left, box right)
-    }
-
     pub fn gt_cmp(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::GtCmp, box left, box right)
+    }
+
+    pub fn ge_cmp(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::GeCmp, box left, box right)
+    }
+
+    pub fn lt_cmp(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::LtCmp, box left, box right)
     }
 
     pub fn le_cmp(left: Expr, right: Expr) -> Self {
@@ -453,6 +463,26 @@ impl Expr {
 
     pub fn sub(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Sub, box left, box right)
+    }
+
+    pub fn mul(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Mul, box left, box right)
+    }
+
+    pub fn div(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Div, box left, box right)
+    }
+
+    pub fn rem(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Rem, box left, box right)
+    }
+
+    pub fn and(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::And, box left, box right)
+    }
+
+    pub fn or(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Or, box left, box right)
     }
 
     pub fn implies(left: Expr, right: Expr) -> Self {

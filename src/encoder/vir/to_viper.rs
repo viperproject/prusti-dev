@@ -131,18 +131,24 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             ),
             &Expr::UnaryOp(op, ref expr) => {
                 match op {
+                    UnaryOpKind::Not => ast.not(expr.to_viper(ast)),
                     UnaryOpKind::Minus => ast.minus(expr.to_viper(ast)),
-                    UnaryOpKind::Not => ast.not(expr.to_viper(ast))
                 }
             },
             &Expr::BinOp(op, ref left, ref right) => {
                 match op {
                     BinOpKind::EqCmp => ast.eq_cmp(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::GtCmp => ast.gt_cmp(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::GeCmp => ast.ge_cmp(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::LtCmp => ast.lt_cmp(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::LeCmp => ast.le_cmp(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Add => ast.add(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Sub => ast.sub(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::Mul => ast.mul(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::Div => ast.div(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::Rem => ast.module(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::And => ast.and(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::Or => ast.or(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Implies => ast.implies(left.to_viper(ast), right.to_viper(ast)),
                 }
             },
