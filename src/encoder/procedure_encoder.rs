@@ -104,7 +104,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let (encoded_left, effects_before_left, effects_after_left) = self.eval_operand(left);
                         let (encoded_right, effects_before_right, effects_after_right) = self.eval_operand(right);
                         let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.encode_bin_op_value(op, encoded_left, encoded_right);
+                        let encoded_value = self.encode_bin_op_value(op, encoded_left, encoded_right, ty);
                         // Allocate lhs
                         stmts.push(
                             vir::Stmt::Inhale(self.encode_place_predicate_permission(encoded_lhs.clone()))
@@ -129,7 +129,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
                         let (encoded_left, effects_before_left, effects_after_left) = self.eval_operand(left);
                         let (encoded_right, effects_before_right, effects_after_right) = self.eval_operand(right);
-                        let encoded_value = self.encode_bin_op_value(op, encoded_left.clone(), encoded_right.clone());
+                        let encoded_value = self.encode_bin_op_value(op, encoded_left.clone(), encoded_right.clone(), ty);
                         let encoded_check = self.encode_bin_op_check(op, encoded_left, encoded_right);
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                         let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
@@ -1218,7 +1218,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ]
     }
 
-    fn encode_bin_op_value(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr) -> vir::Expr {
+    fn encode_bin_op_value(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
+        let is_bool = ty.sty == ty::TypeVariants::TyBool;
         match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
             mir::BinOp::Ne => vir::Expr::not(vir::Expr::eq_cmp(left, right)),
@@ -1228,9 +1229,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir::BinOp::Le => vir::Expr::le_cmp(left, right),
             mir::BinOp::Add => vir::Expr::add(left, right),
             mir::BinOp::Sub => vir::Expr::sub(left, right),
-            mir::BinOp::Mul => vir::Expr::mul(left, right),
+            mir::BinOp::Rem => {
+                let abs_right = vir::Expr::ite(
+                    vir::Expr::ge_cmp(right.clone(), 0.into()),
+                    right.clone(),
+                    vir::Expr::minus(right.clone())
+                );
+                vir::Expr::ite(
+                    vir::Expr::ge_cmp(left.clone(), 0.into()),
+                    // positive value
+                    vir::Expr::modulo(left.clone(), right.clone()),
+                    // negative value
+                    vir::Expr::sub(vir::Expr::modulo(left, right), abs_right),
+                )
+            }
             mir::BinOp::Div => vir::Expr::div(left, right),
-            mir::BinOp::Rem => vir::Expr::rem(left, right),
+            mir::BinOp::Mul => vir::Expr::mul(left, right),
+            mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
+            mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
+            mir::BinOp::BitXor if is_bool => vir::Expr::not(vir::Expr::eq_cmp(left, right)),
             x => unimplemented!("{:?}", x)
         }
     }

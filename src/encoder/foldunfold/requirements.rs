@@ -20,6 +20,17 @@ impl<'a, 'b, A: RequiredPlacesGetter, B: RequiredPlacesGetter> RequiredPlacesGet
     }
 }
 
+impl<'a, 'b, 'c, A: RequiredPlacesGetter, B: RequiredPlacesGetter, C: RequiredPlacesGetter> RequiredPlacesGetter for (&'a A, &'b B, &'c C) {
+    fn get_required_places(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<AccOrPred> {
+        let partial_res: HashSet<_> = self.0.get_required_places(predicates).union(
+            &self.1.get_required_places(predicates)
+        ).cloned().collect();
+        partial_res.union(
+            &self.2.get_required_places(predicates)
+        ).cloned().collect()
+    }
+}
+
 impl<A: RequiredPlacesGetter> RequiredPlacesGetter for Vec<A> {
     fn get_required_places(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<AccOrPred> {
         self.iter().fold(
@@ -111,6 +122,8 @@ impl RequiredPlacesGetter for vir::Expr {
 
             vir::Expr::BinOp(_, box left, box right) => (left, right).get_required_places(predicates),
 
+            vir::Expr::Cond(box guard, box left, box right) => (guard, left, right).get_required_places(predicates),
+
             vir::Expr::Place(place) => {
                 Some(Acc(place.clone())).into_iter().collect()
             },
@@ -167,8 +180,13 @@ impl vir::Expr {
 
             vir::Expr::UnaryOp(_, ref expr) => expr.get_access_places(predicates),
 
-            vir::Expr::BinOp(_, ref left, ref right) => {
+            vir::Expr::BinOp(_, box left, box right) => {
                 left.get_access_places(predicates).union(&right.get_access_places(predicates)).cloned().collect()
+            },
+
+            vir::Expr::Cond(box guard, box left, box right) => {
+                let partial_res: HashSet<_> = guard.get_access_places(predicates).union(&left.get_access_places(predicates)).cloned().collect();
+                partial_res.union(&right.get_access_places(predicates)).cloned().collect()
             },
 
             vir::Expr::PredicateAccessPredicate(ref expr, _) |

@@ -146,7 +146,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     BinOpKind::Sub => ast.sub(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Mul => ast.mul(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Div => ast.div(left.to_viper(ast), right.to_viper(ast)),
-                    BinOpKind::Rem => ast.module(left.to_viper(ast), right.to_viper(ast)),
+                    BinOpKind::Mod => ast.module(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::And => ast.and(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Or => ast.or(left.to_viper(ast), right.to_viper(ast)),
                     BinOpKind::Implies => ast.implies(left.to_viper(ast), right.to_viper(ast)),
@@ -161,6 +161,11 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.full_perm()
                 ),
                 expr.to_viper(ast)
+            ),
+            &Expr::Cond(ref guard, ref left, ref right) => ast.cond_exp(
+                guard.to_viper(ast),
+                left.to_viper(ast),
+                right.to_viper(ast)
             ),
         }
     }

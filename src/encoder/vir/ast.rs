@@ -361,6 +361,8 @@ pub enum Expr {
     BinOp(BinOpKind, Box<Expr>, Box<Expr>),
     // Unfolding: predicate name, predicate_args, in_expr
     Unfolding(String, Vec<Expr>, Box<Expr>),
+    // Cond: guard, then_expr, else_expr
+    Cond(Box<Expr>, Box<Expr>, Box<Expr>),
 }
 
 impl fmt::Display for Expr {
@@ -385,13 +387,14 @@ impl fmt::Display for Expr {
                 args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
                 expr
             ),
+            &Expr::Cond(ref guard, ref left, ref right) => write!(f, "({})?({}):({})", guard, left, right),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinOpKind {
-    EqCmp, GtCmp, GeCmp, LtCmp, LeCmp, Add, Sub, Mul, Div, Rem, And, Or, Implies
+    EqCmp, GtCmp, GeCmp, LtCmp, LeCmp, Add, Sub, Mul, Div, Mod, And, Or, Implies
 }
 
 impl fmt::Display for BinOpKind {
@@ -406,7 +409,7 @@ impl fmt::Display for BinOpKind {
             &BinOpKind::Sub => write!(f, "-"),
             &BinOpKind::Mul => write!(f, "-"),
             &BinOpKind::Div => write!(f, "\\"),
-            &BinOpKind::Rem => write!(f, "%"),
+            &BinOpKind::Mod => write!(f, "%"),
             &BinOpKind::And => write!(f, "&&"),
             &BinOpKind::Or => write!(f, "||"),
             &BinOpKind::Implies => write!(f, "==>"),
@@ -473,8 +476,8 @@ impl Expr {
         Expr::BinOp(BinOpKind::Div, box left, box right)
     }
 
-    pub fn rem(left: Expr, right: Expr) -> Self {
-        Expr::BinOp(BinOpKind::Rem, box left, box right)
+    pub fn modulo(left: Expr, right: Expr) -> Self {
+        Expr::BinOp(BinOpKind::Mod, box left, box right)
     }
 
     pub fn and(left: Expr, right: Expr) -> Self {
@@ -487,6 +490,10 @@ impl Expr {
 
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right)
+    }
+
+    pub fn ite(guard: Expr, left: Expr, right: Expr) -> Self {
+        Expr::Cond(box guard, box left, box right)
     }
 
     pub fn as_place(&mut self) -> Option<Place> {
