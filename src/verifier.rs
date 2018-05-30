@@ -13,6 +13,7 @@ use verification_result::VerificationResult;
 use verification_result::VerificationError;
 use ast_utils::AstUtils;
 use std::marker::PhantomData;
+use std::time::Instant;
 
 pub mod state {
     pub struct Uninitialized;
@@ -110,10 +111,14 @@ impl<'a> Verifier<'a, state::Started> {
             panic!();
         }
 
+        let start_verification = Instant::now();
         let viper_result = self.jni.unwrap_result(
             self.silicon_wrapper
                 .call_verify(self.silicon_instance, program.to_jobject()),
         );
+        let duration = start_verification.elapsed();
+
+        debug!("Viper verification took {}.{} seconds", duration.as_secs(), duration.subsec_millis()/10);
 
         debug!(
             "Viper verification result: {}",
