@@ -9,4 +9,6 @@ fn main() {
     let y = (10 >= d) && (d <= 0);  // false
     let z = (a == b) || (x != y); // true
     assert!(d == -10 && z);
+
+    assert!(9 / 2 == 4);
 }

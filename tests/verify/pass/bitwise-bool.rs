@@ -1,21 +1,24 @@
 extern crate prusti_contracts;
 
-fn main() {
-    let tt = true;
-    let ff = false;
-    // and
-    assert!(tt & tt == tt);
-    assert!(tt & ff == ff);
-    assert!(ff & tt == ff);
-    assert!(ff & ff == ff);
-    // or
-    assert!(tt | tt == tt);
-    assert!(tt | ff == tt);
-    assert!(ff | tt == tt);
-    assert!(ff | ff == ff);
-    // xor
-    assert!(tt ^ tt == ff);
-    assert!(tt ^ ff == tt);
-    assert!(ff ^ tt == tt);
-    assert!(ff ^ ff == ff);
+fn test_and() {
+    assert!(true  & true  == true );
+    assert!(true  & false == false);
+    assert!(false & true  == false);
+    assert!(false & false == false);
 }
+
+fn test_or() {
+    assert!(true  | true  == true );
+    assert!(true  | false == true );
+    assert!(false | true  == true );
+    assert!(false | false == false);
+}
+
+fn test_xor() {
+    assert!(true  ^ true  == false);
+    assert!(true  ^ false == true );
+    assert!(false ^ true  == true );
+    assert!(false ^ false == false);
+}
+
+fn main() {}
