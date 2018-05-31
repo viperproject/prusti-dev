@@ -74,8 +74,8 @@ impl BranchCtxt {
         vir::Stmt::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ])
     }
 
-    fn exhale(&mut self, pred_place: &vir::Place) -> vir::Stmt {
-        debug!("We want to exhale/drop {:?}", pred_place);
+    fn drop(&mut self, pred_place: &vir::Place) -> vir::Stmt {
+        debug!("We want to drop {:?}", pred_place);
         assert!(self.state.pred().contains(&pred_place));
 
         let predicate_name = pred_place.typed_ref_name().unwrap();
@@ -84,17 +84,10 @@ impl BranchCtxt {
         self.state.remove_pred(&pred_place);
 
         // Done.
-        debug!("We exhaled/dropped {:?}", pred_place);
+        debug!("We dropped {:?}", pred_place);
 
-        vir::Stmt::Exhale(
-            vir::Expr::PredicateAccessPredicate(
-                box vir::Expr::PredicateAccess(
-                    predicate_name.clone(),
-                    vec![ pred_place.clone().into() ]
-                ),
-                vir::Perm::full()
-            ),
-            vir::Id()
+        vir::Stmt::comment(
+            format!("[foldunfold] Drop {}({})", predicate_name, pred_place)
         )
     }
 
@@ -132,8 +125,8 @@ impl BranchCtxt {
                     } else {
                         // Here it's better not to unfold `x`, because it may be a recursive
                         // data structure and we may end up unfolding forever.
-                        // So, we drop or exhale the permission.
-                        let stmt = self.exhale(pred_place);
+                        // So, we drop the permission.
+                        let stmt = self.drop(pred_place);
                         left_stmts.push(stmt);
                     }
                 }
@@ -147,8 +140,8 @@ impl BranchCtxt {
                     } else {
                         // Here it's better not to unfold `x`, because it may be a recursive
                         // data structure and we may end up unfolding forever.
-                        // So, we drop or exhale the permission.
-                        let stmt = other.exhale(pred_place);
+                        // So, we drop the permission.
+                        let stmt = other.drop(pred_place);
                         right_stmts.push(stmt);
                     }
                 }
@@ -258,8 +251,8 @@ impl BranchCtxt {
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-            //stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
-            //stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
+            stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
+            stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
 
             // We can not assert this, because the state is an overapproximation
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
@@ -301,8 +294,8 @@ impl BranchCtxt {
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-            //stmts.push(vir::Stmt::comment(format!("Access permissions: {{{}}}", self.state.display_acc())));
-            //stmts.push(vir::Stmt::comment(format!("Predicate permissions: {{{}}}", self.state.display_pred())));
+            stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
+            stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
 
             // We can not assert this, because the state is an overapproximation
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
