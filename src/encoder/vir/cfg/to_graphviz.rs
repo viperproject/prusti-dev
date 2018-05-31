@@ -30,7 +30,7 @@ impl CfgMethod {
                 graph,
                 "\"block_{}\" [shape=none,label=<{}>];",
                 escape_html(&label),
-                self.block_to_graphviz(&label, block),
+                self.block_to_graphviz(index, &label, block),
             ).unwrap();
         }
 
@@ -55,12 +55,12 @@ impl CfgMethod {
         self.basic_blocks_labels[index].clone()
     }
 
-    fn block_to_graphviz(&self, label: &str, block: &CfgBlock) -> String {
+    fn block_to_graphviz(&self, index: usize, label: &str, block: &CfgBlock) -> String {
         let mut lines: Vec<String> = vec![];
         lines.push("<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">".to_string());
 
         lines.push("<tr><td bgcolor=\"gray\" align=\"center\">".to_string());
-        lines.push(escape_html(label));
+        lines.push(format!("{} (cfg:{})", escape_html(label), index));
         lines.push("</td></tr>".to_string());
 
         lines.push("<tr><td align=\"left\" balign=\"left\">".to_string());
@@ -75,7 +75,7 @@ impl CfgMethod {
         lines.push("</td></tr>".to_string());
 
         lines.push("<tr><td align=\"left\">".to_string());
-        lines.push(escape_html(format!("{:?}", &block.successor)));
+        lines.push(escape_html(format!("{}", &block.successor)));
         lines.push("</td></tr>".to_string());
 
         lines.push("</table>".to_string());

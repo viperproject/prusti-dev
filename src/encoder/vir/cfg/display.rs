@@ -37,3 +37,31 @@ impl fmt::Display for CfgMethod {
         writeln!(f, "}}")
     }
 }
+
+impl fmt::Display for Successor {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &Successor::Undefined => writeln!(f, "Undefined"),
+            &Successor::Unreachable => writeln!(f, "Unreachable"),
+            &Successor::Return => writeln!(f, "Return"),
+            &Successor::Goto(ref target) => writeln!(f, "Goto({})", target),
+            &Successor::GotoSwitch(ref guarded_targets, ref default_target) => {
+                writeln!(
+                    f,
+                    "GotoSwitch({}, {})",
+                    guarded_targets.iter().map(|(guard, target)| format!("({}, {})", guard, target)).collect::<Vec<_>>().join(", "),
+                    default_target
+                )
+            },
+            &Successor::GotoIf(ref condition, ref then_target, ref else_target) => {
+                writeln!(f, "GotoIf({}, {}, {})", condition, then_target, else_target)
+            },
+        }
+    }
+}
+
+impl fmt::Display for CfgBlockIndex {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "cfg:{}", self.block_index)
+    }
+}

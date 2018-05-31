@@ -42,10 +42,13 @@ impl CfgMethod {
         );
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
+            let label = &self.basic_blocks_labels[index];
             new_method.add_block(
-                &self.basic_blocks_labels[index],
+                label,
                 block.invs.clone(),
-                vec![]
+                vec![
+                    Stmt::comment(format!("========== {} ==========", label))
+                ]
             );
         }
 

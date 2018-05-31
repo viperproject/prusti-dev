@@ -199,41 +199,50 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::NullaryOp(_op, ref _ty) => unimplemented!("{:?}", rhs),
 
                     &mir::Rvalue::Discriminant(ref src) => {
-                        let discr_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
-                        let int_field = self.encoder.encode_value_field(ty);
-                        let discr_field = self.encoder.encode_discriminant_field();
-                        let (encoded_src, _, _) = self.encode_place(src);
-                        // Obtain acc(encoded_src.discr_field)
-                        stmts.push(
-                            vir::Stmt::obtain_acc(encoded_src.clone().access(discr_field.clone()))
-                        );
-                        // Obtain acc(encoded_lhs)
-                        stmts.push(
-                            vir::Stmt::obtain_acc(encoded_src.clone().access(discr_field.clone()))
-                        );
-                        // Allocate the discr_var
-                        stmts.extend(
-                            self.encode_allocation(discr_var.clone().into(), ty)
-                        );
-                        // Initialize discr_var.int_field
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                vir::Place::Base(discr_var.clone()).access(int_field),
-                                encoded_src.access(discr_field).into()
-                            )
-                        );
-                        // Fold discr_var
-                        stmts.push(
-                            vir::Stmt::fold_pred(discr_var.clone().into())
-                        );
-                        // Assign encoded_lhs to encoded_lhs
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                encoded_lhs.clone(),
-                                discr_var.into()
-                            )
-                        );
-                        stmts
+                        let (encoded_src, src_ty, _) = self.encode_place(src);
+                        match src_ty.sty {
+                            ty::TypeVariants::TyAdt(_, _) => {
+                                let discr_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
+                                let int_field = self.encoder.encode_value_field(ty);
+                                let discr_field = self.encoder.encode_discriminant_field();
+                                // Obtain acc(encoded_src.discr_field)
+                                stmts.push(
+                                    vir::Stmt::obtain_acc(encoded_src.clone().access(discr_field.clone()))
+                                );
+                                // Obtain acc(encoded_lhs)
+                                stmts.push(
+                                    vir::Stmt::obtain_acc(encoded_src.clone().access(discr_field.clone()))
+                                );
+                                // Allocate the discr_var
+                                stmts.extend(
+                                    self.encode_allocation(discr_var.clone().into(), ty)
+                                );
+                                // Initialize discr_var.int_field
+                                stmts.push(
+                                    vir::Stmt::Assign(
+                                        vir::Place::Base(discr_var.clone()).access(int_field),
+                                        encoded_src.access(discr_field).into()
+                                    )
+                                );
+                                // Fold discr_var
+                                stmts.push(
+                                    vir::Stmt::fold_pred(discr_var.clone().into())
+                                );
+                                // Assign encoded_lhs to encoded_lhs
+                                stmts.push(
+                                    vir::Stmt::Assign(
+                                        encoded_lhs.clone(),
+                                        discr_var.into()
+                                    )
+                                );
+                                stmts
+                            }
+                            ref x => {
+                                debug!("The discriminant of type {:?} is not defined", x);
+                                stmts
+                            }
+                        }
+
                     }
 
                     &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
