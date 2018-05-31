@@ -6,18 +6,27 @@ struct T {
     val: i32
 }
 
-fn compute() -> T {
+fn compute(flag: bool) -> (T, T) {
     let mut x = T { val: 11 };
+    let mut y = T { val: 22 };
 
-    let y = &mut x;
+    let z = if flag {
+        &mut x
+    } else {
+        &mut y
+    };
 
-    y.val = 22;
+    z.val += 33;
 
-    // here y dies and the permission should go back to x
+    // here `z` dies and the permission should "go back" to `x` or `y`
 
-    x.val = 33;
+    x.val += 44;
+    y.val += 44;
 
-    x
+    assert!(x.val == 88 || x.val == 55);
+    assert!(y.val == 66 || x.val == 99);
+
+    (x, y)
 }
 
 fn main() {}
