@@ -481,16 +481,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // Pattern match on the macro that generated the panic
                         let macro_backtrace = term.source_info.span.macro_backtrace();
                         debug!("macro_backtrace: {:?}", macro_backtrace);
-                        let panic_cause = if macro_backtrace.len() > 1 {
-                            // A macro generated the panic!() call
-                            let macro_name = term.source_info.span.macro_backtrace()[1].macro_decl_name.clone();
+
+                        let panic_cause = if !macro_backtrace.is_empty() {
+                            let macro_name = term.source_info.span.macro_backtrace()[0].macro_decl_name.clone();
                             // HACK to match the filename of the span
-                            let def_site_span = format!("{:?}", term.source_info.span.macro_backtrace()[1].def_site_span);
+                            let def_site_span = format!("{:?}", term.source_info.span.macro_backtrace()[0].def_site_span);
 
                             match macro_name.as_str() {
-                                "panic!" if def_site_span.contains("<panic macros>") => PanicCause::ExplicitPanic,
-                                "assert!" if def_site_span == "None" => PanicCause::Assert,
-                                "unreachable!" if def_site_span.contains("<unreachable macros>") => PanicCause::Unreachable,
+                                "panic!" if def_site_span.contains("<panic macros>") => {
+                                    if macro_backtrace.len() > 1 {
+                                        let second_macro_name = term.source_info.span.macro_backtrace()[1].macro_decl_name.clone();
+                                        // HACK to match the filename of the span
+                                        let second_def_site_span = format!("{:?}", term.source_info.span.macro_backtrace()[1].def_site_span);
+
+                                        match second_macro_name.as_str() {
+                                            "panic!" if second_def_site_span.contains("<panic macros>") => PanicCause::Panic,
+                                            "assert!" if second_def_site_span == "None" => PanicCause::Assert,
+                                            "unreachable!" if second_def_site_span.contains("<unreachable macros>") => PanicCause::Unreachable,
+                                            _ => PanicCause::Panic
+                                        }
+                                    } else {
+                                        PanicCause::Panic
+                                    }
+                                },
                                 _ => PanicCause::Unknown
                             }
                         } else {

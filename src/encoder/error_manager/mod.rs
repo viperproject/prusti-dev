@@ -10,8 +10,8 @@ use syntax::codemap::Span;
 pub enum PanicCause {
     /// Unknown cause
     Unknown,
-    /// Caused by an explicit panic!()
-    ExplicitPanic,
+    /// Caused by a panic!()
+    Panic,
     /// Caused by an assert!()
     Assert,
     /// Caused by an unreachable!()
@@ -98,7 +98,7 @@ impl ErrorManager {
                 MultiSpan::from_span(*span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::ExplicitPanic)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Panic)) => CompilerError::new(
                 "P0002",
                 "panic!(..) statement might panic",
                 MultiSpan::from_span(*span)
