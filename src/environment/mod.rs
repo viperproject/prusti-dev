@@ -9,6 +9,8 @@ use rustc::ty::TyCtxt;
 use rustc::hir::def_id::DefId;
 use std::path::PathBuf;
 use syntax_pos::FileName;
+use syntax_pos::MultiSpan;
+use syntax::errors::DiagnosticId;
 
 mod procedure;
 mod loops;
@@ -63,6 +65,16 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     /// Emits an error message.
     pub fn err(&self, msg: &str) {
         self.state.session.err(msg);
+    }
+
+    /// Emits an error message.
+    pub fn span_err_with_code<S: Into<MultiSpan>>(&self, sp: S, msg: &str, code: String) {
+        self.state.session.span_err_with_code(sp, msg, DiagnosticId::Error(code));
+    }
+
+    /// Emits an error message.
+    pub fn err_with_code(&self, msg: &str, code: String) {
+        self.span_err_with_code(MultiSpan::new(), msg, code);
     }
 
     /// Returns true if an error has been emitted
