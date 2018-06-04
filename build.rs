@@ -582,6 +582,9 @@ fn main() {
             java_class!("viper.silver.verifier.VerificationError", vec![
                 method!("id"),
                 method!("pos"),
+                method!("fullId"),
+                method!("reason"),
+                method!("readableMessage", "()Ljava/lang/String;"),
             ]),
             java_class!("viper.silver.verifier.ConsistencyError", vec![
                 constructor!(),
