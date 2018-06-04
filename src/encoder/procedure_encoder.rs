@@ -480,15 +480,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         // Pattern match on the macro that generated the panic
                         let macro_backtrace = term.source_info.span.macro_backtrace();
-                        let panic_cause = if macro_backtrace.len() == 1 {
-                            // This is a direct panic!() call
-                            PanicCause::ExplicitPanic
-                        } else if macro_backtrace.len() > 1 {
+                        debug!("macro_backtrace: {:?}", macro_backtrace);
+                        let panic_cause = if macro_backtrace.len() > 1 {
                             // A macro generated the panic!() call
-                            debug!("{:?}", term.source_info.span.macro_backtrace()[1]);
                             match term.source_info.span.macro_backtrace()[1] {
-                                MacroBacktrace{ call_site: _, ref macro_decl_name, def_site_span: None } => {
+                                MacroBacktrace{ call_site: _, ref macro_decl_name, def_site_span }
+                                // HACK to match span file name
+                                if def_site_span == None || format!("{:?}", def_site_span).contains("<panic macros>") => {
                                     match macro_decl_name.as_str() {
+                                        "panic!" => PanicCause::ExplicitPanic,
                                         "assert!" => PanicCause::Assert,
                                         "unreachable!" => PanicCause::Unreachable,
                                         _ => PanicCause::Unknown
