@@ -479,6 +479,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(vir::Stmt::comment(format!("Rust panic - {:?}", args[0])));
 
                         // Pattern match on the macro that generated the panic
+                        // TODO: use a better approach to match macros
                         let macro_backtrace = term.source_info.span.macro_backtrace();
                         debug!("macro_backtrace: {:?}", macro_backtrace);
 
