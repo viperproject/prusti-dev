@@ -4,8 +4,23 @@
 
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Id();
+/// The identifier of a statement. Used in error reporting.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PosId {
+    id: String
+}
+
+impl PosId {
+    pub fn new(id: String) -> Self {
+        PosId {
+            id
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        self.id.to_string()
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Perm {
@@ -242,8 +257,8 @@ pub enum Stmt {
     Comment(String),
     Label(String),
     Inhale(Expr),
-    Exhale(Expr, Id),
-    Assert(Expr, Id),
+    Exhale(Expr, PosId),
+    Assert(Expr, PosId),
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Place, Expr),

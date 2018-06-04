@@ -42,7 +42,6 @@ impl fmt::Display for Successor {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Successor::Undefined => writeln!(f, "Undefined"),
-            &Successor::Unreachable => writeln!(f, "Unreachable"),
             &Successor::Return => writeln!(f, "Return"),
             &Successor::Goto(ref target) => writeln!(f, "Goto({})", target),
             &Successor::GotoSwitch(ref guarded_targets, ref default_target) => {

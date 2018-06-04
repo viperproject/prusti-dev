@@ -164,12 +164,12 @@ impl State {
     }
 
     pub fn remove_acc(&mut self, place: &vir::Place) {
-        assert!(self.acc.contains(place), "Place {} is not in state (acc), so it can not be removed.", place);
+        //assert!(self.acc.contains(place), "Place {} is not in state (acc), so it can not be removed.", place);
         self.acc.remove(place);
     }
 
     pub fn remove_pred(&mut self, place: &vir::Place) {
-        assert!(self.pred.contains(place), "Place {} is not in state (pred), so it can not be removed.", place);
+        //assert!(self.pred.contains(place), "Place {} is not in state (pred), so it can not be removed.", place);
         self.pred.remove(place);
     }
 

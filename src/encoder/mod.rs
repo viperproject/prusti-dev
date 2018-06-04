@@ -10,6 +10,7 @@ mod type_encoder;
 mod utils;
 mod places;
 mod foldunfold;
+mod error_manager;
 
 pub mod vir;
 

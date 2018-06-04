@@ -87,8 +87,6 @@ fn successor_to_viper<'a>(
     match *successor {
         Successor::Undefined =>
             panic!("CFG block '{}' has no successor.", basic_block_labels[index].clone()),
-        Successor::Unreachable =>
-            ast.assert(ast.false_lit(), ast.no_position()),
         Successor::Return => ast.goto(RETURN_LABEL),
         Successor::Goto(target) => ast.goto(&basic_block_labels[target.block_index]),
         Successor::GotoSwitch(ref successors, ref default_target) => {

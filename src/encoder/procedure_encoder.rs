@@ -21,6 +21,7 @@ use encoder::vir::{self, Successor, CfgBlockIndex};
 use encoder::vir::utils::ExprIterator;
 use encoder::foldunfold;
 use report::Log;
+use encoder::error_manager::ErrorCtxt;
 
 static PRECONDITION_LABEL: &'static str = "pre";
 
@@ -201,29 +202,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.encode_place(src);
                         match src_ty.sty {
-                            ty::TypeVariants::TyAdt(_, _) => {
+                            ty::TypeVariants::TyAdt(ref adt_def, _) => {
+                                let num_variants = adt_def.variants.len();
                                 let discr_var = self.cfg_method.add_fresh_local_var(vir::Type::TypedRef(type_name));
                                 let int_field = self.encoder.encode_value_field(ty);
                                 let discr_field = self.encoder.encode_discriminant_field();
-                                // Obtain acc(encoded_src.discr_field)
-                                stmts.push(
-                                    vir::Stmt::obtain_acc(encoded_src.clone().access(discr_field.clone()))
-                                );
-                                // Obtain acc(encoded_lhs)
-                                stmts.push(
-                                    vir::Stmt::obtain_acc(encoded_src.clone().access(discr_field.clone()))
-                                );
                                 // Allocate the discr_var
                                 stmts.extend(
                                     self.encode_allocation(discr_var.clone().into(), ty)
                                 );
-                                // Initialize discr_var.int_field
-                                stmts.push(
-                                    vir::Stmt::Assign(
-                                        vir::Place::Base(discr_var.clone()).access(int_field),
-                                        encoded_src.access(discr_field).into()
-                                    )
-                                );
+                                if num_variants == 1 {
+                                    // Initialize discr_var.int_field
+                                    stmts.push(
+                                        vir::Stmt::Assign(
+                                            vir::Place::Base(discr_var.clone()).access(int_field),
+                                            0.into()
+                                        )
+                                    );
+                                } else {
+                                    // Obtain acc(encoded_src.discr_field)
+                                    stmts.push(
+                                        vir::Stmt::obtain_acc(encoded_src.clone().access(discr_field.clone()))
+                                    );
+                                    // Initialize discr_var.int_field
+                                    stmts.push(
+                                        vir::Stmt::Assign(
+                                            vir::Place::Base(discr_var.clone()).access(int_field),
+                                            encoded_src.access(discr_field).into()
+                                        )
+                                    );
+                                }
                                 // Fold discr_var
                                 stmts.push(
                                     vir::Stmt::fold_pred(discr_var.clone().into())
@@ -250,9 +258,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(before_stmts);
                         stmts.push(
                             vir::Stmt::Assign(
-                                encoded_lhs,
+                                encoded_lhs.clone(),
                                 encoded_value
                             )
+                        );
+                        // Fold
+                        stmts.push(
+                            vir::Stmt::fold_pred(encoded_lhs)
                         );
                         stmts
                     }
@@ -307,7 +319,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>,
                          cfg_blocks: &HashMap<BasicBlockIndex, CfgBlockIndex>,
                          spec_cfg_block: CfgBlockIndex,
-                         abort_cfg_block: CfgBlockIndex,
                          return_cfg_block: CfgBlockIndex) -> (Vec<vir::Stmt>, Successor) {
         trace!("Encode terminator '{:?}', span: {:?}", term.kind, term.source_info.span);
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -369,11 +380,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
 
             TerminatorKind::Unreachable => {
-                (stmts, Successor::Unreachable)
+                let pos_id = self.encoder.error_manager().register(ErrorCtxt::Unreachable());
+                stmts.push(
+                    vir::Stmt::Assert(false.into(), pos_id)
+                );
+                (stmts, Successor::Return)
             },
 
             TerminatorKind::Abort => {
-                (stmts, Successor::Goto(abort_cfg_block))
+                let pos_id = self.encoder.error_manager().register(ErrorCtxt::Abort());
+                stmts.push(
+                    vir::Stmt::Assert(false.into(), pos_id)
+                );
+                (stmts, Successor::Return)
             },
 
             TerminatorKind::Drop { ref target, .. } => {
@@ -452,51 +471,55 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     },
                     "std::rt::begin_panic" => {
                         // This is called when a Rust assertion fails
+                        // args[0]: message
+                        // args[1]: position of failing assertions
                         stmts.push(vir::Stmt::comment(format!("Rust panic - {:?}", args[0])));
-                        stmts.push(vir::Stmt::Assert(false.into(), vir::Id()));
+                        let pos_id = self.encoder.error_manager().register(ErrorCtxt::Panic(term.source_info.span));
+                        stmts.push(vir::Stmt::Assert(false.into(), pos_id));
                     },
                     _ => {
-                    let mut stmts_after: Vec<vir::Stmt> = vec![];
-                    let mut arg_vars = Vec::new();
+                        let mut stmts_after: Vec<vir::Stmt> = vec![];
+                        let mut arg_vars = Vec::new();
 
-                    for operand in args.iter() {
-                        let (arg_var, _, effects_before, effects_after) = self.encode_operand(operand);
-                        arg_vars.push(arg_var);
-                        stmts.extend(effects_before);
-                        stmts_after.extend(effects_after);
-                    }
+                        for operand in args.iter() {
+                            let (arg_var, _, effects_before, effects_after) = self.encode_operand(operand);
+                            arg_vars.push(arg_var);
+                            stmts.extend(effects_before);
+                            stmts_after.extend(effects_after);
+                        }
 
-                    let mut encoded_targets = Vec::new();
-                    let target = {
-                        let &(ref target_place, _) = destination.as_ref().unwrap();
-                        let (src, ty, _) = self.encode_place(target_place);
-                        let local = self.locals.get_fresh(ty);
-                        let viper_local = self.encode_prusti_local(local);
-                        stmts_after.push(vir::Stmt::Assign(src, viper_local.clone().into()));
-                        encoded_targets.push(viper_local);
-                        local
-                    };
+                        let mut encoded_targets = Vec::new();
+                        let target = {
+                            let &(ref target_place, _) = destination.as_ref().unwrap();
+                            let (src, ty, _) = self.encode_place(target_place);
+                            let local = self.locals.get_fresh(ty);
+                            let viper_local = self.encode_prusti_local(local);
+                            stmts_after.push(vir::Stmt::Assign(src, viper_local.clone().into()));
+                            encoded_targets.push(viper_local);
+                            local
+                        };
 
-                    let procedure_contract = self.encoder
-                        .get_procedure_contract_for_call(def_id, &arg_vars, target);
+                        let procedure_contract = self.encoder
+                            .get_procedure_contract_for_call(def_id, &arg_vars, target);
 
-                    let label = self.cfg_method.get_fresh_label_name();
-                    stmts.push(vir::Stmt::Label(label.clone()));
+                        let label = self.cfg_method.get_fresh_label_name();
+                        stmts.push(vir::Stmt::Label(label.clone()));
 
-                    let precondition = self.encode_precondition_expr(&procedure_contract);
-                    stmts.push(vir::Stmt::Exhale(precondition, vir::Id()));
+                        let precondition = self.encode_precondition_expr(&procedure_contract);
+                        let pos_id = self.encoder.error_manager().register(ErrorCtxt::ExhalePrecondition());
+                        stmts.push(vir::Stmt::Exhale(precondition, pos_id));
 
-                    stmts.push(vir::Stmt::MethodCall(
-                        self.encoder.encode_procedure_name(def_id),
-                        vec![],
-                        encoded_targets
-                    ));
+                        stmts.push(vir::Stmt::MethodCall(
+                            self.encoder.encode_procedure_name(def_id),
+                            vec![],
+                            encoded_targets
+                        ));
 
-                    let (obtain_stmts, postcondition) = self.encode_postcondition_expr(&procedure_contract, &label);
-                    stmts.extend(obtain_stmts);
-                    stmts.push(vir::Stmt::Inhale(postcondition));
+                        let (obtain_stmts, postcondition) = self.encode_postcondition_expr(&procedure_contract, &label);
+                        stmts.extend(obtain_stmts);
+                        stmts.push(vir::Stmt::Inhale(postcondition));
 
-                    stmts.extend(stmts_after);
+                        stmts.extend(stmts_after);
                     }
                 }
 
@@ -504,7 +527,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                     (stmts, Successor::Goto(*target_cfg_block))
                 } else {
-                    (stmts, Successor::Unreachable)
+                    let pos_id = self.encoder.error_manager().register(ErrorCtxt::Unexpected());
+                    stmts.push(
+                        vir::Stmt::Assert(false.into(), pos_id)
+                    );
+                    (stmts, Successor::Return)
                 }
             },
 
@@ -513,7 +540,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 unimplemented!();
             },
 
-            TerminatorKind::Assert { ref cond, expected, ref target, .. } => {
+            TerminatorKind::Assert { ref cond, expected, ref target, ref msg, .. } => {
                 trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
                 let cond_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
                 let (cond_tmp_val, pre_effect_stmts, post_effect_stmts) = self.eval_operand(cond);
@@ -535,7 +562,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::Expr::not(cond_var.into())
                 };
                 let target_cfg_block = *cfg_blocks.get(&target).unwrap();
-                (stmts, Successor::GotoSwitch(vec![(viper_guard, target_cfg_block)], abort_cfg_block))
+
+                // Prepare a block that encodes the branch of the failure
+                let failure_label = self.cfg_method.get_fresh_label_name();
+                let failure_block = self.cfg_method.add_block(&failure_label, vec![], vec![
+                    vir::Stmt::comment(format!("========== {} ==========", &failure_label)),
+                    vir::Stmt::comment(format!("A Rust assertion failed: {}", msg.description())),
+                    vir::Stmt::Assert(
+                        false.into(),
+                        self.encoder.error_manager().register(ErrorCtxt::AssertTerminator(term.source_info.span, msg.description().to_string()))
+                    ),
+                ]);
+                self.cfg_method.set_successor(failure_block, Successor::Return);
+
+                (stmts, Successor::GotoSwitch(vec![(viper_guard, target_cfg_block)], failure_block))
             }
 
             TerminatorKind::Resume |
@@ -578,14 +618,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let spec_cfg_block = self.cfg_method.add_block("spec", vec![], vec![
             vir::Stmt::comment(format!("========== spec ==========")),
             vir::Stmt::comment("This should never be reached. It's a residual of type-checking specifications."),
+            vir::Stmt::Assert(
+                false.into(),
+                self.encoder.error_manager().register(ErrorCtxt::Unexpected())
+            )
         ]);
-        self.cfg_method.set_successor(spec_cfg_block, Successor::Unreachable);
-
-        let abort_cfg_block = self.cfg_method.add_block("abort", vec![], vec![
-            vir::Stmt::comment(format!("========== abort ==========")),
-            vir::Stmt::comment("Target of any Rust panic."),
-        ]);
-        self.cfg_method.set_successor(abort_cfg_block, Successor::Unreachable);
+        self.cfg_method.set_successor(spec_cfg_block, Successor::Return);
 
         let return_cfg_block = self.cfg_method.add_block("return", vec![], vec![
             vir::Stmt::comment(format!("========== return ==========")),
@@ -638,7 +676,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     term,
                     &cfg_blocks,
                     spec_cfg_block,
-                    abort_cfg_block,
                     return_cfg_block
                 );
                 for stmt in stmts.into_iter() {
@@ -768,7 +805,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         for obtain_stmt in obtain_stmts {
             self.cfg_method.add_stmt(return_cfg_block, obtain_stmt);
         }
-        let exhale_stmt = vir::Stmt::Exhale(postcondition, vir::Id());
+        let pos_id = self.encoder.error_manager().register(ErrorCtxt::ExhalePostcondition());
+        let exhale_stmt = vir::Stmt::Exhale(postcondition, pos_id);
         self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
     }
 

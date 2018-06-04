@@ -67,7 +67,10 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
         Verifier::new(
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
-            self.verification_ctx.new_verifier(),
+            self.verification_ctx.new_verifier_with_args(vec![
+                "--printMethodCFGs",
+                "--tempDirectory", "./log/viper_tmp",
+            ]),
             env
         )
     }
@@ -131,9 +134,17 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         if verification_errors.is_empty() {
             VerificationResult::Success
         } else {
-            for error in verification_errors {
-                debug!("Verification error: {:?}", error);
-                // TODO: emit errors using env?
+            let error_manager = self.encoder.error_manager();
+
+            for verification_error in verification_errors {
+                debug!("Verification error: {:?}", verification_error);
+                let compilation_error = error_manager.translate(&verification_error);
+                debug!("Compilation error: {:?}", compilation_error);
+                self.env.span_err_with_code(
+                    compilation_error.span,
+                    &compilation_error.message,
+                    compilation_error.id
+                )
             }
             VerificationResult::Failure
         }

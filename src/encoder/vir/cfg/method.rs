@@ -32,7 +32,6 @@ pub(super) struct CfgBlock {
 #[derive(Debug, Clone)]
 pub enum Successor {
     Undefined,
-    Unreachable,
     Return,
     Goto(CfgBlockIndex),
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
@@ -55,7 +54,6 @@ impl Successor {
     pub fn get_following(&self) -> Vec<CfgBlockIndex> {
         match self {
             &Successor::Undefined |
-            &Successor::Unreachable |
             &Successor::Return => vec![],
             &Successor::Goto(target) => vec![
                 target
@@ -159,6 +157,7 @@ impl CfgMethod {
             && self.formal_returns.iter().all(|x| x.name != name)
             && self.local_vars.iter().all(|x| x.name != name)
             && self.labels.iter().all(|x| x != name)
+            && self.basic_blocks_labels.iter().all(|x| x != name)
     }
 
     fn generate_fresh_local_var_name(&mut self) -> String {

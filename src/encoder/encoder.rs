@@ -14,13 +14,15 @@ use encoder::places;
 use encoder::borrows::{ProcedureContractMirDef, ProcedureContract, compute_procedure_contract};
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
-use std::cell::RefCell;
+use encoder::error_manager::ErrorManager;
+use std::cell::{RefCell, RefMut};
 use encoder::vir;
 use report::Log;
 use syntax::ast;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    error_manager: RefCell<ErrorManager>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
@@ -33,6 +35,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Self {
         Encoder {
             env,
+            error_manager: RefCell::new(ErrorManager::new()),
             procedure_contracts: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
@@ -44,6 +47,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn env(&self) -> &'v EnvironmentImpl<'r, 'a, 'tcx> {
         self.env
+    }
+
+    pub fn error_manager(&self) -> RefMut<ErrorManager> {
+        self.error_manager.borrow_mut()
     }
 
     pub fn get_used_viper_domains(&self) -> Vec<Domain<'v>> {

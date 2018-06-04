@@ -46,9 +46,7 @@ impl CfgMethod {
             new_method.add_block(
                 label,
                 block.invs.clone(),
-                vec![
-                    Stmt::comment(format!("========== {} ==========", label))
-                ]
+                vec![]
             );
         }
 
@@ -81,12 +79,13 @@ impl CfgMethod {
                 let new_stmts_and_bctxt = augmenter.prepend_join(incoming_bctxt);
                 let new_stmts = new_stmts_and_bctxt.0;
                 bctxt = new_stmts_and_bctxt.1;
-                for (&src_index, stmts_to_add) in incoming_edges.iter().zip(new_stmts) {
+                for (&src_index, mut stmts_to_add) in incoming_edges.iter().zip(new_stmts) {
                     if !stmts_to_add.is_empty() {
                         // TODO: add to previous block, if possible
                         let src_block_index = new_method.block_index(src_index);
                         trace!("Prepend to {:?} coming from {:?}: {:?}", curr_block_index, src_block_index, &stmts_to_add);
                         let new_label = new_method.get_fresh_label_name();
+                        stmts_to_add.insert(0, Stmt::comment(format!("========== {} ==========", new_label)));
                         let new_block_index = new_method.add_block(&new_label, vec![], stmts_to_add.clone());
                         new_method.set_successor(
                             new_block_index,
@@ -136,10 +135,11 @@ impl CfgMethod {
                 let index = following_index.block_index;
                 if visited[index] {
                     debug!("Back edge from {:?} to {:?}", curr_block_index, following_index);
-                    let stmts_to_add = augmenter.prepend_back_jump(&bctxt, &initial_bctxt[index].as_ref().unwrap());
+                    let mut stmts_to_add = augmenter.prepend_back_jump(&bctxt, &initial_bctxt[index].as_ref().unwrap());
                     if !stmts_to_add.is_empty() {
                         // TODO: add to previous block, if possible
                         let new_label = new_method.get_fresh_label_name();
+                        stmts_to_add.insert(0, Stmt::comment(format!("========== {} ==========", new_label)));
                         let new_block_index = new_method.add_block(&new_label, vec![], stmts_to_add);
                         new_method.set_successor(
                             new_block_index,

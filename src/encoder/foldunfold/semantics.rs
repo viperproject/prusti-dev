@@ -91,9 +91,9 @@ impl vir::Stmt {
                         p.replace_prefix(&pred_self_place, place.clone())
                     )).collect();
 
-                for contained_place in &places_in_pred {
-                    assert!(state.contains(contained_place));
-                }
+                //for contained_place in &places_in_pred {
+                //    assert!(state.contains(contained_place));
+                //}
 
                 // Simulate folding of `place`
                 state.remove_all(places_in_pred.iter());
@@ -115,9 +115,9 @@ impl vir::Stmt {
                         p.replace_prefix(&pred_self_place, place.clone())
                     )).collect();
 
-                for contained_place in &places_in_pred {
-                    assert!(!state.contains(contained_place));
-                }
+                //for contained_place in &places_in_pred {
+                //    assert!(!state.contains(contained_place));
+                //}
 
                 // Simulate unfolding of `place`
                 state.remove_pred(&place);

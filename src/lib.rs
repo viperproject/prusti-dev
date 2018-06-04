@@ -16,6 +16,7 @@ extern crate viper;
 extern crate prusti_interface;
 extern crate prusti_utils;
 extern crate syntax;
+extern crate syntax_pos;
 extern crate uuid;
 
 mod report;
