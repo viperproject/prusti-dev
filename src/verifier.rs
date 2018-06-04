@@ -168,13 +168,19 @@ impl<'a> Verifier<'a, state::Started> {
                     panic!();
                 };
 
-                let error_type = self.jni.get_string(
+                let error_full_id = self.jni.get_string(
                     self.jni
-                        .unwrap_result(verification_error_wrapper.call_id(viper_error)),
+                        .unwrap_result(verification_error_wrapper.call_fullId(viper_error)),
                 );
 
                 let pos = self.jni
                     .unwrap_result(verification_error_wrapper.call_pos(viper_error));
+
+                let message = self.jni.to_string(
+                    self.jni.unwrap_result(
+                        verification_error_wrapper.call_readableMessage(viper_error)
+                    )
+                );
 
                 assert!(
                     self.jni
@@ -188,7 +194,7 @@ impl<'a> Verifier<'a, state::Started> {
                 let pos_id = self.jni
                     .get_string(self.jni.unwrap_result(has_identifier_wrapper.call_id(pos)));
 
-                errors.push(VerificationError::new(error_type, pos_id))
+                errors.push(VerificationError::new(error_full_id, pos_id, message))
             }
 
             VerificationResult::Failure(errors)

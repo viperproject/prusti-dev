@@ -27,12 +27,22 @@ impl<'a> VerificationContext<'a> {
     }
 
     pub fn new_verifier(&self) -> Verifier<state::Started> {
+        self.new_verifier_with_args(vec![])
+    }
+
+    pub fn new_verifier_with_args(&self, mut args: Vec<&str>) -> Verifier<state::Started> {
         let z3_path = env::var("Z3_PATH").unwrap_or_else(|_| "/usr/bin/viper-z3".to_string());
 
         debug!("Using Z3 path: '{}'", &z3_path);
 
+        args.extend(vec![
+            "--z3Exe",
+            &z3_path,
+            "dummy-program.sil"
+        ]);
+
         Verifier::<state::Uninitialized>::new(&self.env)
-            .parse_command_line(&["--z3Exe", &z3_path, "dummy-program.sil"])
+            .parse_command_line(&args)
             .start()
     }
 }

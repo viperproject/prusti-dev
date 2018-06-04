@@ -60,12 +60,13 @@ fn failure_with_assert_false() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(
-        verification_result,
-        VerificationResult::Failure(vec![
-            VerificationError::new("assert.failed".to_string(), "pos-id:123".to_string()),
-        ])
-    );
+    if let VerificationResult::Failure(errors) = verification_result {
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].get_full_id(), "assert.failed:assertion.false".to_string());
+        assert_eq!(errors[0].get_pos_id(), "pos-id:123".to_string());
+    } else {
+        assert!(false)
+    }
 }
 
 #[test]
@@ -202,12 +203,13 @@ fn failure_with_assign_if_and_assert() {
 
     let verification_result = verifier.verify(program);
 
-    assert_eq!(
-        verification_result,
-        VerificationResult::Failure(vec![
-            VerificationError::new("assert.failed".to_string(), "then".to_string()),
-        ])
-    );
+    if let VerificationResult::Failure(errors) = verification_result {
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].get_full_id(), "assert.failed:assertion.false".to_string());
+        assert_eq!(errors[0].get_pos_id(), "then".to_string());
+    } else {
+        assert!(false)
+    }
 }
 
 #[test]
