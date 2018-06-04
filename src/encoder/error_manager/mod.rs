@@ -117,8 +117,8 @@ impl ErrorManager {
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(span, ref message)) => CompilerError::new(
-                "P????",
-                format!("assertion might fail: {}", message),
+                "P0005",
+                format!("assertion might fail with \"{}\"", message),
                 MultiSpan::from_span(*span)
             ),
 
