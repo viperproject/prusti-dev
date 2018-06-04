@@ -10,21 +10,13 @@ pub enum VerificationResult {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VerificationError {
-    error_full_id: String,
-    pos_id: String,
-    readable_message: String
+    pub full_id: String,
+    pub pos_id: String,
+    pub message: String
 }
 
 impl VerificationError {
-    pub fn new(error_full_id: String, pos_id: String, readable_message: String) -> Self {
-        VerificationError { error_full_id, pos_id, readable_message }
-    }
-
-    pub fn get_full_id(&self) -> String {
-        self.error_full_id.clone()
-    }
-
-    pub fn get_pos_id(&self) -> String {
-        self.pos_id.clone()
+    pub fn new(full_id: String, pos_id: String, message: String) -> Self {
+        VerificationError { full_id, pos_id, message }
     }
 }
