@@ -22,6 +22,9 @@ use encoder::vir::utils::ExprIterator;
 use encoder::foldunfold;
 use report::Log;
 use encoder::error_manager::ErrorCtxt;
+use encoder::error_manager::PanicCause;
+use syntax_pos::MacroBacktrace;
+
 
 static PRECONDITION_LABEL: &'static str = "pre";
 
@@ -380,7 +383,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
 
             TerminatorKind::Unreachable => {
-                let pos_id = self.encoder.error_manager().register(ErrorCtxt::Unreachable());
+                let pos_id = self.encoder.error_manager().register(ErrorCtxt::UnreachableTerminator(term.source_info.span));
                 stmts.push(
                     vir::Stmt::Assert(false.into(), pos_id)
                 );
@@ -388,7 +391,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
 
             TerminatorKind::Abort => {
-                let pos_id = self.encoder.error_manager().register(ErrorCtxt::Abort());
+                let pos_id = self.encoder.error_manager().register(ErrorCtxt::AbortTerminator(term.source_info.span));
                 stmts.push(
                     vir::Stmt::Assert(false.into(), pos_id)
                 );
@@ -474,7 +477,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // args[0]: message
                         // args[1]: position of failing assertions
                         stmts.push(vir::Stmt::comment(format!("Rust panic - {:?}", args[0])));
-                        let pos_id = self.encoder.error_manager().register(ErrorCtxt::Panic(term.source_info.span));
+
+                        // Pattern match on the macro that generated the panic
+                        let macro_backtrace = term.source_info.span.macro_backtrace();
+                        let panic_cause = if macro_backtrace.len() == 1 {
+                            // This is a direct panic!() call
+                            PanicCause::ExplicitPanic
+                        } else if macro_backtrace.len() > 1 {
+                            // A macro generated the panic!() call
+                            debug!("{:?}", term.source_info.span.macro_backtrace()[1]);
+                            match term.source_info.span.macro_backtrace()[1] {
+                                MacroBacktrace{ call_site: _, ref macro_decl_name, def_site_span: None } => {
+                                    match macro_decl_name.as_str() {
+                                        "assert!" => PanicCause::Assert,
+                                        "unreachable!" => PanicCause::Unreachable,
+                                        _ => PanicCause::Unknown
+                                    }
+                                },
+                                _ => PanicCause::Unknown
+                            }
+                        } else {
+                            // Something else called panic!()
+                            PanicCause::Unknown
+                        };
+                        let pos_id = self.encoder.error_manager().register(ErrorCtxt::Panic(term.source_info.span, panic_cause));
                         stmts.push(vir::Stmt::Assert(false.into(), pos_id));
                     },
                     _ => {

@@ -5,18 +5,26 @@ use encoder::vir::PosId;
 use std::collections::HashMap;
 use syntax::codemap::Span;
 
+/// The cause of a panic!()
+#[derive(Clone,Debug)]
+pub enum PanicCause {
+    /// Unknown cause
+    Unknown,
+    /// Caused by an explicit panic!()
+    ExplicitPanic,
+    /// Caused by an assert!()
+    Assert,
+    /// Caused by an unreachable!()
+    Unreachable,
+}
 
 /// In case of verification error, this enum will contain all the information (span, ...)
 /// required to report the error in the compiler.
 #[derive(Clone,Debug)]
 pub enum ErrorCtxt {
-    /// A Viper `assert false` that encodes an unreachable Rust terminator
-    Unreachable(),
     /// A Viper `assert false` that encodes a Rust panic
     /// Arguments: the span of the statement that might panic
-    Panic(Span),
-    /// A Viper `assert false` that encodes an `abort` Rust terminator
-    Abort(),
+    Panic(Span, PanicCause),
     /// A Viper `exhale expr` that encodes the call of a Rust procedure wit precondition `expr`
     ExhalePrecondition(),
     /// A Viper `exhale expr` that encodes the end of a Rust procedure wit postcondition `expr`
@@ -24,6 +32,10 @@ pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the span of the statement that might fail, the message of the Rust assertion
     AssertTerminator(Span, String),
+    /// A Viper `assert false` that encodes an `abort` Rust terminator
+    AbortTerminator(Span),
+    /// A Viper `assert false` that encodes an `unreachable` Rust terminator
+    UnreachableTerminator(Span),
     /// An error that should never happen
     Unexpected(),
 }
@@ -80,16 +92,54 @@ impl ErrorManager {
         };
 
         match (ver_error.full_id.as_str(), error_ctx) {
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(span)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Unknown)) => CompilerError::new(
                 "P0001",
                 "statement might panic",
                 MultiSpan::from_span(*span)
             ),
-            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(span, ref message)) => CompilerError::new(
+
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::ExplicitPanic)) => CompilerError::new(
                 "P0002",
+                "panic!(..) statement might panic",
+                MultiSpan::from_span(*span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Assert)) => CompilerError::new(
+                "P0003",
+                "assert!(..) statement might not hold",
+                MultiSpan::from_span(*span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Unreachable)) => CompilerError::new(
+                "P0004",
+                "unreachable!(..) statement might be reachable",
+                MultiSpan::from_span(*span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(span, ref message)) => CompilerError::new(
+                "P????",
                 format!("assertion might fail: {}", message),
                 MultiSpan::from_span(*span)
             ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator(span)) => CompilerError::new(
+                "P????",
+                format!("statement might abort"),
+                MultiSpan::from_span(*span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator(span)) => CompilerError::new(
+                "P????",
+                format!("unreachable code might be reachable. This might be a bug in the compiler."),
+                MultiSpan::from_span(*span)
+            ),
+
+            (full_err_id, ErrorCtxt::Unexpected()) => CompilerError::new(
+                full_err_id,
+                format!("unexpected verification error ({})", ver_error.message),
+                MultiSpan::new()
+            ),
+
             (full_err_id, _) => {
                 error!("Unhandled verification error: {:?}, context: {:?}", ver_error, error_ctx);
                 CompilerError::new(
