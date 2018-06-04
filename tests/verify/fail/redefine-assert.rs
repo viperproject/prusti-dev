@@ -2,14 +2,14 @@
 
 extern crate prusti_contracts;
 
-macro_rules! my_assert {
+macro_rules! assert {
     ( $( $args:expr ),* ) => {
         panic!( $( $args ),* )
     };
 }
 
 fn foo(x: bool) {
-    my_assert!(x);
+    assert!(x);
 }
 
 fn main() {
