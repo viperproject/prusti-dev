@@ -1,4 +1,4 @@
-// error-pattern:
+// error-pattern: error
 
 extern crate prusti_contracts;
 

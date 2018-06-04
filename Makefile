@@ -52,6 +52,7 @@ build:
 	RUSTFLAGS="--verbose" cargo build
 
 test:
+	RUST_TEST_THREADS=1 \
 	RUST_BACKTRACE=1 \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	cargo test
