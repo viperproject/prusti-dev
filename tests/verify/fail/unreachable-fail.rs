@@ -1,4 +1,4 @@
-// error-pattern: error
+// error-pattern: error[P0004]
 
 #![feature(nll)]
 
