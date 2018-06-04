@@ -7,6 +7,8 @@
 use rustc_driver::driver;
 use rustc::ty::TyCtxt;
 use rustc::hir::def_id::DefId;
+use std::path::PathBuf;
+use syntax_pos::FileName;
 
 mod procedure;
 mod loops;
@@ -38,6 +40,14 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     /// Builds an environment given a compiler state.
     pub fn new(state: &'r mut driver::CompileState<'a, 'tcx>) -> Self {
         EnvironmentImpl { state }
+    }
+
+    /// Returns the path of the source that is being compiled
+    pub fn source_path(&self) -> PathBuf {
+        match driver::source_name(self.state.input) {
+            FileName::Real(path) => path,
+            _ => unreachable!(),
+        }
     }
 
     /// Returns the typing context

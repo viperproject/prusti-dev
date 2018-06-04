@@ -18,6 +18,7 @@ extern crate syntax;
 extern crate rustc_driver;
 extern crate rustc_mir;
 extern crate rustc_data_structures;
+extern crate syntax_pos;
 
 pub mod environment;
 pub mod verifier;
