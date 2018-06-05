@@ -10,6 +10,8 @@ use encoder::foldunfold::acc_or_pred::*;
 use encoder::foldunfold::requirements::*;
 use encoder::foldunfold::state::*;
 
+const DEBUG_FOLDUNFOLD: bool = false;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BranchCtxt {
     state: State,
@@ -98,8 +100,8 @@ impl BranchCtxt {
         loop {
             debug!("Iteration for join");
 
-            debug!("Predicates in left branch: {:?}", self.state.pred());
-            debug!("Predicates in right branch: {:?}", other.state.pred());
+            trace!("Predicates in left branch: {:?}", self.state.pred());
+            trace!("Predicates in right branch: {:?}", other.state.pred());
             assert!(self.state.consistent());
 
             if self.state.pred() == other.state.pred() {
@@ -107,11 +109,11 @@ impl BranchCtxt {
                 assert!(self.state.consistent());
                 return (left_stmts, right_stmts);
             } else {
-                debug!("self state: {:?}", self.state);
-                debug!("other state: {:?}", other.state);
+                trace!("self state: {:?}", self.state);
+                trace!("other state: {:?}", other.state);
 
                 let preserved_pred = definitely_preserved(self.state.pred(), other.state.pred());
-                debug!("Preserved predicates: {:?}", preserved_pred);
+                trace!("Preserved predicates: {:?}", preserved_pred);
 
                 let original_self_pred = self.state.pred().clone();
                 let original_other_pred = other.state.pred().clone();
@@ -159,9 +161,9 @@ impl BranchCtxt {
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         while !reqs.is_empty() {
-            debug!("Acc state: {{{}}}", self.state.display_debug_acc());
-            debug!("Pred state: {{{}}}", self.state.display_debug_pred());
-            debug!("Requirements: {{{}}}", display(&reqs));
+            trace!("Acc state: {{{}}}", self.state.display_debug_acc());
+            trace!("Pred state: {{{}}}", self.state.display_debug_pred());
+            trace!("Requirements: {{{}}}", display(&reqs));
 
             let curr_req = &reqs[reqs.len() - 1];
             let req_place = curr_req.get_place();
@@ -186,7 +188,7 @@ impl BranchCtxt {
                     debug!("We want to unfold {:?}", existing_pred);
                     let stmt = self.unfold(&existing_pred);
                     stmts.push(stmt);
-                    debug!("We unfold {:?}", existing_pred);
+                    debug!("We unfolded {:?}", existing_pred);
                     // Continue checking the remaining requirements
                 },
 
@@ -245,14 +247,16 @@ impl BranchCtxt {
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        debug!("Acc state before: {{{}}}", self.state.display_acc());
-        debug!("Pred state before: {{{}}}", self.state.display_pred());
+        trace!("Acc state before: {{{}}}", self.state.display_acc());
+        trace!("Pred state before: {{{}}}", self.state.display_pred());
 
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-            stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
-            stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
+            if DEBUG_FOLDUNFOLD {
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
+            }
 
             // We can not assert this, because the state is an overapproximation
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
@@ -264,8 +268,8 @@ impl BranchCtxt {
 
         stmt.apply_on_state(&mut self.state, &self.predicates);
 
-        debug!("Acc state after: {{{}}}", self.state.display_acc());
-        debug!("Pred state after: {{{}}}", self.state.display_pred());
+        trace!("Acc state after: {{{}}}", self.state.display_acc());
+        trace!("Pred state after: {{{}}}", self.state.display_pred());
 
         assert!(self.state.consistent());
 
@@ -288,14 +292,16 @@ impl BranchCtxt {
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        debug!("Acc state before: {{{}}}", self.state.display_acc());
-        debug!("Pred state before: {{{}}}", self.state.display_pred());
+        trace!("Acc state before: {{{}}}", self.state.display_acc());
+        trace!("Pred state before: {{{}}}", self.state.display_pred());
 
         assert!(self.state.consistent());
 
         if !required_places.is_empty() {
-            stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
-            stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
+            if DEBUG_FOLDUNFOLD {
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
+            }
 
             // We can not assert this, because the state is an overapproximation
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
@@ -306,8 +312,8 @@ impl BranchCtxt {
 
         }
 
-        debug!("Acc state after: {{{}}}", self.state.display_acc());
-        debug!("Pred state after: {{{}}}", self.state.display_pred());
+        trace!("Acc state after: {{{}}}", self.state.display_acc());
+        trace!("Pred state after: {{{}}}", self.state.display_pred());
 
         assert!(self.state.consistent());
 

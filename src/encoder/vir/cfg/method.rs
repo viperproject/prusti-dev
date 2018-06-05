@@ -5,6 +5,8 @@
 use uuid::Uuid;
 use encoder::vir::ast::*;
 use std::fmt;
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
@@ -15,11 +17,12 @@ pub struct CfgMethod {
     pub(super) formal_args: Vec<LocalVar>,
     pub(super) formal_returns: Vec<LocalVar>,
     pub(super) local_vars: Vec<LocalVar>,
-    pub(super) labels: Vec<String>,
+    pub(super) labels: HashSet<String>,
+    pub(super) reserved_labels: HashSet<String>,
     pub(super) basic_blocks: Vec<CfgBlock>,
     pub(super) basic_blocks_labels: Vec<String>,
-    pub(super) fresh_var_index: i32,
-    pub(super) fresh_label_index: i32,
+    fresh_var_index: i32,
+    fresh_label_index: i32,
 }
 
 #[derive(Debug, Clone)]
@@ -126,6 +129,7 @@ impl CfgMethod {
         formal_args: Vec<LocalVar>,
         formal_returns: Vec<LocalVar>,
         local_vars: Vec<LocalVar>,
+        reserved_labels: Vec<String>,
     ) -> Self {
         CfgMethod {
             uuid: Uuid::new_v4(),
@@ -133,7 +137,8 @@ impl CfgMethod {
             formal_args,
             formal_returns,
             local_vars,
-            labels: vec![],
+            labels: HashSet::new(),
+            reserved_labels: HashSet::from_iter(reserved_labels),
             basic_blocks: vec![],
             basic_blocks_labels: vec![],
             fresh_var_index: 0,
@@ -156,16 +161,26 @@ impl CfgMethod {
         self.formal_args.iter().all(|x| x.name != name)
             && self.formal_returns.iter().all(|x| x.name != name)
             && self.local_vars.iter().all(|x| x.name != name)
-            && self.labels.iter().all(|x| x != name)
+            && !self.labels.contains(name)
             && self.basic_blocks_labels.iter().all(|x| x != name)
     }
 
     fn generate_fresh_local_var_name(&mut self) -> String {
         let mut candidate_name = format!("__{}", self.fresh_var_index);
         self.fresh_var_index += 1;
-        while !self.is_fresh_local_name(&candidate_name) {
+        while !self.is_fresh_local_name(&candidate_name) || self.reserved_labels.contains(&candidate_name) {
             candidate_name = format!("__{}", self.fresh_var_index);
             self.fresh_var_index += 1;
+        }
+        candidate_name
+    }
+
+    pub fn get_fresh_label_name(&mut self) -> String {
+        let mut candidate_name = format!("l{}", self.fresh_label_index);
+        self.fresh_label_index += 1;
+        while !self.is_fresh_local_name(&candidate_name) || self.reserved_labels.contains(&candidate_name) {
+            candidate_name = format!("l{}", self.fresh_label_index);
+            self.fresh_label_index += 1;
         }
         candidate_name
     }
@@ -177,6 +192,14 @@ impl CfgMethod {
         vars.extend(self.formal_returns.clone());
         vars.extend(self.local_vars.clone());
         vars
+    }
+
+    /// Returns all labels
+    pub fn get_all_labels(&self) -> Vec<String> {
+        let mut labels: Vec<String> = vec![];
+        labels.extend(self.labels.iter().cloned());
+        labels.extend(self.basic_blocks_labels.iter().cloned());
+        labels
     }
 
     pub fn add_fresh_local_var(&mut self, typ: Type) -> LocalVar {
@@ -217,27 +240,10 @@ impl CfgMethod {
 
     pub fn add_stmt(&mut self, index: CfgBlockIndex, stmt: Stmt) {
         if let &Stmt::Label(ref label_name) = &stmt {
-            assert!(self.is_fresh_local_name(label_name));
-            self.labels.push(label_name.clone());
+            assert!(self.is_fresh_local_name(label_name), "label {} is not fresh", label_name);
+            self.labels.insert(label_name.clone());
         };
         self.basic_blocks[index.block_index].stmts.push(stmt);
-    }
-
-    pub fn add_label_stmt(&mut self, index: CfgBlockIndex, label: &str) {
-        assert!(self.is_fresh_local_name(label));
-        let stmt = Stmt::Label(label.to_string());
-        self.labels.push(label.to_string());
-        self.basic_blocks[index.block_index].stmts.push(stmt);
-    }
-
-    pub fn get_fresh_label_name(&mut self) -> String {
-        let mut candidate_name = format!("l{}", self.fresh_label_index);
-        self.fresh_label_index += 1;
-        while !self.is_fresh_local_name(&candidate_name) {
-            candidate_name = format!("l{}", self.fresh_label_index);
-            self.fresh_label_index += 1;
-        }
-        candidate_name
     }
 
     pub fn add_block(&mut self, label: &str, invs: Vec<Expr>, stmts: Vec<Stmt>) -> CfgBlockIndex {

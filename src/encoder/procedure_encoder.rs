@@ -23,7 +23,6 @@ use encoder::foldunfold;
 use report::Log;
 use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;
-use syntax_pos::MacroBacktrace;
 
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -51,6 +50,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             // formal returns
             vec![],
             // local vars
+            vec![],
+            // reserved labels
             vec![],
         );
 
@@ -552,8 +553,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             encoded_targets
                         ));
 
-                        let (obtain_stmts, postcondition) = self.encode_postcondition_expr(&procedure_contract, &label);
-                        stmts.extend(obtain_stmts);
+                        let (_, postcondition) = self.encode_postcondition_expr(&procedure_contract, &label);
                         stmts.push(vir::Stmt::Inhale(postcondition));
 
                         stmts.extend(stmts_after);
@@ -781,7 +781,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let expr = self.encode_precondition_expr(contract);
         let inhale_stmt = vir::Stmt::Inhale(expr);
         self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
-        self.cfg_method.add_label_stmt(start_cfg_block, PRECONDITION_LABEL);
+        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Label(PRECONDITION_LABEL.to_string()));
     }
 
     /// Encode permissions that are implicitly carried by the given place.
@@ -805,7 +805,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
-    /// Encode the postcondition as a single expression with a sequence of "obtain" statements.
+    /// Encode the postcondition as a single expression plus a sequence of "obtain" statements.
     fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
                                  label: &str) -> (Vec<vir::Stmt>, vir::Expr) {
         let mut obtain_stmts = Vec::new();
@@ -1115,7 +1115,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         trace!("{:?}", self.mir.promoted[*index].basic_blocks());
                         trace!("{:?}", self.mir.promoted[*index].basic_blocks().into_iter().next().unwrap().statements[0]);
                         // TODO
-                        warn!("TODO: encoding of promoted constant literal {:?}: {:?}", index, ty);
+                        warn!("TODO: encoding of promoted constant literal '{:?}: {:?}' is incomplete", index, ty);
                         /*
                         let tcx = self.encoder.env().tcx();
                         let const_prop = ConstPropagator::new(self.mir, tcx, MirSource::item(self.proc_def_id));
@@ -1345,7 +1345,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_bin_op_check(&mut self, op: mir::BinOp, _left: vir::Expr, _right: vir::Expr) -> vir::Expr {
-        warn!("TODO: Encode bin op check {:?} ", op);
+        warn!("TODO: encoding of bin op check '{:?}' is incomplete", op);
         // TODO
         false.into()
     }

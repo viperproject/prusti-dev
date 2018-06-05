@@ -10,8 +10,8 @@ use std::collections::HashMap;
 impl vir::Stmt {
     pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
         debug!("apply_on_state '{}'", self);
-        debug!("State acc {{{}}}", state.display_acc());
-        debug!("State pred {{{}}}", state.display_pred());
+        trace!("State acc {{{}}}", state.display_acc());
+        trace!("State pred {{{}}}", state.display_pred());
         match self {
             &vir::Stmt::Comment(_) |
             &vir::Stmt::Label(_) |

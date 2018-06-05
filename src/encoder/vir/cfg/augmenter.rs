@@ -39,6 +39,7 @@ impl CfgMethod {
             self.formal_args.clone(),
             self.formal_returns.clone(),
             self.local_vars.clone(),
+            self.get_all_labels(),
         );
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
