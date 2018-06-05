@@ -43,6 +43,8 @@ impl<'a> VerificationContext<'a> {
             "dummy-program.sil"
         ]);
 
+        debug!("Verifier arguments: '{}'", verifier_args.iter().cloned().collect::<Vec<_>>().join(" "));
+
         Verifier::<state::Uninitialized>::new(&self.env)
             .parse_command_line(&verifier_args)
             .start()
