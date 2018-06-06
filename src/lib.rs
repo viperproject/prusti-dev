@@ -18,6 +18,7 @@ extern crate prusti_utils;
 extern crate syntax;
 extern crate syntax_pos;
 extern crate uuid;
+extern crate itertools;
 
 mod report;
 mod encoder;

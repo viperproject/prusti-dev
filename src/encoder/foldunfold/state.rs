@@ -7,6 +7,7 @@ use encoder::vir;
 use encoder::vir::utils::ExprIterator;
 use encoder::foldunfold::acc_or_pred::*;
 use std::iter::FromIterator;
+use itertools::concat;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
@@ -46,6 +47,13 @@ impl State {
         &self.pred
     }
 
+    pub fn find<P>(&self, pred: P) -> Option<AccOrPred> where P: Fn(&vir::Place) -> bool {
+        match self.acc.iter().find(|p| pred(p)).map(|p| AccOrPred::Acc(p.clone())) {
+            Some(x) => Some(x),
+            None => self.pred.iter().find(|p| pred(p)).map(|p| AccOrPred::Pred(p.clone()))
+        }
+    }
+
     pub fn set_acc(&mut self, acc: HashSet<vir::Place>) {
         self.acc = acc
     }
@@ -67,6 +75,10 @@ impl State {
 
     pub fn contains_pred(&self, place: &vir::Place) -> bool {
         self.pred.contains(&place)
+    }
+
+    pub fn contains_all<'a, I>(&mut self, mut items: I) -> bool where I: Iterator<Item = &'a AccOrPred> {
+        items.all(|x| self.contains(x))
     }
 
     pub fn is_proper_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {

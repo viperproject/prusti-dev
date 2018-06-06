@@ -41,6 +41,28 @@ fn definitely_preserved(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>)
     res
 }
 
+/// Returns the elements of A1 or A2 that are a prefix of an element in the other set.
+///
+/// e.g.
+/// maybe_preserved(
+///   { a, b.c, d.e.f, d.g },
+///   { a, b.c.d, b.c.e, d.e,h }
+/// ) = { a, b.c }
+fn maybe_preserved(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+    let mut res = HashSet::new();
+    for left_item in left.iter() {
+        for right_item in right.iter() {
+            if right_item.has_prefix(left_item) {
+                res.insert(left_item.clone());
+            }
+            if left_item.has_prefix(right_item) {
+                res.insert(right_item.clone());
+            }
+        }
+    }
+    res
+}
+
 impl BranchCtxt {
     pub fn new(local_vars: Vec<vir::LocalVar>, predicates: HashMap<String, vir::Predicate>) -> Self {
         BranchCtxt {
@@ -93,70 +115,81 @@ impl BranchCtxt {
         )
     }
 
+    /// left is self, right is other
     pub fn join(&mut self, mut other: BranchCtxt) -> (Vec<vir::Stmt>, Vec<vir::Stmt>) {
         let mut left_stmts: Vec<vir::Stmt> = vec![];
         let mut right_stmts: Vec<vir::Stmt> = vec![];
 
-        loop {
-            debug!("Iteration for join");
+        debug!("Join branches");
+        trace!("Predicates in left branch: {:?}", self.state.pred());
+        trace!("Predicates in right branch: {:?}", other.state.pred());
+        assert!(self.state.consistent());
 
-            trace!("Predicates in left branch: {:?}", self.state.pred());
-            trace!("Predicates in right branch: {:?}", other.state.pred());
-            assert!(self.state.consistent());
+        if self.state.pred() != other.state.pred() {
+            trace!("self state: {:?}", self.state);
+            trace!("other state: {:?}", other.state);
 
-            if self.state.pred() == other.state.pred() {
-                self.state.intersect_acc(other.state.acc());
-                assert!(self.state.consistent());
-                return (left_stmts, right_stmts);
-            } else {
-                trace!("self state: {:?}", self.state);
-                trace!("other state: {:?}", other.state);
+            let maybe_preserved_pred = maybe_preserved(self.state.pred(), other.state.pred());
+            trace!("Maybe preserved predicates: {:?}", maybe_preserved_pred);
 
-                let preserved_pred = definitely_preserved(self.state.pred(), other.state.pred());
-                trace!("Preserved predicates: {:?}", preserved_pred);
+            let original_self_pred = self.state.pred().clone();
+            let original_other_pred = other.state.pred().clone();
 
-                let original_self_pred = self.state.pred().clone();
-                let original_other_pred = other.state.pred().clone();
+            for pred_place in &maybe_preserved_pred {
+                debug!("Predicate to agree on: {}", pred_place);
 
-                for pred_place in original_self_pred.difference(&preserved_pred) {
-                    debug!("The left branch has an extra predicate: {}", pred_place);
-                    if other.state.is_proper_prefix_of_some_acc(pred_place) {
-                        // Unfold `pred_place`
-                        let stmt = self.unfold(pred_place);
-                        left_stmts.push(stmt);
-                    } else {
-                        // Here it's better not to unfold `x`, because it may be a recursive
-                        // data structure and we may end up unfolding forever.
-                        // So, we drop the permission.
-                        let stmt = self.drop(pred_place);
-                        left_stmts.push(stmt);
+                // Obtain `pred_place` in both branches, or drop all suffixes of `pred_place`
+                let self_initial_state = self.state.clone();
+                let other_initial_state = other.state.clone();
+                let self_stmts_opt = self.obtain(vec![AccOrPred::Pred(pred_place.clone())]);
+                let other_stmts_opt = other.obtain(vec![AccOrPred::Pred(pred_place.clone())]);
+
+                match (self_stmts_opt, other_stmts_opt) {
+                    (Some(self_stmts), Some(other_stmts)) => {
+                        // Obtain `pred_place` in both branches
+                        left_stmts.extend(self_stmts);
+                        right_stmts.extend(other_stmts);
+                    },
+                    _ => {
+                        // Restore initial state
+                        self.state = self_initial_state;
+                        other.state = other_initial_state;
+                        // Drop permissions
+                        self.state.remove_matching(|p| p.has_prefix(&pred_place));
+                        other.state.remove_matching(|p| p.has_prefix(&pred_place));
                     }
                 }
-
-                for pred_place in original_other_pred.difference(&preserved_pred) {
-                    debug!("The right branch has an extra predicate: {}", pred_place);
-                    if self.state.is_proper_prefix_of_some_acc(pred_place) {
-                        // Unfold `pred_place`
-                        let stmt = other.unfold(pred_place);
-                        right_stmts.push(stmt);
-                    } else {
-                        // Here it's better not to unfold `x`, because it may be a recursive
-                        // data structure and we may end up unfolding forever.
-                        // So, we drop the permission.
-                        let stmt = other.drop(pred_place);
-                        right_stmts.push(stmt);
-                    }
-                }
-
-                // Iterate once more, to check that self.state == other.state
-                trace!("Statements in left branch: {:?}", &left_stmts);
-                trace!("Statements in left branch: {:?}", &right_stmts);
             }
+
+            // Drop predicates not in maybe_preserved_pred
+            for pred_place in self.state.pred().clone().difference(&maybe_preserved_pred) {
+                debug!("The left branch has an extra predicate: {}", pred_place);
+                // We drop the permission.
+                let stmt = self.drop(pred_place);
+                left_stmts.push(stmt);
+            }
+            for pred_place in other.state.pred().clone().difference(&maybe_preserved_pred) {
+                debug!("The right branch has an extra predicate: {}", pred_place);
+                // We drop the permission.
+                let stmt = other.drop(pred_place);
+                right_stmts.push(stmt);
+            }
+
+            trace!("Statements in left branch: {:?}", &left_stmts);
+            trace!("Statements in left branch: {:?}", &right_stmts);
         }
+
+        self.state.intersect_acc(other.state.acc());
+        assert!(self.state.consistent(), "Inconsistent state - Pred: {{{}}}, Acc: {{{}}}", self.state.display_pred(), self.state.display_acc());
+        return (left_stmts, right_stmts);
     }
 
-    fn obtain(&mut self, mut reqs: Vec<AccOrPred>) -> Vec<vir::Stmt> {
+    /// Obtain the required permissions, changing the state inplace and returning the statements.
+    /// If not possible, return None without changing the state.
+    fn obtain(&mut self, mut reqs: Vec<AccOrPred>) -> Option<Vec<vir::Stmt>> {
         debug!("Obtain: {{{}}}", display(&reqs));
+
+        let original_state = self.state.clone();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
@@ -179,16 +212,16 @@ impl BranchCtxt {
             debug!("Try to satisfy requirement {:?}", curr_req);
 
             // Find a predicate on a prefix of req_place
-            let existing_pred_opt: Option<vir::Place> = self.state.pred().iter()
+            let existing_prefix_pred_opt: Option<vir::Place> = self.state.pred().iter()
                 .find(|p| req_place.has_prefix(p))
                 .cloned();
 
-            match existing_pred_opt {
-                Some(existing_pred) => {
-                    debug!("We want to unfold {:?}", existing_pred);
-                    let stmt = self.unfold(&existing_pred);
+            match existing_prefix_pred_opt {
+                Some(existing_pred_to_unfold) => {
+                    debug!("We want to unfold {:?}", existing_pred_to_unfold);
+                    let stmt = self.unfold(&existing_pred_to_unfold);
                     stmts.push(stmt);
-                    debug!("We unfolded {:?}", existing_pred);
+                    debug!("We unfolded {:?}", existing_pred_to_unfold);
                     // Continue checking the remaining requirements
                 },
 
@@ -206,38 +239,70 @@ impl BranchCtxt {
                                     p.replace_prefix(&pred_self_place, req_place.clone())
                                 )).collect();
 
-                            stmts.append(
-                                &mut self.obtain(places_in_pred.clone())
+                            // Find an access or predicate permission on a proper suffix of req_place
+                            let existing_proper_suffix_perm_opt: Option<_> = self.state.find(
+                                |p| p.has_proper_prefix(&req_place)
                             );
 
-                            stmts.push(
-                                vir::Stmt::Fold(predicate_name.clone(), vec![ req_place.clone().into() ])
-                            );
+                            // Check if it is possible to fold, to avoid infinite recursion
+                            let can_unfold = match existing_proper_suffix_perm_opt {
+                                Some(_) => true,
+                                None => places_in_pred.is_empty(),
+                            };
 
-                            // Simulate folding of `req_place`
-                            assert!(self.state.contains_acc(&req_place));
-                            self.state.remove_all(places_in_pred.iter());
-                            self.state.insert_pred(req_place.clone());
+                            if can_unfold {
+                                match self.obtain(places_in_pred.clone()) {
+                                    None => {
+                                        debug!("It is not possible to fold {:?}", req_place);
+                                        self.state = original_state;
+                                        return None
+                                    }
+                                    Some(req_place_stmts) => {
+                                        stmts.extend(req_place_stmts);
+                                    }
+                                };
 
-                            // Done. Continue checking the remaining requirements
-                            debug!("We folded {:?}", req_place);
+                                stmts.push(
+                                    vir::Stmt::Fold(predicate_name.clone(), vec![ req_place.clone().into() ])
+                                );
+
+                                // Simulate folding of `req_place`
+                                assert!(self.state.contains_acc(&req_place));
+                                assert!(self.state.contains_all(places_in_pred.iter()));
+                                assert!(!self.state.contains_pred(&req_place));
+                                self.state.remove_all(places_in_pred.iter());
+                                self.state.insert_pred(req_place.clone());
+
+                                // Done. Continue checking the remaining requirements
+                                debug!("We folded {:?}", req_place);
+                            } else {
+                                debug!(
+                                    "It is not possible to obtain {:?} by folding or unfolding predicates. Predicates: {:?}",
+                                    curr_req,
+                                    self.state.pred()
+                                );
+                                self.state = original_state;
+                                return None
+                            }
                         },
 
                         AccOrPred::Acc(_) => {
                             // Unreachable
                             // We have no predicate to obtain the access permission `curr_req`
-                            unreachable!(
-                                    "There is no predicate to obtain {:?}. Predicates: {:?}",
-                                    curr_req,
-                                    self.state.pred()
+                            debug!(
+                                "There is no predicate to obtain {:?}. Predicates: {:?}",
+                                curr_req,
+                                self.state.pred()
                             );
+                            self.state = original_state;
+                            return None
                         },
                     }
-                }
+                },
             }
         }
 
-        stmts
+        Some(stmts)
     }
 
     pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Vec<vir::Stmt> {
@@ -262,7 +327,7 @@ impl BranchCtxt {
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
 
             stmts.append(
-                &mut self.obtain(required_places)
+                &mut self.obtain(required_places).unwrap()
             );
         }
 
@@ -307,7 +372,7 @@ impl BranchCtxt {
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
 
             stmts.append(
-                &mut self.obtain(required_places)
+                &mut self.obtain(required_places).unwrap()
             );
 
         }
