@@ -41,22 +41,19 @@ fn definitely_preserved(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>)
     res
 }
 
-/// Returns the elements of A1 or A2 that are a prefix of an element in the other set.
+/// Returns the elements of A1 that are a prefix of at least one element in A2.
 ///
 /// e.g.
-/// maybe_preserved(
+/// filter_prefixes_of(
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { a, b.c }
-fn maybe_preserved(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+fn filter_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
             if right_item.has_prefix(left_item) {
                 res.insert(left_item.clone());
-            }
-            if left_item.has_prefix(right_item) {
-                res.insert(right_item.clone());
             }
         }
     }
@@ -121,22 +118,21 @@ impl BranchCtxt {
         let mut right_stmts: Vec<vir::Stmt> = vec![];
 
         debug!("Join branches");
-        trace!("Predicates in left branch: {:?}", self.state.pred());
-        trace!("Predicates in right branch: {:?}", other.state.pred());
+        trace!("Left branch: {:?}", self.state);
+        trace!("Right branch: {:?}", other.state);
         assert!(self.state.consistent());
 
         if self.state.pred() != other.state.pred() {
-            trace!("self state: {:?}", self.state);
-            trace!("other state: {:?}", other.state);
-
-            let maybe_preserved_pred = maybe_preserved(self.state.pred(), other.state.pred());
-            trace!("Maybe preserved predicates: {:?}", maybe_preserved_pred);
+            let maybe_preserved_left = filter_prefixes_of(self.state.pred(), other.state.acc());
+            let maybe_preserved_right = filter_prefixes_of(other.state.pred(), self.state.acc());
+            let maybe_preserved_pred: HashSet<_> = maybe_preserved_left.union(&maybe_preserved_right).cloned().collect();
+            debug!("Maybe preserved predicates: {:?}", maybe_preserved_pred);
 
             let original_self_pred = self.state.pred().clone();
             let original_other_pred = other.state.pred().clone();
 
             for pred_place in &maybe_preserved_pred {
-                debug!("Predicate to agree on: {}", pred_place);
+                debug!("Current predicate to agree on: {}", pred_place);
 
                 // Obtain `pred_place` in both branches, or drop all suffixes of `pred_place`
                 let self_initial_state = self.state.clone();
