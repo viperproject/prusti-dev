@@ -28,7 +28,7 @@ run:
 		-Z verbose \
 		-Z borrowck=mir \
 		${RUN_FILE}
-	dot -Tpdf graph.dot -O
+	#dot -Tpdf graph.dot -O
 	#dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
 
 generate_ui_stderr:
