@@ -151,8 +151,10 @@ impl BranchCtxt {
                         self.state = self_initial_state;
                         other.state = other_initial_state;
                         // Drop permissions
-                        self.state.remove_matching(|p| p.has_prefix(&pred_place));
-                        other.state.remove_matching(|p| p.has_prefix(&pred_place));
+                        self.state.remove_pred_matching(|p| p.has_prefix(&pred_place));
+                        other.state.remove_pred_matching(|p| p.has_prefix(&pred_place));
+                        self.state.remove_acc_matching(|p| p.has_proper_prefix(&pred_place));
+                        other.state.remove_acc_matching(|p| p.has_proper_prefix(&pred_place));
                     }
                 }
             }
