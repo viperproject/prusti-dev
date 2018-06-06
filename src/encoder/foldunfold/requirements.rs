@@ -150,6 +150,8 @@ impl RequiredPlacesGetter for vir::Expr {
 }
 
 impl vir::Expr {
+    /// Returns the permissions that must be inhaled/exhaled in a `inhale/exhale expr` statement
+    /// This must be a subset of `get_required_places`
     pub fn get_access_places(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<AccOrPred> {
         match self {
             vir::Expr::Const(_) |
@@ -173,7 +175,7 @@ impl vir::Expr {
                     )).collect();
 
                 // Simulate temporary unfolding of `place`
-                let expr_access_places = expr.get_required_places(predicates);
+                let expr_access_places = expr.get_access_places(predicates);
                 let mut access_places: HashSet<_> = expr_access_places.difference(&places_in_pred).cloned().collect();
                 access_places
             }

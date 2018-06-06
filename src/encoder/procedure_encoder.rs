@@ -215,7 +215,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 stmts.extend(
                                     self.encode_allocation(discr_var.clone().into(), ty)
                                 );
-                                if num_variants == 1 {
+                                if num_variants <= 1 {
                                     // Initialize discr_var.int_field
                                     stmts.push(
                                         vir::Stmt::Assign(
@@ -919,11 +919,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let tcx = self.encoder.env().tcx();
                         assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
-                        let field_name = if num_variants == 1 {
-                            format!("struct_{}", field.ident.as_str())
-                        } else {
-                            format!("enum_{}_{}", variant_index, field.ident.as_str())
-                        };
+                        let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                         let field_ty = tcx.type_of(field.did);
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let encoded_projection = encoded_base.access(encoded_field);
@@ -1228,24 +1224,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
                 let mut exprs: Vec<vir::Expr> = vec![];
-                let discriminant_field = self.encoder.encode_discriminant_field();
-                exprs.push(
-                    // Copy discriminant
-                    vir::Expr::eq_cmp(
-                        src.clone().access(discriminant_field.clone()).into(),
-                        dst.clone().access(discriminant_field.clone()).into()
-                    )
-                );
-                let tcx = self.encoder.env().tcx();
                 let num_variants = adt_def.variants.len();
+                let discriminant_field = self.encoder.encode_discriminant_field();
+                if num_variants > 1 {
+                    exprs.push(
+                        // Copy discriminant
+                        vir::Expr::eq_cmp(
+                            src.clone().access(discriminant_field.clone()).into(),
+                            dst.clone().access(discriminant_field.clone()).into()
+                        )
+                    );
+                }
+                let tcx = self.encoder.env().tcx();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                     let mut variant_exprs: Vec<vir::Expr> = vec![];
                     for field in &variant_def.fields {
-                        let field_name = if num_variants == 1 {
-                            format!("struct_{}", field.ident.as_str())
-                        } else {
-                            format!("enum_{}_{}", variant_index, field.ident.as_str())
-                        };
+                        let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                         let field_ty = field.ty(tcx, subst);
                         let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         variant_exprs.push(
@@ -1257,15 +1251,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             )
                         )
                     }
-                    exprs.push(
-                        vir::Expr::implies(
-                            vir::Expr::eq_cmp(
-                                src.clone().access(discriminant_field.clone()).into(),
-                                variant_index.into()
-                            ),
+                    if num_variants > 1 {
+                        exprs.push(
+                            vir::Expr::implies(
+                                vir::Expr::eq_cmp(
+                                    src.clone().access(discriminant_field.clone()).into(),
+                                    variant_index.into()
+                                ),
+                                variant_exprs.into_iter().conjoin()
+                            )
+                        );
+                    } else {
+                        exprs.push(
                             variant_exprs.into_iter().conjoin()
-                        )
-                    );
+                        );
+                    }
                 }
                 exprs
             },
@@ -1397,11 +1397,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let variant_def = &adt_def.variants[variant_index];
                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                     let operand = &operands[field_index];
-                    let field_name = if num_variants == 1 {
-                        format!("struct_{}", field.ident.as_str())
-                    } else {
-                        format!("enum_{}_{}", variant_index, field.ident.as_str())
-                    };
+                    let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                     let tcx = self.encoder.env().tcx();
                     let field_ty = tcx.type_of(field.did);
                     let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
