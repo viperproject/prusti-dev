@@ -276,6 +276,11 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.current_path = Some(old_path);
     }
 
+    fn visit_raw_ptr(&mut self, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
+        trace!("visit_raw_ptr({:?}, {:?}) current_path={:?}", ty, mutability, self.current_path);
+        // TODO
+        unimplemented!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
+    }
 }
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(

@@ -41,6 +41,9 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyTuple(parts) => {
                 self.visit_tuple(parts);
             },
+            TyRawPtr(ty_and_mutbl) => {
+                self.visit_raw_ptr(ty_and_mutbl.ty, ty_and_mutbl.mutbl);
+            },
             ref x => {
                 unimplemented!("{:?}", x);
             }
@@ -90,6 +93,10 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
         walk_tuple(self, parts);
     }
 
+    fn visit_raw_ptr(&mut self, ty: Ty<'tcx>, mutability: Mutability) {
+        trace!("visit_raw_ptr({:?}, {:?})", ty, mutability);
+        walk_raw_ptr(self, ty, mutability);
+    }
 }
 
 pub fn walk_adt<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
@@ -133,4 +140,10 @@ pub fn walk_tuple<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
     for part in parts.iter() {
         visitor.visit_ty(part);
     }
+}
+
+pub fn walk_raw_ptr<'a, 'tcx, V: TypeVisitor<'a, 'tcx>>(visitor: &mut V,
+                                                         ty: Ty<'tcx>,
+                                                         _: Mutability) {
+    visitor.visit_ty(ty);
 }
