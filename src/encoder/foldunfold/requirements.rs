@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use encoder::vir;
 use encoder::foldunfold::acc_or_pred::*;
 use encoder::foldunfold::acc_or_pred::AccOrPred::*;
+use std::iter::FromIterator;
 
 pub trait RequiredPlacesGetter {
     fn get_required_places(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<AccOrPred>;
@@ -43,7 +44,6 @@ impl<A: RequiredPlacesGetter> RequiredPlacesGetter for Vec<A> {
 impl RequiredPlacesGetter for vir::Stmt {
     fn get_required_places(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<AccOrPred> {
         match self {
-            /* Only Obtain generates requirements
             &vir::Stmt::Comment(_) |
             &vir::Stmt::Label(_) |
             &vir::Stmt::New(_, _) => HashSet::new(),
@@ -71,13 +71,25 @@ impl RequiredPlacesGetter for vir::Stmt {
 
             &vir::Stmt::Fold(ref _pred_name, ref args) => {
                 assert!(args.len() == 1);
-                args[0].get_required_places(predicates)
+                let arg_place = &args[0].clone().as_place().unwrap();
+
+                // We want to temporarly unfold arg_place
+                let predicate_name = arg_place.typed_ref_name().unwrap();
+                let predicate = predicates.get(&predicate_name).unwrap();
+
+                let pred_self_place: vir::Place = predicate.args[0].clone().into();
+                let places_in_pred: HashSet<AccOrPred> = predicate.get_contained_places().into_iter()
+                    .map( |aop| aop.map( |p|
+                        p.replace_prefix(&pred_self_place, arg_place.clone())
+                    )).collect();
+
+                places_in_pred
             },
 
-            &vir::Stmt::Unfold(ref _pred_name, ref _args) => {
-                unimplemented!()
+            &vir::Stmt::Unfold(ref _pred_name, ref args) => {
+                assert!(args.len() == 1);
+                args[0].get_required_places(predicates)
             },
-            */
 
             &vir::Stmt::Obtain(ref expr) => expr.get_required_places(predicates),
 
