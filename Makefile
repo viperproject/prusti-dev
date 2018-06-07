@@ -49,11 +49,12 @@ generate_ui_stderr:
 build:
 	JAVA_HOME=${JAVA_HOME} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
-	RUSTFLAGS="--verbose" cargo build
+	cargo build
 
 test:
 	RUST_TEST_THREADS=1 \
 	RUST_BACKTRACE=1 \
+	JAVA_HOME=${JAVA_HOME} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	cargo test
 
