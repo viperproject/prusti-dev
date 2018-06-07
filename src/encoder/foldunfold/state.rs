@@ -7,7 +7,6 @@ use encoder::vir;
 use encoder::vir::utils::ExprIterator;
 use encoder::foldunfold::acc_or_pred::*;
 use std::iter::FromIterator;
-use itertools::concat;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {

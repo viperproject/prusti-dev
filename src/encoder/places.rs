@@ -64,6 +64,7 @@ impl<'tcx> LocalVariableManager<'tcx> {
         self.variables.push(LocalVarData::TempLocal { ty })
     }
 
+    // TODO: What is this?
     pub fn get_name(&self, local: Local) -> String {
         match self.variables[local] {
             LocalVarData::RealLocal(_, _) => format!("_{}", local.0),

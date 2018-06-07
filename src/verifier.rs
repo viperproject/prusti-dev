@@ -122,6 +122,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             &self.encoder.get_used_viper_methods().to_viper(ast)
         );
 
+        // Dump Viper program
+        Log::report("viper_program", "program.vpr", self.ast_utils.pretty_print(program));
+
+        // Dump Viper program
         let source_path = self.env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
