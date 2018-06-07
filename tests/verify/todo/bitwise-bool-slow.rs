@@ -1,3 +1,5 @@
+//! Example: program that is slow to verify
+
 extern crate prusti_contracts;
 
 fn main() {

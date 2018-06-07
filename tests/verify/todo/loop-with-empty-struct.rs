@@ -1,3 +1,5 @@
+//! Example: program with a loop and a structure with no fields
+
 #![feature(nll)]
 
 extern crate prusti_contracts;

@@ -1,3 +1,5 @@
+//! Example: match that uses a reference internally
+
 #![feature(nll)]
 
 extern crate prusti_contracts;

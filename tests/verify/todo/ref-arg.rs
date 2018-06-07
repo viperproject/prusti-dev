@@ -1,3 +1,5 @@
+//! Example: functions that takes a mutable reference
+
 extern crate prusti_contracts;
 
 struct A;

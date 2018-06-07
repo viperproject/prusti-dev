@@ -1,4 +1,4 @@
-// error-pattern: error
+//! Example: program with an assert_eq!(..) macro
 
 extern crate prusti_contracts;
 

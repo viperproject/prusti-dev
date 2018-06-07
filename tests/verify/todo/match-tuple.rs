@@ -1,3 +1,5 @@
+//! Example: match of a tuple that uses references internally
+
 #![feature(nll)]
 
 extern crate prusti_contracts;
@@ -17,6 +19,7 @@ fn check(expr: Expr) -> bool {
     let result = match expr {
         Expr::Sum(left, right) |
         Expr::Diff(left, right) => {
+            // This match of a tuple uses references internally
             match (left, right) {
                 (Num::Integer(_), Num::Integer(_)) => true,
                 (Num::Rational(_, left_den), Num::Rational(_, right_den))

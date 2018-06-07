@@ -1,3 +1,5 @@
+//! Example: print!(..) macro
+
 extern crate prusti_contracts;
 
 fn main() {
