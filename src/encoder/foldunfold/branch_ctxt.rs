@@ -347,6 +347,7 @@ impl BranchCtxt {
 
         trace!("Acc state before: {{{}}}", self.state.display_acc());
         trace!("Pred state before: {{{}}}", self.state.display_pred());
+        trace!("required_places: {{{}}}", display(&required_places));
 
         assert!(self.state.consistent());
 
