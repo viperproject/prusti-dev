@@ -900,6 +900,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
+    fn get_operand_ty(&mut self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
+        debug!("Get operand ty {:?}", operand);
+        match operand {
+            &mir::Operand::Move(ref place) => {
+                let (_, ty, _) = self.encode_place(place);
+                ty
+            },
+            &mir::Operand::Copy(ref place) => {
+                let (_, ty, _) = self.encode_place(place);
+                ty
+            },
+            &mir::Operand::Constant(box mir::Constant{ ty, ..}) => {
+                ty
+            },
+        }
+    }
+
+    fn encode_operand_moved_place(&mut self, operand: &mir::Operand<'tcx>) -> Option<vir::Place> {
+        debug!("Encode operand moved place {:?}", operand);
+        match operand {
+            &mir::Operand::Move(ref place) => {
+                let (src, _, _) = self.encode_place(place);
+                Some(src)
+            },
+            &mir::Operand::Copy(_) |
+            &mir::Operand::Constant(_) => {
+                None
+            },
+        }
+    }
+
     /// Return type:
     /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`
     fn encode_assign_operand(&mut self, lhs: &vir::Place, operand: &mir::Operand<'tcx>) -> Vec<vir::Stmt> {
