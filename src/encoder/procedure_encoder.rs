@@ -1346,9 +1346,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 if num_variants > 1 {
                     let discr_field = self.encoder.encode_discriminant_field();
                     stmts.push(
-                        vir::Stmt::Assign(
-                            vir::Place::from(dst_var.clone()).access(discr_field),
-                            variant_index.into()
+                        vir::Stmt::Inhale(
+                            vir::Expr::eq_cmp(
+                                vir::Place::from(dst_var.clone()).access(discr_field).into(),
+                                variant_index.into()
+                            )
                         )
                     );
                 };
