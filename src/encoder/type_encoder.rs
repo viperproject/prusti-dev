@@ -21,6 +21,32 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    pub fn encode_type(self) -> vir::Type {
+        debug!("Encode type '{:?}'", self.ty);
+        vir::Type::TypedRef(self.encode_predicate_use())
+    }
+
+    pub fn encode_value_type(self) -> vir::Type {
+        debug!("Encode value type '{:?}'", self.ty);
+        match self.ty.sty {
+            ty::TypeVariants::TyBool => vir::Type::Bool,
+
+            ty::TypeVariants::TyInt(_) |
+            ty::TypeVariants::TyUint(_) => vir::Type::Int,
+
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
+            ty::TypeVariants::TyRef(_, ref ty, _) => {
+                let type_name = self.encoder.encode_type_predicate_use(ty);
+                vir::Type::TypedRef(type_name)
+            },
+
+            ty::TypeVariants::TyAdt(_, _) |
+            ty::TypeVariants::TyTuple(_) => unimplemented!(),
+
+            ref x => unimplemented!("{:?}", x),
+        }
+    }
+
     pub fn encode_value_field(self) -> vir::Field {
         debug!("Encode value field for type '{:?}'", self.ty);
         match self.ty.sty {

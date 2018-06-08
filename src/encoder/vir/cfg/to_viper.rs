@@ -9,6 +9,12 @@ use encoder::vir::cfg::method::*;
 
 impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
+        (&self).to_viper(ast)
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
         let mut blocks_ast: Vec<viper::Stmt> = vec![];
         let mut declarations: Vec<viper::Declaration> = vec![];
 

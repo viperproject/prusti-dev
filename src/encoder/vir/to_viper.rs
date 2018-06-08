@@ -219,6 +219,25 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
     }
 }
 
+impl<'v> ToViper<'v, viper::Method<'v>> for BodylessMethod {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
+        (&self).to_viper(ast)
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a BodylessMethod {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
+        ast.method(
+            &self.name,
+            &self.formal_args.to_viper_decl(ast),
+            &self.formal_returns.to_viper_decl(ast),
+            &[],
+            &[],
+            None
+        )
+    }
+}
+
 // Vectors
 
 impl<'v> ToViper<'v, Vec<viper::Field<'v>>> for Vec<Field> {

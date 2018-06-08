@@ -120,7 +120,7 @@ impl BranchCtxt {
         debug!("Join branches");
         trace!("Left branch: {:?}", self.state);
         trace!("Right branch: {:?}", other.state);
-        assert!(self.state.consistent());
+        self.state.check_consistency();
 
         if self.state.pred() != other.state.pred() {
             let maybe_preserved_left = filter_prefixes_of(self.state.pred(), other.state.acc());
@@ -178,7 +178,7 @@ impl BranchCtxt {
         }
 
         self.state.intersect_acc(other.state.acc());
-        assert!(self.state.consistent(), "Inconsistent state - Pred: {{{}}}, Acc: {{{}}}", self.state.display_pred(), self.state.display_acc());
+        self.state.check_consistency();
         return (left_stmts, right_stmts);
     }
 
@@ -349,7 +349,7 @@ impl BranchCtxt {
         trace!("Pred state before: {{{}}}", self.state.display_pred());
         trace!("required_places: {{{}}}", display(&required_places));
 
-        assert!(self.state.consistent());
+        self.state.check_consistency();
 
         if !required_places.is_empty() {
             if DEBUG_FOLDUNFOLD {
@@ -370,7 +370,7 @@ impl BranchCtxt {
         trace!("Acc state after: {{{}}}", self.state.display_acc());
         trace!("Pred state after: {{{}}}", self.state.display_pred());
 
-        assert!(self.state.consistent());
+        self.state.check_consistency();
 
         stmts
     }
@@ -394,7 +394,7 @@ impl BranchCtxt {
         trace!("Acc state before: {{{}}}", self.state.display_acc());
         trace!("Pred state before: {{{}}}", self.state.display_pred());
 
-        assert!(self.state.consistent());
+        self.state.check_consistency();
 
         if !required_places.is_empty() {
             if DEBUG_FOLDUNFOLD {
@@ -414,7 +414,7 @@ impl BranchCtxt {
         trace!("Acc state after: {{{}}}", self.state.display_acc());
         trace!("Pred state after: {{{}}}", self.state.display_pred());
 
-        assert!(self.state.consistent());
+        self.state.check_consistency();
 
         stmts
     }

@@ -119,7 +119,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             &self.encoder.get_used_viper_fields().to_viper(ast),
             &self.encoder.get_used_viper_functions(),
             &self.encoder.get_used_viper_predicates().to_viper(ast),
-            &self.encoder.get_used_viper_methods().to_viper(ast)
+            &self.encoder.get_used_viper_methods().into_iter().map(|m| m.to_viper(ast)).collect::<Vec<_>>()
         );
 
         // Dump Viper program

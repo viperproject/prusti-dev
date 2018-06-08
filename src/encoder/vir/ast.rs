@@ -67,6 +67,14 @@ impl Type {
             _ => false
         }
     }
+
+    pub fn name(&self) -> String {
+        match self {
+            &Type::Bool => "bool".to_string(),
+            &Type::Int => "int".to_string(),
+            &Type::TypedRef(ref pred_name) => format!("ref${}", pred_name),
+        }
+    }
 }
 
 impl fmt::Display for Type {
@@ -584,5 +592,36 @@ impl fmt::Display for Predicate {
                 writeln!(f, "}}")
             }
         }
+    }
+}
+
+/// A bodyless method
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct BodylessMethod {
+    pub name: String,
+    pub formal_args: Vec<LocalVar>,
+    pub formal_returns: Vec<LocalVar>,
+}
+
+impl fmt::Display for BodylessMethod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "method {}(", self.name)?;
+        let mut first = true;
+        for arg in &self.formal_args {
+            if !first {
+                write!(f, ", ")?;
+            }
+            write!(f, "{:?}", arg)?;
+            first = false
+        }
+        write!(f, ") returns (")?;
+        for arg in &self.formal_returns {
+            if !first {
+                write!(f, ", ")?;
+            }
+            write!(f, "{:?}", arg)?;
+            first = false
+        }
+        write!(f, ");")
     }
 }

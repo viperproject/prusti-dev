@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper::{Domain, Function};
+use viper;
 use rustc::hir::def_id::DefId;
 use rustc::ty;
 use prusti_interface::data::ProcedureDefId;
@@ -14,6 +14,8 @@ use encoder::places;
 use encoder::borrows::{ProcedureContractMirDef, ProcedureContract, compute_procedure_contract};
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
+use encoder::builtin_encoder::BuiltinEncoder;
+use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::error_manager::ErrorManager;
 use std::cell::{RefCell, RefMut};
 use encoder::vir;
@@ -24,6 +26,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
     error_manager: RefCell<ErrorManager>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
+    builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
@@ -37,6 +40,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             env,
             error_manager: RefCell::new(ErrorManager::new()),
             procedure_contracts: RefCell::new(HashMap::new()),
+            builtin_methods: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
@@ -53,7 +57,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub fn get_used_viper_domains(&self) -> Vec<Domain<'v>> {
+    pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {
         // TODO
         vec![]
     }
@@ -62,7 +66,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.fields.borrow().values().cloned().collect()
     }
 
-    pub fn get_used_viper_functions(&self) -> Vec<Function<'v>> {
+    pub fn get_used_viper_functions(&self) -> Vec<viper::Function<'v>> {
         // TODO
         vec![]
     }
@@ -75,8 +79,15 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().clone()
     }
 
-    pub fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
-        self.procedures.borrow().values().cloned().collect()
+    pub fn get_used_viper_methods(&self) -> Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> {
+        let mut methods: Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> = vec![];
+        for method in self.builtin_methods.borrow().values() {
+            methods.push(Box::new(method.clone()));
+        }
+        for procedure in self.procedures.borrow().values() {
+            methods.push(Box::new(procedure.clone()));
+        }
+        methods
     }
 
     pub fn get_procedure_contract_for_def(&self, proc_def_id: ProcedureDefId
@@ -119,6 +130,27 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         field
     }
 
+    pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
+        trace!("encode_builtin_method_def({:?})", method_kind);
+        if !self.builtin_methods.borrow().contains_key(&method_kind) {
+            let builtin_encoder = BuiltinEncoder::new(self);
+            let method = builtin_encoder.encode_builtin_method_def(method_kind);
+            Log::report("vir_method", &method.name, format!("{}", &method));
+            self.builtin_methods.borrow_mut().insert(method_kind.clone(), method);
+        }
+        self.builtin_methods.borrow()[&method_kind].clone()
+    }
+
+    pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
+        trace!("encode_builtin_method_use({:?})", method_kind);
+        if !self.builtin_methods.borrow().contains_key(&method_kind) {
+            // Trigger encoding of definition
+            self.encode_builtin_method_def(method_kind);
+        }
+        let builtin_encoder = BuiltinEncoder::new(self);
+        builtin_encoder.encode_builtin_method_name(method_kind)
+    }
+
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
         trace!("encode_procedure({:?})", proc_def_id);
         if !self.procedures.borrow().contains_key(&proc_def_id) {
@@ -139,6 +171,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             self.fields.borrow_mut().entry(field.name.to_string()).or_insert(field.clone());
         }
         fields
+    }
+
+    pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
+        let type_encoder = TypeEncoder::new(self, ty);
+        type_encoder.encode_value_type()
+    }
+
+    pub fn encode_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
+        let type_encoder = TypeEncoder::new(self, ty);
+        type_encoder.encode_type()
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {

@@ -22,20 +22,27 @@ impl State {
         }
     }
 
-    pub fn consistent(&self) -> bool {
+    pub fn check_consistency(&self) {
         for place in &self.pred {
             if !self.contains_acc(place) {
-                return false
+                panic!(
+                    "Consistency error: state has pred {}, but not acc {}",
+                    place,
+                    place
+                );
             }
         }
         for place in &self.acc {
             if !place.is_base() {
                 if !self.contains_acc(place.parent().unwrap()) {
-                    return false
+                    panic!(
+                        "Consistency error: state has acc {}, but not acc {}",
+                        place,
+                        place.parent().unwrap()
+                    );
                 }
             }
         }
-        true
     }
 
     pub fn acc(&self) -> &HashSet<vir::Place> {
