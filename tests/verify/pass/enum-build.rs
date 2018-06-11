@@ -12,7 +12,7 @@ fn random() -> bool {
     true
 }
 
-fn to_right() -> Enum {
+fn test() -> Enum {
     if random() {
         Enum::One(111)
     } else {

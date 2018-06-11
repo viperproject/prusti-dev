@@ -61,6 +61,8 @@ test:
 clean:
 	cargo clean
 	rm -f lint
+	rm -rf log
+	mkdir -p log/viper_tmp
 
 doc:
 	cargo rustdoc --lib -- \

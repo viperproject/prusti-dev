@@ -1,0 +1,10 @@
+// error-pattern: error[P0002]
+
+extern crate prusti_contracts;
+
+fn diverging() -> ! {
+    panic!();
+}
+
+fn main() {
+}
