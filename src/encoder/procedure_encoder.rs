@@ -579,9 +579,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                     (stmts, Successor::Goto(*target_cfg_block))
                 } else {
-                    let pos_id = self.encoder.error_manager().register(ErrorCtxt::Unexpected());
+                    // Unreachable
                     stmts.push(
-                        vir::Stmt::Assert(false.into(), pos_id)
+                        vir::Stmt::Inhale(false.into())
                     );
                     (stmts, Successor::Return)
                 }
