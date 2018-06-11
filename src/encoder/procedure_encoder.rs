@@ -304,7 +304,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::NullaryOp(op, ref ty) => {
                         match op {
                             mir::NullOp::Box => {
-                                // Reset `lhs`
+                                // Allocate an uninitialized box (it resets `lhs`)
                                 stmts.extend(
                                     self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
                                 );
