@@ -533,6 +533,31 @@ impl Expr {
             box expr
         )
     }
+
+    pub fn replace(self, target: &Place, replacement: &Place) -> Self {
+        let replace = |x: Box<Expr>| { box (*x).replace(target, replacement) };
+        match self {
+            Expr::Const(value) => Expr::Const(value),
+            Expr::Place(place) => Expr::Place(place.replace_prefix(target, replacement.clone())),
+            Expr::BinOp(op, left, right) => Expr::BinOp(op, replace(left), replace(right)),
+            Expr::UnaryOp(op, expr) => Expr::UnaryOp(op, replace(expr)),
+            Expr::PredicateAccessPredicate(expr, perm) => Expr::PredicateAccessPredicate(replace(expr), perm),
+            Expr::FieldAccessPredicate(expr, perm) => Expr::FieldAccessPredicate(replace(expr), perm),
+            Expr::PredicateAccess(pred_name, args) => Expr::PredicateAccess(
+                pred_name,
+                args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>()
+            ),
+            Expr::Old(expr) => Expr::Old(replace(expr)),
+            Expr::LabelledOld(expr, label) => Expr::LabelledOld(replace(expr), label),
+            Expr::MagicWand(left, right) => Expr::MagicWand(replace(left), replace(right)),
+            Expr::Unfolding(pred_name, args, expr) => Expr::Unfolding(
+                pred_name,
+                args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>(),
+                replace(expr)
+            ),
+            Expr::Cond(guard, left, right) => Expr::Cond(replace(guard), replace(left), replace(right))
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

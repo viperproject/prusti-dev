@@ -194,6 +194,14 @@ impl CfgMethod {
         vars
     }
 
+    /// Returns all formal returns and local variables
+    pub fn get_formal_returns_and_local_vars(&self) -> Vec<LocalVar> {
+        let mut vars: Vec<LocalVar> = vec![];
+        vars.extend(self.formal_returns.clone());
+        vars.extend(self.local_vars.clone());
+        vars
+    }
+
     /// Returns all labels
     pub fn get_all_labels(&self) -> Vec<String> {
         let mut labels: Vec<String> = vec![];

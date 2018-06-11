@@ -214,14 +214,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             debug!("Variant {} of '{:?}' is empty", variant_index, self.ty)
                         } else {
                             perms.push(
-                                vir::Expr::implies(
-                                    vir::Expr::eq_cmp(
-                                        discriminan_loc.clone().into(),
-                                        variant_index.into()
-                                    ),
-                                    // implies
-                                    variant_perms.into_iter().conjoin()
-                                )
+                                variant_perms.into_iter().conjoin()
                             )
                         }
                     }

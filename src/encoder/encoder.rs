@@ -202,6 +202,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
+    pub fn get_type_predicate_by_name(&self, predicate_name: &str) -> Option<vir::Predicate> {
+        self.type_predicates.borrow().get(predicate_name).cloned()
+    }
+
     pub fn eval_const(&self, value: &ty::Const<'tcx>) -> vir::Expr {
         let scalar_value = match value.val {
             ConstVal::Value(ref value) => {

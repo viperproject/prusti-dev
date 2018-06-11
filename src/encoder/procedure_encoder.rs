@@ -187,6 +187,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
 
+        // Allocate stack frame: formal return and local variables
+        // (formal arguments are already inhaled by the precondition)
+        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Allocate formal return and local variables"));
+        for local_var in self.cfg_method.get_formal_returns_and_local_vars() {
+            let alloc_stmt = vir::Stmt::Inhale(
+                self.encode_place_predicate_permission(local_var.clone().into())
+            );
+            self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
+        }
+
         let method_name = self.cfg_method.name();
 
         Log::report("vir_initial_method", &method_name, self.cfg_method.to_string());
@@ -235,10 +245,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let encoded_right = self.eval_operand(right);
                         let field = self.encoder.encode_value_field(ty);
                         let encoded_value = self.encode_bin_op_value(op, encoded_left, encoded_right, ty);
-                        // Reset `lhs`
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
-                        );
                         // Initialize lhs.field
                         stmts.push(
                             vir::Stmt::Assign(
@@ -259,10 +265,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let value_field_value = self.encoder.encode_value_field(field_types[0]);
                         let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
                         let check_field_value = self.encoder.encode_value_field(field_types[1]);
-                        // Reset `lhs`
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
-                        );
                         // Initialize lhs.field
                         stmts.push(
                             vir::Stmt::Assign(
@@ -287,10 +289,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let encoded_val = self.eval_operand(operand);
                         let field = self.encoder.encode_value_field(ty);
                         let encoded_value = self.encode_unary_op_value(op, encoded_val);
-                        // Reset `lhs`
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
-                        );
                         // Initialize `lhs.field`
                         stmts.push(
                             vir::Stmt::Assign(
@@ -301,16 +299,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     }
 
-                    &mir::Rvalue::NullaryOp(op, ref ty) => {
+                    &mir::Rvalue::NullaryOp(op, ref op_ty) => {
                         match op {
                             mir::NullOp::Box => {
-                                // Allocate an uninitialized box (it resets `lhs`)
-                                stmts.extend(
-                                    self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
+                                assert_eq!(op_ty, &ty.boxed_ty());
+                                let ref_field = self.encoder.encode_ref_field("val_ref", op_ty);
+
+                                let box_content = vir::Place::Field(
+                                    box encoded_lhs.clone(),
+                                    ref_field,
                                 );
+
+                                // Allocate `box_content`
+                                stmts.extend(
+                                    self.encode_havoc_and_allocation(&box_content, op_ty)
+                                );
+
+                                // Leave `box_content` uninitialized
                             }
                             mir::NullOp::SizeOf => unimplemented!(),
-                        }
+                        };
                         stmts
                     }
 
@@ -319,10 +327,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         match src_ty.sty {
                             ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
-                                // Reset `lhs`
-                                stmts.extend(
-                                    self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
-                                );
                                 // Initialize `lhs.int_field`
                                 let discr_field = self.encoder.encode_discriminant_field();
                                 let discr_value: vir::Expr = if num_variants <= 1 {
@@ -347,10 +351,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     &mir::Rvalue::Ref(ref _region, _borrow_kind, ref place) => {
-                        // Reset `lhs`
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
-                        );
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.encode_place(place);
                         // Initialize ref_var.ref_field
@@ -364,12 +364,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     ref rhs => {
-                        // Reset `lhs`
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
-                        );
-                        warn!("TODO: incomplete endcoding of '{:?}'", rhs);
-                        stmts
+                        unimplemented!("endcoding of '{:?}'", rhs);
                     }
                 }
             }
@@ -564,12 +559,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             ref_field,
                         );
 
-                        // Reset `dst`
+                        // Allocate `box_content`
                         stmts.extend(
-                            self.encode_havoc_and_allocation(&dst.clone().into(), dest_ty)
+                            self.encode_havoc_and_allocation(&box_content, boxed_ty)
                         );
 
-                        // Initialize box content
+                        // Initialize `box_content`
                         stmts.extend(
                             self.encode_assign_operand(&box_content, &args[0])
                         );
@@ -626,7 +621,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                     (stmts, Successor::Goto(*target_cfg_block))
                 } else {
-                    // Unreachable
+                    // Encode unreachability
                     stmts.push(
                         vir::Stmt::Inhale(false.into())
                     );
@@ -668,6 +663,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::Yield { .. } |
             TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
         }
+    }
+
+    fn encode_place_predicate_body(&self, place: vir::Place) -> vir::Expr {
+        let predicate_name = place.typed_ref_name().unwrap();
+        let predicate = self.encoder.get_type_predicate_by_name(&predicate_name).unwrap();
+        let pred_self_place: vir::Place = predicate.args[0].clone().into();
+        predicate.body.unwrap().replace(&pred_self_place, &place)
     }
 
     fn encode_place_predicate_permission(&self, place: vir::Place) -> vir::Expr {
@@ -994,22 +996,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("Encode assign operand {:?}", operand);
         match operand {
             &mir::Operand::Move(ref place) => {
-                let (src, _, _) = self.encode_place(place);
-                // Move `src` to `lhs`
-                vec![
-                    vir::Stmt::Assign(lhs.clone().into(), src.clone().into())
-                ]
+                let (src, ty, _) = self.encode_place(place);
+                // Move the values from `src` to `lhs`
+                self.encode_copy(src, lhs.clone(), ty, true)
             }
+
             &mir::Operand::Copy(ref place) => {
                 let (src, ty, _) = self.encode_place(place);
-                let mut stmts: Vec<vir::Stmt> = vec![];
                 // Copy the values from `src` to `lhs`
-                self.encode_copy(src, lhs.clone(), ty)
+                self.encode_copy(src, lhs.clone(), ty, false)
             }
+
             &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
                 let mut stmts = Vec::new();
-                // Reset `lhs`
-                stmts.extend(self.encode_havoc_and_allocation(lhs, ty));
                 // Initialize the constant
                 match literal {
                     mir::Literal::Value { value } => {
@@ -1034,7 +1033,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    /// Deprecated function. Use `encode_assign_operand` instead.
+    /// Deprecated function! Use `encode_assign_operand` instead.
     fn encode_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Local,
                                                                    vir::LocalVar,
                                                                    Vec<vir::Stmt>,
@@ -1056,7 +1055,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut stmts: Vec<vir::Stmt> = vec![];
                 // Before, copy the values from src to viper_local
                 stmts.extend(
-                    self.encode_copy(src, viper_local.clone().into(), ty)
+                    self.encode_copy(src, viper_local.clone().into(), ty, false)
                 );
                 (local, viper_local, stmts, vec![])
             }
@@ -1064,8 +1063,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let local = self.locals.get_fresh(ty);
                 let viper_local = self.encode_prusti_local(local);
                 let mut stmts = Vec::new();
-                // Before, allocate viper_local
-                stmts.extend(self.encode_havoc_and_allocation(&viper_local.clone().into(), ty));
                 let field = self.encoder.encode_value_field(ty);
                 // Evaluate the constant
                 /* TODO: in the future use the following commented code (not exposed by the compiler)
@@ -1094,14 +1091,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let evaluated_const = const_prop.eval_constant(constant);
                         let const_val = self.encoder.eval_const(value);
                         */
-                        // Workaround: allocate viper_local.field
-                        stmts.push(
-                            vir::Stmt::Inhale(
-                                self.encode_place_predicate_permission(
-                                    vir::Place::from(viper_local.clone()).access(field)
-                                )
-                            )
-                        );
                     }
                 }
                 (local, viper_local, stmts, vec![])
@@ -1154,122 +1143,115 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_copy_expr(&mut self, src: vir::Place, dst: vir::Place, self_ty: ty::Ty<'tcx>) -> vir::Expr {
-        debug!("Encode copy expr {:?}, {:?}, {:?}", src, dst, self_ty);
+    /// Encodes the copy of a structure, reading from a source `src` and using `dst` as target.
+    /// The copy is neither shallow or deep:
+    /// - if a field encodes a Rust reference, the reference is copied (shallow copy);
+    /// - if a field does not encode a Rust reference, but is a Viper reference, a recursive call
+    ///   copies the content of the field (deep copy).
+    /// - if a field does not encode a Rust reference and is not a Viper reference, the field is
+    ///   copied.
+    ///
+    /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
+    /// a Rust move assignment, and not a copy assignment.
+    fn encode_copy(&mut self, src: vir::Place, dst: vir::Place, self_ty: ty::Ty<'tcx>, is_move: bool) -> Vec<vir::Stmt> {
+        debug!("Encode copy {:?}, {:?}, {:?}", src, dst, self_ty);
 
-        let copy_exprs = match self_ty.sty {
+        match self_ty.sty {
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) => {
                 let field = self.encoder.encode_value_field(self_ty);
                 vec![
-                    // Equality
-                    vir::Expr::eq_cmp(
-                        dst.clone().access(field.clone()).into(),
+                    // Copy value
+                    vir::Stmt::Assign(
+                        dst.clone().access(field.clone()),
                         src.clone().access(field.clone()).into(),
                     )
                 ]
             }
 
-            ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _, _) => {
-                // It is not sound to copy a struct containing a mutable reference (full ownership)
-                // Regarding mutable references, we dont' support them yet
-                unimplemented!();
-            }
-
             ty::TypeVariants::TyTuple(elems) => {
-                let mut exprs: Vec<vir::Expr> = vec![];
+                let mut stmts: Vec<vir::Stmt> = vec![];
                 for (field_num, ty) in elems.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
                     let field = self.encoder.encode_ref_field(&field_name, ty);
-                    exprs.push(
-                        // Equality
-                        self.encode_copy_expr(
+                    stmts.extend(
+                        // Copy fields
+                        self.encode_copy(
                             src.clone().access(field.clone()),
                             dst.clone().access(field.clone()),
                             ty,
+                            is_move
                         )
                     );
                 }
-                exprs
+                stmts
             }
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
-                let mut exprs: Vec<vir::Expr> = vec![];
+                let mut stmts: Vec<vir::Stmt> = vec![];
                 let num_variants = adt_def.variants.len();
                 let discriminant_field = self.encoder.encode_discriminant_field();
                 if num_variants > 1 {
-                    exprs.push(
+                    stmts.push(
                         // Copy discriminant
-                        vir::Expr::eq_cmp(
+                        vir::Stmt::Assign(
+                            dst.clone().access(discriminant_field.clone()),
                             src.clone().access(discriminant_field.clone()).into(),
-                            dst.clone().access(discriminant_field.clone()).into(),
                         )
                     );
                 }
                 let tcx = self.encoder.env().tcx();
                 for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-                    let mut variant_exprs: Vec<vir::Expr> = vec![];
                     for field in &variant_def.fields {
                         let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                         let field_ty = field.ty(tcx, subst);
                         let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        variant_exprs.push(
-                            // Equality
-                            self.encode_copy_expr(
+                        stmts.extend(
+                            // Copy fields
+                            self.encode_copy(
                                 src.clone().access(elem_field.clone()),
                                 dst.clone().access(elem_field.clone()),
                                 field_ty,
+                                is_move
                             )
                         )
                     }
-                    if num_variants > 1 {
-                        exprs.push(
-                            vir::Expr::implies(
-                                vir::Expr::eq_cmp(
-                                    src.clone().access(discriminant_field.clone()).into(),
-                                    variant_index.into(),
-                                ),
-                                variant_exprs.into_iter().conjoin(),
-                            )
-                        );
-                    } else {
-                        exprs.push(
-                            variant_exprs.into_iter().conjoin()
-                        );
-                    }
                 }
-                exprs
+                stmts
+            }
+
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
+            ty::TypeVariants::TyRef(_, ty, _) => {
+                // Ensure that we are encoding a move, not a copy (enforced byt the Rust typesystem)
+                assert!(is_move);
+                let ref_field = self.encoder.encode_ref_field("val_ref", ty);
+                vec![
+                    // Copy the reference to the boxed value
+                    vir::Stmt::Assign(
+                        dst.clone().access(ref_field.clone()),
+                        src.clone().access(ref_field.clone()).into(),
+                    )
+                ]
+            }
+
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+                // Ensure that we are encoding a move, not a copy (enforced byt the Rust typesystem)
+                assert!(is_move);
+                let field_ty = self_ty.boxed_ty();
+                let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
+                assert_eq!(adt_def.variants.len(), 1);
+                vec![
+                    // Copy the reference to the boxed value
+                    vir::Stmt::Assign(
+                        dst.clone().access(ref_field.clone()),
+                        src.clone().access(ref_field.clone()).into(),
+                    )
+                ]
             }
 
             ref x => unimplemented!("{:?}", x),
-        };
-
-        vir::Expr::unfolding(
-            src,
-            vir::Expr::unfolding(
-                dst,
-                copy_exprs.into_iter().conjoin(),
-            ),
-        )
-    }
-
-    fn encode_copy(&mut self, src: vir::Place, dst: vir::Place, ty: ty::Ty<'tcx>) -> Vec<vir::Stmt> {
-        debug!("Encode copy {:?}, {:?}, {:?}", src, dst, ty);
-
-        let mut stmts = vec![];
-        stmts.extend(
-            // Reset `dst`
-            self.encode_havoc_and_allocation(&dst.clone(), ty)
-        );
-        stmts.push(
-            // Assume equality with `src`
-            vir::Stmt::Inhale(
-                self.encode_copy_expr(src, dst, ty)
-            )
-        );
-        stmts
+        }
     }
 
     fn encode_bin_op_value(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
@@ -1310,7 +1292,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match op {
             mir::UnOp::Not => vir::Expr::not(expr),
             mir::UnOp::Neg => vir::Expr::minus(expr),
-            x => unimplemented!("{:?}", x)
         }
     }
 
@@ -1329,10 +1310,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> Vec<vir::Stmt> {
         debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
         let mut stmts: Vec<vir::Stmt> = vec![];
-        // Reset `dst`
-        stmts.extend(
-            self.encode_havoc_and_allocation(dst, ty)
-        );
         // Initialize values
         match aggregate {
             &mir::AggregateKind::Tuple => {
@@ -1352,11 +1329,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 if num_variants > 1 {
                     let discr_field = self.encoder.encode_discriminant_field();
                     stmts.push(
-                        vir::Stmt::Inhale(
-                            vir::Expr::eq_cmp(
-                                dst.clone().access(discr_field).into(),
-                                variant_index.into(),
-                            )
+                        vir::Stmt::Assign(
+                            dst.clone().access(discr_field).into(),
+                            variant_index.into()
                         )
                     );
                 };

@@ -92,9 +92,6 @@ impl RequiredPlacesGetter for vir::Stmt {
             },
 
             &vir::Stmt::Obtain(ref expr) => expr.get_required_places(predicates),
-
-            // Default: no requirement
-            _ => HashSet::new(),
         }
     }
 }
