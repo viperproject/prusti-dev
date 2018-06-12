@@ -28,24 +28,8 @@ RUN mkdir -p /tmp/rust && \
     cd /tmp/rust && \
     wget -q -c https://sh.rustup.rs -O install.sh && \
     chmod 755 install.sh && \
-    ./install.sh -y --no-modify-path --default-toolchain nightly-2018-01-21 && \
+    ./install.sh -y --no-modify-path --default-toolchain nightly-2018-05-30 && \
     rm -rf /tmp/rust
-
-# Install NLL Rust.
-RUN cd /tmp && \
-    git clone https://github.com/nikomatsakis/rust.git rust-nll && \
-    cd rust-nll && \
-    git checkout nll-master && \
-    git pull origin nll-master && \
-    cp config.toml.example config.toml && \
-    mkdir -p /rust-nll && \
-    sed -e 's/#prefix = "\/usr\/local"/prefix = "\/rust-nll"/g' -i config.toml && \
-    sed -e 's/#sysconfdir = "\/etc"/sysconfdir = "etc"/g' -i config.toml && \
-    python2.7 ./x.py build && \
-    python2.7 ./x.py install && \
-    cd / && \
-    rm -rf /tmp/*
-ENV RUSTC=/rust-nll/bin/rustc
 
 # Install Prusti prerequisites.
 RUN wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
@@ -66,10 +50,13 @@ RUN cd /tmp && \
     git clone https://github.com/viperproject/prusti.git prusti && \
     cd prusti && \
     cargo build --release && \
-    mkdir -p /usr/lib/prusti && \
-    cp target/release/libprusti.so /usr/lib/prusti && \
-    rm -rf /tmp/*
-ENV RUSTFLAGS="-L /usr/lib/prusti/ -Z mir-emit-validate=1 -Z extra-plugins=prusti -Z borrowck=mir -Z nll"
+	mkdir -p /usr/local/prusti/lib && \
+	cp target/release/prusti-driver /usr/local/prusti/prusti-driver && \
+	cp target/release/libprusti.so /usr/local/prusti/libprusti.so && \
+	cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib && \
+	true # rm -rf /tmp/*
+ADD prusti /usr/local/bin/prusti
+ENV RUSTC="/usr/local/bin/prusti"
 
 # Set up locale.
 RUN locale-gen en_US.UTF-8
@@ -80,10 +67,14 @@ ENV LC_ALL en_US.UTF-8
 # Mark container.
 ENV RUST_CONTAINER 1
 
+ADD entrypoint.sh /root/
+ENTRYPOINT ["/root/entrypoint.sh"]
+
 # Set up workdir.
 ENV USER=root
 RUN cd / && \
-    cargo new playground
+    cargo new playground && \
+    sed -i '1s/^/extern crate prusti_contracts;\n/;s/println.*$/assert!(true)/' /playground/src/main.rs
 WORKDIR /playground
 
 RUN cargo build && \
