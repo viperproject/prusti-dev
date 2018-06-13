@@ -265,8 +265,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRef(_, ref ty, _) =>
                 format!("ref${}", self.encoder.encode_type_predicate_use(ty)),
 
-            ty::TypeVariants::TyAdt(&ty::AdtDef { did, .. }, _) =>
-                self.encoder.encode_type_name(did),
+            ty::TypeVariants::TyAdt(&ty::AdtDef { did, .. }, subst) => {
+                let mut composed_name = vec![
+                    self.encoder.encode_type_name(did),
+                    //subst.len().to_string(),
+                ];
+                for kind in subst.iter() {
+                    if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
+                        composed_name.push(
+                            self.encoder.encode_type_predicate_use(ty)
+                        )
+                    }
+                }
+                composed_name.join("$")
+            },
 
             ty::TypeVariants::TyTuple(elems) => {
                 let elem_predicate_names: Vec<String> = elems.iter().map(

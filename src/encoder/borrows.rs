@@ -271,7 +271,7 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
             self.references_in.push(current_path);
         }
         self.is_path_blocking = true;
-        type_visitor::walk_ref(self, region, ty, mutability);
+        //type_visitor::walk_ref(self, region, ty, mutability);
         self.is_path_blocking = is_path_blocking;
         self.current_path = Some(old_path);
     }
@@ -279,7 +279,7 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
     fn visit_raw_ptr(&mut self, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
         trace!("visit_raw_ptr({:?}, {:?}) current_path={:?}", ty, mutability, self.current_path);
         // TODO
-        unimplemented!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
+        warn!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
     }
 }
 

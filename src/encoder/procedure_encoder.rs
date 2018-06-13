@@ -358,7 +358,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(
                             self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
                         );
-                        warn!("TODO: incomplete endcoding of '{:?}'", stmt.kind);
+                        warn!("TODO: incomplete endcoding of '{:?}'", rhs);
                         stmts
                     }
                 }
@@ -798,7 +798,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
                         let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
-                        let field_ty = tcx.type_of(field.did);
+                        let field_ty = field.ty(tcx, subst);
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let encoded_projection = encoded_base.access(encoded_field);
                         (encoded_projection, field_ty, None)
@@ -819,7 +819,46 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         );
                         (access, ty, None)
                     },
-                    _ => unreachable!(),
+                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+                        // Ugly hardcoded fields to dereference box
+                        let tcx = self.encoder.env().tcx();
+                        let field_1_ty = adt_def.variants[0].fields[0].ty(tcx, subst);
+                        let ref_field_1 = self.encoder.encode_ref_field("enum_0_0", field_1_ty);
+                        let field_2_ty = if let ty::TypeVariants::TyAdt(ref field_1_did, ref field_1_subst) = field_1_ty.sty {
+                            field_1_did.variants[0].fields[0].ty(tcx, field_1_subst)
+                        } else {
+                            unreachable!()
+                        };
+                        let ref_field_2 = self.encoder.encode_ref_field("enum_0_pointer", field_2_ty);
+                        let field_3_ty = if let ty::TypeVariants::TyAdt(ref field_2_did, ref field_2_subst) = field_2_ty.sty {
+                            field_2_did.variants[0].fields[0].ty(tcx, field_2_subst)
+                        } else {
+                            unreachable!()
+                        };
+                        let ref_field_3 = self.encoder.encode_ref_field("enum_0_0", field_3_ty);
+                        let field_4_ty = if let ty::TypeVariants::TyRawPtr(ty_and_mut) = field_3_ty.sty {
+                            ty_and_mut.ty
+                        } else {
+                            unreachable!()
+                        };
+                        assert_eq!(field_4_ty, base_ty.boxed_ty());
+                        let ref_field_4 = self.encoder.encode_ref_field("val_ref", field_4_ty);
+                        let access = vir::Place::Field(
+                            box vir::Place::Field(
+                                box vir::Place::Field(
+                                    box vir::Place::Field(
+                                        box encoded_base,
+                                        ref_field_1
+                                    ),
+                                    ref_field_2
+                                ),
+                                ref_field_3
+                            ),
+                            ref_field_4
+                        );
+                        (access, base_ty.boxed_ty(), None)
+                    }
+                    ref x => unimplemented!("{:?}", x),
                 }
             },
 
@@ -1298,7 +1337,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 stmts
             },
 
-            &mir::AggregateKind::Adt(adt_def, variant_index, _, _) => {
+            &mir::AggregateKind::Adt(adt_def, variant_index, subst, _) => {
                 let num_variants = adt_def.variants.len();
                 if num_variants > 1 {
                     let discr_field = self.encoder.encode_discriminant_field();
@@ -1316,7 +1355,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let operand = &operands[field_index];
                     let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                     let tcx = self.encoder.env().tcx();
-                    let field_ty = tcx.type_of(field.did);
+                    let field_ty = field.ty(tcx, subst);
                     let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                     stmts.extend(
                         self.encode_assign_operand(&dst.clone().access(encoded_field), operand)
