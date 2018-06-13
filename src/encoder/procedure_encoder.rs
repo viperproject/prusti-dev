@@ -353,7 +353,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     }
 
-                    ref x => unimplemented!("{:?}", x)
+                    ref rhs => {
+                        // Reset `lhs`
+                        stmts.extend(
+                            self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
+                        );
+                        warn!("TODO: incomplete endcoding of '{:?}'", stmt.kind);
+                        stmts
+                    }
                 }
             },
 
