@@ -2,15 +2,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use encoder::vir;
+use self::branch_ctxt::*;
+use std::collections::HashMap;
+
 mod acc_or_pred;
 mod requirements;
 mod state;
 mod branch_ctxt;
 mod semantics;
-
-use std::collections::HashMap;
-use encoder::vir;
-use self::branch_ctxt::*;
 
 pub fn add_fold_unfold(cfg: vir::CfgMethod, predicates: HashMap<String, vir::Predicate>) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();

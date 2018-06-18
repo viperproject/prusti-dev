@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+pub use self::encoder::Encoder;
+
 mod encoder;
 mod builtin_encoder;
 mod procedure_encoder;
@@ -15,4 +17,3 @@ mod error_manager;
 
 pub mod vir;
 
-pub use self::encoder::Encoder;

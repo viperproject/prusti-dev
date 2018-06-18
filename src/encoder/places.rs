@@ -4,8 +4,8 @@
 
 use rustc::mir;
 use rustc::ty::Ty;
+use rustc_data_structures::indexed_vec::{Idx, IndexVec, IntoIdx};
 use std::{iter, ops};
-use rustc_data_structures::indexed_vec::{IntoIdx, Idx, IndexVec};
 
 
 /// A local variable used as an abstraction over both real Rust MIR local

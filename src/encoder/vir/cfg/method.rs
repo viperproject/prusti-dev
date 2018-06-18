@@ -2,11 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use uuid::Uuid;
 use encoder::vir::ast::*;
-use std::fmt;
 use std::collections::HashSet;
+use std::fmt;
 use std::iter::FromIterator;
+use uuid::Uuid;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
@@ -133,7 +133,7 @@ impl CfgMethod {
     ) -> Self {
         CfgMethod {
             uuid: Uuid::new_v4(),
-            method_name: method_name,
+            method_name,
             formal_args,
             formal_returns,
             local_vars,

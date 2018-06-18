@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use encoder::vir::cfg::method::*;
+use encoder::vir::to_viper::{ToViper, ToViperDecl};
 use viper;
 use viper::AstFactory;
-use encoder::vir::to_viper::{ToViper, ToViperDecl};
-use encoder::vir::cfg::method::*;
 
 impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {

@@ -2,16 +2,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt;
-use rustc::ty::{self, TyCtxt, Ty};
+use encoder::places;
+use prusti_interface::data::ProcedureDefId;
 use rustc::hir;
 use rustc::mir;
+use rustc::ty::{self, Ty, TyCtxt};
 use rustc_data_structures::indexed_vec::Idx;
-use utils::type_visitor::{self, TypeVisitor};
-use encoder::places;
 use std::collections::HashMap;
-
-use prusti_interface::data::ProcedureDefId;
+use std::fmt;
+use utils::type_visitor::{self, TypeVisitor};
 
 
 #[derive(Clone, Debug)]
@@ -30,7 +29,7 @@ impl<P: fmt::Debug> BorrowInfo<P> {
 
     fn new(region: ty::BoundRegion) -> Self {
         BorrowInfo {
-            region: region,
+            region,
             blocking_paths: Vec::new(),
             blocked_paths: Vec::new(),
         }
@@ -141,14 +140,14 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             args: self.args.iter().map(|&a| a.into()).collect(),
             returned_refs: self.returned_refs.iter().map(|r| r.into()).collect(),
             returned_value: self.returned_value.into(),
-            borrow_infos: borrow_infos,
+            borrow_infos,
         }
     }
 
     /// Specialize to the call site contract.
     pub fn to_call_site_contract(&self, args: &Vec<places::Local>, target: places::Local
                                  ) -> ProcedureContract<'tcx> {
-        assert!(self.args.len() == args.len());
+        assert_eq!(self.args.len(), args.len());
         let mut substitutions = HashMap::new();
         substitutions.insert(self.returned_value, target);
         for (from, to) in self.args.iter().zip(args) {
@@ -175,7 +174,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             args: args.clone(),
             returned_refs: self.returned_refs.iter().map(&substitute).collect(),
             returned_value: target,
-            borrow_infos: borrow_infos,
+            borrow_infos,
         }
     }
 
@@ -200,7 +199,7 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
         BorrowInfoCollectingVisitor {
             borrow_infos: Vec::new(),
             references_in: Vec::new(),
-            tcx: tcx,
+            tcx,
             is_path_blocking: false,
             current_path: None,
         }
@@ -323,10 +322,10 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
         .filter(is_not_blocked)
         .collect();
     let contract = ProcedureContractGeneric {
-        args: args,
-        returned_refs: returned_refs,
+        args,
+        returned_refs,
         returned_value: mir::RETURN_PLACE,
-        borrow_infos: borrow_infos,
+        borrow_infos,
     };
     trace!("[compute_borrow_infos] exit result={}", contract);
     contract

@@ -1,9 +1,9 @@
-use uuid::Uuid;
-use viper::VerificationError;
-use syntax_pos::MultiSpan;
 use encoder::vir::PosId;
 use std::collections::HashMap;
 use syntax::codemap::Span;
+use syntax_pos::MultiSpan;
+use uuid::Uuid;
+use viper::VerificationError;
 
 /// The cause of a panic!()
 #[derive(Clone,Debug)]

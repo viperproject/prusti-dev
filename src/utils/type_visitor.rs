@@ -2,13 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc::ty::{
-    Ty, TyCtxt, TypeVariants, TypeFlags, AdtDef, Region, Slice,
-    VariantDef, FieldDef};
-use syntax::ast::{IntTy, UintTy};
 use rustc::hir::Mutability;
+use rustc::ty::{
+    AdtDef, FieldDef, Region, Slice, Ty, TyCtxt, TypeFlags,
+    TypeVariants, VariantDef};
 use rustc::ty::subst::Substs;
 use rustc::ty::TypeVariants::*;
+use syntax::ast::{IntTy, UintTy};
 
 pub trait TypeVisitor<'a, 'tcx> : Sized {
 

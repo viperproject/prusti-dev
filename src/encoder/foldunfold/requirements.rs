@@ -2,11 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashSet;
-use std::collections::HashMap;
-use encoder::vir;
 use encoder::foldunfold::acc_or_pred::*;
 use encoder::foldunfold::acc_or_pred::AccOrPred::*;
+use encoder::vir;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::iter::FromIterator;
 
 pub trait RequiredPlacesGetter {
@@ -70,7 +70,7 @@ impl RequiredPlacesGetter for vir::Stmt {
             },
 
             &vir::Stmt::Fold(ref _pred_name, ref args) => {
-                assert!(args.len() == 1);
+                assert_eq!(args.len(), 1);
                 let arg_place = &args[0].clone().as_place().unwrap();
 
                 // We want to temporarly unfold arg_place
@@ -87,7 +87,7 @@ impl RequiredPlacesGetter for vir::Stmt {
             },
 
             &vir::Stmt::Unfold(ref _pred_name, ref args) => {
-                assert!(args.len() == 1);
+                assert_eq!(args.len(), 1);
                 args[0].get_required_places(predicates)
             },
 

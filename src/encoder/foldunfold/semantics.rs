@@ -2,9 +2,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir;
-use encoder::foldunfold::state::*;
 use encoder::foldunfold::acc_or_pred::*;
+use encoder::foldunfold::state::*;
+use encoder::vir;
 use std::collections::HashMap;
 
 impl vir::Stmt {
@@ -76,7 +76,7 @@ impl vir::Stmt {
             },
 
             &vir::Stmt::Fold(ref pred_name, ref args) => {
-                assert!(args.len() == 1);
+                assert_eq!(args.len(), 1);
                 let place = &args[0].clone().as_place().unwrap();
                 assert!(!state.contains_pred(&place));
                 assert!(state.contains_acc(&place));
@@ -101,7 +101,7 @@ impl vir::Stmt {
             },
 
             &vir::Stmt::Unfold(ref pred_name, ref args) => {
-                assert!(args.len() == 1);
+                assert_eq!(args.len(), 1);
                 let place = &args[0].clone().as_place().unwrap();
                 assert!(state.contains_pred(&place));
 

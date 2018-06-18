@@ -2,25 +2,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper;
-use rustc::hir::def_id::DefId;
-use rustc::ty;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::EnvironmentImpl;
-use prusti_interface::environment::Environment;
-use std::collections::HashMap;
-use rustc::middle::const_val::ConstVal;
-use encoder::places;
-use encoder::borrows::{ProcedureContractMirDef, ProcedureContract, compute_procedure_contract};
-use encoder::procedure_encoder::ProcedureEncoder;
-use encoder::type_encoder::TypeEncoder;
+use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::error_manager::ErrorManager;
-use std::cell::{RefCell, RefMut};
+use encoder::places;
+use encoder::procedure_encoder::ProcedureEncoder;
+use encoder::type_encoder::TypeEncoder;
 use encoder::vir;
+use prusti_interface::data::ProcedureDefId;
+use prusti_interface::environment::Environment;
+use prusti_interface::environment::EnvironmentImpl;
 use report::Log;
+use rustc::hir::def_id::DefId;
+use rustc::middle::const_val::ConstVal;
+use rustc::ty;
+use std::cell::{RefCell, RefMut};
+use std::collections::HashMap;
 use syntax::ast;
+use viper;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,

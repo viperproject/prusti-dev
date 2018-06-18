@@ -2,29 +2,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc::mir;
-use rustc::ty;
-use prusti_interface::environment::ProcedureImpl;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::Environment;
-use prusti_interface::environment::Procedure;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use prusti_interface::environment::BasicBlockIndex;
-use rustc::mir::TerminatorKind;
-use rustc::middle::const_val::ConstVal;
-use encoder::Encoder;
 use encoder::borrows::ProcedureContract;
-use rustc_data_structures::indexed_vec::Idx;
-use encoder::places::{Local, LocalVariableManager, Place};
-use encoder::loop_encoder::LoopEncoder;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::vir::{self, Successor, CfgBlockIndex};
-use encoder::vir::utils::ExprIterator;
-use encoder::foldunfold;
-use report::Log;
+use encoder::Encoder;
 use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;
+use encoder::foldunfold;
+use encoder::loop_encoder::LoopEncoder;
+use encoder::places::{Local, LocalVariableManager, Place};
+use encoder::vir::{self, CfgBlockIndex, Successor};
+use encoder::vir::utils::ExprIterator;
+use prusti_interface::data::ProcedureDefId;
+use prusti_interface::environment::BasicBlockIndex;
+use prusti_interface::environment::Environment;
+use prusti_interface::environment::Procedure;
+use prusti_interface::environment::ProcedureImpl;
+use report::Log;
+use rustc::middle::const_val::ConstVal;
+use rustc::mir;
+use rustc::mir::TerminatorKind;
+use rustc::ty;
+use rustc_data_structures::indexed_vec::Idx;
+use std::collections::HashMap;
+use std::collections::HashSet;
 
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -67,11 +67,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             encoder,
             proc_def_id: procedure.get_id(),
             procedure,
-            mir: mir,
+            mir,
             cfg_method,
-            locals: locals,
-            loops: loops,
-            auxiliar_local_vars: HashMap::new()
+            locals,
+            loops,
+            auxiliar_local_vars: HashMap::new(),
             //dataflow_info: dataflow_info,
         }
     }
@@ -112,7 +112,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vir::Stmt::comment("This should never be reached. It's a residual of type-checking specifications."),
             vir::Stmt::Assert(
                 false.into(),
-                self.encoder.error_manager().register(ErrorCtxt::Unexpected())
+                self.encoder.error_manager().register(ErrorCtxt::Unexpected()),
             )
         ]);
         self.cfg_method.set_successor(spec_cfg_block, Successor::Return);
@@ -163,12 +163,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             if let Some(ref term) = bb_data.terminator {
                 trace!("Encode terminator of {:?}", bbi);
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
-                self.cfg_method.add_stmt    (cfg_block, vir::Stmt::comment(format!("[mir] {:?}", term.kind)));
+                self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", term.kind)));
                 let (stmts, successor) = self.encode_terminator(
                     term,
                     &cfg_blocks,
                     spec_cfg_block,
-                    return_cfg_block
+                    return_cfg_block,
                 );
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
@@ -221,7 +221,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             self.encode_assign_operand(&encoded_lhs, operand)
                         );
                         stmts
-                    },
+                    }
 
                     &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
                         stmts.extend(
@@ -243,11 +243,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(
                             vir::Stmt::Assign(
                                 encoded_lhs.access(field),
-                                encoded_value
+                                encoded_value,
                             )
                         );
                         stmts
-                    },
+                    }
 
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
                         let encoded_left = self.eval_operand(left);
@@ -281,9 +281,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             )
                         );
                         stmts
-                    },
+                    }
 
-                    &mir::Rvalue::UnaryOp(op, ref operand)  => {
+                    &mir::Rvalue::UnaryOp(op, ref operand) => {
                         let encoded_val = self.eval_operand(operand);
                         let field = self.encoder.encode_value_field(ty);
                         let encoded_value = self.encode_unary_op_value(op, encoded_val);
@@ -295,11 +295,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(
                             vir::Stmt::Assign(
                                 encoded_lhs.access(field),
-                                encoded_value
+                                encoded_value,
                             )
                         );
                         stmts
-                    },
+                    }
 
                     &mir::Rvalue::NullaryOp(op, ref ty) => {
                         match op {
@@ -308,11 +308,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 stmts.extend(
                                     self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
                                 );
-                            },
+                            }
                             mir::NullOp::SizeOf => unimplemented!(),
                         }
                         stmts
-                    },
+                    }
 
                     &mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.encode_place(src);
@@ -334,7 +334,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 stmts.push(
                                     vir::Stmt::Assign(
                                         encoded_lhs.clone().access(int_field),
-                                        discr_value
+                                        discr_value,
                                     )
                                 );
                                 stmts
@@ -344,7 +344,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 stmts
                             }
                         }
-
                     }
 
                     &mir::Rvalue::Ref(ref _region, _borrow_kind, ref place) => {
@@ -373,7 +372,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     }
                 }
-            },
+            }
 
             ref x => unimplemented!("{:?}", x)
         }
@@ -389,12 +388,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match term.kind {
             TerminatorKind::Return => {
                 (stmts, Successor::Goto(return_cfg_block))
-            },
+            }
 
             TerminatorKind::Goto { target } => {
                 let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
-            },
+            }
 
             TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
                 trace!("SwitchInt ty '{:?}', discr '{:?}', values '{:?}'", switch_ty, discr, values);
@@ -414,7 +413,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     } else {
                         vir::Expr::eq_cmp(
                             discr_val.clone().into(),
-                            value.into()
+                            value.into(),
                         )
                     };
                     let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
@@ -423,7 +422,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let default_target = targets[values.len()];
                 let cfg_default_target = cfg_blocks.get(&default_target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::GotoSwitch(cfg_targets, *cfg_default_target))
-            },
+            }
 
             TerminatorKind::Unreachable => {
                 let pos_id = self.encoder.error_manager().register(ErrorCtxt::UnreachableTerminator(term.source_info.span));
@@ -431,7 +430,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::Stmt::Assert(false.into(), pos_id)
                 );
                 (stmts, Successor::Return)
-            },
+            }
 
             TerminatorKind::Abort => {
                 let pos_id = self.encoder.error_manager().register(ErrorCtxt::AbortTerminator(term.source_info.span));
@@ -439,22 +438,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::Stmt::Assert(false.into(), pos_id)
                 );
                 (stmts, Successor::Return)
-            },
+            }
 
             TerminatorKind::Drop { ref target, .. } => {
                 let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
-            },
+            }
 
             TerminatorKind::FalseEdges { ref real_target, .. } => {
                 let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
-            },
+            }
 
             TerminatorKind::FalseUnwind { real_target, .. } => {
                 let target_cfg_block = cfg_blocks.get(&real_target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
-            },
+            }
 
             TerminatorKind::DropAndReplace { ref target, ref location, ref value, .. } => {
                 let (encoded_loc, _, _) = self.encode_place(location);
@@ -463,7 +462,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 );
                 let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                 (stmts, Successor::Goto(*target_cfg_block))
-            },
+            }
 
             TerminatorKind::Call {
                 ref args,
@@ -505,7 +504,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     "prusti_contracts::internal::__assertion" => {
                         // This is a Prusti loop invariant
                         unreachable!();
-                    },
+                    }
 
                     "std::rt::begin_panic" => {
                         // This is called when a Rust assertion fails
@@ -539,7 +538,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     } else {
                                         PanicCause::Panic
                                     }
-                                },
+                                }
                                 _ => PanicCause::Unknown
                             }
                         } else {
@@ -548,7 +547,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         };
                         let pos_id = self.encoder.error_manager().register(ErrorCtxt::Panic(term.source_info.span, panic_cause));
                         stmts.push(vir::Stmt::Assert(false.into(), pos_id));
-                    },
+                    }
 
                     "<std::boxed::Box<T>>::new" => {
                         // This is the initialization of a box
@@ -562,7 +561,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         let box_content = vir::Place::Field(
                             box dst.clone(),
-                            ref_field
+                            ref_field,
                         );
 
                         // Reset `dst`
@@ -574,7 +573,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(
                             self.encode_assign_operand(&box_content, &args[0])
                         );
-                    },
+                    }
 
                     // generic function call
                     _ => {
@@ -613,7 +612,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(vir::Stmt::MethodCall(
                             self.encoder.encode_procedure_name(def_id),
                             vec![],
-                            encoded_targets
+                            encoded_targets,
                         ));
 
                         let postcondition = self.encode_postcondition_expr(&procedure_contract, &label);
@@ -633,12 +632,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     );
                     (stmts, Successor::Return)
                 }
-            },
+            }
 
-            TerminatorKind::Call { ..} => {
+            TerminatorKind::Call { .. } => {
                 // Other kind of calls?
                 unimplemented!();
-            },
+            }
 
             TerminatorKind::Assert { ref cond, expected, ref target, ref msg, .. } => {
                 trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
@@ -657,7 +656,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::Stmt::comment(format!("A Rust assertion failed: {}", msg.description())),
                     vir::Stmt::Assert(
                         false.into(),
-                        self.encoder.error_manager().register(ErrorCtxt::AssertTerminator(term.source_info.span, msg.description().to_string()))
+                        self.encoder.error_manager().register(ErrorCtxt::AssertTerminator(term.source_info.span, msg.description().to_string())),
                     ),
                 ]);
                 self.cfg_method.set_successor(failure_block, Successor::Return);
@@ -722,7 +721,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     } else {
                         encoded_place.into()
                     }
-                ]
+                ],
             ),
             vir::Perm::full(),
         )
@@ -806,7 +805,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_projection(&self, place_projection: &mir::PlaceProjection<'tcx>, root: Option<Local>)
-                        -> (vir::Place, ty::Ty<'tcx>, Option<usize>) {
+                         -> (vir::Place, ty::Ty<'tcx>, Option<usize>) {
         debug!("Encode projection {:?} {:?}", place_projection, root);
         let (encoded_base, base_ty, opt_variant_index) = self.encode_place_with_subst_root(
             &place_projection.base, root);
@@ -825,7 +824,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let encoded_projection = encoded_base.access(encoded_field);
                         (encoded_projection, field_ty, None)
-                    },
+                    }
 
                     ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
                         debug!("subst {:?}", subst);
@@ -843,11 +842,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let encoded_projection = encoded_base.access(encoded_field);
                         (encoded_projection, field_ty, None)
-                    },
+                    }
 
                     ref x => unimplemented!("{:?}", x),
                 }
-            },
+            }
 
             &mir::ProjectionElem::Deref => {
                 match base_ty.sty {
@@ -856,28 +855,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                         let access = vir::Place::Field(
                             box encoded_base,
-                            ref_field
+                            ref_field,
                         );
                         (access, ty, None)
-                    },
+                    }
                     ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
                         let tcx = self.encoder.env().tcx();
                         let field_ty = base_ty.boxed_ty();
                         let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
                         let access = vir::Place::Field(
                             box encoded_base,
-                            ref_field
+                            ref_field,
                         );
                         (access, base_ty.boxed_ty(), None)
                     }
                     ref x => unimplemented!("{:?}", x),
                 }
-            },
+            }
 
             &mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
                 (encoded_base, base_ty, Some(variant_index))
-            },
+            }
 
             x => unimplemented!("{:?}", x),
         }
@@ -891,10 +890,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match place {
             &Place::NormalPlace(ref place) => {
                 self.encode_place_with_subst_root(place, None)
-            },
+            }
             &Place::SubstitutedPlace { substituted_root, ref place } => {
                 self.encode_place_with_subst_root(place, Some(substituted_root))
-            },
+            }
         }
     }
 
@@ -942,18 +941,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Returns an `vir::Expr` that corresponds to the value of the operand
     fn eval_operand(&mut self, operand: &mir::Operand<'tcx>) -> vir::Expr {
         match operand {
-            &mir::Operand::Constant(box mir::Constant{ ty, literal: mir::Literal::Value{ value }, ..}) => {
+            &mir::Operand::Constant(box mir::Constant { ty, literal: mir::Literal::Value { value }, .. }) => {
                 self.encoder.eval_const(value)
             }
             &mir::Operand::Copy(ref place) => {
                 let val_place = self.eval_place(place);
                 val_place.into()
-            },
-            &mir::Operand::Move(ref place) =>{
+            }
+            &mir::Operand::Move(ref place) => {
                 let (encoded_place, _, _) = self.encode_place(place);
                 let val_place = self.eval_place(&place);
                 val_place.into()
-            },
+            }
             x => unimplemented!("{:?}", x)
         }
     }
@@ -964,14 +963,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::Operand::Move(ref place) => {
                 let (_, ty, _) = self.encode_place(place);
                 ty
-            },
+            }
             &mir::Operand::Copy(ref place) => {
                 let (_, ty, _) = self.encode_place(place);
                 ty
-            },
-            &mir::Operand::Constant(box mir::Constant{ ty, ..}) => {
+            }
+            &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
                 ty
-            },
+            }
         }
     }
 
@@ -981,11 +980,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::Operand::Move(ref place) => {
                 let (src, _, _) = self.encode_place(place);
                 Some(src)
-            },
+            }
             &mir::Operand::Copy(_) |
             &mir::Operand::Constant(_) => {
                 None
-            },
+            }
         }
     }
 
@@ -1000,14 +999,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vec![
                     vir::Stmt::Assign(lhs.clone().into(), src.clone().into())
                 ]
-            },
+            }
             &mir::Operand::Copy(ref place) => {
                 let (src, ty, _) = self.encode_place(place);
-                let mut stmts: Vec<vir::Stmt> = vec![] ;
+                let mut stmts: Vec<vir::Stmt> = vec![];
                 // Copy the values from `src` to `lhs`
                 self.encode_copy(src, lhs.clone(), ty)
-            },
-            &mir::Operand::Constant(box mir::Constant{ ty, ref literal, ..}) => {
+            }
+            &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
                 let mut stmts = Vec::new();
                 // Reset `lhs`
                 stmts.extend(self.encode_havoc_and_allocation(lhs, ty));
@@ -1031,7 +1030,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 }
                 stmts
-            },
+            }
         }
     }
 
@@ -1049,19 +1048,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Before, move to a temporary variable (used to encode procedure calls)
                 let stmt_before = vir::Stmt::Assign(viper_local.clone().into(), src.clone().into());
                 (local, viper_local, vec![stmt_before], vec![])
-            },
+            }
             &mir::Operand::Copy(ref place) => {
                 let (src, ty, _) = self.encode_place(place);
                 let local = self.locals.get_fresh(ty);
                 let viper_local = self.encode_prusti_local(local);
-                let mut stmts: Vec<vir::Stmt> = vec![] ;
+                let mut stmts: Vec<vir::Stmt> = vec![];
                 // Before, copy the values from src to viper_local
                 stmts.extend(
                     self.encode_copy(src, viper_local.clone().into(), ty)
                 );
                 (local, viper_local, stmts, vec![])
-            },
-            &mir::Operand::Constant(box mir::Constant{ ty, ref literal, ..}) => {
+            }
+            &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
                 let local = self.locals.get_fresh(ty);
                 let viper_local = self.encode_prusti_local(local);
                 let mut stmts = Vec::new();
@@ -1103,11 +1102,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 )
                             )
                         );
-
                     }
                 }
                 (local, viper_local, stmts, vec![])
-            },
+            }
         }
     }
 
@@ -1168,17 +1166,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     // Equality
                     vir::Expr::eq_cmp(
                         dst.clone().access(field.clone()).into(),
-                        src.clone().access(field.clone()).into()
+                        src.clone().access(field.clone()).into(),
                     )
                 ]
-            },
+            }
 
             ty::TypeVariants::TyRawPtr(_) |
             ty::TypeVariants::TyRef(_, _, _) => {
                 // It is not sound to copy a struct containing a mutable reference (full ownership)
                 // Regarding mutable references, we dont' support them yet
                 unimplemented!();
-            },
+            }
 
             ty::TypeVariants::TyTuple(elems) => {
                 let mut exprs: Vec<vir::Expr> = vec![];
@@ -1190,14 +1188,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         self.encode_copy_expr(
                             src.clone().access(field.clone()),
                             dst.clone().access(field.clone()),
-                            ty
+                            ty,
                         )
                     );
                 }
                 exprs
-            },
+            }
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box()=> {
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
                 let mut exprs: Vec<vir::Expr> = vec![];
                 let num_variants = adt_def.variants.len();
                 let discriminant_field = self.encoder.encode_discriminant_field();
@@ -1206,7 +1204,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // Copy discriminant
                         vir::Expr::eq_cmp(
                             src.clone().access(discriminant_field.clone()).into(),
-                            dst.clone().access(discriminant_field.clone()).into()
+                            dst.clone().access(discriminant_field.clone()).into(),
                         )
                     );
                 }
@@ -1222,7 +1220,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             self.encode_copy_expr(
                                 src.clone().access(elem_field.clone()),
                                 dst.clone().access(elem_field.clone()),
-                                field_ty
+                                field_ty,
                             )
                         )
                     }
@@ -1231,9 +1229,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             vir::Expr::implies(
                                 vir::Expr::eq_cmp(
                                     src.clone().access(discriminant_field.clone()).into(),
-                                    variant_index.into()
+                                    variant_index.into(),
                                 ),
-                                variant_exprs.into_iter().conjoin()
+                                variant_exprs.into_iter().conjoin(),
                             )
                         );
                     } else {
@@ -1243,7 +1241,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 }
                 exprs
-            },
+            }
 
             ref x => unimplemented!("{:?}", x),
         };
@@ -1252,8 +1250,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             src,
             vir::Expr::unfolding(
                 dst,
-                copy_exprs.into_iter().conjoin()
-            )
+                copy_exprs.into_iter().conjoin(),
+            ),
         )
     }
 
@@ -1289,7 +1287,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let abs_right = vir::Expr::ite(
                     vir::Expr::ge_cmp(right.clone(), 0.into()),
                     right.clone(),
-                    vir::Expr::minus(right.clone())
+                    vir::Expr::minus(right.clone()),
                 );
                 vir::Expr::ite(
                     vir::Expr::ge_cmp(left.clone(), 0.into()),
@@ -1327,7 +1325,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         dst: &vir::Place,
         ty: ty::Ty<'tcx>,
         aggregate: &mir::AggregateKind<'tcx>,
-        operands: &Vec<mir::Operand<'tcx>>
+        operands: &Vec<mir::Operand<'tcx>>,
     ) -> Vec<vir::Stmt> {
         debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -1347,7 +1345,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     );
                 }
                 stmts
-            },
+            }
 
             &mir::AggregateKind::Adt(adt_def, variant_index, subst, _) => {
                 let num_variants = adt_def.variants.len();
@@ -1357,7 +1355,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vir::Stmt::Inhale(
                             vir::Expr::eq_cmp(
                                 dst.clone().access(discr_field).into(),
-                                variant_index.into()
+                                variant_index.into(),
                             )
                         )
                     );
@@ -1374,7 +1372,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     );
                 }
                 stmts
-            },
+            }
 
             ref x => unimplemented!("{:?}", x)
         }

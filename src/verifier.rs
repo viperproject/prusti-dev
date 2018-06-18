@@ -2,16 +2,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_interface::verifier::Verifier as VerifierSpec;
-use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
-use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
-use prusti_interface::data::VerificationResult;
-use prusti_interface::environment::EnvironmentImpl;
-use prusti_interface::data::VerificationTask;
-use viper::{self, Viper};
 use encoder::Encoder;
 use encoder::vir::ToViper;
+use prusti_interface::data::VerificationResult;
+use prusti_interface::data::VerificationTask;
+use prusti_interface::environment::EnvironmentImpl;
+use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
+use prusti_interface::verifier::Verifier as VerifierSpec;
+use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use report::Log;
+use viper::{self, Viper};
 
 pub struct VerifierBuilder {
     viper: Viper,

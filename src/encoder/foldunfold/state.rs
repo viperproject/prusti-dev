@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashSet;
+use encoder::foldunfold::acc_or_pred::*;
 use encoder::vir;
 use encoder::vir::utils::ExprIterator;
-use encoder::foldunfold::acc_or_pred::*;
+use std::collections::HashSet;
 use std::iter::FromIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

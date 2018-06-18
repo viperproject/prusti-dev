@@ -2,13 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashSet;
-use std::collections::HashMap;
-use encoder::vir;
-use std::iter::FromIterator;
 use encoder::foldunfold::acc_or_pred::*;
 use encoder::foldunfold::requirements::*;
 use encoder::foldunfold::state::*;
+use encoder::vir;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 const DEBUG_FOLDUNFOLD: bool = false;
 

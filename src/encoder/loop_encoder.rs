@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
-use rustc::mir;
 use prusti_interface::environment::{
     BasicBlockIndex, PlaceAccess, PlaceAccessKind, ProcedureLoops};
+use rustc::mir;
+use std::collections::HashMap;
 
 pub struct LoopEncoder<'tcx> {
     pub loop_info: ProcedureLoops,
@@ -50,8 +50,8 @@ impl<'tcx> LoopEncoder<'tcx> {
             accessed_places.insert(loop_head, accesses);
         }
         LoopEncoder {
-            loop_info: loop_info,
-            accessed_places: accessed_places,
+            loop_info,
+            accessed_places,
         }
     }
 
