@@ -164,15 +164,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.procedures.borrow()[&proc_def_id].clone()
     }
 
-    pub fn encode_type_fields(&self, ty: ty::Ty<'tcx>) -> Vec<vir::Field> {
-        let type_encoder = TypeEncoder::new(self, ty);
-        let fields = type_encoder.encode_fields();
-        for field in &fields {
-            self.fields.borrow_mut().entry(field.name.to_string()).or_insert(field.clone());
-        }
-        fields
-    }
-
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_value_type()

@@ -128,7 +128,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }).collect()
             },
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst)  => {
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
                 let mut perms: Vec<vir::Expr> = vec![];
                 let num_variants = adt_def.variants.len();
                 let tcx = self.encoder.env().tcx();
@@ -229,6 +229,33 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 perms
             },
 
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+                let mut perms: Vec<vir::Expr> = vec![];
+                let num_variants = adt_def.variants.len();
+                let tcx = self.encoder.env().tcx();
+                assert!(num_variants == 1);
+                let field_ty = self.ty.boxed_ty();
+                let elem_field = self.encoder.encode_ref_field("val_ref", field_ty);
+                let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
+                let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
+                perms.push(
+                    vir::Expr::FieldAccessPredicate(
+                        box elem_loc.clone().into(),
+                        vir::Perm::full()
+                    )
+                );
+                perms.push(
+                    vir::Expr::PredicateAccessPredicate(
+                        box vir::Expr::PredicateAccess(
+                            predicate_name,
+                            vec![ elem_loc.into() ]
+                        ),
+                        vir::Perm::full()
+                    )
+                );
+                perms
+            },
+
             ty::TypeVariants::TyNever => {
                 vec![
                     vir::Expr::Const(false.into())
@@ -265,10 +292,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRef(_, ref ty, _) =>
                 format!("ref${}", self.encoder.encode_type_predicate_use(ty)),
 
-            ty::TypeVariants::TyAdt(&ty::AdtDef { did, .. }, subst) => {
+            ty::TypeVariants::TyAdt(adt_def, subst) => {
                 let mut composed_name = vec![
-                    self.encoder.encode_type_name(did),
-                    //subst.len().to_string(),
+                    self.encoder.encode_type_name(adt_def.did)
                 ];
                 for kind in subst.iter() {
                     if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
@@ -310,58 +336,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     "slice${}",
                     self.encoder.encode_type_predicate_use(array_ty)
                 )
-            },
-
-            ref x => unimplemented!("{:?}", x),
-        }
-    }
-
-    pub fn encode_fields(self) -> Vec<vir::Field> {
-        debug!("Encode fields of '{:?}'", self.ty);
-
-        match self.ty.sty {
-            ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => {
-                vec![
-                    self.encoder.encode_value_field(self.ty)
-                ]
-            }
-
-            ty::TypeVariants::TyRawPtr(_) |
-            ty::TypeVariants::TyRef(_, _, _) => {
-                vec![
-                    self.encoder.encode_value_field(self.ty)
-                ]
-            }
-
-            ty::TypeVariants::TyTuple(elems) => {
-                elems.iter().enumerate().map(|(field_num, ty)| {
-                    let field_name = format!("tuple_{}", field_num);
-                    let encoded_field = self.encoder.encode_ref_field(&field_name, ty);
-                    encoded_field
-                }).collect()
-            },
-
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
-                let mut fields = vec![];
-                let num_variants = adt_def.variants.len();
-                if num_variants > 1 {
-                    let discr_field = self.encoder.encode_discriminant_field();
-                    fields.push(discr_field);
-                }
-                let tcx = self.encoder.env().tcx();
-                for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-                    assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
-                    for field in &variant_def.fields {
-                        let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
-                        let field_ty = field.ty(tcx, subst);
-                        let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        //let ty = field.ty(tcx, subst);
-                        fields.push(encoded_field)
-                    }
-                }
-                fields
             },
 
             ref x => unimplemented!("{:?}", x),

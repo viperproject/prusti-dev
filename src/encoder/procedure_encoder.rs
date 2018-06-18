@@ -301,12 +301,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     },
 
-                    &mir::Rvalue::NullaryOp(_op, ref _ty) => unimplemented!("{:?}", rhs),
+                    &mir::Rvalue::NullaryOp(op, ref ty) => {
+                        match op {
+                            mir::NullOp::Box => {
+                                // Reset `lhs`
+                                stmts.extend(
+                                    self.encode_havoc_and_allocation(&encoded_lhs.clone().into(), ty)
+                                );
+                            },
+                            mir::NullOp::SizeOf => unimplemented!(),
+                        }
+                        stmts
+                    },
 
                     &mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.encode_place(src);
                         match src_ty.sty {
-                            ty::TypeVariants::TyAdt(ref adt_def, _) => {
+                            ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
                                 // Reset `lhs`
                                 stmts.extend(
@@ -372,7 +383,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                          cfg_blocks: &HashMap<BasicBlockIndex, CfgBlockIndex>,
                          spec_cfg_block: CfgBlockIndex,
                          return_cfg_block: CfgBlockIndex) -> (Vec<vir::Stmt>, Successor) {
-        trace!("Encode terminator '{:?}', span: {:?}", term.kind, term.source_info.span);
+        debug!("Encode terminator '{:?}', span: {:?}", term.kind, term.source_info.span);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         match term.kind {
@@ -495,6 +506,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // This is a Prusti loop invariant
                         unreachable!();
                     },
+
                     "std::rt::begin_panic" => {
                         // This is called when a Rust assertion fails
                         // args[0]: message
@@ -537,7 +549,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let pos_id = self.encoder.error_manager().register(ErrorCtxt::Panic(term.source_info.span, panic_cause));
                         stmts.push(vir::Stmt::Assert(false.into(), pos_id));
                     },
+
+                    "<std::boxed::Box<T>>::new" => {
+                        // This is the initialization of a box
+                        // args[0]: value to put in the box
+                        assert!(args.len() == 1);
+
+                        let &(ref target_place, _) = destination.as_ref().unwrap();
+                        let (dst, dest_ty, _) = self.encode_place(target_place);
+                        let boxed_ty = dest_ty.boxed_ty();
+                        let ref_field = self.encoder.encode_ref_field("val_ref", boxed_ty);
+
+                        let box_content = vir::Place::Field(
+                            box dst.clone(),
+                            ref_field
+                        );
+
+                        // Reset `dst`
+                        stmts.extend(
+                            self.encode_havoc_and_allocation(&dst.clone().into(), dest_ty)
+                        );
+
+                        // Initialize box content
+                        stmts.extend(
+                            self.encode_assign_operand(&box_content, &args[0])
+                        );
+                    },
+
+                    // generic function call
                     _ => {
+                        debug!("Encoding function call '{}'", func_proc_name);
                         let mut stmts_after: Vec<vir::Stmt> = vec![];
                         let mut arg_vars = Vec::new();
 
@@ -551,10 +592,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let mut encoded_targets = Vec::new();
                         let target = {
                             let &(ref target_place, _) = destination.as_ref().unwrap();
-                            let (src, ty, _) = self.encode_place(target_place);
+                            let (dst, ty, _) = self.encode_place(target_place);
                             let local = self.locals.get_fresh(ty);
                             let viper_local = self.encode_prusti_local(local);
-                            stmts_after.push(vir::Stmt::Assign(src, viper_local.clone().into()));
+                            stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into()));
                             encoded_targets.push(viper_local);
                             local
                         };
@@ -786,7 +827,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         (encoded_projection, field_ty, None)
                     },
 
-                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
+                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
                         debug!("subst {:?}", subst);
                         let num_variants = adt_def.variants.len();
                         // FIXME: why this can be None?
@@ -820,41 +861,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         (access, ty, None)
                     },
                     ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
-                        // Ugly hardcoded fields to dereference box
                         let tcx = self.encoder.env().tcx();
-                        let field_1_ty = adt_def.variants[0].fields[0].ty(tcx, subst);
-                        let ref_field_1 = self.encoder.encode_ref_field("enum_0_0", field_1_ty);
-                        let field_2_ty = if let ty::TypeVariants::TyAdt(ref field_1_did, ref field_1_subst) = field_1_ty.sty {
-                            field_1_did.variants[0].fields[0].ty(tcx, field_1_subst)
-                        } else {
-                            unreachable!()
-                        };
-                        let ref_field_2 = self.encoder.encode_ref_field("enum_0_pointer", field_2_ty);
-                        let field_3_ty = if let ty::TypeVariants::TyAdt(ref field_2_did, ref field_2_subst) = field_2_ty.sty {
-                            field_2_did.variants[0].fields[0].ty(tcx, field_2_subst)
-                        } else {
-                            unreachable!()
-                        };
-                        let ref_field_3 = self.encoder.encode_ref_field("enum_0_0", field_3_ty);
-                        let field_4_ty = if let ty::TypeVariants::TyRawPtr(ty_and_mut) = field_3_ty.sty {
-                            ty_and_mut.ty
-                        } else {
-                            unreachable!()
-                        };
-                        assert_eq!(field_4_ty, base_ty.boxed_ty());
-                        let ref_field_4 = self.encoder.encode_ref_field("val_ref", field_4_ty);
+                        let field_ty = base_ty.boxed_ty();
+                        let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
                         let access = vir::Place::Field(
-                            box vir::Place::Field(
-                                box vir::Place::Field(
-                                    box vir::Place::Field(
-                                        box encoded_base,
-                                        ref_field_1
-                                    ),
-                                    ref_field_2
-                                ),
-                                ref_field_3
-                            ),
-                            ref_field_4
+                            box encoded_base,
+                            ref_field
                         );
                         (access, base_ty.boxed_ty(), None)
                     }
@@ -1185,7 +1197,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 exprs
             },
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) => {
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box()=> {
                 let mut exprs: Vec<vir::Expr> = vec![];
                 let num_variants = adt_def.variants.len();
                 let discriminant_field = self.encoder.encode_discriminant_field();
