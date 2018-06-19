@@ -64,12 +64,12 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 let fake_position = ast.identifier_position(0, 0, "TODO");
                 ast.inhale(expr.to_viper(ast), fake_position)
             },
-            &Stmt::Exhale(ref expr, ref pos_id) => {
-                let position = ast.identifier_position(0, 0, &pos_id.to_string());
+            &Stmt::Exhale(ref expr, ref pos) => {
+                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
                 ast.exhale(expr.to_viper(ast), position)
             },
-            &Stmt::Assert(ref expr, ref pos_id) => {
-                let position = ast.identifier_position(0, 0, &pos_id.to_string());
+            &Stmt::Assert(ref expr, ref pos) => {
+                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
                 ast.assert(expr.to_viper(ast), position)
             },
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => ast.method_call(

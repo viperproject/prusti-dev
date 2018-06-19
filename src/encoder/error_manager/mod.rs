@@ -1,4 +1,4 @@
-use encoder::vir::PosId;
+use encoder::vir::Position;
 use std::collections::HashMap;
 use syntax::codemap::Span;
 use syntax_pos::MultiSpan;
@@ -23,21 +23,20 @@ pub enum PanicCause {
 #[derive(Clone,Debug)]
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
-    /// Arguments: the span of the statement that might panic
-    Panic(Span, PanicCause),
+    Panic(PanicCause),
     /// A Viper `exhale expr` that encodes the call of a Rust procedure wit precondition `expr`
-    ExhalePrecondition(),
+    ExhalePrecondition,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure wit postcondition `expr`
-    ExhalePostcondition(),
+    ExhalePostcondition,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
-    /// Arguments: the span of the statement that might fail, the message of the Rust assertion
-    AssertTerminator(Span, String),
+    /// Arguments: the message of the Rust assertion
+    AssertTerminator(String),
     /// A Viper `assert false` that encodes an `abort` Rust terminator
-    AbortTerminator(Span),
+    AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
-    UnreachableTerminator(Span),
+    UnreachableTerminator,
     /// An error that should never happen
-    Unexpected(),
+    Unexpected,
 }
 
 /// The Rust error that will be reported from the compiler
@@ -61,7 +60,7 @@ impl CompilerError {
 /// The error manager
 #[derive(Clone,Debug)]
 pub struct ErrorManager {
-    error_contexts: HashMap<String, ErrorCtxt>,
+    error_contexts: HashMap<String, (Span, ErrorCtxt)>,
 }
 
 impl ErrorManager {
@@ -71,16 +70,21 @@ impl ErrorManager {
         }
     }
 
-    pub fn register(&mut self, error_ctx: ErrorCtxt) -> PosId {
-        let pos_id = Uuid::new_v4().hyphenated().to_string();
-        self.error_contexts.insert(pos_id.clone(), error_ctx);
-        PosId::new(pos_id)
+    pub fn register(&mut self, span: Span, error_ctx: ErrorCtxt) -> Position {
+        let pos_id = self.error_contexts.len();
+        self.error_contexts.insert(pos_id.to_string(), (span, error_ctx));
+        // XXX Hack: generate unique positions
+        let line = pos_id as i32;
+        let column = 0;
+        let pos = Position::new(line, column, pos_id.to_string());
+        debug!("Register position: {:?}", pos);
+        pos
     }
 
     pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {
         let opt_error_ctx = self.error_contexts.get(&ver_error.pos_id);
 
-        let error_ctx = if let Some(x) = opt_error_ctx {
+        let (error_span, error_ctx) = if let Some(x) = opt_error_ctx {
             x
         } else {
             error!("Unregistered verification error: {:?}", ver_error);
@@ -92,52 +96,52 @@ impl ErrorManager {
         };
 
         match (ver_error.full_id.as_str(), error_ctx) {
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Unknown)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => CompilerError::new(
                 "P0001",
                 "statement might panic",
-                MultiSpan::from_span(*span)
+                MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Panic)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => CompilerError::new(
                 "P0002",
                 "panic!(..) statement might panic",
-                MultiSpan::from_span(*span)
+                MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Assert)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => CompilerError::new(
                 "P0003",
                 "assert!(..) statement might not hold",
-                MultiSpan::from_span(*span)
+                MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(span, PanicCause::Unreachable)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => CompilerError::new(
                 "P0004",
                 "unreachable!(..) statement might be reachable",
-                MultiSpan::from_span(*span)
+                MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(span, ref message)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => CompilerError::new(
                 "P0005",
                 format!("assertion might fail with \"{}\"", message),
-                MultiSpan::from_span(*span)
+                MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator(span)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => CompilerError::new(
                 "P????",
                 format!("statement might abort"),
-                MultiSpan::from_span(*span)
+                MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator(span)) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => CompilerError::new(
                 "P????",
                 format!("unreachable code might be reachable. This might be a bug in the compiler."),
-                MultiSpan::from_span(*span)
+                MultiSpan::from_span(*error_span)
             ),
 
-            (full_err_id, ErrorCtxt::Unexpected()) => CompilerError::new(
+            (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
                 full_err_id,
                 format!("unexpected verification error ({})", ver_error.message),
-                MultiSpan::new()
+                MultiSpan::from_span(*error_span)
             ),
 
             (full_err_id, _) => {
@@ -145,7 +149,7 @@ impl ErrorManager {
                 CompilerError::new(
                     full_err_id,
                     format!("Unhandled verification error ({})", ver_error.message),
-                    MultiSpan::new()
+                    MultiSpan::from_span(*error_span)
                 )
             },
         }

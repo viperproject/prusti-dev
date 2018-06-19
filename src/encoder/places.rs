@@ -87,6 +87,17 @@ impl<'tcx> LocalVariableManager<'tcx> {
         }
     }
 
+    /// True if the local variable is a formal argument of the procedure.
+    pub fn is_formal_arg(&self, mir: &mir::Mir, local: Local) -> bool {
+        match self.variables[local] {
+            LocalVarData::RealLocal(real_local, _) => match mir.local_kind(real_local) {
+                mir::LocalKind::Arg => true,
+                _ => false
+            }
+            _ => false,
+        }
+    }
+
     pub fn iter(&self) -> iter::Map<ops::Range<usize>, IntoIdx<Local>> {
         self.variables.indices()
     }

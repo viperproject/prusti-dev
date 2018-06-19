@@ -25,6 +25,7 @@ use rustc::ty;
 use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use syntax::codemap::Span;
 
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -112,7 +113,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vir::Stmt::comment("This should never be reached. It's a residual of type-checking specifications."),
             vir::Stmt::Assert(
                 false.into(),
-                self.encoder.error_manager().register(ErrorCtxt::Unexpected()),
+                self.encoder.error_manager().register(
+                    self.mir.span,
+                    ErrorCtxt::Unexpected
+                ),
             )
         ]);
         self.cfg_method.set_successor(spec_cfg_block, Successor::Return);
@@ -190,9 +194,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Allocate stack frame: formal return and local variables
         // (formal arguments are already inhaled by the precondition)
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Allocate formal return and local variables"));
-        for local_var in self.cfg_method.get_formal_returns_and_local_vars() {
+        let local_vars_and_return: Vec<_> = self.locals
+            .iter()
+            .filter(|local| !self.locals.is_formal_arg(self.mir, *local))
+            .collect();
+        for local in local_vars_and_return.iter() {
+            let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(*local));
+            let var_name = self.locals.get_name(*local);
+            let local_var = vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name));
             let alloc_stmt = vir::Stmt::Inhale(
-                self.encode_place_predicate_permission(local_var.clone().into())
+                self.encode_place_predicate_body(local_var.clone().into())
             );
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
@@ -420,17 +431,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             TerminatorKind::Unreachable => {
-                let pos_id = self.encoder.error_manager().register(ErrorCtxt::UnreachableTerminator(term.source_info.span));
+                let pos = self.encoder.error_manager().register(
+                    term.source_info.span,
+                    ErrorCtxt::UnreachableTerminator
+                );
                 stmts.push(
-                    vir::Stmt::Assert(false.into(), pos_id)
+                    vir::Stmt::Assert(false.into(), pos)
                 );
                 (stmts, Successor::Return)
             }
 
             TerminatorKind::Abort => {
-                let pos_id = self.encoder.error_manager().register(ErrorCtxt::AbortTerminator(term.source_info.span));
+                let pos = self.encoder.error_manager().register(
+                    term.source_info.span,
+                    ErrorCtxt::AbortTerminator
+                );
                 stmts.push(
-                    vir::Stmt::Assert(false.into(), pos_id)
+                    vir::Stmt::Assert(false.into(), pos)
                 );
                 (stmts, Successor::Return)
             }
@@ -540,8 +557,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Something else called panic!()
                             PanicCause::Unknown
                         };
-                        let pos_id = self.encoder.error_manager().register(ErrorCtxt::Panic(term.source_info.span, panic_cause));
-                        stmts.push(vir::Stmt::Assert(false.into(), pos_id));
+                        let pos = self.encoder.error_manager().register(
+                            term.source_info.span,
+                            ErrorCtxt::Panic(panic_cause)
+                        );
+                        stmts.push(vir::Stmt::Assert(false.into(), pos));
                     }
 
                     "<std::boxed::Box<T>>::new" => {
@@ -601,8 +621,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(vir::Stmt::Label(label.clone()));
 
                         let precondition = self.encode_precondition_expr(&procedure_contract);
-                        let pos_id = self.encoder.error_manager().register(ErrorCtxt::ExhalePrecondition());
-                        stmts.push(vir::Stmt::Exhale(precondition, pos_id));
+                        let pos = self.encoder.error_manager().register(
+                            term.source_info.span,
+                            ErrorCtxt::ExhalePrecondition
+                        );
+                        stmts.push(vir::Stmt::Exhale(precondition, pos));
 
                         stmts.push(vir::Stmt::MethodCall(
                             self.encoder.encode_procedure_name(def_id),
@@ -651,7 +674,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::Stmt::comment(format!("A Rust assertion failed: {}", msg.description())),
                     vir::Stmt::Assert(
                         false.into(),
-                        self.encoder.error_manager().register(ErrorCtxt::AssertTerminator(term.source_info.span, msg.description().to_string())),
+                        self.encoder.error_manager().register(
+                            term.source_info.span,
+                            ErrorCtxt::AssertTerminator(msg.description().to_string())
+                        ),
                     ),
                 ]);
                 self.cfg_method.set_successor(failure_block, Successor::Return);
@@ -761,8 +787,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Postconditions:"));
         let postcondition = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
-        let pos_id = self.encoder.error_manager().register(ErrorCtxt::ExhalePostcondition());
-        let exhale_stmt = vir::Stmt::Exhale(postcondition, pos_id);
+        let pos = self.encoder.error_manager().register(
+            self.mir.span,
+            ErrorCtxt::ExhalePostcondition
+        );
+        let exhale_stmt = vir::Stmt::Exhale(postcondition, pos);
         self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
     }
 
@@ -1137,7 +1166,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Allocate `dst`
         stmts.push(
             vir::Stmt::Inhale(
-                self.encode_place_predicate_permission(dst.clone())
+                self.encode_place_predicate_body(dst.clone())
             )
         );
         stmts

@@ -43,6 +43,19 @@ impl State {
                 }
             }
         }
+        for place in &self.pred {
+            for other_place in &self.pred {
+                if place != other_place {
+                    if place.has_prefix(other_place) {
+                        panic!(
+                            "Consistency error: state has pred {}, but also pred {}",
+                            place,
+                            other_place
+                        );
+                    }
+                }
+            }
+        }
     }
 
     pub fn acc(&self) -> &HashSet<vir::Place> {
