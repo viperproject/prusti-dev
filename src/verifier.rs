@@ -11,7 +11,7 @@ use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
 use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use report::Log;
-use viper::{self, Viper};
+use viper::{self, Viper, VerificationBackend};
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -64,13 +64,21 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
     type VerifierImpl = Verifier<'v, 'r, 'a, 'tcx>;
 
     fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Verifier<'v, 'r, 'a, 'tcx> {
+        let backend = VerificationBackend::Silicon;
+        let mut verifier_args = vec![];
+        if let VerificationBackend::Silicon = backend {
+            verifier_args.extend(vec![
+                "--printMethodCFGs",
+                "--tempDirectory", "./log/viper_tmp",
+            ]);
+        }
         Verifier::new(
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
-            self.verification_ctx.new_verifier_with_args(vec![
-                "--printMethodCFGs",
-                "--tempDirectory", "./log/viper_tmp",
-            ]),
+            self.verification_ctx.new_verifier_with_args(
+                VerificationBackend::Silicon,
+                verifier_args
+            ),
             env
         )
     }
