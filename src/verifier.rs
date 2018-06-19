@@ -11,6 +11,7 @@ use viper_sys::wrappers::viper::*;
 use jni_utils::JniUtils;
 use verification_result::VerificationResult;
 use verification_result::VerificationError;
+use verification_backend::VerificationBackend;
 use ast_utils::AstUtils;
 use std::marker::PhantomData;
 use std::time::Instant;
@@ -23,30 +24,33 @@ pub mod state {
 
 pub struct Verifier<'a, VerifierState> {
     env: &'a JNIEnv<'a>,
-    silicon_wrapper: silicon::Silicon<'a>,
-    silicon_instance: JObject<'a>,
+    verifier_wrapper: silver::verifier::Verifier<'a>,
+    verifier_instance: JObject<'a>,
     jni: JniUtils<'a>,
     state: PhantomData<VerifierState>,
 }
 
 impl<'a, VerifierState> Verifier<'a, VerifierState> {
-    pub fn new(env: &'a JNIEnv) -> Verifier<'a, state::Uninitialized> {
+    pub fn new(env: &'a JNIEnv, backend: VerificationBackend) -> Verifier<'a, state::Uninitialized> {
         let jni = JniUtils::new(env);
-        let silicon_wrapper = silicon::Silicon::with(env);
-        let silicon_instance = jni.unwrap_result(silicon_wrapper.new());
+        let verifier_wrapper = silver::verifier::Verifier::with(env);
+        let verifier_instance = jni.unwrap_result(match backend {
+            VerificationBackend::Silicon => silicon::Silicon::with(env).new(),
+            VerificationBackend::Carbon => carbon::CarbonVerifier::with(env).new(),
+        });
 
         let name = jni.to_string(
-            jni.unwrap_result(silicon_wrapper.call_name(silicon_instance))
+            jni.unwrap_result(verifier_wrapper.call_name(verifier_instance))
         );
         let build_version = jni.to_string(
-            jni.unwrap_result(silicon_wrapper.call_buildVersion(silicon_instance))
+            jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance))
         );
         debug!("Using backend {} version {}", name, build_version);
 
         Verifier {
             env,
-            silicon_wrapper,
-            silicon_instance,
+            verifier_wrapper,
+            verifier_instance,
             jni,
             state: PhantomData,
         }
@@ -60,14 +64,14 @@ impl<'a> Verifier<'a, state::Uninitialized> {
                 .map(|x| self.jni.new_string(x))
                 .collect::<Vec<JObject>>());
             self.jni.unwrap_result(
-                self.silicon_wrapper
-                    .call_parseCommandLine(self.silicon_instance, args),
+                self.verifier_wrapper
+                    .call_parseCommandLine(self.verifier_instance, args),
             );
         }
         Verifier {
             env: self.env,
-            silicon_wrapper: self.silicon_wrapper,
-            silicon_instance: self.silicon_instance,
+            verifier_wrapper: self.verifier_wrapper,
+            verifier_instance: self.verifier_instance,
             jni: self.jni,
             state: PhantomData,
         }
@@ -77,12 +81,12 @@ impl<'a> Verifier<'a, state::Uninitialized> {
 impl<'a> Verifier<'a, state::Stopped> {
     pub fn start(self) -> Verifier<'a, state::Started> {
         self.jni
-            .unwrap_result(self.silicon_wrapper.call_start(self.silicon_instance));
+            .unwrap_result(self.verifier_wrapper.call_start(self.verifier_instance));
 
         Verifier {
             env: self.env,
-            silicon_wrapper: self.silicon_wrapper,
-            silicon_instance: self.silicon_instance,
+            verifier_wrapper: self.verifier_wrapper,
+            verifier_instance: self.verifier_instance,
             jni: self.jni,
             state: PhantomData,
         }
@@ -113,8 +117,8 @@ impl<'a> Verifier<'a, state::Started> {
 
         let start_verification = Instant::now();
         let viper_result = self.jni.unwrap_result(
-            self.silicon_wrapper
-                .call_verify(self.silicon_instance, program.to_jobject()),
+            self.verifier_wrapper
+                .call_verify(self.verifier_instance, program.to_jobject()),
         );
         let duration = start_verification.elapsed();
 

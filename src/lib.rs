@@ -14,6 +14,7 @@ extern crate viper_sys;
 
 mod viper;
 mod verification_context;
+mod verification_backend;
 mod ast_factory;
 mod verification_result;
 mod verifier;
@@ -25,6 +26,7 @@ pub mod utils;
 pub use viper::*;
 pub use verifier::*;
 pub use verification_context::*;
+pub use verification_backend::*;
 pub use ast_factory::*;
 pub use verification_result::*;
 pub use ast_utils::*;

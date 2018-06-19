@@ -29,7 +29,6 @@ impl Viper {
         let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap()
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
-            .filter(|x| !x.contains("carbon"))
             .collect();
 
         debug!("Java classpath: {}", jar_paths.clone().join(":"));
