@@ -115,12 +115,16 @@ fn main() {
                 object_getter!(),
                 method!("apply"),
             ]),
-            // Viper
-            java_class!("viper.silicon.interfaces.Failure", vec![
-                constructor!(),
-            ]),
+            // Silicon
             java_class!("viper.silicon.Silicon", vec![
                 constructor!("()V"),
+            ]),
+            // Carbon
+            java_class!("viper.carbon.CarbonVerifier", vec![
+                constructor!("()V"),
+            ]),
+            // Silver
+            java_class!("viper.silver.verifier.Verifier", vec![
                 method!("name"),
                 method!("buildVersion"),
                 method!("parseCommandLine"),
