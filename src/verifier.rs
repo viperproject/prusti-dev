@@ -123,11 +123,7 @@ impl<'a> Verifier<'a, state::Started> {
         let duration = start_verification.elapsed();
 
         debug!("Viper verification took {}.{} seconds", duration.as_secs(), duration.subsec_millis()/10);
-
-        debug!(
-            "Viper verification result: {}",
-            self.jni.to_string(viper_result)
-        );
+        debug!("Viper verification result: {}", self.jni.to_string(viper_result));
 
         let is_failure = self.jni
             .is_instance_of(viper_result, "viper/silver/verifier/Failure");
