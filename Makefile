@@ -17,6 +17,9 @@ run:
 	${DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
+		-Z dump-mir=all \
+		-Z dump-mir-dir=log/mir/ \
+		-Z dump-mir-graphviz \
 		${RUN_FILE}
 	#dot -Tpdf graph.dot -O
 	#dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
