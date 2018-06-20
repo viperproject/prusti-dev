@@ -56,6 +56,7 @@ fn verify_empty_program() {
 
     env.with_local_frame(32, || {
         let silicon = viper::silicon::Silicon::with(&env).new()?;
+        let verifier = viper::silver::verifier::Verifier::with(&env);
 
         let silicon_args_array =
             JObject::from(env.new_object_array(3, "java/lang/String", JObject::null())?);
@@ -80,9 +81,9 @@ fn verify_empty_program() {
 
         let silicon_args_seq = scala::Predef::with(&env).call_wrapRefArray(silicon_args_array)?;
 
-        viper::silicon::Silicon::with(&env).call_parseCommandLine(silicon, silicon_args_seq)?;
+        verifier.call_parseCommandLine(silicon, silicon_args_seq)?;
 
-        viper::silicon::Silicon::with(&env).call_start(silicon)?;
+        verifier.call_start(silicon)?;
 
         let program = viper::silver::ast::Program::with(&env).new(
             scala::collection::mutable::ArraySeq::with(&env).new(0)?,
@@ -95,14 +96,13 @@ fn verify_empty_program() {
             viper::silver::ast::NoTrafos_object::with(&env).singleton()?,
         )?;
 
-        let verification_result =
-            viper::silicon::Silicon::with(&env).call_verify(silicon, program)?;
+        let verification_result = verifier.call_verify(silicon, program)?;
 
         let system_out = get_system_out(&env)?;
 
         java::io::PrintStream::with(&env).call_println(system_out, verification_result)?;
 
-        viper::silicon::Silicon::with(&env).call_stop(silicon)?;
+        verifier.call_stop(silicon)?;
 
         Ok(JObject::null())
     }).unwrap_or_else(|e| {
