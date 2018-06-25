@@ -357,8 +357,7 @@ impl BranchCtxt {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
             }
 
-            // We can not assert this, because the state is an overapproximation
-            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Position()));
 
             stmts.append(
                 &mut self.obtain_all(required_places, true).unwrap()
@@ -402,8 +401,7 @@ impl BranchCtxt {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
             }
 
-            // We can not assert this, because the state is an overapproximation
-            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Id()));
+            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Position()));
 
             stmts.append(
                 &mut self.obtain_all(required_places, true).unwrap()

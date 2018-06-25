@@ -24,7 +24,7 @@ use viper;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
-    error_manager: RefCell<ErrorManager>,
+    error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
@@ -38,7 +38,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Self {
         Encoder {
             env,
-            error_manager: RefCell::new(ErrorManager::new()),
+            error_manager: RefCell::new(ErrorManager::new(env.codemap())),
             procedure_contracts: RefCell::new(HashMap::new()),
             builtin_methods: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
@@ -53,7 +53,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.env
     }
 
-    pub fn error_manager(&self) -> RefMut<ErrorManager> {
+    pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {
         self.error_manager.borrow_mut()
     }
 

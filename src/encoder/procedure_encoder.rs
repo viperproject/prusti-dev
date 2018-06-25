@@ -203,7 +203,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let var_name = self.locals.get_name(*local);
             let local_var = vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name));
             let alloc_stmt = vir::Stmt::Inhale(
-                self.encode_place_predicate_body(local_var.clone().into())
+                self.encode_place_predicate_permission(local_var.clone().into())
             );
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
@@ -1166,7 +1166,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Allocate `dst`
         stmts.push(
             vir::Stmt::Inhale(
-                self.encode_place_predicate_body(dst.clone())
+                self.encode_place_predicate_permission(dst.clone())
             )
         );
         stmts

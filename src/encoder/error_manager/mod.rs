@@ -4,6 +4,7 @@ use syntax::codemap::Span;
 use syntax_pos::MultiSpan;
 use uuid::Uuid;
 use viper::VerificationError;
+use syntax::codemap::CodeMap;
 
 /// The cause of a panic!()
 #[derive(Clone,Debug)]
@@ -58,24 +59,28 @@ impl CompilerError {
 }
 
 /// The error manager
-#[derive(Clone,Debug)]
-pub struct ErrorManager {
+#[derive(Clone)]
+pub struct ErrorManager<'tcx> {
+    codemap: &'tcx CodeMap,
     error_contexts: HashMap<String, (Span, ErrorCtxt)>,
 }
 
-impl ErrorManager {
-    pub fn new() -> Self {
+impl<'tcx> ErrorManager<'tcx> {
+    pub fn new(codemap: &'tcx CodeMap) -> Self {
         ErrorManager {
+            codemap,
             error_contexts: HashMap::new(),
         }
     }
 
     pub fn register(&mut self, span: Span, error_ctx: ErrorCtxt) -> Position {
-        let pos_id = self.error_contexts.len();
+        let pos_id = Uuid::new_v4().hyphenated().to_string();
         self.error_contexts.insert(pos_id.to_string(), (span, error_ctx));
-        // XXX Hack: generate unique positions
-        let line = pos_id as i32;
-        let column = 0;
+        // Fixme: Silver requires line and column to be unique
+        let lines_info = self.codemap.span_to_lines(span.source_callsite()).unwrap();
+        let first_line_info = lines_info.lines.get(0).unwrap();
+        let line = first_line_info.line_index as i32 + 1;
+        let column = first_line_info.start_col.0 as i32 + 1;
         let pos = Position::new(line, column, pos_id.to_string());
         debug!("Register position: {:?}", pos);
         pos
