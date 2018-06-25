@@ -20,6 +20,7 @@ use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};
 pub use self::loops::{ProcedureLoops, PlaceAccess, PlaceAccessKind};
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
+use syntax::codemap::CodeMap;
 
 /// A facade to the Rust compiler.
 pub trait Environment<'tcx> {
@@ -55,6 +56,11 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     /// Returns the typing context
     pub fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
         self.state.tcx.unwrap()
+    }
+
+    /// Returns the `CodeMap`
+    pub fn codemap(&self) -> &'tcx CodeMap {
+        self.state.session.codemap()
     }
 
     /// Emits a warning message
