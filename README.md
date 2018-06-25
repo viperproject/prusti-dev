@@ -52,7 +52,7 @@ yarn run build
 ### 3. Start demo
 ```bash
 cd $DEV_DIR/rust-playground/ui
-TMPDIR=/tmp/playground \
+TMPDIR=/tmp \
 RUST_LOG=debug \
 PLAYGROUND_UI_ADDRESS=0.0.0.0 \
 PLAYGROUND_UI_PORT=8080 \
