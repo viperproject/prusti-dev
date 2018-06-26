@@ -305,6 +305,62 @@ impl<'tcx> SpecParser<'tcx> {
         )
     }
 
+    /// Extract old expressions from untyped specifications, replacing them with temporary variable names.
+    ///
+    /// Returns:
+    /// - the declaration of the old expressions
+    /// - the untyped specification with old expressions substituted with the temporary variable names.
+    fn extract_old_expressions(&self, specifications: &[UntypedSpecification]) -> (Vec<ast::Stmt>, Vec<UntypedSpecification>) {
+        trace!("[extract_old_expressions] enter");
+        let mut old_expression_declarations = Vec::new();
+        let mut specifications_without_old = Vec::new();
+        for specification in specifications {
+            let mut new_spec = specification.clone();
+            new_spec.assertion = self.populate_old_expressions_from_assertion(&specification.assertion, &mut old_expression_declarations);
+            specifications_without_old.push(new_spec);
+        }
+        trace!("[extract_old_expressions] exit");
+        (old_expression_declarations, specifications_without_old)
+    }
+
+    fn populate_old_expressions_from_assertion(&self, assertion: &UntypedAssertion, old_expressions: &mut Vec<ast::Stmt>) -> UntypedAssertion {
+        trace!("[populate_old_expressions_from_assertion] enter");
+        let mut new_assertion = assertion.clone();
+        new_assertion.kind = box match *assertion.kind {
+            AssertionKind::Expr(ref expression) => {
+                let new_expression = self.populate_old_expressions_from_expression(expression, old_expressions);
+                AssertionKind::Expr(new_expression)
+            }
+            AssertionKind::And(ref assertions) => {
+                AssertionKind::And(
+                    assertions.iter().map(
+                        |assertion| self.populate_old_expressions_from_assertion(assertion, old_expressions)
+                    ).collect()
+                )
+            }
+            AssertionKind::Implies(ref expression, ref assertion) => {
+                let new_expression = self.populate_old_expressions_from_expression(expression, old_expressions);
+                let new_assertion = self.populate_old_expressions_from_assertion(assertion, old_expressions);
+                AssertionKind::Implies(new_expression, new_assertion)
+            }
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref filter, ref body) => {
+                unimplemented!("TODO")
+            }
+        };
+        trace!("[populate_old_expressions_from_assertion] exit");
+        new_assertion
+    }
+
+    fn populate_old_expressions_from_expression(&self, expression: &UntypedExpression, old_expressions: &mut Vec<ast::Stmt>) -> UntypedExpression {
+        trace!("[populate_old_expressions_from_expression] enter");
+        debug!("expression {:?}", expression);
+        let mut old_expr_rewriter = OldExpressionRewriter::new(old_expressions, &self.ast_builder);
+        let mut new_expression = expression.clone();
+        new_expression.expr = old_expr_rewriter.fold_expr(new_expression.expr);
+        trace!("[populate_old_expressions_from_expression] exit");
+        new_expression
+    }
+
     /// Generate a function that contains only the precondition and postcondition
     /// for type-checking.
     fn generate_spec_item(
@@ -324,6 +380,12 @@ impl<'tcx> SpecParser<'tcx> {
 
                 // Add preconditions.
                 statements.extend(self.convert_to_statements(preconditions));
+
+                // Extract old expressions from postconditions.
+                let (old_expressions, postconditions_without_old) = self.extract_old_expressions(postconditions);
+
+                // Add declaration of old expressions
+                statements.extend(old_expressions);
 
                 // Add result.
                 let args: Vec<_> = decl.inputs
@@ -348,7 +410,7 @@ impl<'tcx> SpecParser<'tcx> {
                 ));
 
                 // Add postconditions.
-                statements.extend(self.convert_to_statements(postconditions));
+                statements.extend(self.convert_to_statements(&postconditions_without_old));
 
                 // Return result.
                 statements.push(
@@ -999,4 +1061,40 @@ fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
     let lo = span.lo() + syntax::codemap::BytePos(offset);
     let hi = lo + syntax::codemap::BytePos(length);
     Span::new(lo, hi, span.ctxt())
+}
+
+struct OldExpressionRewriter<'a, 'tcx: 'a> {
+    old_expressions: &'a mut Vec<ast::Stmt>,
+    ast_builder: &'a MinimalAstBuilder<'tcx>
+}
+
+impl<'a, 'tcx> OldExpressionRewriter<'a, 'tcx> {
+    pub fn new(old_expressions: &'a mut Vec<ast::Stmt>, ast_builder: &'a MinimalAstBuilder<'tcx>) -> OldExpressionRewriter<'a, 'tcx> {
+        OldExpressionRewriter {
+            old_expressions,
+            ast_builder,
+        }
+    }
+}
+
+impl<'a, 'tcx> Folder for OldExpressionRewriter<'a, 'tcx> {
+    fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
+        match &expr.node {
+            &ast::ExprKind::Call(ref callee, ref arguments) => {
+                match &callee.node {
+                    &ast::ExprKind::Path(None, ref path) if path.eq(&"old") => {
+                        debug!("Found old expression. Arguments: {:?}", arguments);
+                        assert_eq!(arguments.len(), 1, "`old(..)` expression expects exactly one argument.");
+                        let old_expr_name = format!("__prusti_old_{}", self.old_expressions.len());
+                        let old_expr_variable = self.ast_builder.ident_of(&old_expr_name);
+                        let old_expr_decl = self.ast_builder.stmt_let(expr.span, false, old_expr_variable, arguments[0].clone());
+                        self.old_expressions.push(old_expr_decl);
+                        self.ast_builder.expr_ident(expr.span, old_expr_variable)
+                    }
+                    _ => expr.clone().map(|e| syntax::fold::noop_fold_expr(e, self)),
+                }
+            }
+            _ => expr.clone().map(|e| syntax::fold::noop_fold_expr(e, self)),
+        }
+    }
 }
