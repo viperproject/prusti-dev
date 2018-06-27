@@ -1,5 +1,3 @@
-// error-pattern: error[P0002]
-
 extern crate prusti_contracts;
 
 macro_rules! assert {
@@ -9,7 +7,7 @@ macro_rules! assert {
 }
 
 fn foo(x: bool) {
-    assert!(x);
+    assert!(x);  //~ ERROR panic!(..) statement might panic
 }
 
 fn main() {

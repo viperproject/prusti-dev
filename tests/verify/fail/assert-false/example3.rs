@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-// error-pattern: error[P0003]
-
 extern crate prusti_contracts;
 
 enum IntOption {
@@ -15,7 +13,7 @@ fn foo(x: IntOption) -> i32 {
         IntOption::Some(y) => y,
         IntOption::None => 456
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 

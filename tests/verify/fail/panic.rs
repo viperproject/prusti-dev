@@ -1,7 +1,5 @@
-// error-pattern: error[P0002]
-
 extern crate prusti_contracts;
 
 fn main() {
-    panic!();
+    panic!();  //~ ERROR panic!(..) statement might panic
 }

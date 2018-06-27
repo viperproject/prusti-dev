@@ -1,9 +1,5 @@
-//! Currently unsupported because `Box` and `Option` use a type parameter
-
 #![feature(nll)]
 #![feature(box_patterns)]
-
-// error-pattern: error[P0003]
 
 extern crate prusti_contracts;
 
@@ -18,7 +14,7 @@ fn take_left(tree: Tree) -> Option<Tree> {
         Some(box left) => Some(left),
         None => None,
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 

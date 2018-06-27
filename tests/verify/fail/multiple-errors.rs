@@ -1,17 +1,13 @@
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-
 extern crate prusti_contracts;
 
 fn foo() {
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
 }
 
 fn bar() {
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
 }
 
 fn main() {
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
 }

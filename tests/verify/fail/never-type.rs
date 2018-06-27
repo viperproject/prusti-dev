@@ -1,9 +1,7 @@
-// error-pattern: error[P0002]
-
 extern crate prusti_contracts;
 
 fn diverging() -> ! {
-    panic!();
+    panic!();  //~ ERROR panic!(..) statement might panic
 }
 
 fn main() {

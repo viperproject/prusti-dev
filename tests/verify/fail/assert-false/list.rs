@@ -1,18 +1,6 @@
-//! Currently unsupported because `Box` and `Option` use a type parameter
-
 #![feature(nll)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
-// error-pattern: error[P0003]
 
 extern crate prusti_contracts;
 
@@ -29,7 +17,7 @@ fn head(list: List) -> Option<i32> {
         List::Nil => None,
         List::Const { val, box next } => Some(val),
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 
@@ -38,7 +26,7 @@ fn tail(list: List) -> Option<List> {
         List::Nil => None,
         List::Const { val, box next } => Some(next),
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 
@@ -47,7 +35,7 @@ fn length(list: List) -> u32 {
         List::Nil => 0,
         List::Const { val, box next } => 1 + length(next),
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 
@@ -59,12 +47,12 @@ fn last_value(list: List) -> Option<i32> {
             Some(last) => Some(last),
         }
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 
 fn empty_list(val: i32) -> List {
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     List::Nil
 }
 
@@ -73,7 +61,7 @@ fn singleton_list(val: i32) -> List {
         val,
         next: box List::Nil
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 
@@ -82,7 +70,7 @@ fn prepend(val: i32, list: List) -> List {
         val,
         next: box list
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 
@@ -97,7 +85,7 @@ fn append(new_val: i32, list: List) -> List {
             next: box append(new_val, next)
         },
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 
@@ -106,7 +94,7 @@ fn revert(list: List) -> List {
         List::Nil => List::Nil,
         List::Const { val, box next } => append(val, revert(next))
     };
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
     ret
 }
 

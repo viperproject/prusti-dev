@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-// error-pattern: error[P0003]
-
 extern crate prusti_contracts;
 
 #[derive(Clone, Copy)]
@@ -41,8 +39,7 @@ fn compute(expr: Expr) -> i32 {
 
     let value = match simplified {
         Expr::Sum(_, _) => {
-            // We want to prove that this is never reached
-            unreachable!()
+            unreachable!()  //~ ERROR assert!(..) statement might not hold
         },
         Expr::Constant(IntBox { val }) => val
     };
