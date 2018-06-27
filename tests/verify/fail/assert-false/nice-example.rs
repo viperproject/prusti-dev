@@ -39,12 +39,12 @@ fn compute(expr: Expr) -> i32 {
 
     let value = match simplified {
         Expr::Sum(_, _) => {
-            unreachable!()  //~ ERROR assert!(..) statement might not hold
+            unreachable!()
         },
         Expr::Constant(IntBox { val }) => val
     };
 
-    assert!(false);
+    assert!(false);  //~ ERROR assert!(..) statement might not hold
 
     value
 }
