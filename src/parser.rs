@@ -535,6 +535,21 @@ impl<'tcx> SpecParser<'tcx> {
         let attrs = item.attrs;
         item.attrs = vec![];
         let specs = self.parse_specs(attrs);
+
+        // Do not add a PRUSTI_SPEC_ATTR if the function has no specification
+        if specs.is_empty() {
+            let node = item.node;
+            item.node = self.fold_item_kind(node);
+            debug!(
+                "new_item:\n{}",
+                syntax::print::pprust::item_to_string(&item)
+            );
+            trace!("[rewrite_function] exit");
+            let mut result = SmallVector::new();
+            result.push(ptr::P(item));
+            return result
+        }
+
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(item.span, "invariant not allowed for procedure");
             return SmallVector::new();
