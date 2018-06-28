@@ -1,7 +1,7 @@
 RUST_LOG ?= viper=info,prusti_viper=info
 RUST_BACKTRACE ?= 1
 RUST_TEST_THREADS ?= 1
-JAVA_HOME ?= /usr/lib/jvm/java-8-oracle
+JAVA_HOME ?= /usr/lib/jvm/default-java
 RUST_VERSION=nightly-2018-05-30-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}/
 LD_LIBRARY_PATH = ${COMPILER_PATH}/lib/:${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/:./target/debug/:${JAVA_HOME}/jre/lib/amd64/server/
