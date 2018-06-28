@@ -21,9 +21,11 @@ use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use syntax::ast;
 use viper;
+use prusti_interface::specifications::{TypedSpecificationMap};
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    spec: &'v TypedSpecificationMap,
     error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
@@ -35,9 +37,10 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
-    pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Self {
+    pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Self {
         Encoder {
             env,
+            spec,
             error_manager: RefCell::new(ErrorManager::new(env.codemap())),
             procedure_contracts: RefCell::new(HashMap::new()),
             builtin_methods: RefCell::new(HashMap::new()),
@@ -51,6 +54,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn env(&self) -> &'v EnvironmentImpl<'r, 'a, 'tcx> {
         self.env
+    }
+
+    pub fn spec(&self) -> &'v TypedSpecificationMap {
+        self.spec
     }
 
     pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {

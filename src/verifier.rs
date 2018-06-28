@@ -12,6 +12,7 @@ use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use report::Log;
 use viper::{self, Viper, VerificationBackend};
+use prusti_interface::specifications::{TypedSpecificationMap};
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -63,7 +64,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
 {
     type VerifierImpl = Verifier<'v, 'r, 'a, 'tcx>;
 
-    fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>) -> Verifier<'v, 'r, 'a, 'tcx> {
+    fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Verifier<'v, 'r, 'a, 'tcx> {
         let backend = VerificationBackend::Silicon;
         let mut verifier_args = vec![];
         if let VerificationBackend::Silicon = backend {
@@ -79,7 +80,8 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
                 VerificationBackend::Silicon,
                 verifier_args
             ),
-            env
+            env,
+            spec
         )
     }
 }
@@ -94,6 +96,7 @@ pub struct Verifier<'v, 'r, 'a, 'tcx>
     ast_factory: viper::AstFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    spec: &'v TypedSpecificationMap,
     encoder: Encoder<'v, 'r, 'a, 'tcx>,
 }
 
@@ -103,13 +106,15 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         ast_factory: viper::AstFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
         env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        spec: &'v TypedSpecificationMap
     ) -> Self {
         Verifier {
             ast_utils,
             ast_factory,
             verifier,
             env,
-            encoder: Encoder::new(env)
+            spec,
+            encoder: Encoder::new(env, spec),
         }
     }
 }

@@ -26,6 +26,8 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::codemap::Span;
+use prusti_interface::constants::PRUSTI_SPEC_ATTR;
+use prusti_interface::specifications::{SpecID};
 
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -79,6 +81,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     pub fn encode(mut self) -> vir::CfgMethod {
         debug!("Encode procedure {}", self.cfg_method.name());
+
+        let spec_id: SpecID = self.encoder.env().tcx()
+            .get_attrs(self.proc_def_id)
+            .iter()
+            .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
+            .unwrap()
+            .value_str()
+            .unwrap()
+            .as_str()
+            .parse::<u64>()
+            .unwrap()
+            .into();
+
+        debug!("Specification id: {:?}", spec_id);
+
+        let fun_spec = self.encoder.spec().get(&spec_id).unwrap();
+
+        debug!("Specification: {:?}", fun_spec);
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
