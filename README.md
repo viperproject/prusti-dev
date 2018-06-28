@@ -35,7 +35,7 @@ mkdir -p $DEV_DIR
 cd $DEV_DIR
 git clone git@github.com:viperproject/prusti.git
 cd prusti/docker
-docker build -t rust-nightly .
+docker build --no-cache -t rust-nightly .
 ```
 
 ### 2. Build `rust-playground`
