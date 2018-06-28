@@ -13,7 +13,7 @@ use rustc::ty::TyCtxt;
 use rustc_driver::driver;
 use syntax::{self, ast};
 use std::collections::HashMap;
-use specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars,
+use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars,
                      Specification, SpecificationSet, Trigger, TypedAssertion, TypedSpecification,
                      TypedSpecificationMap, TypedTriggerSet, UntypedAssertion,
                      UntypedSpecification, UntypedSpecificationMap, UntypedTriggerSet};
@@ -211,6 +211,10 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
                     let crate_name = self.tcx.crate_name(def_id.krate);
                     if crate_name == "prusti_contracts"
                         && def_path == r#"::internal[0]::__assertion[0]"# {
+                        self.register_typed_expression(args);
+                    }
+                    if crate_name == "prusti_contracts"
+                        && def_path == r#"::internal[0]::__expression[0]"# {
                         self.register_typed_expression(args);
                     }
                     if crate_name == "prusti_contracts"

@@ -15,6 +15,7 @@ extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate rustc_codegen_utils;
 extern crate syntax;
+extern crate prusti_interface;
 
 use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
@@ -26,6 +27,7 @@ use std::rc::Rc;
 use std::cell::Cell;
 use syntax::ast;
 use syntax::feature_gate::AttributeType;
+use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 
 struct PrustiCompilerCalls {
     default: RustcDefaultCalls,
@@ -96,7 +98,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                 registry.register_attribute(String::from("requires"), AttributeType::Whitelisted);
                 registry.register_attribute(String::from("ensures"), AttributeType::Whitelisted);
                 registry
-                    .register_attribute(String::from("__PRUSTI_SPEC"), AttributeType::Whitelisted);
+                    .register_attribute(PRUSTI_SPEC_ATTR.to_string(), AttributeType::Whitelisted);
                 registry.register_attribute(
                     String::from("__PRUSTI_SPEC_ONLY"),
                     AttributeType::Whitelisted,

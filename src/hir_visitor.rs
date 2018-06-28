@@ -9,8 +9,9 @@ use rustc::hir::{ImplItem, Item, Item_, TraitItem};
 use rustc::ty::TyCtxt;
 use syntax::tokenstream::TokenTree;
 use syntax::parse::token::{Lit, Token};
-use specifications::TypedSpecificationMap;
-use specifications::SpecID;
+use prusti_interface::specifications::TypedSpecificationMap;
+use prusti_interface::specifications::SpecID;
+use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 
 /// HIR visitor
 pub struct HirVisitor<'a, 'tcx: 'a> {
@@ -30,7 +31,7 @@ impl<'a, 'tcx: 'a> HirVisitor<'a, 'tcx> {
         let attrs = &item.attrs;
 
         for attr in attrs {
-            if attr.path == "__PRUSTI_SPEC" {
+            if attr.path == PRUSTI_SPEC_ATTR {
                 let trees: Vec<TokenTree> = attr.tokens.trees().collect();
 
                 let spec_string = match trees[1] {

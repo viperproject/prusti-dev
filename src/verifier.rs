@@ -4,7 +4,7 @@
 
 //! A module that invokes the verifier `prusti-viper`
 
-use specifications::TypedSpecificationMap;
+use prusti_interface::specifications::TypedSpecificationMap;
 use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
 use prusti_interface::verifier::VerifierBuilder;
 use prusti_interface::verifier::VerificationContext;
@@ -37,7 +37,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         debug!("Prepare verifier...");
         let verifier_builder = ViperVerifierBuilder::new();
         let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
-        let mut verifier = verification_context.new_verifier(&env);
+        let mut verifier = verification_context.new_verifier(&env, &spec);
 
         debug!("Run verifier...");
         let verification_result = verifier.verify(&verification_task);

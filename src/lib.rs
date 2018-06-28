@@ -58,7 +58,6 @@ extern crate syntax;
 extern crate syntax_pos;
 
 pub mod ast_builder;
-pub mod specifications;
 pub mod parser;
 pub mod typeck;
 pub mod verifier;

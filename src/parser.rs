@@ -134,7 +134,7 @@ use syntax::ext::build::AstBuilder;
 use syntax::fold::Folder;
 use syntax::util::small_vector::SmallVector;
 use syntax_pos::FileName;
-use specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
+use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
                      SpecType, SpecificationSet, Trigger, TriggerSet, UntypedAssertion,
                      UntypedExpression, UntypedSpecification, UntypedSpecificationMap,
                      UntypedSpecificationSet, UntypedTriggerSet};
@@ -217,6 +217,22 @@ impl<'tcx> SpecParser<'tcx> {
             builder.expr_ident(span, builder.ident_of(function_name)),
             vec![builder.expr_usize(span, id.into()), rust_expr],
         ))
+    }
+
+    fn build_typeck_let(&self, ident: ast::Ident, expression: &UntypedExpression) -> ast::Stmt {
+        let id = expression.id;
+        let rust_expr = expression.expr.clone();
+        let span = rust_expr.span;
+        self.ast_builder.stmt_let(
+            span,
+            false,
+            ident,
+            self.ast_builder.expr_call(
+                span,
+                self.ast_builder.expr_ident(span, self.ast_builder.ident_of("__expression")),
+                vec![self.ast_builder.expr_usize(span, id.into()), rust_expr],
+            )
+        )
     }
 
     fn build_assertion(&self, expression: &UntypedExpression) -> ast::Stmt {
@@ -310,20 +326,30 @@ impl<'tcx> SpecParser<'tcx> {
     /// Returns:
     /// - the declaration of the old expressions
     /// - the untyped specification with old expressions substituted with the temporary variable names.
-    fn extract_old_expressions(&self, specifications: &[UntypedSpecification]) -> (Vec<ast::Stmt>, Vec<UntypedSpecification>) {
+    fn extract_old_expressions(&mut self, specifications: &[UntypedSpecification]) -> (Vec<ast::Stmt>, Vec<UntypedSpecification>) {
         trace!("[extract_old_expressions] enter");
+        let mut old_expressions = Vec::new();
         let mut old_expression_declarations = Vec::new();
         let mut specifications_without_old = Vec::new();
         for specification in specifications {
             let mut new_spec = specification.clone();
-            new_spec.assertion = self.populate_old_expressions_from_assertion(&specification.assertion, &mut old_expression_declarations);
+            new_spec.assertion = self.populate_old_expressions_from_assertion(&specification.assertion, &mut old_expressions);
             specifications_without_old.push(new_spec);
+        }
+        for (old_var, old_expr) in old_expressions {
+            let untyped_expr = Expression {
+                id: self.get_new_expression_id(),
+                expr: old_expr,
+            };
+            old_expression_declarations.push(
+                self.build_typeck_let(old_var, &untyped_expr)
+            )
         }
         trace!("[extract_old_expressions] exit");
         (old_expression_declarations, specifications_without_old)
     }
 
-    fn populate_old_expressions_from_assertion(&self, assertion: &UntypedAssertion, old_expressions: &mut Vec<ast::Stmt>) -> UntypedAssertion {
+    fn populate_old_expressions_from_assertion(&self, assertion: &UntypedAssertion, old_expressions: &mut Vec<(ast::Ident, ptr::P<ast::Expr>)>) -> UntypedAssertion {
         trace!("[populate_old_expressions_from_assertion] enter");
         let mut new_assertion = assertion.clone();
         new_assertion.kind = box match *assertion.kind {
@@ -351,7 +377,7 @@ impl<'tcx> SpecParser<'tcx> {
         new_assertion
     }
 
-    fn populate_old_expressions_from_expression(&self, expression: &UntypedExpression, old_expressions: &mut Vec<ast::Stmt>) -> UntypedExpression {
+    fn populate_old_expressions_from_expression(&self, expression: &UntypedExpression, old_expressions: &mut Vec<(ast::Ident, ptr::P<ast::Expr>)>) -> UntypedExpression {
         trace!("[populate_old_expressions_from_expression] enter");
         debug!("expression {:?}", expression);
         let mut old_expr_rewriter = OldExpressionRewriter::new(old_expressions, &self.ast_builder);
@@ -371,7 +397,6 @@ impl<'tcx> SpecParser<'tcx> {
         postconditions: &[UntypedSpecification],
     ) -> ast::Item {
         let mut name = item.ident.to_string();
-        let builder = &self.ast_builder;
         let span = item.span;
         match item.node {
             ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi, ref generics, ref _body) => {
@@ -394,7 +419,7 @@ impl<'tcx> SpecParser<'tcx> {
                     .map(|arg| {
                         match arg.pat.node {
                             ast::PatKind::Ident(_, ident, _) => {
-                                builder.expr_ident(ident.span, ident)
+                                self.ast_builder.expr_ident(ident.span, ident)
                             }
                             // TODO
                             ast::PatKind::Wild => unreachable!(),
@@ -402,11 +427,11 @@ impl<'tcx> SpecParser<'tcx> {
                         }
                     })
                     .collect();
-                statements.push(builder.stmt_let(
+                statements.push(self.ast_builder.stmt_let(
                     item.span,
                     false,
                     ast::Ident::from_str("result"),
-                    builder.expr_call_ident(item.span, item.ident, args),
+                    self.ast_builder.expr_call_ident(item.span, item.ident, args),
                 ));
 
                 // Add postconditions.
@@ -414,7 +439,7 @@ impl<'tcx> SpecParser<'tcx> {
 
                 // Return result.
                 statements.push(
-                    builder.stmt_expr(builder.expr_ident(item.span, builder.ident_of("result"))),
+                    self.ast_builder.stmt_expr(self.ast_builder.expr_ident(item.span, self.ast_builder.ident_of("result"))),
                 );
 
                 // Glue everything.
@@ -423,28 +448,27 @@ impl<'tcx> SpecParser<'tcx> {
                     ast::FunctionRetTy::Default(_) => None,
                 };
                 name.push_str("__spec");
-                let mut spec_item = builder
-                    .item_fn_optional_result(
+                let mut spec_item = self.ast_builder.item_fn_optional_result(
                         item.span,
                         ast::Ident::from_str(&name),
                         decl.inputs.clone(),
                         return_type,
                         generics.clone(),
-                        builder.block(item.span, statements),
+                        self.ast_builder.block(item.span, statements),
                     )
                     .into_inner();
                 mem::replace(
                     &mut spec_item.attrs,
                     vec![
-                        builder.attribute_name_value(
+                        self.ast_builder.attribute_name_value(
                             item.span,
                             "__PRUSTI_SPEC_ONLY",
                             &spec_id.to_string(),
                         ),
-                        builder.attribute_allow(item.span, "unused_mut"),
-                        builder.attribute_allow(item.span, "dead_code"),
-                        builder.attribute_allow(item.span, "non_snake_case"),
-                        builder.attribute_allow(item.span, "unused_imports"),
+                        self.ast_builder.attribute_allow(item.span, "unused_mut"),
+                        self.ast_builder.attribute_allow(item.span, "dead_code"),
+                        self.ast_builder.attribute_allow(item.span, "non_snake_case"),
+                        self.ast_builder.attribute_allow(item.span, "unused_imports"),
                     ],
                 );
                 spec_item
@@ -522,7 +546,7 @@ impl<'tcx> SpecParser<'tcx> {
         };
         expr.attrs = vec![
             self.ast_builder
-                .attribute_name_value(expr.span, "__PRUSTI_SPEC", &id.to_string()),
+                .attribute_name_value(expr.span, PRUSTI_SPEC_ATTR, &id.to_string()),
         ].into();
 
         trace!("[rewrite_loop] exit");
@@ -1064,12 +1088,12 @@ fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
 }
 
 struct OldExpressionRewriter<'a, 'tcx: 'a> {
-    old_expressions: &'a mut Vec<ast::Stmt>,
+    old_expressions: &'a mut Vec<(ast::Ident, ptr::P<ast::Expr>)>,
     ast_builder: &'a MinimalAstBuilder<'tcx>
 }
 
 impl<'a, 'tcx> OldExpressionRewriter<'a, 'tcx> {
-    pub fn new(old_expressions: &'a mut Vec<ast::Stmt>, ast_builder: &'a MinimalAstBuilder<'tcx>) -> OldExpressionRewriter<'a, 'tcx> {
+    pub fn new(old_expressions: &'a mut Vec<(ast::Ident, ptr::P<ast::Expr>)>, ast_builder: &'a MinimalAstBuilder<'tcx>) -> OldExpressionRewriter<'a, 'tcx> {
         OldExpressionRewriter {
             old_expressions,
             ast_builder,
@@ -1087,8 +1111,7 @@ impl<'a, 'tcx> Folder for OldExpressionRewriter<'a, 'tcx> {
                         assert_eq!(arguments.len(), 1, "`old(..)` expression expects exactly one argument.");
                         let old_expr_name = format!("__prusti_old_{}", self.old_expressions.len());
                         let old_expr_variable = self.ast_builder.ident_of(&old_expr_name);
-                        let old_expr_decl = self.ast_builder.stmt_let(expr.span, false, old_expr_variable, arguments[0].clone());
-                        self.old_expressions.push(old_expr_decl);
+                        self.old_expressions.push((old_expr_variable, arguments[0].clone()));
                         self.ast_builder.expr_ident(expr.span, old_expr_variable)
                     }
                     _ => expr.clone().map(|e| syntax::fold::noop_fold_expr(e, self)),
