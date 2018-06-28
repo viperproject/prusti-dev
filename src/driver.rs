@@ -151,7 +151,7 @@ pub fn main() {
     let args: Vec<String> = std::env::args().collect();
     //args.push("--sysroot".to_owned());
     //args.push(get_sysroot());
-    let mut prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
+    let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     rustc_driver::in_rustc_thread(move || {
         let (result, _) = rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None);
         if let Err(session::CompileIncomplete::Errored(_)) = result {

@@ -141,9 +141,9 @@ use prusti_interface::specifications::{Assertion, AssertionKind, Expression, Exp
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
-use syntax::ast::Generics;
 use syntax::codemap::respan;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
+use syntax::symbol::keywords;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -164,6 +164,7 @@ pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMa
 pub struct SpecParser<'tcx> {
     session: &'tcx Session,
     ast_builder: MinimalAstBuilder<'tcx>,
+    last_old_expr_id: u64,
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
     untyped_specifications: UntypedSpecificationMap,
@@ -175,6 +176,7 @@ impl<'tcx> SpecParser<'tcx> {
         SpecParser {
             session: session,
             ast_builder: MinimalAstBuilder::new(&session.parse_sess),
+            last_old_expr_id: 0,
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),
             untyped_specifications: HashMap::new(),
@@ -277,16 +279,19 @@ impl<'tcx> SpecParser<'tcx> {
                     builder.expr_ident(span, builder.ident_of("__id")),
                     vec![builder.expr_usize(span, vars.id.into())],
                 )));
-                let statement = builder.stmt_item(
+                let statement = builder.stmt_let(
                     span,
-                    builder.item_fn_optional_result(
+                    false,
+                    keywords::Underscore.ident(),
+                    builder.lambda_fn_decl(
                         span,
-                        ast::Ident::from_str("forall"),
-                        vars.vars.clone(),
-                        None,
-                        Generics::default(),
-                        builder.block(span, stmts),
-                    ),
+                        builder.fn_decl(
+                            vars.vars.clone(),
+                            ast::FunctionRetTy::Default(span)
+                        ),
+                        builder.expr_block(builder.block(span, stmts)),
+                        span
+                    )
                 );
                 statements.push(statement);
             }
@@ -328,61 +333,74 @@ impl<'tcx> SpecParser<'tcx> {
     /// - the untyped specification with old expressions substituted with the temporary variable names.
     fn extract_old_expressions(&mut self, specifications: &[UntypedSpecification]) -> (Vec<ast::Stmt>, Vec<UntypedSpecification>) {
         trace!("[extract_old_expressions] enter");
-        let mut old_expressions = Vec::new();
-        let mut old_expression_declarations = Vec::new();
+        let mut old_expr_decl = Vec::new();
         let mut specifications_without_old = Vec::new();
         for specification in specifications {
             let mut new_spec = specification.clone();
-            new_spec.assertion = self.populate_old_expressions_from_assertion(&specification.assertion, &mut old_expressions);
+            new_spec.assertion = self.populate_old_expressions_from_assertion(&specification.assertion, &mut old_expr_decl);
             specifications_without_old.push(new_spec);
         }
-        for (old_var, old_expr) in old_expressions {
-            let untyped_expr = Expression {
-                id: self.get_new_expression_id(),
-                expr: old_expr,
-            };
-            old_expression_declarations.push(
-                self.build_typeck_let(old_var, &untyped_expr)
-            )
-        }
         trace!("[extract_old_expressions] exit");
-        (old_expression_declarations, specifications_without_old)
+        (old_expr_decl, specifications_without_old)
     }
 
-    fn populate_old_expressions_from_assertion(&self, assertion: &UntypedAssertion, old_expressions: &mut Vec<(ast::Ident, ptr::P<ast::Expr>)>) -> UntypedAssertion {
+    fn populate_old_expressions_from_assertion(&mut self, assertion: &UntypedAssertion, old_expr_decl: &mut Vec<ast::Stmt>) -> UntypedAssertion {
         trace!("[populate_old_expressions_from_assertion] enter");
         let mut new_assertion = assertion.clone();
         new_assertion.kind = box match *assertion.kind {
             AssertionKind::Expr(ref expression) => {
-                let new_expression = self.populate_old_expressions_from_expression(expression, old_expressions);
+                let new_expression = self.populate_old_expressions_from_expression(expression, old_expr_decl);
                 AssertionKind::Expr(new_expression)
             }
             AssertionKind::And(ref assertions) => {
                 AssertionKind::And(
                     assertions.iter().map(
-                        |assertion| self.populate_old_expressions_from_assertion(assertion, old_expressions)
+                        |assertion| self.populate_old_expressions_from_assertion(assertion, old_expr_decl)
                     ).collect()
                 )
             }
             AssertionKind::Implies(ref expression, ref assertion) => {
-                let new_expression = self.populate_old_expressions_from_expression(expression, old_expressions);
-                let new_assertion = self.populate_old_expressions_from_assertion(assertion, old_expressions);
+                let new_expression = self.populate_old_expressions_from_expression(expression, old_expr_decl);
+                let new_assertion = self.populate_old_expressions_from_assertion(assertion, old_expr_decl);
                 AssertionKind::Implies(new_expression, new_assertion)
             }
             AssertionKind::ForAll(ref vars, ref trigger_set, ref filter, ref body) => {
-                unimplemented!("TODO")
+                AssertionKind::ForAll(
+                    vars.clone(),
+                    TriggerSet::new(trigger_set.triggers().iter().map(
+                        |trigger| Trigger::new(trigger.terms().iter().map(
+                            |term| self.populate_old_expressions_from_expression(term, old_expr_decl)
+                        ).collect())
+                    ).collect()),
+                    self.populate_old_expressions_from_expression(filter, old_expr_decl),
+                    self.populate_old_expressions_from_expression(body, old_expr_decl)
+                )
             }
         };
         trace!("[populate_old_expressions_from_assertion] exit");
         new_assertion
     }
 
-    fn populate_old_expressions_from_expression(&self, expression: &UntypedExpression, old_expressions: &mut Vec<(ast::Ident, ptr::P<ast::Expr>)>) -> UntypedExpression {
+    fn populate_old_expressions_from_expression(&mut self, expression: &UntypedExpression, old_expr_decl: &mut Vec<ast::Stmt>) -> UntypedExpression {
         trace!("[populate_old_expressions_from_expression] enter");
         debug!("expression {:?}", expression);
-        let mut old_expr_rewriter = OldExpressionRewriter::new(old_expressions, &self.ast_builder);
+        let mut old_expressions: Vec<(ast::Ident, ptr::P<ast::Expr>)> = vec![];
+        let mut old_expr_rewriter = OldExpressionRewriter::new(
+            &mut old_expressions,
+            &self.ast_builder,
+            &mut self.last_old_expr_id
+        );
         let mut new_expression = expression.clone();
         new_expression.expr = old_expr_rewriter.fold_expr(new_expression.expr);
+        for (old_var, old_expr) in old_expressions {
+            let untyped_expr = Expression {
+                id: self.get_new_expression_id(),
+                expr: old_expr,
+            };
+            old_expr_decl.push(
+                self.build_typeck_let(old_var, &untyped_expr)
+            )
+        }
         trace!("[populate_old_expressions_from_expression] exit");
         new_expression
     }
@@ -690,7 +708,8 @@ impl<'tcx> SpecParser<'tcx> {
                         None
                     }
                 } else {
-                    self.report_error(attribute.span, "unsupported attribute");
+                    // TODO: Report error only on attributes with  the "prusti" namespace
+                    //self.report_error(attribute.span, "unsupported attribute");
                     None
                 }
             })
@@ -1089,15 +1108,27 @@ fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
 
 struct OldExpressionRewriter<'a, 'tcx: 'a> {
     old_expressions: &'a mut Vec<(ast::Ident, ptr::P<ast::Expr>)>,
-    ast_builder: &'a MinimalAstBuilder<'tcx>
+    ast_builder: &'a MinimalAstBuilder<'tcx>,
+    last_old_expr_id: &'a mut u64,
 }
 
 impl<'a, 'tcx> OldExpressionRewriter<'a, 'tcx> {
-    pub fn new(old_expressions: &'a mut Vec<(ast::Ident, ptr::P<ast::Expr>)>, ast_builder: &'a MinimalAstBuilder<'tcx>) -> OldExpressionRewriter<'a, 'tcx> {
+    pub fn new(
+        old_expressions: &'a mut Vec<(ast::Ident, ptr::P<ast::Expr>)>,
+        ast_builder: &'a MinimalAstBuilder<'tcx>,
+        last_old_expr_id: &'a mut u64
+    ) -> OldExpressionRewriter<'a, 'tcx> {
         OldExpressionRewriter {
             old_expressions,
             ast_builder,
+            last_old_expr_id
         }
+    }
+
+    pub fn generate_old_expr_ident(&mut self) -> String {
+        let id = *self.last_old_expr_id;
+        *self.last_old_expr_id += 1;
+        format!("__prusti_old_{}", id)
     }
 }
 
@@ -1109,7 +1140,7 @@ impl<'a, 'tcx> Folder for OldExpressionRewriter<'a, 'tcx> {
                     &ast::ExprKind::Path(None, ref path) if path.eq(&"old") => {
                         debug!("Found old expression. Arguments: {:?}", arguments);
                         assert_eq!(arguments.len(), 1, "`old(..)` expression expects exactly one argument.");
-                        let old_expr_name = format!("__prusti_old_{}", self.old_expressions.len());
+                        let old_expr_name = self.generate_old_expr_ident();
                         let old_expr_variable = self.ast_builder.ident_of(&old_expr_name);
                         self.old_expressions.push((old_expr_variable, arguments[0].clone()));
                         self.ast_builder.expr_ident(expr.span, old_expr_variable)
