@@ -251,7 +251,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match stmt.kind {
             mir::StatementKind::StorageDead(_) |
             mir::StatementKind::StorageLive(_) |
-            mir::StatementKind::EndRegion(_) => stmts,
+            mir::StatementKind::EndRegion(_) |
+            mir::StatementKind::ReadForMatch(_) |
+            mir::StatementKind::Nop => stmts,
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.encode_place(lhs);
@@ -381,7 +383,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
 
-                    &mir::Rvalue::Ref(ref _region, _borrow_kind, ref place) => {
+                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Shared, ref place) => {
+                        warn!("TODO: Incomplete encoding of shared references");
+                        stmts
+                    }
+
+                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Unique, ref place) |
+                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Mut{ .. }, ref place)=> {
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.encode_place(place);
                         // Initialize ref_var.ref_field
