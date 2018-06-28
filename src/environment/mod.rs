@@ -15,6 +15,7 @@ use syntax::errors::DiagnosticId;
 mod procedure;
 mod loops;
 mod collect_prusti_spec_visitor;
+mod dump_borrowck_info;
 
 use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};
@@ -102,6 +103,13 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
             tcx.hir.krate().visit_all_item_likes(&mut visitor);
         }
         annotated_procedures
+    }
+
+    /// Dump various information from the borrow checker.
+    ///
+    /// Mostly used for experiments and debugging.
+    pub fn dump_borrowck_info(&self) {
+        dump_borrowck_info::dump_borrowck_info(self.tcx())
     }
 }
 

@@ -14,11 +14,13 @@
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
+extern crate polonius;
+extern crate polonius_engine;
 extern crate rustc;
-extern crate syntax;
 extern crate rustc_driver;
 extern crate rustc_mir;
 extern crate rustc_data_structures;
+extern crate syntax;
 extern crate syntax_pos;
 
 pub mod environment;
