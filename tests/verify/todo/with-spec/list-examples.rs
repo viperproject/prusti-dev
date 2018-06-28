@@ -12,9 +12,9 @@ struct List {
 }
 
 /// Returns the last List of the linked head. Recursive implementation.
-fn recursive_get_last(list: &mut List) -> &mut List {
-    match list.next {
-        None => list,
+fn recursive_get_last(head: &mut List) -> &mut List {
+    match head.next {
+        None => head,
         Some(box ref mut next) => recursive_get_last(next)
     }
 }
