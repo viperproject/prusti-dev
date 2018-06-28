@@ -105,60 +105,43 @@ impl<'a> MinimalAstBuilder<'a> {
         body: P<ast::Block>,
     ) -> P<ast::Item> {
         let output = match output {
-            Some(output) => ast::FunctionRetTy::Ty(output),
-            None => ast::FunctionRetTy::Default(span),
+            Some(output) => output,
+            None => self.ty(span, ast::TyKind::Tup(Vec::new())),
         };
-        self.item(
-            span,
-            name,
-            Vec::new(),
-            ast::ItemKind::Fn(
-                P(ast::FnDecl {
-                    inputs,
-                    output: output,
-                    variadic: false,
-                }),
-                ast::Unsafety::Normal,
-                dummy_spanned(ast::Constness::NotConst),
-                Abi::Rust,
-                generics,
-                body,
-            ),
-        )
+        self.item_fn_poly(span, name, inputs, output, generics, body)
     }
 }
 
 /// The following implementation is copy-pasted from the Rust compiler source code.
 impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     fn path(&self, span: Span, strs: Vec<ast::Ident> ) -> ast::Path {
-        self.path_all(span, false, strs, Vec::new(), Vec::new(), Vec::new())
+        self.path_all(span, false, strs, vec![], vec![])
     }
     fn path_ident(&self, span: Span, id: ast::Ident) -> ast::Path {
         self.path(span, vec![id])
     }
     fn path_global(&self, span: Span, strs: Vec<ast::Ident> ) -> ast::Path {
-        self.path_all(span, true, strs, Vec::new(), Vec::new(), Vec::new())
+        self.path_all(span, true, strs, vec![], vec![])
     }
     fn path_all(&self,
                 span: Span,
                 global: bool,
                 mut idents: Vec<ast::Ident> ,
-                lifetimes: Vec<ast::Lifetime>,
-                types: Vec<P<ast::Ty>>,
+                args: Vec<ast::GenericArg>,
                 bindings: Vec<ast::TypeBinding> )
                 -> ast::Path {
         let last_ident = idents.pop().unwrap();
-        let mut segments: Vec<ast::PathSegment> = Vec::new();
+        let mut segments: Vec<ast::PathSegment> = vec![];
 
         segments.extend(idents.into_iter().map(|ident| {
             ast::PathSegment::from_ident(ident.with_span_pos(span))
         }));
-        let parameters = if !lifetimes.is_empty() || !types.is_empty() || !bindings.is_empty() {
-            ast::AngleBracketedParameterData { lifetimes, types, bindings, span }.into()
+        let args = if !args.is_empty() || !bindings.is_empty() {
+            ast::AngleBracketedArgs { args, bindings, span }.into()
         } else {
             None
         };
-        segments.push(ast::PathSegment { ident: last_ident.with_span_pos(span), parameters });
+        segments.push(ast::PathSegment { ident: last_ident.with_span_pos(span), args });
         let mut path = ast::Path { span, segments };
         if global {
             if let Some(seg) = path.make_root() {
@@ -176,7 +159,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
              trait_path: ast::Path,
              ident: ast::Ident)
              -> (ast::QSelf, ast::Path) {
-        self.qpath_all(self_type, trait_path, ident, vec![], vec![], vec![])
+        self.qpath_all(self_type, trait_path, ident, vec![], vec![])
     }
 
     /// Constructs a qualified path.
@@ -186,17 +169,16 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                  self_type: P<ast::Ty>,
                  trait_path: ast::Path,
                  ident: ast::Ident,
-                 lifetimes: Vec<ast::Lifetime>,
-                 types: Vec<P<ast::Ty>>,
+                 args: Vec<ast::GenericArg>,
                  bindings: Vec<ast::TypeBinding>)
                  -> (ast::QSelf, ast::Path) {
         let mut path = trait_path;
-        let parameters = if !lifetimes.is_empty() || !types.is_empty() || !bindings.is_empty() {
-            ast::AngleBracketedParameterData { lifetimes, types, bindings, span: ident.span }.into()
+        let args = if !args.is_empty() || !bindings.is_empty() {
+            ast::AngleBracketedArgs { args, bindings, span: ident.span }.into()
         } else {
             None
         };
-        path.segments.push(ast::PathSegment { ident, parameters });
+        path.segments.push(ast::PathSegment { ident, args });
 
         (ast::QSelf {
             ty: self_type,
@@ -227,7 +209,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     // Might need to take bounds as an argument in the future, if you ever want
     // to generate a bounded existential trait type.
     fn ty_ident(&self, span: Span, ident: ast::Ident)
-                -> P<ast::Ty> {
+        -> P<ast::Ty> {
         self.ty_path(self.path_ident(span, ident))
     }
 
@@ -236,7 +218,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                ty: P<ast::Ty>,
                lifetime: Option<ast::Lifetime>,
                mutbl: ast::Mutability)
-               -> P<ast::Ty> {
+        -> P<ast::Ty> {
         self.ty(span,
                 ast::TyKind::Rptr(lifetime, self.ty_mt(ty, mutbl)))
     }
@@ -245,7 +227,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
               span: Span,
               ty: P<ast::Ty>,
               mutbl: ast::Mutability)
-              -> P<ast::Ty> {
+        -> P<ast::Ty> {
         self.ty(span,
                 ast::TyKind::Ptr(self.ty_mt(ty, mutbl)))
     }
@@ -255,8 +237,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             self.path_all(DUMMY_SP,
                           true,
                           self.std_path(&["option", "Option"]),
-                          Vec::new(),
-                          vec![ ty ],
+                          vec![ast::GenericArg::Type(ty)],
                           Vec::new()))
     }
 
@@ -268,14 +249,16 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                span: Span,
                ident: ast::Ident,
                attrs: Vec<ast::Attribute>,
-               bounds: ast::TyParamBounds,
-               default: Option<P<ast::Ty>>) -> ast::TyParam {
-        ast::TyParam {
+               bounds: ast::GenericBounds,
+               default: Option<P<ast::Ty>>) -> ast::GenericParam {
+        ast::GenericParam {
             ident: ident.with_span_pos(span),
             id: ast::DUMMY_NODE_ID,
             attrs: attrs.into(),
             bounds,
-            default,
+            kind: ast::GenericParamKind::Type {
+                default,
+            }
         }
     }
 
@@ -294,8 +277,9 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         }
     }
 
-    fn typarambound(&self, path: ast::Path) -> ast::TyParamBound {
-        ast::TraitTyParamBound(self.poly_trait_ref(path.span, path), ast::TraitBoundModifier::None)
+    fn trait_bound(&self, path: ast::Path) -> ast::GenericBound {
+        ast::GenericBound::Trait(self.poly_trait_ref(path.span, path),
+                                 ast::TraitBoundModifier::None)
     }
 
     fn lifetime(&self, span: Span, ident: ast::Ident) -> ast::Lifetime {
@@ -306,12 +290,15 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                     span: Span,
                     ident: ast::Ident,
                     attrs: Vec<ast::Attribute>,
-                    bounds: Vec<ast::Lifetime>)
-                    -> ast::LifetimeDef {
-        ast::LifetimeDef {
+                    bounds: ast::GenericBounds)
+                    -> ast::GenericParam {
+        let lifetime = self.lifetime(span, ident);
+        ast::GenericParam {
+            ident: lifetime.ident,
+            id: lifetime.id,
             attrs: attrs.into(),
-            lifetime: self.lifetime(span, ident),
             bounds,
+            kind: ast::GenericParamKind::Lifetime,
         }
     }
 
@@ -416,11 +403,11 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
     fn block(&self, span: Span, stmts: Vec<ast::Stmt>) -> P<ast::Block> {
         P(ast::Block {
-            stmts,
-            id: ast::DUMMY_NODE_ID,
-            rules: BlockCheckMode::Default,
-            span,
-            recovered: false,
+           stmts,
+           id: ast::DUMMY_NODE_ID,
+           rules: BlockCheckMode::Default,
+           span,
+           recovered: false,
         })
     }
 
@@ -483,7 +470,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         self.expr(span, ast::ExprKind::Call(self.expr_ident(span, id), args))
     }
     fn expr_call_global(&self, sp: Span, fn_path: Vec<ast::Ident> ,
-                        args: Vec<P<ast::Expr>> ) -> P<ast::Expr> {
+                      args: Vec<P<ast::Expr>> ) -> P<ast::Expr> {
         let pathexpr = self.expr_path(self.path_global(sp, fn_path));
         self.expr_call(sp, pathexpr, args)
     }
@@ -741,6 +728,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                       fn_decl_span: Span) // span of the `|...|` part
                       -> P<ast::Expr> {
         self.expr(span, ast::ExprKind::Closure(ast::CaptureBy::Ref,
+                                               ast::IsAsync::NotAsync,
                                                ast::Movability::Movable,
                                                fn_decl,
                                                body,
@@ -761,6 +749,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         // the entire lambda body. Probably we should extend the API
         // here, but that's not entirely clear.
         self.expr(span, ast::ExprKind::Closure(ast::CaptureBy::Ref,
+                                               ast::IsAsync::NotAsync,
                                                ast::Movability::Movable,
                                                fn_decl,
                                                body,
@@ -834,11 +823,14 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                   name,
                   Vec::new(),
                   ast::ItemKind::Fn(self.fn_decl(inputs, ast::FunctionRetTy::Ty(output)),
-                                    ast::Unsafety::Normal,
-                                    dummy_spanned(ast::Constness::NotConst),
-                                    Abi::Rust,
-                                    generics,
-                                    body))
+                              ast::FnHeader {
+                                  unsafety: ast::Unsafety::Normal,
+                                  asyncness: ast::IsAsync::NotAsync,
+                                  constness: dummy_spanned(ast::Constness::NotConst),
+                                  abi: Abi::Rust,
+                              },
+                              generics,
+                              body))
     }
 
     fn item_fn(&self,
@@ -847,7 +839,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
                inputs: Vec<ast::Arg> ,
                output: P<ast::Ty>,
                body: P<ast::Block>
-    ) -> P<ast::Item> {
+              ) -> P<ast::Item> {
         self.item_fn_poly(
             span,
             name,
@@ -907,7 +899,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     }
 
     fn item_struct_poly(&self, span: Span, name: Ident,
-                        struct_def: ast::VariantData, generics: Generics) -> P<ast::Item> {
+        struct_def: ast::VariantData, generics: Generics) -> P<ast::Item> {
         self.item(span, name, Vec::new(), ast::ItemKind::Struct(struct_def, generics))
     }
 
@@ -1002,7 +994,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
         self.item_use(sp, vis, P(ast::UseTree {
             span: sp,
             prefix: path,
-            kind: ast::UseTreeKind::Simple(rename),
+            kind: ast::UseTreeKind::Simple(rename, ast::DUMMY_NODE_ID, ast::DUMMY_NODE_ID),
         }))
     }
 
@@ -1012,7 +1004,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
             (ast::UseTree {
                 span: sp,
                 prefix: self.path(sp, vec![*id]),
-                kind: ast::UseTreeKind::Simple(None),
+                kind: ast::UseTreeKind::Simple(None, ast::DUMMY_NODE_ID, ast::DUMMY_NODE_ID),
             }, ast::DUMMY_NODE_ID)
         }).collect();
 

@@ -28,7 +28,7 @@ RUN mkdir -p /tmp/rust && \
     cd /tmp/rust && \
     wget -q -c https://sh.rustup.rs -O install.sh && \
     chmod 755 install.sh && \
-    ./install.sh -y --no-modify-path --default-toolchain nightly-2018-05-30 && \
+    ./install.sh -y --no-modify-path --default-toolchain nightly-2018-06-27 && \
     rm -rf /tmp/rust
 
 # Install Prusti prerequisites.

@@ -399,7 +399,7 @@ impl<'tcx> SpecParser<'tcx> {
         let mut name = item.ident.to_string();
         let span = item.span;
         match item.node {
-            ast::ItemKind::Fn(ref decl, _unsafety, _constness, _abi, ref generics, ref _body) => {
+            ast::ItemKind::Fn(ref decl, ref _header, ref generics, ref _body) => {
                 // Import contracts.
                 let mut statements = vec![self.build_prusti_contract_import(span)];
 
@@ -720,11 +720,11 @@ impl<'tcx> SpecParser<'tcx> {
             }
             whitespace_count += 1;
         }
-        let expr = parse::parse_expr_from_source_str(
+        let expr = parse::new_parser_from_source_str(
+            &self.session.parse_sess,
             FileName::QuoteExpansion,
             spec_string,
-            &self.session.parse_sess,
-        );
+        ).parse_expr();
         debug!("Parsed expr: {:?}", expr);
         let result = match expr {
             Ok(expr) => {
@@ -1012,7 +1012,7 @@ impl<'tcx> Folder for SpecParser<'tcx> {
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = match item.node {
-            ast::ItemKind::Fn(_, _, _, _, _, _) => self.rewrite_fn_item(item),
+            ast::ItemKind::Fn(_, _, _, _) => self.rewrite_fn_item(item),
             _ => SmallVector::one(item.map(|item| self.fold_item_simple(item))),
         };
         trace!("[fold_item] exit");
