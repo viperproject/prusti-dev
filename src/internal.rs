@@ -14,6 +14,11 @@ pub fn __id(_uuid: usize) {}
 /// the expression itself.
 pub fn __assertion(_uuid: usize, _spec: bool) {}
 
+/// This function is used to type-check expressions. The first
+/// argument is the unique id of the expression. The second argument is
+/// the expression itself.
+pub fn __expression<T>(_uuid: usize, expr: T) -> T { expr }
+
 /// This function is used to type-check terms used in triggers. The
 /// first argument is the unique id of the expression. The second
 /// argument is the expression itself.
