@@ -8,6 +8,7 @@
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
+#![feature(try_from)]
 
 #[macro_use]
 extern crate log;
@@ -24,3 +25,4 @@ pub mod environment;
 pub mod verifier;
 pub mod data;
 pub mod constants;
+pub mod specifications;
