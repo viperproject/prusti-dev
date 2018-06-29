@@ -1,12 +1,12 @@
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 
 use rustc::hir::{self, intravisit};
 use rustc::ty::TyCtxt;
 use syntax::ast;
 use syntax::codemap::Span;
 
-use polonius::{intern, tab_delim};
 use polonius_engine::{Algorithm, AllFacts, Output};
+use crate::environment::borrowck::facts;
 
 
 
@@ -48,9 +48,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let def_path = self.tcx.hir.def_path(def_id);
         let dir_path = PathBuf::from("nll-facts").join(def_path.to_filename_friendly_no_crate());
         debug!("Reading facts from: {:?}", dir_path);
-        let tables = &mut intern::InternerTables::new();
-        let all_facts = tab_delim::load_tab_delimited_facts(tables, &dir_path).unwrap();
-        //all_facts.write_to_dir(dir_path, location_table).unwrap();
+        let mut loader = facts::FactLoader::new();
+        loader.load_all_facts(&dir_path);
 
         trace!("[visit_fn] exit");
     }

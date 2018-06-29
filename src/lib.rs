@@ -9,19 +9,21 @@
 #![feature(box_syntax)]
 #![feature(box_patterns)]
 #![feature(try_from)]
+#![feature(crate_in_paths)]
 
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate lazy_static;
 extern crate polonius;
 extern crate polonius_engine;
+extern crate regex;
 extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_mir;
 extern crate rustc_data_structures;
+extern crate serde;
 extern crate syntax;
 extern crate syntax_pos;
+extern crate csv;
 
 pub mod environment;
 pub mod verifier;

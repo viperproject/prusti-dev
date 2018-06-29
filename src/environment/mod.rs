@@ -16,6 +16,7 @@ mod procedure;
 mod loops;
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
+pub mod borrowck;
 
 use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};
