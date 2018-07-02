@@ -18,7 +18,7 @@ extern crate syntax;
 extern crate prusti_interface;
 
 use rustc::session;
-use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
+use rustc_driver::{run, run_compiler, driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
 use std::env::var;
 use std::path::PathBuf;
@@ -28,6 +28,7 @@ use std::cell::Cell;
 use syntax::ast;
 use syntax::feature_gate::AttributeType;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
+
 
 struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -126,7 +127,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             trace!("[after_analysis.callback] exit");
             old(state);
         });
-        if Ok(String::from("true")) != var("PRUSTI_TESTS") {
+        if Ok(String::from("true")) != var("PRUSTI_FULL_COMPILATION") {
+            info!("Verification complete. Stop compiler.");
             control.after_analysis.stop = Compilation::Stop;
         }
         control
@@ -152,11 +154,18 @@ pub fn main() {
     //args.push("--sysroot".to_owned());
     //args.push(get_sysroot());
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
-    rustc_driver::in_rustc_thread(move || {
-        let (result, _) = rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None);
-        if let Err(session::CompileIncomplete::Errored(_)) = result {
-            std::process::exit(101);
-        }
-    }).expect("rustc_thread failed");
+    let result = run(|| {
+        let args = std::env::args_os().enumerate()
+            .map(|(i, arg)| arg.into_string().unwrap_or_else(|arg| {
+                session::early_error(session::config::ErrorOutputType::default(),
+                            &format!("Argument {} is not valid Unicode: {:?}", i, arg))
+            }))
+            .collect::<Vec<_>>();
+        run_compiler(&args,
+                     prusti_compiler_calls,
+                     None,
+                     None)
+    });
     trace!("[main] exit");
+    std::process::exit(result as i32);
 }
