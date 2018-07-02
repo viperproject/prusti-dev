@@ -97,14 +97,14 @@ macro_rules! write_graph {
 
 macro_rules! to_html {
     ( $o:expr ) => {{
-        format!("{:?}", $o)
+        format!("{:?}", $o)     // TODO
             .replace("{", "\\{")
             .replace("}", "\\}")
             .replace("&", "&amp;")
             .replace(">", "&gt;")
             .replace("<", "&lt;")
             .replace("\n", "<br/>")
-    }}
+    }};
 }
 
 macro_rules! write_edge {
@@ -120,6 +120,14 @@ macro_rules! write_edge {
     ( $self:ident, $source:ident, $target:ident ) => {{
         write_graph!($self, "\"{:?}\" -> \"{:?}\"\n", $source, $target);
     }};
+}
+
+macro_rules! to_sorted_string {
+    ( $o:expr ) => {{
+        let mut vector = $o.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>();
+        vector.sort();
+        to_html!(vector.join(", "))
+    }}
 }
 
 
@@ -143,6 +151,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td>Nr</td>");
         }
         write_graph!(self, "<td>statement</td>");
+        write_graph!(self, "<td colspan=\"2\">Loans</td>");
         write_graph!(self, "</th>");
 
         let mir::BasicBlockData { ref statements, ref terminator, .. } = self.mir[bb];
@@ -170,8 +179,29 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         }
         write_graph!(self, "<td>{}</td>", to_html!(statement));
 
+        let start_point = self.get_point(location, facts::PointType::Start);
+        if let Some(ref blas) = self.borrowck_out_facts.borrow_live_at.get(&start_point).as_ref() {
+            write_graph!(self, "<td>{}</td>", to_sorted_string!(blas));
+        } else {
+            write_graph!(self, "<td></td>");
+        }
+        let mid_point = self.get_point(location, facts::PointType::Mid);
+        if let Some(ref blas) = self.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
+            write_graph!(self, "<td>{}</td>", to_sorted_string!(blas));
+        } else {
+            write_graph!(self, "<td></td>");
+        }
+
         write_graph!(self, "</tr>");
         Ok(())
+    }
+
+    fn get_point(&self, location: mir::Location, point_type: facts::PointType) -> facts::PointIndex {
+        let point = facts::Point {
+            location: location,
+            typ: point_type,
+        };
+        self.interner.get_point_index(&point)
     }
 
     fn visit_terminator(&self, bb: mir::BasicBlock, terminator: &mir::Terminator) -> Result<(),io::Error> {

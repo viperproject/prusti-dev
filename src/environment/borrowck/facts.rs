@@ -17,14 +17,15 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::path::Path;
 use std::str::FromStr;
+use std::fmt;
 
 use polonius_engine;
 
 
 /// Macro for declaring index types for referencing interned facts.
 macro_rules! index_type {
-    ($typ:ident) => {
-        #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Debug, Hash)]
+    ($typ:ident, $debug_str:ident) => {
+        #[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash)]
         pub struct $typ(usize);
 
         impl From<usize> for $typ {
@@ -46,12 +47,18 @@ macro_rules! index_type {
                 self.into()
             }
         }
+
+        impl fmt::Debug for $typ {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                write!(f, "{}{}", stringify!($debug_str), self.0)
+            }
+        }
     };
 }
 
-index_type!(RegionIndex);
-index_type!(LoanIndex);
-index_type!(PointIndex);
+index_type!(RegionIndex, R);
+index_type!(LoanIndex, L);
+index_type!(PointIndex, P);
 
 
 /// A unique identifier of a region.
@@ -167,7 +174,7 @@ impl<SourceType: Eq + Hash + Clone, IndexType: From<usize> + Copy> InternerTable
             index_elements: HashMap::new(),
         }
     }
-    fn get_index(&mut self, element: SourceType) -> IndexType {
+    fn get_or_create_index(&mut self, element: SourceType) -> IndexType {
         if let Some(&interned) = self.index_elements.get(&element) {
             return interned;
         }
@@ -175,6 +182,9 @@ impl<SourceType: Eq + Hash + Clone, IndexType: From<usize> + Copy> InternerTable
         let index = IndexType::from(self.index_elements.len());
         self.interned_elements.push(element.clone());
         *self.index_elements.entry(element).or_insert(index)
+    }
+    fn get_index(&self, element: &SourceType) -> IndexType {
+        self.index_elements[element]
     }
 }
 
@@ -190,24 +200,31 @@ pub struct Interner {
     points: InternerTable<Point, PointIndex>,
 }
 
+impl Interner {
+
+    pub fn get_point_index(&self, point: &Point) -> PointIndex {
+        self.points.get_index(point)
+    }
+}
+
 impl InternTo<String, RegionIndex> for Interner {
     fn intern(&mut self, element: String) -> RegionIndex {
         let region = element.parse().unwrap();
-        self.regions.get_index(region)
+        self.regions.get_or_create_index(region)
     }
 }
 
 impl InternTo<String, LoanIndex> for Interner {
     fn intern(&mut self, element: String) -> LoanIndex {
         let loan = element.parse().unwrap();
-        self.loans.get_index(loan)
+        self.loans.get_or_create_index(loan)
     }
 }
 
 impl InternTo<String, PointIndex> for Interner {
     fn intern(&mut self, element: String) -> PointIndex {
         let point = element.parse().unwrap();
-        self.points.get_index(point)
+        self.points.get_or_create_index(point)
     }
 }
 
