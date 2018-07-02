@@ -20,7 +20,7 @@ extern crate prusti_interface;
 use rustc::session;
 use rustc_driver::{run, run_compiler, driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
-use std::env::var;
+use std::env::{var, set_var};
 use std::path::PathBuf;
 use std::process::Command;
 use std::rc::Rc;
@@ -135,24 +135,16 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
     }
 }
 
-#[allow(dead_code)]
-fn get_sysroot() -> String {
-    Command::new("rustc")
-        .arg("--print")
-        .arg("sysroot")
-        .output()
-        .ok()
-        .and_then(|out| String::from_utf8(out.stdout).ok())
-        .map(|s| s.trim().to_owned())
-        .expect("Failed to figure out SYSROOT.")
-}
 
 pub fn main() {
     env_logger::init().unwrap();
     trace!("[main] enter");
-    let args: Vec<String> = std::env::args().collect();
-    //args.push("--sysroot".to_owned());
-    //args.push(get_sysroot());
+    set_var("POLONIUS_ALGORITHM", "Naive");
+    let mut args: Vec<String> = std::env::args().collect();
+    args.push("-Zborrowck=mir".to_owned());
+    args.push("-Ztwo-phase-borrows".to_owned());
+    args.push("-Zpolonius".to_owned());
+    args.push("-Znll-facts".to_owned());
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let result = run(|| {
         let args = std::env::args_os().enumerate()
