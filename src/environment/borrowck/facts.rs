@@ -147,7 +147,8 @@ impl FromStr for Point {
 
 }
 
-pub type AllFacts = polonius_engine::AllFacts<RegionIndex, LoanIndex, PointIndex>;
+pub type AllInputFacts = polonius_engine::AllFacts<RegionIndex, LoanIndex, PointIndex>;
+pub type AllOutputFacts = polonius_engine::Output<RegionIndex, LoanIndex, PointIndex>;
 
 
 /// A table that stores a mapping between interned elements of type
@@ -257,14 +258,14 @@ impl Interner {
 
 pub struct FactLoader {
     pub interner: Interner,
-    pub facts: AllFacts,
+    pub facts: AllInputFacts,
 }
 
 impl FactLoader {
     pub fn new() -> Self {
         Self {
             interner: Interner::new(),
-            facts: AllFacts::default(),
+            facts: AllInputFacts::default(),
         }
     }
     pub fn load_all_facts(&mut self, facts_dir: &Path) {
