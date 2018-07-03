@@ -18,11 +18,10 @@ extern crate syntax;
 extern crate prusti_interface;
 
 use rustc::session;
-use rustc_driver::{run, run_compiler, driver, Compilation, CompilerCalls, RustcDefaultCalls};
+use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
 use std::env::{var, set_var};
 use std::path::PathBuf;
-use std::process::Command;
 use std::rc::Rc;
 use std::cell::Cell;
 use syntax::ast;
@@ -146,17 +145,8 @@ pub fn main() {
     args.push("-Zpolonius".to_owned());
     args.push("-Znll-facts".to_owned());
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
-    let result = run(|| {
-        let args = std::env::args_os().enumerate()
-            .map(|(i, arg)| arg.into_string().unwrap_or_else(|arg| {
-                session::early_error(session::config::ErrorOutputType::default(),
-                            &format!("Argument {} is not valid Unicode: {:?}", i, arg))
-            }))
-            .collect::<Vec<_>>();
-        run_compiler(&args,
-                     prusti_compiler_calls,
-                     None,
-                     None)
+    let result = rustc_driver::run(move || {
+        rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
     });
     trace!("[main] exit");
     std::process::exit(result as i32);
