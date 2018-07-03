@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::environment::borrowck::facts;
+use crate::environment::loops;
 use std::cell;
 use std::fs::File;
 use std::io::{self, Write, BufWriter};
@@ -11,6 +12,7 @@ use polonius_engine::{Algorithm, Output};
 use rustc::hir::{self, intravisit};
 use rustc::mir;
 use rustc::ty::TyCtxt;
+use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
 use syntax::codemap::Span;
 
@@ -57,7 +59,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         loader.load_all_facts(&dir_path);
 
         let all_facts = loader.facts;
-        let output = Output::compute(&all_facts, Algorithm::Naive, false);
+        let output = Output::compute(&all_facts, Algorithm::Naive, true);
+
+        let mir = self.tcx.mir_validated(def_id).borrow();
+        let loop_info = loops::ProcedureLoops::new(&mir);
 
         let graph_path = PathBuf::from("nll-facts")
             .join(def_path.to_filename_friendly_no_crate())
@@ -67,11 +72,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
 
         let mut mir_info_printer = MirInfoPrinter {
             tcx: self.tcx,
-            mir: self.tcx.mir_validated(def_id).borrow(),
+            mir: mir,
             borrowck_in_facts: all_facts,
             borrowck_out_facts: output,
             interner: loader.interner,
             graph: cell::RefCell::new(graph),
+            loops: loop_info,
         };
         mir_info_printer.print_info();
 
@@ -87,6 +93,7 @@ struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub borrowck_out_facts: facts::AllOutputFacts,
     pub interner: facts::Interner,
     pub graph: cell::RefCell<BufWriter<File>>,
+    pub loops: loops::ProcedureLoops,
 }
 
 macro_rules! write_graph {
@@ -97,7 +104,7 @@ macro_rules! write_graph {
 
 macro_rules! to_html {
     ( $o:expr ) => {{
-        format!("{:?}", $o)     // TODO
+        format!("{:?}", $o)
             .replace("{", "\\{")
             .replace("}", "\\}")
             .replace("&", "&amp;")
@@ -124,9 +131,9 @@ macro_rules! write_edge {
 
 macro_rules! to_sorted_string {
     ( $o:expr ) => {{
-        let mut vector = $o.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>();
+        let mut vector = $o.iter().map(|x| to_html!(x)).collect::<Vec<String>>();
         vector.sort();
-        to_html!(vector.join(", "))
+        vector.join(", ")
     }}
 }
 
@@ -138,12 +145,52 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         for bb in self.mir.basic_blocks().indices() {
             self.visit_basic_block(bb);
         }
+        self.print_temp_variables();
+        self.print_subsets(mir::Location {
+            block: mir::BasicBlock::new(0),
+            statement_index: 0,
+        });
         write_graph!(self, "}}\n");
+        Ok(())
+    }
+
+    fn print_temp_variables(&self) -> Result<(),io::Error> {
+        if self.show_temp_variables() {
+            write_graph!(self, "Variables [ style=filled shape = \"record\"");
+            write_graph!(self, "label =<<table>");
+            write_graph!(self, "<tr><td>VARIABLES</td></tr>");
+            write_graph!(self, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>");
+            for (temp, var) in self.mir.local_decls.iter_enumerated() {
+                let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
+                let typ = to_html!(var.ty);
+                write_graph!(self, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>",
+                             name, temp, typ);
+            }
+            write_graph!(self, "</table>>];");
+        }
+        Ok(())
+    }
+
+    fn print_subsets(&self, location: mir::Location) -> Result<(),io::Error> {
+        let bb = location.block;
+        let start_point = self.get_point(location, facts::PointType::Start);
+        let subset_map = &self.borrowck_out_facts.subset;
+        if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+            for (source_region, regions) in subset.iter() {
+                for target_region in regions.iter() {
+                    write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                 bb, source_region, bb, target_region);
+                }
+            }
+        }
         Ok(())
     }
 
     fn visit_basic_block(&mut self, bb: mir::BasicBlock) -> Result<(),io::Error> {
         write_graph!(self, "\"{:?}\" [ shape = \"record\"", bb);
+        if self.loops.loop_heads.contains(&bb) {
+            write_graph!(self, "color=green");
+        }
         write_graph!(self, "label =<<table>");
         write_graph!(self, "<th><td>{:?}</td></th>", bb);
         write_graph!(self, "<th>");
@@ -152,6 +199,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         }
         write_graph!(self, "<td>statement</td>");
         write_graph!(self, "<td colspan=\"2\">Loans</td>");
+        write_graph!(self, "<td colspan=\"2\">Borrow Regions</td>");
+        write_graph!(self, "<td colspan=\"2\">Regions</td>");
         write_graph!(self, "</th>");
 
         let mir::BasicBlockData { ref statements, ref terminator, .. } = self.mir[bb];
@@ -169,10 +218,31 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             self.visit_terminator(bb, terminator)?;
         }
 
+        if self.loops.loop_heads.contains(&bb) {
+            let start_location = mir::Location { block: bb, statement_index: 0 };
+            let start_point = self.get_point(start_location, facts::PointType::Start);
+            let restricts_map = &self.borrowck_out_facts.restricts;
+            if let Some(ref restricts_relation) = restricts_map.get(&start_point).as_ref() {
+                for (region, loans) in restricts_relation.iter() {
+                    for loan in loans.iter() {
+                        write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                     bb, region, bb, loan);
+                    }
+                }
+            }
+            self.print_subsets(start_location);
+            for (region, point) in self.borrowck_in_facts.region_live_at.iter() {
+                if *point == start_point {
+                    write_graph!(self, "{:?} -> {:?}_{:?}", bb, bb, region);
+                }
+            }
+        }
+
         Ok(())
     }
 
-    fn visit_statement(&self, location: mir::Location, statement: &mir::Statement) -> Result<(),io::Error> {
+    fn visit_statement(&self, location: mir::Location,
+                       statement: &mir::Statement) -> Result<(),io::Error> {
         write_graph!(self, "<tr>");
         if self.show_statement_indices() {
             write_graph!(self, "<td>{}</td>", location.statement_index);
@@ -180,17 +250,55 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td>{}</td>", to_html!(statement));
 
         let start_point = self.get_point(location, facts::PointType::Start);
+        let mid_point = self.get_point(location, facts::PointType::Mid);
+
+        // Loans.
         if let Some(ref blas) = self.borrowck_out_facts.borrow_live_at.get(&start_point).as_ref() {
             write_graph!(self, "<td>{}</td>", to_sorted_string!(blas));
         } else {
             write_graph!(self, "<td></td>");
         }
-        let mid_point = self.get_point(location, facts::PointType::Mid);
         if let Some(ref blas) = self.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
             write_graph!(self, "<td>{}</td>", to_sorted_string!(blas));
         } else {
             write_graph!(self, "<td></td>");
         }
+
+        // Borrow regions (loan start points).
+        let borrow_regions: Vec<_> = self.borrowck_in_facts
+            .borrow_region
+            .iter()
+            .filter(|(_, _, point)| *point == start_point)
+            .cloned()
+            .map(|(region, loan, _)| (region, loan))
+            .collect();
+        write_graph!(self, "<td>{}</td>", to_sorted_string!(borrow_regions));
+        let borrow_regions: Vec<_> = self.borrowck_in_facts
+            .borrow_region
+            .iter()
+            .filter(|(_, _, point)| *point == mid_point)
+            .cloned()
+            .map(|(region, loan, _)| (region, loan))
+            .collect();
+        write_graph!(self, "<td>{}</td>", to_sorted_string!(borrow_regions));
+
+        // Regions alive at this program point.
+        let regions: Vec<_> = self.borrowck_in_facts
+            .region_live_at
+            .iter()
+            .filter(|(_, point)| *point == start_point)
+            .cloned()
+            .map(|(region, _)| region)
+            .collect();
+        write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
+        let regions: Vec<_> = self.borrowck_in_facts
+            .region_live_at
+            .iter()
+            .filter(|(_, point)| *point == mid_point)
+            .cloned()
+            .map(|(region, _)| region)
+            .collect();
+        write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
 
         write_graph!(self, "</tr>");
         Ok(())
@@ -264,6 +372,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     fn show_statement_indices(&self) -> bool {
         get_config_option("PRUSTI_DUMP_SHOW_STATEMENT_INDICES", true)
+    }
+
+    fn show_temp_variables(&self) -> bool {
+        get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true)
     }
 }
 
