@@ -20,7 +20,7 @@ fn get_driver_path() -> PathBuf {
 }
 
 fn run(group_name: &str, verify: bool) {
-    set_var("PRUSTI_TESTS", "true");
+    set_var("PRUSTI_FULL_COMPILATION", "true");
 
     if !verify {
         set_var("PRUSTI_NO_VERIFY", "true");
