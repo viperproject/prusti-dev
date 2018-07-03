@@ -66,18 +66,25 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
 
     fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Verifier<'v, 'r, 'a, 'tcx> {
         let backend = VerificationBackend::Silicon;
+
         let mut verifier_args = vec![];
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
                 "--printMethodCFGs",
                 "--tempDirectory", "./log/viper_tmp",
             ]);
+        } else {
+            verifier_args.extend(vec![
+                "--disableAllocEncoding",
+                "--print", "./log/boogie_program/program.bpl",
+                "--boogieOpt", "/logPrefix ./log/viper_tmp"
+            ]);
         }
         Verifier::new(
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
             self.verification_ctx.new_verifier_with_args(
-                VerificationBackend::Silicon,
+                backend,
                 verifier_args
             ),
             env,
