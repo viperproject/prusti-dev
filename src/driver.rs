@@ -145,6 +145,8 @@ pub fn main() {
     args.push("-Zpolonius".to_owned());
     args.push("-Znll-facts".to_owned());
     args.push("-Zidentify-regions".to_owned());
+    args.push("-Zdump-mir=all".to_owned());
+    args.push("-Zdump-mir-dir=log/mir/".to_owned());
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let result = rustc_driver::run(move || {
         rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
