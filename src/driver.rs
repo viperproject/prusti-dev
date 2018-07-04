@@ -18,6 +18,7 @@ extern crate syntax;
 extern crate prusti_interface;
 
 use rustc::session;
+use rustc::session::CompileIncomplete;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
 use std::env::{var, set_var};
@@ -148,9 +149,14 @@ pub fn main() {
     args.push("-Zdump-mir=all".to_owned());
     args.push("-Zdump-mir-dir=log/mir/".to_owned());
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
-    let result = rustc_driver::run(move || {
-        rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
-    });
+    let (result, _) =  rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None);
+    let exit_status = match result {
+        Result::Err(CompileIncomplete::Errored(_)) => {
+            warn!("Compiler stopped with an error");
+            101
+        },
+        _ => 0
+    };
     trace!("[main] exit");
-    std::process::exit(result as i32);
+    std::process::exit(exit_status);
 }
