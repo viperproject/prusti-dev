@@ -157,7 +157,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             self.visit_basic_block(bb);
         }
         self.print_temp_variables();
-        self.print_subsets(mir::Location {
+        self.print_blocked(mir::RETURN_PLACE, mir::Location {
             block: mir::BasicBlock::new(0),
             statement_index: 0,
         });
@@ -186,6 +186,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         Ok(())
     }
 
+    /// Print the subset relation at the beginning of the given location.
     fn print_subsets(&self, location: mir::Location) -> Result<(),io::Error> {
         let bb = location.block;
         let start_point = self.get_point(location, facts::PointType::Start);
@@ -391,6 +392,50 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     fn show_temp_variables(&self) -> bool {
         get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true)
+    }
+}
+
+/// Maybe blocking analysis.
+impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
+
+    /// Print variables that are maybe blocked by the given variable at
+    /// the start of the given location.
+    fn print_blocked(&self, blocker: mir::Local, location: mir::Location) -> Result<(),io::Error> {
+        let bb = location.block;
+        let start_point = self.get_point(location, facts::PointType::Start);
+        if let Some(region) = self.variable_regions.get(&blocker) {
+            write_graph!(self, "{:?} -> {:?}_{:?}_{:?}", bb, bb, blocker, region);
+            write_graph!(self, "subgraph cluster_{:?} {{", bb);
+            let subset_map = &self.borrowck_out_facts.subset;
+            if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+                if let Some(blocked_regions) = subset.get(&region) {
+                    for blocked_region in blocked_regions.iter() {
+                        if blocked_region == region {
+                            continue;
+                        }
+                        if let Some(blocked) = self.find_variable(*blocked_region) {
+                            write_graph!(self, "{:?}_{:?}_{:?} -> {:?}_{:?}_{:?}",
+                                         bb, blocker, region,
+                                         bb, blocked, blocked_region);
+                        }
+                    }
+                }
+            }
+            write_graph!(self, "}}");
+        }
+        Ok(())
+    }
+
+    /// Find a variable that has the given region in its type.
+    fn find_variable(&self, region: facts::Region) -> Option<mir::Local> {
+        let mut local = None;
+        for (key, value) in self.variable_regions.iter() {
+            if *value == region {
+                assert!(local.is_none());
+                local = Some(*key);
+            }
+        }
+        local
     }
 }
 
