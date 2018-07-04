@@ -4,7 +4,7 @@ use std::env::{set_var, remove_var};
 use std::path::PathBuf;
 use compiletest_rs::{common, run_tests, Config};
 
-static RUSTC_FLAGS: &'static str = "-Z mir-emit-validate=1 -Z borrowck=mir";
+static RUSTC_FLAGS: &'static str = "";
 static LOCAL_DRIVER_PATH: &'static str = "target/debug/prusti-driver";
 static WORKSPACE_DRIVER_PATH: &'static str = "../target/debug/prusti-driver";
 static WORKSPACE_PRUSTI_CONTRACTS_PATH: &'static str = "../target/debug/libprusti_contracts.rlib";
