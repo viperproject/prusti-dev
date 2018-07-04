@@ -5,6 +5,7 @@
 use crate::environment::borrowck::{facts, regions};
 use crate::environment::loops;
 use std::cell;
+use std::env;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Write, BufWriter};
@@ -49,6 +50,15 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         };
 
         trace!("[visit_fn] enter name={:?}", name);
+
+        match env::var_os("PRUSTI_DUMP_PROC").and_then(|value| value.into_string().ok()) {
+            Some(value) => {
+                if name != value {
+                    return;
+                }
+            },
+            _ => {},
+        };
 
         let def_id = self.tcx.hir.local_def_id(node_id);
         self.tcx.mir_borrowck(def_id);
@@ -161,6 +171,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             block: mir::BasicBlock::new(0),
             statement_index: 0,
         });
+        //self.print_borrow_regions();
+        self.print_restricts();
         write_graph!(self, "}}\n");
         Ok(())
     }
@@ -186,6 +198,34 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         Ok(())
     }
 
+    /// Print the restricts relation as a tree of loans.
+    fn print_restricts(&self) -> Result<(),io::Error> {
+        write_graph!(self, "subgraph cluster_restricts {{");
+        let mut interesting_restricts = Vec::new();
+        for (region, loan, point) in self.borrowck_in_facts.borrow_region.iter() {
+            write_graph!(self, "\"region_live_at_{:?}_{:?}_{:?}\" [ ", region, loan, point);
+            write_graph!(self, "label=\"region_live_at({:?}, {:?}, {:?})\" ];", region, loan, point);
+            write_graph!(self, "{:?} -> \"region_live_at_{:?}_{:?}_{:?}\" -> {:?}_{:?}",
+                         loan, region, loan, point, region, point);
+            interesting_restricts.push((region, point));
+        }
+        for (region, point) in interesting_restricts.iter() {
+            if let Some(restricts_map) = self.borrowck_out_facts.restricts.get(&point) {
+                if let Some(loans) = restricts_map.get(&region) {
+                    for loan in loans.iter() {
+                        write_graph!(self, "\"restricts_{:?}_{:?}_{:?}\" [ ", point, region, loan);
+                        write_graph!(self, "label=\"restricts({:?}, {:?}, {:?})\" ];", point, region, loan);
+                        write_graph!(self, "{:?}_{:?} -> \"restricts_{:?}_{:?}_{:?}\" -> {:?}",
+                                     region, point, point, region, loan, loan);
+
+                    }
+                }
+            }
+        }
+        write_graph!(self, "}}");
+        Ok(())
+    }
+
     /// Print the subset relation at the beginning of the given location.
     fn print_subsets(&self, location: mir::Location) -> Result<(),io::Error> {
         let bb = location.block;
@@ -204,6 +244,34 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 write_graph!(self, "{:?} -> {:?}_{:?}", bb, bb, region);
             }
         }
+        Ok(())
+    }
+
+    fn print_borrow_regions(&self) -> Result<(),io::Error> {
+        write_graph!(self, "subgraph cluster_Loans {{");
+        for (region, loan, point) in self.borrowck_in_facts.borrow_region.iter() {
+            write_graph!(self, "subgraph cluster_{:?} {{", loan);
+            let subset_map = &self.borrowck_out_facts.subset;
+            if let Some(ref subset) = subset_map.get(&point).as_ref() {
+                for (source_region, regions) in subset.iter() {
+                    if let Some(local) = self.find_variable(*source_region) {
+                        write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                     loan, local, loan, source_region);
+                    }
+                    for target_region in regions.iter() {
+                        write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                     loan, source_region, loan, target_region);
+                        if let Some(local) = self.find_variable(*target_region) {
+                            write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                         loan, local, loan, target_region);
+                        }
+                    }
+                }
+            }
+            write_graph!(self, "{:?} -> {:?}_{:?}", loan, loan, region);
+            write_graph!(self, "}}");
+        }
+        write_graph!(self, "}}");
         Ok(())
     }
 
@@ -232,7 +300,16 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             self.visit_statement(location, &statements[location.statement_index])?;
             location.statement_index += 1;
         }
-
+        let term_str = if let Some(ref term) = *terminator {
+            to_html!(term.kind)
+        } else {
+            String::from("")
+        };
+        write_graph!(self, "<tr>");
+        if self.show_statement_indices() {
+            write_graph!(self, "<td></td>");
+        }
+        write_graph!(self, "<td>{}</td></tr>", term_str);
         write_graph!(self, "</table>> ];");
 
         if let Some(ref terminator) = *terminator {
@@ -246,11 +323,53 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             if let Some(ref restricts_relation) = restricts_map.get(&start_point).as_ref() {
                 for (region, loans) in restricts_relation.iter() {
                     for loan in loans.iter() {
+                        // TODO: Remove loans that are reborrows of some other loans that are
+                        // active at this program point. Reborrowing is defined as follows::
+                        //      reborrows(Loan, Loan);
+                        //      reborrows(L1, L2) :-
+                        //          borrow_region(R, L1, P),
+                        //          restricts(R, P, L2).
+                        //      reborrows(L1, L3) :-
+                        //          reborrows(L1, L2),
+                        //          reborrows(L2, L3).
                         write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
                                      bb, region, bb, loan);
+                        write_graph!(self, "subgraph cluster_{:?}_{:?} {{", bb, loan);
+                        for (region, l, point) in self.borrowck_in_facts.borrow_region.iter() {
+                            if loan == l {
+                                write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                             bb, loan, bb, region);
+                                let subset_map = &self.borrowck_out_facts.subset;
+                                if let Some(ref subset) = subset_map.get(&point).as_ref() {
+                                    for (source_region, regions) in subset.iter() {
+                                        if let Some(local) = self.find_variable(*source_region) {
+                                            write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                                         bb, local, bb, source_region);
+                                        }
+                                        for target_region in regions.iter() {
+                                            write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                                         bb, source_region, bb, target_region);
+                                            if let Some(local) = self.find_variable(*target_region) {
+                                                write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                                             bb, local, bb, target_region);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        write_graph!(self, "}}");
                     }
                 }
             }
+
+            for (region, point) in self.borrowck_in_facts.region_live_at.iter() {
+                if *point == start_point {
+                    let variable = self.find_variable(*region).unwrap();
+                    self.print_blocked(variable, start_location);
+                }
+            }
+
             self.print_subsets(start_location);
         }
 
@@ -304,7 +423,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .iter()
             .filter(|(_, point)| *point == start_point)
             .cloned()
-            .map(|(region, _)| region)
+            // TODO: Understand why we cannot unwrap here:
+            .map(|(region, _)| (region, self.find_variable(region)))
             .collect();
         write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
         let regions: Vec<_> = self.borrowck_in_facts
@@ -312,7 +432,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .iter()
             .filter(|(_, point)| *point == mid_point)
             .cloned()
-            .map(|(region, _)| region)
+            // TODO: Understand why we cannot unwrap here:
+            .map(|(region, _)| (region, self.find_variable(region)))
             .collect();
         write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
 
@@ -440,7 +561,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 }
 
 fn get_config_option(name: &str, default: bool) -> bool {
-    use std::env;
     match env::var_os(name).and_then(|value| value.into_string().ok()).as_ref() {
         Some(value) => {
             match value as &str {
