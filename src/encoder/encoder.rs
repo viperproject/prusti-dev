@@ -213,7 +213,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().get(predicate_name).cloned()
     }
 
-    pub fn eval_const(&self, value: &ty::Const<'tcx>) -> vir::Expr {
+    pub fn encode_const_expr(&self, value: &ty::Const<'tcx>) -> vir::Expr {
         let scalar_value = match value.val {
             ConstVal::Value(ref value) => {
                 value.to_scalar().unwrap()

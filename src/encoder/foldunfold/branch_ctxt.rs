@@ -122,6 +122,7 @@ impl BranchCtxt {
         trace!("Right branch: {:?}", other.state);
         self.state.check_consistency();
 
+        // If they are already the same, avoid unnecessary operations
         if self.state.pred() != other.state.pred() {
             let maybe_preserved_left = filter_prefixes_of(self.state.pred(), other.state.acc());
             let maybe_preserved_right = filter_prefixes_of(other.state.pred(), self.state.acc());
@@ -134,7 +135,7 @@ impl BranchCtxt {
             for pred_place in &maybe_preserved_pred {
                 debug!("Current predicate to agree on: {}", pred_place);
 
-                // Obtain `pred_place` in both branches, or drop all suffixes of `pred_place`
+                // Obtain `pred_place` in both branches, or drop everything that has prefix `pred_place`
                 let self_initial_state = self.state.clone();
                 let other_initial_state = other.state.clone();
                 let self_stmts_opt = self.obtain_all(vec![AccOrPred::Pred(pred_place.clone())], false);
@@ -228,9 +229,9 @@ impl BranchCtxt {
 
         debug!("Try to satisfy requirement {:?}", req);
 
-        // Find a predicate on a prefix of req_place
+        // Find a predicate on a proper prefix of req_place
         let existing_prefix_pred_opt: Option<vir::Place> = self.state.pred().iter()
-            .find(|p| req_place.has_prefix(p))
+            .find(|p| req_place.has_proper_prefix(p))
             .cloned();
 
         match existing_prefix_pred_opt {
@@ -266,13 +267,15 @@ impl BranchCtxt {
                                 p.replace_prefix(&pred_self_place, req_place.clone())
                             )).collect();
 
-                        // Find an access or predicate permission on a proper suffix of req_place
-                        let existing_proper_suffix_perm_opt: Option<_> = self.state.find(
+                        // Find an access or predicate permission for which req_place is a proper suffix
+                        let existing_proper_perm_extension_opt: Option<_> = self.state.find(
                             |p| p.has_proper_prefix(&req_place)
                         );
 
-                        // Check if it is possible to fold, to avoid infinite recursion
-                        let can_fold = match existing_proper_suffix_perm_opt {
+                        // Check that there exists something that would make the fold possible.
+                        // We don't want to end up in an infinite recursion, trying to obtain the
+                        // predicates in the body.
+                        let can_fold = match existing_proper_perm_extension_opt {
                             Some(_) => true,
                             None => places_in_pred.is_empty(),
                         };

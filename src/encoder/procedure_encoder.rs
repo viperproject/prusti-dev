@@ -27,7 +27,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::codemap::Span;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
-use prusti_interface::specifications::{SpecID};
+use prusti_interface::specifications::{SpecID, SpecificationSet, TypedSpecification};
 
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -98,7 +98,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let fun_spec = self.encoder.spec().get(&spec_id).unwrap();
 
-        debug!("Specification: {:?}", fun_spec);
+        let (pre_spec, post_spec) = match fun_spec {
+            SpecificationSet::Procedure(pre_spec, post_spec) => (pre_spec, post_spec),
+            _ => unreachable!()
+        };
+
+        debug!("Precondition: {:?}", pre_spec);
+        debug!("Postcondition: {:?}", post_spec);
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
@@ -148,10 +154,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.set_successor(return_cfg_block, Successor::Return);
 
         // Encode preconditions
-        self.encode_preconditions(start_cfg_block, &mut procedure_contract);
+        self.encode_preconditions(start_cfg_block, &mut procedure_contract, &pre_spec);
 
         // Encode postcondition
-        self.encode_postconditions(return_cfg_block, &mut procedure_contract);
+        self.encode_postconditions(return_cfg_block, &mut procedure_contract, &post_spec);
 
         // Encode statements
         self.procedure.walk_once_cfg(|bbi, bb_data| {
@@ -274,10 +280,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
-                        let encoded_left = self.eval_operand(left);
-                        let encoded_right = self.eval_operand(right);
+                        let encoded_left = self.encode_operand_expr(left);
+                        let encoded_right = self.encode_operand_expr(right);
                         let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.encode_bin_op_value(op, encoded_left, encoded_right, ty);
+                        let encoded_value = self.encode_bin_op_expr(op, encoded_left, encoded_right, ty);
                         // Initialize lhs.field
                         stmts.push(
                             vir::Stmt::Assign(
@@ -289,9 +295,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
-                        let encoded_left = self.eval_operand(left);
-                        let encoded_right = self.eval_operand(right);
-                        let encoded_value = self.encode_bin_op_value(op, encoded_left.clone(), encoded_right.clone(), ty);
+                        let encoded_left = self.encode_operand_expr(left);
+                        let encoded_right = self.encode_operand_expr(right);
+                        let encoded_value = self.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
                         let encoded_check = self.encode_bin_op_check(op, encoded_left, encoded_right);
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                         let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
@@ -319,9 +325,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
-                        let encoded_val = self.eval_operand(operand);
+                        let encoded_val = self.encode_operand_expr(operand);
                         let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.encode_unary_op_value(op, encoded_val);
+                        let encoded_value = self.encode_unary_op_expr(op, encoded_val);
                         // Initialize `lhs.field`
                         stmts.push(
                             vir::Stmt::Assign(
@@ -432,7 +438,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
                 trace!("SwitchInt ty '{:?}', discr '{:?}', values '{:?}'", switch_ty, discr, values);
                 let mut cfg_targets: Vec<(vir::Expr, CfgBlockIndex)> = vec![];
-                let discr_val = self.eval_operand(discr);
+                let discr_val = self.encode_operand_expr(discr);
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
@@ -648,7 +654,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let label = self.cfg_method.get_fresh_label_name();
                         stmts.push(vir::Stmt::Label(label.clone()));
 
-                        let precondition = self.encode_precondition_expr(&procedure_contract);
+                        warn!("TODO: incomplete encoding of precondition of method call");
+                        let pre_spec = vec![]; // TODO
+                        let precondition = self.encode_precondition_expr(&procedure_contract, &pre_spec);
                         let pos = self.encoder.error_manager().register(
                             term.source_info.span,
                             ErrorCtxt::ExhalePrecondition
@@ -661,7 +669,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             encoded_targets,
                         ));
 
-                        let postcondition = self.encode_postcondition_expr(&procedure_contract, &label);
+                        warn!("TODO: incomplete encoding of postcondition of method call");
+                        let post_spec = vec![]; // TODO
+                        let postcondition = self.encode_postcondition_expr(&procedure_contract, &post_spec, &label);
                         stmts.push(vir::Stmt::Inhale(postcondition));
 
                         stmts.extend(stmts_after);
@@ -687,7 +697,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             TerminatorKind::Assert { ref cond, expected, ref target, ref msg, .. } => {
                 trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
-                let cond_val = self.eval_operand(cond);
+                let cond_val = self.encode_operand_expr(cond);
                 let viper_guard = if expected {
                     cond_val
                 } else {
@@ -744,19 +754,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
+    /// Encode a specification as a single expression.
+    fn encode_specification_expr(&self, pre_spec: &TypedSpecification) -> vir::Expr {
+        warn!("TODO: incomplete encoding of specification");
+        vir::Expr::Const(vir::Const::Bool(true))
+    }
+
     /// Encode the precondition as a single expression.
-    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> vir::Expr {
-        contract.args
-            .iter()
-            .map(|&local| self.encode_local_variable_permission(local))
-            .conjoin()
+    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>,
+                                pre_spec: &Vec<TypedSpecification>) -> vir::Expr {
+        vec![
+            contract.args.iter().map(|&local| self.encode_local_variable_permission(local)).collect(),
+            pre_spec.iter().map(|spec| self.encode_specification_expr(spec)).collect(),
+        ].into_iter().flat_map(|x: Vec<vir::Expr>| x.into_iter()).collect::<Vec<vir::Expr>>().into_iter().conjoin()
     }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
-                            contract: &ProcedureContract<'tcx>) {
+                            contract: &ProcedureContract<'tcx>,
+                            pre_spec: &Vec<TypedSpecification>) {
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let expr = self.encode_precondition_expr(contract);
+        let expr = self.encode_precondition_expr(contract, pre_spec);
         let inhale_stmt = vir::Stmt::Inhale(expr);
         self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Label(PRECONDITION_LABEL.to_string()));
@@ -785,6 +803,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode the postcondition as a single expression.
     fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
+                                 post_spec: &Vec<TypedSpecification>,
                                  label: &str) -> vir::Expr {
         let mut conjuncts = Vec::new();
         for place in contract.returned_refs.iter() {
@@ -812,9 +831,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode postcondition exhale on the definition side.
     fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
-                             contract: &ProcedureContract<'tcx>) {
+                             contract: &ProcedureContract<'tcx>,
+                             post_spec: &Vec<TypedSpecification>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Postconditions:"));
-        let postcondition = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
+        let postcondition = self.encode_postcondition_expr(contract, post_spec, PRECONDITION_LABEL);
         let pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::ExhalePostcondition
@@ -998,10 +1018,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
-    fn eval_operand(&mut self, operand: &mir::Operand<'tcx>) -> vir::Expr {
+    fn encode_operand_expr(&mut self, operand: &mir::Operand<'tcx>) -> vir::Expr {
         match operand {
             &mir::Operand::Constant(box mir::Constant { ty, literal: mir::Literal::Value { value }, .. }) => {
-                self.encoder.eval_const(value)
+                self.encoder.encode_const_expr(value)
             }
             &mir::Operand::Copy(ref place) => {
                 let val_place = self.eval_place(place);
@@ -1069,7 +1089,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Initialize the constant
                 match literal {
                     mir::Literal::Value { value } => {
-                        let const_val = self.encoder.eval_const(value);
+                        let const_val = self.encoder.encode_const_expr(value);
                         let field = self.encoder.encode_value_field(ty);
                         // Initialize value of lhs
                         stmts.push(
@@ -1126,11 +1146,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let tcx = self.encoder.env().tcx();
                 let const_prop = ConstPropagator::new(self.mir, tcx, MirSource::item(self.proc_def_id));
                 let evaluated_const = const_prop.eval_constant(constant);
-                let const_val = self.encoder.eval_const(value);
+                let const_val = self.encoder.encode_const_expr(value);
                 */
                 match literal {
                     mir::Literal::Value { value } => {
-                        let const_val = self.encoder.eval_const(value);
+                        let const_val = self.encoder.encode_const_expr(value);
                         // Before, initialize viper_local
                         stmts.push(
                             vir::Stmt::Assign(vir::Place::from(viper_local.clone()).access(field), const_val)
@@ -1146,7 +1166,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let tcx = self.encoder.env().tcx();
                         let const_prop = ConstPropagator::new(self.mir, tcx, MirSource::item(self.proc_def_id));
                         let evaluated_const = const_prop.eval_constant(constant);
-                        let const_val = self.encoder.eval_const(value);
+                        let const_val = self.encoder.encode_const_expr(value);
                         */
                     }
                 }
@@ -1311,7 +1331,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_bin_op_value(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
+    fn encode_bin_op_expr(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
         let is_bool = ty.sty == ty::TypeVariants::TyBool;
         match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
@@ -1345,7 +1365,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_unary_op_value(&mut self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
+    fn encode_unary_op_expr(&mut self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
         match op {
             mir::UnOp::Not => vir::Expr::not(expr),
             mir::UnOp::Neg => vir::Expr::minus(expr),

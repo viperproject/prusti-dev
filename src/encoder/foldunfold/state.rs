@@ -45,14 +45,23 @@ impl State {
         }
         for place in &self.pred {
             for other_place in &self.pred {
-                if place != other_place {
-                    if place.has_prefix(other_place) {
-                        panic!(
-                            "Consistency error: state has pred {}, but also pred {}",
-                            place,
-                            other_place
-                        );
-                    }
+                if place.has_proper_prefix(other_place) {
+                    panic!(
+                        "Consistency error: state has pred {}, but also pred {}",
+                        place,
+                        other_place
+                    );
+                }
+            }
+        }
+        for acc_place in &self.acc {
+            for pred_place in &self.pred {
+                if acc_place.has_proper_prefix(pred_place) {
+                    panic!(
+                        "Consistency error: state has acc {}, but also pred {}",
+                        acc_place,
+                        pred_place
+                    );
                 }
             }
         }
