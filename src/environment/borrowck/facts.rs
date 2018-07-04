@@ -56,16 +56,11 @@ macro_rules! index_type {
     };
 }
 
-index_type!(RegionIndex, R);
-index_type!(LoanIndex, L);
 index_type!(PointIndex, P);
-
-
+/// A unique identifier of a loan.
+index_type!(Loan, L);
 /// A unique identifier of a region.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Region {
-    id: usize,
-}
+index_type!(Region, R);
 
 impl FromStr for Region {
 
@@ -76,15 +71,9 @@ impl FromStr for Region {
         let caps = re.captures(region).unwrap();
         let id: usize = caps["id"].parse().unwrap();
         Ok(Self {
-            id: id,
+            0: id,
         })
     }
-}
-
-/// A unique identifier of a loan.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Loan {
-    id: usize,
 }
 
 impl FromStr for Loan {
@@ -96,7 +85,7 @@ impl FromStr for Loan {
         let caps = re.captures(loan).unwrap();
         let id: usize = caps["id"].parse().unwrap();
         Ok(Self {
-            id: id,
+            0: id,
         })
     }
 
@@ -154,8 +143,8 @@ impl FromStr for Point {
 
 }
 
-pub type AllInputFacts = polonius_engine::AllFacts<RegionIndex, LoanIndex, PointIndex>;
-pub type AllOutputFacts = polonius_engine::Output<RegionIndex, LoanIndex, PointIndex>;
+pub type AllInputFacts = polonius_engine::AllFacts<Region, Loan, PointIndex>;
+pub type AllOutputFacts = polonius_engine::Output<Region, Loan, PointIndex>;
 
 
 /// A table that stores a mapping between interned elements of type
@@ -195,8 +184,6 @@ trait InternTo<FromType, ToType> {
 }
 
 pub struct Interner {
-    regions: InternerTable<Region, RegionIndex>,
-    loans: InternerTable<Loan, LoanIndex>,
     points: InternerTable<Point, PointIndex>,
 }
 
@@ -207,17 +194,15 @@ impl Interner {
     }
 }
 
-impl InternTo<String, RegionIndex> for Interner {
-    fn intern(&mut self, element: String) -> RegionIndex {
-        let region = element.parse().unwrap();
-        self.regions.get_or_create_index(region)
+impl InternTo<String, Region> for Interner {
+    fn intern(&mut self, element: String) -> Region {
+        element.parse().unwrap()
     }
 }
 
-impl InternTo<String, LoanIndex> for Interner {
-    fn intern(&mut self, element: String) -> LoanIndex {
-        let loan = element.parse().unwrap();
-        self.loans.get_or_create_index(loan)
+impl InternTo<String, Loan> for Interner {
+    fn intern(&mut self, element: String) -> Loan {
+        element.parse().unwrap()
     }
 }
 
@@ -266,8 +251,6 @@ fn load_facts_from_file<T: DeserializeOwned>(facts_dir: &Path, facts_type: &str)
 impl Interner {
     pub fn new() -> Self {
         Self {
-            regions: InternerTable::new(),
-            loans: InternerTable::new(),
             points: InternerTable::new(),
         }
     }
@@ -290,7 +273,7 @@ impl FactLoader {
         let facts = load_facts::<(String, String, String), _>(&mut self.interner, facts_dir, "borrow_region");
         self.facts.borrow_region.extend(facts);
 
-        let facts = load_facts::<String, RegionIndex>(&mut self.interner, facts_dir, "universal_region");
+        let facts = load_facts::<String, Region>(&mut self.interner, facts_dir, "universal_region");
         self.facts.universal_region.extend(facts);
 
         let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "cfg_edge");
