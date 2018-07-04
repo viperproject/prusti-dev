@@ -6,37 +6,37 @@ use encoder::vir;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum AccOrPred {
+pub enum Perm {
     Acc(vir::Place),
     Pred(vir::Place)
 }
 
-impl AccOrPred {
+impl Perm {
     pub fn get_place(&self) -> vir::Place {
         match self {
-            &AccOrPred::Acc(ref place) |
-            &AccOrPred::Pred(ref place) => place.clone(),
+            &Perm::Acc(ref place) |
+            &Perm::Pred(ref place) => place.clone(),
         }
     }
 
     pub fn as_ref(&self) -> &vir::Place {
         match self {
-            &AccOrPred::Acc(ref place) |
-            &AccOrPred::Pred(ref place) => place,
+            &Perm::Acc(ref place) |
+            &Perm::Pred(ref place) => place,
         }
     }
 
     pub fn as_mut_ref(&mut self) -> &mut vir::Place {
         match self {
-            &mut AccOrPred::Acc(ref mut place) |
-            &mut AccOrPred::Pred(ref mut place) => place,
+            &mut Perm::Acc(ref mut place) |
+            &mut Perm::Pred(ref mut place) => place,
         }
     }
 
     pub fn unwrap(self) -> vir::Place {
         match self {
-            AccOrPred::Acc(place) |
-            AccOrPred::Pred(place) => place,
+            Perm::Acc(place) |
+            Perm::Pred(place) => place,
         }
     }
 
@@ -44,21 +44,21 @@ impl AccOrPred {
         where F: Fn(vir::Place) -> vir::Place
     {
         match self {
-            AccOrPred::Acc(place) => AccOrPred::Acc(f(place)),
-            AccOrPred::Pred(place) => AccOrPred::Pred(f(place)),
+            Perm::Acc(place) => Perm::Acc(f(place)),
+            Perm::Pred(place) => Perm::Pred(f(place)),
         }
     }
 }
 
-impl fmt::Display for AccOrPred {
+impl fmt::Display for Perm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &AccOrPred::Acc(ref place) => write!(f, "Acc({})", place),
-            &AccOrPred::Pred(ref place) => write!(f, "Pred({})", place),
+            &Perm::Acc(ref place) => write!(f, "Acc({})", place),
+            &Perm::Pred(ref place) => write!(f, "Pred({})", place),
         }
     }
 }
 
-pub fn display(this: &Vec<AccOrPred>) -> String {
+pub fn display(this: &Vec<Perm>) -> String {
     this.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
 }

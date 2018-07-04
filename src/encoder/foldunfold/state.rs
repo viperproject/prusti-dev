@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::foldunfold::acc_or_pred::*;
+use encoder::foldunfold::perm::*;
 use encoder::vir;
 use encoder::vir::utils::ExprIterator;
 use std::collections::HashSet;
@@ -10,23 +10,38 @@ use std::iter::FromIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
+    /// paths on which we (may) have a full access permission
     acc: HashSet<vir::Place>,
+    /// paths on which we (may) have a full predicate permission
     pred: HashSet<vir::Place>,
+    /// paths that have been "moved out" (for sure)
+    moved: HashSet<vir::Place>,
 }
 
 impl State {
-    pub fn new(acc: HashSet<vir::Place>, pred: HashSet<vir::Place>) -> Self {
+    pub fn new(acc: HashSet<vir::Place>, pred: HashSet<vir::Place>, moved: HashSet<vir::Place>) -> Self {
         State {
             acc,
-            pred
+            pred,
+            moved,
         }
     }
 
     pub fn check_consistency(&self) {
+        // Check access permissions
         for place in &self.pred {
             if !self.contains_acc(place) {
                 panic!(
                     "Consistency error: state has pred {}, but not acc {}",
+                    place,
+                    place
+                );
+            }
+        }
+        for place in &self.moved {
+            if !self.contains_acc(place) {
+                panic!(
+                    "Consistency error: state has moved path {}, but not acc {}",
                     place,
                     place
                 );
@@ -43,6 +58,7 @@ impl State {
                 }
             }
         }
+        // Check predicates and moved paths
         for place in &self.pred {
             for other_place in &self.pred {
                 if place.has_proper_prefix(other_place) {
@@ -65,21 +81,57 @@ impl State {
                 }
             }
         }
+        for acc_place in &self.acc {
+            for moved_place in &self.moved {
+                if acc_place.has_proper_prefix(moved_place) {
+                    panic!(
+                        "Consistency error: state has acc {}, but also moved path {}",
+                        acc_place,
+                        moved_place
+                    );
+                }
+            }
+        }
+        for pred_place in &self.pred {
+            for moved_place in &self.moved {
+                if pred_place.has_prefix(moved_place) {
+                    panic!(
+                        "Consistency error: state has pred {}, but also moved path {}",
+                        pred_place,
+                        moved_place
+                    );
+                }
+                if moved_place.has_prefix(pred_place) {
+                    panic!(
+                        "Consistency error: state has pred {}, but also moved path {}",
+                        pred_place,
+                        moved_place
+                    );
+                }
+            }
+        }
     }
 
     pub fn acc(&self) -> &HashSet<vir::Place> {
         &self.acc
     }
 
+    pub fn acc_leafes(&self) -> HashSet<vir::Place> {
+        let mut acc_leafes = HashSet::new();
+        for place in &self.acc {
+            if !self.is_proper_prefix_of_some_acc(place) {
+                acc_leafes.insert(place.clone());
+            }
+        }
+        acc_leafes
+    }
+
     pub fn pred(&self) -> &HashSet<vir::Place> {
         &self.pred
     }
 
-    pub fn find<P>(&self, pred: P) -> Option<AccOrPred> where P: Fn(&vir::Place) -> bool {
-        match self.acc.iter().find(|p| pred(p)).map(|p| AccOrPred::Acc(p.clone())) {
-            Some(x) => Some(x),
-            None => self.pred.iter().find(|p| pred(p)).map(|p| AccOrPred::Pred(p.clone()))
-        }
+    pub fn moved(&self) -> &HashSet<vir::Place> {
+        &self.moved
     }
 
     pub fn set_acc(&mut self, acc: HashSet<vir::Place>) {
@@ -90,11 +142,8 @@ impl State {
         self.pred = pred
     }
 
-    pub fn contains(&self, item: &AccOrPred) -> bool {
-        match item {
-            &AccOrPred::Acc(ref place) => self.contains_acc(&place),
-            &AccOrPred::Pred(ref place) => self.contains_pred(&place),
-        }
+    pub fn set_moved(&mut self, moved: HashSet<vir::Place>) {
+        self.moved = moved
     }
 
     pub fn contains_acc(&self, place: &vir::Place) -> bool {
@@ -105,8 +154,28 @@ impl State {
         self.pred.contains(&place)
     }
 
-    pub fn contains_all<'a, I>(&mut self, mut items: I) -> bool where I: Iterator<Item = &'a AccOrPred> {
-        items.all(|x| self.contains(x))
+    pub fn contains_moved(&self, place: &vir::Place) -> bool {
+        self.moved.contains(&place)
+    }
+
+    pub fn contains_perm(&self, item: &Perm) -> bool {
+        match item {
+            &Perm::Acc(ref place) => self.contains_acc(&place),
+            &Perm::Pred(ref place) => self.contains_pred(&place),
+        }
+    }
+
+    pub fn contains_all_perms<'a, I>(&mut self, mut items: I) -> bool where I: Iterator<Item = &'a Perm> {
+        items.all(|x| self.contains_perm(x))
+    }
+
+    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
+        for place in &self.acc {
+            if place.has_proper_prefix(prefix) {
+                return true
+            }
+        }
+        return false
     }
 
     pub fn is_proper_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {
@@ -118,9 +187,36 @@ impl State {
         return false
     }
 
-    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
+    pub fn is_proper_prefix_of_some_moved(&self, prefix: &vir::Place) -> bool {
+        for place in &self.moved {
+            if place.has_prefix(prefix) {
+                return true
+            }
+        }
+        return false
+    }
+
+    pub fn is_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
         for place in &self.acc {
-            if place.has_proper_prefix(prefix) {
+            if place.has_prefix(prefix) {
+                return true
+            }
+        }
+        return false
+    }
+
+    pub fn is_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {
+        for place in &self.pred {
+            if place.has_prefix(prefix) {
+                return true
+            }
+        }
+        return false
+    }
+
+    pub fn is_prefix_of_some_moved(&self, prefix: &vir::Place) -> bool {
+        for place in &self.moved {
+            if place.has_prefix(prefix) {
                 return true
             }
         }
@@ -135,11 +231,16 @@ impl State {
         self.pred = HashSet::from_iter(self.pred.intersection(other_pred).cloned());
     }
 
+    pub fn intersect_moved(&mut self, other_moved: &HashSet<vir::Place>) {
+        self.moved = HashSet::from_iter(self.moved.intersection(other_moved).cloned());
+    }
+
     pub fn remove_matching<P>(&mut self, pred: P)
         where P: Fn(&vir::Place) -> bool
     {
         self.remove_acc_matching(|x| pred(x));
         self.remove_pred_matching(|x| pred(x));
+        self.remove_moved_matching(|x| pred(x));
     }
 
     pub fn remove_acc_matching<P>(&mut self, pred: P)
@@ -154,12 +255,22 @@ impl State {
         self.pred.retain(|e| !pred(e));
     }
 
+    pub fn remove_moved_matching<P>(&mut self, pred: P)
+        where P: Fn(&vir::Place) -> bool
+    {
+        self.moved.retain(|e| !pred(e));
+    }
+
     pub fn display_acc(&self) -> String {
         self.acc.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
     }
 
     pub fn display_pred(&self) -> String {
         self.pred.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+    }
+
+    pub fn display_moved(&self) -> String {
+        self.moved.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
     }
 
     pub fn display_debug_acc(&self) -> String {
@@ -170,7 +281,12 @@ impl State {
         self.pred.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
     }
 
+    pub fn display_debug_moved(&self) -> String {
+        self.moved.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+    }
+
     pub fn insert_acc(&mut self, place: vir::Place) {
+        //assert!(!self.acc.contains(&place), "Place {} is already in state (acc), so it can not be added.", place);
         self.acc.insert(place);
     }
 
@@ -180,49 +296,66 @@ impl State {
         }
     }
 
+    pub fn insert_pred(&mut self, place: vir::Place) {
+        //assert!(!self.pred.contains(&place), "Place {} is already in state (pred), so it can not be added.", place);
+        self.pred.insert(place);
+    }
+
     pub fn insert_all_pred<I>(&mut self, items: I) where I: Iterator<Item = vir::Place> {
         for item in items {
             self.insert_pred(item);
         }
     }
 
-    pub fn insert_pred(&mut self, place: vir::Place) {
-        self.pred.insert(place);
+    pub fn insert_moved(&mut self, place: vir::Place) {
+        //assert!(!self.pred.contains(&place), "Place {} is already in state (pred), so it can not be added.", place);
+        self.moved.insert(place);
     }
 
-    pub fn insert(&mut self, item: AccOrPred) {
+    pub fn insert_all_moved<I>(&mut self, items: I) where I: Iterator<Item = vir::Place> {
+        for item in items {
+            self.insert_moved(item);
+        }
+    }
+
+    pub fn insert_perm(&mut self, item: Perm) {
         match item {
-            AccOrPred::Acc(place) => self.acc.insert(place),
-            AccOrPred::Pred(place) => self.pred.insert(place),
+            Perm::Acc(place) => self.insert_acc(place),
+            Perm::Pred(place) => self.insert_pred(place),
         };
     }
 
-    pub fn insert_all<I>(&mut self, items: I) where I: Iterator<Item = AccOrPred> {
+    pub fn insert_all_perms<I>(&mut self, items: I) where I: Iterator<Item =Perm> {
         for item in items {
-            self.insert(item);
+            self.insert_perm(item);
         }
     }
 
     pub fn remove_acc(&mut self, place: &vir::Place) {
-        //assert!(self.acc.contains(place), "Place {} is not in state (acc), so it can not be removed.", place);
+        assert!(self.acc.contains(place), "Place {} is not in state (acc), so it can not be removed.", place);
         self.acc.remove(place);
     }
 
     pub fn remove_pred(&mut self, place: &vir::Place) {
-        //assert!(self.pred.contains(place), "Place {} is not in state (pred), so it can not be removed.", place);
+        assert!(self.pred.contains(place), "Place {} is not in state (pred), so it can not be removed.", place);
         self.pred.remove(place);
     }
 
-    pub fn remove(&mut self, item: &AccOrPred) {
+    pub fn remove_moved(&mut self, place: &vir::Place) {
+        assert!(self.moved.contains(place), "Place {} is not in state (moved), so it can not be removed.", place);
+        self.moved.remove(place);
+    }
+
+    pub fn remove_perm(&mut self, item: &Perm) {
         match item {
-            &AccOrPred::Acc(ref place) => self.remove_acc(place),
-            &AccOrPred::Pred(ref place) => self.remove_pred(place)
+            &Perm::Acc(ref place) => self.remove_acc(place),
+            &Perm::Pred(ref place) => self.remove_pred(place)
         }
     }
 
-    pub fn remove_all<'a, I>(&mut self, items: I) where I: Iterator<Item = &'a AccOrPred> {
+    pub fn remove_all_perms<'a, I>(&mut self, items: I) where I: Iterator<Item = &'a Perm> {
         for item in items {
-            self.remove(item);
+            self.remove_perm(item);
         }
     }
 
@@ -250,5 +383,4 @@ impl State {
         }
         exprs.into_iter().conjoin()
     }
-
 }

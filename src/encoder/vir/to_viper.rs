@@ -81,10 +81,6 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 lhs.to_viper(ast),
                 rhs.to_viper(ast)
             ),
-            &Stmt::New(ref local_var, ref fields) => ast.new_stmt(
-                local_var.to_viper(ast),
-                &fields.to_viper(ast)
-            ),
             &Stmt::Fold(ref pred_name, ref args) => ast.fold(
                 ast.predicate_access_predicate(
                     ast.predicate_access(

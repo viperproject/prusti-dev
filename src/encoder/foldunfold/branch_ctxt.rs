@@ -2,13 +2,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::foldunfold::acc_or_pred::*;
+use encoder::foldunfold::perm::*;
 use encoder::foldunfold::requirements::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
+use encoder::foldunfold::places_utils::*;
 
 const DEBUG_FOLDUNFOLD: bool = false;
 
@@ -19,52 +20,12 @@ pub struct BranchCtxt {
     predicates: HashMap<String, vir::Predicate>
 }
 
-/// Returns the elements of A1 or A2 that have a prefix in the other set.
-///
-/// e.g.
-/// definitely_preserved(
-///   { a, b.c, d.e.f, d.g },
-///   { a, b.c.d, b.c.e, d.e,h }
-/// ) = { a, b.c.d, b.c.e, d.e.f }
-fn definitely_preserved(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
-    let mut res = HashSet::new();
-    for left_item in left.iter() {
-        for right_item in right.iter() {
-            if right_item.has_prefix(left_item) {
-                res.insert(right_item.clone());
-            }
-            if left_item.has_prefix(right_item) {
-                res.insert(left_item.clone());
-            }
-        }
-    }
-    res
-}
-
-/// Returns the elements of A1 that are a prefix of at least one element in A2.
-///
-/// e.g.
-/// filter_prefixes_of(
-///   { a, b.c, d.e.f, d.g },
-///   { a, b.c.d, b.c.e, d.e,h }
-/// ) = { a, b.c }
-fn filter_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
-    let mut res = HashSet::new();
-    for left_item in left.iter() {
-        for right_item in right.iter() {
-            if right_item.has_prefix(left_item) {
-                res.insert(left_item.clone());
-            }
-        }
-    }
-    res
-}
-
 impl BranchCtxt {
     pub fn new(local_vars: Vec<vir::LocalVar>, predicates: HashMap<String, vir::Predicate>) -> Self {
         BranchCtxt {
             state: State::new(
                 HashSet::from_iter(local_vars.into_iter().map(|v| vir::Place::Base(v))),
+                HashSet::new(),
                 HashSet::new()
             ),
             predicates
@@ -81,35 +42,22 @@ impl BranchCtxt {
         let predicate = self.predicates.get(&predicate_name).unwrap();
 
         let pred_self_place: vir::Place = predicate.args[0].clone().into();
-        let places_in_pred: Vec<AccOrPred> = predicate.get_contained_places().into_iter()
+        let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
             .map( |aop| aop.map( |p|
                 p.replace_prefix(&pred_self_place, pred_place.clone())
             )).collect();
 
+        trace!("Pred state before unfold: {{{}}}", self.state.display_debug_pred());
+
         // Simulate unfolding of `pred_place`
         self.state.remove_pred(&pred_place);
-        self.state.insert_all(places_in_pred.into_iter());
+        self.state.insert_all_perms(places_in_pred.into_iter());
 
         debug!("We unfolded {:?}", pred_place);
 
+        trace!("Pred state after unfold: {{{}}}", self.state.display_debug_pred());
+
         vir::Stmt::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ])
-    }
-
-    fn drop(&mut self, pred_place: &vir::Place) -> vir::Stmt {
-        debug!("We want to drop {:?}", pred_place);
-        assert!(self.state.pred().contains(&pred_place));
-
-        let predicate_name = pred_place.typed_ref_name().unwrap();
-
-        // Simulate exhaling/dropping of `pred_place`
-        self.state.remove_pred(&pred_place);
-
-        // Done.
-        debug!("We dropped {:?}", pred_place);
-
-        vir::Stmt::comment(
-            format!("[foldunfold] Drop {}({})", predicate_name, pred_place)
-        )
     }
 
     /// left is self, right is other
@@ -123,96 +71,108 @@ impl BranchCtxt {
         self.state.check_consistency();
 
         // If they are already the same, avoid unnecessary operations
-        if self.state.pred() != other.state.pred() {
-            let maybe_preserved_left = filter_prefixes_of(self.state.pred(), other.state.acc());
-            let maybe_preserved_right = filter_prefixes_of(other.state.pred(), self.state.acc());
-            let maybe_preserved_pred: HashSet<_> = maybe_preserved_left.union(&maybe_preserved_right).cloned().collect();
-            debug!("Maybe preserved predicates: {:?}", maybe_preserved_pred);
+        if self.state != other.state {
+            // Compute which paths are moved out
+            let moved_paths: HashSet<_> = self.state.moved().clone().union(other.state.moved()).cloned().collect();
+            self.state.set_moved(moved_paths.clone());
+            other.state.set_moved(moved_paths.clone());
+            debug!("moved_paths: {:?}", moved_paths);
 
-            let original_self_pred = self.state.pred().clone();
-            let original_other_pred = other.state.pred().clone();
+            trace!("left acc: {:?}", self.state.acc());
+            trace!("right acc: {:?}", other.state.acc());
 
-            for pred_place in &maybe_preserved_pred {
-                debug!("Current predicate to agree on: {}", pred_place);
+            trace!("left acc_leafes: {:?}", self.state.acc_leafes());
+            trace!("right acc_leafes: {:?}", other.state.acc_leafes());
 
-                // Obtain `pred_place` in both branches, or drop everything that has prefix `pred_place`
-                let self_initial_state = self.state.clone();
-                let other_initial_state = other.state.clone();
-                let self_stmts_opt = self.obtain_all(vec![AccOrPred::Pred(pred_place.clone())], false);
-                let other_stmts_opt = other.obtain_all(vec![AccOrPred::Pred(pred_place.clone())], false);
+            // Compute which access permissions may be preserved
+            let potential_acc: HashSet<_> = filter_with_prefix_in_other(&self.state.acc_leafes(), &other.state.acc_leafes());
+            debug!("potential_acc: {:?}", potential_acc);
 
-                match (self_stmts_opt, other_stmts_opt) {
-                    (Some(self_stmts), Some(other_stmts)) => {
-                        // Obtain `pred_place` in both branches
-                        left_stmts.extend(self_stmts);
-                        right_stmts.extend(other_stmts);
-                    },
-                    _ => {
-                        // Restore initial state
-                        self.state = self_initial_state;
-                        other.state = other_initial_state;
-                        // Drop permissions
-                        self.state.remove_pred_matching(|p| p.has_prefix(&pred_place));
-                        other.state.remove_pred_matching(|p| p.has_prefix(&pred_place));
-                        self.state.remove_acc_matching(|p| p.has_proper_prefix(&pred_place));
-                        other.state.remove_acc_matching(|p| p.has_proper_prefix(&pred_place));
-                    }
+            // Remove access permissions that can not be obtained due to a moved path
+            let actual_acc: HashSet<_> = filter_not_proper_extensions_of(&potential_acc, &moved_paths);
+            debug!("actual_acc: {:?}", actual_acc);
+
+            // Obtain access permissions
+            for acc_place in &actual_acc {
+                if !self.state.acc().contains(acc_place) {
+                    debug!("The left branch needs to obtain an access permission: {}", acc_place);
+                    // Unfold something and get `acc_place`
+                    left_stmts.extend(
+                        self.obtain(&Perm::Acc(acc_place.clone()))
+                    );
+                }
+                if !other.state.acc().contains(acc_place) {
+                    debug!("The right branch needs to obtain an access permission: {}", acc_place);
+                    // Unfold something and get `acc_place`
+                    right_stmts.extend(
+                        other.obtain(&Perm::Acc(acc_place.clone()))
+                    );
                 }
             }
 
-            // Drop predicates not in maybe_preserved_pred
-            for pred_place in self.state.pred().clone().difference(&maybe_preserved_pred) {
-                debug!("The left branch has an extra predicate: {}", pred_place);
-                // We drop the permission.
-                let stmt = self.drop(pred_place);
-                left_stmts.push(stmt);
+            // Drop predicate permissions that can not be obtained due to a move
+            for pred_place in &filter_proper_extensions_of(self.state.pred(), &moved_paths) {
+                debug!("Drop pred {} in left branch (it is moved out in the other branch)", pred_place);
+                self.state.remove_pred(&pred_place);
             }
-            for pred_place in other.state.pred().clone().difference(&maybe_preserved_pred) {
-                debug!("The right branch has an extra predicate: {}", pred_place);
-                // We drop the permission.
-                let stmt = other.drop(pred_place);
-                right_stmts.push(stmt);
+            for pred_place in &filter_proper_extensions_of(other.state.pred(), &moved_paths) {
+                debug!("Drop pred {} in right branch (it is moved out in the other branch)", pred_place);
+                other.state.remove_pred(&pred_place);
+            }
+
+            // Compute preserved predicate permissions
+            let preserved_preds: HashSet<_> = intersection(self.state.pred(), other.state.pred());
+            debug!("preserved_preds: {:?}", preserved_preds);
+
+            // Drop predicate permissions that are not in the other branch
+            for pred_place in self.state.pred().clone().difference(&preserved_preds) {
+                debug!("Drop pred {} in left branch (it is not in the other branch)", pred_place);
+                self.state.remove_pred(&pred_place);
+            }
+            for pred_place in other.state.pred().clone().difference(&preserved_preds) {
+                debug!("Drop pred {} in right branch (it is not in the other branch)", pred_place);
+                other.state.remove_pred(&pred_place);
+            }
+
+            // Drop access permissions that can not be obtained due to a move
+            for acc_place in &filter_proper_extensions_of(self.state.acc(), &moved_paths) {
+                debug!("Drop acc {} in left branch (it is moved out in the other branch)", acc_place);
+                self.state.remove_acc(&acc_place);
+            }
+            for acc_place in &filter_proper_extensions_of(other.state.acc(), &moved_paths) {
+                debug!("Drop acc {} in right branch (it is moved out in the other branch)", acc_place);
+                other.state.remove_acc(&acc_place);
             }
 
             trace!("Statements in left branch: {:?}", &left_stmts);
             trace!("Statements in left branch: {:?}", &right_stmts);
+
+            assert_eq!(self.state.acc(), other.state.acc());
+            assert_eq!(self.state.pred(), other.state.pred());
+            self.state.check_consistency();
         }
 
-        self.state.intersect_acc(other.state.acc());
-        self.state.check_consistency();
         return (left_stmts, right_stmts);
     }
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
-    /// If not possible, return None without changing the state.
-    fn obtain_all(&mut self, reqs: Vec<AccOrPred>, force_fold: bool) -> Option<Vec<vir::Stmt>> {
+    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Vec<vir::Stmt> {
         debug!("Obtain all: {{{}}}", display(&reqs));
-        let original_state = self.state.clone();
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         for req in &reqs {
-            match self.obtain(req, force_fold) {
-                Some(req_stmts) => {
-                    stmts.extend(req_stmts);
-                },
-                None => {
-                    if !force_fold {
-                        self.state = original_state;
-                        return None;
-                    }
-                }
-            }
+            stmts.extend(
+                self.obtain(req)
+            );
         }
 
-        Some(stmts)
+        stmts
     }
 
     /// Obtain the required permission, changing the state inplace and returning the statements.
-    /// If not possible, return None without changing the state.
-    fn obtain(&mut self, req: &AccOrPred, force_fold: bool) -> Option<Vec<vir::Stmt>> {
-        debug!("Obtain: {} - {:?}", req, req);
+    fn obtain(&mut self, req: &Perm) -> Vec<vir::Stmt> {
+        debug!("Obtain: {}", req);
 
-        let original_state = self.state.clone();
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         trace!("Acc state: {{{}}}", self.state.display_debug_acc());
@@ -221,10 +181,10 @@ impl BranchCtxt {
         let req_place = req.get_place();
 
         // Check if the requirement is satisfied
-        if self.state.contains(req) {
+        if self.state.contains_perm(req) {
             // `req` is satisfied, so we can remove it from `reqs`
             debug!("Requirement {} is satisfied", req);
-            return Some(stmts);
+            return stmts;
         }
 
         debug!("Try to satisfy requirement {:?}", req);
@@ -241,34 +201,25 @@ impl BranchCtxt {
                 stmts.push(stmt);
                 debug!("We unfolded {:?}", existing_pred_to_unfold);
                 // Check if we are done
-                match self.obtain(req, force_fold) {
-                    None => {
-                        debug!("It is not possible to unfold {:?}", req_place);
-                        self.state = original_state;
-                        return None
-                    },
-                    Some(req_place_stmts) => {
-                        stmts.extend(req_place_stmts);
-                    }
-                }
+                stmts.extend(self.obtain(req));
             },
 
             None => {
                 match req {
-                    AccOrPred::Pred(_) => {
+                    Perm::Pred(_) => {
                         // We want to fold `req_place`
                         debug!("We want to fold {:?}", req_place);
                         let predicate_name = req_place.typed_ref_name().unwrap();
                         let predicate = self.predicates.get(&predicate_name).unwrap();
 
                         let pred_self_place: vir::Place = predicate.args[0].clone().into();
-                        let places_in_pred: Vec<AccOrPred> = predicate.get_contained_places().into_iter()
+                        let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
                             .map( |aop| aop.map( |p|
                                 p.replace_prefix(&pred_self_place, req_place.clone())
                             )).collect();
 
-                        // Find an access or predicate permission for which req_place is a proper suffix
-                        let existing_proper_perm_extension_opt: Option<_> = self.state.find(
+                        // Find an access permission for which req_place is a proper suffix
+                        let existing_proper_perm_extension_opt: Option<_> = self.state.acc().iter().find(
                             |p| p.has_proper_prefix(&req_place)
                         );
 
@@ -282,20 +233,7 @@ impl BranchCtxt {
 
                         if can_fold {
                             for fold_req_place in &places_in_pred {
-                                match self.obtain(fold_req_place, force_fold) {
-                                    None => {
-                                        if force_fold {
-                                            debug!("We assume that requirement {:?} is not needed to fold {:?}", fold_req_place, req_place);
-                                        } else {
-                                            debug!("It is not possible to fold {:?}: missing requirement {:?}", req_place, fold_req_place);
-                                            self.state = original_state;
-                                            return None
-                                        }
-                                    },
-                                    Some(req_place_stmts) => {
-                                        stmts.extend(req_place_stmts);
-                                    }
-                                }
+                                stmts.extend(self.obtain(fold_req_place));
                             }
 
                             stmts.push(
@@ -303,48 +241,42 @@ impl BranchCtxt {
                             );
 
                             // Simulate folding of `req_place`
-                            if !force_fold {
-                                assert!(self.state.contains_all(places_in_pred.iter()));
-                            }
+                            assert!(self.state.contains_all_perms(places_in_pred.iter()));
                             assert!(self.state.contains_acc(&req_place));
                             assert!(!self.state.contains_pred(&req_place));
-                            self.state.remove_all(places_in_pred.iter());
+                            self.state.remove_all_perms(places_in_pred.iter());
                             self.state.insert_pred(req_place.clone());
 
                             // Done. Continue checking the remaining requirements
                             debug!("We folded {:?}", req_place);
                         } else {
-                            debug!(
+                            unreachable!(
                                 "It is not possible to obtain {:?} by folding or unfolding predicates. Predicates: {:?}",
                                 req,
                                 self.state.pred()
                             );
-                            self.state = original_state;
-                            return None
                         }
                     },
 
-                    AccOrPred::Acc(_) => {
+                    Perm::Acc(_) => {
                         // We have no predicate to obtain the access permission `req`
-                        debug!(
+                        unreachable!(
                             "There is no predicate to obtain {:?}. Predicates: {:?}",
                             req,
                             self.state.pred()
                         );
-                        self.state = original_state;
-                        return None
                     },
                 }
             },
         }
 
-        Some(stmts)
+        stmts
     }
 
     pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Vec<vir::Stmt> {
         debug!("");
         debug!("Apply on stmt: {}", stmt);
-        let required_places: Vec<AccOrPred> = stmt.get_required_places(&self.predicates).into_iter().collect();
+        let required_places: Vec<Perm> = stmt.get_required_places(&self.predicates).into_iter().collect();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
@@ -362,8 +294,8 @@ impl BranchCtxt {
 
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Position()));
 
-            stmts.append(
-                &mut self.obtain_all(required_places, true).unwrap()
+            stmts.extend(
+                self.obtain_all(required_places)
             );
         }
 
@@ -387,8 +319,8 @@ impl BranchCtxt {
             _ => vec![]
         };
 
-        let required_places: Vec<AccOrPred> = exprs.iter().flat_map(
-            |e| e.get_required_places(&self.predicates).into_iter().collect::<Vec<AccOrPred>>()
+        let required_places: Vec<Perm> = exprs.iter().flat_map(
+            |e| e.get_required_places(&self.predicates).into_iter().collect::<Vec<Perm>>()
         ).collect();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -406,10 +338,9 @@ impl BranchCtxt {
 
             //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Position()));
 
-            stmts.append(
-                &mut self.obtain_all(required_places, true).unwrap()
+            stmts.extend(
+                self.obtain_all(required_places)
             );
-
         }
 
         trace!("Acc state after: {{{}}}", self.state.display_acc());

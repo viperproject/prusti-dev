@@ -222,6 +222,7 @@ impl Place {
         }
     }
 
+    // Returns all prefixes, from the shortest to the longest
     pub fn all_prefixes(&self) -> Vec<&Place> {
         let mut res = self.all_proper_prefixes();
         res.push(self);
@@ -282,7 +283,6 @@ pub enum Stmt {
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Place, Expr),
-    New(LocalVar, Vec<Field>),
     Fold(String, Vec<Expr>),
     Unfold(String, Vec<Expr>),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
@@ -355,12 +355,6 @@ impl fmt::Display for Stmt {
                 args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
             ),
             Stmt::Assign(ref lhs, ref rhs) => write!(f, "{} := {}", lhs, rhs),
-            Stmt::New(ref lhs, ref fields) => write!(
-                f,
-                "{} := new({})",
-                lhs,
-                fields.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", ")
-            ),
 
             Stmt::Fold(ref pred_name, ref args) => write!(
                 f,

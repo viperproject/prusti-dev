@@ -6,11 +6,12 @@ use encoder::vir;
 use self::branch_ctxt::*;
 use std::collections::HashMap;
 
-mod acc_or_pred;
+mod perm;
 mod requirements;
 mod state;
 mod branch_ctxt;
 mod semantics;
+mod places_utils;
 
 pub fn add_fold_unfold(cfg: vir::CfgMethod, predicates: HashMap<String, vir::Predicate>) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
