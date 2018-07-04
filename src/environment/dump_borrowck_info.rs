@@ -2,16 +2,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::environment::borrowck::facts;
+use crate::environment::borrowck::{facts, regions};
 use crate::environment::loops;
 use std::cell;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Write, BufWriter};
 use std::path::PathBuf;
 use polonius_engine::{Algorithm, Output};
 use rustc::hir::{self, intravisit};
 use rustc::mir;
-use rustc::ty::TyCtxt;
+use rustc::ty::{self, TyCtxt};
 use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
 use syntax::codemap::Span;
@@ -52,13 +53,21 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let def_id = self.tcx.hir.local_def_id(node_id);
         self.tcx.mir_borrowck(def_id);
 
+        // Read Polonius facts.
         let def_path = self.tcx.hir.def_path(def_id);
         let dir_path = PathBuf::from("nll-facts").join(def_path.to_filename_friendly_no_crate());
         debug!("Reading facts from: {:?}", dir_path);
-        let mut loader = facts::FactLoader::new();
-        loader.load_all_facts(&dir_path);
+        let mut facts_loader = facts::FactLoader::new();
+        facts_loader.load_all_facts(&dir_path);
 
-        let all_facts = loader.facts;
+        // Read relations between region IDs and local variables.
+        let renumber_path = PathBuf::from(format!(
+            "log/mir/rustc.{}.-------.renumber.0.mir",
+            def_path.to_filename_friendly_no_crate()));
+        debug!("Renumber path: {:?}", renumber_path);
+        let variable_regions = regions::load_variable_regions(&renumber_path).unwrap();
+
+        let all_facts = facts_loader.facts;
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
 
         let mir = self.tcx.mir_validated(def_id).borrow();
@@ -75,9 +84,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             mir: mir,
             borrowck_in_facts: all_facts,
             borrowck_out_facts: output,
-            interner: loader.interner,
+            interner: facts_loader.interner,
             graph: cell::RefCell::new(graph),
             loops: loop_info,
+            variable_regions: variable_regions,
         };
         mir_info_printer.print_info();
 
@@ -94,6 +104,7 @@ struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub interner: facts::Interner,
     pub graph: cell::RefCell<BufWriter<File>>,
     pub loops: loops::ProcedureLoops,
+    pub variable_regions: HashMap<mir::Local, facts::Region>,
 }
 
 macro_rules! write_graph {
@@ -159,12 +170,16 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "Variables [ style=filled shape = \"record\"");
             write_graph!(self, "label =<<table>");
             write_graph!(self, "<tr><td>VARIABLES</td></tr>");
-            write_graph!(self, "<tr><td>Name</td><td>Temporary</td><td>Type</td></tr>");
+            write_graph!(self, "<tr><td>Name</td><td>Temporary</td><td>Type</td><td>Region</td></tr>");
             for (temp, var) in self.mir.local_decls.iter_enumerated() {
                 let name = var.name.map(|s| s.to_string()).unwrap_or(String::from(""));
+                let region = self.variable_regions
+                    .get(&temp)
+                    .map(|region| format!("{:?}", region))
+                    .unwrap_or(String::from(""));
                 let typ = to_html!(var.ty);
-                write_graph!(self, "<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>",
-                             name, temp, typ);
+                write_graph!(self, "<tr><td>{}</td><td>{:?}</td><td>{}</td><td>{}</td></tr>",
+                             name, temp, typ, region);
             }
             write_graph!(self, "</table>>];");
         }
@@ -181,6 +196,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
                                  bb, source_region, bb, target_region);
                 }
+            }
+        }
+        for (region, point) in self.borrowck_in_facts.region_live_at.iter() {
+            if *point == start_point {
+                write_graph!(self, "{:?} -> {:?}_{:?}", bb, bb, region);
             }
         }
         Ok(())
@@ -231,11 +251,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 }
             }
             self.print_subsets(start_location);
-            for (region, point) in self.borrowck_in_facts.region_live_at.iter() {
-                if *point == start_point {
-                    write_graph!(self, "{:?} -> {:?}_{:?}", bb, bb, region);
-                }
-            }
         }
 
         Ok(())
