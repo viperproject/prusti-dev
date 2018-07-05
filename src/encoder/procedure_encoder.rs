@@ -103,8 +103,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             _ => unreachable!()
         };
 
-        debug!("Precondition: {:?}", pre_spec);
-        debug!("Postcondition: {:?}", post_spec);
+        warn!("TODO: encode functional precondition: {:?}", pre_spec);
+        warn!("TODO: encode functional postcondition: {:?}", post_spec);
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
@@ -154,10 +154,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.set_successor(return_cfg_block, Successor::Return);
 
         // Encode preconditions
-        self.encode_preconditions(start_cfg_block, &mut procedure_contract, &pre_spec);
+        self.encode_preconditions(start_cfg_block, &mut procedure_contract);
 
         // Encode postcondition
-        self.encode_postconditions(return_cfg_block, &mut procedure_contract, &post_spec);
+        self.encode_postconditions(return_cfg_block, &mut procedure_contract);
 
         // Encode statements
         self.procedure.walk_once_cfg(|bbi, bb_data| {
@@ -655,8 +655,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(vir::Stmt::Label(label.clone()));
 
                         warn!("TODO: incomplete encoding of precondition of method call");
-                        let pre_spec = vec![]; // TODO
-                        let precondition = self.encode_precondition_expr(&procedure_contract, &pre_spec);
+                        let precondition = self.encode_precondition_expr(&procedure_contract);
                         let pos = self.encoder.error_manager().register(
                             term.source_info.span,
                             ErrorCtxt::ExhalePrecondition
@@ -670,8 +669,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         ));
 
                         warn!("TODO: incomplete encoding of postcondition of method call");
-                        let post_spec = vec![]; // TODO
-                        let postcondition = self.encode_postcondition_expr(&procedure_contract, &post_spec, &label);
+                        let postcondition = self.encode_postcondition_expr(&procedure_contract, &label);
                         stmts.push(vir::Stmt::Inhale(postcondition));
 
                         stmts.extend(stmts_after);
@@ -754,27 +752,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
-    /// Encode a specification as a single expression.
-    fn encode_specification_expr(&self, pre_spec: &TypedSpecification) -> vir::Expr {
-        warn!("TODO: incomplete encoding of specification");
-        vir::Expr::Const(vir::Const::Bool(true))
-    }
-
     /// Encode the precondition as a single expression.
-    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>,
-                                pre_spec: &Vec<TypedSpecification>) -> vir::Expr {
-        vec![
-            contract.args.iter().map(|&local| self.encode_local_variable_permission(local)).collect(),
-            pre_spec.iter().map(|spec| self.encode_specification_expr(spec)).collect(),
-        ].into_iter().flat_map(|x: Vec<vir::Expr>| x.into_iter()).collect::<Vec<vir::Expr>>().into_iter().conjoin()
+    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> vir::Expr {
+        contract.args.iter().map(|&local| self.encode_local_variable_permission(local)).into_iter().conjoin()
     }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
-                            contract: &ProcedureContract<'tcx>,
-                            pre_spec: &Vec<TypedSpecification>) {
+                            contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let expr = self.encode_precondition_expr(contract, pre_spec);
+        let expr = self.encode_precondition_expr(contract);
         let inhale_stmt = vir::Stmt::Inhale(expr);
         self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Label(PRECONDITION_LABEL.to_string()));
@@ -803,7 +790,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode the postcondition as a single expression.
     fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
-                                 post_spec: &Vec<TypedSpecification>,
                                  label: &str) -> vir::Expr {
         let mut conjuncts = Vec::new();
         for place in contract.returned_refs.iter() {
@@ -831,10 +817,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode postcondition exhale on the definition side.
     fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
-                             contract: &ProcedureContract<'tcx>,
-                             post_spec: &Vec<TypedSpecification>) {
+                             contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Postconditions:"));
-        let postcondition = self.encode_postcondition_expr(contract, post_spec, PRECONDITION_LABEL);
+        let postcondition = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
         let pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::ExhalePostcondition
