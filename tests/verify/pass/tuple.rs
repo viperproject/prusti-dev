@@ -1,5 +1,7 @@
 extern crate prusti_contracts;
 
+// ignore-test We need to restore permissions when a mutable borrow dies
+
 struct T(u32);
 
 fn random() -> bool { true }
