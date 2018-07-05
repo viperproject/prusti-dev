@@ -2,8 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::environment::borrowck::{facts, regions};
-use crate::environment::loops;
+use environment::borrowck::{facts, regions};
+use environment::loops;
 use std::cell;
 use std::collections::HashMap;
 use std::fs::File;

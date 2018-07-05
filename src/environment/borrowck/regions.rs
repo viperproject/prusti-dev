@@ -5,7 +5,7 @@
 /// Code for finding `rustc::ty::sty::RegionVid` associated with local
 /// reference typed variables.
 
-use crate::environment::borrowck::facts;
+use environment::borrowck::facts;
 use regex::Regex;
 use rustc::mir;
 use rustc_data_structures::indexed_vec::Idx;
