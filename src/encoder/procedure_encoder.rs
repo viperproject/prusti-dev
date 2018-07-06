@@ -645,13 +645,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         let mut encoded_targets = Vec::new();
                         let target = {
-                            let &(ref target_place, _) = destination.as_ref().unwrap();
-                            let (dst, ty, _) = self.encode_place(target_place);
-                            let local = self.locals.get_fresh(ty);
-                            let viper_local = self.encode_prusti_local(local);
-                            stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into(), vir::AssignKind::Move));
-                            encoded_targets.push(viper_local);
-                            local
+                            match destination.as_ref() {
+                                Some((ref target_place, _)) => {
+                                    let (dst, ty, _) = self.encode_place(target_place);
+                                    let local = self.locals.get_fresh(ty);
+                                    let viper_local = self.encode_prusti_local(local);
+                                    stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into(), vir::AssignKind::Move));
+                                    encoded_targets.push(viper_local);
+                                    local
+                                }
+                                None => {
+                                    // The return type is Never
+                                    // This means that the function call never returns
+                                    // So, we `assume false` after the function call
+                                    stmts_after.push(vir::Stmt::Inhale(vir::Const::Bool(false).into()));
+                                    // Return a dummy local variable
+                                    let never_ty = self.encoder.env().tcx().mk_ty(
+                                        ty::TypeVariants::TyNever
+                                    );
+                                    let local = self.locals.get_fresh(never_ty);
+                                    let viper_local = self.encode_prusti_local(local);
+                                    encoded_targets.push(viper_local);
+                                    local
+                                }
+                            }
                         };
 
                         let procedure_contract = self.encoder
