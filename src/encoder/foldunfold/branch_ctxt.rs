@@ -26,6 +26,7 @@ impl BranchCtxt {
             state: State::new(
                 HashSet::from_iter(local_vars.into_iter().map(|v| vir::Place::Base(v))),
                 HashSet::new(),
+                HashSet::new(),
                 HashSet::new()
             ),
             predicates

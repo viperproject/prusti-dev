@@ -76,7 +76,6 @@ impl<'tcx> ErrorManager<'tcx> {
     pub fn register(&mut self, span: Span, error_ctx: ErrorCtxt) -> Position {
         let pos_id = Uuid::new_v4().hyphenated().to_string();
         self.error_contexts.insert(pos_id.to_string(), (span, error_ctx));
-        // Fixme: Silver requires line and column to be unique
         let lines_info = self.codemap.span_to_lines(span.source_callsite()).unwrap();
         let first_line_info = lines_info.lines.get(0).unwrap();
         let line = first_line_info.line_index as i32 + 1;

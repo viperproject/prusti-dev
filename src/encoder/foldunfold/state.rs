@@ -16,14 +16,17 @@ pub struct State {
     pred: HashSet<vir::Place>,
     /// paths that have been "moved out" (for sure)
     moved: HashSet<vir::Place>,
+    /// paths that are blocked because they may have been mutably borrowed
+    borrowed: HashSet<vir::Place>,
 }
 
 impl State {
-    pub fn new(acc: HashSet<vir::Place>, pred: HashSet<vir::Place>, moved: HashSet<vir::Place>) -> Self {
+    pub fn new(acc: HashSet<vir::Place>, pred: HashSet<vir::Place>, moved: HashSet<vir::Place>, borrowed: HashSet<vir::Place>) -> Self {
         State {
             acc,
             pred,
             moved,
+            borrowed,
         }
     }
 
@@ -110,6 +113,27 @@ impl State {
                 }
             }
         }
+        // Check borrowed
+        for borrowed_place in &self.borrowed {
+            if self.is_proper_prefix_of_some_acc(borrowed_place) {
+                panic!(
+                    "Consistency error: borrowed place {} can not be a proper prefix of some access permissions",
+                    borrowed_place
+                );
+            }
+            if self.is_prefix_of_some_pred(borrowed_place) {
+                panic!(
+                    "Consistency error: borrowed place {} can not be a prefix of some predicate permissions",
+                    borrowed_place
+                );
+            }
+            if self.is_prefix_of_some_moved(borrowed_place) {
+                panic!(
+                    "Consistency error: borrowed place {} can not be a prefix of some moved path",
+                    borrowed_place
+                );
+            }
+        }
     }
 
     pub fn acc(&self) -> &HashSet<vir::Place> {
@@ -134,6 +158,10 @@ impl State {
         &self.moved
     }
 
+    pub fn borrowed(&self) -> &HashSet<vir::Place> {
+        &self.borrowed
+    }
+
     pub fn set_acc(&mut self, acc: HashSet<vir::Place>) {
         self.acc = acc
     }
@@ -146,6 +174,10 @@ impl State {
         self.moved = moved
     }
 
+    pub fn set_borrowed(&mut self, borrowed: HashSet<vir::Place>) {
+        self.borrowed = borrowed
+    }
+
     pub fn contains_acc(&self, place: &vir::Place) -> bool {
         self.acc.contains(&place)
     }
@@ -156,6 +188,10 @@ impl State {
 
     pub fn contains_moved(&self, place: &vir::Place) -> bool {
         self.moved.contains(&place)
+    }
+
+    pub fn contains_borrowed(&self, place: &vir::Place) -> bool {
+        self.borrowed.contains(&place)
     }
 
     pub fn contains_perm(&self, item: &Perm) -> bool {
@@ -196,6 +232,15 @@ impl State {
         return false
     }
 
+    pub fn is_proper_prefix_of_some_borrowed(&self, prefix: &vir::Place) -> bool {
+        for place in &self.borrowed {
+            if place.has_prefix(prefix) {
+                return true
+            }
+        }
+        return false
+    }
+
     pub fn is_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
         for place in &self.acc {
             if place.has_prefix(prefix) {
@@ -223,6 +268,15 @@ impl State {
         return false
     }
 
+    pub fn is_prefix_of_some_borrowed(&self, prefix: &vir::Place) -> bool {
+        for place in &self.borrowed {
+            if place.has_prefix(prefix) {
+                return true
+            }
+        }
+        return false
+    }
+
     pub fn intersect_acc(&mut self, other_acc: &HashSet<vir::Place>) {
         self.acc = HashSet::from_iter(self.acc.intersection(other_acc).cloned());
     }
@@ -235,12 +289,17 @@ impl State {
         self.moved = HashSet::from_iter(self.moved.intersection(other_moved).cloned());
     }
 
+    pub fn intersect_borrowed(&mut self, other_borrowed: &HashSet<vir::Place>) {
+        self.borrowed = HashSet::from_iter(self.borrowed.intersection(other_borrowed).cloned());
+    }
+
     pub fn remove_matching<P>(&mut self, pred: P)
         where P: Fn(&vir::Place) -> bool
     {
         self.remove_acc_matching(|x| pred(x));
         self.remove_pred_matching(|x| pred(x));
         self.remove_moved_matching(|x| pred(x));
+        self.remove_borrowed_matching(|x| pred(x));
     }
 
     pub fn remove_acc_matching<P>(&mut self, pred: P)
@@ -261,6 +320,12 @@ impl State {
         self.moved.retain(|e| !pred(e));
     }
 
+    pub fn remove_borrowed_matching<P>(&mut self, pred: P)
+        where P: Fn(&vir::Place) -> bool
+    {
+        self.borrowed.retain(|e| !pred(e));
+    }
+
     pub fn display_acc(&self) -> String {
         self.acc.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
     }
@@ -273,6 +338,10 @@ impl State {
         self.moved.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
     }
 
+    pub fn display_borrowed(&self) -> String {
+        self.borrowed.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+    }
+
     pub fn display_debug_acc(&self) -> String {
         self.acc.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
     }
@@ -283,6 +352,10 @@ impl State {
 
     pub fn display_debug_moved(&self) -> String {
         self.moved.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+    }
+
+    pub fn display_debug_borrowed(&self) -> String {
+        self.borrowed.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
     }
 
     pub fn insert_acc(&mut self, place: vir::Place) {
@@ -318,6 +391,17 @@ impl State {
         }
     }
 
+    pub fn insert_borrowed(&mut self, place: vir::Place) {
+        //assert!(!self.pred.contains(&place), "Place {} is already in state (pred), so it can not be added.", place);
+        self.borrowed.insert(place);
+    }
+
+    pub fn insert_all_borrowed<I>(&mut self, items: I) where I: Iterator<Item = vir::Place> {
+        for item in items {
+            self.insert_borrowed(item);
+        }
+    }
+
     pub fn insert_perm(&mut self, item: Perm) {
         match item {
             Perm::Acc(place) => self.insert_acc(place),
@@ -344,6 +428,11 @@ impl State {
     pub fn remove_moved(&mut self, place: &vir::Place) {
         assert!(self.moved.contains(place), "Place {} is not in state (moved), so it can not be removed.", place);
         self.moved.remove(place);
+    }
+
+    pub fn remove_borrowed(&mut self, place: &vir::Place) {
+        assert!(self.borrowed.contains(place), "Place {} is not in state (borrowed), so it can not be removed.", place);
+        self.borrowed.remove(place);
     }
 
     pub fn remove_perm(&mut self, item: &Perm) {
