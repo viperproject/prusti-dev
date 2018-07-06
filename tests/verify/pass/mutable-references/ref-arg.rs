@@ -1,5 +1,7 @@
 //! Example: functions that takes a mutable reference
 
+// ignore-test We need to restore permissions when a mutable borrow dies
+
 extern crate prusti_contracts;
 
 struct A;

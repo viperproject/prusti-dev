@@ -1,8 +1,8 @@
 extern crate prusti_contracts;
 
 fn diverging() -> ! {
-    // This should be reported
-    panic!();
+    // This error should be reported
+    loop {}
 }
 
 fn main() {

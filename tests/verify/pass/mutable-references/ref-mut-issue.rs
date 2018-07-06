@@ -1,5 +1,7 @@
 //! Example of program that uses a non-lexical lifetime for reference `z`
 
+// ignore-test We need to restore permissions when a mutable borrow dies
+
 #![feature(nll)]
 
 extern crate prusti_contracts;

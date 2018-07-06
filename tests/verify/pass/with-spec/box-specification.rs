@@ -1,4 +1,6 @@
-//! Example: functions that takes a mutable reference
+//! Example: test specification of box dereferentiation
+
+// ignore-test We need to encode functional specifications
 
 extern crate prusti_contracts;
 
