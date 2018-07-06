@@ -289,6 +289,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             vir::Stmt::Assign(
                                 encoded_lhs.access(field),
                                 encoded_value,
+                                vir::AssignKind::Copy
                             )
                         );
                         stmts
@@ -311,6 +312,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     .access(value_field)
                                     .access(value_field_value),
                                 encoded_value,
+                                vir::AssignKind::Copy
                             )
                         );
                         stmts.push(
@@ -319,6 +321,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     .access(check_field)
                                     .access(check_field_value),
                                 encoded_check,
+                                vir::AssignKind::Copy
                             )
                         );
                         stmts
@@ -333,6 +336,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             vir::Stmt::Assign(
                                 encoded_lhs.access(field),
                                 encoded_value,
+                                vir::AssignKind::Copy
                             )
                         );
                         stmts
@@ -378,6 +382,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     vir::Stmt::Assign(
                                         encoded_lhs.clone().access(int_field),
                                         discr_value,
+                                        vir::AssignKind::Copy
                                     )
                                 );
                                 stmts
@@ -403,6 +408,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             vir::Stmt::Assign(
                                 encoded_lhs.clone().access(ref_field),
                                 encoded_value.into(),
+                                vir::AssignKind::MutableBorrow
                             )
                         );
                         stmts
@@ -643,7 +649,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let (dst, ty, _) = self.encode_place(target_place);
                             let local = self.locals.get_fresh(ty);
                             let viper_local = self.encode_prusti_local(local);
-                            stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into()));
+                            stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into(), vir::AssignKind::Move));
                             encoded_targets.push(viper_local);
                             local
                         };
@@ -1078,7 +1084,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let field = self.encoder.encode_value_field(ty);
                         // Initialize value of lhs
                         stmts.push(
-                            vir::Stmt::Assign(lhs.clone().access(field), const_val)
+                            vir::Stmt::Assign(lhs.clone().access(field), const_val, vir::AssignKind::Copy)
                         );
                     }
                     mir::Literal::Promoted { index } => {
@@ -1107,7 +1113,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let local = self.locals.get_fresh(ty);
                 let viper_local = self.encode_prusti_local(local);
                 // Before, move to a temporary variable (used to encode procedure calls)
-                let stmt_before = vir::Stmt::Assign(viper_local.clone().into(), src.clone().into());
+                let stmt_before = vir::Stmt::Assign(viper_local.clone().into(), src.clone().into(), vir::AssignKind::Move);
                 (local, viper_local, vec![stmt_before], vec![])
             }
             &mir::Operand::Copy(ref place) => {
@@ -1138,7 +1144,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let const_val = self.encoder.encode_const_expr(value);
                         // Before, initialize viper_local
                         stmts.push(
-                            vir::Stmt::Assign(vir::Place::from(viper_local.clone()).access(field), const_val)
+                            vir::Stmt::Assign(vir::Place::from(viper_local.clone()).access(field), const_val, vir::AssignKind::Copy)
                         );
                     }
                     mir::Literal::Promoted { index } => {
@@ -1182,7 +1188,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let tmp_var = self.get_auxiliar_local_var("havoc", self.encoder.encode_type(ty));
             vec![
                 vir::Stmt::MethodCall(havoc_ref_method_name, vec![], vec![tmp_var.clone()]),
-                vir::Stmt::Assign(dst.clone().into(), tmp_var.into()),
+                vir::Stmt::Assign(dst.clone().into(), tmp_var.into(), vir::AssignKind::Move),
             ]
         }
     }
@@ -1228,6 +1234,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::Stmt::Assign(
                         dst.clone().access(field.clone()),
                         src.clone().access(field.clone()).into(),
+                        vir::AssignKind::Copy
                     )
                 ]
             }
@@ -1260,6 +1267,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vir::Stmt::Assign(
                             dst.clone().access(discriminant_field.clone()),
                             src.clone().access(discriminant_field.clone()).into(),
+                            vir::AssignKind::Copy
                         )
                     );
                 }
@@ -1289,10 +1297,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 assert!(is_move);
                 let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                 vec![
-                    // Copy the reference to the boxed value
+                    // Move the reference to the boxed value
                     vir::Stmt::Assign(
                         dst.clone().access(ref_field.clone()),
                         src.clone().access(ref_field.clone()).into(),
+                        vir::AssignKind::Move
                     )
                 ]
             }
@@ -1304,10 +1313,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
                 assert_eq!(adt_def.variants.len(), 1);
                 vec![
-                    // Copy the reference to the boxed value
+                    // Move the reference to the boxed value
                     vir::Stmt::Assign(
                         dst.clone().access(ref_field.clone()),
                         src.clone().access(ref_field.clone()).into(),
+                        vir::AssignKind::Move
                     )
                 ]
             }
@@ -1393,7 +1403,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     stmts.push(
                         vir::Stmt::Assign(
                             dst.clone().access(discr_field).into(),
-                            variant_index.into()
+                            variant_index.into(),
+                            vir::AssignKind::Copy
                         )
                     );
                 };

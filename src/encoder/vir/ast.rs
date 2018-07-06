@@ -282,12 +282,25 @@ pub enum Stmt {
     Assert(Expr, Position),
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
-    Assign(Place, Expr),
+    Assign(Place, Expr, AssignKind),
     Fold(String, Vec<Expr>),
     Unfold(String, Vec<Expr>),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     Obtain(Expr),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum AssignKind {
+    /// Encodes a Rust copy.
+    /// This assignment can be used iff the Viper type of the `lhs` and `rhs` is *not* Ref.
+    Copy,
+    /// Encodes a Rust move. The permissions in the rhs move to the `lhs`.
+    /// This assignment can be used iff the Viper type of the `lhs` and `rhs` is Ref.
+    Move,
+    /// Encodes the initialization of a mutable borrow.
+    /// The permissions in the `rhs` move to the `lhs`, but they can be restored when the borrow dies.
+    MutableBorrow
 }
 
 impl Stmt {
@@ -354,7 +367,10 @@ impl fmt::Display for Stmt {
                 name,
                 args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
             ),
-            Stmt::Assign(ref lhs, ref rhs) => write!(f, "{} := {}", lhs, rhs),
+            Stmt::Assign(ref lhs, ref rhs, kind) => match kind {
+                AssignKind::Move => write!(f, "{} := move {}", lhs, rhs),
+                _ => write!(f, "{} := {}", lhs, rhs),
+            },
 
             Stmt::Fold(ref pred_name, ref args) => write!(
                 f,

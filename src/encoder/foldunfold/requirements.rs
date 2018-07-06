@@ -43,7 +43,7 @@ impl RequiredPlacesGetter for vir::Stmt {
                 HashSet::from_iter(vars.iter().cloned().map(|v| Acc(vir::Place::Base(v))))
             },
 
-            &vir::Stmt::Assign(ref lhs_place, ref expr) => {
+            &vir::Stmt::Assign(ref lhs_place, ref expr, kind) => {
                 let mut res = expr.get_required_places(predicates);
                 res.insert(Acc(lhs_place.clone()));
                 res

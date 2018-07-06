@@ -77,7 +77,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 &args.to_viper(ast),
                 &targets.to_viper(ast)
             ),
-            &Stmt::Assign(ref lhs, ref rhs) => ast.abstract_assign(
+            &Stmt::Assign(ref lhs, ref rhs, _) => ast.abstract_assign(
                 lhs.to_viper(ast),
                 rhs.to_viper(ast)
             ),

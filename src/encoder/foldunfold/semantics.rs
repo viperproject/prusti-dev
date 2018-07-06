@@ -34,7 +34,7 @@ impl vir::Stmt {
                 state.remove_acc_matching( |p| !p.is_base() && targets.contains(p.base()));
             },
 
-            &vir::Stmt::Assign(ref lhs_place, ref rhs) => {
+            &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
                 let original_state = state.clone();
 
                 // First of all, remove places that will not have a name
@@ -45,7 +45,8 @@ impl vir::Stmt {
                 // Then, in case of aliasing, add new places
                 match rhs {
                     &vir::Expr::Place(ref rhs_place) if rhs_place.get_type().is_ref() => {
-                        // This is the encoding of a move assignemnt
+                        // This is a move assignemnt or the creation of a mutable borrow
+                        assert!(match kind { vir::AssignKind::Copy => false, _ => true }, "Unexpected assignment kind: {:?}", kind);
 
                         // Check that the rhs contains no moved paths
                         assert!(!state.is_prefix_of_some_moved(&rhs_place));
@@ -73,7 +74,10 @@ impl vir::Stmt {
                         // Finally, mark the rhs as moved
                         state.insert_moved(rhs_place.clone());
                     },
-                    _ => {}
+                    _ => {
+                        // This is not move assignemnt or the creation of a mutable borrow
+                        assert!(match kind { vir::AssignKind::Copy => true, _ => false }, "Unexpected assignment kind: {:?}", kind);
+                    }
                 }
             },
 
