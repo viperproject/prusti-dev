@@ -11,6 +11,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::fmt;
 use utils::type_visitor::{self, TypeVisitor};
+use prusti_interface::specifications::{SpecificationSet, TypedSpecification, TypedSpecificationSet};
 
 
 #[derive(Clone, Debug)]
@@ -84,6 +85,26 @@ pub struct ProcedureContractGeneric<L, P>
     /// Magic wands passed out of the procedure.
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
     pub borrow_infos: Vec<BorrowInfo<P>>,
+    /// The functional specification: precondition and postcondition
+    specification: TypedSpecificationSet,
+}
+
+impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
+    pub fn functional_precondition(&self) -> &[TypedSpecification] {
+        if let SpecificationSet::Procedure(ref pre, _) = self.specification {
+            pre
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn functional_postcondition(&self) -> &[TypedSpecification] {
+        if let SpecificationSet::Procedure(_, ref post) = self.specification {
+            post
+        } else {
+            unreachable!()
+        }
+    }
 }
 
 /// Procedure contract as it is defined in MIR.
@@ -141,6 +162,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             returned_refs: self.returned_refs.iter().map(|r| r.into()).collect(),
             returned_value: self.returned_value.into(),
             borrow_infos,
+            specification: self.specification.clone(),
         }
     }
 
@@ -175,6 +197,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             returned_refs: self.returned_refs.iter().map(&substitute).collect(),
             returned_value: target,
             borrow_infos,
+            specification: self.specification.clone(),
         }
     }
 
@@ -284,12 +307,14 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>) -> ProcedureContractMirDef<'tcx>
+    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    specification: TypedSpecificationSet) -> ProcedureContractMirDef<'tcx>
     where
         'a: 'p,
         'tcx: 'a
 {
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
+
     // TODO: this function should use HIR instead of MIR
     if let None = tcx.hir.as_local_node_id(proc_def_id) {
         unimplemented!("We don't support non-local procedure calls (yet)")
@@ -326,6 +351,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
         returned_refs,
         returned_value: mir::RETURN_PLACE,
         borrow_infos,
+        specification,
     };
     trace!("[compute_borrow_infos] exit result={}", contract);
     contract

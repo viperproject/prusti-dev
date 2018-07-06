@@ -21,7 +21,8 @@ use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use syntax::ast;
 use viper;
-use prusti_interface::specifications::{TypedSpecificationMap};
+use prusti_interface::specifications::{SpecID, TypedSpecificationMap};
+use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -101,7 +102,19 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                           ) -> ProcedureContract<'tcx> {
         let mut map = self.procedure_contracts.borrow_mut();
         map.entry(proc_def_id).or_insert_with(|| {
-            compute_procedure_contract(proc_def_id, self.env().tcx())
+            let spec_id: SpecID = self.env().tcx()
+                .get_attrs(proc_def_id)
+                .iter()
+                .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
+                .unwrap()
+                .value_str()
+                .unwrap()
+                .as_str()
+                .parse::<u64>()
+                .unwrap()
+                .into();
+            let fun_spec = self.spec().get(&spec_id).unwrap().clone();
+            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec)
         }).to_def_site_contract()
     }
 
@@ -110,7 +123,19 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                            ) -> ProcedureContract<'tcx> {
         let mut map = self.procedure_contracts.borrow_mut();
         map.entry(proc_def_id).or_insert_with(|| {
-            compute_procedure_contract(proc_def_id, self.env().tcx())
+            let spec_id: SpecID = self.env().tcx()
+                .get_attrs(proc_def_id)
+                .iter()
+                .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
+                .unwrap()
+                .value_str()
+                .unwrap()
+                .as_str()
+                .parse::<u64>()
+                .unwrap()
+                .into();
+            let fun_spec = self.spec().get(&spec_id).unwrap().clone();
+            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec)
         }).to_call_site_contract(args, target)
     }
 

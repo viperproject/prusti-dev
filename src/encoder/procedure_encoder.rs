@@ -26,7 +26,6 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::codemap::Span;
-use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::specifications::{SpecID, SpecificationSet, TypedSpecification};
 
 
@@ -81,30 +80,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     pub fn encode(mut self) -> vir::CfgMethod {
         debug!("Encode procedure {}", self.cfg_method.name());
-
-        let spec_id: SpecID = self.encoder.env().tcx()
-            .get_attrs(self.proc_def_id)
-            .iter()
-            .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
-            .unwrap()
-            .value_str()
-            .unwrap()
-            .as_str()
-            .parse::<u64>()
-            .unwrap()
-            .into();
-
-        debug!("Specification id: {:?}", spec_id);
-
-        let fun_spec = self.encoder.spec().get(&spec_id).unwrap();
-
-        let (pre_spec, post_spec) = match fun_spec {
-            SpecificationSet::Procedure(pre_spec, post_spec) => (pre_spec, post_spec),
-            _ => unreachable!()
-        };
-
-        warn!("TODO: encode functional precondition: {:?}", pre_spec);
-        warn!("TODO: encode functional postcondition: {:?}", post_spec);
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
@@ -777,7 +752,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode the precondition as a single expression.
     fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> vir::Expr {
-        contract.args.iter().map(|&local| self.encode_local_variable_permission(local)).into_iter().conjoin()
+        let mut conjuncts: Vec<vir::Expr> = vec![];
+        conjuncts.extend(
+            contract.args.iter().map(|&local| self.encode_local_variable_permission(local))
+        );
+        // Encode functional specification
+        for item in contract.functional_precondition() {
+            warn!("TODO: incomplete encodingo of functional precondition: {:?}", item);
+            conjuncts.push(vir::Const::Bool(true).into());
+        }
+        conjuncts.into_iter().conjoin()
     }
 
     /// Encode precondition inhale on the definition side.
@@ -835,6 +819,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             conjuncts.push(vir::Expr::MagicWand(box lhs, box rhs));
         }
         conjuncts.push(self.encode_local_variable_permission(contract.returned_value));
+        // Encode functional specification
+        for item in contract.functional_postcondition() {
+            warn!("TODO: incomplete encodingo of functional postcondition: {:?}", item);
+            conjuncts.push(vir::Const::Bool(false).into());
+        }
         conjuncts.into_iter().conjoin()
     }
 
