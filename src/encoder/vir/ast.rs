@@ -369,7 +369,8 @@ impl fmt::Display for Stmt {
             ),
             Stmt::Assign(ref lhs, ref rhs, kind) => match kind {
                 AssignKind::Move => write!(f, "{} := move {}", lhs, rhs),
-                _ => write!(f, "{} := {}", lhs, rhs),
+                AssignKind::Copy => write!(f, "{} := copy {}", lhs, rhs),
+                AssignKind::MutableBorrow => write!(f, "{} := borrow {}", lhs, rhs),
             },
 
             Stmt::Fold(ref pred_name, ref args) => write!(

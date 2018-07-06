@@ -37,22 +37,52 @@ impl vir::Stmt {
             &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
                 let original_state = state.clone();
 
-                // First of all, remove places that will not have a name
+                // Mark the `rhs` as moved or borrowed
+                match kind {
+                    vir::AssignKind::Move => {
+                        if let &vir::Expr::Place(ref rhs_place) = rhs {
+                            assert!(rhs_place.get_type().is_ref());
+
+                            // Check that the rhs contains no moved paths
+                            assert!(!state.is_prefix_of_some_moved(&rhs_place));
+                            for prefix in rhs_place.all_proper_prefixes() {
+                                assert!(!state.contains_pred(prefix));
+                            }
+
+                            state.insert_moved(rhs_place.clone());
+                        } else {
+                            unreachable!()
+                        }
+                    }
+                    vir::AssignKind::MutableBorrow => {
+                        if let &vir::Expr::Place(ref rhs_place) = rhs {
+                            assert!(rhs_place.get_type().is_ref());
+
+                            // Check that the rhs contains no moved paths
+                            assert!(!state.is_prefix_of_some_moved(&rhs_place));
+                            for prefix in rhs_place.all_proper_prefixes() {
+                                assert!(!state.contains_pred(prefix));
+                            }
+
+                            state.insert_borrowed(rhs_place.clone());
+                        } else {
+                            unreachable!()
+                        }
+                    }
+                    _ => {}
+                }
+
+                // Remove places that will not have a name
                 state.remove_moved_matching( |p| p.has_prefix(&lhs_place));
                 state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
                 state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place));
+                state.remove_borrowed_matching( |p| p.has_prefix(&lhs_place));
 
-                // Then, in case of aliasing, add new places
+                // In case of move or borrowing, move permissions from the `rhs` to the `lhs`
                 match rhs {
                     &vir::Expr::Place(ref rhs_place) if rhs_place.get_type().is_ref() => {
                         // This is a move assignemnt or the creation of a mutable borrow
                         assert!(match kind { vir::AssignKind::Copy => false, _ => true }, "Unexpected assignment kind: {:?}", kind);
-
-                        // Check that the rhs contains no moved paths
-                        assert!(!state.is_prefix_of_some_moved(&rhs_place));
-                        for prefix in rhs_place.all_proper_prefixes() {
-                            assert!(!state.contains_pred(prefix));
-                        }
 
                         // In Prusti, we lose permission on the rhs
                         state.remove_pred_matching( |p| p.has_prefix(&rhs_place));
@@ -70,9 +100,6 @@ impl vir::Stmt {
                             .cloned()
                             .map(|p| p.replace_prefix(&rhs_place, lhs_place.clone()));
                         state.insert_all_pred(new_pred_places);
-
-                        // Finally, mark the rhs as moved
-                        state.insert_moved(rhs_place.clone());
                     },
                     _ => {
                         // This is not move assignemnt or the creation of a mutable borrow
