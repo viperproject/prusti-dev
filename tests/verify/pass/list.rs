@@ -1,4 +1,4 @@
-//! Currently unsupported because `Box` and `Option` use a type parameter
+//! Example of linked list
 
 #![feature(nll)]
 #![feature(box_patterns)]
