@@ -181,7 +181,7 @@ impl BranchCtxt {
 
         let req_place = req.get_place();
 
-        // Check if the requirement is satisfied
+        // 1. Check if the requirement is satisfied
         if self.state.contains_perm(req) {
             // `req` is satisfied, so we can remove it from `reqs`
             debug!("Requirement {} is satisfied", req);
@@ -190,12 +190,26 @@ impl BranchCtxt {
 
         debug!("Try to satisfy requirement {:?}", req);
 
+        // 2. Obtain by restoring a borrowed path with a magic wand
+        let existing_prefix_borrowed_opt: Option<vir::Place> = self.state.borrowed().iter()
+            .find(|p| req_place.has_prefix(p))
+            .cloned();
+        if let Some(existing_borrowed_to_restore) = existing_prefix_borrowed_opt {
+            debug!("We want to restore {:?}", existing_borrowed_to_restore);
+            let stmt = unimplemented!();
+            stmts.push(stmt);
+            debug!("We restored {:?}", existing_borrowed_to_restore);
+
+            // Check if we are done
+            stmts.extend(self.obtain(req));
+            return stmts;
+        }
+
+        // 3. Obtain with an unfold
         // Find a predicate on a proper prefix of req_place
         let existing_prefix_pred_opt: Option<vir::Place> = self.state.pred().iter()
             .find(|p| req_place.has_proper_prefix(p))
             .cloned();
-
-        // Obtain with an unfold
         if let Some(existing_pred_to_unfold) = existing_prefix_pred_opt {
             debug!("We want to unfold {:?}", existing_pred_to_unfold);
             let stmt = self.unfold(&existing_pred_to_unfold);
@@ -204,75 +218,69 @@ impl BranchCtxt {
 
             // Check if we are done
             stmts.extend(self.obtain(req));
-
             return stmts;
         }
 
-        // Obtain with a fold
-        match req {
-            Perm::Pred(_) => {
-                // We want to fold `req_place`
-                debug!("We want to fold {:?}", req_place);
-                let predicate_name = req_place.typed_ref_name().unwrap();
-                let predicate = self.predicates.get(&predicate_name).unwrap();
+        // 4. Obtain with a fold
+        if let Perm::Pred(_) = req {
+            // We want to fold `req_place`
+            debug!("We want to fold {:?}", req_place);
+            let predicate_name = req_place.typed_ref_name().unwrap();
+            let predicate = self.predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Place = predicate.args[0].clone().into();
-                let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
-                    .map( |aop| aop.map( |p|
-                        p.replace_prefix(&pred_self_place, req_place.clone())
-                    )).collect();
+            let pred_self_place: vir::Place = predicate.args[0].clone().into();
+            let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
+                .map( |aop| aop.map( |p|
+                    p.replace_prefix(&pred_self_place, req_place.clone())
+                )).collect();
 
-                // Find an access permission for which req_place is a proper suffix
-                let existing_proper_perm_extension_opt: Option<_> = self.state.acc().iter().find(
-                    |p| p.has_proper_prefix(&req_place)
-                );
+            // Find an access permission for which req_place is a proper suffix
+            let existing_proper_perm_extension_opt: Option<_> = self.state.acc().iter().find(
+                |p| p.has_proper_prefix(&req_place)
+            );
 
-                // Check that there exists something that would make the fold possible.
-                // We don't want to end up in an infinite recursion, trying to obtain the
-                // predicates in the body.
-                let can_fold = match existing_proper_perm_extension_opt {
-                    Some(_) => true,
-                    None => places_in_pred.is_empty(),
-                };
+            // Check that there exists something that would make the fold possible.
+            // We don't want to end up in an infinite recursion, trying to obtain the
+            // predicates in the body.
+            let can_fold = match existing_proper_perm_extension_opt {
+                Some(_) => true,
+                None => places_in_pred.is_empty(),
+            };
 
-                if can_fold {
-                    for fold_req_place in &places_in_pred {
-                        stmts.extend(self.obtain(fold_req_place));
-                    }
-
-                    stmts.push(
-                        vir::Stmt::Fold(predicate_name.clone(), vec![ req_place.clone().into() ])
-                    );
-
-                    // Simulate folding of `req_place`
-                    assert!(self.state.contains_all_perms(places_in_pred.iter()));
-                    assert!(self.state.contains_acc(&req_place));
-                    assert!(!self.state.contains_pred(&req_place));
-                    self.state.remove_all_perms(places_in_pred.iter());
-                    self.state.insert_pred(req_place.clone());
-
-                    // Done. Continue checking the remaining requirements
-                    debug!("We folded {:?}", req_place);
-                } else {
-                    unreachable!(
-                        "It is not possible to obtain {:?} by folding or unfolding predicates. Predicates: {:?}",
-                        req,
-                        self.state.pred()
-                    );
+            if can_fold {
+                for fold_req_place in &places_in_pred {
+                    stmts.extend(self.obtain(fold_req_place));
                 }
-            },
 
-            Perm::Acc(_) => {
-                // We have no predicate to obtain the access permission `req`
-                unreachable!(
-                    "There is no predicate to obtain {:?}. Predicates: {:?}",
-                    req,
-                    self.state.pred()
+                stmts.push(
+                    vir::Stmt::Fold(predicate_name.clone(), vec![ req_place.clone().into() ])
                 );
-            },
-        }
 
-        stmts
+                // Simulate folding of `req_place`
+                assert!(self.state.contains_all_perms(places_in_pred.iter()));
+                assert!(self.state.contains_acc(&req_place));
+                assert!(!self.state.contains_pred(&req_place));
+                self.state.remove_all_perms(places_in_pred.iter());
+                self.state.insert_pred(req_place.clone());
+
+                // Done. Continue checking the remaining requirements
+                debug!("We folded {:?}", req_place);
+                return stmts;
+            }
+        } else {
+            // We have no predicate to obtain the access permission `req`
+            unreachable!(
+                "There is no predicate to obtain {:?}. Predicates: {:?}",
+                req,
+                self.state.pred()
+            );
+        };
+
+        unreachable!(
+            "It is not possible to obtain {:?}. Predicates: {:?}",
+            req,
+            self.state.pred()
+        );
     }
 
     pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Vec<vir::Stmt> {

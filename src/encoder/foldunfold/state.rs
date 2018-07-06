@@ -114,6 +114,17 @@ impl State {
             }
         }
         // Check borrowed
+        for place in &self.borrowed {
+            for other_place in &self.borrowed {
+                if place.has_proper_prefix(other_place) {
+                    panic!(
+                        "Consistency error: state has borrowed {}, but also borrowed {}",
+                        place,
+                        other_place
+                    );
+                }
+            }
+        }
         for borrowed_place in &self.borrowed {
             if self.is_proper_prefix_of_some_acc(borrowed_place) {
                 panic!(
