@@ -11,6 +11,8 @@ use std::path::PathBuf;
 use syntax_pos::FileName;
 use syntax_pos::MultiSpan;
 use syntax::errors::DiagnosticId;
+use rustc::hir;
+use rustc::ty;
 
 mod procedure;
 mod loops;
@@ -58,6 +60,13 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     /// Returns the typing context
     pub fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
         self.state.tcx.unwrap()
+    }
+
+    /// Returns the type of a `HirId`
+    pub fn hir_id_to_type(&self, hir_id: hir::HirId) -> ty::Ty<'tcx> {
+        let owner_def_id = hir_id.owner_def_id();
+        let typeck_tables = self.tcx().typeck_tables_of(owner_def_id);
+        typeck_tables.node_id_to_type(hir_id)
     }
 
     /// Returns the `CodeMap`

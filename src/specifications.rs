@@ -209,8 +209,8 @@ pub struct Specification<ET, AT> {
 #[derive(Debug, Clone)]
 /// Specification of a single element such as procedure or loop.
 pub enum SpecificationSet<ET, AT> {
-    /// (Precondition, Postcondition, OldExpressions)
-    // TODO: Add field HashMap<ast::Ident, Expression<ET>>
+    /// (Precondition, Postcondition, map of old expressions)
+    /// TODO: add HashMap<ast::Ident, Expression<ET>> to translate old expressions
     Procedure(Vec<Specification<ET, AT>>, Vec<Specification<ET, AT>>),
     /// Loop invariant.
     Loop(Vec<Specification<ET, AT>>),
@@ -243,3 +243,5 @@ pub type TypedAssertion = Assertion<rustc::hir::Expr, rustc::hir::Arg>;
 pub type TypedAssertionKind = AssertionKind<rustc::hir::Expr, rustc::hir::Arg>;
 /// A trigger set that has types associated with it.
 pub type TypedTriggerSet = TriggerSet<rustc::hir::Expr>;
+
+pub type TypedTrigger = Trigger<rustc::hir::Expr>;
