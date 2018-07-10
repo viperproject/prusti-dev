@@ -4,6 +4,7 @@
 
 use environment::borrowck::{facts, regions};
 use environment::loops;
+use datafrog::{Iteration, Relation};
 use std::cell;
 use std::env;
 use std::collections::HashMap;
@@ -79,6 +80,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
 
         let all_facts = facts_loader.facts;
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
+        let additional_facts = compute_additional_facts(&all_facts, &output);
 
         let mir = self.tcx.mir_validated(def_id).borrow();
         let loop_info = loops::ProcedureLoops::new(&mir);
@@ -89,19 +91,149 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let mut graph = BufWriter::new(graph_file);
 
+        let interner = facts_loader.interner;
+        let loan_position = all_facts.borrow_region
+            .iter()
+            .map(|&(_, loan, point_index)| {
+                let point = interner.get_point(point_index);
+                (loan, point.location)
+            })
+            .collect();
+
         let mut mir_info_printer = MirInfoPrinter {
             tcx: self.tcx,
             mir: mir,
             borrowck_in_facts: all_facts,
             borrowck_out_facts: output,
-            interner: facts_loader.interner,
+            additional_facts: additional_facts,
+            interner: interner,
             graph: cell::RefCell::new(graph),
             loops: loop_info,
             variable_regions: variable_regions,
+            loan_position: loan_position,
         };
         mir_info_printer.print_info();
 
         trace!("[visit_fn] exit");
+    }
+}
+
+
+/// Additional facts derived from the borrow checker facts.
+struct AdditionalFacts {
+    /// A list of loans sorted by id.
+    pub loans: Vec<facts::Loan>,
+    /// The ``reborrows`` facts are needed for removing “fake” loans: at
+    /// a specific program point there are often more than one loan active,
+    /// but we are interested in only one of them, which is the original one.
+    /// Therefore, we find all loans that are reborrows of the original loan
+    /// and remove them. Reborrowing is defined as follows:
+    ///
+    /// ```
+    /// reborrows(Loan, Loan);
+    /// reborrows(L1, L2) :-
+    ///     borrow_region(R, L1, P),
+    ///     restricts(R, P, L2).
+    /// reborrows(L1, L3) :-
+    ///     reborrows(L1, L2),
+    ///     reborrows(L2, L3).
+    /// ```
+    pub reborrows: Vec<(facts::Loan, facts::Loan)>,
+    /// Strongly connected components of loans computed based on the
+    /// reborrows relation.
+    pub loans_scc: Vec<Vec<facts::Loan>>,
+    /// A map from a loan to the id of the strongly connected component
+    /// to which it belongs.
+    pub loan_scc_map: HashMap<facts::Loan, usize>,
+}
+
+/// Derive additional facts from the borrow checker facts.
+fn compute_additional_facts(all_facts: &facts::AllInputFacts,
+                            output: &facts::AllOutputFacts) -> AdditionalFacts {
+
+    use self::facts::{PointIndex as Point, Loan, Region};
+
+    let mut iteration = Iteration::new();
+
+    // Variables that are outputs of our computation.
+    let reborrows = iteration.variable::<(Loan, Loan)>("reborrows");
+
+    // Variables for initial data.
+    let restricts = iteration.variable::<((Point, Region), Loan)>("restricts");
+    let borrow_region = iteration.variable::<((Point, Region), Loan)>("borrow_region");
+
+    // Load initial data.
+    restricts.insert(Relation::from(
+        output.restricts.iter().flat_map(
+            |(&point, region_map)|
+            region_map.iter().flat_map(
+                move |(&region, loans)|
+                loans.iter().map(move |&loan| ((point, region), loan))
+            )
+        )
+    ));
+    borrow_region.insert(Relation::from(
+        all_facts.borrow_region.iter().map(|&(r, l, p)| ((p, r), l))
+    ));
+
+    // Temporaries for performing join.
+    let reborrows_1 = iteration.variable_indistinct("reborrows_1");
+    let reborrows_2 = iteration.variable_indistinct("reborrows_2");
+
+    while iteration.changed() {
+
+        // reborrows(L1, L2) :-
+        //   borrow_region(R, L1, P),
+        //   restricts(R, P, L2).
+        reborrows.from_join(&borrow_region, &restricts, |_, &l1, &l2| (l1, l2));
+
+        // Compute transitive closure of reborrows:
+        // reborrows(L1, L3) :-
+        //   reborrows(L1, L2),
+        //   reborrows(L2, L3).
+        reborrows_1.from_map(&reborrows, |&(l1, l2)| (l2, l1));
+        reborrows_2.from_map(&reborrows, |&(l2, l3)| (l2, l3));
+        reborrows.from_join(&reborrows_1, &reborrows_2, |_, &l1, &l3| (l1, l3));
+    }
+
+    // Remove reflexive edges.
+    let reborrows: Vec<_> = reborrows
+        .complete()
+        .iter()
+        .filter(|(l1, l2)| l1 != l2)
+        .cloned()
+        .collect();
+    // Compute strongly connected components.
+    let mut loans: Vec<_> = all_facts
+        .borrow_region
+        .iter()
+        .map(|&(_, l, _)| l)
+        .collect();
+    loans.sort();
+    let mut loans_scc = Vec::new();
+    let mut loan_scc_map = HashMap::new();
+    for &l1 in loans.iter() {
+        if !loan_scc_map.contains_key(&l1) {
+            loan_scc_map.insert(l1, l1.into());
+            let mut scc = vec![l1];
+            for &l2 in loans.iter() {
+                debug!("contains(l1={:?} l2={:?}) = {}",
+                    l1, l2, reborrows.contains(&(l1, l2)));
+                debug!("contains(l2={:?} l1={:?}) = {}",
+                    l2, l1, reborrows.contains(&(l2, l1)));
+                if reborrows.contains(&(l1, l2)) && reborrows.contains(&(l2, l1)) {
+                    loan_scc_map.insert(l2, l1.into());
+                    scc.push(l2);
+                }
+            }
+            loans_scc.push(scc);
+        }
+    }
+    AdditionalFacts {
+        loans: loans,
+        reborrows: reborrows,
+        loans_scc: loans_scc,
+        loan_scc_map: loan_scc_map,
     }
 }
 
@@ -111,10 +243,13 @@ struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub mir: cell::Ref<'a, mir::Mir<'tcx>>,
     pub borrowck_in_facts: facts::AllInputFacts,
     pub borrowck_out_facts: facts::AllOutputFacts,
+    pub additional_facts: AdditionalFacts,
     pub interner: facts::Interner,
     pub graph: cell::RefCell<BufWriter<File>>,
     pub loops: loops::ProcedureLoops,
     pub variable_regions: HashMap<mir::Local, facts::Region>,
+    /// Position at which a specific loan was created.
+    pub loan_position: HashMap<facts::Loan, mir::Location>,
 }
 
 macro_rules! write_graph {
@@ -202,12 +337,27 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     fn print_restricts(&self) -> Result<(),io::Error> {
         write_graph!(self, "subgraph cluster_restricts {{");
         let mut interesting_restricts = Vec::new();
-        for (region, loan, point) in self.borrowck_in_facts.borrow_region.iter() {
+        let mut loans = Vec::new();
+        for &(region, loan, point) in self.borrowck_in_facts.borrow_region.iter() {
             write_graph!(self, "\"region_live_at_{:?}_{:?}_{:?}\" [ ", region, loan, point);
             write_graph!(self, "label=\"region_live_at({:?}, {:?}, {:?})\" ];", region, loan, point);
             write_graph!(self, "{:?} -> \"region_live_at_{:?}_{:?}_{:?}\" -> {:?}_{:?}",
                          loan, region, loan, point, region, point);
             interesting_restricts.push((region, point));
+            loans.push(loan);
+        }
+        loans.sort();
+        loans.dedup();
+        for &loan in loans.iter() {
+            let position = self.additional_facts
+                .reborrows
+                .iter()
+                .position(|&(_, l)| loan == l);
+            if position.is_some() {
+                write_graph!(self, "_{:?} [shape=box color=green]", loan);
+            } else {
+                write_graph!(self, "_{:?} [shape=box]", loan);
+            }
         }
         for (region, point) in interesting_restricts.iter() {
             if let Some(restricts_map) = self.borrowck_out_facts.restricts.get(&point) {
@@ -221,6 +371,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     }
                 }
             }
+        }
+        for &(loan1, loan2) in self.additional_facts.reborrows.iter() {
+            write_graph!(self, "_{:?} -> _{:?} [color=green]", loan1, loan2);
+            // TODO: Compute strongly connected components.
         }
         write_graph!(self, "}}");
         Ok(())
@@ -321,7 +475,54 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             let start_point = self.get_point(start_location, facts::PointType::Start);
             let restricts_map = &self.borrowck_out_facts.restricts;
             if let Some(ref restricts_relation) = restricts_map.get(&start_point).as_ref() {
-                for (region, loans) in restricts_relation.iter() {
+                for (region, all_loans) in restricts_relation.iter() {
+                    // From each strongly connected component of loans pick the one that
+                    // is not dominated by the loop head. Otherwise, the connected component
+                    // should have exactly one loan.
+
+                    //let mut loan_groups = HashMap::new();
+                    //for loan in all_loans.iter() {
+                        //debug!("loan: {:?} group: {}", loan, self.additional_facts.loan_scc_map[loan]);
+                        //loan_groups
+                            //.entry(self.additional_facts.loan_scc_map[loan])
+                            //.and_modify(|e: &mut Vec<_>| e.push(*loan))
+                            //.or_insert(vec![*loan]);
+                    //}
+                    //let dominators = self.mir.dominators();
+                    //let mut loans = Vec::new();
+                    //for group in loan_groups.values() {
+                        //if group.len() != 1 {
+                            //// If we have a group of more than one element, then we need to choose
+                            //// the “representative” loan.
+                            //let mut representative = None;
+                            //for loan in group.iter() {
+                                //let loan_block = self.loan_position[loan].block;
+                                //debug!("loan={:?} loan_block={:?} head={:?} !dominated={:?}",
+                                       //loan, loan_block, bb, !dominators.is_dominated_by(loan_block, bb));
+                                //if !dominators.is_dominated_by(loan_block, bb) {
+                                    //assert!(representative.is_none(),
+                                            //"There should be exactly one representative.");
+                                    //representative = Some(*loan);
+                                //}
+                            //}
+                            //loans.push(representative.expect("Each group should have a representative."));
+                        //} else {
+                            //loans.push(group[0]);
+                        //}
+                    //}
+
+                    // Filter out reborrows.
+                    let loans: Vec<_> = all_loans
+                        .iter()
+                        .filter(|l2| {
+                            !all_loans
+                                .iter()
+                                .map(move |&l1| (**l2, l1))
+                                .any(|r| self.additional_facts.reborrows.contains(&r))
+                        })
+                        .cloned()
+                        .collect();
+                    assert!(all_loans.is_empty() || !loans.is_empty());
                     for loan in loans.iter() {
                         // TODO: Remove loans that are reborrows of some other loans that are
                         // active at this program point. Reborrowing is defined as follows::
