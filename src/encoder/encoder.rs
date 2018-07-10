@@ -6,6 +6,7 @@ use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureC
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::error_manager::ErrorManager;
+use encoder::spec_encoder::SpecEncoder;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::type_encoder::TypeEncoder;
@@ -16,12 +17,13 @@ use prusti_interface::environment::EnvironmentImpl;
 use report::Log;
 use rustc::hir::def_id::DefId;
 use rustc::middle::const_val::ConstVal;
+use rustc::mir;
 use rustc::ty;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use syntax::ast;
 use viper;
-use prusti_interface::specifications::{SpecID, TypedSpecificationMap};
+use prusti_interface::specifications::{SpecID, TypedSpecificationMap, TypedAssertion};
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
@@ -204,6 +206,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
         let type_encoder = TypeEncoder::new(self, ty);
         type_encoder.encode_type()
+    }
+
+    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>) -> vir::Expr {
+        let spec_encoder = SpecEncoder::new(self, mir);
+        spec_encoder.encode_assertion(assertion)
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {

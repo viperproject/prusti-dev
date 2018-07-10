@@ -173,7 +173,20 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 left.to_viper(ast),
                 right.to_viper(ast)
             ),
+            &Expr::ForAll(ref vars, ref triggers, ref body) => ast.forall(
+                &vars.to_viper_decl(ast)[..],
+                &triggers.to_viper(ast),
+                body.to_viper(ast)
+            ),
         }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Trigger<'v>> for Trigger {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Trigger<'v> {
+        ast.trigger(
+            &self.elements().to_viper(ast)[..]
+        )
     }
 }
 
@@ -244,6 +257,12 @@ impl<'v> ToViper<'v, Vec<viper::Field<'v>>> for Vec<Field> {
 
 impl<'v> ToViper<'v, Vec<viper::Expr<'v>>> for Vec<LocalVar> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Expr<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Trigger<'v>>> for Vec<Trigger> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Trigger<'v>> {
         self.iter().map(|x| x.to_viper(ast)).collect()
     }
 }

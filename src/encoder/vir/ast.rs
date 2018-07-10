@@ -409,7 +409,12 @@ pub enum Expr {
     Unfolding(String, Vec<Expr>, Box<Expr>),
     // Cond: guard, then_expr, else_expr
     Cond(Box<Expr>, Box<Expr>, Box<Expr>),
+    // ForAll: variables, triggers, body
+    ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>),
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Trigger(Vec<Expr>);
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -434,7 +439,22 @@ impl fmt::Display for Expr {
                 expr
             ),
             &Expr::Cond(ref guard, ref left, ref right) => write!(f, "({})?({}):({})", guard, left, right),
+            &Expr::ForAll(ref vars, ref triggers, ref body) => write!(
+                f, "forall {} {} :: {}",
+                vars.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", "),
+                triggers.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                body.to_string()
+            )
         }
+    }
+}
+
+impl fmt::Display for Trigger {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f, "{{{}}}",
+            self.0.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+        )
     }
 }
 
@@ -506,6 +526,10 @@ impl Expr {
         Expr::BinOp(BinOpKind::EqCmp, box left, box right)
     }
 
+    pub fn ne_cmp(left: Expr, right: Expr) -> Self {
+        Expr::not(Expr::eq_cmp(left, right))
+    }
+
     pub fn add(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Add, box left, box right)
     }
@@ -526,6 +550,22 @@ impl Expr {
         Expr::BinOp(BinOpKind::Mod, box left, box right)
     }
 
+    /// Encode Rust reminder. This is *not* Viper modulo.
+    pub fn rem(left: Expr, right: Expr) -> Self {
+        let abs_right = Expr::ite(
+            Expr::ge_cmp(right.clone(), 0.into()),
+            right.clone(),
+            Expr::minus(right.clone()),
+        );
+        Expr::ite(
+            Expr::ge_cmp(left.clone(), 0.into()),
+            // positive value
+            Expr::modulo(left.clone(), right.clone()),
+            // negative value
+            Expr::sub(Expr::modulo(left, right), abs_right),
+        )
+    }
+
     pub fn and(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::And, box left, box right)
     }
@@ -534,8 +574,16 @@ impl Expr {
         Expr::BinOp(BinOpKind::Or, box left, box right)
     }
 
+    pub fn xor(left: Expr, right: Expr) -> Self {
+        Expr::not(Expr::eq_cmp(left, right))
+    }
+
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right)
+    }
+
+    pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
+        Expr::ForAll(vars, triggers, box body)
     }
 
     pub fn ite(guard: Expr, left: Expr, right: Expr) -> Self {
@@ -578,8 +626,36 @@ impl Expr {
                 args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>(),
                 replace(expr)
             ),
-            Expr::Cond(guard, left, right) => Expr::Cond(replace(guard), replace(left), replace(right))
+            Expr::Cond(guard, left, right) => Expr::Cond(replace(guard), replace(left), replace(right)),
+            Expr::ForAll(vars, triggers, body) => {
+                if vars.contains(target.base()) {
+                    // Do nothing
+                    Expr::ForAll(vars, triggers, body)
+                } else {
+                    Expr::ForAll(
+                        vars,
+                        triggers.into_iter().map(|x| x.replace(target, replacement)).collect(),
+                        replace(body)
+                    )
+                }
+            }
         }
+    }
+}
+
+impl Trigger {
+    pub fn new(items: Vec<Expr>) -> Self {
+        Trigger(items)
+    }
+
+    pub fn elements(&self) -> &Vec<Expr> {
+        &self.0
+    }
+
+    pub fn replace(self, target: &Place, replacement: &Place) -> Self {
+        Trigger(
+            self.0.into_iter().map(|x| x.replace(target, replacement)).collect()
+        )
     }
 }
 
@@ -589,6 +665,18 @@ pub enum Const {
     Null,
     Int(i64),
     BigInt(String),
+}
+
+impl Const {
+    pub fn is_num(&self) -> bool {
+        match self {
+            &Const::Bool(..) |
+            &Const::Null => false,
+
+            &Const::Int(..) |
+            &Const::BigInt(..) => true,
+        }
+    }
 }
 
 impl fmt::Display for Const {

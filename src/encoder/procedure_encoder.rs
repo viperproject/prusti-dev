@@ -26,7 +26,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::codemap::Span;
-use prusti_interface::specifications::{SpecID, SpecificationSet, TypedSpecification};
+use prusti_interface::specifications::*;
 
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -653,12 +653,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(vir::Stmt::Label(label.clone()));
 
                         warn!("TODO: incomplete encoding of precondition of method call");
-                        let precondition = self.encode_precondition_expr(&procedure_contract);
+                        let (pre_type_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
                         let pos = self.encoder.error_manager().register(
                             term.source_info.span,
                             ErrorCtxt::ExhalePrecondition
                         );
-                        stmts.push(vir::Stmt::Exhale(precondition, pos));
+                        stmts.push(vir::Stmt::Assert(pre_func_spec, pos.clone()));
+                        stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
 
                         stmts.push(vir::Stmt::MethodCall(
                             self.encoder.encode_procedure_name(def_id),
@@ -667,8 +668,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         ));
 
                         warn!("TODO: incomplete encoding of postcondition of method call");
-                        let postcondition = self.encode_postcondition_expr(&procedure_contract, &label);
-                        stmts.push(vir::Stmt::Inhale(postcondition));
+                        let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &label);
+                        stmts.push(vir::Stmt::Inhale(post_type_spec));
+                        stmts.push(vir::Stmt::Inhale(post_func_spec));
 
                         stmts.extend(stmts_after);
                     }
@@ -750,27 +752,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
-    /// Encode the precondition as a single expression.
-    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> vir::Expr {
-        let mut conjuncts: Vec<vir::Expr> = vec![];
-        conjuncts.extend(
-            contract.args.iter().map(|&local| self.encode_local_variable_permission(local))
-        );
+    /// Encode the precondition with two expressions:
+    /// - one for the type encoding
+    /// - one for the functional specification.
+    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> (vir::Expr, vir::Expr) {
+        let type_spec = contract.args.iter().map(|&local| self.encode_local_variable_permission(local));
+        let mut func_spec: Vec<vir::Expr> = vec![];
+
         // Encode functional specification
         for item in contract.functional_precondition() {
-            warn!("TODO: incomplete encodingo of functional precondition: {:?}", item);
-            conjuncts.push(vir::Const::Bool(true).into());
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir));
         }
-        conjuncts.into_iter().conjoin()
+
+        (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
     }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
                             contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let expr = self.encode_precondition_expr(contract);
-        let inhale_stmt = vir::Stmt::Inhale(expr);
-        self.cfg_method.add_stmt(start_cfg_block, inhale_stmt);
+        let (type_spec, func_spec) = self.encode_precondition_expr(contract);
+        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(type_spec));
+        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(func_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Label(PRECONDITION_LABEL.to_string()));
     }
 
@@ -795,13 +798,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
-    /// Encode the postcondition as a single expression.
+    /// Encode the postcondition with two expressions:
+    /// - one for the type encoding
+    /// - one for the functional specification.
     fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
-                                 label: &str) -> vir::Expr {
-        let mut conjuncts = Vec::new();
+                                 label: &str) -> (vir::Expr, vir::Expr) {
+        let mut type_spec = Vec::new();
         for place in contract.returned_refs.iter() {
             debug!("Put permission {:?} in postcondition", place);
-            conjuncts.push(self.encode_place_permission(place, Some(label)));
+            type_spec.push(self.encode_place_permission(place, Some(label)));
         }
         for borrow_info in contract.borrow_infos.iter() {
             debug!("{:?}", borrow_info);
@@ -816,28 +821,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .iter()
                 .map(|place| self.encode_place_permission(place, Some(label)))
                 .conjoin();
-            conjuncts.push(vir::Expr::MagicWand(box lhs, box rhs));
+            type_spec.push(vir::Expr::MagicWand(box lhs, box rhs));
         }
-        conjuncts.push(self.encode_local_variable_permission(contract.returned_value));
+        type_spec.push(self.encode_local_variable_permission(contract.returned_value));
+
         // Encode functional specification
+        let mut func_spec = Vec::new();
         for item in contract.functional_postcondition() {
-            warn!("TODO: incomplete encodingo of functional postcondition: {:?}", item);
-            conjuncts.push(vir::Const::Bool(false).into());
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir));
         }
-        conjuncts.into_iter().conjoin()
+
+        (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
     }
 
     /// Encode postcondition exhale on the definition side.
     fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Postconditions:"));
-        let postcondition = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
+        let (type_spec, func_spec) = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
         let pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::ExhalePostcondition
         );
-        let exhale_stmt = vir::Stmt::Exhale(postcondition, pos);
-        self.cfg_method.add_stmt(return_cfg_block, exhale_stmt);
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
     fn encode_loop_invariant_exhale(&mut self, _loop_head: BasicBlockIndex,
@@ -1336,32 +1343,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let is_bool = ty.sty == ty::TypeVariants::TyBool;
         match op {
             mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
-            mir::BinOp::Ne => vir::Expr::not(vir::Expr::eq_cmp(left, right)),
+            mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
             mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
             mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
             mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
             mir::BinOp::Le => vir::Expr::le_cmp(left, right),
             mir::BinOp::Add => vir::Expr::add(left, right),
             mir::BinOp::Sub => vir::Expr::sub(left, right),
-            mir::BinOp::Rem => {
-                let abs_right = vir::Expr::ite(
-                    vir::Expr::ge_cmp(right.clone(), 0.into()),
-                    right.clone(),
-                    vir::Expr::minus(right.clone()),
-                );
-                vir::Expr::ite(
-                    vir::Expr::ge_cmp(left.clone(), 0.into()),
-                    // positive value
-                    vir::Expr::modulo(left.clone(), right.clone()),
-                    // negative value
-                    vir::Expr::sub(vir::Expr::modulo(left, right), abs_right),
-                )
-            }
+            mir::BinOp::Rem => vir::Expr::rem(left, right),
             mir::BinOp::Div => vir::Expr::div(left, right),
             mir::BinOp::Mul => vir::Expr::mul(left, right),
             mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
             mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
-            mir::BinOp::BitXor if is_bool => vir::Expr::not(vir::Expr::eq_cmp(left, right)),
+            mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
             x => unimplemented!("{:?}", x)
         }
     }

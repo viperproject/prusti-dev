@@ -52,8 +52,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         match self.ty.sty {
             ty::TypeVariants::TyBool => vir::Field::new("val_bool", vir::Type::Bool),
 
-            ty::TypeVariants::TyInt(_) => vir::Field::new("val_int", vir::Type::Int),
-            ty::TypeVariants::TyUint(_) => vir::Field::new("val_uint", vir::Type::Int),
+            ty::TypeVariants::TyInt(_) |
+            ty::TypeVariants::TyUint(_) => vir::Field::new("val_int", vir::Type::Int),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
