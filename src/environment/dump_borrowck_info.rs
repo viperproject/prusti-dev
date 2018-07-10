@@ -14,7 +14,7 @@ use std::path::PathBuf;
 use polonius_engine::{Algorithm, Output};
 use rustc::hir::{self, intravisit};
 use rustc::mir;
-use rustc::ty::{self, TyCtxt};
+use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
 use syntax::codemap::Span;
@@ -279,7 +279,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             block: mir::BasicBlock::new(0),
             statement_index: 0,
         });
-        //self.print_borrow_regions();
+        self.print_borrow_regions();
         self.print_restricts();
         write_graph!(self, "}}\n");
         Ok(())
@@ -308,6 +308,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     /// Print the restricts relation as a tree of loans.
     fn print_restricts(&self) -> Result<(),io::Error> {
+        if !self.show_restricts() {
+            return Ok(())
+        }
         write_graph!(self, "subgraph cluster_restricts {{");
         let mut interesting_restricts = Vec::new();
         let mut loans = Vec::new();
@@ -375,6 +378,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     }
 
     fn print_borrow_regions(&self) -> Result<(),io::Error> {
+        if !self.show_borrow_regions() {
+            return Ok(())
+        }
         write_graph!(self, "subgraph cluster_Loans {{");
         for (region, loan, point) in self.borrowck_in_facts.borrow_region.iter() {
             write_graph!(self, "subgraph cluster_{:?} {{", loan);
@@ -643,6 +649,14 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     fn show_temp_variables(&self) -> bool {
         get_config_option("PRUSTI_DUMP_SHOW_TEMP_VARIABLES", true)
+    }
+
+    fn show_borrow_regions(&self) -> bool {
+        get_config_option("PRUSTI_DUMP_SHOW_BORROW_REGIONS", false)
+    }
+
+    fn show_restricts(&self) -> bool {
+        get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
     }
 }
 
