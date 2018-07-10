@@ -11,6 +11,8 @@
 #![feature(try_from)]
 #![feature(crate_in_paths)]
 
+extern crate csv;
+extern crate datafrog;
 #[macro_use]
 extern crate log;
 extern crate polonius;
@@ -23,7 +25,6 @@ extern crate rustc_data_structures;
 extern crate serde;
 extern crate syntax;
 extern crate syntax_pos;
-extern crate csv;
 
 pub mod environment;
 pub mod verifier;

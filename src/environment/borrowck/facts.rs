@@ -156,7 +156,12 @@ pub struct InternerTable<SourceType: Eq, IndexType: From<usize> + Copy> {
     index_elements: HashMap<SourceType, IndexType>,
 }
 
-impl<SourceType: Eq + Hash + Clone, IndexType: From<usize> + Copy> InternerTable<SourceType, IndexType> {
+impl<SourceType, IndexType> InternerTable<SourceType, IndexType>
+    where
+        SourceType: Eq + Hash + Clone,
+        IndexType: Into<usize> + From<usize> + Copy,
+{
+
     fn new() -> Self {
         Self {
             interned_elements: Vec::new(),
@@ -175,6 +180,10 @@ impl<SourceType: Eq + Hash + Clone, IndexType: From<usize> + Copy> InternerTable
     fn get_index(&self, element: &SourceType) -> IndexType {
         self.index_elements[element]
     }
+    fn get_element(&self, index: IndexType) -> &SourceType {
+        let index: usize = index.into();
+        &self.interned_elements[index]
+    }
 }
 
 trait InternTo<FromType, ToType> {
@@ -192,6 +201,11 @@ impl Interner {
     pub fn get_point_index(&self, point: &Point) -> PointIndex {
         self.points.get_index(point)
     }
+
+    pub fn get_point(&self, index: PointIndex) -> &Point {
+        self.points.get_element(index)
+    }
+
 }
 
 impl InternTo<String, Region> for Interner {
