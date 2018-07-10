@@ -8,7 +8,7 @@ RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
 JAVA_HOME=/usr/lib/jvm/default-java
 RUST_VERSION=nightly-2018-06-27-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}
-LIB_PATH=${COMPILER_PATH}/lib/:${JAVA_HOME}/jre/lib/amd64/server/:../target/debug/
+LIB_PATH=${COMPILER_PATH}/lib:${JAVA_HOME}/jre/lib/amd64/server:../target/debug
 DRIVER=../target/debug/prusti-driver
 
 run:

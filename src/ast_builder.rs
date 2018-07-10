@@ -7,8 +7,7 @@
 // may not be copied, modified, or distributed except according to
 // those terms.
 
-//! Code adapted from the Rust compiler source code, file
-//! `ast_builder.rs`.
+//! Code adapted from the Rust compiler source code, file `ast_builder.rs`.
 
 #![allow(unknown_lints)]
 #![allow(clippy)]

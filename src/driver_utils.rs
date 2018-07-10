@@ -8,11 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! Code adapted from the Rust compiler source code, file
-//! `librustc_driver/lib.rs`.
-
-#![feature(box_syntax)]
-#![feature(rustc_private)]
+//! Code adapted from the Rust compiler source code, file `librustc_driver/lib.rs`.
 
 use rustc::session::CompileIncomplete;
 use rustc_driver::in_rustc_thread;
@@ -22,7 +18,7 @@ use rustc::session::{config, Session};
 use std::panic;
 use rustc::session::CompileResult;
 
-static BUG_REPORT_URL: &str = "<https://github.com/viperproject/prusti-dev/issues/new>";
+static PRUSTI_BUG_REPORT_URL: &str = "<https://github.com/viperproject/prusti-dev/issues/new>";
 
 /// Run a procedure which will detect panics in the compiler and print nicer
 /// error messages rather than just failing the test.
@@ -56,9 +52,9 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
             }
 
             let mut xs = vec![
-                "the compiler or Prusti unexpectedly panicked. this is a bug.".to_string(),
+                "the compiler or Prusti unexpectedly panicked.".to_string(),
                 "possible reasons include the usage of Rust features that are not supported by Prusti.".to_string(),
-                format!("we would appreciate a bug report for Prusti: {}", BUG_REPORT_URL),
+                format!("we would appreciate a bug report for Prusti: {}", PRUSTI_BUG_REPORT_URL),
                 format!("rustc {} running on {}",
                         option_env!("CFG_VERSION").unwrap_or("unknown_version"),
                         config::host_triple()),
