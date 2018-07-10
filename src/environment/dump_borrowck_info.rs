@@ -129,7 +129,7 @@ struct AdditionalFacts {
     /// Therefore, we find all loans that are reborrows of the original loan
     /// and remove them. Reborrowing is defined as follows:
     ///
-    /// ```
+    /// ```datalog
     /// reborrows(Loan, Loan);
     /// reborrows(L1, L2) :-
     ///     borrow_region(R, L1, P),
