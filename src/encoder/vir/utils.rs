@@ -10,6 +10,10 @@ pub trait ExprIterator {
     /// Conjoin a sequence of expressions into a single expression.
     /// Returns true if the sequence has no elements.
     fn conjoin(&mut self) -> vir::Expr;
+
+    /// Disjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn disjoin(&mut self) -> vir::Expr;
 }
 
 impl<T> ExprIterator for T
@@ -19,6 +23,14 @@ impl<T> ExprIterator for T
     fn conjoin(&mut self) -> vir::Expr {
         if let Some(init) = self.next() {
             self.fold(init, |acc, conjunct| vir::Expr::and(acc, conjunct))
+        } else {
+            true.into()
+        }
+    }
+
+    fn disjoin(&mut self) -> vir::Expr {
+        if let Some(init) = self.next() {
+            self.fold(init, |acc, conjunct| vir::Expr::or(acc, conjunct))
         } else {
             true.into()
         }

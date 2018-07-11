@@ -137,18 +137,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    fn encode_literal_expr(&self, lit: &ast::Lit) -> vir::Expr {
+        trace!("encode_literal_expr: {:?}", lit);
+        match lit.node {
+            ast::LitKind::Int(int_val, ast::LitIntType::Signed(_)) => (int_val as i128).into(),
+            ast::LitKind::Int(int_val, ast::LitIntType::Unsigned(_)) |
+            ast::LitKind::Int(int_val, ast::LitIntType::Unsuffixed) => int_val.into(),
+            ast::LitKind::Bool(bool_val) => bool_val.into(),
+            ref x => unimplemented ! ("{:?}", x),
+        }
+    }
+
     fn encode_hir_expr(&self, base_expr: &hir::Expr) -> vir::Expr {
         trace!("encode_hir_expr: {:?}", base_expr);
         match base_expr.node {
-            hir::Expr_::ExprLit(ref lit) => {
-                match lit.node {
-                    ast::LitKind::Int(int_val, ast::LitIntType::Signed(_)) => (int_val as i128).into(),
-                    ast::LitKind::Int(int_val, ast::LitIntType::Unsigned(_)) |
-                    ast::LitKind::Int(int_val, ast::LitIntType::Unsuffixed) => int_val.into(),
-                    ast::LitKind::Bool(bool_val) => bool_val.into(),
-                    ref x => unimplemented!("{:?}", x),
-                }
-            },
+            hir::Expr_::ExprLit(ref lit) => self.encode_literal_expr(lit),
 
             hir::Expr_::ExprBinary(op, ref left, ref right) => {
                 let left_expr = self.encode_hir_expr(left);
@@ -206,20 +209,81 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Expr::minus(encoded_expr)
             }
 
-            hir::Expr_::ExprIf(..) => unimplemented!("ExprIf"),
-            hir::Expr_::ExprMatch(..) => unimplemented!("ExprMatch"),
+            hir::Expr_::ExprIf(ref guard_expr, ref then_expr, Some(ref else_expr)) => {
+                let encoded_guard = self.encode_hir_expr(guard_expr);
+                let encoded_then = self.encode_hir_expr(then_expr);
+                let encoded_else = self.encode_hir_expr(else_expr);
+                vir::Expr::ite(encoded_guard, encoded_then, encoded_else)
+            }
+
+            hir::Expr_::ExprMatch(ref expr, ref arms, _) => {
+                assert!(arms.iter().all(|arm| arm.guard.is_none()));
+                assert!(arms.iter().all(
+                    |arm| arm.pats.iter().all(
+                        |pat| match pat.node {
+                            hir::PatKind::Wild |
+                            hir::PatKind::Lit(_) => true,
+                            hir::PatKind::Struct(_, ref args, _) => args.is_empty(),
+                            hir::PatKind::TupleStruct(_, ref args, _) => args.is_empty(),
+                            hir::PatKind::Tuple(ref args, _) => args.is_empty(),
+                            _ => false
+                        }
+                    )
+                ));
+
+                self.encode_match_arms(expr, &arms[..])
+            },
+
+            hir::Expr_::ExprBlock(ref block, _) => {
+                assert!(block.stmts.is_empty());
+                assert!(block.expr.is_some());
+                self.encode_hir_expr(block.expr.as_ref().unwrap())
+            }
+
             ref x => unimplemented!("{:?}", x),
         }
     }
 
+    fn encode_match_arms(&self, expr: &hir::Expr, arms: &[hir::Arm]) -> vir::Expr {
+        assert!(!arms.is_empty());
+        let first_arm = &arms[0];
+        let encoded_body = self.encode_hir_expr(&first_arm.body);
+
+        if arms.len() == 1 {
+            encoded_body
+        } else {
+            let mut encoded_pats: Vec<vir::Expr> = vec![];
+            for pat in &first_arm.pats {
+                let encoded_pat: vir::Expr = match pat.node {
+                    hir::PatKind::Wild => true.into(),
+
+                    hir::PatKind::Lit(ref expr) => self.encode_hir_expr(expr),
+
+                    hir::PatKind::Struct(ref qpath, _, _) => unimplemented!("TODO"),
+                    hir::PatKind::TupleStruct(ref qpath, _, _) => unimplemented!("TODO"),
+                    hir::PatKind::Tuple(_, _) => unimplemented!("TODO"),
+
+                    ref x => unimplemented!("{:?}", x),
+                };
+                encoded_pats.push(encoded_pat);
+            }
+
+            vir::Expr::ite(
+                encoded_pats.into_iter().disjoin(),
+                encoded_body,
+                self.encode_match_arms(expr, &arms[1..])
+            )
+        }
+    }
+
     fn encode_trigger(&self, trigger: &TypedTrigger) -> vir::Trigger {
-        warn!("TODO: incomplete encodingo of trigger: {:?}", trigger);
+        warn!("TODO: incomplete encoding of trigger: {:?}", trigger);
         vir::Trigger::new(vec![])
     }
 
     /// Encode a specification item as a single expression.
     pub fn encode_assertion(&self, assertion: &TypedAssertion) -> vir::Expr {
-        warn!("TODO: incomplete encodingo of functional specification: {:?}", assertion);
+        warn!("TODO: incomplete encoding of functional specification: {:?}", assertion);
         match assertion.kind {
             box AssertionKind::Expr(ref hir_expr) => {
                 self.encode_hir_expr(&hir_expr.expr)
