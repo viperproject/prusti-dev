@@ -1,14 +1,12 @@
 //! Example: test match expressions
 
-// ignore-test TODO
-
 extern crate prusti_contracts;
 
 #[requires="x == -42"]
-#[ensures="match result { Some(_) => true, None => false }"]
-fn test_match_expr(x: i32) -> Option<i32> {
+#[ensures="match result { -84 => true, 123 | 456 => false, _ => false }"]
+fn test_match_expr(x: i32) -> i32 {
     assert!(x == -42);
-    Some(x)
+    x * 2
 }
 
 fn main() {

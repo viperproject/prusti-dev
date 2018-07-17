@@ -950,8 +950,8 @@ impl<'tcx> SpecParser<'tcx> {
                             kind: box AssertionKind::Implies(precondition, assertion),
                         });
                     }
-                last1 = Some(char);
                 last2 = last1;
+                last1 = Some(char);
             }
             if parenthesis_depth != 0 {
                 return Err(AssertionParsingError::NotMatchingParenthesis);
