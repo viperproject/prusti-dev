@@ -27,6 +27,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::codemap::Span;
+use syntax_pos::symbol::Ident;
 use syntax::ast;
 use prusti_interface::specifications::*;
 
@@ -43,6 +44,47 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             encoder,
             mir,
         }
+    }
+
+    fn encode_hir_field(&self, field_expr: &hir::Expr) -> vir::Field {
+        trace!("encode_hir_field: {:?}", field_expr);
+        assert!(match field_expr.node { hir::Expr_::ExprField(..) => true, _ => false });
+
+        let (base_expr, field_id) = if let hir::Expr_::ExprField(ref base_expr, field_id) = field_expr.node {
+            (base_expr, field_id)
+        } else {
+            unreachable!()
+        };
+
+        let tcx = self.encoder.env().tcx();
+        let owner_def_id = field_expr.hir_id.owner_def_id();
+        let typeck_tables = tcx.typeck_tables_of(owner_def_id);
+        let field_index = tcx.field_index(field_expr.id, typeck_tables);
+        let base_expr_ty = typeck_tables.expr_ty(base_expr);
+
+        let field_name = match base_expr_ty.ty_adt_def() {
+            Some(adt) => {
+                match tcx.hir.describe_def(base_expr.id) {
+                    Some(def) => {
+                        let variant_def = tcx.expect_variant_def(def);
+                        let def_id = tcx.adt_def_id_of_variant(variant_def);
+                        let variant_index = adt.variant_index_with_id(def_id);
+                        // TODO: do we want the variant_index or the discriminant?
+                        format!("enum_{}_{:?}", variant_index, field_id.name)
+                    }
+                    None => {
+                        format!("enum_0_{:?}", field_id.name)
+                    }
+                }
+            }
+            None => {
+                format!("tuple_{}", field_index)
+            }
+        };
+
+        let field_ty = typeck_tables.expr_ty(field_expr);
+        let encoded_type = self.encoder.encode_type(field_ty);
+        vir::Field::new(field_name, encoded_type)
     }
 
     fn encode_hir_arg(&self, arg: &hir::Arg) -> vir::LocalVar {
@@ -97,8 +139,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             hir::Expr_::ExprField(ref expr, field_id) => {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
-                // TODO: get the invariant
-                unimplemented!("TODO")
+                let field = self.encode_hir_field(base_expr);
+                place.access(field)
             }
 
             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ref expr) => {
@@ -130,8 +172,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         match base_ty.sty {
             ty::TypeVariants::TyBool => place.access(vir::Field::new("val_bool", vir::Type::Bool)).into(),
 
-            ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => place.access(vir::Field::new("val_int", vir::Type::Int)).into(),
+            ty::TypeVariants::TyInt(..) |
+            ty::TypeVariants::TyUint(..) => place.access(vir::Field::new("val_int", vir::Type::Int)).into(),
+
+            ty::TypeVariants::TyTuple(..) |
+            ty::TypeVariants::TyAdt(..) => place.into(),
 
             ref x => unimplemented!("{:?}", x)
         }
@@ -182,7 +227,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ..) |
-            hir::Expr_::ExprField(..) |
+            hir::Expr_::ExprField(..) => {
+                let encoded_expr = self.encode_hir_path_expr(base_expr);
+                encoded_expr
+            }
+
             hir::Expr_::ExprPath(hir::QPath::Resolved(..)) => {
                 let encoded_expr = self.encode_hir_path_expr(base_expr);
                 encoded_expr
@@ -232,7 +281,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ));
 
                 let encoded_expr_value = self.encode_hir_expr(expr);
-                self.encode_match_arms(encoded_expr_value, &arms[..])
+                self.encode_match_arms(expr, encoded_expr_value, &arms[..])
             },
 
             hir::Expr_::ExprBlock(ref block, _) => {
@@ -245,8 +294,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_match_arms(&self, matched_expr_value: vir::Expr, arms: &[hir::Arm]) -> vir::Expr {
-        trace!("encode_match_arms: {:?}, {:?}", matched_expr_value, arms);
+    fn encode_match_arms(&self, base_expr: &hir::Expr, matched_expr_value: vir::Expr, arms: &[hir::Arm]) -> vir::Expr {
+        trace!("encode_match_arms: {:?}, {:?}, {:?}", base_expr, matched_expr_value, arms);
         assert!(!arms.is_empty());
         let first_arm = &arms[0];
         let encoded_body = self.encode_hir_expr(&first_arm.body);
@@ -269,8 +318,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     },
 
                     // TODO: obtain the discriminant
-                    hir::PatKind::Struct(ref path, _, _) => unimplemented!("TODO"),
-                    hir::PatKind::TupleStruct(ref path, _, _) => unimplemented!("TODO"),
+                    hir::PatKind::Struct(ref qpath, _, _) => unimplemented!("TODO"),
+                    hir::PatKind::TupleStruct(ref qpath, _, _) => unimplemented!("TODO"),
                     hir::PatKind::Tuple(_, _) => unimplemented!("TODO"),
 
                     ref x => unimplemented!("{:?}", x),
@@ -281,7 +330,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             vir::Expr::ite(
                 encoded_pats.into_iter().disjoin(),
                 encoded_body,
-                self.encode_match_arms(matched_expr_value, &arms[1..])
+                self.encode_match_arms(base_expr, matched_expr_value, &arms[1..])
             )
         }
     }
