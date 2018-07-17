@@ -91,7 +91,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_hir_path(&self, base_expr: &hir::Expr) -> vir::Place {
-        trace!("encode_hir_path: {:?}", base_expr);
+        trace!("encode_hir_path: {:?}", base_expr.node);
         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
         match base_expr.node {
             hir::Expr_::ExprField(ref expr, field_id) => {
@@ -123,7 +123,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_hir_path_expr(&self, base_expr: &hir::Expr) -> vir::Expr {
-        trace!("encode_hir_path_expr: {:?}", base_expr);
+        trace!("encode_hir_path_expr: {:?}", base_expr.node);
         let place = self.encode_hir_path(base_expr);
         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
         assert!(place.get_type().is_ref());
@@ -138,7 +138,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_literal_expr(&self, lit: &ast::Lit) -> vir::Expr {
-        trace!("encode_literal_expr: {:?}", lit);
+        trace!("encode_literal_expr: {:?}", lit.node);
         match lit.node {
             ast::LitKind::Int(int_val, ast::LitIntType::Signed(_)) => (int_val as i128).into(),
             ast::LitKind::Int(int_val, ast::LitIntType::Unsigned(_)) |
@@ -149,7 +149,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_hir_expr(&self, base_expr: &hir::Expr) -> vir::Expr {
-        trace!("encode_hir_expr: {:?}", base_expr);
+        trace!("encode_hir_expr: {:?}", base_expr.node);
         match base_expr.node {
             hir::Expr_::ExprLit(ref lit) => self.encode_literal_expr(lit),
 
@@ -231,7 +231,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     )
                 ));
 
-                self.encode_match_arms(expr, &arms[..])
+                let encoded_expr_value = self.encode_hir_expr(expr);
+                self.encode_match_arms(encoded_expr_value, &arms[..])
             },
 
             hir::Expr_::ExprBlock(ref block, _) => {
@@ -244,7 +245,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_match_arms(&self, expr: &hir::Expr, arms: &[hir::Arm]) -> vir::Expr {
+    fn encode_match_arms(&self, matched_expr_value: vir::Expr, arms: &[hir::Arm]) -> vir::Expr {
+        trace!("encode_match_arms: {:?}, {:?}", matched_expr_value, arms);
         assert!(!arms.is_empty());
         let first_arm = &arms[0];
         let encoded_body = self.encode_hir_expr(&first_arm.body);
@@ -254,13 +256,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         } else {
             let mut encoded_pats: Vec<vir::Expr> = vec![];
             for pat in &first_arm.pats {
+                trace!("encode_match_arms: first arm pat {:?}", pat.node);
                 let encoded_pat: vir::Expr = match pat.node {
                     hir::PatKind::Wild => true.into(),
 
-                    hir::PatKind::Lit(ref expr) => self.encode_hir_expr(expr),
+                    hir::PatKind::Lit(ref expr) => {
+                        let target = self.encode_hir_expr(expr);
+                        vir::Expr::eq_cmp(
+                            matched_expr_value.clone(),
+                            target
+                        )
+                    },
 
-                    hir::PatKind::Struct(ref qpath, _, _) => unimplemented!("TODO"),
-                    hir::PatKind::TupleStruct(ref qpath, _, _) => unimplemented!("TODO"),
+                    // TODO: obtain the discriminant
+                    hir::PatKind::Struct(ref path, _, _) => unimplemented!("TODO"),
+                    hir::PatKind::TupleStruct(ref path, _, _) => unimplemented!("TODO"),
                     hir::PatKind::Tuple(_, _) => unimplemented!("TODO"),
 
                     ref x => unimplemented!("{:?}", x),
@@ -271,7 +281,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             vir::Expr::ite(
                 encoded_pats.into_iter().disjoin(),
                 encoded_body,
-                self.encode_match_arms(expr, &arms[1..])
+                self.encode_match_arms(matched_expr_value, &arms[1..])
             )
         }
     }
