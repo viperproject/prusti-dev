@@ -209,8 +209,7 @@ pub struct Specification<ET, AT> {
 #[derive(Debug, Clone)]
 /// Specification of a single element such as procedure or loop.
 pub enum SpecificationSet<ET, AT> {
-    /// (Precondition, Postcondition, map of old expressions)
-    /// TODO: add HashMap<ast::Ident, Expression<ET>> to translate old expressions
+    /// (Precondition, Postcondition)
     Procedure(Vec<Specification<ET, AT>>, Vec<Specification<ET, AT>>),
     /// Loop invariant.
     Loop(Vec<Specification<ET, AT>>),
