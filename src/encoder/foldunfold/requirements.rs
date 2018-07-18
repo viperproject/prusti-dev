@@ -113,7 +113,15 @@ impl RequiredPlacesGetter for vir::Expr {
 
             vir::Expr::Cond(box guard, box left, box right) => vec![guard, left, right].get_required_places(predicates),
 
-            vir::Expr::ForAll(_, _, _) => unimplemented!(),
+            vir::Expr::ForAll(vars, triggers, box body) => {
+                assert!(vars.iter().all(|var| !var.typ.is_ref()));
+
+                let vars_places: HashSet<_> = vars
+                    .iter()
+                    .map(|var| Acc(vir::Place::Base(var.clone())))
+                    .collect();
+                body.get_required_places(predicates).difference(&vars_places).cloned().collect()
+            }
 
             vir::Expr::Place(place) => {
                 Some(Acc(place.clone())).into_iter().collect()
@@ -182,7 +190,15 @@ impl vir::Expr {
                 partial_res.union(&right.get_access_places(predicates)).cloned().collect()
             },
 
-            vir::Expr::ForAll(_, _, _) => unimplemented!(),
+            vir::Expr::ForAll(vars, triggers, box body) => {
+                assert!(vars.iter().all(|var| !var.typ.is_ref()));
+
+                let vars_places: HashSet<_> = vars
+                    .iter()
+                    .map(|var| Acc(vir::Place::Base(var.clone())))
+                    .collect();
+                body.get_required_places(predicates).difference(&vars_places).cloned().collect()
+            }
 
             vir::Expr::PredicateAccessPredicate(ref expr, _) |
             vir::Expr::FieldAccessPredicate(ref expr, _) => {
@@ -222,3 +238,4 @@ impl vir::Predicate {
         }
     }
 }
+

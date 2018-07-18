@@ -93,34 +93,60 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             hir::PatKind::Lit(ref expr) => {
                 hir::print::to_string(hir::print::NO_ANN, |s| s.print_expr(expr))
             }
+            hir::PatKind::Binding(_, _, ident, ..) => {
+                ident.node.to_string()
+            }
             ref x => unimplemented!("{:?}", x)
         };
+        debug!("encode_hir_arg var_name: {:?}", var_name);
         let arg_ty = self.encoder.env().hir_id_to_type(arg.hir_id);
-        let type_name = self.encoder.encode_type_predicate_use(arg_ty);
-        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+
+        assert!(match arg_ty.sty {
+            ty::TypeVariants::TyInt(..) |
+            ty::TypeVariants::TyUint(..) => true,
+            _ => false
+        }, "Quantification is only supported over integer values");
+
+        vir::LocalVar::new(var_name, vir::Type::Int)
+    }
+
+    fn path_to_string(&self, var_path: &hir::Path) -> String {
+        hir::print::to_string(hir::print::NO_ANN, |s| s.print_path(var_path, false))
     }
 
     fn encode_hir_variable(&self, var_path: &hir::Path) -> vir::LocalVar {
         trace!("encode_hir_path: {:?}", var_path);
-        let original_var_name = hir::print::to_string(hir::print::NO_ANN, |s| s.print_path(var_path, false));
+        let original_var_name = self.path_to_string(var_path);
+        let mut is_quantified_var;
 
         // Special variable names
         let var_name = if original_var_name == "result" {
+            is_quantified_var = false;
             "_0".to_string()
-        } else if false {
-            // TODO: check if the variable is an old expression
-            unimplemented!("TODO")
         } else {
-            // It must be an argument
-            let local = self.mir.local_decls
+            // Is it an argument?
+            let opt_local = self.mir.local_decls
                 .iter_enumerated()
                 .find(|(local, local_decl)| match local_decl.name {
                     None => false,
                     Some(name) => &format!("{:?}", name) == &original_var_name
                 })
-                .map(|(local, _)| local)
-                .unwrap();
-            format!("{:?}", local)
+                .map(|(local, _)| local);
+
+            // TODO: give precedence to the variables declared in quantifiers
+            match opt_local {
+                // If it's an argument, use the MIR name (_1, _2, ...)
+                Some(local) => {
+                    is_quantified_var = false;
+                    format!("{:?}", local)
+                }
+
+                // If it is not an argument, keep the original name
+                None => {
+                    is_quantified_var = true;
+                    original_var_name
+                }
+            }
         };
 
         let hir_id = match var_path.def {
@@ -128,8 +154,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ref x => unimplemented!("{:?}", x)
         };
         let var_ty = self.encoder.env().hir_id_to_type(hir_id);
-        let type_name = self.encoder.encode_type_predicate_use(&var_ty);
-        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+
+        let encoded_type = if is_quantified_var {
+            assert!(match var_ty.sty {
+                ty::TypeVariants::TyInt(..) |
+                ty::TypeVariants::TyUint(..) => true,
+                _ => false
+            }, "Quantification is only supported over integer values");
+            vir::Type::Int
+        } else {
+            let type_name = self.encoder.encode_type_predicate_use(&var_ty);
+            vir::Type::TypedRef(type_name)
+        };
+
+        vir::LocalVar::new(var_name, encoded_type)
     }
 
     fn encode_hir_path(&self, base_expr: &hir::Expr) -> vir::Place {
@@ -168,17 +206,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         trace!("encode_hir_path_expr: {:?}", base_expr.node);
         let place = self.encode_hir_path(base_expr);
         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
-        assert!(place.get_type().is_ref());
-        match base_ty.sty {
-            ty::TypeVariants::TyBool => place.access(vir::Field::new("val_bool", vir::Type::Bool)).into(),
 
-            ty::TypeVariants::TyInt(..) |
-            ty::TypeVariants::TyUint(..) => place.access(vir::Field::new("val_int", vir::Type::Int)).into(),
+        if place.get_type().is_ref() {
+            match base_ty.sty {
+                ty::TypeVariants::TyBool => place.access(vir::Field::new("val_bool", vir::Type::Bool)).into(),
 
-            ty::TypeVariants::TyTuple(..) |
-            ty::TypeVariants::TyAdt(..) => place.into(),
+                ty::TypeVariants::TyInt(..) |
+                ty::TypeVariants::TyUint(..) => place.access(vir::Field::new("val_int", vir::Type::Int)).into(),
 
-            ref x => unimplemented!("{:?}", x)
+                ty::TypeVariants::TyTuple(..) |
+                ty::TypeVariants::TyAdt(..) => place.into(),
+
+                ref x => unimplemented!("{:?}", x)
+            }
+        } else {
+            place.into()
         }
     }
 
@@ -290,6 +332,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 self.encode_hir_expr(block.expr.as_ref().unwrap())
             }
 
+            hir::Expr_::ExprCall(ref callee, ref arguments) => {
+                match callee.node {
+                    hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref fn_path)) => {
+                        let fn_name = self.path_to_string(fn_path);
+                        if fn_name == "old" {
+                            assert!(arguments.len() == 1);
+                            vir::Expr::old(
+                                self.encode_hir_expr(&arguments[0])
+                            )
+                        } else {
+                            unimplemented!("TODO: call function {:?} from specification", fn_name)
+                        }
+                    }
+
+                    ref x => unimplemented!("{:?}", x),
+                }
+            }
+
             ref x => unimplemented!("{:?}", x),
         }
     }
@@ -337,7 +397,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     fn encode_trigger(&self, trigger: &TypedTrigger) -> vir::Trigger {
         warn!("TODO: incomplete encoding of trigger: {:?}", trigger);
-        vir::Trigger::new(vec![])
+        // TODO: `encode_hir_expr` generated also the final `.val_int` field access, that we may not want...
+        vir::Trigger::new(
+            trigger.terms().iter().map(|expr| self.encode_hir_expr(&expr.expr)).collect()
+        )
     }
 
     /// Encode a specification item as a single expression.

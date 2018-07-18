@@ -23,7 +23,7 @@ use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use syntax::ast;
 use viper;
-use prusti_interface::specifications::{SpecID, TypedSpecificationMap, TypedAssertion};
+use prusti_interface::specifications::{SpecID, TypedSpecificationMap, SpecificationSet, TypedAssertion, Specification, SpecType, Assertion};
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
@@ -100,45 +100,51 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         methods
     }
 
+    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) ->  ProcedureContractMirDef<'tcx> {
+        let opt_spec_id: Option<SpecID> = self.env().tcx()
+            .get_attrs(proc_def_id)
+            .iter()
+            .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
+            .and_then(|x| x
+                .value_str()
+                .and_then(|y| y
+                    .as_str()
+                    .parse::<u64>()
+                    .ok()
+                    .map(
+                        |z| z.into()
+                    )
+                )
+            );
+        let opt_fun_spec = opt_spec_id.and_then(|spec_id| self.spec().get(&spec_id));
+        let fun_spec = match opt_fun_spec {
+            Some(fun_spec) => fun_spec.clone(),
+            None => {
+                warn!("Procedure {:?} has no specification", proc_def_id);
+                // TODO: use false as precondition
+                SpecificationSet::Procedure(vec![], vec![])
+            }
+        };
+        compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec)
+    }
+
     pub fn get_procedure_contract_for_def(&self, proc_def_id: ProcedureDefId
                                           ) -> ProcedureContract<'tcx> {
-        let mut map = self.procedure_contracts.borrow_mut();
-        map.entry(proc_def_id).or_insert_with(|| {
-            let spec_id: SpecID = self.env().tcx()
-                .get_attrs(proc_def_id)
-                .iter()
-                .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
-                .unwrap()
-                .value_str()
-                .unwrap()
-                .as_str()
-                .parse::<u64>()
-                .unwrap()
-                .into();
-            let fun_spec = self.spec().get(&spec_id).unwrap().clone();
-            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec)
-        }).to_def_site_contract()
+        self.procedure_contracts
+            .borrow_mut()
+            .entry(proc_def_id)
+            .or_insert_with(|| self.get_procedure_contract(proc_def_id))
+            .to_def_site_contract()
     }
 
     pub fn get_procedure_contract_for_call(&self, proc_def_id: ProcedureDefId,
                                            args: &Vec<places::Local>, target: places::Local
                                            ) -> ProcedureContract<'tcx> {
-        let mut map = self.procedure_contracts.borrow_mut();
-        map.entry(proc_def_id).or_insert_with(|| {
-            let spec_id: SpecID = self.env().tcx()
-                .get_attrs(proc_def_id)
-                .iter()
-                .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
-                .unwrap()
-                .value_str()
-                .unwrap()
-                .as_str()
-                .parse::<u64>()
-                .unwrap()
-                .into();
-            let fun_spec = self.spec().get(&spec_id).unwrap().clone();
-            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec)
-        }).to_call_site_contract(args, target)
+        self.procedure_contracts
+            .borrow_mut()
+            .entry(proc_def_id)
+            .or_insert_with(|| self.get_procedure_contract(proc_def_id))
+            .to_call_site_contract(args, target)
     }
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {

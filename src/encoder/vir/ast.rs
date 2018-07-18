@@ -498,6 +498,10 @@ impl fmt::Display for UnaryOpKind {
 }
 
 impl Expr {
+    pub fn old(expr: Expr) -> Self {
+        Expr::Old(box expr)
+    }
+
     pub fn not(expr: Expr) -> Self {
         Expr::UnaryOp(UnaryOpKind::Not, box expr)
     }
