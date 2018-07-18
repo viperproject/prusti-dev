@@ -164,7 +164,6 @@ pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMa
 pub struct SpecParser<'tcx> {
     session: &'tcx Session,
     ast_builder: MinimalAstBuilder<'tcx>,
-    last_old_expr_id: u64,
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
     untyped_specifications: UntypedSpecificationMap,
@@ -176,7 +175,6 @@ impl<'tcx> SpecParser<'tcx> {
         SpecParser {
             session: session,
             ast_builder: MinimalAstBuilder::new(&session.parse_sess),
-            last_old_expr_id: 0,
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),
             untyped_specifications: HashMap::new(),
@@ -219,22 +217,6 @@ impl<'tcx> SpecParser<'tcx> {
             builder.expr_ident(span, builder.ident_of(function_name)),
             vec![builder.expr_usize(span, id.into()), rust_expr],
         ))
-    }
-
-    fn build_typeck_let(&self, ident: ast::Ident, expression: &UntypedExpression) -> ast::Stmt {
-        let id = expression.id;
-        let rust_expr = expression.expr.clone();
-        let span = rust_expr.span;
-        self.ast_builder.stmt_let(
-            span,
-            false,
-            ident,
-            self.ast_builder.expr_call(
-                span,
-                self.ast_builder.expr_ident(span, self.ast_builder.ident_of("__expression")),
-                vec![self.ast_builder.expr_usize(span, id.into()), rust_expr],
-            )
-        )
     }
 
     fn build_assertion(&self, expression: &UntypedExpression) -> ast::Stmt {
@@ -326,85 +308,6 @@ impl<'tcx> SpecParser<'tcx> {
         )
     }
 
-    /// Extract old expressions from untyped specifications, replacing them with temporary variable names.
-    ///
-    /// Returns:
-    /// - the declaration of the old expressions
-    /// - the untyped specification with old expressions substituted with the temporary variable names.
-    fn extract_old_expressions(&mut self, specifications: &[UntypedSpecification]) -> (Vec<ast::Stmt>, Vec<UntypedSpecification>) {
-        trace!("[extract_old_expressions] enter");
-        let mut old_expr_decl = Vec::new();
-        let mut specifications_without_old = Vec::new();
-        for specification in specifications {
-            let mut new_spec = specification.clone();
-            new_spec.assertion = self.populate_old_expressions_from_assertion(&specification.assertion, &mut old_expr_decl);
-            specifications_without_old.push(new_spec);
-        }
-        trace!("[extract_old_expressions] exit");
-        (old_expr_decl, specifications_without_old)
-    }
-
-    fn populate_old_expressions_from_assertion(&mut self, assertion: &UntypedAssertion, old_expr_decl: &mut Vec<ast::Stmt>) -> UntypedAssertion {
-        trace!("[populate_old_expressions_from_assertion] enter");
-        let mut new_assertion = assertion.clone();
-        new_assertion.kind = box match *assertion.kind {
-            AssertionKind::Expr(ref expression) => {
-                let new_expression = self.populate_old_expressions_from_expression(expression, old_expr_decl);
-                AssertionKind::Expr(new_expression)
-            }
-            AssertionKind::And(ref assertions) => {
-                AssertionKind::And(
-                    assertions.iter().map(
-                        |assertion| self.populate_old_expressions_from_assertion(assertion, old_expr_decl)
-                    ).collect()
-                )
-            }
-            AssertionKind::Implies(ref expression, ref assertion) => {
-                let new_expression = self.populate_old_expressions_from_expression(expression, old_expr_decl);
-                let new_assertion = self.populate_old_expressions_from_assertion(assertion, old_expr_decl);
-                AssertionKind::Implies(new_expression, new_assertion)
-            }
-            AssertionKind::ForAll(ref vars, ref trigger_set, ref filter, ref body) => {
-                AssertionKind::ForAll(
-                    vars.clone(),
-                    TriggerSet::new(trigger_set.triggers().iter().map(
-                        |trigger| Trigger::new(trigger.terms().iter().map(
-                            |term| self.populate_old_expressions_from_expression(term, old_expr_decl)
-                        ).collect())
-                    ).collect()),
-                    self.populate_old_expressions_from_expression(filter, old_expr_decl),
-                    self.populate_old_expressions_from_expression(body, old_expr_decl)
-                )
-            }
-        };
-        trace!("[populate_old_expressions_from_assertion] exit");
-        new_assertion
-    }
-
-    fn populate_old_expressions_from_expression(&mut self, expression: &UntypedExpression, old_expr_decl: &mut Vec<ast::Stmt>) -> UntypedExpression {
-        trace!("[populate_old_expressions_from_expression] enter");
-        debug!("expression {:?}", expression);
-        let mut old_expressions: Vec<(ast::Ident, ptr::P<ast::Expr>)> = vec![];
-        let mut old_expr_rewriter = OldExpressionRewriter::new(
-            &mut old_expressions,
-            &self.ast_builder,
-            &mut self.last_old_expr_id
-        );
-        let mut new_expression = expression.clone();
-        new_expression.expr = old_expr_rewriter.fold_expr(new_expression.expr);
-        for (old_var, old_expr) in old_expressions {
-            let untyped_expr = Expression {
-                id: self.get_new_expression_id(),
-                expr: old_expr,
-            };
-            old_expr_decl.push(
-                self.build_typeck_let(old_var, &untyped_expr)
-            )
-        }
-        trace!("[populate_old_expressions_from_expression] exit");
-        new_expression
-    }
-
     /// Generate a function that contains only the precondition and postcondition
     /// for type-checking.
     fn generate_spec_item(
@@ -415,62 +318,42 @@ impl<'tcx> SpecParser<'tcx> {
         postconditions: &[UntypedSpecification],
     ) -> ast::Item {
         let mut name = item.ident.to_string();
-        let span = item.span;
         match item.node {
             ast::ItemKind::Fn(ref decl, ref _header, ref generics, ref _body) => {
                 // Import contracts.
-                let mut statements = vec![self.build_prusti_contract_import(span)];
+                let mut statements = vec![self.build_prusti_contract_import(item.span)];
 
                 // Add preconditions.
                 statements.extend(self.convert_to_statements(preconditions));
 
-                // Extract old expressions from postconditions.
-                let (old_expressions, postconditions_without_old) = self.extract_old_expressions(postconditions);
-
-                // Add declaration of old expressions
-                statements.extend(old_expressions);
-
-                // Add result.
-                let args: Vec<_> = decl.inputs
-                    .clone()
-                    .into_iter()
-                    .map(|arg| {
-                        match arg.pat.node {
-                            ast::PatKind::Ident(_, ident, _) => {
-                                self.ast_builder.expr_ident(ident.span, ident)
-                            }
-                            // TODO
-                            ast::PatKind::Wild => unreachable!(),
-                            _ => unreachable!()
-                        }
-                    })
-                    .collect();
-                statements.push(self.ast_builder.stmt_let(
-                    item.span,
-                    false,
-                    ast::Ident::from_str("result"),
-                    self.ast_builder.expr_call_ident(item.span, item.ident, args),
-                ));
-
                 // Add postconditions.
-                statements.extend(self.convert_to_statements(&postconditions_without_old));
+                statements.extend(self.convert_to_statements(postconditions));
 
-                // Return result.
-                statements.push(
-                    self.ast_builder.stmt_expr(self.ast_builder.expr_ident(item.span, self.ast_builder.ident_of("result"))),
+                // Add result to arguments
+                let unit_type = self.ast_builder.ty(
+                    item.span,
+                    ast::TyKind::Tup(Vec::new())
+                );
+                let return_type = match decl.output.clone() {
+                    ast::FunctionRetTy::Ty(return_type) => return_type,
+                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                };
+                let mut inputs_with_result: Vec<ast::Arg> = decl.inputs.clone();
+                inputs_with_result.push(
+                    self.ast_builder.arg(
+                        item.span,
+                        ast::Ident::from_str("result"),
+                        return_type.clone()
+                    )
                 );
 
                 // Glue everything.
-                let return_type = match decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => Some(return_type),
-                    ast::FunctionRetTy::Default(_) => None,
-                };
                 name.push_str("__spec");
-                let mut spec_item = self.ast_builder.item_fn_optional_result(
+                let mut spec_item = self.ast_builder.item_fn_poly(
                         item.span,
                         ast::Ident::from_str(&name),
-                        decl.inputs.clone(),
-                        return_type,
+                        inputs_with_result,
+                        unit_type,
                         generics.clone(),
                         self.ast_builder.block(item.span, statements),
                     )
@@ -487,6 +370,7 @@ impl<'tcx> SpecParser<'tcx> {
                         self.ast_builder.attribute_allow(item.span, "dead_code"),
                         self.ast_builder.attribute_allow(item.span, "non_snake_case"),
                         self.ast_builder.attribute_allow(item.span, "unused_imports"),
+                        self.ast_builder.attribute_allow(item.span, "unused_variables"),
                     ],
                 );
                 spec_item
@@ -845,13 +729,16 @@ impl<'tcx> SpecParser<'tcx> {
         let re = Regex::new(
             r"(?x)
             ^\s*forall\s*
-            (?P<vars>.*)\s*::\s*\{(?P<triggers>.*)\}\s*
+            (?P<vars>.*)\s*::\s*(\{(?P<triggers>.*)\})?\s*
             (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
         ",
         ).unwrap();
         if let Some(caps) = re.captures(spec_string) {
             let vars = self.parse_vars(span, caps.name("vars").unwrap())?;
-            let triggers = self.parse_triggers(span, caps.name("triggers").unwrap())?;
+            let triggers = match caps.name("triggers") {
+                Some(triggers) => self.parse_triggers(span, triggers)?,
+                None => TriggerSet::new(vec![])
+            };
             let filter = self.parse_forall_expr(span, caps.name("filter").unwrap())?;
             let body = self.parse_forall_expr(span, caps.name("body").unwrap())?;
             debug!(
@@ -1104,51 +991,4 @@ fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
     let lo = span.lo() + syntax::codemap::BytePos(offset);
     let hi = lo + syntax::codemap::BytePos(length);
     Span::new(lo, hi, span.ctxt())
-}
-
-struct OldExpressionRewriter<'a, 'tcx: 'a> {
-    old_expressions: &'a mut Vec<(ast::Ident, ptr::P<ast::Expr>)>,
-    ast_builder: &'a MinimalAstBuilder<'tcx>,
-    last_old_expr_id: &'a mut u64,
-}
-
-impl<'a, 'tcx> OldExpressionRewriter<'a, 'tcx> {
-    pub fn new(
-        old_expressions: &'a mut Vec<(ast::Ident, ptr::P<ast::Expr>)>,
-        ast_builder: &'a MinimalAstBuilder<'tcx>,
-        last_old_expr_id: &'a mut u64
-    ) -> OldExpressionRewriter<'a, 'tcx> {
-        OldExpressionRewriter {
-            old_expressions,
-            ast_builder,
-            last_old_expr_id
-        }
-    }
-
-    pub fn generate_old_expr_ident(&mut self) -> String {
-        let id = *self.last_old_expr_id;
-        *self.last_old_expr_id += 1;
-        format!("__prusti_old_{}", id)
-    }
-}
-
-impl<'a, 'tcx> Folder for OldExpressionRewriter<'a, 'tcx> {
-    fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
-        match &expr.node {
-            &ast::ExprKind::Call(ref callee, ref arguments) => {
-                match &callee.node {
-                    &ast::ExprKind::Path(None, ref path) if path.eq(&"old") => {
-                        debug!("Found old expression. Arguments: {:?}", arguments);
-                        assert_eq!(arguments.len(), 1, "`old(..)` expression expects exactly one argument.");
-                        let old_expr_name = self.generate_old_expr_ident();
-                        let old_expr_variable = self.ast_builder.ident_of(&old_expr_name);
-                        self.old_expressions.push((old_expr_variable, arguments[0].clone()));
-                        self.ast_builder.expr_ident(expr.span, old_expr_variable)
-                    }
-                    _ => expr.clone().map(|e| syntax::fold::noop_fold_expr(e, self)),
-                }
-            }
-            _ => expr.clone().map(|e| syntax::fold::noop_fold_expr(e, self)),
-        }
-    }
 }

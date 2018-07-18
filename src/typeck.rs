@@ -214,10 +214,6 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
                         self.register_typed_expression(args);
                     }
                     if crate_name == "prusti_contracts"
-                        && def_path == r#"::internal[0]::__expression[0]"# {
-                        self.register_typed_expression(args);
-                    }
-                    if crate_name == "prusti_contracts"
                         && def_path == r#"::internal[0]::__trigger[0]"# {
                         self.register_typed_expression(args);
                     }
@@ -229,4 +225,26 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
         };
         intravisit::walk_expr(self, expr);
     }
+
+    /*fn visit_fn(&mut self, fk: FnKind<'tcx>, fd: &'tcx FnDecl, b: BodyId, s: Span, id: NodeId) {
+        for attr in &fk.attrs() {
+            if attr.path.to_string() == "__PRUSTI_SPEC_EXPR_ID" {
+                if let Some((spec_string, span)) = self.extract_spec_string(&attribute) {
+                    debug!("spec={:?} spec_type={:?}", spec_string, spec_type);
+                    if let Some(assertion) = self.parse_assertion_wrap(span, &spec_string) {
+                        debug!("assertion={:?}", assertion);
+                        Some(UntypedSpecification {
+                            typ: spec_type,
+                            assertion: assertion,
+                        })
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+        }
+        intravisit::walk_fn(self, fk, fd, b, s, id)
+    }*/
 }
