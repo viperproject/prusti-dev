@@ -30,6 +30,7 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
         f()
     });
 
+
     if let Err(value) = result {
         // Thread panicked without emitting a fatal diagnostic
         if !value.is::<errors::FatalErrorMarker>() {
@@ -69,6 +70,7 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
 
         panic::resume_unwind(Box::new(errors::FatalErrorMarker));
     }
+
 }
 
 
@@ -77,10 +79,14 @@ pub fn run<F>(run_compiler: F) -> isize
 {
     monitor(move || {
         let (result, session) = run_compiler();
+
+        if let Some(ref sess) = &session {
+            sess.abort_if_errors();
+        }
+
         if let Err(CompileIncomplete::Errored(_)) = result {
             match session {
-                Some(sess) => {
-                    sess.abort_if_errors();
+                Some(_) => {
                     panic!("error reported but abort_if_errors didn't abort???");
                 }
                 None => {
