@@ -1079,7 +1079,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::Operand::Move(ref place) => {
                 let (src, ty, _) = self.encode_place(place);
                 // Move the values from `src` to `lhs`
-                self.encode_copy(src, lhs.clone(), ty, true)
+                vec![
+                    vir::Stmt::Assign(lhs.clone(), src.clone().into(), vir::AssignKind::Move)
+                ]
             }
 
             &mir::Operand::Copy(ref place) => {
@@ -1114,7 +1116,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    /// Deprecated function! Use `encode_assign_operand` instead.
+    /// *** Deprecated function! *** Use `encode_assign_operand` instead.
     fn encode_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Local,
                                                                    vir::LocalVar,
                                                                    Vec<vir::Stmt>,

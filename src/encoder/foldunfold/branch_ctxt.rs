@@ -74,7 +74,9 @@ impl BranchCtxt {
         // If they are already the same, avoid unnecessary operations
         if self.state != other.state {
             // Compute which paths are moved out
-            let moved_paths: HashSet<_> = self.state.moved().clone().union(other.state.moved()).cloned().collect();
+            let moved_paths: HashSet<_> = ancestors(
+                &self.state.moved().clone().union(other.state.moved()).cloned().collect()
+            );
             self.state.set_moved(moved_paths.clone());
             other.state.set_moved(moved_paths.clone());
             debug!("moved_paths: {:?}", moved_paths);

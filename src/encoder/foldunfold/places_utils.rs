@@ -158,7 +158,7 @@ pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashS
 /// common_ancestors(
 ///   { a, b.c, d.e.g, d.g }
 ///   { a, b.c.d, b.c.e, d.e.f },
-/// ) = { a, b.c, d, d }
+/// ) = { a, b.c, d }
 pub fn common_ancestors(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
     let mut intermediate = HashSet::new();
     for left_item in left.iter() {
@@ -176,6 +176,31 @@ pub fn common_ancestors(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>)
         let mut keep_a = true;
         for b in intermediate.iter() {
             if a.has_prefix(b) {
+                keep_a = false;
+                break;
+            }
+        }
+        if keep_a {
+            res.insert(a.clone());
+        }
+    }
+    res
+}
+
+/// Returns the ancestors of A.
+///
+/// e.g.
+/// ancestors(
+///   { a, b.c, b.c.e, d.e.f },
+/// ) = { a, b.c, d.e.f }
+pub fn ancestors(initial: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+    let mut res = HashSet::new();
+    // Filter paths that are an extension of some other path
+    // This way, we avoid having both `d` and `d.g`
+    for a in initial.iter() {
+        let mut keep_a = true;
+        for b in initial.iter() {
+            if a.has_proper_prefix(b) {
                 keep_a = false;
                 break;
             }
