@@ -143,6 +143,7 @@ use std::convert::TryFrom;
 use std::mem;
 use syntax::codemap::respan;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
+use syntax_pos::DUMMY_SP;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -264,13 +265,13 @@ impl<'tcx> SpecParser<'tcx> {
                 statements.push(stmt);
                 self.populate_statements(assertion, statements);
             }
-            AssertionKind::ForAll(ref vars, ref trigger_set, ref filter, ref body) => {
+            AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
                 let mut stmts = self.convert_trigger_set_to_statements(trigger_set);
-                stmts.push(self.build_assertion(filter));
-                let body_assertion = self.build_assertion(body);
-                let span = body_assertion.span;
-                stmts.push(body_assertion);
+                self.populate_statements(body, &mut stmts);
                 let builder = &self.ast_builder;
+
+                // TODO: use a proper span
+                let span = DUMMY_SP;
 
                 let mut lambda_fn = builder.lambda_fn_decl(
                     span,
@@ -764,14 +765,22 @@ impl<'tcx> SpecParser<'tcx> {
                         vars: vars,
                     },
                     triggers,
-                    Expression {
-                        id: self.get_new_expression_id(),
-                        expr: filter,
-                    },
-                    Expression {
-                        id: self.get_new_expression_id(),
-                        expr: body,
-                    },
+                    UntypedAssertion {
+                        kind: box AssertionKind::Implies(
+                            Expression {
+                                id: self.get_new_expression_id(),
+                                expr: filter,
+                            },
+                            UntypedAssertion {
+                                kind: box AssertionKind::Expr(
+                                    Expression {
+                                        id: self.get_new_expression_id(),
+                                        expr: body,
+                                    },
+                                )
+                            }
+                        )
+                    }
                 ),
             };
             Ok(assertion)

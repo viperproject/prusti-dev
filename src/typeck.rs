@@ -87,20 +87,13 @@ fn type_assertion(
                     },
                     type_assertion(assertion, typed_expressions, typed_forallargs),
                 ),
-                AssertionKind::ForAll(vars, trigger_set, filter, body) => AssertionKind::ForAll(
+                AssertionKind::ForAll(vars, trigger_set, assertion) => AssertionKind::ForAll(
                     ForAllVars {
                         id: vars.id,
                         vars: typed_forallargs[&vars.id].clone(),
                     },
                     type_trigger_set(trigger_set, typed_expressions),
-                    Expression {
-                        id: filter.id,
-                        expr: typed_expressions[&filter.id].clone(),
-                    },
-                    Expression {
-                        id: body.id,
-                        expr: typed_expressions[&body.id].clone(),
-                    },
+                    type_assertion(assertion, typed_expressions, typed_forallargs),
                 ),
             }
         },
@@ -206,8 +199,8 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
         intravisit::NestedVisitorMap::All(map)
     }
 
-    fn visit_fn(&mut self, fk: intravisit::FnKind<'tcx>, fd: &'tcx hir::FnDecl, bi: hir::BodyId, s: Span, id: ast::NodeId) {
-        let opt_body = self.nested_visit_map().intra().map(|map| map.body(bi));
+    fn visit_fn(&mut self, fk: intravisit::FnKind<'tcx>, fd: &'tcx hir::FnDecl, body_id: hir::BodyId, s: Span, id: ast::NodeId) {
+        let opt_body = self.nested_visit_map().intra().map(|map| map.body(body_id));
         if let Some(body) = opt_body {
             let args = &body.arguments;
             let expr = &body.value;
@@ -224,6 +217,6 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
             }
         }
 
-        intravisit::walk_fn(self, fk, fd, bi, s, id)
+        intravisit::walk_fn(self, fk, fd, body_id, s, id)
     }
 }
