@@ -198,8 +198,7 @@ pub enum AssertionKind<ET, AT> {
     ForAll(
         ForAllVars<AT>,
         TriggerSet<ET>,
-        Expression<ET>,
-        Expression<ET>,
+        Assertion<ET, AT>,
     ),
 }
 
