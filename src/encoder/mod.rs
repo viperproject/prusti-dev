@@ -8,6 +8,8 @@ mod encoder;
 mod builtin_encoder;
 mod procedure_encoder;
 mod loop_encoder;
+mod pure_function_encoder;
+mod mir_interpreter;
 mod spec_encoder;
 mod borrows;
 mod type_encoder;

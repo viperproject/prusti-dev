@@ -497,22 +497,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 func: mir::Operand::Constant(
                     box mir::Constant {
                         literal: mir::Literal::Value {
-                            value: &ty::Const {
-                                val: ConstVal::Unevaluated(def_id, _),
-                                ..
-                            }
-                        },
-                        ..
-                    }
-                ),
-                ..
-            } |
-            TerminatorKind::Call {
-                ref args,
-                ref destination,
-                func: mir::Operand::Constant(
-                    box mir::Constant {
-                        literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
                                     sty: ty::TyFnDef(def_id, ..),
@@ -528,11 +512,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             } => {
                 let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
                 match func_proc_name {
-                    "prusti_contracts::internal::__assertion" => {
-                        // This is a Prusti loop invariant
-                        unreachable!();
-                    }
-
                     "std::rt::begin_panic" => {
                         // This is called when a Rust assertion fails
                         // args[0]: message

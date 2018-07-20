@@ -9,6 +9,7 @@ use encoder::error_manager::ErrorManager;
 use encoder::spec_encoder::SpecEncoder;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
+use encoder::pure_function_encoder::PureFunctionEncoder;
 use encoder::type_encoder::TypeEncoder;
 use encoder::vir;
 use prusti_interface::data::ProcedureDefId;
@@ -281,5 +282,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_procedure_name(&self, proc_def_id: ProcedureDefId) -> String {
         self.env.get_item_name(proc_def_id).replace("::", "$")
+    }
+
+    pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {
+        // TODO: add caching?
+        let mir = self.env().tcx().mir_validated(proc_def_id).borrow();
+        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, &mir);
+        pure_function_encoder.encode_body()
     }
 }

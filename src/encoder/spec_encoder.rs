@@ -38,7 +38,7 @@ pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>) -> Self {
-        debug!("SpecEncoder constructor");
+        trace!("SpecEncoder constructor");
 
         SpecEncoder {
             encoder,
@@ -408,8 +408,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_assertion(&self, assertion: &TypedAssertion) -> vir::Expr {
         warn!("TODO: incomplete encoding of functional specification: {:?}", assertion);
         match assertion.kind {
-            box AssertionKind::Expr(ref hir_expr) => {
-                self.encode_hir_expr(&hir_expr.expr)
+            box AssertionKind::Expr(ref assertion_expr) => {
+                // TODO: make ENCODE_FROM_MIR the default
+                const ENCODE_FROM_MIR: bool = false;
+                if ENCODE_FROM_MIR {
+                    let tcx = self.encoder.env().tcx();
+                    let node_id = tcx.hir.get_parent(assertion_expr.expr.id);
+                    let def_id = tcx.hir.local_def_id(node_id);
+                    let mir_expr = self.encoder.encode_pure_function_body(def_id);
+                    debug!("MIR expr {:?} --> {}", assertion_expr.id, mir_expr);
+                    mir_expr
+                } else {
+                    self.encode_hir_expr(&assertion_expr.expr)
+                }
             }
             box AssertionKind::And(ref assertions) => {
                 assertions.iter()
@@ -424,14 +435,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     self.encode_assertion(rhs)
                 )
             }
-            box AssertionKind::ForAll(ref vars, ref trigger_set, ref filter, ref body) => {
+            box AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
                 vir::Expr::forall(
                     vars.vars.iter().map(|x| self.encode_hir_arg(x)).collect(),
                     trigger_set.triggers().iter().map(|x| self.encode_trigger(x)).collect(),
-                    vir::Expr::implies(
-                        self.encode_hir_expr(&filter.expr),
-                        self.encode_hir_expr(&body.expr)
-                    )
+                    self.encode_assertion(body)
                 )
             }
         }
