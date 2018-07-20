@@ -11,12 +11,13 @@ use rustc;
 use rustc::hir::{self, intravisit};
 use rustc::ty::TyCtxt;
 use rustc_driver::driver;
-use syntax::{self, ast};
+use syntax::ast;
 use std::collections::HashMap;
 use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars,
                      Specification, SpecificationSet, Trigger, TypedAssertion, TypedSpecification,
                      TypedSpecificationMap, TypedTriggerSet, UntypedAssertion,
                      UntypedSpecification, UntypedSpecificationMap, UntypedTriggerSet};
+use syntax_pos::Span;
 
 /// Convert untyped specifications to typed specifications.
 pub fn type_specifications(
@@ -144,7 +145,6 @@ fn convert_to_typed(
 struct TypeCollector<'a, 'tcx: 'a> {
     pub typed_expressions: HashMap<ExpressionId, rustc::hir::Expr>,
     pub typed_forallargs: HashMap<ExpressionId, Vec<rustc::hir::Arg>>,
-    pub current_args: Option<Vec<rustc::hir::Arg>>,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
 }
 
@@ -153,42 +153,50 @@ impl<'a, 'tcx: 'a> TypeCollector<'a, 'tcx> {
         Self {
             typed_expressions: HashMap::new(),
             typed_forallargs: HashMap::new(),
-            current_args: None,
             tcx: tcx,
         }
     }
 
-    fn register_typed_expression(&mut self, args: &syntax::ptr::P<[rustc::hir::Expr]>) {
+    fn register_typed_expression(&mut self, expr_id: u128, expr: rustc::hir::Expr) {
         trace!("[register_typed_expression] enter");
-        let mut args = args.clone().into_vec();
-        assert!(args.len() == 2);
-        let expression = args.pop().unwrap();
-        let id = match args.pop().unwrap().node {
-            hir::Expr_::ExprLit(lit) => match lit.into_inner().node {
-                ast::LitKind::Int(id, _) => ExpressionId::from(id),
-                _ => bug!(),
-            },
-            _ => bug!(),
-        };
-        debug!("id = {:?} expression = {:?}", id, expression);
-        self.typed_expressions.insert(id, expression);
+        let id = ExpressionId::from(expr_id);
+        debug!("id = {:?} expression = {:?}", id, expr);
+        self.typed_expressions.insert(id, expr);
         trace!("[register_typed_expression] exit");
     }
 
-    fn register_typed_args(&mut self, args: &syntax::ptr::P<[rustc::hir::Expr]>) {
-        trace!("[register_typed_args] enter");
-        let mut args = args.clone().into_vec();
-        assert!(args.len() == 1);
-        let id = match args.pop().unwrap().node {
-            hir::Expr_::ExprLit(lit) => match lit.into_inner().node {
-                ast::LitKind::Int(id, _) => ExpressionId::from(id),
-                _ => bug!(),
+    fn register_typed_forallargs(&mut self, forall_id: u128, args: Vec<rustc::hir::Arg>) {
+        trace!("[register_typed_forallargs] enter");
+        let id = ExpressionId::from(forall_id);
+        self.typed_forallargs.insert(id, args);
+        trace!("[register_typed_forallargs] exit");
+    }
+}
+
+fn get_attr_value(attr: &ast::Attribute) -> String {
+    use syntax::tokenstream::TokenTree;
+    use syntax::parse::token;
+
+    let trees: Vec<_> = attr.tokens.trees().collect();
+    assert_eq!(trees.len(), 2);
+
+    match trees[0] {
+        TokenTree::Token(_, ref token) => assert_eq!(*token, token::Token::Eq),
+        _ => unreachable!()
+    };
+
+    match trees[1] {
+        TokenTree::Token(_, ref token) => match *token {
+            token::Token::Literal(ref lit, None) => match *lit {
+                token::Lit::Str_(ref name) |
+                token::Lit::StrRaw(ref name, _) => {
+                    name.as_str().to_string()
+                }
+                _ => unreachable!(),
             },
-            _ => bug!(),
-        };
-        let vars = self.current_args.take().unwrap();
-        self.typed_forallargs.insert(id, vars);
-        trace!("[register_typed_args] exit");
+            _ => unreachable!(),
+        },
+        _ => unreachable!(),
     }
 }
 
@@ -198,53 +206,24 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
         intravisit::NestedVisitorMap::All(map)
     }
 
-    fn visit_body(&mut self, body: &'tcx hir::Body) {
-        self.current_args = Some(body.arguments.clone().into_vec());
-        intravisit::walk_body(self, body)
-    }
+    fn visit_fn(&mut self, fk: intravisit::FnKind<'tcx>, fd: &'tcx hir::FnDecl, bi: hir::BodyId, s: Span, id: ast::NodeId) {
+        let opt_body = self.nested_visit_map().intra().map(|map| map.body(bi));
+        if let Some(body) = opt_body {
+            let args = &body.arguments;
+            let expr = &body.value;
 
-    fn visit_expr(&mut self, expr: &'tcx hir::Expr) {
-        if let hir::Expr_::ExprCall(ref target, ref args) = expr.node {
-            if let hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref path)) = target.node {
-                if let hir::def::Def::Fn(def_id) = path.def {
-                    let def_path = self.tcx.def_path(def_id).to_string_no_crate();
-                    let crate_name = self.tcx.crate_name(def_id.krate);
-                    if crate_name == "prusti_contracts"
-                        && def_path == r#"::internal[0]::__assertion[0]"# {
-                        self.register_typed_expression(args);
-                    }
-                    if crate_name == "prusti_contracts"
-                        && def_path == r#"::internal[0]::__trigger[0]"# {
-                        self.register_typed_expression(args);
-                    }
-                    if crate_name == "prusti_contracts" && def_path == r#"::internal[0]::__id[0]"# {
-                        self.register_typed_args(args);
-                    }
-                };
-            };
-        };
-        intravisit::walk_expr(self, expr);
-    }
-
-    /*fn visit_fn(&mut self, fk: FnKind<'tcx>, fd: &'tcx FnDecl, b: BodyId, s: Span, id: NodeId) {
-        for attr in &fk.attrs() {
-            if attr.path.to_string() == "__PRUSTI_SPEC_EXPR_ID" {
-                if let Some((spec_string, span)) = self.extract_spec_string(&attribute) {
-                    debug!("spec={:?} spec_type={:?}", spec_string, spec_type);
-                    if let Some(assertion) = self.parse_assertion_wrap(span, &spec_string) {
-                        debug!("assertion={:?}", assertion);
-                        Some(UntypedSpecification {
-                            typ: spec_type,
-                            assertion: assertion,
-                        })
-                    } else {
-                        None
-                    }
-                } else {
-                    None
+            for attr in fk.attrs().iter() {
+                if attr.path.to_string() == "__PRUSTI_SPEC_EXPR_ID" {
+                    let expr_id: u128 = get_attr_value(attr).parse().unwrap();
+                    self.register_typed_expression(expr_id, expr.clone());
+                }
+                if attr.path.to_string() == "__PRUSTI_SPEC_FORALL_VARS_ID" {
+                    let forall_id: u128 = get_attr_value(attr).parse().unwrap();
+                    self.register_typed_forallargs(forall_id, args.clone().into_vec());
                 }
             }
         }
-        intravisit::walk_fn(self, fk, fd, b, s, id)
-    }*/
+
+        intravisit::walk_fn(self, fk, fd, bi, s, id)
+    }
 }

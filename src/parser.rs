@@ -143,7 +143,6 @@ use std::convert::TryFrom;
 use std::mem;
 use syntax::codemap::respan;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
-use syntax::symbol::keywords;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -207,27 +206,43 @@ impl<'tcx> SpecParser<'tcx> {
     /// Construct a statement that calls a function with given
     /// expression to make that expression to be type-checked by the
     /// Rust compiler.
-    fn build_typeck_call(&self, expression: &UntypedExpression, function_name: &str) -> ast::Stmt {
+    fn build_typeck_call(&self, expression: &UntypedExpression, expected_ty: Option<ptr::P<ast::Ty>>) -> ast::Stmt {
         let builder = &self.ast_builder;
-        let id = expression.id;
+        let expr_id = expression.id;
         let rust_expr = expression.expr.clone();
         let span = rust_expr.span;
-        builder.stmt_expr(builder.expr_call(
+        let any_ty = self.ast_builder.ty(span, ast::TyKind::Infer);
+        let return_ty = expected_ty.unwrap_or(any_ty);
+        let mut lambda_fn = builder.lambda_fn_decl(
             span,
-            builder.expr_ident(span, builder.ident_of(function_name)),
-            vec![builder.expr_usize(span, id.into()), rust_expr],
-        ))
+            builder.fn_decl(
+                vec![],
+                ast::FunctionRetTy::Ty(return_ty)
+            ),
+            rust_expr,
+            span
+        ).into_inner();
+        lambda_fn.attrs = vec![
+            self.ast_builder
+                .attribute_name_value(span, "__PRUSTI_SPEC_EXPR_ID", &expr_id.to_string()),
+        ].into();
+        builder.stmt_semi(ptr::P(lambda_fn))
     }
 
     fn build_assertion(&self, expression: &UntypedExpression) -> ast::Stmt {
-        self.build_typeck_call(expression, "__assertion")
+        let bool_path = self.ast_builder.path_ident(
+            expression.expr.span,
+            self.ast_builder.ident_of("bool")
+        );
+        let bool_ty = self.ast_builder.ty_path(bool_path);
+        self.build_typeck_call(expression, Some(bool_ty))
     }
 
     fn convert_trigger_set_to_statements(&self, trigger_set: &UntypedTriggerSet) -> Vec<ast::Stmt> {
         let mut statements = Vec::new();
         for trigger in trigger_set.triggers().iter() {
             for term in trigger.terms().iter() {
-                let statement = self.build_typeck_call(term, "__trigger");
+                let statement = self.build_typeck_call(term, None);
                 statements.push(statement);
             }
         }
@@ -256,25 +271,22 @@ impl<'tcx> SpecParser<'tcx> {
                 let span = body_assertion.span;
                 stmts.push(body_assertion);
                 let builder = &self.ast_builder;
-                stmts.push(builder.stmt_expr(builder.expr_call(
+
+                let mut lambda_fn = builder.lambda_fn_decl(
                     span,
-                    builder.expr_ident(span, builder.ident_of("__id")),
-                    vec![builder.expr_usize(span, vars.id.into())],
-                )));
-                let statement = builder.stmt_let(
-                    span,
-                    false,
-                    keywords::Underscore.ident(),
-                    builder.lambda_fn_decl(
-                        span,
-                        builder.fn_decl(
-                            vars.vars.clone(),
-                            ast::FunctionRetTy::Default(span)
-                        ),
-                        builder.expr_block(builder.block(span, stmts)),
-                        span
-                    )
-                );
+                    builder.fn_decl(
+                        vars.vars.clone(),
+                        ast::FunctionRetTy::Default(span)
+                    ),
+                    builder.expr_block(builder.block(span, stmts)),
+                    span
+                ).into_inner();
+
+                lambda_fn.attrs = vec![
+                    builder.attribute_name_value(span, "__PRUSTI_SPEC_FORALL_VARS_ID", &vars.id.to_string()),
+                ].into();
+
+                let statement = builder.stmt_semi(ptr::P(lambda_fn));
                 statements.push(statement);
             }
         };

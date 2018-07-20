@@ -101,10 +101,20 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                 registry.register_attribute(String::from("invariant"), AttributeType::Whitelisted);
                 registry.register_attribute(String::from("requires"), AttributeType::Whitelisted);
                 registry.register_attribute(String::from("ensures"), AttributeType::Whitelisted);
-                registry
-                    .register_attribute(PRUSTI_SPEC_ATTR.to_string(), AttributeType::Whitelisted);
+                registry.register_attribute(
+                    PRUSTI_SPEC_ATTR.to_string(),
+                    AttributeType::Whitelisted
+                );
                 registry.register_attribute(
                     String::from("__PRUSTI_SPEC_ONLY"),
+                    AttributeType::Whitelisted,
+                );
+                registry.register_attribute(
+                    String::from("__PRUSTI_SPEC_EXPR_ID"),
+                    AttributeType::Whitelisted,
+                );
+                registry.register_attribute(
+                    String::from("__PRUSTI_SPEC_FORALL_VARS_ID"),
                     AttributeType::Whitelisted,
                 );
             }
