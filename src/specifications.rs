@@ -102,6 +102,12 @@ impl Into<usize> for ExpressionId {
     }
 }
 
+impl Into<u128> for ExpressionId {
+    fn into(self) -> u128 {
+        self.0 as u128
+    }
+}
+
 impl From<u128> for ExpressionId {
     fn from(value: u128) -> Self {
         Self { 0: value as usize }
