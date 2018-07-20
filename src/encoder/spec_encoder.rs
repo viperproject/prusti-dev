@@ -150,7 +150,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         };
 
         let hir_id = match var_path.def {
-            hir::def::Def::Local(node_id) => self.encoder.env().tcx().hir.node_to_hir_id(node_id),
+            hir::def::Def::Local(node_id) |
+            hir::def::Def::Upvar(node_id, _, _) => self.encoder.env().tcx().hir.node_to_hir_id(node_id),
             ref x => unimplemented!("{:?}", x)
         };
         let var_ty = self.encoder.env().hir_id_to_type(hir_id);
