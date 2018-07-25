@@ -6,6 +6,7 @@ use rustc::mir;
 use std::collections::HashMap;
 use std::marker::Sized;
 use std::iter::FromIterator;
+use std::fmt::Debug;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
@@ -16,7 +17,7 @@ pub trait BackwardMirInterpreter<'tcx> {
 
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
-pub fn run_backward_interpretation<'tcx, S, I: BackwardMirInterpreter<'tcx, State = S>>(mir: &mir::Mir<'tcx>, interpreter: &I) -> Option<S> {
+pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tcx, State = S>>(mir: &mir::Mir<'tcx>, interpreter: &I) -> Option<S> {
     let basic_blocks = mir.basic_blocks();
     let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
     let mut predecessors: HashMap<mir::BasicBlock, Vec<mir::BasicBlock>> = HashMap::new();
@@ -34,10 +35,10 @@ pub fn run_backward_interpretation<'tcx, S, I: BackwardMirInterpreter<'tcx, Stat
         }
     }
 
-    // Find the basic blocks that end with a return
+    // Find the final basic blocks
     let mut pending_blocks: Vec<mir::BasicBlock> = basic_blocks.iter_enumerated().filter(
         |(_, bb_data)| match bb_data.terminator {
-            Some(mir::Terminator { kind: mir::TerminatorKind::Return, .. }) => true,
+            Some(ref term) => term.successors().next().is_none(),
             _ => false
         }
     ).map(|(bb, _)| bb).collect();
@@ -49,16 +50,23 @@ pub fn run_backward_interpretation<'tcx, S, I: BackwardMirInterpreter<'tcx, Stat
 
         // Apply the terminator
         let terminator = bb_data.terminator.as_ref().unwrap();
+        let states = HashMap::from_iter(
+            terminator.successors().map(|bb| (*bb, &heads[bb]))
+        );
+        debug!("States before: {:?}", states);
+        debug!("Apply terminator {:?}", terminator);
         let mut curr_state = interpreter.apply_terminator(
             terminator,
-            HashMap::from_iter(
-                terminator.successors().map(|bb| (*bb, &heads[bb]))
-            )
+            states
         );
+        debug!("State after: {:?}", curr_state);
 
         // Apply each statement, from the last
         for stmt in bb_data.statements.iter().rev() {
+            debug!("State before: {:?}", curr_state);
+            debug!("Apply statement {:?}", stmt);
             interpreter.apply_statement(stmt, &mut curr_state);
+            debug!("State after: {:?}", curr_state);
         }
 
         // Store the state at the beginning of block `curr_bb`
@@ -74,5 +82,11 @@ pub fn run_backward_interpretation<'tcx, S, I: BackwardMirInterpreter<'tcx, Stat
         }
     }
 
-    heads.remove(&basic_blocks.indices().next().unwrap())
+    let result = heads.remove(&basic_blocks.indices().next().unwrap());
+
+    if result.is_none() {
+        debug!("heads: {:?}", heads);
+    }
+
+    result
 }

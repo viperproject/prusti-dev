@@ -52,6 +52,18 @@ impl From<usize> for Expr {
     }
 }
 
+impl From<isize> for Const {
+    fn from(val: isize) -> Self {
+        Const::BigInt(val.to_string())
+    }
+}
+
+impl From<isize> for Expr {
+    fn from(val: isize) -> Self {
+        Expr::Const(val.into())
+    }
+}
+
 impl From<i8> for Const {
     fn from(val: i8) -> Self {
         Const::Int(val as i64)

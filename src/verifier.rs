@@ -128,6 +128,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
 impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
     fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+        self.encoder.initialize();
+
         for proc_id in &task.procedures {
             self.encoder.encode_procedure(*proc_id);
         }
@@ -137,7 +139,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         let program = ast.program(
             &self.encoder.get_used_viper_domains(),
             &self.encoder.get_used_viper_fields().to_viper(ast),
-            &self.encoder.get_used_viper_functions(),
+            &self.encoder.get_used_viper_functions().into_iter().map(|m| m.to_viper(ast)).collect::<Vec<_>>(),
             &self.encoder.get_used_viper_predicates().to_viper(ast),
             &self.encoder.get_used_viper_methods().into_iter().map(|m| m.to_viper(ast)).collect::<Vec<_>>()
         );

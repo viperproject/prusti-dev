@@ -50,7 +50,8 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Place {
             Place::Field(base, field) => ast.field_access(
                 base.to_viper(ast),
                 field.to_viper(ast),
-            )
+            ),
+            Place::AddrOf(..) => unreachable!(),
         }
     }
 }
@@ -178,6 +179,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 &triggers.to_viper(ast),
                 body.to_viper(ast)
             ),
+            &Expr::FuncApp(ref function_name, ref args, ref formal_args, ref return_type) => ast.func_app(
+                &function_name,
+                &args.to_viper(ast),
+                &formal_args.to_viper_decl(ast)[..],
+                return_type.to_viper(ast),
+            ),
         }
     }
 }
@@ -243,6 +250,25 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a BodylessMethod {
             &[],
             &[],
             None
+        )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Function<'v>> for Function {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Function<'v> {
+        (&self).to_viper(ast)
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Function<'v> {
+        ast.function(
+            &self.name,
+            &self.formal_args.to_viper_decl(ast),
+            self.return_type.to_viper(ast),
+            &[],
+            &[],
+            self.body.as_ref().map(|b| b.to_viper(ast))
         )
     }
 }

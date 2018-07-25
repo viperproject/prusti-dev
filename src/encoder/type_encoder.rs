@@ -7,6 +7,9 @@ use encoder::vir;
 use encoder::vir::utils::ExprIterator;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use rustc_data_structures::indexed_vec::Idx;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -287,7 +290,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyAdt(adt_def, subst) => {
                 let mut composed_name = vec![
-                    self.encoder.encode_type_name(adt_def.did)
+                    self.encoder.encode_item_name(adt_def.did)
                 ];
                 for kind in subst.iter() {
                     if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
@@ -328,6 +331,23 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 format!(
                     "slice${}",
                     self.encoder.encode_type_predicate_use(array_ty)
+                )
+            },
+
+            ty::TypeVariants::TyClosure(def_id, closure_subst) => {
+                let subst_hash = {
+                    let mut s = DefaultHasher::new();
+                    closure_subst.hash(&mut s);
+                    s.finish()
+                };
+
+                format!(
+                    "closure${:?}_{}_{}${}${}",
+                    def_id.krate.index(),
+                    def_id.index.address_space().index(),
+                    def_id.index.as_array_index(),
+                    closure_subst.substs.len(),
+                    subst_hash
                 )
             },
 

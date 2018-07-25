@@ -9,7 +9,6 @@ use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;
 use encoder::foldunfold;
 use encoder::loop_encoder::LoopEncoder;
-use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::vir::utils::ExprIterator;
 use prusti_interface::data::ProcedureDefId;
@@ -30,6 +29,7 @@ use syntax::codemap::Span;
 use syntax_pos::symbol::Ident;
 use syntax::ast;
 use prusti_interface::specifications::*;
+use encoder::mir_encoder::MirEncoder;
 
 pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -409,18 +409,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         warn!("TODO: incomplete encoding of functional specification: {:?}", assertion);
         match assertion.kind {
             box AssertionKind::Expr(ref assertion_expr) => {
-                // TODO: make ENCODE_FROM_MIR the default
-                const ENCODE_FROM_MIR: bool = false;
-                if ENCODE_FROM_MIR {
-                    let tcx = self.encoder.env().tcx();
-                    let node_id = tcx.hir.get_parent(assertion_expr.expr.id);
-                    let def_id = tcx.hir.local_def_id(node_id);
-                    let mir_expr = self.encoder.encode_pure_function_body(def_id);
-                    debug!("MIR expr {:?} --> {}", assertion_expr.id, mir_expr);
-                    mir_expr
-                } else {
-                    self.encode_hir_expr(&assertion_expr.expr)
+                let tcx = self.encoder.env().tcx();
+
+                // Find the MIR of the assertion
+                let mut curr_node_id = assertion_expr.expr.id;
+                for i in 0..1 {
+                    curr_node_id = tcx.hir.get_parent_node(curr_node_id);
                 }
+                let closure_node_id = curr_node_id;
+                let mir_def_id = tcx.hir.local_def_id(closure_node_id);
+                let mut mir_expr = self.encoder.encode_pure_function_body(mir_def_id);
+
+                // Fix the return variable
+                let spec_method_node_id = tcx.hir.get_parent(closure_node_id);
+                let spec_method_def_id = tcx.hir.local_def_id(spec_method_node_id);
+                let spec_method_mir = tcx.mir_validated(spec_method_def_id).borrow();
+                let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir, "".to_string());
+                let fake_return_var = spec_method_mir_encoder.encode_local(
+                    spec_method_mir.args_iter().last().unwrap()
+                );
+                let proper_return_var = vir::LocalVar::new(
+                    "_0".to_string(),
+                    fake_return_var.typ.clone()
+                );
+                mir_expr = vir::utils::ExprSubPlaceSubstitutor::substitute(
+                    mir_expr,
+                    &fake_return_var.into(),
+                    proper_return_var.into()
+                );
+
+                debug!("MIR expr {:?} --> {}", assertion_expr.id, mir_expr);
+                mir_expr
             }
             box AssertionKind::And(ref assertions) => {
                 assertions.iter()

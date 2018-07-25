@@ -27,6 +27,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::codemap::Span;
 use prusti_interface::specifications::*;
+use syntax::ast;
 
 
 static PRECONDITION_LABEL: &'static str = "pre";
@@ -49,7 +50,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let cfg_method = vir::CfgMethod::new(
             // method name
-            encoder.encode_procedure_name(procedure.get_id()),
+            encoder.encode_item_name(procedure.get_id()),
             // formal args
             vec![],
             // formal returns
@@ -390,7 +391,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     ref rhs => {
-                        unimplemented!("endcoding of '{:?}'", rhs);
+                        unimplemented!("encoding of '{:?}'", rhs);
                     }
                 }
             }
@@ -423,19 +424,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
-                    let viper_guard = if switch_ty.sty == ty::TypeVariants::TyBool {
-                        if value == 0 {
-                            // If discr is 0 (false)
-                            vir::Expr::not(discr_val.clone().into())
-                        } else {
-                            // If discr is not 0 (true)
-                            discr_val.clone().into()
+                    let viper_guard = match switch_ty.sty {
+                        ty::TypeVariants::TyBool => {
+                            if value == 0 {
+                                // If discr is 0 (false)
+                                vir::Expr::not(discr_val.clone().into())
+                            } else {
+                                // If discr is not 0 (true)
+                                discr_val.clone().into()
+                            }
                         }
-                    } else {
-                        vir::Expr::eq_cmp(
-                            discr_val.clone().into(),
-                            value.into(),
-                        )
+
+                        ty::TypeVariants::TyInt(_) |
+                        ty::TypeVariants::TyUint(_) => {
+                            vir::Expr::eq_cmp(
+                                discr_val.clone().into(),
+                                self.encoder.encode_int_cast(value, switch_ty)
+                            )
+                        }
+
+                        ref x => unreachable!("{:?}", x)
                     };
                     let target_cfg_block = cfg_blocks.get(&target).unwrap_or(&spec_cfg_block);
                     cfg_targets.push((viper_guard, *target_cfg_block))
@@ -641,7 +649,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
 
                         stmts.push(vir::Stmt::MethodCall(
-                            self.encoder.encode_procedure_name(def_id),
+                            self.encoder.encode_item_name(def_id),
                             vec![],
                             encoded_targets,
                         ));
@@ -959,7 +967,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    /// TODO: Need to take into account how much the place is already unfolded.
     /// Returns
     /// - `vir::Expr`: the expression of the projection;
     /// - `ty::Ty<'tcx>`: the type of the expression;
@@ -1032,20 +1039,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
             &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
                 ty
-            }
-        }
-    }
-
-    fn encode_operand_moved_place(&mut self, operand: &mir::Operand<'tcx>) -> Option<vir::Place> {
-        debug!("Encode operand moved place {:?}", operand);
-        match operand {
-            &mir::Operand::Move(ref place) => {
-                let (src, _, _) = self.encode_place(place);
-                Some(src)
-            }
-            &mir::Operand::Copy(_) |
-            &mir::Operand::Constant(_) => {
-                None
             }
         }
     }

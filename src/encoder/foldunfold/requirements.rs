@@ -144,6 +144,10 @@ impl RequiredPlacesGetter for vir::Expr {
             },
 
             vir::Expr::MagicWand(_, _) => unimplemented!("Fold/unfold does not support magic wands (yet)"),
+
+            vir::Expr::FuncApp(ref name, ref args, ..) => {
+                args.iter().collect::<Vec<_>>().get_required_places(predicates)
+            }
         }
     }
 }
@@ -152,12 +156,14 @@ impl vir::Expr {
     /// Returns the permissions that must be inhaled/exhaled in a `inhale/exhale expr` statement
     /// This must be a subset of `get_required_places`
     pub fn get_access_places(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
+        trace!("get_access_places {:?}", self);
         match self {
             vir::Expr::Const(_) |
             vir::Expr::Place(_) |
             vir::Expr::Old(_) |
             vir::Expr::LabelledOld(_, _) |
-            vir::Expr::PredicateAccess(_, _) => HashSet::new(),
+            vir::Expr::PredicateAccess(_, _) |
+            vir::Expr::FuncApp(_, _, ..)=> HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr) => {
                 assert_eq!(args.len(), 1);
@@ -203,13 +209,16 @@ impl vir::Expr {
             vir::Expr::PredicateAccessPredicate(ref expr, _) |
             vir::Expr::FieldAccessPredicate(ref expr, _) => {
                 // In Prusti we assume to have only places here
-                let perm = match expr {
-                    box vir::Expr::Place(ref place) => Perm::Acc(place.clone()),
+                let opt_perm = match expr {
+                    box vir::Expr::Place(ref place) => Some(Perm::Acc(place.clone())),
 
                     box vir::Expr::PredicateAccess(_, ref args) => {
                         assert_eq!(args.len(), 1);
                         match args[0] {
-                            vir::Expr::Place(ref place) => Perm::Pred(place.clone()),
+                            vir::Expr::Place(ref place) => Some(Perm::Pred(place.clone())),
+
+                            vir::Expr::Old(..) |
+                            vir::Expr::LabelledOld(..) => None,
 
                             _ => unreachable!()
                         }
@@ -217,7 +226,7 @@ impl vir::Expr {
 
                     _ => unreachable!()
                 };
-                vec![perm].into_iter().collect()
+                opt_perm.into_iter().collect()
             },
 
             vir::Expr::MagicWand(_, _) => unimplemented!(),

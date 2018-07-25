@@ -13,6 +13,11 @@ pub enum BuiltinMethodKind {
     HavocRef
 }
 
+#[derive(Clone,Debug,Hash,Eq,PartialEq)]
+pub enum BuiltinFunctionKind {
+    Undefined(vir::Type),
+}
+
 pub struct BuiltinEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>
 }
@@ -37,6 +42,26 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 formal_args: vec![],
                 formal_returns: vec![vir::LocalVar::new("ret", vir::Type::TypedRef("".to_string()))]
             }
+        }
+    }
+
+    pub fn encode_builtin_function_name(&self, function: &BuiltinFunctionKind) -> String {
+        match function {
+            BuiltinFunctionKind::Undefined(vir::Type::Int) => "builtin$undef_int".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::Bool) => "builtin$undef_bool".to_string(),
+            BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => unimplemented!()
+        }
+    }
+
+    pub fn encode_builtin_function_def(&self, function: BuiltinFunctionKind) -> vir::Function {
+        let fn_name = self.encode_builtin_function_name(&function);
+        match function {
+            BuiltinFunctionKind::Undefined(typ) => vir::Function {
+                name: fn_name,
+                formal_args: vec![],
+                return_type: typ,
+                body: None
+            },
         }
     }
 }
