@@ -109,6 +109,22 @@ impl<'a> MinimalAstBuilder<'a> {
         };
         self.item_fn_poly(span, name, inputs, output, generics, body)
     }
+
+
+    pub fn lambda_fn_decl_by_value(&self,
+                      span: Span,
+                      fn_decl: P<ast::FnDecl>,
+                      body: P<ast::Expr>,
+                      fn_decl_span: Span) // span of the `|...|` part
+                      -> P<ast::Expr> {
+        self.expr(span, ast::ExprKind::Closure(ast::CaptureBy::Value,
+                                               ast::IsAsync::NotAsync,
+                                               ast::Movability::Movable,
+                                               fn_decl,
+                                               body,
+                                               fn_decl_span))
+    }
+
 }
 
 /// The following implementation is copy-pasted from the Rust compiler source code.

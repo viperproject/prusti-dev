@@ -220,7 +220,7 @@ impl<'tcx> SpecParser<'tcx> {
                 vec![],
                 ast::FunctionRetTy::Ty(return_ty)
             ),
-            rust_expr,
+            builder.expr_block(builder.block(span, vec![builder.stmt_expr(rust_expr)])),
             span
         ).into_inner();
         lambda_fn.attrs = vec![
