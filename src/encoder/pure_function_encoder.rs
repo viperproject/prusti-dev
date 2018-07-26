@@ -359,7 +359,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let encoded_left = self.mir_encoder.encode_operand_expr(left);
                         let encoded_right = self.mir_encoder.encode_operand_expr(right);
 
-                        let field = self.encoder.encode_value_field(ty);
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
                         let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right);
 
@@ -369,7 +368,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
                         let check_field_value = self.encoder.encode_value_field(field_types[1]);
 
-                        unimplemented!()
+                        let lhs_value = encoded_lhs.clone()
+                            .access(value_field)
+                            .access(value_field_value);
+                        let lhs_check = encoded_lhs.clone()
+                            .access(check_field)
+                            .access(check_field_value);
+
+                        // Substitute a place of a value with an expression
+                        state.substitute_value(&lhs_value, encoded_value);
+                        state.substitute_value(&lhs_check, encoded_check);
                     }
 
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
