@@ -307,15 +307,16 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn func_app(&self, func: Function, args: &[Expr]) -> Expr<'a> {
-        let func_app_object_wrapper = ast::FuncApp_object::with(self.env);
-        let obj = self.jni.unwrap_result(func_app_object_wrapper.call_apply(
-            self.jni.unwrap_result(func_app_object_wrapper.singleton()),
-            func.to_jobject(),
+    pub fn func_app(&self, function_name: &str, args: &[Expr], formal_args: &[LocalVarDecl], return_type: Type) -> Expr<'a> {
+        let func_app_wrapper = ast::FuncApp::with(self.env);
+        let obj = self.jni.unwrap_result(func_app_wrapper.call_apply(
+            self.jni.new_string(function_name),
             self.jni.new_seq(&map_to_jobjects!(args)),
             self.no_position().to_jobject(),
             self.no_info(),
-            self.no_trafos(),
+            return_type.to_jobject(),
+            self.jni.new_seq(&map_to_jobjects!(formal_args)),
+            self.no_trafos()
         ));
         Expr::new(obj)
     }
