@@ -5,6 +5,7 @@
 //! Prusti Interface is an interface between Prusti and Prusti-Viper.
 
 #![warn(missing_docs)]
+#![feature(nll)]
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
@@ -31,3 +32,4 @@ pub mod verifier;
 pub mod data;
 pub mod constants;
 pub mod specifications;
+pub mod utils;
