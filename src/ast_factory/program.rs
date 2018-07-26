@@ -113,10 +113,7 @@ impl<'a> AstFactory<'a> {
         posts: &[Expr],
         body: Option<Stmt>,
     ) -> Method<'a> {
-        build_ast_node!(
-            self,
-            Method,
-            ast::Method,
+        let obj = self.jni.unwrap_result(ast::Method::with(self.env).new(
             self.jni.new_string(name),
             self.jni.new_seq(&map_to_jobjects!(formal_args)),
             self.jni.new_seq(&map_to_jobjects!(formal_returns)),
@@ -125,8 +122,13 @@ impl<'a> AstFactory<'a> {
             match body {
                 None => self.jni.new_option(None),
                 Some(x) => self.jni.new_option(Some(x.to_jobject())),
-            }
-        )
+            },
+            self.no_position().to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+            false
+        ));
+        Method::new(obj)
     }
 
     pub fn domain(
