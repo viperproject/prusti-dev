@@ -501,7 +501,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
             for (region, point) in self.borrowck_in_facts.region_live_at.iter() {
                 if *point == start_point {
-                    let variable = self.find_variable(*region).unwrap();
+                    // TODO: the unwrap_or is a temporary workaround
+                    // See issue prusti-internal/issues/14
+                    let variable = self.find_variable(*region).unwrap_or(mir::Local::new(1000));
                     self.print_blocked(variable, start_location);
                 }
             }
