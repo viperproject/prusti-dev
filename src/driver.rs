@@ -79,6 +79,11 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         odir: &Option<PathBuf>,
         ofile: &Option<PathBuf>,
     ) -> Compilation {
+        if Ok(String::from("true")) == var("PRUSTI_TEST") {
+            if let rustc::session::config::Input::File(ref path) = input {
+                set_var("PRUSTI_TEST_FILE", path.to_str().unwrap());
+            }
+        }
         self.default
             .late_callback(trans, matches, sess, crate_stores, input, odir, ofile)
     }

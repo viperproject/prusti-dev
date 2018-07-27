@@ -21,6 +21,10 @@ fn get_driver_path() -> PathBuf {
 
 fn run(group_name: &str, verify: bool) {
     set_var("PRUSTI_FULL_COMPILATION", "true");
+    // This flag informs the driver that we are running the test suite, so that some additional
+    // checks are enabled. For example, comparison of the computed definitely initialized
+    // information with the expected one.
+    set_var("PRUSTI_TEST", "true");
 
     if !verify {
         set_var("PRUSTI_NO_VERIFY", "true");
