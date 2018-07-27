@@ -23,6 +23,8 @@ extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_mir;
 extern crate rustc_data_structures;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde;
 extern crate syntax;
 extern crate syntax_pos;

@@ -15,9 +15,12 @@
 //! `S` at the same time is illegal.
 
 use crate::utils::{self, is_prefix};
-use rustc::mir;
+use csv::{ReaderBuilder, WriterBuilder};
+use rustc::{hir, mir};
 use std::collections::{HashMap, HashSet};
+use std::env;
 use std::mem;
+use std::path::Path;
 use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 
@@ -507,6 +510,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
 pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     mir: &'a mir::Mir<'tcx>,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    def_path: hir::map::DefPath,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
     let mut analysis = DefinitelyInitializedAnalysis::new(mir, tcx);
     analysis.initialize();
@@ -514,5 +518,100 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     analysis.run(JoinOperation::Union);
     analysis.propagate_work_queue();
     analysis.run(JoinOperation::Intersect);
+    if let Ok(path) = env::var("PRUSTI_TEST_FILE") {
+        // We are running tests, compare computed initialization results
+        // with the expected ones.
+        analysis.result.compare_with_expected(def_path, path);
+    }
     analysis.result
+}
+
+#[derive(Debug, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+/// A record for serializing definitely initialized info into a file for testing.
+struct InitializationRecord {
+    block: usize,
+    /// -1 indicates before the block.
+    statement_index: isize,
+    /// A String representation of a place set.
+    places: String,
+}
+
+impl InitializationRecord {
+    fn new(block: mir::BasicBlock, statement_index: isize, place_set: &PlaceSet) -> Self {
+        let mut places: Vec<_> = place_set
+            .iter()
+            .map(|place| format!("{:?}", place))
+            .collect();
+        places.sort();
+        Self {
+            block: block.index(),
+            statement_index: statement_index,
+            places: places.join(", "),
+        }
+    }
+}
+
+impl<'tcx> DefinitelyInitializedAnalysisResult<'tcx> {
+    /// Converts to a sorted vector of `InitializationRecord`.
+    fn to_initialization_records(&self) -> Vec<InitializationRecord> {
+        let mut records = Vec::new();
+        for (bb, place_set) in self.before_block.iter() {
+            records.push(InitializationRecord::new(*bb, -1, place_set));
+        }
+        for (location, place_set) in self.after_statement.iter() {
+            records.push(InitializationRecord::new(
+                location.block,
+                location.statement_index as isize,
+                place_set,
+            ));
+        }
+        records.sort();
+        records
+    }
+    /// Compare the expected analysis results with the actual.
+    fn compare_with_expected(&self, def_path: hir::map::DefPath, test_file: String) {
+        trace!(
+            "[enter] compare_definitely_initialized def_path={:?} test_file={}",
+            def_path,
+            test_file
+        );
+        let mut expected_result_file = test_file.clone();
+        expected_result_file.push('.');
+        expected_result_file.push_str(&def_path.to_filename_friendly_no_crate());
+        expected_result_file.push('.');
+        expected_result_file.push_str("def_init");
+        let expected_result_path = Path::new(&expected_result_file);
+
+        trace!("expected_result_file={}", expected_result_file);
+        if !expected_result_path.exists() {
+            return;
+        }
+        let actual_result = self.to_initialization_records();
+
+        let mut reader = ReaderBuilder::new()
+            .from_path(&expected_result_path)
+            .unwrap();
+        let mut expected_result = Vec::new();
+        for row in reader.deserialize() {
+            let record = row.unwrap();
+            expected_result.push(record);
+        }
+        if actual_result != expected_result {
+            let mut actual_result_file = expected_result_file.clone();
+            actual_result_file.push_str(".actual");
+            let actual_result_path = Path::new(&actual_result_file);
+
+            let mut writer = WriterBuilder::new().from_path(&actual_result_path).unwrap();
+            for record in actual_result {
+                writer.serialize(record).unwrap();
+            }
+
+            panic!(
+                "Expected ({:?}) definitely initialized information differ from actual ({:?}).",
+                expected_result_file, actual_result_file
+            );
+        }
+
+        trace!("[exit] compare_definitely_initialized");
+    }
 }

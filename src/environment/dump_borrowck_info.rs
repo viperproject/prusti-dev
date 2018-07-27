@@ -103,7 +103,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             })
             .collect();
 
-        let initialization = compute_definitely_initialized(&mir, self.tcx);
+        let initialization = compute_definitely_initialized(&mir, self.tcx, def_path);
 
         let mut mir_info_printer = MirInfoPrinter {
             tcx: self.tcx,
