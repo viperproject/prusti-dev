@@ -142,6 +142,12 @@ impl<'tcx> ErrorManager<'tcx> {
                 MultiSpan::from_span(*error_span)
             ),
 
+            ("assert.failed:assertion.false", ErrorCtxt::ExhalePostcondition) => CompilerError::new(
+                "P????",
+                format!("Postcondition might not hold."),
+                MultiSpan::from_span(*error_span)
+            ),
+
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
                 full_err_id,
                 format!("unexpected verification error ({})", ver_error.message),

@@ -654,7 +654,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             encoded_targets,
                         ));
 
-                        warn!("TODO: incomplete encoding of postcondition of method call");
                         let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &label);
                         stmts.push(vir::Stmt::Inhale(post_type_spec));
                         stmts.push(vir::Stmt::Inhale(post_func_spec));
@@ -827,6 +826,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Postconditions:"));
         let (type_spec, func_spec) = self.encode_postcondition_expr(contract, PRECONDITION_LABEL);
         let pos = self.encoder.error_manager().register(
+            // TODO: choose a better error span
             self.mir.span,
             ErrorCtxt::ExhalePostcondition
         );
