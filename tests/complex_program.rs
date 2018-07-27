@@ -108,13 +108,15 @@ fn success_with_complex_program() {
                     ast.full_perm(),
                 ),
                 ast.func_app(
-                    even_function,
+                    "even",
                     &[
                         ast.field_access(
                             ast.local_var("box", ast.ref_type()),
                             ast.field("value", ast.int_type()),
                         ),
                     ],
+                    &[ast.local_var_decl("v", ast.int_type())],
+                    ast.bool_type(),
                 ),
             ),
         ),
@@ -126,7 +128,12 @@ fn success_with_complex_program() {
         &[ast.local_var_decl("box", ast.ref_type())],
         &[
             // even(v)
-            ast.func_app(even_function, &[ast.local_var("v", ast.int_type())]),
+            ast.func_app(
+                "even",
+                &[ast.local_var("v", ast.int_type())],
+                &[ast.local_var_decl("v", ast.int_type())],
+                ast.bool_type(),
+            ),
         ],
         &[
             // EvenNumBox(box)
