@@ -1,5 +1,8 @@
 #![feature(nll)]
 
+#[allow(dead_code)]
+#[allow(unused_variables)]
+
 extern crate prusti_contracts;
 
 struct T0 (u32);
@@ -34,9 +37,11 @@ fn _test1(x: T3, y: T2) {
     x.g = y;
 }
 
+/* TODO: Uncomment.
 fn get_t2() -> T2 {
     unimplemented!();
 }
+*/
 
 /* TODO: Uncomment.
 fn _test2(x: T3) {
