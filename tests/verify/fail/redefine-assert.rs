@@ -2,12 +2,12 @@ extern crate prusti_contracts;
 
 macro_rules! assert {
     ( $( $args:expr ),* ) => {
-        panic!( $( $args ),* )
+        panic!( $( $args ),* ) //~ ERROR panic!(..) statement might panic
     };
 }
 
 fn foo(x: bool) {
-    assert!(x);  //~ ERROR panic!(..) statement might panic
+    assert!(x);
 }
 
 fn main() {
