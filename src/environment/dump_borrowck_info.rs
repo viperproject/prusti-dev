@@ -2,8 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use environment::borrowck::{facts, regions};
-use environment::loops;
+use super::borrowck::{facts, regions};
+use super::loops;
+use super::mir_analyses::initialization::{
+    compute_definitely_initialized,
+    DefinitelyInitializedAnalysisResult};
 use datafrog::{Iteration, Relation};
 use std::cell;
 use std::env;
@@ -89,7 +92,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             .join(def_path.to_filename_friendly_no_crate())
             .join("graph.dot");
         let graph_file = File::create(graph_path).expect("Unable to create file");
-        let mut graph = BufWriter::new(graph_file);
+        let graph = BufWriter::new(graph_file);
 
         let interner = facts_loader.interner;
         let loan_position = all_facts.borrow_region
@@ -99,6 +102,8 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
                 (loan, point.location)
             })
             .collect();
+
+        let initialization = compute_definitely_initialized(&mir, self.tcx);
 
         let mut mir_info_printer = MirInfoPrinter {
             tcx: self.tcx,
@@ -111,6 +116,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             loops: loop_info,
             variable_regions: variable_regions,
             loan_position: loan_position,
+            initialization: initialization,
         };
         mir_info_printer.print_info();
 
@@ -223,6 +229,7 @@ struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub variable_regions: HashMap<mir::Local, facts::Region>,
     /// Position at which a specific loan was created.
     pub loan_position: HashMap<facts::Loan, mir::Location>,
+    pub initialization: DefinitelyInitializedAnalysisResult<'tcx>,
 }
 
 macro_rules! write_graph {
@@ -414,7 +421,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "color=green");
         }
         write_graph!(self, "label =<<table>");
-        write_graph!(self, "<th><td>{:?}</td></th>", bb);
+        write_graph!(self, "<th>");
+        write_graph!(self, "<td>{:?}</td>", bb);
+        write_graph!(self, "<td colspan=\"7\"></td>");
+        write_graph!(self, "<td>Definitely Initialized</td>");
+        write_graph!(self, "</th>");
         write_graph!(self, "<th>");
         if self.show_statement_indices() {
             write_graph!(self, "<td>Nr</td>");
@@ -423,6 +434,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td colspan=\"2\">Loans</td>");
         write_graph!(self, "<td colspan=\"2\">Borrow Regions</td>");
         write_graph!(self, "<td colspan=\"2\">Regions</td>");
+        write_graph!(self, "<td>{}</td>", self.get_definitely_initialized_before_block(bb));
         write_graph!(self, "</th>");
 
         let mir::BasicBlockData { ref statements, ref terminator, .. } = self.mir[bb];
@@ -442,7 +454,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         if self.show_statement_indices() {
             write_graph!(self, "<td></td>");
         }
-        write_graph!(self, "<td>{}</td></tr>", term_str);
+        write_graph!(self, "<td>{}</td>", term_str);
+        write_graph!(self, "<td colspan=\"6\"></td>");
+        write_graph!(self, "<td>{}</td>",
+                     self.get_definitely_initialized_after_statement(location));
+        write_graph!(self, "</tr>");
         write_graph!(self, "</table>> ];");
 
         if let Some(ref terminator) = *terminator {
@@ -573,6 +589,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .collect();
         write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
 
+        write_graph!(self, "<td>{}</td>",
+                     self.get_definitely_initialized_after_statement(location));
+
         write_graph!(self, "</tr>");
         Ok(())
     }
@@ -638,7 +657,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     write_edge!(self, bb, imaginary target);
                 }
             }
-            _ => {}
         };
         Ok(())
     }
@@ -657,6 +675,21 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     fn show_restricts(&self) -> bool {
         get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
+    }
+}
+
+/// Definitely initialized analysis.
+impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
+
+    fn get_definitely_initialized_before_block(&self, bb: mir::BasicBlock) -> String {
+        let place_set = self.initialization.get_before_block(bb);
+        to_sorted_string!(place_set)
+    }
+
+
+    fn get_definitely_initialized_after_statement(&self, location: mir::Location) -> String {
+        let place_set = self.initialization.get_after_statement(location);
+        to_sorted_string!(place_set)
     }
 }
 
