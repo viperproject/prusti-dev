@@ -38,4 +38,19 @@ fn _test3(mut x: T3, y: T1) {
     x.f = y;
 }
 
+struct S1 {
+    f: T1,
+}
+
+struct S2 {
+    f: S1,
+}
+
+fn _test4(b: bool, mut x: S2, y: T1) {
+    if b {
+        let z = x.f.f;
+    }
+    x.f.f = y;
+}
+
 fn main() {}
