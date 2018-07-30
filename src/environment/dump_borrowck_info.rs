@@ -642,8 +642,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     write_edge!(self, bb, unwind target);
                 }
             }
-            TerminatorKind::Assert { target, .. } => {
+            TerminatorKind::Assert { target, cleanup, .. } => {
                 write_edge!(self, bb, target);
+                if let Some(target) = cleanup {
+                    write_edge!(self, bb, unwind target);
+                }
             }
             TerminatorKind::Yield { .. } => { unimplemented!() }
             TerminatorKind::GeneratorDrop => { unimplemented!() }
