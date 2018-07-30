@@ -40,6 +40,26 @@ impl<'tcx> PlaceSet<'tcx> {
             places: HashSet::new(),
         }
     }
+    pub fn check_invariant(&self) {
+        for place1 in self.places.iter() {
+            for place2 in self.places.iter() {
+                if place1 != place2 {
+                    assert!(
+                        !is_prefix(place1, place2),
+                        "The place {:?} is a prefix of the place {:?}",
+                        place2,
+                        place1
+                    );
+                    assert!(
+                        !is_prefix(place2, place1),
+                        "The place {:?} is a prefix of the place {:?}",
+                        place1,
+                        place2
+                    );
+                }
+            }
+        }
+    }
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a mir::Place<'tcx>> {
         self.places.iter()
     }
@@ -50,6 +70,7 @@ impl<'tcx> PlaceSet<'tcx> {
         mir: &mir::Mir<'tcx>,
         tcx: TyCtxt<'a, 'tcx, 'tcx>,
     ) {
+        self.check_invariant();
         // First, check that the place is not already marked as
         // definitely initialized.
         if !self.places.iter().any(|other| is_prefix(place, other)) {
@@ -62,6 +83,7 @@ impl<'tcx> PlaceSet<'tcx> {
             // just keep info that the struct is definitely initialized.
             utils::collapse(mir, tcx, &mut self.places, place);
         }
+        self.check_invariant();
     }
     /// Mark `place` as definitely uninitialized.
     pub fn set_uninitialized<'a>(
@@ -70,37 +92,58 @@ impl<'tcx> PlaceSet<'tcx> {
         mir: &mir::Mir<'tcx>,
         tcx: TyCtxt<'a, 'tcx, 'tcx>,
     ) {
+        self.check_invariant();
         let mut places = Vec::new();
         let old_places = mem::replace(&mut self.places, HashSet::new());
         // If needed, split the place whose part got uninitialized into
         // multiple places.
         for other in old_places.into_iter() {
             if is_prefix(place, &other) {
+                // We are uninitializing a field of the place `other`.
                 places.extend(utils::expand(mir, tcx, &other, place));
+            } else if is_prefix(&other, place) {
+                // We are uninitializing a place of which only some
+                // fields are initialized. Just remove all initialized
+                // fields.
+                // This happens when the target place is already
+                // initialized.
             } else {
                 places.push(other);
             }
         }
+        // Check the invariant.
+        for place1 in places.iter() {
+            assert!(
+                !is_prefix(place1, place) && !is_prefix(place, place1),
+                "Bug: failed to ensure that there are no prefixes: place={:?} place1={:?}",
+                place,
+                place1
+            );
+            for place2 in places.iter() {
+                if place1 != place2 {
+                    assert!(
+                        !is_prefix(place1, place2),
+                        "The place {:?} is a prefix of the place {:?}",
+                        place2,
+                        place1
+                    );
+                    assert!(
+                        !is_prefix(place2, place1),
+                        "The place {:?} is a prefix of the place {:?}",
+                        place1,
+                        place2
+                    );
+                }
+            }
+        }
 
-        // A place that is equivalent to the given place, are now
-        // definitely uninitalized (there should be exactly one).
-        // However, since it could be split into multiple paths, we are
-        // using `is_prefix` here.
-        self.places = places
-            .into_iter()
-            .filter(|other| {
-                assert!(
-                    other == place || (!is_prefix(other, place) && !is_prefix(place, other)),
-                    "No prefixes: place={:?} other={:?}",
-                    place,
-                    other
-                );
-                other != place
-            })
-            .collect();
+        self.places = places.into_iter().collect();
+        self.check_invariant();
     }
     /// Compute the intersection of the two place sets.
     pub fn merge(place_set1: &PlaceSet<'tcx>, place_set2: &PlaceSet<'tcx>) -> PlaceSet<'tcx> {
+        place_set1.check_invariant();
+        place_set2.check_invariant();
         let mut places = HashSet::new();
         let mut propage_places = |place_set1: &PlaceSet<'tcx>, place_set2: &PlaceSet<'tcx>| {
             for place in place_set1.iter() {
@@ -114,7 +157,9 @@ impl<'tcx> PlaceSet<'tcx> {
         };
         propage_places(place_set1, place_set2);
         propage_places(place_set2, place_set1);
-        Self { places: places }
+        let result = Self { places: places };
+        result.check_invariant();
+        result
     }
     /// This function fixes the invariant.
     pub fn deduplicate(&mut self) {
@@ -140,6 +185,7 @@ impl<'tcx> PlaceSet<'tcx> {
                 self.places.insert(place);
             }
         }
+        self.check_invariant();
     }
     /// Compute the union of the two place sets.
     ///
@@ -343,8 +389,14 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
                 mir::TerminatorKind::Drop { ref location, .. } => {
                     self.set_place_uninitialized(&mut place_set, location);
                 }
-                mir::TerminatorKind::DropAndReplace { ref value, .. } => {
+                mir::TerminatorKind::DropAndReplace {
+                    ref location,
+                    ref value,
+                    ..
+                } => {
+                    self.set_place_uninitialized(&mut place_set, location);
                     self.apply_operand_effect(&mut place_set, value);
+                    self.set_place_initialized(&mut place_set, location);
                 }
                 mir::TerminatorKind::Call {
                     ref func,

@@ -36,7 +36,7 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
     place: &mir::Place<'tcx>,
     mir: &mir::Mir<'tcx>,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
-    without_field: Option<mir::Field>,
+    without_element: Option<usize>,
 ) -> Vec<mir::Place<'tcx>> {
     let mut places = Vec::new();
     match place.ty(mir, tcx) {
@@ -48,12 +48,18 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
                     def
                 );
                 for (index, field_def) in def.variants[0].fields.iter().enumerate() {
-                    let field = mir::Field::new(index);
-                    if Some(field) != without_field {
+                    if Some(index) != without_element {
+                        let field = mir::Field::new(index);
                         places.push(place.clone().field(field, field_def.ty(tcx, substs)));
                     }
                 }
             }
+            ty::TyTuple(slice) => for (index, ty) in slice.iter().enumerate() {
+                if Some(index) != without_element {
+                    let field = mir::Field::new(index);
+                    places.push(place.clone().field(field, ty));
+                }
+            },
             ref ty => {
                 unimplemented!("ty={:?}", ty);
             }
@@ -84,6 +90,11 @@ pub fn expand<'a, 'tcx: 'a>(
         is_prefix(subtrahend, minuend),
         "The minuend must be the prefix of the subtrahend."
     );
+    trace!(
+        "[enter] expand minuend={:?} subtrahend={:?}",
+        minuend,
+        subtrahend
+    );
     let mut place_set = Vec::new();
     fn expand_recursively<'a, 'tcx: 'a>(
         place_set: &mut Vec<mir::Place<'tcx>>,
@@ -92,6 +103,11 @@ pub fn expand<'a, 'tcx: 'a>(
         minuend: &mir::Place<'tcx>,
         subtrahend: &mir::Place<'tcx>,
     ) {
+        trace!(
+            "[enter] expand_recursively minuend={:?} subtrahend={:?}",
+            minuend,
+            subtrahend
+        );
         if minuend != subtrahend {
             match subtrahend {
                 mir::Place::Projection(box mir::Projection { base, elem }) => {
@@ -100,10 +116,11 @@ pub fn expand<'a, 'tcx: 'a>(
                     match elem {
                         mir::ProjectionElem::Field(projected_field, _field_ty) => {
                             let places =
-                                expand_struct_place(base, mir, tcx, Some(*projected_field));
+                                expand_struct_place(base, mir, tcx, Some(projected_field.index()));
                             place_set.extend(places);
                         }
-                        mir::ProjectionElem::Downcast(def, variant) => {}
+                        mir::ProjectionElem::Downcast(_def, _variant) => {}
+                        mir::ProjectionElem::Deref => {}
                         elem => {
                             unimplemented!("elem = {:?}", elem);
                         }
@@ -115,7 +132,7 @@ pub fn expand<'a, 'tcx: 'a>(
     };
     expand_recursively(&mut place_set, mir, tcx, minuend, subtrahend);
     trace!(
-        "expand minuend={:?} subtrahend={:?} place_set={:?}",
+        "[exit] expand minuend={:?} subtrahend={:?} place_set={:?}",
         minuend,
         subtrahend,
         place_set
