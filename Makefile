@@ -4,7 +4,7 @@ RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
 RUST_VERSION=nightly-2018-06-27-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}/
-LD_LIBRARY_PATH = ${COMPILER_PATH}/lib/:${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/:./target/debug/:${JAVA_HOME}/jre/lib/amd64/server/
+LD_LIBRARY_PATH = ${COMPILER_PATH}/lib/:${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/:./target/debug/:${JAVA_HOME}/jre/lib/amd64/server/:${JAVA_HOME}/lib/server
 
 SET_ENV_VARS = RUST_LOG=$(RUST_LOG) RUST_BACKTRACE=$(RUST_BACKTRACE) LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
 
