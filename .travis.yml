@@ -4,6 +4,7 @@ sudo: false
 
 rust:
   - nightly
+  - nightly-2018-06-27
 
 jdk:
   - oraclejdk8
@@ -35,15 +36,11 @@ env:
     # Debug settings
     - RUST_BACKTRACE=1
     - RUST_LOG=prusti-viper=debug,viper=debug,viper-sys=debug,jni-gen=debug
-  matrix:
-    # Use a specific Rust version
-    - RUST_VERSION=nightly-2018-06-27-x86_64-unknown-linux-gnu
-    - RUST_VERSION=nightly
 
 matrix:
   fast_finish: true
   allow_failures:
-  - env: RUST_VERSION=nightly
+  - rust: nightly
 
 before_install:
   # Make sure stdout is in blocking mode. Otherwise builds will fail due to large writes to stdout
@@ -68,22 +65,17 @@ before_install:
       echo "Using cached Z3";
       ls .cache/z3;
     fi
-  # Use a specific Rust version
-  - if [ "$RUST_VERSION" != "$TRAVIS_RUST_VERSION" ]; then
-      rustup install "$RUST_VERSION";
-      rustup default "$RUST_VERSION";
-    fi
 
 install:
   - ( cd .cache/z3/build; sudo make install )
-  - if [ "$RUST_VERSION" == "nightly" ]; then
+  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
       cargo install --force clippy rustfmt-nightly;
     fi
 
 script:
   - cargo build
   - cargo test --verbose -- --nocapture
-  - if [ "$RUST_VERSION" == "nightly" ]; then
+  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
       cargo clean;
       cargo fmt -- --write-mode=diff || true;
       cargo clippy || true;
