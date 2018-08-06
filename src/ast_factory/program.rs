@@ -125,8 +125,7 @@ impl<'a> AstFactory<'a> {
             },
             self.no_position().to_jobject(),
             self.no_info(),
-            self.no_trafos(),
-            false
+            self.no_trafos()
         ));
         Method::new(obj)
     }
