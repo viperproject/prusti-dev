@@ -43,14 +43,17 @@ fn main() {
         }
     };
 
-    let viper_home = "/usr/lib/viper/";
+    let viper_home = "/usr/lib/viper";
     let mut viper_jars: Vec<String> = fs::read_dir(viper_home)
         .unwrap()
         .map(|x| x.unwrap().path().to_str().unwrap().to_string())
         .collect();
 
-    // Rebuild whenever the timestamp of this folder changes
+    // Rebuild whenever a Viper jar changes
     println!("cargo:rerun-if-changed={}", viper_home);
+    for viper_jar in &viper_jars {
+        println!("cargo:rerun-if-changed={}", viper_jar);
+    }
 
     WrapperGenerator::new()
         .use_jar(&asm_jar)
