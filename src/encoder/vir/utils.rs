@@ -8,37 +8,6 @@ use encoder::vir;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprWalker;
 
-pub trait ExprIterator {
-    /// Conjoin a sequence of expressions into a single expression.
-    /// Returns true if the sequence has no elements.
-    fn conjoin(&mut self) -> vir::Expr;
-
-    /// Disjoin a sequence of expressions into a single expression.
-    /// Returns true if the sequence has no elements.
-    fn disjoin(&mut self) -> vir::Expr;
-}
-
-impl<T> ExprIterator for T
-    where
-        T: Iterator<Item = vir::Expr>
-{
-    fn conjoin(&mut self) -> vir::Expr {
-        if let Some(init) = self.next() {
-            self.fold(init, |acc, conjunct| vir::Expr::and(acc, conjunct))
-        } else {
-            true.into()
-        }
-    }
-
-    fn disjoin(&mut self) -> vir::Expr {
-        if let Some(init) = self.next() {
-            self.fold(init, |acc, conjunct| vir::Expr::or(acc, conjunct))
-        } else {
-            true.into()
-        }
-    }
-}
-
 /// In an expression, substitute an exact match of a place with an expression
 pub struct ExprExactPlaceSubstitutor<'a> {
     exact_target: &'a vir::Place,

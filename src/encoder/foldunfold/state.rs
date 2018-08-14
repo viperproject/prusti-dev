@@ -4,7 +4,7 @@
 
 use encoder::foldunfold::perm::*;
 use encoder::vir;
-use encoder::vir::utils::ExprIterator;
+use encoder::vir::ExprIterator;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 

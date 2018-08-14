@@ -4,13 +4,14 @@
 
 use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinMethodKind;
+use encoder::procedure_encoder::PRECONDITION_LABEL;
 use encoder::Encoder;
 use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;
 use encoder::foldunfold;
 use encoder::loop_encoder::LoopEncoder;
 use encoder::vir::{self, CfgBlockIndex, Successor};
-use encoder::vir::utils::ExprIterator;
+use encoder::vir::ExprIterator;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
@@ -339,8 +340,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let fn_name = self.path_to_string(fn_path);
                         if fn_name == "old" {
                             assert!(arguments.len() == 1);
-                            vir::Expr::old(
-                                self.encode_hir_expr(&arguments[0])
+                            vir::Expr::labelled_old(
+                                PRECONDITION_LABEL,
+                                self.encode_hir_expr(&arguments[0]),
                             )
                         } else {
                             unimplemented!("TODO: call function {:?} from specification", fn_name)

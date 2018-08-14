@@ -115,10 +115,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
         match self {
             &Expr::Const(ref val) => val.to_viper(ast),
             &Expr::Place(ref place) => place.to_viper(ast),
-            &Expr::Old(ref expr) => ast.old(expr.to_viper(ast)),
-            &Expr::LabelledOld(ref expr, ref old_label) => ast.labelled_old(
+            &Expr::LabelledOld(ref old_label, ref expr) => ast.labelled_old(
                 expr.to_viper(ast),
-                old_label
+                old_label,
             ),
             &Expr::MagicWand(ref lhs, ref rhs) => ast.magic_wand(
                 lhs.to_viper(ast),

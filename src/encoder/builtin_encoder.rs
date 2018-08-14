@@ -4,7 +4,7 @@
 
 use encoder::Encoder;
 use encoder::vir;
-use encoder::vir::utils::ExprIterator;
+use encoder::vir::ExprIterator;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
 

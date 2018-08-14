@@ -11,7 +11,7 @@ use encoder::foldunfold;
 use encoder::loop_encoder::LoopEncoder;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::vir::{self, CfgBlockIndex, Successor};
-use encoder::vir::utils::ExprIterator;
+use encoder::vir::ExprIterator;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
@@ -30,7 +30,7 @@ use prusti_interface::specifications::*;
 use syntax::ast;
 
 
-static PRECONDITION_LABEL: &'static str = "pre";
+pub static PRECONDITION_LABEL: &'static str = "pre";
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -774,7 +774,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 predicate_name,
                 vec![
                     if let Some(label) = state_label {
-                        vir::Expr::LabelledOld(box encoded_place.into(), label.to_string())
+                        vir::Expr::labelled_old(label, encoded_place.into())
                     } else {
                         encoded_place.into()
                     }

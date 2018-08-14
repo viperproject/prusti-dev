@@ -20,11 +20,11 @@ impl vir::Stmt {
             &vir::Stmt::Obtain(_) => {},
 
             &vir::Stmt::Inhale(ref expr) => {
-                state.insert_all_perms(expr.get_access_places(predicates).into_iter());
+                state.insert_all_perms(expr.get_permissions(predicates).into_iter());
             },
 
             &vir::Stmt::Exhale(ref expr, _) => {
-                state.remove_all_perms(expr.get_access_places(predicates).iter());
+                state.remove_all_perms(expr.get_permissions(predicates).iter());
             },
 
             &vir::Stmt::MethodCall(_, _, ref targets) => {
@@ -119,7 +119,7 @@ impl vir::Stmt {
                 let predicate = predicates.get(&predicate_name).unwrap();
 
                 let pred_self_place: vir::Place = predicate.args[0].clone().into();
-                let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
+                let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                     .map( |aop| aop.map( |p|
                         p.replace_prefix(&pred_self_place, place.clone())
                     )).collect();
@@ -145,7 +145,7 @@ impl vir::Stmt {
                 let predicate = predicates.get(&predicate_name).unwrap();
 
                 let pred_self_place: vir::Place = predicate.args[0].clone().into();
-                let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
+                let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                     .map( |aop| aop.map( |p|
                         p.replace_prefix(&pred_self_place, place.clone())
                     )).collect();

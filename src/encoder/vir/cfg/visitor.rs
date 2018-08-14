@@ -9,22 +9,22 @@ use std::fmt::Debug;
 /// Visit the reachable blocks of a CFG with a forward pass.
 /// During the visit, statements can be modified and injected.
 /// However, the structure of the CFG can not change.
-/// For each branch a context is updated, duplicated at forks, merged with other contexts at joins.
+/// For each branch a context is updated, duplicated at forks, and merged with other contexts at joins.
 pub trait CfgReplacer<BranchCtxt: Debug + Clone + PartialEq + Eq> {
     /// Give the initial branch context
-    fn initial_context(&self) -> BranchCtxt;
+    fn initial_context(&mut self) -> BranchCtxt;
 
     /// Replace some statements, mutating the branch context
-    fn replace_stmt(&self, stmt: &Stmt, bctxt: &mut BranchCtxt) -> Vec<Stmt>;
+    fn replace_stmt(&mut self, stmt: &Stmt, bctxt: &mut BranchCtxt) -> Vec<Stmt>;
 
     /// Inject some statements and replace a successor, mutating the branch context
-    fn replace_successor(&self, succ: &Successor, bctxt: &mut BranchCtxt) -> (Vec<Stmt>, Successor);
+    fn replace_successor(&mut self, succ: &Successor, bctxt: &mut BranchCtxt) -> (Vec<Stmt>, Successor);
 
     /// Prepend some statements to an existing join point, returning the merged branch context.
-    fn prepend_join(&self, bctxts: Vec<&BranchCtxt>) -> (Vec<Vec<Stmt>>, BranchCtxt);
+    fn prepend_join(&mut self, bctxts: Vec<&BranchCtxt>) -> (Vec<Vec<Stmt>>, BranchCtxt);
 
     /// The main method: visit and replace the reachable blocks of a CFG.
-    fn replace_cfg(&self, cfg: &CfgMethod) -> CfgMethod {
+    fn replace_cfg(&mut self, cfg: &CfgMethod) -> CfgMethod {
         // Initialize the variables of the new cfg
         let mut new_cfg = CfgMethod::new(
             cfg.method_name.clone(),
@@ -167,5 +167,49 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone + PartialEq + Eq> {
         }
 
         new_cfg
+    }
+}
+
+
+pub trait SuccessorFolder {
+    fn fold(&mut self, s: Successor) -> Successor {
+        match s {
+            Successor::Undefined => self.fold_undefined(),
+            Successor::Return => self.fold_return(),
+            Successor::Goto(target) => self.fold_goto(target),
+            Successor::GotoSwitch(guarded_targets, default_target) => self.fold_goto_switch(guarded_targets, default_target),
+            Successor::GotoIf(condition, then_target, else_target) => self.fold_goto_if(condition, then_target, else_target),
+        }
+    }
+
+    fn fold_expr(&mut self, expr: Expr) -> Expr {
+        expr
+    }
+
+    fn fold_target(&mut self, target: CfgBlockIndex) -> CfgBlockIndex {
+        target
+    }
+
+    fn fold_undefined(&mut self) -> Successor {
+        Successor::Undefined
+    }
+
+    fn fold_return(&mut self) -> Successor {
+        Successor::Undefined
+    }
+
+    fn fold_goto(&mut self, target: CfgBlockIndex) -> Successor {
+        Successor::Goto(self.fold_target(target))
+    }
+
+    fn fold_goto_switch(&mut self, guarded_targets: Vec<(Expr, CfgBlockIndex)>, default_target: CfgBlockIndex) -> Successor {
+        Successor::GotoSwitch(
+            guarded_targets.into_iter().map(|(cond, targ)| (self.fold_expr(cond), targ)).collect(),
+            self.fold_target(default_target)
+        )
+    }
+
+    fn fold_goto_if(&mut self, condition: Expr, then_target: CfgBlockIndex, else_target: CfgBlockIndex) -> Successor {
+        Successor::GotoIf(self.fold_expr(condition), self.fold_target(then_target), self.fold_target(else_target))
     }
 }

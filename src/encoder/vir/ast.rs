@@ -417,12 +417,74 @@ impl fmt::Display for Stmt {
     }
 }
 
+
+pub trait StmtFolder {
+    fn fold(&mut self, e: Stmt) -> Stmt {
+        match e {
+            Stmt::Comment(s) => self.fold_comment(s),
+            Stmt::Label(s) => self.fold_label(s),
+            Stmt::Inhale(e) => self.fold_inhale(e),
+            Stmt::Exhale(e, p) => self.fold_exhale(e, p),
+            Stmt::Assert(e, p) => self.fold_assert(e, p),
+            Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
+            Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
+            Stmt::Fold(s, ve) => self.fold_fold(s, ve),
+            Stmt::Unfold(s, ve) => self.fold_unfold(s, ve),
+            Stmt::Obtain(e) => self.fold_obtain(e),
+        }
+    }
+
+    fn fold_expr(&mut self, e: Expr) -> Expr {
+        e
+    }
+
+    fn fold_comment(&mut self, s: String) -> Stmt {
+        Stmt::Comment(s)
+    }
+
+    fn fold_label(&mut self, s: String) -> Stmt {
+        Stmt::Label(s)
+    }
+
+    fn fold_inhale(&mut self, e: Expr) -> Stmt {
+        Stmt::Inhale(self.fold_expr(e))
+    }
+
+    fn fold_exhale(&mut self, e: Expr, p: Position) -> Stmt {
+        Stmt::Exhale(self.fold_expr(e), p)
+    }
+
+    fn fold_assert(&mut self, e: Expr, p: Position) -> Stmt {
+        Stmt::Assert(self.fold_expr(e), p)
+    }
+
+    fn fold_method_call(&mut self, s: String, ve: Vec<Expr>, vv: Vec<LocalVar>) -> Stmt {
+        Stmt::MethodCall(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), vv)
+    }
+
+    fn fold_assign(&mut self, p: Place, e: Expr, k: AssignKind) -> Stmt {
+        Stmt::Assign(p, self.fold_expr(e), k)
+    }
+
+    fn fold_fold(&mut self, s: String, ve: Vec<Expr>) -> Stmt {
+        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect())
+    }
+
+    fn fold_unfold(&mut self, s: String, ve: Vec<Expr>) -> Stmt {
+        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect())
+    }
+
+    fn fold_obtain(&mut self, e: Expr) -> Stmt {
+        Stmt::Obtain(self.fold_expr(e))
+    }
+}
+
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expr {
     Const(Const),
     Place(Place),
-    Old(Box<Expr>),
-    LabelledOld(Box<Expr>, String),
+    LabelledOld(String, Box<Expr>),
     MagicWand(Box<Expr>, Box<Expr>),
     /// PredicateAccess: predicate_name, args
     PredicateAccess(String, Vec<Expr>),
@@ -445,7 +507,6 @@ pub trait ExprFolder {
         match e {
             Expr::Const(x) => self.fold_const(x),
             Expr::Place(x) => self.fold_place(x),
-            Expr::Old(x) => self.fold_old(x),
             Expr::LabelledOld(x, y) => self.fold_labelled_old(x, y),
             Expr::MagicWand(x, y) => self.fold_magic_wand(x, y),
             Expr::PredicateAccess(x, y) => self.fold_predicate_access(x, y),
@@ -470,11 +531,8 @@ pub trait ExprFolder {
     fn fold_place(&mut self, x: Place) -> Expr {
         Expr::Place(x)
     }
-    fn fold_old(&mut self, x: Box<Expr>) -> Expr {
-        Expr::Old(self.fold_boxed(x))
-    }
-    fn fold_labelled_old(&mut self, x: Box<Expr>, y: String) -> Expr {
-        Expr::LabelledOld(self.fold_boxed(x), y)
+    fn fold_labelled_old(&mut self, x: String, y: Box<Expr>) -> Expr {
+        Expr::LabelledOld(x, self.fold_boxed(y))
     }
     fn fold_magic_wand(&mut self, x: Box<Expr>, y: Box<Expr>) -> Expr {
         Expr::MagicWand(self.fold_boxed(x), self.fold_boxed(y))
@@ -513,7 +571,6 @@ pub trait ExprWalker {
         match *e {
             Expr::Const(ref x) => self.walk_const(x),
             Expr::Place(ref x) => self.walk_place(x),
-            Expr::Old(ref x) => self.walk_old(x),
             Expr::LabelledOld(ref x, ref y) => self.walk_labelled_old(x, y),
             Expr::MagicWand(ref x, ref y) => self.walk_magic_wand(x, y),
             Expr::PredicateAccess(ref x, ref y) => self.walk_predicate_access(x, y),
@@ -533,8 +590,8 @@ pub trait ExprWalker {
     fn walk_old(&mut self, x: &Expr) {
         self.walk(x);
     }
-    fn walk_labelled_old(&mut self, x: &Expr, y: &str) {
-        self.walk(x);
+    fn walk_labelled_old(&mut self, x: &str, y: &Expr) {
+        self.walk(y);
     }
     fn walk_magic_wand(&mut self, x: &Expr, y: &Expr) {
         self.walk(x);
@@ -595,8 +652,7 @@ impl fmt::Display for Expr {
                 f, "{}({})", pred_name,
                 args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
             ),
-            Expr::Old(ref expr) => write!(f, "old({})", expr),
-            Expr::LabelledOld(ref expr, ref label) => write!(f, "old[{}]({})", label, expr),
+            Expr::LabelledOld(ref label, ref expr) => write!(f, "old[{}]({})", label, expr),
             Expr::MagicWand(ref left, ref right) => write!(f, "({}) --* ({})", left, right),
             Expr::Unfolding(ref pred_name, ref args, ref expr) => write!(
                 f, "unfolding {}({}) in ({})",
@@ -628,6 +684,39 @@ impl fmt::Display for Trigger {
         )
     }
 }
+
+
+pub trait ExprIterator {
+    /// Conjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn conjoin(&mut self) -> Expr;
+
+    /// Disjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn disjoin(&mut self) -> Expr;
+}
+
+impl<T> ExprIterator for T
+    where
+        T: Iterator<Item = Expr>
+{
+    fn conjoin(&mut self) -> Expr {
+        if let Some(init) = self.next() {
+            self.fold(init, |acc, conjunct| Expr::and(acc, conjunct))
+        } else {
+            true.into()
+        }
+    }
+
+    fn disjoin(&mut self) -> Expr {
+        if let Some(init) = self.next() {
+            self.fold(init, |acc, conjunct| Expr::or(acc, conjunct))
+        } else {
+            true.into()
+        }
+    }
+}
+
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinOpKind {
@@ -669,12 +758,8 @@ impl fmt::Display for UnaryOpKind {
 }
 
 impl Expr {
-    pub fn old(expr: Expr) -> Self {
-        Expr::Old(box expr)
-    }
-
-    pub fn labelled_old(expr: Expr, label: &str) -> Self {
-        Expr::LabelledOld(box expr, label.to_string())
+    pub fn labelled_old(label: &str, expr: Expr) -> Self {
+        Expr::LabelledOld(label.to_string(), box expr)
     }
 
     pub fn not(expr: Expr) -> Self {
@@ -797,8 +882,7 @@ impl Expr {
                 pred_name,
                 args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>()
             ),
-            Expr::Old(expr) => Expr::Old(replace(expr)),
-            Expr::LabelledOld(expr, label) => Expr::LabelledOld(replace(expr), label),
+            Expr::LabelledOld(label, expr) => Expr::LabelledOld(label, replace(expr)),
             Expr::MagicWand(left, right) => Expr::MagicWand(replace(left), replace(right)),
             Expr::Unfolding(pred_name, args, expr) => Expr::Unfolding(
                 pred_name,

@@ -3,25 +3,26 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::foldunfold::perm::*;
-use encoder::foldunfold::requirements::*;
+use encoder::foldunfold::permissions::*;
 use encoder::foldunfold::state::*;
+use encoder::foldunfold::action::*;
 use encoder::vir;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use encoder::foldunfold::places_utils::*;
-
-const DEBUG_FOLDUNFOLD: bool = false;
+use encoder::foldunfold::perm::LabelledPermIterator;
+use utils::to_string::ToString;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BranchCtxt {
+pub struct BranchCtxt<'a> {
     state: State,
     /// The definition of the predicates
-    predicates: HashMap<String, vir::Predicate>
+    predicates: &'a HashMap<String, vir::Predicate>
 }
 
-impl BranchCtxt {
-    pub fn new(local_vars: Vec<vir::LocalVar>, predicates: HashMap<String, vir::Predicate>) -> Self {
+impl<'a> BranchCtxt<'a> {
+    pub fn new(local_vars: Vec<vir::LocalVar>, predicates: &'a HashMap<String, vir::Predicate>) -> Self {
         BranchCtxt {
             state: State::new(
                 HashSet::from_iter(local_vars.into_iter().map(|v| vir::Place::Base(v))),
@@ -33,8 +34,16 @@ impl BranchCtxt {
         }
     }
 
+    pub fn state(&self) -> &State {
+        &self.state
+    }
+
+    pub fn predicates(&self) -> &HashMap<String, vir::Predicate> {
+        self.predicates
+    }
+
     /// Simulate an unfold
-    fn unfold(&mut self, pred_place: &vir::Place) -> vir::Stmt {
+    fn unfold(&mut self, pred_place: &vir::Place) -> Action {
         debug!("We want to unfold {:?}", pred_place);
         assert!(self.state.contains_acc(&pred_place));
         assert!(self.state.contains_pred(&pred_place));
@@ -43,7 +52,7 @@ impl BranchCtxt {
         let predicate = self.predicates.get(&predicate_name).unwrap();
 
         let pred_self_place: vir::Place = predicate.args[0].clone().into();
-        let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
+        let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
             .map( |aop| aop.map( |p|
                 p.replace_prefix(&pred_self_place, pred_place.clone())
             )).collect();
@@ -58,13 +67,13 @@ impl BranchCtxt {
 
         trace!("Pred state after unfold: {{{}}}", self.state.display_debug_pred());
 
-        vir::Stmt::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ])
+        Action::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ])
     }
 
     /// left is self, right is other
-    pub fn join(&mut self, mut other: BranchCtxt) -> (Vec<vir::Stmt>, Vec<vir::Stmt>) {
-        let mut left_stmts: Vec<vir::Stmt> = vec![];
-        let mut right_stmts: Vec<vir::Stmt> = vec![];
+    pub fn join(&mut self, mut other: BranchCtxt) -> (Vec<Action>, Vec<Action>) {
+        let mut left_actions: Vec<Action> = vec![];
+        let mut right_actions: Vec<Action> = vec![];
 
         debug!("Join branches");
         trace!("Left branch: {:?}", self.state);
@@ -100,14 +109,14 @@ impl BranchCtxt {
                 if !self.state.acc().contains(acc_place) {
                     debug!("The left branch needs to obtain an access permission: {}", acc_place);
                     // Unfold something and get `acc_place`
-                    left_stmts.extend(
+                    left_actions.extend(
                         self.obtain(&Perm::Acc(acc_place.clone()))
                     );
                 }
                 if !other.state.acc().contains(acc_place) {
                     debug!("The right branch needs to obtain an access permission: {}", acc_place);
                     // Unfold something and get `acc_place`
-                    right_stmts.extend(
+                    right_actions.extend(
                         other.obtain(&Perm::Acc(acc_place.clone()))
                     );
                 }
@@ -147,36 +156,30 @@ impl BranchCtxt {
                 other.state.remove_acc(&acc_place);
             }
 
-            trace!("Statements in left branch: {:?}", &left_stmts);
-            trace!("Statements in left branch: {:?}", &right_stmts);
+            trace!("Actions in left branch: {:?}", &left_actions);
+            trace!("Actions in left branch: {:?}", &right_actions);
 
             assert_eq!(self.state.acc(), other.state.acc());
             assert_eq!(self.state.pred(), other.state.pred());
             self.state.check_consistency();
         }
 
-        return (left_stmts, right_stmts);
+        return (left_actions, right_actions);
     }
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
-    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Vec<vir::Stmt> {
-        debug!("Obtain all: {{{}}}", display(&reqs));
-        let mut stmts: Vec<vir::Stmt> = vec![];
-
-        for req in &reqs {
-            stmts.extend(
-                self.obtain(req)
-            );
-        }
-
-        stmts
+    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Vec<Action> {
+        debug!("Obtain all: {{{}}}", reqs.iter().to_string());
+        reqs.iter()
+            .flat_map(|perm| self.obtain(perm))
+            .collect()
     }
 
     /// Obtain the required permission, changing the state inplace and returning the statements.
-    fn obtain(&mut self, req: &Perm) -> Vec<vir::Stmt> {
+    fn obtain(&mut self, req: &Perm) -> Vec<Action> {
         debug!("Obtain: {}", req);
 
-        let mut stmts: Vec<vir::Stmt> = vec![];
+        let mut actions: Vec<Action> = vec![];
 
         trace!("Acc state: {{{}}}", self.state.display_debug_acc());
         trace!("Pred state: {{{}}}", self.state.display_debug_pred());
@@ -187,7 +190,7 @@ impl BranchCtxt {
         if self.state.contains_perm(req) {
             // `req` is satisfied, so we can remove it from `reqs`
             debug!("Requirement {} is satisfied", req);
-            return stmts;
+            return actions;
         }
 
         debug!("Try to satisfy requirement {:?}", req);
@@ -198,13 +201,13 @@ impl BranchCtxt {
             .cloned();
         if let Some(existing_borrowed_to_restore) = existing_prefix_borrowed_opt {
             debug!("We want to restore {:?}", existing_borrowed_to_restore);
-            let stmt = unimplemented!();
-            stmts.push(stmt);
+            let action = unimplemented!();
+            actions.push(action);
             debug!("We restored {:?}", existing_borrowed_to_restore);
 
             // Check if we are done
-            stmts.extend(self.obtain(req));
-            return stmts;
+            actions.extend(self.obtain(req));
+            return actions;
         }
 
         // 3. Obtain with an unfold
@@ -214,13 +217,13 @@ impl BranchCtxt {
             .cloned();
         if let Some(existing_pred_to_unfold) = existing_prefix_pred_opt {
             debug!("We want to unfold {:?}", existing_pred_to_unfold);
-            let stmt = self.unfold(&existing_pred_to_unfold);
-            stmts.push(stmt);
+            let action = self.unfold(&existing_pred_to_unfold);
+            actions.push(action);
             debug!("We unfolded {:?}", existing_pred_to_unfold);
 
             // Check if we are done
-            stmts.extend(self.obtain(req));
-            return stmts;
+            actions.extend(self.obtain(req));
+            return actions;
         }
 
         // 4. Obtain with a fold
@@ -231,7 +234,7 @@ impl BranchCtxt {
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
             let pred_self_place: vir::Place = predicate.args[0].clone().into();
-            let places_in_pred: Vec<Perm> = predicate.get_contained_places().into_iter()
+            let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                 .map( |aop| aop.map( |p|
                     p.replace_prefix(&pred_self_place, req_place.clone())
                 )).collect();
@@ -251,11 +254,11 @@ impl BranchCtxt {
 
             if can_fold {
                 for fold_req_place in &places_in_pred {
-                    stmts.extend(self.obtain(fold_req_place));
+                    actions.extend(self.obtain(fold_req_place));
                 }
 
-                stmts.push(
-                    vir::Stmt::Fold(predicate_name.clone(), vec![ req_place.clone().into() ])
+                actions.push(
+                    Action::Fold(predicate_name.clone(), vec![ req_place.clone().into() ])
                 );
 
                 // Simulate folding of `req_place`
@@ -267,7 +270,7 @@ impl BranchCtxt {
 
                 // Done. Continue checking the remaining requirements
                 debug!("We folded {:?}", req_place);
-                return stmts;
+                return actions;
             }
         } else {
             // We have no predicate to obtain the access permission `req`
@@ -285,81 +288,37 @@ impl BranchCtxt {
         );
     }
 
-    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> Vec<vir::Stmt> {
-        debug!("");
-        debug!("Apply on stmt: {}", stmt);
-        let required_places: Vec<Perm> = stmt.get_required_places(&self.predicates).into_iter().collect();
-
-        let mut stmts: Vec<vir::Stmt> = vec![];
+    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) {
+        debug!("apply_stmt: {}", stmt);
 
         trace!("Acc state before: {{{}}}", self.state.display_acc());
         trace!("Pred state before: {{{}}}", self.state.display_pred());
-        trace!("required_places: {{{}}}", display(&required_places));
 
         self.state.check_consistency();
 
-        if !required_places.is_empty() {
-            if DEBUG_FOLDUNFOLD {
-                stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
-                stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
-            }
-
-            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Position()));
-
-            stmts.extend(
-                self.obtain_all(required_places)
-            );
-        }
-
-        stmt.apply_on_state(&mut self.state, &self.predicates);
+        stmt.apply_on_state(&mut self.state, self.predicates);
 
         trace!("Acc state after: {{{}}}", self.state.display_acc());
         trace!("Pred state after: {{{}}}", self.state.display_pred());
 
         self.state.check_consistency();
-
-        stmts
     }
 
-    pub fn apply_successor(&mut self, succ: &vir::Successor) -> Vec<vir::Stmt> {
-        debug!("Apply succ: {:?}", succ);
-        let exprs: Vec<&vir::Expr> = match succ {
-            &vir::Successor::GotoSwitch(ref guarded_targets, _) => {
-                guarded_targets.iter().map(|g| &g.0).collect()
-            },
-            &vir::Successor::GotoIf(ref expr, _, _) => vec![expr],
-            _ => vec![]
-        };
-
-        let required_places: Vec<Perm> = exprs.iter().flat_map(
-            |e| e.get_required_places(&self.predicates).into_iter().collect::<Vec<Perm>>()
-        ).collect();
-
-        let mut stmts: Vec<vir::Stmt> = vec![];
+    pub fn obtain_permissions(&mut self, permissions: Vec<Perm>) -> Vec<Action> {
+        debug!("obtain_permissions: {}", permissions.iter().to_string());
 
         trace!("Acc state before: {{{}}}", self.state.display_acc());
         trace!("Pred state before: {{{}}}", self.state.display_pred());
 
         self.state.check_consistency();
 
-        if !required_places.is_empty() {
-            if DEBUG_FOLDUNFOLD {
-                stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", self.state.display_acc())));
-                stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", self.state.display_pred())));
-            }
-
-            //stmts.push(vir::Stmt::Assert(self.state.as_vir_expr(), vir::Position()));
-
-            stmts.extend(
-                self.obtain_all(required_places)
-            );
-        }
+        let actions = self.obtain_all(permissions);
 
         trace!("Acc state after: {{{}}}", self.state.display_acc());
         trace!("Pred state after: {{{}}}", self.state.display_pred());
 
         self.state.check_consistency();
 
-        stmts
+        actions
     }
 }

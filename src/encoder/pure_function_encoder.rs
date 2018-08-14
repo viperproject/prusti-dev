@@ -6,6 +6,7 @@ use encoder::Encoder;
 use encoder::mir_interpreter::{BackwardMirInterpreter, run_backward_interpretation};
 use encoder::mir_encoder::MirEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
+use encoder::procedure_encoder::PRECONDITION_LABEL;
 use encoder::vir;
 use rustc::mir;
 use rustc::ty;
@@ -249,7 +250,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
                         let lhs_value = encoded_lhs.clone().access(self.encoder.encode_value_field(ty));
                         let arg_expr = self.mir_encoder.encode_operand_expr(&args[0]);
-                        let encoded_rhs = vir::Expr::labelled_old(arg_expr, "pre");
+                        let encoded_rhs = vir::Expr::labelled_old(PRECONDITION_LABEL, arg_expr);
 
                         let mut state = states[&target_block].clone();
                         state.substitute_value(&lhs_value, encoded_rhs);
