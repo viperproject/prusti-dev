@@ -292,6 +292,10 @@ impl CfgMethod {
             ).collect()
     }
 
+    pub fn get_initial_block(&self) -> CfgBlockIndex {
+        self.block_index(0)
+    }
+
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {
         let mut visited: Vec<bool> = vec![false; self.basic_blocks.len()];
         let mut topo_sorted: Vec<CfgBlockIndex> = vec![];

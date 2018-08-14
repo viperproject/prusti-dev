@@ -5,6 +5,7 @@
 use encoder::vir;
 use self::branch_ctxt::*;
 use std::collections::HashMap;
+use encoder::vir::CfgReplacer;
 
 mod perm;
 mod requirements;
@@ -16,7 +17,7 @@ mod places_utils;
 pub fn add_fold_unfold(cfg: vir::CfgMethod, predicates: HashMap<String, vir::Predicate>) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
     let initial_bctxt = BranchCtxt::new(cfg_vars, predicates);
-    cfg.augment(FoldUnfold::new(initial_bctxt))
+    FoldUnfold::new(initial_bctxt).replace_cfg(&cfg)
 }
 
 #[derive(Debug, Clone)]
@@ -32,20 +33,25 @@ impl FoldUnfold {
     }
 }
 
-impl vir::CfgAugmenter<BranchCtxt> for FoldUnfold {
-    /// Return the initial branch context
+impl vir::CfgReplacer<BranchCtxt> for FoldUnfold {
+    /// Give the initial branch context
     fn initial_context(&self) -> BranchCtxt {
         self.initial_bctxt.clone()
     }
 
-    /// Prepend some statements to an existing statement, mutating the branch context
-    fn prepend_stmt(&self, stmt: &vir::Stmt, bctxt: &mut BranchCtxt) -> Vec<vir::Stmt> {
-        bctxt.apply_stmt(stmt)
+    /// Replace some statements, mutating the branch context
+    fn replace_stmt(&self, stmt: &vir::Stmt, bctxt: &mut BranchCtxt) -> Vec<vir::Stmt> {
+        let mut stmts = bctxt.apply_stmt(stmt);
+        stmts.push(stmt.clone());
+        stmts
     }
 
-    /// Prepend some statements to an existing successor, mutating the branch context
-    fn prepend_successor(&self, succ: &vir::Successor, bctxt: &mut BranchCtxt) -> Vec<vir::Stmt> {
-        bctxt.apply_successor(succ)
+    /// Inject some statements and replace a successor, mutating the branch context
+    fn replace_successor(&self, succ: &vir::Successor, bctxt: &mut BranchCtxt) -> (Vec<vir::Stmt>, vir::Successor) {
+        (
+            bctxt.apply_successor(succ),
+            succ.clone()
+        )
     }
 
     /// Prepend some statements to an existing join point, returning the merged branch context.
@@ -83,11 +89,5 @@ impl vir::CfgAugmenter<BranchCtxt> for FoldUnfold {
             trace!("[exit] prepend_join(..{}): {:?}", &bcs.len(), &branch_stmts_vec);
             (branch_stmts_vec, merge_bc)
         }
-    }
-
-    /// Prepend some statements to a back jump
-    fn prepend_back_jump(&self, bc: &BranchCtxt, target_bc: &BranchCtxt) -> Vec<vir::Stmt> {
-        assert_eq!(bc, target_bc);
-        vec![]
     }
 }

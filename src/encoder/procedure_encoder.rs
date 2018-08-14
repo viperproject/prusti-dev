@@ -1088,7 +1088,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    /// *** Deprecated function! *** Use `encode_assign_operand` instead.
+    #[deprecated(note="please use `encode_assign_operand` instead")]
     fn encode_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Local,
                                                                    vir::LocalVar,
                                                                    Vec<vir::Stmt>,
