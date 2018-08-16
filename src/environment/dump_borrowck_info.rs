@@ -482,7 +482,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                         })
                         .cloned()
                         .collect();
-                    assert!(all_loans.is_empty() || !loans.is_empty());
+                    //assert!(all_loans.is_empty() || !loans.is_empty());
                     for loan in loans.iter() {
                         write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
                                      bb, region, bb, loan);
