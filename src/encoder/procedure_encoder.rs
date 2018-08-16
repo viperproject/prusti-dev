@@ -547,6 +547,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                             "panic!" if second_def_site_span.contains("<panic macros>") => PanicCause::Panic,
                                             "assert!" if second_def_site_span == "None" => PanicCause::Assert,
                                             "unreachable!" if second_def_site_span.contains("<unreachable macros>") => PanicCause::Unreachable,
+                                            "unimplemented!" if second_def_site_span.contains("<unimplemented macros>") => PanicCause::Unimplemented,
                                             _ => PanicCause::Panic
                                         }
                                     } else {

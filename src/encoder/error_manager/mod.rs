@@ -17,6 +17,8 @@ pub enum PanicCause {
     Assert,
     /// Caused by an unreachable!()
     Unreachable,
+    /// Caused by an unimplemented!()
+    Unimplemented,
 }
 
 /// In case of verification error, this enum will contain all the information (span, ...)
@@ -127,6 +129,12 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => CompilerError::new(
                 "P0005",
                 format!("assertion might fail with \"{}\"", message),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unimplemented)) => CompilerError::new(
+                "P0006",
+                "unimplemented!(..) statement might be reachable",
                 MultiSpan::from_span(*error_span)
             ),
 
