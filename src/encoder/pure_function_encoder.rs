@@ -299,7 +299,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
         match stmt.kind {
             mir::StatementKind::StorageLive(..) |
             mir::StatementKind::StorageDead(..) |
-            mir::StatementKind::ReadForMatch(..) => {
+            mir::StatementKind::ReadForMatch(..) |
+            mir::StatementKind::EndRegion(..) => {
                 // Nothing to do
             }
 

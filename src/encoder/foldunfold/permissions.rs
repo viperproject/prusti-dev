@@ -143,9 +143,11 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::PredicateAccess(_, args) => {
                 assert_eq!(args.len(), 1);
                 match args[0] {
-                    vir::Expr::Place(ref place) |
-                    vir::Expr::LabelledOld(_, box vir::Expr::Place(ref place)) =>
+                    vir::Expr::Place(ref place) =>
                         vec![LabelledPerm::curr(Pred(place.clone())), LabelledPerm::curr(Acc(place.clone()))].into_iter().collect(),
+
+                    vir::Expr::LabelledOld(ref label, box vir::Expr::Place(ref place)) =>
+                        vec![LabelledPerm::old(label, Pred(place.clone())), LabelledPerm::old(label, Acc(place.clone()))].into_iter().collect(),
 
                     _ => {
                         // Unreachable
@@ -168,7 +170,7 @@ impl vir::Expr {
     /// Returns the permissions that must be inhaled/exhaled in a `inhale/exhale expr` statement
     /// This must be a subset of `get_required_permissions`
     pub fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
-        trace!("get_permissions {:?}", self);
+        trace!("get_permissions {}", self);
         match self {
             vir::Expr::Const(_) |
             vir::Expr::Place(_) |

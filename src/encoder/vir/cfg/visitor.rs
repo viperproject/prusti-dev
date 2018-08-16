@@ -5,6 +5,7 @@
 use encoder::vir::ast::*;
 use encoder::vir::cfg::method::*;
 use std::fmt::Debug;
+use utils::to_string::ToString;
 
 /// Visit the reachable blocks of a CFG with a forward pass.
 /// During the visit, statements can be modified and injected.
@@ -127,7 +128,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone + PartialEq + Eq> {
             // REPLACE statement
             for stmt in &curr_block.stmts {
                 let new_stmts = self.replace_stmt(stmt, &mut bctxt);
-                trace!("Replace stmt '{}' with {:?}", stmt, new_stmts);
+                trace!("Replace stmt '{}' with [{}]", stmt, new_stmts.iter().to_string());
                 for new_stmt in new_stmts {
                     new_cfg.add_stmt(curr_block_index, new_stmt);
                 }
