@@ -13,6 +13,7 @@ use syntax_pos::MultiSpan;
 use syntax::errors::DiagnosticId;
 use rustc::hir;
 use rustc::ty;
+use syntax::attr;
 
 mod procedure;
 mod loops;
@@ -114,6 +115,21 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
             tcx.hir.krate().visit_all_item_likes(&mut visitor);
         }
         annotated_procedures
+    }
+
+    /// Find whether the procedure has a particular attribute
+    pub fn has_attribute_name(&self, def_id: ProcedureDefId, name: &str) -> bool {
+        let tcx = self.tcx();
+        let opt_node_id = tcx.hir.as_local_node_id(def_id);
+        match opt_node_id {
+            None => {
+                warn!("Incomplete encoding of procedures from an external crate");
+                false
+            }
+            Some(node_id) => {
+                attr::contains_name(tcx.hir.attrs(node_id), name)
+            }
+        }
     }
 
     /// Dump various information from the borrow checker.

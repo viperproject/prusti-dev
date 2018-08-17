@@ -245,6 +245,8 @@ pub type TypedSpecificationMap = HashMap<SpecID, TypedSpecificationSet>;
 pub type TypedAssertion = Assertion<rustc::hir::Expr, rustc::hir::Arg>;
 /// An assertion kind that has types associated with it.
 pub type TypedAssertionKind = AssertionKind<rustc::hir::Expr, rustc::hir::Arg>;
+/// An expression that has types associated with it.
+pub type TypedExpression = Expression<rustc::hir::Expr>;
 /// A trigger set that has types associated with it.
 pub type TypedTriggerSet = TriggerSet<rustc::hir::Expr>;
 
