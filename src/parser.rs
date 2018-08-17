@@ -133,6 +133,7 @@ use syntax::codemap::Span;
 use syntax::ext::build::AstBuilder;
 use syntax::fold::Folder;
 use syntax::util::small_vector::SmallVector;
+use syntax::attr;
 use syntax_pos::FileName;
 use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
                      SpecType, SpecificationSet, Trigger, TriggerSet, UntypedAssertion,
@@ -474,6 +475,7 @@ impl<'tcx> SpecParser<'tcx> {
         let mut item = item.into_inner();
         let attrs = item.attrs;
         item.attrs = vec![];
+        let is_pure_function = attr::contains_name(&attrs, "pure");
         let specs = self.parse_specs(attrs);
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(item.span, "invariant not allowed for procedure");
@@ -497,6 +499,11 @@ impl<'tcx> SpecParser<'tcx> {
             self.ast_builder
                 .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
         ];
+        if is_pure_function {
+            item.attrs.push(
+                self.ast_builder.attribute_word(item.span, "pure")
+            );
+        }
 
         debug!(
             "new_item:\n{}",
