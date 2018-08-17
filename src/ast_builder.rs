@@ -94,6 +94,16 @@ impl<'a> MinimalAstBuilder<'a> {
         )
     }
 
+    pub fn attribute_word(&self, span: Span, word: &str) -> ast::Attribute {
+        self.attribute(
+            span,
+            self.meta_word(
+                span,
+                self.name_of(word)
+            ),
+        )
+    }
+
     pub fn item_fn_optional_result(
         &self,
         span: Span,

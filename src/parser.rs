@@ -204,9 +204,8 @@ impl<'tcx> SpecParser<'tcx> {
         err.emit();
     }
 
-    /// Construct a statement that calls a function with given
-    /// expression to make that expression to be type-checked by the
-    /// Rust compiler.
+    /// Construct a lambda function with given expression to make that expression
+    /// to be type-checked by the Rust compiler.
     fn build_typeck_call(&self, expression: &UntypedExpression, expected_ty: Option<ptr::P<ast::Ty>>) -> ast::Stmt {
         let builder = &self.ast_builder;
         let expr_id = expression.id;
@@ -226,6 +225,7 @@ impl<'tcx> SpecParser<'tcx> {
         lambda_fn.attrs = vec![
             self.ast_builder
                 .attribute_name_value(span, "__PRUSTI_SPEC_EXPR_ID", &expr_id.to_string()),
+            self.ast_builder.attribute_word(span, "pure"),
         ].into();
         builder.stmt_semi(ptr::P(lambda_fn))
     }
@@ -285,6 +285,7 @@ impl<'tcx> SpecParser<'tcx> {
 
                 lambda_fn.attrs = vec![
                     builder.attribute_name_value(span, "__PRUSTI_SPEC_FORALL_VARS_ID", &vars.id.to_string()),
+                    builder.attribute_word(span, "pure"),
                 ].into();
 
                 let statement = builder.stmt_semi(ptr::P(lambda_fn));
