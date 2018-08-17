@@ -87,6 +87,16 @@ impl Type {
             &Type::TypedRef(ref pred_name) => format!("ref${}", pred_name),
         }
     }
+
+    pub fn weak_eq(&self, other: &Type) -> bool {
+        match (self, other) {
+            (Type::Bool, Type::Bool) |
+            (Type::Int, Type::Int) |
+            (Type::TypedRef(_), Type::TypedRef(_)) => true,
+
+            _ => false
+        }
+    }
 }
 
 impl fmt::Display for Type {
@@ -268,7 +278,8 @@ impl Place {
     }
 
     pub fn replace_prefix(self, target: &Place, replacement: Place) -> Self {
-        assert_eq!(target.get_type(), replacement.get_type());
+        //assert_eq!(target.get_type(), replacement.get_type());
+        assert!(target.get_type().weak_eq(&replacement.get_type()));
         if &self == target {
             replacement
         } else {
@@ -869,6 +880,15 @@ impl Expr {
         )
     }
 
+    pub fn func_app(name: String, args: Vec<Expr>, internal_args: Vec<LocalVar>, return_type: Type) -> Self {
+        Expr::FuncApp(
+            name,
+            args,
+            internal_args,
+            return_type
+        )
+    }
+
     pub fn replace(self, target: &Place, replacement: &Place) -> Self {
         let replace = |x: Box<Expr>| { box (*x).replace(target, replacement) };
         match self {
@@ -1037,6 +1057,7 @@ pub struct Function {
     pub name: String,
     pub formal_args: Vec<LocalVar>,
     pub return_type: Type,
+    pub pres: Vec<Expr>,
     pub body: Option<Expr>,
 }
 
@@ -1051,9 +1072,12 @@ impl fmt::Display for Function {
             write!(f, "{:?}", arg)?;
             first = false
         }
-        write!(f, "): {}", self.return_type)?;
+        writeln!(f, "): {}", self.return_type)?;
+        for pre in &self.pres {
+            writeln!(f, "  requires {}", pre)?;
+        }
         if let Some(ref body) = self.body {
-            writeln!(f, " {{")?;
+            writeln!(f, "{{")?;
             writeln!(f, "\t{}", body)?;
             write!(f, "}}")?;
         }

@@ -20,6 +20,41 @@ mod action;
 
 const DEBUG_FOLDUNFOLD: bool = false;
 
+
+pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<String, vir::Predicate>) -> vir::Function {
+    if function.body.is_none() {
+        return function
+    }
+
+    let formal_vars = function.formal_args.clone();
+    let mut bctxt = BranchCtxt::new(formal_vars, &predicates);
+    // Inhale preconditions
+    for pre in &function.pres {
+        bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()))
+    }
+
+    let body = function.body.unwrap();
+
+    let (curr_perms, old_perms) = body
+        .get_required_permissions(&predicates)
+        .into_iter()
+        .group_by_label();
+
+    // Add appropriate unfolding around this expression
+    let new_body = bctxt
+        .obtain_permissions(curr_perms)
+        .into_iter()
+        .rev()
+        .fold(
+            body,
+            |expr, action| action.to_expr(expr)
+        );
+
+    function.body = Some(new_body);
+    function
+}
+
+
 pub fn add_fold_unfold(cfg: vir::CfgMethod, predicates: HashMap<String, vir::Predicate>) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
     let initial_bctxt = BranchCtxt::new(cfg_vars, &predicates);

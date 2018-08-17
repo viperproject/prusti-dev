@@ -176,7 +176,7 @@ impl vir::Expr {
             vir::Expr::Place(_) |
             vir::Expr::LabelledOld(_, _) |
             vir::Expr::PredicateAccess(_, _) |
-            vir::Expr::FuncApp(_, _, ..)=> HashSet::new(),
+            vir::Expr::FuncApp(..)=> HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr) => {
                 assert_eq!(args.len(), 1);

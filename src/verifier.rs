@@ -131,8 +131,9 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         self.encoder.initialize();
 
         for proc_id in &task.procedures {
-            self.encoder.encode_procedure(*proc_id);
+            self.encoder.queue_encoding(*proc_id)
         }
+        self.encoder.process_encoding_queue();
 
         let ast = &self.ast_factory;
 

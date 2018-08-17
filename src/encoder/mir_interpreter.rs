@@ -53,20 +53,20 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         let states = HashMap::from_iter(
             terminator.successors().map(|bb| (*bb, &heads[bb]))
         );
-        debug!("States before: {:?}", states);
-        debug!("Apply terminator {:?}", terminator);
+        trace!("States before: {:?}", states);
+        trace!("Apply terminator {:?}", terminator);
         let mut curr_state = interpreter.apply_terminator(
             terminator,
             states
         );
-        debug!("State after: {:?}", curr_state);
+        trace!("State after: {:?}", curr_state);
 
         // Apply each statement, from the last
         for stmt in bb_data.statements.iter().rev() {
-            debug!("State before: {:?}", curr_state);
-            debug!("Apply statement {:?}", stmt);
+            trace!("State before: {:?}", curr_state);
+            trace!("Apply statement {:?}", stmt);
             interpreter.apply_statement(stmt, &mut curr_state);
-            debug!("State after: {:?}", curr_state);
+            trace!("State after: {:?}", curr_state);
         }
 
         // Store the state at the beginning of block `curr_bb`
@@ -85,7 +85,7 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
     let result = heads.remove(&basic_blocks.indices().next().unwrap());
 
     if result.is_none() {
-        debug!("heads: {:?}", heads);
+        trace!("heads: {:?}", heads);
     }
 
     result

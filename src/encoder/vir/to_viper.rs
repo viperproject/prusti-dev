@@ -265,7 +265,7 @@ impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
             &self.name,
             &self.formal_args.to_viper_decl(ast),
             self.return_type.to_viper(ast),
-            &[],
+            &self.pres.to_viper(ast),
             &[],
             self.body.as_ref().map(|b| b.to_viper(ast))
         )

@@ -25,9 +25,14 @@ impl Idx for Local {
 }
 
 impl From<mir::Local> for Local {
-
     fn from(other: mir::Local) -> Self {
         Local::new(other.index())
+    }
+}
+
+impl Into<mir::Local> for Local {
+    fn into(self) -> mir::Local {
+        mir::Local::new(self.index())
     }
 }
 

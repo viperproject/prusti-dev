@@ -79,6 +79,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
+    pub fn encode_name(&self) -> String {
+        self.cfg_method.name()
+    }
+
     pub fn encode(mut self) -> vir::CfgMethod {
         debug!("Encode procedure {}", self.cfg_method.name());
 
@@ -650,7 +654,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
 
                         stmts.push(vir::Stmt::MethodCall(
-                            self.encoder.encode_item_name(def_id),
+                            self.encoder.encode_procedure_use(def_id), // TODO
                             vec![],
                             encoded_targets,
                         ));

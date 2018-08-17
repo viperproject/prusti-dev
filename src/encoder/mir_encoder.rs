@@ -11,6 +11,9 @@ use prusti_interface::data::ProcedureDefId;
 use std::collections::HashMap;
 use prusti_interface::environment::Environment;
 use rustc_data_structures::indexed_vec::Idx;
+use encoder::borrows::ProcedureContract;
+use encoder::places;
+use encoder::vir::ExprIterator;
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
 #[derive(Clone)]
@@ -30,11 +33,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_local_var_name(&self, local: mir::Local) -> String {
+    pub fn encode_local_var_name(&self, local: mir::Local) -> String {
         format!("{}{:?}", self.vars_namespace, local)
     }
 
-    fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
+    pub fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
         self.mir.local_decls[local].ty
     }
 
@@ -211,14 +214,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             &mir::Operand::Constant(box mir::Constant { ty, literal: mir::Literal::Value { value }, .. }) => {
                 self.encoder.encode_const_expr(value)
             }
-            &mir::Operand::Copy(ref place) => {
-                let val_place = self.eval_place(place);
-                val_place.into()
-            }
+            &mir::Operand::Copy(ref place) |
             &mir::Operand::Move(ref place) => {
-                let (encoded_place, _, _) = self.encode_place(place);
                 let val_place = self.eval_place(&place);
                 val_place.into()
+            }
+            x => unimplemented!("{:?}", x)
+        }
+    }
+
+    /// Returns an `vir::Type` that corresponds to the type of the value of the operand
+    pub fn encode_operand_expr_type(&self, operand: &mir::Operand<'tcx>) -> vir::Type {
+        trace!("Encode operand expr {:?}", operand);
+        match operand {
+            &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
+                self.encoder.encode_value_type(ty)
+            }
+            &mir::Operand::Copy(ref place) |
+            &mir::Operand::Move(ref place) => {
+                let val_place = self.eval_place(&place);
+                val_place.get_type().clone()
             }
             x => unimplemented!("{:?}", x)
         }
@@ -258,7 +273,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         false.into()
     }
 
-
     pub fn encode_operand_place(&self, operand: &mir::Operand<'tcx>) -> Option<vir::Place> {
         debug!("Encode operand place {:?}", operand);
         match operand {
@@ -274,4 +288,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    pub fn encode_place_predicate_permission(&self, place: vir::Place) -> Option<vir::Expr> {
+        place.typed_ref_name().map(|predicate_name|
+            vir::Expr::PredicateAccessPredicate(
+                box vir::Expr::PredicateAccess(
+                    predicate_name,
+                    vec![place.into()],
+                ),
+                vir::Perm::full(),
+            )
+        )
+    }
 }

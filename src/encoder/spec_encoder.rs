@@ -242,34 +242,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         match base_expr.node {
             hir::Expr_::ExprLit(ref lit) => self.encode_literal_expr(lit),
 
-            hir::Expr_::ExprBinary(op, ref left, ref right) => {
-                let left_expr = self.encode_hir_expr(left);
-                let right_expr = self.encode_hir_expr(right);
-                let is_bool = match left_expr {
-                    vir::Expr::Place(ref p) => p.get_type() == &vir::Type::Bool,
-                    _ => false
-                };
-                match op.node {
-                    hir::BinOp_::BiAdd => vir::Expr::add(left_expr, right_expr),
-                    hir::BinOp_::BiSub => vir::Expr::sub(left_expr, right_expr),
-                    hir::BinOp_::BiMul => vir::Expr::mul(left_expr, right_expr),
-                    hir::BinOp_::BiDiv => vir::Expr::div(left_expr, right_expr),
-                    hir::BinOp_::BiRem => vir::Expr::rem(left_expr, right_expr),
-                    hir::BinOp_::BiAnd => vir::Expr::and(left_expr, right_expr),
-                    hir::BinOp_::BiOr => vir::Expr::or(left_expr, right_expr),
-                    hir::BinOp_::BiBitXor if is_bool => vir::Expr::xor(left_expr, right_expr),
-                    hir::BinOp_::BiBitAnd if is_bool => vir::Expr::and(left_expr, right_expr),
-                    hir::BinOp_::BiBitOr if is_bool => vir::Expr::or(left_expr, right_expr),
-                    hir::BinOp_::BiEq => vir::Expr::eq_cmp(left_expr, right_expr),
-                    hir::BinOp_::BiLt => vir::Expr::lt_cmp(left_expr, right_expr),
-                    hir::BinOp_::BiLe => vir::Expr::le_cmp(left_expr, right_expr),
-                    hir::BinOp_::BiNe => vir::Expr::ne_cmp(left_expr, right_expr),
-                    hir::BinOp_::BiGt => vir::Expr::gt_cmp(left_expr, right_expr),
-                    hir::BinOp_::BiGe => vir::Expr::ge_cmp(left_expr, right_expr),
-                    ref x => unimplemented!("{:?}", x),
-                }
-            }
-
             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ..) |
             hir::Expr_::ExprField(..) => {
                 let encoded_expr = self.encode_hir_path_expr(base_expr);
@@ -279,59 +251,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             hir::Expr_::ExprPath(hir::QPath::Resolved(..)) => {
                 let encoded_expr = self.encode_hir_path_expr(base_expr);
                 encoded_expr
-            }
-
-            hir::Expr_::ExprUnary(hir::UnOp::UnNot, ref expr) => {
-                let encoded_expr = self.encode_hir_expr(expr);
-                let is_bool = match encoded_expr {
-                    vir::Expr::Place(ref p) => p.get_type() == &vir::Type::Bool,
-                    _ => false
-                };
-                assert!(is_bool);
-                vir::Expr::not(encoded_expr)
-            }
-
-            hir::Expr_::ExprUnary(hir::UnOp::UnNeg, ref expr) => {
-                let encoded_expr = self.encode_hir_expr(expr);
-                let is_int = match encoded_expr {
-                    vir::Expr::Place(ref p) => p.get_type() == &vir::Type::Int,
-                    vir::Expr::Const(ref const_val) => const_val.is_num(),
-                    _ => false
-                };
-                assert!(is_int, "{:?} is not int", encoded_expr);
-                vir::Expr::minus(encoded_expr)
-            }
-
-            hir::Expr_::ExprIf(ref guard_expr, ref then_expr, Some(ref else_expr)) => {
-                let encoded_guard = self.encode_hir_expr(guard_expr);
-                let encoded_then = self.encode_hir_expr(then_expr);
-                let encoded_else = self.encode_hir_expr(else_expr);
-                vir::Expr::ite(encoded_guard, encoded_then, encoded_else)
-            }
-
-            hir::Expr_::ExprMatch(ref expr, ref arms, _) => {
-                assert!(arms.iter().all(|arm| arm.guard.is_none()));
-                assert!(arms.iter().all(
-                    |arm| arm.pats.iter().all(
-                        |pat| match pat.node {
-                            hir::PatKind::Wild |
-                            hir::PatKind::Lit(_) => true,
-                            hir::PatKind::Struct(_, ref args, _) => args.is_empty(),
-                            hir::PatKind::TupleStruct(_, ref args, _) => args.is_empty(),
-                            hir::PatKind::Tuple(ref args, _) => args.is_empty(),
-                            _ => false
-                        }
-                    )
-                ));
-
-                let encoded_expr_value = self.encode_hir_expr(expr);
-                self.encode_match_arms(expr, encoded_expr_value, &arms[..])
-            },
-
-            hir::Expr_::ExprBlock(ref block, _) => {
-                assert!(block.stmts.is_empty());
-                assert!(block.expr.is_some());
-                self.encode_hir_expr(block.expr.as_ref().unwrap())
             }
 
             hir::Expr_::ExprCall(ref callee, ref arguments) => {
@@ -411,37 +330,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         warn!("TODO: incomplete encoding of functional specification: {:?}", assertion);
         match assertion.kind {
             box AssertionKind::Expr(ref assertion_expr) => {
-                let tcx = self.encoder.env().tcx();
-
-                // Find the MIR of the assertion
-                let mut curr_node_id = assertion_expr.expr.id;
-                for i in 0..1 {
-                    curr_node_id = tcx.hir.get_parent_node(curr_node_id);
-                }
-                let closure_node_id = curr_node_id;
-                let mir_def_id = tcx.hir.local_def_id(closure_node_id);
-                let mut mir_expr = self.encoder.encode_pure_function_body(mir_def_id);
-
-                // Fix the return variable
-                let spec_method_node_id = tcx.hir.get_parent(closure_node_id);
-                let spec_method_def_id = tcx.hir.local_def_id(spec_method_node_id);
-                let spec_method_mir = tcx.mir_validated(spec_method_def_id).borrow();
-                let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir, "".to_string());
-                let fake_return_var = spec_method_mir_encoder.encode_local(
-                    spec_method_mir.args_iter().last().unwrap()
-                );
-                let proper_return_var = vir::LocalVar::new(
-                    "_0".to_string(),
-                    fake_return_var.typ.clone()
-                );
-                mir_expr = vir::utils::ExprSubPlaceSubstitutor::substitute(
-                    mir_expr,
-                    &fake_return_var.into(),
-                    proper_return_var.into()
-                );
-
-                debug!("MIR expr {:?} --> {}", assertion_expr.id, mir_expr);
-                mir_expr
+                self.encode_expression(assertion_expr)
             }
             box AssertionKind::And(ref assertions) => {
                 assertions.iter()
@@ -452,7 +341,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
             box AssertionKind::Implies(ref lhs, ref rhs) => {
                 vir::Expr::implies(
-                    self.encode_hir_expr(&lhs.expr),
+                    self.encode_expression(lhs),
                     self.encode_assertion(rhs)
                 )
             }
@@ -464,5 +353,42 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 )
             }
         }
+    }
+
+    fn encode_expression(&self, assertion_expr: &TypedExpression) -> vir::Expr {
+        debug!("encode_expression {:?}", assertion_expr);
+        let tcx = self.encoder.env().tcx();
+
+        // Find the MIR of the assertion
+        let mut curr_node_id = assertion_expr.expr.id;
+        for i in 0..1 {
+            curr_node_id = tcx.hir.get_parent_node(curr_node_id);
+        }
+        let closure_node_id = curr_node_id;
+        let mir_def_id = tcx.hir.local_def_id(closure_node_id);
+        let mut mir_expr = self.encoder.encode_pure_function_body(mir_def_id);
+
+        // Fix the return variable
+        let spec_method_node_id = tcx.hir.get_parent(closure_node_id);
+        let spec_method_def_id = tcx.hir.local_def_id(spec_method_node_id);
+        let spec_method_mir = tcx.mir_validated(spec_method_def_id).borrow();
+        let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir, "".to_string());
+        let fake_return_var = spec_method_mir_encoder.encode_local(
+            spec_method_mir.args_iter().last().unwrap()
+        );
+        let proper_return_var = vir::LocalVar::new(
+            "_0".to_string(),
+            fake_return_var.typ.clone()
+        );
+        mir_expr = vir::utils::ExprSubPlaceSubstitutor::substitute(
+            mir_expr,
+            &fake_return_var.into(),
+            proper_return_var.into()
+        );
+
+        // TODO: replace with quantified variables...
+
+        debug!("MIR expr {:?} --> {}", assertion_expr.id, mir_expr);
+        mir_expr
     }
 }

@@ -30,6 +30,7 @@ use viper;
 use prusti_interface::specifications::{SpecID, TypedSpecificationMap, SpecificationSet, TypedAssertion, Specification, SpecType, Assertion};
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use std::mem;
+use prusti_interface::environment::Procedure;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -39,11 +40,13 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
+    pure_functions: RefCell<HashMap<ProcedureDefId, vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
     type_predicates: RefCell<HashMap<String, vir::Predicate>>,
     fields: RefCell<HashMap<String, vir::Field>>,
     closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, Vec<mir::Operand<'tcx>>)>>,
+    encoding_queue: RefCell<Vec<ProcedureDefId>>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -56,11 +59,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             builtin_methods: RefCell::new(HashMap::new()),
             builtin_functions: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
+            pure_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
             type_predicates: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
             closure_instantiations: HashMap::new(),
+            encoding_queue: RefCell::new(vec![])
         }
     }
 
@@ -92,6 +97,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn get_used_viper_functions(&self) -> Vec<Box<vir::ToViper<'v, viper::Function<'v>>>> {
         let mut functions: Vec<Box<vir::ToViper<'v, viper::Function<'v>>>> = vec![];
         for function in self.builtin_functions.borrow().values() {
+            functions.push(Box::new(function.clone()));
+        }
+        for function in self.pure_functions.borrow().values() {
             functions.push(Box::new(function.clone()));
         }
         functions
@@ -271,6 +279,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
         trace!("encode_procedure({:?})", proc_def_id);
+        assert!(!self.env.has_attribute_name(proc_def_id, "pure"), "procedure is marked as pure: {:?}", proc_def_id);
         if !self.procedures.borrow().contains_key(&proc_def_id) {
             let procedure_name = self.env().tcx().item_path_str(proc_def_id);
             let procedure = self.env.get_procedure(proc_def_id);
@@ -280,6 +289,15 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             self.procedures.borrow_mut().insert(proc_def_id, method);
         }
         self.procedures.borrow()[&proc_def_id].clone()
+    }
+
+    pub fn encode_procedure_use(&self, proc_def_id: ProcedureDefId) -> String {
+        trace!("encode_procedure_use({:?})", proc_def_id);
+        assert!(!self.env.has_attribute_name(proc_def_id, "pure"), "procedure is marked as pure: {:?}", proc_def_id);
+        self.queue_encoding(proc_def_id);
+        let procedure = self.env.get_procedure(proc_def_id);
+        let procedure_encoder = ProcedureEncoder::new(self, &procedure);
+        procedure_encoder.encode_name()
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
@@ -389,16 +407,57 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {
-        // TODO: add caching
-        let mir = self.env().tcx().mir_validated(proc_def_id).borrow();
-        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, &mir);
+        // TODO: add caching?
+        let procedure = self.env.get_procedure(proc_def_id);
+        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
         pure_function_encoder.encode_body()
     }
 
     pub fn encode_pure_function_def(&self, proc_def_id: ProcedureDefId) -> vir::Function {
-        // TODO: add caching and store used functions
-        let mir = self.env().tcx().mir_validated(proc_def_id).borrow();
-        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, &mir);
-        pure_function_encoder.encode_function()
+        assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
+
+        if !self.pure_functions.borrow().contains_key(&proc_def_id) {
+            let procedure_name = self.env().tcx().item_path_str(proc_def_id);
+            let procedure = self.env.get_procedure(proc_def_id);
+            let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+            let function = pure_function_encoder.encode_function();
+            Log::report("vir_function", &procedure_name, function.to_string());
+            self.pure_functions.borrow_mut().insert(proc_def_id, function);
+        }
+        self.pure_functions.borrow()[&proc_def_id].clone()
+    }
+
+    pub fn encode_pure_function_use(&self, proc_def_id: ProcedureDefId) -> String {
+        trace!("encode_pure_function_use({:?})", proc_def_id);
+        assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
+        self.queue_encoding(proc_def_id);
+        let procedure = self.env.get_procedure(proc_def_id);
+        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+        pure_function_encoder.encode_function_name()
+    }
+
+    pub fn encode_pure_function_return_type(&self, proc_def_id: ProcedureDefId) -> vir::Type {
+        trace!("encode_pure_function_return_type({:?})", proc_def_id);
+        assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
+        self.queue_encoding(proc_def_id);
+        let procedure = self.env.get_procedure(proc_def_id);
+        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+        pure_function_encoder.encode_function_return_type()
+    }
+
+    pub fn queue_encoding(&self, proc_def_id: ProcedureDefId) {
+        self.encoding_queue.borrow_mut().push(proc_def_id);
+    }
+
+    pub fn process_encoding_queue(&mut self) {
+        while !self.encoding_queue.borrow().is_empty() {
+            let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
+            let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
+            if is_pure_function {
+                self.encode_pure_function_def(proc_def_id);
+            } else {
+                self.encode_procedure(proc_def_id);
+            }
+        }
     }
 }
