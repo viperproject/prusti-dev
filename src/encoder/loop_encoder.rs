@@ -153,7 +153,7 @@ impl<'tcx> LoopEncoder<'tcx> {
                     PlaceAccessKind::Store |
                     PlaceAccessKind::Move |
                     PlaceAccessKind::MutableBorrow => true,
-                    PlaceAccessKind::Copy |
+                    PlaceAccessKind::Read |
                     PlaceAccessKind::SharedBorrow => false,
                 }
             })
