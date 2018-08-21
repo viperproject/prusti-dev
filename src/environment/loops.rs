@@ -90,9 +90,9 @@ fn collect_loop_body<'tcx>(head: BasicBlockIndex, back_edge_source: BasicBlockIn
 pub enum PlaceAccessKind {
     /// The place is assigned to.
     Store,
-    /// The place is copied.
-    Copy,
-    /// The place is moved.
+    /// The place is read.
+    Read,
+    /// The place is moved (destructive read).
     Move,
     /// The place is borrowed immutably.
     SharedBorrow,
@@ -134,11 +134,12 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
             use rustc::mir::visit::PlaceContext::*;
             let access_kind = match context {
                 Store => PlaceAccessKind::Store,
-                Copy => PlaceAccessKind::Copy,
+                Copy => PlaceAccessKind::Read,
                 Move => PlaceAccessKind::Move,
                 Borrow { kind: mir::BorrowKind::Shared, .. } => PlaceAccessKind::SharedBorrow,
                 Borrow { kind: mir::BorrowKind::Mut { .. }, .. } => PlaceAccessKind::MutableBorrow,
-                _ => unimplemented!(),
+                Call => PlaceAccessKind::Read,
+                x => unimplemented!("{:?}", x),
             };
             let access = PlaceAccess {
                 location: location,
