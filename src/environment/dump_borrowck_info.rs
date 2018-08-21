@@ -10,7 +10,7 @@ use super::mir_analyses::initialization::{
 use datafrog::{Iteration, Relation};
 use std::cell;
 use std::env;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{self, Write, BufWriter};
 use std::path::PathBuf;
@@ -366,21 +366,33 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     /// Print the subset relation at the beginning of the given location.
     fn print_subsets(&self, location: mir::Location) -> Result<(),io::Error> {
         let bb = location.block;
+        let stmt = location.statement_index;
         let start_point = self.get_point(location, facts::PointType::Start);
         let subset_map = &self.borrowck_out_facts.subset;
+        write_graph!(self, "subgraph cluster_{:?}_{:?} {{", bb, stmt);
+        write_graph!(self, "cluster_title_{:?}_{:?} [label=\"subset at {:?}\"]",
+                     bb, stmt, location);
+        let mut used_regions = HashSet::new();
         if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
             for (source_region, regions) in subset.iter() {
+                used_regions.insert(source_region);
                 for target_region in regions.iter() {
-                    write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
-                                 bb, source_region, bb, target_region);
+                    write_graph!(self, "{:?}_{:?}_{:?} -> {:?}_{:?}_{:?}",
+                                 bb, stmt, source_region, bb, stmt, target_region);
+                    used_regions.insert(target_region);
                 }
             }
         }
+        for region in used_regions {
+            write_graph!(self, "{:?}_{:?}_{:?} [shape=box label=\"{:?}\n(region)\"]",
+                         bb, stmt, region, region);
+        }
         for (region, point) in self.borrowck_in_facts.region_live_at.iter() {
             if *point == start_point {
-                write_graph!(self, "{:?} -> {:?}_{:?}", bb, bb, region);
+                write_graph!(self, "{:?} -> {:?}_{:?}_{:?}", bb, bb, stmt, region);
             }
         }
+        write_graph!(self, "}}");
         Ok(())
     }
 
@@ -482,36 +494,67 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                         })
                         .cloned()
                         .collect();
-                    //assert!(all_loans.is_empty() || !loans.is_empty());
+
+
+                    // This assertion would fail if instead of reborrow we happen to have a move
+                    // like `let mut current = head;`. See issue #18.
+                    // TODO: display if we reborrowing an argument.
+                    // assert!(all_loans.is_empty() || !loans.is_empty());
+                    write_graph!(self, "{:?}_{:?} [shape=box color=green]", bb, region);
+                    write_graph!(self, "{:?}_0_{:?} -> {:?}_{:?} [dir=none]",
+                                 bb, region, bb, region);
                     for loan in loans.iter() {
+
+                        // The set of regions used in edges. We need to
+                        // create nodes for these regions.
+                        let mut used_regions = HashSet::new();
+
+                        // Write out all loans that are kept alive by ``region``.
                         write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
                                      bb, region, bb, loan);
+
                         write_graph!(self, "subgraph cluster_{:?}_{:?} {{", bb, loan);
                         for (region, l, point) in self.borrowck_in_facts.borrow_region.iter() {
                             if loan == l {
-                                write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
-                                             bb, loan, bb, region);
+
+                                // Write the original loan's region.
+                                write_graph!(self, "{:?}_{:?} -> {:?}_{:?}_{:?}",
+                                             bb, loan, bb, loan, region);
+                                used_regions.insert(region);
+
+                                // Write out the subset relation at ``point``.
                                 let subset_map = &self.borrowck_out_facts.subset;
                                 if let Some(ref subset) = subset_map.get(&point).as_ref() {
                                     for (source_region, regions) in subset.iter() {
-                                        if let Some(local) = self.find_variable(*source_region) {
-                                            write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
-                                                         bb, local, bb, source_region);
-                                        }
+                                        used_regions.insert(source_region);
                                         for target_region in regions.iter() {
-                                            write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
-                                                         bb, source_region, bb, target_region);
-                                            if let Some(local) = self.find_variable(*target_region) {
-                                                write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
-                                                             bb, local, bb, target_region);
+                                            if source_region == target_region {
+                                                continue;
                                             }
+                                            used_regions.insert(target_region);
+                                            write_graph!(self, "{:?}_{:?}_{:?} -> {:?}_{:?}_{:?}",
+                                                         bb, loan, source_region,
+                                                         bb, loan, target_region);
                                         }
                                     }
                                 }
+
+                            }
+                        }
+
+                        for region in used_regions {
+                            write_graph!(self, "{:?}_{:?}_{:?} [shape=box label=\"{:?}\n(region)\"]",
+                                         bb, loan, region, region);
+                            if let Some(local) = self.find_variable(*region) {
+                                write_graph!(self, "{:?}_{:?}_{:?} [label=\"{:?}\n(var)\"]",
+                                             bb, loan, local, local);
+                                write_graph!(self, "{:?}_{:?}_{:?} -> {:?}_{:?}_{:?}",
+                                             bb, loan, local, bb, loan, region);
                             }
                         }
                         write_graph!(self, "}}");
                     }
+
                 }
             }
 
@@ -708,6 +751,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         let start_point = self.get_point(location, facts::PointType::Start);
         if let Some(region) = self.variable_regions.get(&blocker) {
             write_graph!(self, "{:?} -> {:?}_{:?}_{:?}", bb, bb, blocker, region);
+            write_graph!(self, "{:?}_{:?}_{:?} [label=\"{:?}:{:?}\n(blocking variable)\"]",
+                         bb, blocker, region, blocker, region);
             write_graph!(self, "subgraph cluster_{:?} {{", bb);
             let subset_map = &self.borrowck_out_facts.subset;
             if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
