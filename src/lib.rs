@@ -19,7 +19,6 @@ extern crate syntax_pos;
 extern crate uuid;
 extern crate viper;
 
-mod report;
 mod encoder;
 mod utils;
 pub mod verifier;

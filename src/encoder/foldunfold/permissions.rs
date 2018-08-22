@@ -24,6 +24,16 @@ impl<'a, A: RequiredPermissionsGetter> RequiredPermissionsGetter for Vec<&'a A> 
     }
 }
 
+impl RequiredPermissionsGetter for Vec<vir::Expr> {
+    /// Returns the permissions required for the expression to be well-defined
+    fn get_required_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<LabelledPerm> {
+        self.iter().fold(
+            HashSet::new(),
+            |res, x| res.union(&x.get_required_permissions(predicates)).cloned().collect()
+        )
+    }
+}
+
 impl RequiredPermissionsGetter for vir::Stmt {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<LabelledPerm> {
@@ -160,7 +170,24 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::MagicWand(_, _) => unimplemented!("Fold/unfold does not support magic wands (yet)"),
 
             vir::Expr::FuncApp(ref name, ref args, ..) => {
-                args.iter().collect::<Vec<_>>().get_required_permissions(predicates)
+                // If the argument is a place to a reference, ask for the full permission on it
+                args.iter().map(|a| {
+                    match a {
+                        vir::Expr::Place(ref place) |
+                        vir::Expr::LabelledOld(_, box vir::Expr::Place(ref place)) if place.get_type().is_ref() =>
+                            vir::Expr::PredicateAccessPredicate(
+                                box vir::Expr::PredicateAccess(
+                                    place.get_type().to_string(),
+                                    vec![ place.clone().into() ]
+                                ),
+                                vir::Perm::full()
+                            ).into(),
+
+                        _ => {
+                            a.clone()
+                        }
+                    }
+                }).collect::<Vec<_>>().get_required_permissions(predicates)
             }
         }
     }

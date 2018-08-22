@@ -17,7 +17,7 @@ use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::ProcedureImpl;
-use report::Log;
+use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
 use rustc::mir::TerminatorKind;
@@ -28,6 +28,7 @@ use std::collections::HashSet;
 use syntax::codemap::Span;
 use prusti_interface::specifications::*;
 use syntax::ast;
+use encoder::mir_encoder::MirEncoder;
 
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
@@ -42,6 +43,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     loops: LoopEncoder<'tcx>,
     auxiliar_local_vars: HashMap<String, vir::Type>,
     //dataflow_info: DataflowInfo<'tcx>,
+    mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -76,6 +78,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loops,
             auxiliar_local_vars: HashMap::new(),
             //dataflow_info: dataflow_info,
+            mir_encoder: MirEncoder::new(encoder, mir, "".to_string())
         }
     }
 
@@ -207,25 +210,39 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         for local in local_vars_and_return.iter() {
             let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(*local));
             let var_name = self.locals.get_name(*local);
-            let local_var = vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name));
+            let var_type = vir::Type::TypedRef(type_name.clone());
+            let local_var = vir::LocalVar::new(var_name.clone(), var_type);
             let alloc_stmt = vir::Stmt::Inhale(
                 self.encode_place_predicate_permission(local_var.clone().into())
             );
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
+
+            // Keep a copy of the value of the variable (fixes issue #20)
+            let old_var_name = format!("_old{}", var_name);
+            let old_var_type = vir::Type::TypedRef(type_name.clone());
+            self.cfg_method.add_local_var(&old_var_name, old_var_type.clone());
+            let old_local_var = vir::LocalVar::new(old_var_name, old_var_type);
+            let init_old = vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(
+                    old_local_var.into(),
+                    local_var.into()
+                )
+            );
+            self.cfg_method.add_stmt(start_cfg_block, init_old);
         }
 
         let method_name = self.cfg_method.name();
 
-        Log::report("vir_initial_method", &method_name, self.cfg_method.to_string());
+        self.encoder.log_vir_initial_program(self.cfg_method.to_string());
 
         // Dump initial CFG
-        Log::report_with_writer("graphviz_initial_method", &method_name, |writer| self.cfg_method.to_graphviz(writer));
+        Log::report_with_writer("graphviz_initial_method", format!("{}.dot", method_name), |writer| self.cfg_method.to_graphviz(writer));
 
         // Add fold/unfold
         let final_method = foldunfold::add_fold_unfold(self.cfg_method, self.encoder.get_used_viper_predicates_map());
 
         // Dump final CFG
-        Log::report_with_writer("graphviz_method", &method_name, |writer| final_method.to_graphviz(writer));
+        Log::report_with_writer("graphviz_method", format!("{}.dot", method_name), |writer| final_method.to_graphviz(writer));
 
         final_method
     }
@@ -383,6 +400,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Mut{ .. }, ref place)=> {
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.encode_place(place);
+                        // Havoc lhs (fixes issue #1)
+                        stmts.extend(
+                            self.encode_havoc_and_allocation(&encoded_lhs, ty)
+                        );
                         // Initialize ref_var.ref_field
                         stmts.push(
                             vir::Stmt::Assign(
@@ -599,71 +620,127 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     // generic function call
                     _ => {
-                        debug!("Encoding function call '{}'", func_proc_name);
-                        let mut stmts_after: Vec<vir::Stmt> = vec![];
-                        let mut arg_vars = Vec::new();
+                        let is_pure_function = self.encoder.env().has_attribute_name(def_id, "pure");
+                        if is_pure_function {
+                            let function_name = self.encoder.encode_pure_function_use(def_id);
+                            debug!("Encoding pure function call '{}'", function_name);
+                            assert!(destination.is_some());
 
-                        for operand in args.iter() {
-                            let (arg_var, _, effects_before, effects_after) = self.encode_operand(operand);
-                            arg_vars.push(arg_var);
-                            stmts.extend(effects_before);
-                            stmts_after.extend(effects_after);
-                        }
-
-                        let mut encoded_targets = Vec::new();
-                        let target = {
-                            match destination.as_ref() {
-                                Some((ref target_place, _)) => {
-                                    let (dst, ty, _) = self.encode_place(target_place);
-                                    let local = self.locals.get_fresh(ty);
-                                    let viper_local = self.encode_prusti_local(local);
-                                    stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into(), vir::AssignKind::Move));
-                                    encoded_targets.push(viper_local);
-                                    local
-                                }
-                                None => {
-                                    // The return type is Never
-                                    // This means that the function call never returns
-                                    // So, we `assume false` after the function call
-                                    stmts_after.push(vir::Stmt::Inhale(vir::Const::Bool(false).into()));
-                                    // Return a dummy local variable
-                                    let never_ty = self.encoder.env().tcx().mk_ty(
-                                        ty::TypeVariants::TyNever
-                                    );
-                                    let local = self.locals.get_fresh(never_ty);
-                                    let viper_local = self.encode_prusti_local(local);
-                                    encoded_targets.push(viper_local);
-                                    local
-                                }
+                            let mut arg_exprs = Vec::new();
+                            for operand in args.iter() {
+                                let arg_expr = self.encode_operand_expr(operand);
+                                arg_exprs.push(arg_expr);
                             }
-                        };
 
-                        let procedure_contract = self.encoder
-                            .get_procedure_contract_for_call(def_id, &arg_vars, target);
+                            let return_type = self.encoder.encode_pure_function_return_type(def_id);
+                            let formal_args: Vec<vir::LocalVar> = args
+                                .iter()
+                                .enumerate()
+                                .map(
+                                    |(i, arg)|
+                                        vir::LocalVar::new(
+                                            format!("x{}", i),
+                                            self.mir_encoder.encode_operand_expr_type(arg)
+                                        )
+                                ).collect();
 
-                        let label = self.cfg_method.get_fresh_label_name();
-                        stmts.push(vir::Stmt::Label(label.clone()));
+                            let func_call = vir::Expr::func_app(
+                                function_name,
+                                arg_exprs,
+                                formal_args,
+                                return_type
+                            );
 
-                        warn!("TODO: incomplete encoding of precondition of method call");
-                        let (pre_type_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
-                        let pos = self.encoder.error_manager().register(
-                            term.source_info.span,
-                            ErrorCtxt::ExhalePrecondition
-                        );
-                        stmts.push(vir::Stmt::Assert(pre_func_spec, pos.clone()));
-                        stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
+                            // Havoc the lhs
+                            let (target_place, target_ty, _) = match destination.as_ref() {
+                                Some((ref dst, _)) => self.encode_place(dst),
+                                None => unreachable!()
+                            };
+                            stmts.extend(
+                                self.encode_havoc_and_allocation(&target_place, target_ty)
+                            );
 
-                        stmts.push(vir::Stmt::MethodCall(
-                            self.encoder.encode_procedure_use(def_id), // TODO
-                            vec![],
-                            encoded_targets,
-                        ));
+                            // Initialize the lhs
+                            let target_value = match destination.as_ref() {
+                                Some((ref dst, _)) => self.eval_place(dst),
+                                None => unreachable!()
+                            };
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    vir::Expr::eq_cmp(
+                                        target_value.into(),
+                                        func_call
+                                    )
+                                )
+                            );
 
-                        let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &label);
-                        stmts.push(vir::Stmt::Inhale(post_type_spec));
-                        stmts.push(vir::Stmt::Inhale(post_func_spec));
+                        } else {
+                            debug!("Encoding non-pure function call '{}'", func_proc_name);
+                            let mut stmts_after: Vec<vir::Stmt> = vec![];
+                            let mut arg_vars = Vec::new();
 
-                        stmts.extend(stmts_after);
+                            for operand in args.iter() {
+                                let (arg_var, _, effects_before, effects_after) = self.encode_operand(operand);
+                                arg_vars.push(arg_var);
+                                stmts.extend(effects_before);
+                                stmts_after.extend(effects_after);
+                            }
+
+                            let mut encoded_targets = Vec::new();
+                            let target = {
+                                match destination.as_ref() {
+                                    Some((ref target_place, _)) => {
+                                        let (dst, ty, _) = self.encode_place(target_place);
+                                        let local = self.locals.get_fresh(ty);
+                                        let viper_local = self.encode_prusti_local(local);
+                                        stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into(), vir::AssignKind::Move));
+                                        encoded_targets.push(viper_local);
+                                        local
+                                    }
+                                    None => {
+                                        // The return type is Never
+                                        // This means that the function call never returns
+                                        // So, we `assume false` after the function call
+                                        stmts_after.push(vir::Stmt::Inhale(vir::Const::Bool(false).into()));
+                                        // Return a dummy local variable
+                                        let never_ty = self.encoder.env().tcx().mk_ty(
+                                            ty::TypeVariants::TyNever
+                                        );
+                                        let local = self.locals.get_fresh(never_ty);
+                                        let viper_local = self.encode_prusti_local(local);
+                                        encoded_targets.push(viper_local);
+                                        local
+                                    }
+                                }
+                            };
+
+                            let procedure_contract = self.encoder
+                                .get_procedure_contract_for_call(def_id, &arg_vars, target);
+
+                            let label = self.cfg_method.get_fresh_label_name();
+                            stmts.push(vir::Stmt::Label(label.clone()));
+
+                            warn!("TODO: incomplete encoding of precondition of method call");
+                            let (pre_type_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
+                            let pos = self.encoder.error_manager().register(
+                                term.source_info.span,
+                                ErrorCtxt::ExhalePrecondition
+                            );
+                            stmts.push(vir::Stmt::Assert(pre_func_spec, pos.clone()));
+                            stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
+
+                            stmts.push(vir::Stmt::MethodCall(
+                                self.encoder.encode_procedure_use(def_id), // TODO
+                                vec![],
+                                encoded_targets,
+                            ));
+
+                            let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &label);
+                            stmts.push(vir::Stmt::Inhale(post_type_spec));
+                            stmts.push(vir::Stmt::Inhale(post_func_spec));
+
+                            stmts.extend(stmts_after);
+                        }
                     }
                 }
 
@@ -771,14 +848,31 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode permissions that are implicitly carried by the given place.
     /// `state_label` – the label of the state in which the place should
     /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_place_permission(&self, place: &Place<'tcx>, state_label: Option<&str>) -> vir::Expr {
-        let (encoded_place, place_ty, _) = self.encode_generic_place(place);
+    fn encode_place_permission(&self, place: &Place<'tcx>, state_label: Option<&str>, ) -> vir::Expr {
+        let (mut encoded_place, place_ty, _) = self.encode_generic_place(place);
         let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
         vir::Expr::PredicateAccessPredicate(
             box vir::Expr::PredicateAccess(
                 predicate_name,
                 vec![
                     if let Some(label) = state_label {
+                        if label == "pre" {
+                            // Replace `_1, ..` with `_old_1, ..` in `encoded_place` to fix issue #20
+                            let local_vars_and_return: Vec<_> = self.locals
+                                .iter()
+                                .filter(|local| !self.locals.is_formal_arg(self.mir, *local))
+                                .collect();
+                            for local in local_vars_and_return.iter() {
+                                let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(*local));
+                                let var_name = self.locals.get_name(*local);
+                                let old_var_name = format!("_old{}", var_name);
+                                let local_var = vir::LocalVar::new(var_name.clone(), vir::Type::TypedRef(type_name.clone()));
+                                let old_local_var = vir::LocalVar::new(old_var_name, vir::Type::TypedRef(type_name));
+                                encoded_place = encoded_place.replace_prefix(&local_var.into(), old_local_var.into());
+                            }
+                        } else {
+                            warn!("TODO: local variables ")
+                        }
                         vir::Expr::labelled_old(label, encoded_place.into())
                     } else {
                         encoded_place.into()

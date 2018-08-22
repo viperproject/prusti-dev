@@ -17,7 +17,7 @@ use encoder::vir;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::EnvironmentImpl;
-use report::Log;
+use prusti_interface::report::Log;
 use rustc::hir::def_id::DefId;
 use rustc::middle::const_val::ConstVal;
 use rustc::hir;
@@ -31,6 +31,7 @@ use prusti_interface::specifications::{SpecID, TypedSpecificationMap, Specificat
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use std::mem;
 use prusti_interface::environment::Procedure;
+use std::io::Write;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -47,10 +48,21 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     fields: RefCell<HashMap<String, vir::Field>>,
     closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, Vec<mir::Operand<'tcx>>)>>,
     encoding_queue: RefCell<Vec<ProcedureDefId>>,
+    vir_initial_program_writer: RefCell<Box<Write>>,
+    vir_program_writer: RefCell<Box<Write>>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Self {
+        let source_path = env.source_path();
+        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+        let vir_initial_program_writer = RefCell::new(
+            Log::writer("vir_initial_program", format!("{}.vir", source_filename)).ok().unwrap()
+        );
+        let vir_program_writer = RefCell::new(
+            Log::writer("vir_program", format!("{}.vir", source_filename)).ok().unwrap()
+        );
+
         Encoder {
             env,
             spec,
@@ -65,8 +77,24 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             type_predicates: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
             closure_instantiations: HashMap::new(),
-            encoding_queue: RefCell::new(vec![])
+            encoding_queue: RefCell::new(vec![]),
+            vir_initial_program_writer,
+            vir_program_writer
         }
+    }
+
+    pub fn log_vir_initial_program<S: ToString>(&self, program: S) {
+        let mut writer = self.vir_initial_program_writer.borrow_mut();
+        writer.write_all(program.to_string().as_bytes()).ok().unwrap();
+        writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
+        writer.flush().ok().unwrap();
+    }
+
+    pub fn log_vir_program<S: ToString>(&self, program: S) {
+        let mut writer = self.vir_program_writer.borrow_mut();
+        writer.write_all(program.to_string().as_bytes()).ok().unwrap();
+        writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
+        writer.flush().ok().unwrap();
     }
 
     pub fn initialize(&mut self) {
@@ -240,7 +268,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
             let method = builtin_encoder.encode_builtin_method_def(method_kind);
-            Log::report("vir_method", &method.name, format!("{}", &method));
+            self.log_vir_program(method.to_string());
             self.builtin_methods.borrow_mut().insert(method_kind.clone(), method);
         }
         self.builtin_methods.borrow()[&method_kind].clone()
@@ -261,7 +289,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.builtin_functions.borrow().contains_key(&function_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
             let function = builtin_encoder.encode_builtin_function_def(function_kind.clone());
-            Log::report("vir_function", &function.name, format!("{}", &function));
+            self.log_vir_program(function.to_string());
             self.builtin_functions.borrow_mut().insert(function_kind.clone(), function);
         }
         self.builtin_functions.borrow()[&function_kind].clone()
@@ -285,7 +313,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let procedure = self.env.get_procedure(proc_def_id);
             let procedure_encoder = ProcedureEncoder::new(self, &procedure);
             let method = procedure_encoder.encode();
-            Log::report("vir_method", &procedure_name, method.to_string());
+            self.log_vir_program(method.to_string());
             self.procedures.borrow_mut().insert(proc_def_id, method);
         }
         self.procedures.borrow()[&proc_def_id].clone()
@@ -337,7 +365,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
             let predicate = type_encoder.encode_predicate_def();
-            Log::report("vir_predicate", &predicate_name, format!("{}", &predicate));
+            self.log_vir_program(predicate.to_string());
             self.type_predicates.borrow_mut().insert(predicate_name.clone(), predicate);
         }
         self.type_predicates.borrow()[&predicate_name].clone()
@@ -421,7 +449,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let procedure = self.env.get_procedure(proc_def_id);
             let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
             let function = pure_function_encoder.encode_function();
-            Log::report("vir_function", &procedure_name, function.to_string());
             self.pure_functions.borrow_mut().insert(proc_def_id, function);
         }
         self.pure_functions.borrow()[&proc_def_id].clone()

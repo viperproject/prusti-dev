@@ -10,7 +10,7 @@ use prusti_interface::environment::EnvironmentImpl;
 use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
 use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
-use report::Log;
+use prusti_interface::report::Log;
 use viper::{self, Viper, VerificationBackend};
 use prusti_interface::specifications::{TypedSpecificationMap};
 
@@ -144,9 +144,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             &self.encoder.get_used_viper_predicates().to_viper(ast),
             &self.encoder.get_used_viper_methods().into_iter().map(|m| m.to_viper(ast)).collect::<Vec<_>>()
         );
-
-        // Dump Viper program
-        Log::report("viper_program", "program.vpr", self.ast_utils.pretty_print(program));
 
         // Dump Viper program
         let source_path = self.env.source_path();

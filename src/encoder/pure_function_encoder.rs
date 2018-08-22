@@ -15,7 +15,7 @@ use rustc::hir::def_id::DefId;
 use std::collections::HashMap;
 use prusti_interface::environment::Environment;
 use syntax::ast;
-use report::Log;
+use prusti_interface::report::Log;
 use encoder::borrows::ProcedureContract;
 use encoder::places;
 use encoder::vir::ExprIterator;
@@ -86,7 +86,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             body: Some(body_expr)
         };
 
-        Log::report("vir_initial_function", &function_name, function.to_string());
+        self.encoder.log_vir_initial_program(function.to_string());
 
         // Add folding/unfolding
         let final_function = foldunfold::add_folding_unfolding(function, self.encoder.get_used_viper_predicates_map());
@@ -153,6 +153,15 @@ impl PureFunctionState {
 
     pub fn substitute_place(&mut self, sub_target: &vir::Place, replacement: vir::Place) {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
+
+        // If `replacement` is a reference, simplify also its dereferentiations
+        if let vir::Place::AddrOf(box ref base_replacement, ref dereferenced_type) = replacement {
+            trace!("Substitution of a reference. Simplify its dereferentiations.");
+            let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
+            let deref_target = sub_target.clone().access(deref_field.clone());
+            self.substitute_place(&deref_target, base_replacement.clone());
+        }
+
         self.expr = vir::utils::ExprSubPlaceSubstitutor::substitute(self.expr.clone(), sub_target, replacement);
     }
 
@@ -326,7 +335,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         // generic function call
                         _ => {
                             let function_name = self.encoder.encode_pure_function_use(def_id);
-                            trace!("Encoding function call '{}'", function_name);
+                            trace!("Encoding pure function call '{}'", function_name);
 
                             let return_type = self.encoder.encode_pure_function_return_type(def_id);
                             let formal_args: Vec<vir::LocalVar> = args

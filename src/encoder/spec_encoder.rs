@@ -17,7 +17,7 @@ use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::ProcedureImpl;
-use report::Log;
+use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
 use rustc::hir;
@@ -116,7 +116,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_hir_variable(&self, var_path: &hir::Path) -> vir::LocalVar {
-        trace!("encode_hir_path: {:?}", var_path);
+        trace!("encode_hir_variable: {:?}", var_path);
         let original_var_name = self.path_to_string(var_path);
         let mut is_quantified_var;
 
@@ -186,8 +186,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ref expr) => {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
-                let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
-                place.access(vir::Field::new("val_ref", vir::Type::TypedRef(type_name))).into()
+                match place {
+                    vir::Place::AddrOf(box base, typ) => base,
+                    _ => {
+                        let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
+                        place.access(vir::Field::new("val_ref", vir::Type::TypedRef(type_name))).into()
+                    }
+                }
             }
 
             hir::Expr_::ExprUnary(..) |
@@ -276,49 +281,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_match_arms(&self, base_expr: &hir::Expr, matched_expr_value: vir::Expr, arms: &[hir::Arm]) -> vir::Expr {
-        trace!("encode_match_arms: {:?}, {:?}, {:?}", base_expr, matched_expr_value, arms);
-        assert!(!arms.is_empty());
-        let first_arm = &arms[0];
-        let encoded_body = self.encode_hir_expr(&first_arm.body);
-
-        if arms.len() == 1 {
-            encoded_body
-        } else {
-            let mut encoded_pats: Vec<vir::Expr> = vec![];
-            for pat in &first_arm.pats {
-                trace!("encode_match_arms: first arm pat {:?}", pat.node);
-                let encoded_pat: vir::Expr = match pat.node {
-                    hir::PatKind::Wild => true.into(),
-
-                    hir::PatKind::Lit(ref expr) => {
-                        let target = self.encode_hir_expr(expr);
-                        vir::Expr::eq_cmp(
-                            matched_expr_value.clone(),
-                            target
-                        )
-                    },
-
-                    // TODO: obtain the discriminant
-                    hir::PatKind::Struct(ref qpath, _, _) => unimplemented!("TODO"),
-                    hir::PatKind::TupleStruct(ref qpath, _, _) => unimplemented!("TODO"),
-                    hir::PatKind::Tuple(_, _) => unimplemented!("TODO"),
-
-                    ref x => unimplemented!("{:?}", x),
-                };
-                encoded_pats.push(encoded_pat);
-            }
-
-            vir::Expr::ite(
-                encoded_pats.into_iter().disjoin(),
-                encoded_body,
-                self.encode_match_arms(base_expr, matched_expr_value, &arms[1..])
-            )
-        }
-    }
-
     fn encode_trigger(&self, trigger: &TypedTrigger) -> vir::Trigger {
-        warn!("TODO: incomplete encoding of trigger: {:?}", trigger);
+        trace!("encode_trigger {:?}", trigger);
         // TODO: `encode_hir_expr` generated also the final `.val_int` field access, that we may not want...
         vir::Trigger::new(
             trigger.terms().iter().map(|expr| self.encode_hir_expr(&expr.expr)).collect()
@@ -327,7 +291,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     /// Encode a specification item as a single expression.
     pub fn encode_assertion(&self, assertion: &TypedAssertion) -> vir::Expr {
-        warn!("TODO: incomplete encoding of functional specification: {:?}", assertion);
+        trace!("encode_assertion {:?}", assertion);
         match assertion.kind {
             box AssertionKind::Expr(ref assertion_expr) => {
                 self.encode_expression(assertion_expr)

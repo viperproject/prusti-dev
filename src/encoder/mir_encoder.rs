@@ -166,11 +166,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let access = if encoded_base.is_addr_of() {
                             encoded_base.parent().unwrap().clone()
                         } else {
-                            let ref_field = self.encoder.encode_ref_field("val_ref", ty);
-                            vir::Place::Field(
-                                box encoded_base,
-                                ref_field,
-                            )
+                            match encoded_base {
+                                vir::Place::AddrOf(box base_base_place, ty) => base_base_place,
+                                _ => {
+                                    let ref_field = self.encoder.encode_ref_field("val_ref", ty);
+                                    encoded_base.access(ref_field)
+                                }
+                            }
                         };
                         (access, ty, None)
                     }
@@ -178,7 +180,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let access = if encoded_base.is_addr_of() {
                             encoded_base.parent().unwrap().clone()
                         } else {
-                            let tcx = self.encoder.env().tcx();
                             let field_ty = base_ty.boxed_ty();
                             let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
                             vir::Place::Field(
