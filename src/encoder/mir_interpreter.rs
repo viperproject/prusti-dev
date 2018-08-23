@@ -90,3 +90,85 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
 
     result
 }
+
+
+/// Forward interpreter for a loop-less MIR
+pub trait ForwardMirInterpreter<'tcx> {
+    type State : Sized;
+    fn initial_state(&self) -> Self::State;
+    fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State);
+    fn apply_terminator(&self, terminator: &mir::Terminator<'tcx>, state: &Self::State) -> (HashMap<mir::BasicBlock, Self::State>, Option<Self::State>);
+    fn join(&self, states: Vec<&Self::State>) -> Self::State;
+}
+
+/// Interpret a loop-less MIR returning the joined **final** states.
+pub fn run_forward_interpretation<'tcx, S: Debug, I: ForwardMirInterpreter<'tcx, State = S>>(mir: &mir::Mir<'tcx>, interpreter: &I) -> S {
+    let basic_blocks = mir.basic_blocks();
+    let mut final_state: HashMap<mir::BasicBlock, S> = HashMap::new();
+    let mut predecessors: HashMap<mir::BasicBlock, Vec<mir::BasicBlock>> = HashMap::new();
+    let mut final_states: Vec<S> = vec![];
+    let mut incoming_states: HashMap<mir::BasicBlock, Vec<S>> = HashMap::new();
+
+    // Compute the predecessors of each MIR block
+    for bb in basic_blocks.indices() {
+        predecessors.insert(bb, vec![]);
+    }
+    for (bb, bb_data) in basic_blocks.iter_enumerated() {
+        if let Some(ref term) = bb_data.terminator {
+            for succ_bb in term.successors() {
+                let preds_of_succ = predecessors.get_mut(succ_bb).unwrap();
+                preds_of_succ.push(bb);
+            }
+        }
+    }
+
+    // Initialize using the initial block
+    let initial_bb = basic_blocks.indices().next().unwrap();
+    let mut pending_blocks: Vec<mir::BasicBlock> = vec![initial_bb];
+    incoming_states.insert(initial_bb, vec![interpreter.initial_state()]);
+
+    // Interpret all the blocks in `pending_blocks`
+    while !pending_blocks.is_empty() {
+        let curr_bb = pending_blocks.pop().unwrap();
+        let bb_data = &basic_blocks[curr_bb];
+
+        let mut curr_state = {
+            let incoming: Vec<&S> = incoming_states[&curr_bb].iter().collect();
+            trace!("Join {} incoming states at block {:?}", incoming.len(), curr_bb);
+            interpreter.join(incoming)
+        };
+
+        // Apply each statement
+        for stmt in bb_data.statements.iter() {
+            trace!("State before: {:?}", curr_state);
+            trace!("Apply statement {:?}", stmt);
+            interpreter.apply_statement(stmt, &mut curr_state);
+            trace!("State after: {:?}", curr_state);
+        }
+
+        // Apply the terminator
+        let terminator = bb_data.terminator.as_ref().unwrap();
+        trace!("State before: {:?}", curr_state);
+        trace!("Apply terminator {:?}", terminator);
+        let (mut succ_states, opt_final_state) = interpreter.apply_terminator(terminator, &mut curr_state);
+        trace!("States after: {:?}, {:?}", succ_states, opt_final_state);
+
+        // Store the states at the end of block `curr_bb`
+        if let Some(final_state) = opt_final_state {
+            final_states.push(final_state);
+        }
+        for (succ_bb, succ_state) in succ_states.drain() {
+            incoming_states.entry(succ_bb).or_insert(vec![]).push(succ_state);
+        }
+
+        // Visit the following blocks
+        for succ_bb in terminator.successors() {
+            if predecessors[&curr_bb].iter().all(|pred_bb| final_state.contains_key(pred_bb)) {
+                pending_blocks.push(*succ_bb);
+            }
+        }
+    }
+
+    trace!("Join {} final states", final_states.len());
+    interpreter.join(final_states.iter().collect())
+}
