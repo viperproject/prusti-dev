@@ -4,7 +4,7 @@
 
 use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::procedure_encoder::PRECONDITION_LABEL;
+use encoder::mir_encoder::PRECONDITION_LABEL;
 use encoder::Encoder;
 use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;

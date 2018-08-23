@@ -38,6 +38,10 @@ impl<'a> BranchCtxt<'a> {
         &self.state
     }
 
+    pub fn mut_state(&mut self) -> &mut State {
+        &mut self.state
+    }
+
     pub fn predicates(&self) -> &HashMap<String, vir::Predicate> {
         self.predicates
     }

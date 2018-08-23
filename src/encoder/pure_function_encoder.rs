@@ -7,7 +7,7 @@ use encoder::foldunfold;
 use encoder::mir_interpreter::{BackwardMirInterpreter, run_backward_interpretation};
 use encoder::mir_encoder::MirEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::procedure_encoder::PRECONDITION_LABEL;
+use encoder::mir_encoder::PRECONDITION_LABEL;
 use encoder::vir;
 use rustc::mir;
 use rustc::ty;
@@ -326,7 +326,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         "prusti_contracts::internal::old" => {
                             trace!("Encoding old expression {:?}", args[0]);
                             assert!(args.len() == 1);
-                            let encoded_rhs = vir::Expr::labelled_old(PRECONDITION_LABEL, encoded_args[0].clone());
+                            let encoded_rhs = self.mir_encoder.encode_old_expr(encoded_args[0].clone(), PRECONDITION_LABEL);
                             let mut state = states[&target_block].clone();
                             state.substitute_value(&lhs_value, encoded_rhs);
                             state

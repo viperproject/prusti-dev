@@ -29,9 +29,7 @@ use syntax::codemap::Span;
 use prusti_interface::specifications::*;
 use syntax::ast;
 use encoder::mir_encoder::MirEncoder;
-
-
-pub static PRECONDITION_LABEL: &'static str = "pre";
+use encoder::mir_encoder::PRECONDITION_LABEL;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -866,25 +864,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 predicate_name,
                 vec![
                     if let Some(label) = state_label {
-                        if label == "pre" {
-                            // Replace `_1, ..` with `_old_1, ..` in `encoded_place` to fix issue #20
-                            let formal_args: Vec<_> = self.locals
-                                .iter()
-                                .filter(|local| self.locals.is_formal_arg(self.mir, *local))
-                                .collect();
-                            for local in formal_args.iter() {
-                                let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(*local));
-                                let var_name = self.locals.get_name(*local);
-                                let old_var_name = format!("_old{}", var_name);
-                                let local_var = vir::LocalVar::new(var_name.clone(), vir::Type::TypedRef(type_name.clone()));
-                                let old_local_var = vir::LocalVar::new(old_var_name, vir::Type::TypedRef(type_name));
-                                trace!("replace {} --> {}", local_var, old_local_var);
-                                encoded_place = encoded_place.replace_prefix(&local_var.into(), old_local_var.into());
-                            }
-                        } else {
-                            warn!("TODO: local variables ")
-                        }
-                        vir::Expr::labelled_old(label, encoded_place.into())
+                        self.mir_encoder.encode_old_place(encoded_place, label)
                     } else {
                         encoded_place.into()
                     }

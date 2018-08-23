@@ -147,6 +147,29 @@ impl State {
         }
     }
 
+    pub fn replace_local_vars<F>(&mut self, replace: F) where F: Fn(&vir::LocalVar) -> vir::LocalVar {
+        let collections = vec![
+            &mut self.acc,
+            &mut self.pred,
+            &mut self.moved,
+            &mut self.borrowed,
+        ];
+
+        for coll in collections {
+            let new_values = coll.clone().into_iter().map(
+                |place| {
+                    let base_var = place.base();
+                    let new_base_var = replace(base_var);
+                    place.clone().replace_prefix(&vir::Place::Base(base_var.clone()), new_base_var.into())
+                }
+            );
+            coll.clear();
+            for item in new_values {
+                coll.insert(item);
+            }
+        }
+    }
+
     pub fn acc(&self) -> &HashSet<vir::Place> {
         &self.acc
     }

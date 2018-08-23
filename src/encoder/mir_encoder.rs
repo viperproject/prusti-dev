@@ -14,6 +14,10 @@ use rustc_data_structures::indexed_vec::Idx;
 use encoder::borrows::ProcedureContract;
 use encoder::places;
 use encoder::vir::ExprIterator;
+use encoder::vir::utils::ExprSubPlaceSubstitutor;
+use encoder::places::LocalVariableManager;
+
+pub static PRECONDITION_LABEL: &'static str = "pre";
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
 #[derive(Clone)]
@@ -133,10 +137,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let outer_mir = tcx.mir_validated(outer_mir_def_id).borrow();
                         let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, "".to_string());
 
-                        // XXX: Hack to obtain the right variable.
-                        // TODO: remove this from mir_encoder
-                        // The fix requires to move the type-checked closure to the verified method,
-                        // so we can just use `outer_mir_encoder.encode_operand_place(operand).unwrap();`
+                        // XXX: Hack to obtain the variable from the MIR in which the closure is declared.
+                        // TODO: remove this hack from mir_encoder
                         let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
                         let mut encoded_projection: vir::Place = tcx.with_freevars(node_id, |freevars| {
                             let freevar = &freevars[field.index()];
@@ -299,5 +301,41 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Perm::full(),
             )
         )
+    }
+
+    pub fn encode_old_place(&self, mut place: vir::Place, label: &str) -> vir::Expr {
+        debug!("encode_old_place {}, {}", place, label);
+        if label == PRECONDITION_LABEL {
+            // Replace local vars `_1, ..` with `_old_1, ..` in `encoded_place` (see issue #20)
+            for local in self.mir.local_decls.indices() {
+                let local_var = self.encode_local(local);
+                let old_var_name = format!("_old{}", local_var.name);
+                let old_local_var = vir::LocalVar::new(old_var_name, local_var.typ.clone());
+                trace!("replace {} --> {}", local_var, old_local_var);
+                place = place.replace_prefix(&local_var.into(), old_local_var.into());
+            }
+        } else {
+            warn!("TODO: local variables may be evaluated in the wrong state")
+            // See issue #20
+        }
+        vir::Expr::labelled_old(label, place.into())
+    }
+
+    pub fn encode_old_expr(&self, mut expr: vir::Expr, label: &str) -> vir::Expr {
+        debug!("encode_old_expr {}, {}", expr, label);
+        if label == PRECONDITION_LABEL {
+            // Replace local vars `_1, ..` with `_old_1, ..` in `encoded_place` (see issue #20)
+            for local in self.mir.local_decls.indices() {
+                let local_var = self.encode_local(local);
+                let old_var_name = format!("_old{}", local_var.name);
+                let old_local_var = vir::LocalVar::new(old_var_name, local_var.typ.clone());
+                trace!("replace {} --> {}", local_var, old_local_var);
+                expr = ExprSubPlaceSubstitutor::substitute(expr, &local_var.into(), old_local_var.into());
+            }
+        } else {
+            warn!("TODO: local variables may be evaluated in the wrong state")
+            // See issue #20
+        }
+        vir::Expr::labelled_old(label, expr)
     }
 }

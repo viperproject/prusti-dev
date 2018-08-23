@@ -90,13 +90,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
     fn replace_stmt(&mut self, stmt: &vir::Stmt, bctxt: &mut BranchCtxt<'a>) -> Vec<vir::Stmt> {
         debug!("replace_stmt: {}", stmt);
         if let vir::Stmt::Label(ref label) = stmt {
-            let stored_bctxt = if label == "pre" {
-                // TODO: rename the local variables from `_1, ..` to `_old_1, ..` (see issue #20)
-                bctxt.clone()
-            } else {
-                bctxt.clone()
-            };
-            self.bctxt_at_label.insert(label.clone(), stored_bctxt);
+            self.bctxt_at_label.insert(label.clone(), bctxt.clone());
         }
 
         let (curr_perms, old_perms) = stmt
@@ -255,6 +249,16 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a>{
         debug!("fold_labelled_old {}: {}", label, expr);
 
         let mut old_bctxt = self.bctxt_at_label.get(&label).unwrap().clone();
+
+        if label == "pre" {
+            // Rename the local variables from `_1, ..` to `_old_1, ..` (see issue #20)
+            old_bctxt.mut_state().replace_local_vars(|local_var: &vir::LocalVar| {
+                vir::LocalVar::new(
+                    format!("_old{}", local_var.name),
+                    local_var.typ.clone()
+                )
+            });
+        };
 
         let (curr_perms, old_perms) = expr
             .get_required_permissions(old_bctxt.predicates())
