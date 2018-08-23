@@ -90,7 +90,13 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
     fn replace_stmt(&mut self, stmt: &vir::Stmt, bctxt: &mut BranchCtxt<'a>) -> Vec<vir::Stmt> {
         debug!("replace_stmt: {}", stmt);
         if let vir::Stmt::Label(ref label) = stmt {
-            self.bctxt_at_label.insert(label.clone(), bctxt.clone());
+            let stored_bctxt = if label == "pre" {
+                // TODO: rename the local variables from `_1, ..` to `_old_1, ..` (see issue #20)
+                bctxt.clone()
+            } else {
+                bctxt.clone()
+            };
+            self.bctxt_at_label.insert(label.clone(), stored_bctxt);
         }
 
         let (curr_perms, old_perms) = stmt

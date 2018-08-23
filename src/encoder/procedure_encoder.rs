@@ -216,12 +216,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.encode_place_predicate_permission(local_var.clone().into())
             );
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
+        }
 
-            // Keep a copy of the value of the variable (fixes issue #20)
+        // Keep a copy of the value of the variable (fixes issue #20)
+        let formal_args: Vec<_> = self.locals
+            .iter()
+            .filter(|local| self.locals.is_formal_arg(self.mir, *local))
+            .collect();
+        for local in formal_args.iter() {
+            let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(*local));
+            let var_name = self.locals.get_name(*local);
             let old_var_name = format!("_old{}", var_name);
+            let var_type = vir::Type::TypedRef(type_name.clone());
             let old_var_type = vir::Type::TypedRef(type_name.clone());
-            self.cfg_method.add_local_var(&old_var_name, old_var_type.clone());
-            let old_local_var = vir::LocalVar::new(old_var_name, old_var_type);
+            let local_var = vir::LocalVar::new(var_name.clone(), var_type);
+            let old_local_var = vir::LocalVar::new(old_var_name.clone(), old_var_type.clone());
+            self.cfg_method.add_local_var(&old_var_name, old_var_type);
             let init_old = vir::Stmt::Inhale(
                 vir::Expr::eq_cmp(
                     old_local_var.into(),
@@ -858,16 +868,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     if let Some(label) = state_label {
                         if label == "pre" {
                             // Replace `_1, ..` with `_old_1, ..` in `encoded_place` to fix issue #20
-                            let local_vars_and_return: Vec<_> = self.locals
+                            let formal_args: Vec<_> = self.locals
                                 .iter()
-                                .filter(|local| !self.locals.is_formal_arg(self.mir, *local))
+                                .filter(|local| self.locals.is_formal_arg(self.mir, *local))
                                 .collect();
-                            for local in local_vars_and_return.iter() {
+                            for local in formal_args.iter() {
                                 let type_name = self.encoder.encode_type_predicate_use(self.locals.get_type(*local));
                                 let var_name = self.locals.get_name(*local);
                                 let old_var_name = format!("_old{}", var_name);
                                 let local_var = vir::LocalVar::new(var_name.clone(), vir::Type::TypedRef(type_name.clone()));
                                 let old_local_var = vir::LocalVar::new(old_var_name, vir::Type::TypedRef(type_name));
+                                trace!("replace {} --> {}", local_var, old_local_var);
                                 encoded_place = encoded_place.replace_prefix(&local_var.into(), old_local_var.into());
                             }
                         } else {
