@@ -145,13 +145,20 @@ use std::mem;
 use syntax::codemap::respan;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use syntax_pos::DUMMY_SP;
+use prusti_interface::report::Log;
+use std::io::Write;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
 pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMap {
     trace!("[rewrite_crate] enter");
     let krate = state.krate.take().unwrap();
-    let mut parser = SpecParser::new(state.session);
+    let source_path = match driver::source_name(state.input) {
+        FileName::Real(path) => path,
+        _ => unreachable!(),
+    };
+    let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+    let mut parser = SpecParser::new(state.session, &source_filename);
     state.krate = Some(parser.fold_crate(krate));
     trace!("[rewrite_crate] exit");
     parser.untyped_specifications
@@ -168,18 +175,27 @@ pub struct SpecParser<'tcx> {
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
     untyped_specifications: UntypedSpecificationMap,
+    rust_modified_program_writer: Box<Write>
 }
 
 impl<'tcx> SpecParser<'tcx> {
     /// Create new spec parser.
-    pub fn new(session: &'tcx Session) -> SpecParser<'tcx> {
+    pub fn new(session: &'tcx Session, source_filename: &str) -> SpecParser<'tcx> {
         SpecParser {
             session: session,
             ast_builder: MinimalAstBuilder::new(&session.parse_sess),
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),
             untyped_specifications: HashMap::new(),
+            rust_modified_program_writer: Log::writer("rust_modified_program", source_filename).ok().unwrap()
         }
+    }
+
+    fn log_modified_program<S: ToString>(&mut self, data: S) {
+        let writer = self.rust_modified_program_writer.as_mut();
+        writer.write_all(data.to_string().as_bytes()).ok().unwrap();
+        writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
+        writer.flush().ok().unwrap();
     }
 
     /// Generate a fresh specification ID (guaranteed to be unique).
@@ -505,14 +521,13 @@ impl<'tcx> SpecParser<'tcx> {
             );
         }
 
-        debug!(
-            "new_item:\n{}",
-            syntax::print::pprust::item_to_string(&item)
-        );
-        debug!(
-            "spec_item:\n{}",
-            syntax::print::pprust::item_to_string(&spec_item)
-        );
+        let new_item_str = syntax::print::pprust::item_to_string(&item);
+        let spec_item_str = syntax::print::pprust::item_to_string(&spec_item);
+        debug!("new_item:\n{}", new_item_str);
+        self.log_modified_program(new_item_str);
+        debug!("spec_item:\n{}", spec_item_str);
+        self.log_modified_program(spec_item_str);
+
         trace!("[rewrite_function] exit");
         let mut result = SmallVector::new();
         result.push(ptr::P(item));
