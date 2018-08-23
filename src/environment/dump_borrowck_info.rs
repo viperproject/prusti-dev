@@ -6,9 +6,12 @@ use super::borrowck::{facts, regions};
 use super::loops;
 use super::mir_analyses::initialization::{
     compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult};
+    DefinitelyInitializedAnalysisResult,
+    PlaceSet,
+};
+use crate::utils;
 use datafrog::{Iteration, Relation};
-use std::cell;
+use std::{cell, fmt};
 use std::env;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -21,6 +24,262 @@ use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
 use syntax::codemap::Span;
+
+
+// TODO: Refactor START
+
+#[derive(Clone, Copy, Debug)]
+enum PermissionKind {
+    /// Gives read permission to this node. It must not be a leaf node.
+    ReadNode,
+    /// Gives read permission to the entire subtree including this node.
+    /// This must be a leaf node.
+    ReadSubtree,
+    /// Gives write permission to this node. It must not be a leaf node.
+    WriteNode,
+    /// Gives read permission to the entire subtree including this node.
+    /// This must be a leaf node.
+    WriteSubtree,
+    /// Give no permission to this node and the entire subtree. This
+    /// must be a leaf node.
+    None,
+}
+
+struct Loan<'tcx> {
+    /// ID used in Polonius.
+    id: facts::Loan,
+    /// The location where the borrow starts.
+    location: mir::Location,
+    /// The borrowed place.
+    place: mir::Place<'tcx>,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum BorrowKind {
+    Shared,
+    Mutable,
+}
+
+enum PermissionNode<'tcx> {
+    OwnedNode {
+        place: mir::Place<'tcx>,
+        kind: PermissionKind,
+        children: Vec<PermissionNode<'tcx>>,
+    },
+    BorrowedNode {
+        place: mir::Place<'tcx>,
+        kind: BorrowKind,
+        child: Box<PermissionNode<'tcx>>,
+        /// A list of locations from where this borrow may be borrowing.
+        may_borrow_from: Vec<Loan<'tcx>>,
+    },
+}
+
+impl<'tcx> PermissionNode<'tcx> {
+
+    /// Create a permission node where the `place` is of kind
+    /// `WriteSubtree` and all steps up to it are of kind `ReadNode`
+    /// assuming the `place` is definitely initialised.
+    pub fn new_write(place: &mir::Place<'tcx>, def_inits: &Vec<utils::VecPlace<'tcx>>) -> Self {
+        Self::do_new_write(place, def_inits, true)
+    }
+
+    /// `leaf` marks the first level of recursion for which we need to
+    /// create node with `WriteSubtree`.
+    pub fn do_new_write(place: &mir::Place<'tcx>,
+                        def_inits: &Vec<utils::VecPlace<'tcx>>,
+                        leaf: bool) -> Self {
+        let permission_kind = if leaf {
+            PermissionKind::WriteSubtree
+        } else {
+            PermissionKind::ReadNode
+        };
+        // TODO: Take into account def_inits.
+        match place {
+            mir::Place::Local(_) => {
+                PermissionNode::OwnedNode {
+                    place: place.clone(),
+                    kind: permission_kind,
+                    children: Vec::new(),
+                }
+            },
+            mir::Place::Projection(box mir::Projection { base, .. }) => {
+                let child = PermissionNode::do_new_write(base, def_inits, false);
+                PermissionNode::OwnedNode {
+                    place: place.clone(),
+                    kind: permission_kind,
+                    children: vec![child],
+                }
+            },
+            _ => unimplemented!(),
+        }
+    }
+
+    pub fn get_place(&self) -> &mir::Place<'tcx> {
+        match self {
+            PermissionNode::OwnedNode { place, .. } => place,
+            PermissionNode::BorrowedNode { place, .. } => place,
+        }
+    }
+}
+
+impl<'tcx> fmt::Display for PermissionNode<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            PermissionNode::OwnedNode { place, kind, children } => {
+                write!(f, "acc({:?}, {:?})", place, kind)?;
+                for child in children.iter() {
+                    write!(f, " && {}", child)?;
+                }
+            }
+            PermissionNode::BorrowedNode { .. } => {
+                unimplemented!();
+            }
+        }
+        Ok(())
+    }
+}
+
+struct PermissionTree<'tcx> {
+    root: PermissionNode<'tcx>,
+}
+
+impl<'tcx> PermissionTree<'tcx> {
+
+    /// Create a permission tree where the `place` is of kind
+    /// `WriteSubtree`, all steps between `write_place` and `place` are
+    /// of kind `WriteNode`, and all steps from the root until `write_place`
+    /// are of kind `ReadNode`.
+    pub fn new_write(place: &mir::Place<'tcx>, write_place: &mir::Place<'tcx>) -> Self {
+        let place = utils::VecPlace::new(place);
+        let mut place_iter = place.iter().rev();
+        let mut node = PermissionNode::OwnedNode {
+            place: place_iter.next().unwrap().get_mir_place().clone(),
+            kind: PermissionKind::WriteSubtree,
+            children: Vec::new(),
+        };
+        let mut permission_kind = if node.get_place() == write_place {
+            PermissionKind::ReadNode
+        } else {
+            PermissionKind::WriteNode
+        };
+        while let Some(component) = place_iter.next() {
+            node = PermissionNode::OwnedNode {
+                place: component.get_mir_place().clone(),
+                kind: permission_kind,
+                children: vec![node],
+            };
+            if component.get_mir_place() == write_place {
+                permission_kind = PermissionKind::ReadNode;
+            }
+        }
+        Self { root: node, }
+    }
+    /// Create a permission tree where the `place` is of kind
+    /// `WriteSubtree` and all steps up to it are of kind `ReadNode`
+    /// assuming the `place` is definitely initialised.
+    pub fn new_write2(place: &mir::Place<'tcx>, def_inits: &Vec<utils::VecPlace<'tcx>>) -> Self {
+        // TODO: Take into account def_inits by subtracting?
+        let place = utils::VecPlace::new(place);
+        let mut place_iter = place.iter().rev();
+        let mut node = PermissionNode::OwnedNode {
+            place: place_iter.next().unwrap().get_mir_place().clone(),
+            kind: PermissionKind::WriteSubtree,
+            children: Vec::new(),
+        };
+        while let Some(component) = place_iter.next() {
+            node = PermissionNode::OwnedNode {
+                place: component.get_mir_place().clone(),
+                kind: PermissionKind::ReadNode,
+                children: vec![node],
+            };
+        }
+        Self { root: node, }
+    }
+
+    pub fn get_root_place(&self) -> &mir::Place {
+        match self.root {
+            PermissionNode::OwnedNode { ref place, .. } => place,
+            PermissionNode::BorrowedNode { ref place, .. } => place,
+        }
+    }
+}
+
+impl<'tcx> fmt::Display for PermissionTree<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.root)
+    }
+}
+
+struct PermissionForest<'tcx> {
+    trees: Vec<PermissionTree<'tcx>>,
+}
+
+impl<'tcx> PermissionForest<'tcx> {
+    /// +   `write_paths` – paths to whose leaves we should have write permission.
+    /// +   `read_paths` – paths to whose leaves we should have read permission.
+    /// +   `definitely_initalised_paths` – which paths are definitely initialised.
+    pub fn new(
+        write_paths: &Vec<mir::Place<'tcx>>,
+        read_paths: &Vec<mir::Place<'tcx>>,
+        definitely_initalised_paths: &PlaceSet<'tcx>) -> Self {
+
+        let def_inits: Vec<_> = definitely_initalised_paths
+            .iter()
+            .map(|place| utils::VecPlace::new(place))
+            .collect();
+        let mut trees: Vec<PermissionTree> = Vec::new();
+        for write_place in write_paths.iter() {
+            let mut found = false;
+            for tree in trees.iter_mut() {
+                if utils::is_prefix(write_place, tree.get_root_place()) {
+                    found = true;
+                    unimplemented!();
+                }
+            }
+            if !found {
+                let mut found_def_init_prefix = false;
+                let mut found_write_prefix = false;
+                for def_init_place in definitely_initalised_paths.iter() {
+                    debug!("def_init={:?} place={:?}", def_init_place, write_place);
+                    if utils::is_prefix(write_place, def_init_place) {
+                        assert!(!found_write_prefix && !found_def_init_prefix);
+                        let tree = PermissionTree::new_write(write_place, write_place);
+                        trees.push(tree);
+                        found_def_init_prefix = true;
+                    } else if utils::is_prefix(def_init_place, write_place) {
+                        assert!(!found_def_init_prefix);
+                        let tree = PermissionTree::new_write(def_init_place, write_place);
+                        // TODO: Give write permission from write_place.
+                        trees.push(tree);
+                        found_write_prefix = true;
+                    }
+                }
+                assert!(found_write_prefix || found_def_init_prefix);
+            }
+        }
+        // TODO: Read places.
+        Self {
+            trees: trees,
+        }
+    }
+}
+
+impl<'tcx> fmt::Display for PermissionForest<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut first = true;
+        for tree in self.trees.iter() {
+            if first {
+                write!(f, "({})", tree.root)?;
+                first = false;
+            } else {
+                write!(f, " && ({})", tree.root)?;
+            }
+        }
+        Ok(())
+    }
+}
+// TODO: Refactor END
 
 
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>) {
@@ -250,6 +509,18 @@ macro_rules! to_html {
     }};
 }
 
+macro_rules! to_html_display {
+    ( $o:expr ) => {{
+        format!("{}", $o)
+            .replace("{", "\\{")
+            .replace("}", "\\}")
+            .replace("&", "&amp;")
+            .replace(">", "&gt;")
+            .replace("<", "&lt;")
+            .replace("\n", "<br/>")
+    }};
+}
+
 macro_rules! write_edge {
     ( $self:ident, $source:ident, str $target:ident ) => {{
         write_graph!($self, "\"{:?}\" -> \"{}\"\n", $source, stringify!($target));
@@ -438,6 +709,122 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td colspan=\"7\"></td>");
         write_graph!(self, "<td>Definitely Initialized</td>");
         write_graph!(self, "</th>");
+        if self.loops.loop_heads.contains(&bb) {
+//              1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
+//                  accessed in the loop body and ``t`` is the type of access (read,
+//                  destructive read, …).
+//              2.  Let ``A2`` be a subset of ``A1`` that contains only the prefixes
+//                  whose roots are defined before the loop. (The root of the prefix
+//                  ``x.f.g.h`` is ``x``.)
+//              3.  Let ``A3`` be a subset of ``A2`` without accesses that are subsumed
+//                  by other accesses.
+//              4.  Let ``U`` be a set of prefixes that are unreachable at the loop
+//                  head because they are either moved out or mutably borrowed.
+//              5.  For each access ``(p, t)`` in the set ``A3``:
+
+//                  1.  Add a read permission to the loop invariant to read the prefix
+//                      up to the last element. If needed, unfold the corresponding
+//                      predicates.
+//                  2.  Add a permission to the last element based on what is required
+//                      by the type of access. If ``p`` is a prefix of some prefixes in
+//                      ``U``, then the invariant would contain corresponding predicate
+//                      bodies without unreachable elements instead of predicates.
+
+
+            // Paths accessed inside the loop body.
+            let accesses = self.loops.compute_used_paths(bb, &self.mir);
+            let definitely_initalised_paths = self.initialization.get_before_block(bb);
+            // Paths that are defined before the loop.
+            let defined_accesses: Vec<_> = accesses
+                .iter()
+                .filter(
+                    |loops::PlaceAccess { place, kind, .. } |
+                    definitely_initalised_paths.iter().any(
+                        |initialised_place|
+                        // If the prefix is definitely initialised, then this place is a potential
+                        // loop invariant.
+                        utils::is_prefix(place, initialised_place) ||
+                        // If the access is store, then we only need the path to exist, which is
+                        // guaranteed if we have at least some of the leaves still initialised.
+                        //
+                        // Note that the Rust compiler is even more permissive as explained in this
+                        // issue: https://github.com/rust-lang/rust/issues/21232.
+                        (
+                            *kind == loops::PlaceAccessKind::Store &&
+                            utils::is_prefix(initialised_place, place)
+                        )
+                    )
+                )
+                .map(|loops::PlaceAccess { place, kind, .. } | (place, kind))
+                .collect();
+            // Paths to whose leaves we need write permissions.
+            let mut write_leaves: Vec<mir::Place> = Vec::new();
+            for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+                if kind.is_write_access() {
+                    let has_prefix = defined_accesses
+                        .iter()
+                        .any(|(potential_prefix, kind)|
+                             kind.is_write_access() &&
+                             place != potential_prefix &&
+                             utils::is_prefix(place, potential_prefix)
+                         );
+                    if !has_prefix && !write_leaves.contains(place) {
+                        write_leaves.push((*place).clone());
+                    }
+                }
+            }
+            // Paths to whose leaves we need read permissions.
+            let mut read_leaves: Vec<mir::Place> = Vec::new();
+            for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+                if !kind.is_write_access() {
+                    let has_prefix = defined_accesses
+                        .iter()
+                        .any(|(potential_prefix, kind)|
+                             place != potential_prefix &&
+                             utils::is_prefix(place, potential_prefix)
+                         );
+                    if !has_prefix && !read_leaves.contains(place) {
+                        read_leaves.push((*place).clone());
+                    }
+                }
+            }
+            // Construct the permission forest.
+            let forest = PermissionForest::new(
+                &write_leaves, &read_leaves, &definitely_initalised_paths);
+
+            //write_graph!(self, "<tr>");
+            //let accesses_str: Vec<_> = accesses
+                //.iter()
+                //.cloned()
+                //.map(|loops::PlaceAccess { place, kind, .. } | (place, kind))
+                //.collect();
+            //write_graph!(self, "<td colspan=\"2\">Accessed paths (A1):</td>");
+            //write_graph!(self, "<td colspan=\"7\">{}</td>", to_sorted_string!(accesses_str));
+            //write_graph!(self, "</tr>");
+
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Def. before loop (A2):</td>");
+            write_graph!(self, "<td colspan=\"7\">{}</td>",
+                         to_sorted_string!(defined_accesses));
+            write_graph!(self, "</tr>");
+
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Write paths (A3):</td>");
+            write_graph!(self, "<td colspan=\"7\">{}</td>",
+                         to_sorted_string!(write_leaves));
+            write_graph!(self, "</tr>");
+
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Read paths (A3):</td>");
+            write_graph!(self, "<td colspan=\"7\">{}</td>",
+                         to_sorted_string!(read_leaves));
+            write_graph!(self, "</tr>");
+
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Invariant:</td>");
+            write_graph!(self, "<td colspan=\"7\">{}</td>", to_html_display!(forest));
+            write_graph!(self, "</tr>");
+        }
         write_graph!(self, "<th>");
         if self.show_statement_indices() {
             write_graph!(self, "<td>Nr</td>");
