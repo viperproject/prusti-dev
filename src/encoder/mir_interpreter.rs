@@ -98,7 +98,7 @@ pub trait ForwardMirInterpreter<'tcx> {
     fn initial_state(&self) -> Self::State;
     fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State);
     fn apply_terminator(&self, terminator: &mir::Terminator<'tcx>, state: &Self::State) -> (HashMap<mir::BasicBlock, Self::State>, Option<Self::State>);
-    fn join(&self, states: Vec<&Self::State>) -> Self::State;
+    fn join(&self, states: &[&Self::State]) -> Self::State;
 }
 
 /// Interpret a loop-less MIR returning the joined **final** states.
@@ -131,11 +131,13 @@ pub fn run_forward_interpretation<'tcx, S: Debug, I: ForwardMirInterpreter<'tcx,
     while !pending_blocks.is_empty() {
         let curr_bb = pending_blocks.pop().unwrap();
         let bb_data = &basic_blocks[curr_bb];
+        trace!("Current block: {:?}", curr_bb);
 
         let mut curr_state = {
-            let incoming: Vec<&S> = incoming_states[&curr_bb].iter().collect();
+            let empty_states = vec![];
+            let incoming: Vec<&S> = incoming_states.get(&curr_bb).unwrap_or(&empty_states).iter().collect();
             trace!("Join {} incoming states at block {:?}", incoming.len(), curr_bb);
-            interpreter.join(incoming)
+            interpreter.join(&incoming[..])
         };
 
         // Apply each statement
@@ -163,6 +165,13 @@ pub fn run_forward_interpretation<'tcx, S: Debug, I: ForwardMirInterpreter<'tcx,
 
         // Visit the following blocks
         for succ_bb in terminator.successors() {
+            if (!incoming_states.contains_key(succ_bb)) {
+                trace!(
+                    "Terminator of block {:?} did not initialize initial state of block {:?}",
+                    curr_bb,
+                    succ_bb
+                );
+            }
             if predecessors[&curr_bb].iter().all(|pred_bb| final_state.contains_key(pred_bb)) {
                 pending_blocks.push(*succ_bb);
             }
@@ -170,5 +179,5 @@ pub fn run_forward_interpretation<'tcx, S: Debug, I: ForwardMirInterpreter<'tcx,
     }
 
     trace!("Join {} final states", final_states.len());
-    interpreter.join(final_states.iter().collect())
+    interpreter.join(&final_states.iter().collect::<Vec<_>>()[..])
 }

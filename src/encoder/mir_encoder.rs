@@ -24,21 +24,19 @@ pub static PRECONDITION_LABEL: &'static str = "pre";
 pub struct MirEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     mir: &'p mir::Mir<'tcx>,
-    vars_namespace: String,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, vars_namespace: String) -> Self {
+    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>) -> Self {
         debug!("MirEncoder constructor");
         MirEncoder {
             encoder,
             mir,
-            vars_namespace,
         }
     }
 
     pub fn encode_local_var_name(&self, local: mir::Local) -> String {
-        format!("{}{:?}", self.vars_namespace, local)
+        format!("{:?}", local)
     }
 
     pub fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
@@ -53,7 +51,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     fn encode_local_var_with_name(&self, name: String) -> vir::LocalVar {
         let (index, decl) = self.mir.local_decls.iter_enumerated().find(|(index, decl)| decl.name.is_some() && decl.name.unwrap().to_string() == name).unwrap();
-        let var_name = format!("{}{:?}", self.vars_namespace, index);
+        let var_name = format!("{:?}", index);
         let type_name = self.encoder.encode_type_predicate_use(decl.ty);
         vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
     }
@@ -135,7 +133,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
                         let tcx = self.encoder.env().tcx();
                         let outer_mir = tcx.mir_validated(outer_mir_def_id).borrow();
-                        let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir, "".to_string());
+                        let outer_mir_encoder = MirEncoder::new(self.encoder, &outer_mir);
 
                         // XXX: Hack to obtain the variable from the MIR in which the closure is declared.
                         // TODO: remove this hack from mir_encoder
@@ -143,7 +141,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let mut encoded_projection: vir::Place = tcx.with_freevars(node_id, |freevars| {
                             let freevar = &freevars[field.index()];
                             let var_name = tcx.hir.name(freevar.var_id()).to_string();
-                            let encoded_var = outer_mir_encoder.encode_local_var_with_name(var_name);
+                            let encoded_var = outer_mir_encoder.encode_local_var_with_name(var_name.clone());
+                            trace!("Field {:?} of closure corresponds to outer variable '{}', encoded as {}", field, var_name, encoded_var);
                             vir::Place::from(encoded_var).addr_of()
                         });
                         // Another hack...

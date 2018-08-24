@@ -78,3 +78,12 @@ impl<'a> vir::ExprWalker for ExprPlaceFinder<'a> {
         }
     }
 }
+
+
+pub fn substitute_place_in_expr(expr: vir::Expr, sub_target: &vir::Place, replacement: vir::Expr) -> vir::Expr {
+    if let vir::Expr::Place(replacement_place) = replacement {
+        ExprSubPlaceSubstitutor::substitute(expr, sub_target, replacement_place)
+    } else {
+        ExprExactPlaceSubstitutor::substitute(expr, sub_target, replacement)
+    }
+}

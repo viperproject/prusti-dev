@@ -76,7 +76,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loops,
             auxiliar_local_vars: HashMap::new(),
             //dataflow_info: dataflow_info,
-            mir_encoder: MirEncoder::new(encoder, mir, "".to_string())
+            mir_encoder: MirEncoder::new(encoder, mir)
         }
     }
 

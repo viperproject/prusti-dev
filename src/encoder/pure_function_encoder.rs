@@ -4,7 +4,7 @@
 
 use encoder::Encoder;
 use encoder::foldunfold;
-use encoder::mir_interpreter::{BackwardMirInterpreter, run_backward_interpretation};
+use encoder::mir_interpreter::{ForwardMirInterpreter, run_forward_interpretation};
 use encoder::mir_encoder::MirEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::mir_encoder::PRECONDITION_LABEL;
@@ -13,6 +13,7 @@ use rustc::mir;
 use rustc::ty;
 use rustc::hir::def_id::DefId;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use prusti_interface::environment::Environment;
 use syntax::ast;
 use prusti_interface::report::Log;
@@ -43,32 +44,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let function_name = self.encoder.env().get_item_name(self.proc_def_id);
         debug!("Encode body of pure function {}", function_name);
 
-        let state = run_backward_interpretation(self.mir, &self.interpreter)
-            .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
-        let body_expr = state.into_expression();
-        debug!("Pure function {} has been encoded with expr: {}", function_name, body_expr);
-        body_expr
+        let states = run_forward_interpretation(self.mir, &self.interpreter);
+        let return_place = vir::Place::Base(
+            self.interpreter.mir_encoder.encode_local(mir::RETURN_PLACE)
+        ).access(
+            self.encoder.encode_value_field(self.mir.return_ty())
+        );
+        let return_expr = states.join_states().translate(return_place);
+        debug!("Pure function {} has been encoded with expr: {}", function_name, return_expr);
+        return_expr
     }
 
     pub fn encode_function(&self) -> vir::Function {
         let function_name = self.encode_function_name();
         debug!("Encode pure function {}", function_name);
 
-        let mut state = run_backward_interpretation(self.mir, &self.interpreter)
-            .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
-        // Adjust local variables
-        for arg in self.mir.args_iter() {
-            let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
-            let value_field = self.encoder.encode_value_field(arg_ty);
-            let target_place: vir::Place = vir::Place::Base(
-                self.interpreter.mir_encoder()
-                .encode_local(arg)
-            ).access(value_field);
-            let new_place: vir::Place = self.encode_local(arg).into();
-            state.substitute_place(&target_place, new_place);
-        }
-        let body_expr = state.into_expression();
-        debug!("Pure function {} has been encoded with expr: {}", function_name, body_expr);
+        let mut states = run_forward_interpretation(self.mir, &self.interpreter);
+        let return_place = vir::Place::Base(
+            self.interpreter.mir_encoder.encode_local(mir::RETURN_PLACE)
+        ).access(
+            self.encoder.encode_value_field(self.mir.return_ty())
+        );
+        let return_expr = states.join_states().translate(return_place);
+        debug!("Pure function {} has been encoded with expr: {}", function_name, return_expr);
 
         let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
         let preconditions = self.encode_precondition_expr(&contract);
@@ -83,7 +81,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             formal_args,
             return_type,
             pres: vec![preconditions.0, preconditions.1],
-            body: Some(body_expr)
+            body: Some(return_expr)
         };
 
         self.encoder.log_vir_initial_program(function.to_string());
@@ -131,48 +129,132 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     }
 }
 
-#[derive(Clone, Debug)]
-struct PureFunctionState {
-    expr: vir::Expr
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct PathState {
+    path_cond: vir::Expr,
+    store: HashMap<vir::Place, vir::Expr>
 }
 
-impl PureFunctionState {
-    fn new(expr: vir::Expr) -> Self {
-        PureFunctionState {
-            expr
+impl PathState {
+    fn new() -> Self {
+        PathState {
+            path_cond: true.into(),
+            store: HashMap::new()
         }
     }
 
-    fn expr(&self) -> &vir::Expr {
-        &self.expr
+    fn translate(&self, place: vir::Place) -> vir::Expr {
+        trace!("[enter] translate {}", place);
+        let expr = self.translate_expr(place.clone().into());
+        trace!("[exit] translate {} => {}", place, expr);
+        expr
     }
 
-    fn into_expression(self) -> vir::Expr {
-        self.expr
+    fn translate_expr(&self, mut expr: vir::Expr) -> vir::Expr {
+        trace!("translate_expr {}", expr);
+        for (stored_place, stored_expr) in &self.store {
+            expr = vir::utils::substitute_place_in_expr(expr, stored_place, stored_expr.clone());
+        }
+        expr
     }
 
-    pub fn substitute_place(&mut self, sub_target: &vir::Place, replacement: vir::Place) {
-        trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
+    fn assign(&mut self, place: vir::Place, mut expr: vir::Expr) {
+        trace!("PathState::assign {} = {}", place, expr);
+        self.store.insert(place, self.translate_expr(expr));
+    }
 
-        // If `replacement` is a reference, simplify also its dereferentiations
-        if let vir::Place::AddrOf(box ref base_replacement, ref dereferenced_type) = replacement {
-            trace!("Substitution of a reference. Simplify its dereferentiations.");
-            let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
-            let deref_target = sub_target.clone().access(deref_field.clone());
-            self.substitute_place(&deref_target, base_replacement.clone());
+    fn add_path_condition(&mut self, mut cond: vir::Expr) {
+        trace!("PathState::add_condition {}", cond);
+        self.path_cond = vir::Expr::and(self.path_cond.clone(), self.translate_expr(cond));
+    }
+
+    fn join(&self, other: &Self) -> Self {
+        let mut merged_store = self.store.clone();
+
+        for (place, other_value) in &other.store {
+            if merged_store.contains_key(&place) {
+                let self_value = &merged_store[&place];
+                let merged_value = if self_value == other_value {
+                    self_value.clone()
+                } else {
+                    vir::Expr::ite(
+                        self.path_cond.clone(),
+                        self_value.clone(),
+                        other_value.clone()
+                    )
+                };
+                merged_store.insert(place.clone(), merged_value);
+            } else {
+                merged_store.insert(place.clone(), other_value.clone());
+            }
         }
 
-        self.expr = vir::utils::ExprSubPlaceSubstitutor::substitute(self.expr.clone(), sub_target, replacement);
+        PathState {
+            path_cond: vir::Expr::or(self.path_cond.clone(), other.path_cond.clone()),
+            store: merged_store
+        }
+    }
+}
+
+fn join_path_states(states: &[&PathState]) -> PathState {
+    trace!("join_path_states(..{})", states.len());
+    assert!(states.len() > 0);
+    if states.len() == 1 {
+        states[0].clone()
+    } else {
+        let mid = states.len() / 2;
+        let left_states = &states[..mid];
+        let right_states = &states[mid..];
+        join_path_states(left_states).join(&join_path_states(right_states))
+    }
+}
+
+
+#[derive(Clone, Debug)]
+struct InterpreterState {
+    states: Vec<PathState>
+}
+
+impl InterpreterState {
+    fn new() -> Self {
+        InterpreterState {
+            states: vec![
+                PathState::new()
+            ]
+        }
     }
 
-    pub fn substitute_value(&mut self, exact_target: &vir::Place, replacement: vir::Expr) {
-        trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
-        self.expr = vir::utils::ExprExactPlaceSubstitutor::substitute(self.expr.clone(), exact_target, replacement);
+    fn new_empty() -> Self {
+        InterpreterState {
+            states: vec![]
+        }
     }
 
-    pub fn uses_place(&self, sub_target: &vir::Place) -> bool {
-        trace!("uses_place {:?}", sub_target);
-        vir::utils::ExprPlaceFinder::find(&self.expr, sub_target)
+    fn assign(&mut self, place: vir::Place, mut expr: vir::Expr) {
+        trace!("InterpreterState::assign {} = {}", place, expr);
+        for mut state in self.states.iter_mut() {
+            state.assign(place.clone(), expr.clone())
+        }
+    }
+
+    fn add_path_condition(&mut self, cond: vir::Expr) {
+        trace!("InterpreterState::add_condition {}", cond);
+        for mut state in self.states.iter_mut() {
+            state.add_path_condition(cond.clone());
+        }
+    }
+
+    fn join_states(&self) -> PathState {
+        trace!("join_states(..{})", self.states.len());
+        join_path_states(&self.states.iter().collect::<Vec<_>>()[..])
+    }
+
+    fn join(&self, other: &Self) -> Self {
+        let mut states = self.states.clone();
+        states.extend(other.states.clone());
+        InterpreterState {
+            states
+        }
     }
 }
 
@@ -191,7 +273,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionInterpreter<'p, 'v, 'r, '
         PureFunctionInterpreter {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new(encoder, mir, "_pure".to_string())
+            mir_encoder: MirEncoder::new(encoder, mir)
         }
     }
 
@@ -200,12 +282,181 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionInterpreter<'p, 'v, 'r, '
     }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for PureFunctionInterpreter<'p, 'v, 'r, 'a, 'tcx> {
-    type State = PureFunctionState;
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ForwardMirInterpreter<'tcx> for PureFunctionInterpreter<'p, 'v, 'r, 'a, 'tcx> {
+    type State = InterpreterState;
 
-    fn apply_terminator(&self, term: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Self::State {
-        trace!("apply_terminator {:?}, states: {:?}", term, states);
+    fn initial_state(&self) -> Self::State {
+        InterpreterState::new()
+    }
+
+    fn join(&self, states: &[&Self::State]) -> Self::State {
+        trace!("join(..{})", states.len());
+        if states.len() == 0 {
+            InterpreterState::new_empty()
+        } else if states.len() == 1 {
+            states[0].clone()
+        } else {
+            let mid = states.len() / 2;
+            let left_states = &states[..mid];
+            let right_states = &states[mid..];
+            self.join(left_states).join(&self.join(right_states))
+        }
+    }
+
+    fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State) {
+        trace!("apply_statement {:?}, state: {:?}", stmt, state);
+
+        match stmt.kind {
+            mir::StatementKind::StorageLive(..) |
+            mir::StatementKind::StorageDead(..) |
+            mir::StatementKind::ReadForMatch(..) |
+            mir::StatementKind::EndRegion(..) => {
+                // Nothing to do
+            }
+
+            mir::StatementKind::Assign(ref lhs, ref rhs) => {
+                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
+
+                let opt_lhs_value_place = match ty.sty {
+                    ty::TypeVariants::TyBool |
+                    ty::TypeVariants::TyInt(..) |
+                    ty::TypeVariants::TyUint(..) |
+                    ty::TypeVariants::TyRawPtr(..) |
+                    ty::TypeVariants::TyRef(..) => {
+                        Some(encoded_lhs.clone().access(self.encoder.encode_value_field(ty)))
+                    }
+                    _ => None
+                };
+
+                let type_name = self.encoder.encode_type_predicate_use(ty);
+                match rhs {
+                    &mir::Rvalue::Use(ref operand) => {
+                        let opt_encoded_rhs = self.mir_encoder.encode_operand_place(operand);
+
+                        match opt_encoded_rhs {
+                            Some(encode_rhs) => {
+                                // Assign using a place
+                                state.assign(encoded_lhs, encode_rhs.into());
+                            },
+                            None => {
+                                // Assign using an expression
+                                let rhs_expr = self.mir_encoder.encode_operand_expr(operand);
+                                state.assign(opt_lhs_value_place.unwrap(), rhs_expr);
+                            },
+                        }
+                    }
+
+                    &mir::Rvalue::Aggregate(..) => {
+                        unimplemented!()
+                    }
+
+                    &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
+                        let encoded_left = self.mir_encoder.encode_operand_expr(left);
+                        let encoded_right = self.mir_encoder.encode_operand_expr(right);
+
+                        let field = self.encoder.encode_value_field(ty);
+                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left, encoded_right, ty);
+
+                        // Assign using an expression
+                        state.assign(opt_lhs_value_place.unwrap(), encoded_value);
+                    }
+
+                    &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
+                        let encoded_left = self.mir_encoder.encode_operand_expr(left);
+                        let encoded_right = self.mir_encoder.encode_operand_expr(right);
+
+                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
+                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right);
+
+                        let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
+                        let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
+                        let value_field_value = self.encoder.encode_value_field(field_types[0]);
+                        let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
+                        let check_field_value = self.encoder.encode_value_field(field_types[1]);
+
+                        let lhs_value = encoded_lhs.clone()
+                            .access(value_field)
+                            .access(value_field_value);
+                        let lhs_check = encoded_lhs.clone()
+                            .access(check_field)
+                            .access(check_field_value);
+
+                        // Assign using an expression
+                        state.assign(lhs_value, encoded_value);
+                        state.assign(lhs_check, encoded_check);
+                    }
+
+                    &mir::Rvalue::UnaryOp(op, ref operand) => {
+                        let encoded_val = self.mir_encoder.encode_operand_expr(operand);
+
+                        let field = self.encoder.encode_value_field(ty);
+                        let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
+
+                        unimplemented!()
+                    }
+
+                    &mir::Rvalue::NullaryOp(op, ref op_ty) => {
+                        unimplemented!()
+                    }
+
+                    &mir::Rvalue::Discriminant(ref src) => {
+                        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
+                        match src_ty.sty {
+                            ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
+                                let num_variants = adt_def.variants.len();
+
+                                let discr_value: vir::Expr = if num_variants <= 1 {
+                                    0.into()
+                                } else {
+                                    let discr_field = self.encoder.encode_discriminant_field();
+                                    encoded_src.access(discr_field).into()
+                                };
+
+                                // Assing using an expression
+                                state.assign(opt_lhs_value_place.unwrap(), discr_value);
+                            }
+                            ref x => {
+                                panic!("The discriminant of type {:?} is not defined", x);
+                            }
+                        }
+                    }
+
+                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Shared, ref place) => {
+                        let encoded_place = self.mir_encoder.encode_place(place).0;
+                        let encoded_ref = match encoded_place {
+                            vir::Place::Field(box ref base, vir::Field { ref name, .. }) if name == "val_ref" => {
+                                base.clone()
+                            }
+                            other_place => other_place.addr_of()
+                        };
+
+                        // Assign using a place
+                        state.assign(encoded_lhs, encoded_ref.into());
+                    }
+
+                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Unique, ref place) |
+                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Mut{ .. }, ref place)=> {
+                        let ref_field = self.encoder.encode_value_field(ty);
+                        let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
+
+                        unimplemented!()
+                    }
+
+                    ref rhs => {
+                        unimplemented!("encoding of '{:?}'", rhs);
+                    }
+                }
+            }
+
+            ref stmt => unimplemented!("encoding of '{:?}'", stmt)
+        }
+    }
+
+    fn apply_terminator(&self, term: &mir::Terminator<'tcx>, state: &Self::State) -> (HashMap<mir::BasicBlock, Self::State>, Option<Self::State>) {
+        trace!("apply_terminator {:?}, states: {:?}", term, state);
         use rustc::mir::TerminatorKind;
+        let mut out_states: HashMap<mir::BasicBlock, Self::State> = HashMap::new();
+        let mut final_state: Option<Self::State>;
 
         let undef_expr = {
             // Generate a function call that leaves the expression undefined.
@@ -221,32 +472,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
             TerminatorKind::Abort |
             TerminatorKind::Drop{..} |
             TerminatorKind::Resume{..} => {
-                assert!(states.is_empty());
-                PureFunctionState::new(undef_expr)
+                // Discard state
+                final_state = None;
             }
 
             TerminatorKind::Goto { ref target } => {
-                assert_eq!(states.len(), 1);
-                states[target].clone()
+                out_states.insert(*target, state.clone());
+                final_state = None;
             }
 
-            TerminatorKind::FalseEdges { ref real_target, .. } => {
-                assert_eq!(states.len(), 2);
-                states[real_target].clone()
-            }
-
+            TerminatorKind::FalseEdges { ref real_target, .. } |
             TerminatorKind::FalseUnwind { ref real_target, .. } => {
-                assert_eq!(states.len(), 1);
-                states[real_target].clone()
+                out_states.insert(*real_target, state.clone());
+                final_state = None;
             }
 
             TerminatorKind::Return => {
-                assert!(states.is_empty());
-                trace!("Return type: {:?}", self.mir.return_ty());
-                let return_type = self.encoder.encode_type(self.mir.return_ty());
-                let return_var = vir::LocalVar::new("_pure_0", return_type);
-                let field = self.encoder.encode_value_field(self.mir.return_ty());
-                PureFunctionState::new(vir::Place::Base(return_var.into()).access(field).into())
+                final_state = Some(state.clone());
             }
 
             TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
@@ -281,13 +523,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 }
                 let default_target = targets[values.len()];
 
-                PureFunctionState::new(
-                    cfg_targets.into_iter().fold(
-                        states[&default_target].expr().clone(),
-                        |else_expr, (guard, then_target)|
-                            vir::Expr::ite(guard, states[&then_target].expr().clone(), else_expr)
-                    )
-                )
+                for (viper_guard, target) in &cfg_targets {
+                    let mut target_state = state.clone();
+                    target_state.add_path_condition(viper_guard.clone());
+                    out_states.insert(*target, target_state);
+                }
+
+                let default_guard = vir::Expr::not(
+                    cfg_targets.into_iter().map(|(guard, _)| guard).disjoin()
+                );
+                let mut default_target_state = state.clone();
+                default_target_state.add_path_condition(default_guard.clone());
+                out_states.insert(default_target, default_target_state);
+
+                final_state = None;
             }
 
             TerminatorKind::DropAndReplace { ref target, ref location, ref value, .. } => {
@@ -315,7 +564,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
             } => {
                 if destination.is_some() {
                     let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
-                    let (ref lhs_place, target_block) = destination.as_ref().unwrap();
+                    let (ref lhs_place, target_bb) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
                     let lhs_value = encoded_lhs.clone().access(self.encoder.encode_value_field(ty));
                     let encoded_args: Vec<vir::Expr> = args.iter()
@@ -327,9 +576,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                             trace!("Encoding old expression {:?}", args[0]);
                             assert!(args.len() == 1);
                             let encoded_rhs = self.mir_encoder.encode_old_expr(encoded_args[0].clone(), PRECONDITION_LABEL);
-                            let mut state = states[&target_block].clone();
-                            state.substitute_value(&lhs_value, encoded_rhs);
-                            state
+
+                            let mut new_state = state.clone();
+                            new_state.assign(lhs_value, encoded_rhs);
+                            out_states.insert(*target_bb, new_state);
+                            final_state = None;
                         }
 
                         // generic function call
@@ -356,14 +607,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                 return_type
                             );
 
-                            let mut state = states[&target_block].clone();
-                            state.substitute_value(&lhs_value, encoded_rhs);
-                            state
+                            let mut new_state = state.clone();
+                            new_state.assign(lhs_value, encoded_rhs);
+                            out_states.insert(*target_bb, new_state);
+                            final_state = None;
                         }
                     }
                 } else {
                     // Encoding of a non-terminating function call
-                    PureFunctionState::new(undef_expr)
+                    final_state = None;
                 }
             }
 
@@ -380,173 +632,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     vir::Expr::not(cond_val)
                 };
 
-                PureFunctionState::new(
-                    vir::Expr::ite(
-                        viper_guard,
-                        states[target].expr().clone(),
-                        undef_expr
-                    )
-                )
+                let mut new_state = state.clone();
+                new_state.add_path_condition(viper_guard);
+                out_states.insert(*target, new_state);
+                final_state = None;
             }
 
             TerminatorKind::Resume |
             TerminatorKind::Yield { .. } |
             TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
-        }
-    }
+        };
 
-    fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State) {
-        trace!("apply_statement {:?}, state: {:?}", stmt, state);
-
-        match stmt.kind {
-            mir::StatementKind::StorageLive(..) |
-            mir::StatementKind::StorageDead(..) |
-            mir::StatementKind::ReadForMatch(..) |
-            mir::StatementKind::EndRegion(..) => {
-                // Nothing to do
-            }
-
-            mir::StatementKind::Assign(ref lhs, ref rhs) => {
-                let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
-
-                if !state.uses_place(&encoded_lhs) {
-                    // If the lhs is not mentioned in our state, do nothing
-                    trace!("The state does not mention {:?}", encoded_lhs);
-                    return
-                }
-
-                let opt_lhs_value_place = match ty.sty {
-                    ty::TypeVariants::TyBool |
-                    ty::TypeVariants::TyInt(..) |
-                    ty::TypeVariants::TyUint(..) |
-                    ty::TypeVariants::TyRawPtr(..) |
-                    ty::TypeVariants::TyRef(..) => {
-                        Some(encoded_lhs.clone().access(self.encoder.encode_value_field(ty)))
-                    }
-                    _ => None
-                };
-
-                let type_name = self.encoder.encode_type_predicate_use(ty);
-                match rhs {
-                    &mir::Rvalue::Use(ref operand) => {
-                        let opt_encoded_rhs = self.mir_encoder.encode_operand_place(operand);
-
-                        match opt_encoded_rhs {
-                            Some(encode_rhs) => {
-                                // Substitute a place
-                                state.substitute_place(&encoded_lhs, encode_rhs);
-                            },
-                            None => {
-                                // Substitute a place of a value with an expression
-                                let rhs_expr = self.mir_encoder.encode_operand_expr(operand);
-                                state.substitute_value(&opt_lhs_value_place.unwrap(), rhs_expr);
-                            },
-                        }
-                    }
-
-                    &mir::Rvalue::Aggregate(..) => {
-                        unimplemented!()
-                    }
-
-                    &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
-                        let encoded_left = self.mir_encoder.encode_operand_expr(left);
-                        let encoded_right = self.mir_encoder.encode_operand_expr(right);
-
-                        let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left, encoded_right, ty);
-
-                        // Substitute a place of a value with an expression
-                        state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
-                    }
-
-                    &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
-                        let encoded_left = self.mir_encoder.encode_operand_expr(left);
-                        let encoded_right = self.mir_encoder.encode_operand_expr(right);
-
-                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
-                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right);
-
-                        let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
-                        let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
-                        let value_field_value = self.encoder.encode_value_field(field_types[0]);
-                        let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
-                        let check_field_value = self.encoder.encode_value_field(field_types[1]);
-
-                        let lhs_value = encoded_lhs.clone()
-                            .access(value_field)
-                            .access(value_field_value);
-                        let lhs_check = encoded_lhs.clone()
-                            .access(check_field)
-                            .access(check_field_value);
-
-                        // Substitute a place of a value with an expression
-                        state.substitute_value(&lhs_value, encoded_value);
-                        state.substitute_value(&lhs_check, encoded_check);
-                    }
-
-                    &mir::Rvalue::UnaryOp(op, ref operand) => {
-                        let encoded_val = self.mir_encoder.encode_operand_expr(operand);
-
-                        let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
-
-                        unimplemented!()
-                    }
-
-                    &mir::Rvalue::NullaryOp(op, ref op_ty) => {
-                        unimplemented!()
-                    }
-
-                    &mir::Rvalue::Discriminant(ref src) => {
-                        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
-                        match src_ty.sty {
-                            ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
-                                let num_variants = adt_def.variants.len();
-
-                                let discr_value: vir::Expr = if num_variants <= 1 {
-                                    0.into()
-                                } else {
-                                    let discr_field = self.encoder.encode_discriminant_field();
-                                    encoded_src.access(discr_field).into()
-                                };
-
-                                // Substitute a place of a value with an expression
-                                state.substitute_value(&opt_lhs_value_place.unwrap(), discr_value);
-                            }
-                            ref x => {
-                                panic!("The discriminant of type {:?} is not defined", x);
-                            }
-                        }
-                    }
-
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Shared, ref place) => {
-                        let encoded_place = self.mir_encoder.encode_place(place).0;
-                        let encoded_ref = match encoded_place {
-                            vir::Place::Field(box ref base, vir::Field { ref name, .. }) if name == "val_ref" => {
-                                base.clone()
-                            }
-                            other_place => other_place.addr_of()
-                        };
-
-                        // Substitute the place
-                        state.substitute_place(&encoded_lhs, encoded_ref);
-                    }
-
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Unique, ref place) |
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Mut{ .. }, ref place)=> {
-                        let ref_field = self.encoder.encode_value_field(ty);
-                        let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
-
-                        unimplemented!()
-                    }
-
-                    ref rhs => {
-                        unimplemented!("encoding of '{:?}'", rhs);
-                    }
-                }
-            }
-
-            ref stmt => unimplemented!("encoding of '{:?}'", stmt)
-        }
+        (out_states, final_state)
     }
 }

@@ -336,7 +336,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let spec_method_node_id = tcx.hir.get_parent(closure_node_id);
         let spec_method_def_id = tcx.hir.local_def_id(spec_method_node_id);
         let spec_method_mir = tcx.mir_validated(spec_method_def_id).borrow();
-        let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir, "".to_string());
+        let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir);
         let fake_return_var = spec_method_mir_encoder.encode_local(
             spec_method_mir.args_iter().last().unwrap()
         );
