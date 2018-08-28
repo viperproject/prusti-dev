@@ -7,9 +7,11 @@ pub use self::display::*;
 pub use self::method::*;
 pub use self::to_graphviz::*;
 pub use self::to_viper::*;
+pub use self::substitute::*;
 
 mod method;
 mod display;
 mod to_viper;
 mod to_graphviz;
 mod visitor;
+mod substitute;

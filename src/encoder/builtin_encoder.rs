@@ -15,7 +15,8 @@ pub enum BuiltinMethodKind {
 
 #[derive(Clone,Debug,Hash,Eq,PartialEq)]
 pub enum BuiltinFunctionKind {
-    Undefined(vir::Type),
+    /// Uuid, type
+    Undefined(String, vir::Type),
 }
 
 pub struct BuiltinEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
@@ -47,16 +48,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_builtin_function_name(&self, function: &BuiltinFunctionKind) -> String {
         match function {
-            BuiltinFunctionKind::Undefined(vir::Type::Int) => "builtin$undef_int".to_string(),
-            BuiltinFunctionKind::Undefined(vir::Type::Bool) => "builtin$undef_bool".to_string(),
-            BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => unimplemented!()
+            BuiltinFunctionKind::Undefined(uuid, vir::Type::Int) => format!("builtin$undef_int${}", uuid),
+            BuiltinFunctionKind::Undefined(uuid, vir::Type::Bool) => format!("builtin$undef_bool${}", uuid),
+            BuiltinFunctionKind::Undefined(uuid, vir::Type::TypedRef(_)) => format!("builtin$undef_ref${}", uuid)
         }
     }
 
     pub fn encode_builtin_function_def(&self, function: BuiltinFunctionKind) -> vir::Function {
         let fn_name = self.encode_builtin_function_name(&function);
         match function {
-            BuiltinFunctionKind::Undefined(typ) => vir::Function {
+            BuiltinFunctionKind::Undefined(_, typ) => vir::Function {
                 name: fn_name,
                 formal_args: vec![],
                 return_type: typ,

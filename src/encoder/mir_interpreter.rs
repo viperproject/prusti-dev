@@ -4,9 +4,11 @@
 
 use rustc::mir;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::marker::Sized;
 use std::iter::FromIterator;
 use std::fmt::Debug;
+use std::fmt::Display;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
@@ -102,8 +104,9 @@ pub trait ForwardMirInterpreter<'tcx> {
 }
 
 /// Interpret a loop-less MIR returning the joined **final** states.
-pub fn run_forward_interpretation<'tcx, S: Debug, I: ForwardMirInterpreter<'tcx, State = S>>(mir: &mir::Mir<'tcx>, interpreter: &I) -> S {
+pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpreter<'tcx, State = S>>(mir: &mir::Mir<'tcx>, interpreter: &I) -> S {
     let basic_blocks = mir.basic_blocks();
+    let mut visited: HashSet<mir::BasicBlock> = HashSet::new();
     let mut final_state: HashMap<mir::BasicBlock, S> = HashMap::new();
     let mut predecessors: HashMap<mir::BasicBlock, Vec<mir::BasicBlock>> = HashMap::new();
     let mut final_states: Vec<S> = vec![];
@@ -163,6 +166,8 @@ pub fn run_forward_interpretation<'tcx, S: Debug, I: ForwardMirInterpreter<'tcx,
             incoming_states.entry(succ_bb).or_insert(vec![]).push(succ_state);
         }
 
+        visited.insert(curr_bb);
+
         // Visit the following blocks
         for succ_bb in terminator.successors() {
             if (!incoming_states.contains_key(succ_bb)) {
@@ -172,7 +177,8 @@ pub fn run_forward_interpretation<'tcx, S: Debug, I: ForwardMirInterpreter<'tcx,
                     succ_bb
                 );
             }
-            if predecessors[&curr_bb].iter().all(|pred_bb| final_state.contains_key(pred_bb)) {
+            if incoming_states.contains_key(succ_bb) && predecessors[&succ_bb].iter().all(|pred_bb| visited.contains(pred_bb)) {
+                trace!("Schedule interpretation of {:?}", succ_bb);
                 pending_blocks.push(*succ_bb);
             }
         }

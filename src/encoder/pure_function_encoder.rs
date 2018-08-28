@@ -20,6 +20,7 @@ use prusti_interface::report::Log;
 use encoder::borrows::ProcedureContract;
 use encoder::places;
 use encoder::vir::ExprIterator;
+use std::fmt;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -35,7 +36,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             encoder,
             proc_def_id,
             mir,
-            interpreter: PureFunctionInterpreter::new(encoder, mir)
+            interpreter: PureFunctionInterpreter::new(encoder, mir, proc_def_id)
         }
     }
 
@@ -50,7 +51,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         ).access(
             self.encoder.encode_value_field(self.mir.return_ty())
         );
-        let return_expr = states.join_states().translate(return_place);
+        let return_expr = states.translate(return_place);
         debug!("Pure function {} has been encoded with expr: {}", function_name, return_expr);
         return_expr
     }
@@ -60,12 +61,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         debug!("Encode pure function {}", function_name);
 
         let mut states = run_forward_interpretation(self.mir, &self.interpreter);
+
+        // Fix arguments
+        for local in self.mir.args_iter() {
+            let arg_place = vir::Place::Base(
+                self.interpreter.mir_encoder.encode_local(local)
+            ).access(
+                self.encoder.encode_value_field(
+                    self.interpreter.mir_encoder.get_local_ty(local)
+                )
+            );
+            let proper_arg = self.encode_local(local);
+            states.substitute_place(&arg_place, proper_arg.into());
+        }
+
         let return_place = vir::Place::Base(
             self.interpreter.mir_encoder.encode_local(mir::RETURN_PLACE)
         ).access(
             self.encoder.encode_value_field(self.mir.return_ty())
         );
-        let return_expr = states.join_states().translate(return_place);
+        let return_expr = states.translate(return_place);
         debug!("Pure function {} has been encoded with expr: {}", function_name, return_expr);
 
         let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
@@ -153,7 +168,7 @@ impl PathState {
     fn translate_expr(&self, mut expr: vir::Expr) -> vir::Expr {
         trace!("translate_expr {}", expr);
         for (stored_place, stored_expr) in &self.store {
-            expr = vir::utils::substitute_place_in_expr(expr, stored_place, stored_expr.clone());
+            expr = expr.substitute_place_with_expr(stored_place, stored_expr.clone());
         }
         expr
     }
@@ -163,12 +178,23 @@ impl PathState {
         self.store.insert(place, self.translate_expr(expr));
     }
 
+    /// Use with caution
+    fn substitute_place(&mut self, place: &vir::Place, subst_place: vir::Place) {
+        trace!("substitute_place {} --> {}", place, subst_place);
+        self.path_cond = self.path_cond.clone().substitute_place_with_place(place, subst_place.clone());
+        for (stored_place, stored_expr) in &mut self.store {
+            *stored_expr = stored_expr.clone().substitute_place_with_place(place, subst_place.clone());
+        }
+    }
+
     fn add_path_condition(&mut self, mut cond: vir::Expr) {
         trace!("PathState::add_condition {}", cond);
         self.path_cond = vir::Expr::and(self.path_cond.clone(), self.translate_expr(cond));
     }
 
+    #[deprecated(note="This method is WRONG!")]
     fn join(&self, other: &Self) -> Self {
+        trace!("PathState::join {}, {}", self, other);
         let mut merged_store = self.store.clone();
 
         for (place, other_value) in &other.store {
@@ -189,28 +215,17 @@ impl PathState {
             }
         }
 
-        PathState {
+        let merged = PathState {
             path_cond: vir::Expr::or(self.path_cond.clone(), other.path_cond.clone()),
             store: merged_store
-        }
-    }
-}
-
-fn join_path_states(states: &[&PathState]) -> PathState {
-    trace!("join_path_states(..{})", states.len());
-    assert!(states.len() > 0);
-    if states.len() == 1 {
-        states[0].clone()
-    } else {
-        let mid = states.len() / 2;
-        let left_states = &states[..mid];
-        let right_states = &states[mid..];
-        join_path_states(left_states).join(&join_path_states(right_states))
+        };
+        trace!("Joined state: {}", merged);
+        merged
     }
 }
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct InterpreterState {
     states: Vec<PathState>
 }
@@ -230,6 +245,14 @@ impl InterpreterState {
         }
     }
 
+    /// Use with caution
+    fn substitute_place(&mut self, place: &vir::Place, subst_place: vir::Place) {
+        trace!("InterpreterState::substitute_place {} --> {}", place, subst_place);
+        for mut state in self.states.iter_mut() {
+            state.substitute_place(place, subst_place.clone())
+        }
+    }
+
     fn assign(&mut self, place: vir::Place, mut expr: vir::Expr) {
         trace!("InterpreterState::assign {} = {}", place, expr);
         for mut state in self.states.iter_mut() {
@@ -244,9 +267,15 @@ impl InterpreterState {
         }
     }
 
-    fn join_states(&self) -> PathState {
-        trace!("join_states(..{})", self.states.len());
-        join_path_states(&self.states.iter().collect::<Vec<_>>()[..])
+    fn translate(&self, place: vir::Place) -> vir::Expr {
+        trace!("InterpreterState::translate {}", place);
+        let guarded_exprs: Vec<_> = self.states.iter().map(
+            |state| (state.path_cond.clone(), state.translate(place.clone()))
+        ).collect();
+        guarded_exprs.iter().skip(1).fold(
+            guarded_exprs[0].1.clone(),
+            |result, (guard, expr)| vir::Expr::ite(guard.clone(), expr.clone(), result)
+        )
     }
 
     fn join(&self, other: &Self) -> Self {
@@ -255,6 +284,33 @@ impl InterpreterState {
         InterpreterState {
             states
         }
+    }
+}
+
+
+impl fmt::Display for PathState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "PathState {} => {{ ", self.path_cond)?;
+        for (place, expr) in &self.store {
+            write!(f, "{} = {}, ", place, expr)?;
+        }
+        write!(f, "}}")
+    }
+}
+
+impl fmt::Display for InterpreterState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "InterpreterState {{..{}}}", self.states.len())
+    }
+}
+
+impl fmt::Debug for InterpreterState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "InterpreterState ({}) {{ ", self.states.len())?;
+        for state in &self.states {
+            write!(f, "{}; ", state)?;
+        }
+        write!(f, "}}")
     }
 }
 
@@ -269,11 +325,11 @@ struct PureFunctionInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
 /// encoding (keeping path conditions expressions).
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionInterpreter<'p, 'v, 'r, 'a, 'tcx> {
-    fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>) -> Self {
+    fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, def_id: DefId) -> Self {
         PureFunctionInterpreter {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new(encoder, mir)
+            mir_encoder: MirEncoder::new(encoder, mir, def_id)
         }
     }
 
@@ -290,7 +346,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ForwardMirInterpreter<'tcx> for PureF
     }
 
     fn join(&self, states: &[&Self::State]) -> Self::State {
-        trace!("join(..{})", states.len());
+        trace!("PureFunctionInterpreter::join(..{})", states.len());
         if states.len() == 0 {
             InterpreterState::new_empty()
         } else if states.len() == 1 {
@@ -304,7 +360,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ForwardMirInterpreter<'tcx> for PureF
     }
 
     fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State) {
-        trace!("apply_statement {:?}, state: {:?}", stmt, state);
+        trace!("apply_statement {:?}, state: {}", stmt, state);
 
         match stmt.kind {
             mir::StatementKind::StorageLive(..) |
@@ -415,6 +471,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ForwardMirInterpreter<'tcx> for PureF
                                 // Assing using an expression
                                 state.assign(opt_lhs_value_place.unwrap(), discr_value);
                             }
+
+                            ty::TypeVariants::TyInt(_) |
+                            ty::TypeVariants::TyUint(_) => {
+                                let value_field = self.encoder.encode_value_field(src_ty);
+                                let discr_value: vir::Expr = encoded_src.access(value_field).into();
+                                state.assign(opt_lhs_value_place.unwrap(), discr_value);
+                            }
+
                             ref x => {
                                 panic!("The discriminant of type {:?} is not defined", x);
                             }
@@ -453,19 +517,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ForwardMirInterpreter<'tcx> for PureF
     }
 
     fn apply_terminator(&self, term: &mir::Terminator<'tcx>, state: &Self::State) -> (HashMap<mir::BasicBlock, Self::State>, Option<Self::State>) {
-        trace!("apply_terminator {:?}, states: {:?}", term, state);
+        trace!("apply_terminator {:?}, states: {}", term, state);
         use rustc::mir::TerminatorKind;
         let mut out_states: HashMap<mir::BasicBlock, Self::State> = HashMap::new();
         let mut final_state: Option<Self::State>;
-
-        let undef_expr = {
-            // Generate a function call that leaves the expression undefined.
-            let return_type = self.encoder.encode_value_type(self.mir.return_ty());
-            let function_name = self.encoder.encode_builtin_function_use(
-                BuiltinFunctionKind::Undefined(return_type.clone())
-            );
-            vir::Expr::FuncApp(function_name, vec![], vec![], return_type)
-        };
 
         match term.kind {
             TerminatorKind::Unreachable |
@@ -575,7 +630,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ForwardMirInterpreter<'tcx> for PureF
                         "prusti_contracts::internal::old" => {
                             trace!("Encoding old expression {:?}", args[0]);
                             assert!(args.len() == 1);
-                            let encoded_rhs = self.mir_encoder.encode_old_expr(encoded_args[0].clone(), PRECONDITION_LABEL);
+                            let encoded_rhs = self.mir_encoder.encode_old_expr(
+                                encoded_args[0].clone(),
+                                PRECONDITION_LABEL
+                            );
 
                             let mut new_state = state.clone();
                             new_state.assign(lhs_value, encoded_rhs);

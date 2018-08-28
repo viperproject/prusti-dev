@@ -43,7 +43,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         SpecEncoder {
             encoder,
-            mir,
+            mir
         }
     }
 
@@ -263,11 +263,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref fn_path)) => {
                         let fn_name = self.path_to_string(fn_path);
                         if fn_name == "old" {
-                            assert!(arguments.len() == 1);
+                            panic!("Old expressions can not be used in triggers");
+                            /*assert!(arguments.len() == 1);
                             vir::Expr::labelled_old(
                                 PRECONDITION_LABEL,
                                 self.encode_hir_expr(&arguments[0]),
-                            )
+                            )*/
                         } else {
                             unimplemented!("TODO: call function {:?} from specification", fn_name)
                         }
@@ -323,20 +324,77 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         debug!("encode_expression {:?}", assertion_expr);
         let tcx = self.encoder.env().tcx();
 
-        // Find the MIR of the assertion
+        // Find the MIR of the closure that encodes the assertions
         let mut curr_node_id = assertion_expr.expr.id;
         for i in 0..1 {
             curr_node_id = tcx.hir.get_parent_node(curr_node_id);
         }
         let closure_node_id = curr_node_id;
-        let mir_def_id = tcx.hir.local_def_id(closure_node_id);
-        let mut mir_expr = self.encoder.encode_pure_function_body(mir_def_id);
+        let closure_def_id = tcx.hir.local_def_id(closure_node_id);
+        let mut closure_mir_expr = self.encoder.encode_pure_function_body(closure_def_id);
+        let closure_procedure = self.encoder.env().get_procedure(closure_def_id);
+        let closure_mir = closure_procedure.get_mir();
+        let closure_mir_encoder = MirEncoder::new(self.encoder, closure_mir, closure_def_id);
 
-        // Fix the return variable
         let spec_method_node_id = tcx.hir.get_parent(closure_node_id);
         let spec_method_def_id = tcx.hir.local_def_id(spec_method_node_id);
         let spec_method_mir = tcx.mir_validated(spec_method_def_id).borrow();
-        let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir);
+        let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir, spec_method_def_id);
+
+        // Replace with the variables captured in the closure
+        let (outer_def_id, captured_operands) = {
+            let mut instantiations = self.encoder.get_closure_instantiations(closure_def_id);
+            assert_eq!(instantiations.len(), 1);
+            instantiations.remove(0)
+        };
+        assert_eq!(outer_def_id, spec_method_def_id);
+        let closure_local = closure_mir.local_decls.indices().skip(1).next().unwrap();
+        let closure_var = closure_mir_encoder.encode_local(closure_local);
+        let closure_ty = &closure_mir.local_decls[closure_local].ty;
+        let (deref_closure_var, ..) = closure_mir_encoder.encode_deref(
+            closure_var.clone().into(),
+            closure_ty
+        );
+        debug!("closure_ty: {:?}", closure_ty);
+        trace!("deref_closure_var: {:?}", deref_closure_var);
+        let closure_subst = if let ty::TypeVariants::TyRef(_, ty::TyS{ sty: ty::TypeVariants::TyClosure(_, ref substs), ..}, _) = closure_ty.sty {
+            substs.clone()
+        } else {
+            unreachable!()
+        };
+        let captured_tys: Vec<ty::Ty> = closure_subst.upvar_tys(closure_def_id, tcx).collect();
+        debug!("captured_tys: {:?}", captured_tys);
+        assert_eq!(captured_tys.len(), captured_operands.len());
+
+        let closure_mir_expr_ref = &mut closure_mir_expr;
+        tcx.with_freevars(closure_node_id, |freevars| {
+            for (index, freevar) in freevars.iter().enumerate() {
+                let freevar_ty = &captured_tys[index];
+                let freevar_name = tcx.hir.name(freevar.var_id()).to_string();
+                let encoded_freevar = spec_method_mir_encoder.encode_local_var_with_name(
+                    freevar_name.clone()
+                );
+
+                let field_name = format!("closure_{}", index);
+                let encoded_field = self.encoder.encode_ref_field(&field_name, freevar_ty);
+                let (encoded_closure, ..) = closure_mir_encoder.encode_deref(
+                    deref_closure_var.clone().access(encoded_field),
+                    freevar_ty
+                );
+                trace!(
+                    "Field {} of closure, encoded as {}, corresponds to captured {}",
+                    index,
+                    encoded_closure,
+                    encoded_freevar
+                );
+                *closure_mir_expr_ref = closure_mir_expr_ref.clone().substitute_place_with_expr(
+                    &encoded_closure,
+                    encoded_freevar.into()
+                );
+            }
+        });
+
+        // Replace with the proper return variable
         let fake_return_var = spec_method_mir_encoder.encode_local(
             spec_method_mir.args_iter().last().unwrap()
         );
@@ -344,15 +402,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             "_0".to_string(),
             fake_return_var.typ.clone()
         );
-        mir_expr = vir::utils::ExprSubPlaceSubstitutor::substitute(
-            mir_expr,
+        trace!("Replace fake return variable {} --> {}", fake_return_var, proper_return_var);
+        closure_mir_expr = closure_mir_expr.substitute_place_with_place(
             &fake_return_var.into(),
             proper_return_var.into()
         );
 
         // TODO: replace with quantified variables...
 
-        debug!("MIR expr {:?} --> {}", assertion_expr.id, mir_expr);
-        mir_expr
+        debug!("MIR expr {:?} --> {}", assertion_expr.id, closure_mir_expr);
+        closure_mir_expr
     }
 }

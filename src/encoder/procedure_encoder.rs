@@ -76,7 +76,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loops,
             auxiliar_local_vars: HashMap::new(),
             //dataflow_info: dataflow_info,
-            mir_encoder: MirEncoder::new(encoder, mir)
+            mir_encoder: MirEncoder::new(encoder, mir, procedure.get_id())
         }
     }
 
@@ -239,6 +239,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_stmt(start_cfg_block, init_old);
         }
 
+        // Fix evaluation of arguments in old states (see issue #20)
+        for local in self.mir.local_decls.indices() {
+            let local_var = self.encode_local(local);
+            let old_var_name = format!("_old{}", local_var.name);
+            let old_local_var = vir::LocalVar::new(old_var_name, local_var.typ.clone());
+            trace!("replace {} --> {}", local_var, old_local_var);
+            let local_var_ref: &vir::Place = &local_var.into();
+            let old_local_var_ref: &vir::Place = &old_local_var.into();
+            self.cfg_method.substitute_expr(
+                |expr| expr.map_old_expr(
+                    |label, old_expr| {
+                        if label == PRECONDITION_LABEL {
+                            old_expr.substitute_place_with_place(local_var_ref, old_local_var_ref.clone())
+                        } else {
+                            // See issue #20
+                            warn!("TODO: local variables may be evaluated in the wrong state");
+                            old_expr
+                        }
+                    }
+                )
+            );
+        }
+
         let method_name = self.cfg_method.name();
 
         self.encoder.log_vir_initial_program(self.cfg_method.to_string());
@@ -392,6 +415,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 );
                                 stmts
                             }
+
+                            ty::TypeVariants::TyInt(_) |
+                            ty::TypeVariants::TyUint(_) => {
+                                let value_field = self.encoder.encode_value_field(src_ty);
+                                let discr_value: vir::Expr = encoded_src.access(value_field).into();
+                                let int_field = self.encoder.encode_value_field(ty);
+                                stmts.push(
+                                    vir::Stmt::Assign(
+                                        encoded_lhs.clone().access(int_field),
+                                        discr_value,
+                                        vir::AssignKind::Copy
+                                    )
+                                );
+                                stmts
+                            }
+
                             ref x => {
                                 debug!("The discriminant of type {:?} is not defined", x);
                                 stmts
@@ -921,7 +960,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::ExhalePostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
+        // TODO: Exhaling of postconditions is temporary disabled due to this issue #25
+        //self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
     fn encode_loop_invariant_exhale(&mut self, _loop_head: BasicBlockIndex,
