@@ -163,3 +163,45 @@ pub fn collapse<'a, 'tcx: 'a>(
         guide_place = base;
     }
 }
+
+
+pub struct VecPlaceComponent<'tcx> {
+    place: mir::Place<'tcx>,
+}
+
+impl<'tcx> VecPlaceComponent<'tcx> {
+    pub fn get_mir_place(&self) -> &mir::Place<'tcx> {
+        &self.place
+    }
+}
+
+/// A different way to represent a place that is more similar to the one
+/// mentioned in the issue https://github.com/rust-lang/rust/issues/52708.
+pub struct VecPlace<'tcx> {
+    components: Vec<VecPlaceComponent<'tcx>>,
+}
+
+impl<'tcx> VecPlace<'tcx> {
+    pub fn new(place: &mir::Place<'tcx>) -> VecPlace<'tcx> {
+        let mut vec_place = Self {
+            components: Vec::new(),
+        };
+        fn unroll_place<'tcx>(vec_place: &mut VecPlace<'tcx>, current: &mir::Place<'tcx>) {
+            match current {
+                mir::Place::Local(_) => {},
+                mir::Place::Projection(box mir::Projection { base, .. }) => {
+                    unroll_place(vec_place, base);
+                },
+                _ => unimplemented!(),
+            }
+            vec_place.components.push(VecPlaceComponent {
+                place: current.clone(),
+            });
+        }
+        unroll_place(&mut vec_place, place);
+        vec_place
+    }
+    pub fn iter<'a>(&'a self) -> impl DoubleEndedIterator<Item = &'a VecPlaceComponent<'tcx>> {
+        self.components.iter()
+    }
+}

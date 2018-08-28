@@ -86,7 +86,7 @@ fn collect_loop_body<'tcx>(head: BasicBlockIndex, back_edge_source: BasicBlockIn
     debug!("Loop body (head={:?}): {:?}", head, body);
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PlaceAccessKind {
     /// The place is assigned to.
     Store,
@@ -98,6 +98,20 @@ pub enum PlaceAccessKind {
     SharedBorrow,
     /// The place is borrowed mutably.
     MutableBorrow,
+}
+
+impl PlaceAccessKind {
+
+    /// Does the access require write permission to the leaf of the path?
+    pub fn is_write_access(&self) -> bool {
+        match &self {
+            PlaceAccessKind::Store |
+            PlaceAccessKind::Move |
+            PlaceAccessKind::MutableBorrow => true,
+            PlaceAccessKind::Read |
+            PlaceAccessKind::SharedBorrow => false,
+        }
+    }
 }
 
 /// A place access inside a loop.
