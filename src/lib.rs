@@ -35,3 +35,4 @@ pub mod data;
 pub mod constants;
 pub mod specifications;
 pub mod utils;
+pub mod report;
