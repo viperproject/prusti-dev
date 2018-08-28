@@ -175,7 +175,7 @@ pub struct SpecParser<'tcx> {
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
     untyped_specifications: UntypedSpecificationMap,
-    rust_modified_program_writer: Box<Write>
+    rust_typecheched_program_writer: Box<Write>
 }
 
 impl<'tcx> SpecParser<'tcx> {
@@ -187,12 +187,12 @@ impl<'tcx> SpecParser<'tcx> {
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),
             untyped_specifications: HashMap::new(),
-            rust_modified_program_writer: Log::writer("rust_modified_program", source_filename).ok().unwrap()
+            rust_typecheched_program_writer: Log::writer("rust_typechecked_program", source_filename).ok().unwrap()
         }
     }
 
     fn log_modified_program<S: ToString>(&mut self, data: S) {
-        let writer = self.rust_modified_program_writer.as_mut();
+        let writer = self.rust_typecheched_program_writer.as_mut();
         writer.write_all(data.to_string().as_bytes()).ok().unwrap();
         writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
         writer.flush().ok().unwrap();
