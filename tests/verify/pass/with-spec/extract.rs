@@ -4,7 +4,7 @@ struct T {
     f: i32,
 }
 
-#[ensures="old(x.f) == x.f && x.f == result"]
+#[ensures="old(x.f) == result"]
 fn extract(mut x: &mut T) -> i32 {
     // move x
     let y = x;
