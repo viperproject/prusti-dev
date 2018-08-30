@@ -32,7 +32,7 @@ RUN mkdir -p /tmp/rust && \
     rm -rf /tmp/rust
 
 # Install Prusti prerequisites.
-RUN wget -q -O - http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
+RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
 RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
 RUN apt-get update && \
     apt-get install -y \
