@@ -85,7 +85,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     pub fn encode(mut self) -> vir::CfgMethod {
-        debug!("Encode procedure {}", self.cfg_method.name());
+        info!("Encode procedure {}", self.cfg_method.name());
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
@@ -725,23 +725,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             debug!("Encoding non-pure function call '{}'", func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
                             let mut arg_vars = Vec::new();
+                            let mut encoded_args = Vec::new();
 
                             for operand in args.iter() {
                                 let (arg_var, _, effects_before, effects_after) = self.encode_operand(operand);
                                 arg_vars.push(arg_var);
+                                encoded_args.push(self.encode_prusti_local(arg_var));
                                 stmts.extend(effects_before);
                                 stmts_after.extend(effects_after);
                             }
 
-                            let mut encoded_targets = Vec::new();
+                            let mut encoded_target: vir::LocalVar;
                             let target = {
                                 match destination.as_ref() {
                                     Some((ref target_place, _)) => {
                                         let (dst, ty, _) = self.encode_place(target_place);
                                         let local = self.locals.get_fresh(ty);
-                                        let viper_local = self.encode_prusti_local(local);
-                                        stmts_after.push(vir::Stmt::Assign(dst, viper_local.clone().into(), vir::AssignKind::Move));
-                                        encoded_targets.push(viper_local);
+                                        encoded_target = self.encode_prusti_local(local);
+                                        stmts_after.push(vir::Stmt::Assign(dst, encoded_target.clone().into(), vir::AssignKind::Move));
                                         local
                                     }
                                     None => {
@@ -754,8 +755,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                             ty::TypeVariants::TyNever
                                         );
                                         let local = self.locals.get_fresh(never_ty);
-                                        let viper_local = self.encode_prusti_local(local);
-                                        encoded_targets.push(viper_local);
+                                        encoded_target = self.encode_prusti_local(local);
                                         local
                                     }
                                 }
@@ -776,11 +776,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Assert(pre_func_spec, pos.clone()));
                             stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
 
-                            stmts.push(vir::Stmt::MethodCall(
-                                self.encoder.encode_procedure_use(def_id), // TODO
-                                vec![],
-                                encoded_targets,
-                            ));
+                            let is_trusted = self.encoder.env()
+                                .has_attribute_name(def_id, "trusted");
+
+                            if is_trusted {
+                                debug!("Encoding a trusted method call: {}", func_proc_name);
+                                stmts.extend(
+                                    self.encode_havoc(&encoded_target.into(), self.locals.get_type(target))
+                                );
+                            } else {
+                                stmts.push(vir::Stmt::MethodCall(
+                                    self.encoder.encode_procedure_use(def_id), // TODO
+                                    vec![],
+                                    vec![ encoded_target ],
+                                ));
+                            }
 
                             let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &label);
                             stmts.push(vir::Stmt::Inhale(post_type_spec));
@@ -875,8 +885,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         // Encode functional specification
+        let encoded_args: Vec<vir::Expr> = contract.args.iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect();
+        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         for item in contract.functional_precondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -941,9 +955,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         type_spec.push(self.encode_local_variable_permission(contract.returned_value));
 
         // Encode functional specification
+        let encoded_args: Vec<vir::Expr> = contract.args.iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect();
+        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         let mut func_spec = Vec::new();
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, label, &encoded_args, &encoded_return));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())

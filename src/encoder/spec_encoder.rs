@@ -31,19 +31,28 @@ use syntax_pos::symbol::Ident;
 use syntax::ast;
 use prusti_interface::specifications::*;
 use encoder::mir_encoder::MirEncoder;
+use rustc::hir::def_id::DefId;
 
 pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    mir: &'p mir::Mir<'tcx>
+    // FIXME: this should be the MIR of the `__spec` function
+    mir: &'p mir::Mir<'tcx>,
+    /// The context in which the specification should be encoded
+    target_label: &'p str,
+    target_args: &'p [vir::Expr],
+    target_return: &'p vir::Expr
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>) -> Self {
+    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, target_label: &'p str, target_args: &'p [vir::Expr], target_return: &'p vir::Expr) -> Self {
         trace!("SpecEncoder constructor");
 
         SpecEncoder {
             encoder,
-            mir
+            mir,
+            target_label,
+            target_args,
+            target_return
         }
     }
 
@@ -394,21 +403,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
         });
 
-        // Replace with the proper return variable
-        let fake_return_var = spec_method_mir_encoder.encode_local(
-            spec_method_mir.args_iter().last().unwrap()
-        );
-        let proper_return_var = vir::LocalVar::new(
-            "_0".to_string(),
-            fake_return_var.typ.clone()
-        );
-        trace!("Replace fake return variable {} --> {}", fake_return_var, proper_return_var);
-        closure_mir_expr = closure_mir_expr.substitute_place_with_place(
-            &fake_return_var.into(),
-            proper_return_var.into()
-        );
-
         // TODO: replace with quantified variables...
+
+        // Translate arguments and return for the SPEC to the TARGET context
+        for (local, target_arg) in spec_method_mir.args_iter().zip(self.target_args) {
+            let spec_local = spec_method_mir_encoder.encode_local(local);
+            closure_mir_expr = closure_mir_expr.substitute_place_with_expr(&spec_local.into(), target_arg.clone());
+        }
+        {
+            let spec_fake_return = spec_method_mir_encoder.encode_local(
+                spec_method_mir.args_iter().last().unwrap()
+            );
+            closure_mir_expr = closure_mir_expr.substitute_place_with_expr(&spec_fake_return.into(), self.target_return.clone());
+        }
+
+        // Translate label of `old[pre]` expressions
+        closure_mir_expr = closure_mir_expr.map_old_expr_label(
+            |label| if label == PRECONDITION_LABEL {
+                self.target_label.to_string()
+            } else {
+                label.clone()
+            }
+        );
 
         debug!("MIR expr {:?} --> {}", assertion_expr.id, closure_mir_expr);
         closure_mir_expr

@@ -147,3 +147,24 @@ impl vir::Expr {
         }.fold(self)
     }
 }
+
+/// In an expression, substitute labels of old expressions
+/// Substitute (map) old expressions in an expression
+pub struct ExprLabelSubstitutor<F> where F: Fn(String) -> String {
+    substitutor: F,
+}
+
+impl<F> vir::ExprFolder for ExprLabelSubstitutor<F> where F: Fn(String) -> String {
+    fn fold_labelled_old(&mut self, x: String, y: Box<vir::Expr>) -> vir::Expr {
+        vir::Expr::LabelledOld((self.substitutor)(x), y)
+    }
+}
+
+impl vir::Expr {
+    pub fn map_old_expr_label<F>(self, substitutor: F) -> Self where F: Fn(String) -> String {
+        trace!("Expr::map_old_expr_label {}", self);
+        ExprLabelSubstitutor {
+            substitutor,
+        }.fold(self)
+    }
+}

@@ -114,7 +114,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {
-        // TODO
         vec![]
     }
 
@@ -305,20 +304,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         builtin_encoder.encode_builtin_function_name(&function_kind)
     }
 
-    pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
-        trace!("encode_procedure({:?})", proc_def_id);
-        assert!(!self.env.has_attribute_name(proc_def_id, "pure"), "procedure is marked as pure: {:?}", proc_def_id);
-        if !self.procedures.borrow().contains_key(&proc_def_id) {
-            let procedure_name = self.env().tcx().item_path_str(proc_def_id);
-            let procedure = self.env.get_procedure(proc_def_id);
-            let procedure_encoder = ProcedureEncoder::new(self, &procedure);
-            let method = procedure_encoder.encode();
-            self.log_vir_program(method.to_string());
-            self.procedures.borrow_mut().insert(proc_def_id, method);
-        }
-        self.procedures.borrow()[&proc_def_id].clone()
-    }
-
     pub fn encode_procedure_use(&self, proc_def_id: ProcedureDefId) -> String {
         trace!("encode_procedure_use({:?})", proc_def_id);
         assert!(!self.env.has_attribute_name(proc_def_id, "pure"), "procedure is marked as pure: {:?}", proc_def_id);
@@ -326,6 +311,20 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let procedure = self.env.get_procedure(proc_def_id);
         let procedure_encoder = ProcedureEncoder::new(self, &procedure);
         procedure_encoder.encode_name()
+    }
+
+    pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
+        trace!("encode_procedure({:?})", proc_def_id);
+        assert!(!self.env.has_attribute_name(proc_def_id, "pure"), "procedure is marked as pure: {:?}", proc_def_id);
+        assert!(!self.env.has_attribute_name(proc_def_id, "trusted"), "procedure is marked as trusted: {:?}", proc_def_id);
+        if !self.procedures.borrow().contains_key(&proc_def_id) {
+            let procedure = self.env.get_procedure(proc_def_id);
+            let procedure_encoder = ProcedureEncoder::new(self, &procedure);
+            let method = procedure_encoder.encode();
+            self.log_vir_program(method.to_string());
+            self.procedures.borrow_mut().insert(proc_def_id, method);
+        }
+        self.procedures.borrow()[&proc_def_id].clone()
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
@@ -338,8 +337,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         type_encoder.encode_type()
     }
 
-    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>) -> vir::Expr {
-        let spec_encoder = SpecEncoder::new(self, mir);
+    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>, label: &str, encoded_args: &[vir::Expr], encoded_return: &vir::Expr) -> vir::Expr {
+        let spec_encoder = SpecEncoder::new(self, mir, label, encoded_args, encoded_return);
         spec_encoder.encode_assertion(assertion)
     }
 
@@ -480,10 +479,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         while !self.encoding_queue.borrow().is_empty() {
             let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
+            let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
             if is_pure_function {
+                assert!(!is_trusted, "pure functions can not have the 'trusted' attribute");
                 self.encode_pure_function_def(proc_def_id);
             } else {
-                self.encode_procedure(proc_def_id);
+                if is_trusted {
+                    debug!("Trusted procedure will not be verified: {:?}", proc_def_id);
+                } else {
+                    self.encode_procedure(proc_def_id);
+                }
             }
         }
     }

@@ -55,7 +55,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
     pub fn encode_function(&self) -> vir::Function {
         let function_name = self.encode_function_name();
-        debug!("Encode pure function {}", function_name);
+        info!("Encode pure function {}", function_name);
 
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)
             .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
@@ -112,8 +112,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         // Encode functional specification
+        let encoded_args: Vec<vir::Expr> = contract.args.iter()
+            .map(|local| self.encode_local(local.clone().into()).into())
+            .collect();
+        let encoded_return: vir::Expr = self.encode_local(contract.returned_value.clone().into()).into();
         for item in contract.functional_precondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -307,6 +311,7 @@ impl fmt::Debug for ForwardInterpreterState {
 }
 
 
+#[deprecated(note="please use `PureFunctionBackwardInterpreter` instead")]
 struct PureFunctionForwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     mir: &'p mir::Mir<'tcx>,
@@ -1024,8 +1029,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
                         let encoded_left = self.mir_encoder.encode_operand_expr(left);
                         let encoded_right = self.mir_encoder.encode_operand_expr(right);
-
-                        let field = self.encoder.encode_value_field(ty);
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left, encoded_right, ty);
 
                         // Substitute a place of a value with an expression
@@ -1059,11 +1062,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
                         let encoded_val = self.mir_encoder.encode_operand_expr(operand);
-
-                        let field = self.encoder.encode_value_field(ty);
                         let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
 
-                        unimplemented!()
+                        // Substitute a place of a value with an expression
+                        state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
                     }
 
                     &mir::Rvalue::NullaryOp(op, ref op_ty) => {

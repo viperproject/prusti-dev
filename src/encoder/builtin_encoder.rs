@@ -41,7 +41,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
             BuiltinMethodKind::HavocRef => vir::BodylessMethod{
                 name: self.encode_builtin_method_name(method),
                 formal_args: vec![],
-                formal_returns: vec![vir::LocalVar::new("ret", vir::Type::TypedRef("".to_string()))]
+                formal_returns: vec![vir::LocalVar::new("ret", vir::Type::TypedRef("".to_string()))],
             }
         }
     }
