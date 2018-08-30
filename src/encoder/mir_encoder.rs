@@ -25,7 +25,8 @@ pub static PRECONDITION_LABEL: &'static str = "pre";
 pub struct MirEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     mir: &'p mir::Mir<'tcx>,
-    def_id: DefId
+    def_id: DefId,
+    namespace: String,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -34,12 +35,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         MirEncoder {
             encoder,
             mir,
-            def_id
+            def_id,
+            namespace: "".to_string()
         }
     }
 
+    pub fn new_with_namespace(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, def_id: DefId, namespace: String) -> Self {
+        debug!("MirEncoder constructor");
+        MirEncoder {
+            encoder,
+            mir,
+            def_id,
+            namespace
+        }
+    }
+
+    pub fn def_id(&self) -> DefId {
+        self.def_id
+    }
+
     pub fn encode_local_var_name(&self, local: mir::Local) -> String {
-        format!("{:?}", local)
+        format!("{}{:?}", self.namespace, local)
     }
 
     pub fn get_local_ty(&self, local: mir::Local) -> ty::Ty<'tcx> {
@@ -54,7 +70,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_local_var_with_name(&self, name: String) -> vir::LocalVar {
         let (index, decl) = self.mir.local_decls.iter_enumerated().find(|(index, decl)| decl.name.is_some() && decl.name.unwrap().to_string() == name).unwrap();
-        let var_name = format!("{:?}", index);
+        let var_name = format!("{}{:?}", self.namespace, index);
         let type_name = self.encoder.encode_type_predicate_use(decl.ty);
         vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
     }
@@ -225,7 +241,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 warn!("Incomplete encoding of promoted literal {:?}", operand);
 
                 // Generate a function call that leaves the expression undefined.
-                let uuid = format!("defid{}{}$promoted{:?}", self.def_id.krate, self.def_id.index.as_raw_u32(), index.index());
+                let uuid = format!("defid_{}_{}$promoted_{:?}", self.def_id.krate, self.def_id.index.as_raw_u32(), index.index());
                 let encoded_type = self.encoder.encode_value_type(ty);
                 let function_name = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::Undefined(uuid, encoded_type.clone())

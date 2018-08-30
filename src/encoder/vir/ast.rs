@@ -723,7 +723,7 @@ impl<T> ExprIterator for T
         if let Some(init) = self.next() {
             self.fold(init, |acc, conjunct| Expr::or(acc, conjunct))
         } else {
-            true.into()
+            false.into()
         }
     }
 }

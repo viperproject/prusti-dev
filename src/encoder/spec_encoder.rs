@@ -334,7 +334,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let mut closure_mir_expr = self.encoder.encode_pure_function_body(closure_def_id);
         let closure_procedure = self.encoder.env().get_procedure(closure_def_id);
         let closure_mir = closure_procedure.get_mir();
-        let closure_mir_encoder = MirEncoder::new(self.encoder, closure_mir, closure_def_id);
+        let closure_mir_encoder = MirEncoder::new_with_namespace(self.encoder, closure_mir, closure_def_id, "_pure".to_string());
 
         let spec_method_node_id = tcx.hir.get_parent(closure_node_id);
         let spec_method_def_id = tcx.hir.local_def_id(spec_method_node_id);
