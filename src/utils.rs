@@ -204,4 +204,7 @@ impl<'tcx> VecPlace<'tcx> {
     pub fn iter<'a>(&'a self) -> impl DoubleEndedIterator<Item = &'a VecPlaceComponent<'tcx>> {
         self.components.iter()
     }
+    pub fn component_count(&self) -> usize {
+        self.components.len()
+    }
 }
