@@ -492,6 +492,7 @@ impl<'tcx> SpecParser<'tcx> {
         let attrs = item.attrs;
         item.attrs = vec![];
         let is_pure_function = attr::contains_name(&attrs, "pure");
+        let is_trusted = attr::contains_name(&attrs, "trusted");
         let specs = self.parse_specs(attrs);
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(item.span, "invariant not allowed for procedure");
@@ -518,6 +519,11 @@ impl<'tcx> SpecParser<'tcx> {
         if is_pure_function {
             item.attrs.push(
                 self.ast_builder.attribute_word(item.span, "pure")
+            );
+        }
+        if is_trusted {
+            item.attrs.push(
+                self.ast_builder.attribute_word(item.span, "trusted")
             );
         }
 

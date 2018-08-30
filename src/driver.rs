@@ -103,6 +103,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             trace!("[after_parse.callback] enter");
             {
                 let registry = state.registry.as_mut().unwrap();
+                registry.register_attribute(String::from("trusted"), AttributeType::Whitelisted);
                 registry.register_attribute(String::from("pure"), AttributeType::Whitelisted);
                 registry.register_attribute(String::from("invariant"), AttributeType::Whitelisted);
                 registry.register_attribute(String::from("requires"), AttributeType::Whitelisted);
