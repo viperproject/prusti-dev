@@ -31,12 +31,12 @@ fn len(head: &List) -> usize {
     }
 }
 
-#[ensures="len(&result) > 0"]
+//#[ensures="len(&result) > 0"]
 #[ensures="old(len(&list)) == len(&result)"]
 #[ensures="if len(&result) > 0 { old(lookup(&list, 0)) == lookup(&result, 0) } else { true }"]
 fn identity(list: List) -> List { list }
 
-/*
+
 #[ensures="len(&result) == 1"]
 #[ensures="lookup(&result, 0) == old(x)"]
 fn build_list_1(x: u32) -> List {
@@ -50,24 +50,22 @@ fn build_list_1(x: u32) -> List {
 #[ensures="lookup(&result, 0) == old(x)"]
 #[ensures="lookup(&result, 1) == old(y)"]
 fn build_list_2(x: u32, y: u32) -> List {
-    let tail = build_list_1(x);
-    assert!(len(&tail) == 2);
+    let tail = build_list_1(y);
     List {
-        value: y,
+        value: x,
         next: Some(Box::new(tail)),
     }
 }
 
-
 #[ensures="len(&result) == old(len(&tail)) + 1"]
 #[ensures="lookup(&result, 0) == old(x)"]
-#[ensures="forall i: usize :: i > 0 ==> lookup(&result, i) == old(lookup(&tail, i + 1))"]
+//#[ensures="forall i: usize :: i > 0 ==> lookup(&result, i) == old(lookup(&tail, i + 1))"]
 fn prepend_list(x: u32, tail: List) -> List {
     List {
         value: x,
         next: Some(Box::new(tail)),
     }
 }
-*/
+
 
 fn main() {}
