@@ -1094,7 +1094,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         }
                     }
 
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Shared, ref place) => {
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, ref place) |
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Mut{ .. }, ref place) |
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         let encoded_place = self.mir_encoder.encode_place(place).0;
                         let encoded_ref = match encoded_place {
                             vir::Place::Field(box ref base, vir::Field { ref name, .. }) if name == "val_ref" => {
@@ -1105,14 +1107,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                         // Substitute the place
                         state.substitute_place(&encoded_lhs, encoded_ref);
-                    }
-
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Unique, ref place) |
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Mut{ .. }, ref place)=> {
-                        let ref_field = self.encoder.encode_value_field(ty);
-                        let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
-
-                        unimplemented!()
                     }
 
                     ref rhs => {
