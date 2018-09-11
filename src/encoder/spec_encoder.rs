@@ -32,6 +32,9 @@ use syntax::ast;
 use prusti_interface::specifications::*;
 use encoder::mir_encoder::MirEncoder;
 use rustc::hir::def_id::DefId;
+use encoder::mir_interpreter::{BackwardMirInterpreter, run_backward_interpretation, MultiExprBackwardInterpreterState};
+use encoder::builtin_encoder::BuiltinFunctionKind;
+use encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
 
 pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -333,92 +336,179 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         debug!("encode_expression {:?}", assertion_expr);
         let tcx = self.encoder.env().tcx();
 
-        // Find the MIR of the closure that encodes the assertions
+        // Find the MIR of the first closure that encodes the assertions
         let mut curr_node_id = assertion_expr.expr.id;
         for i in 0..1 {
             curr_node_id = tcx.hir.get_parent_node(curr_node_id);
         }
-        let closure_node_id = curr_node_id;
-        let closure_def_id = tcx.hir.local_def_id(closure_node_id);
-        let mut closure_mir_expr = self.encoder.encode_pure_function_body(closure_def_id);
-        let closure_procedure = self.encoder.env().get_procedure(closure_def_id);
-        let closure_mir = closure_procedure.get_mir();
-        let closure_mir_encoder = MirEncoder::new_with_namespace(self.encoder, closure_mir, closure_def_id, "_pure".to_string());
+        let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
+        let mut curr_namespace = "_pure".to_string();
 
-        let spec_method_node_id = tcx.hir.get_parent(closure_node_id);
-        let spec_method_def_id = tcx.hir.local_def_id(spec_method_node_id);
-        let spec_method_mir = tcx.mir_validated(spec_method_def_id).borrow();
-        let spec_method_mir_encoder = MirEncoder::new(self.encoder, &spec_method_mir, spec_method_def_id);
+        // Encode the expression
+        let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id);
 
-        // Replace with the variables captured in the closure
-        let (outer_def_id, captured_operands) = {
-            let mut instantiations = self.encoder.get_closure_instantiations(closure_def_id);
-            assert_eq!(instantiations.len(), 1);
-            instantiations.remove(0)
-        };
-        assert_eq!(outer_def_id, spec_method_def_id);
-        let closure_local = closure_mir.local_decls.indices().skip(1).next().unwrap();
-        let closure_var = closure_mir_encoder.encode_local(closure_local);
-        let closure_ty = &closure_mir.local_decls[closure_local].ty;
-        let (deref_closure_var, ..) = closure_mir_encoder.encode_deref(
-            closure_var.clone().into(),
-            closure_ty
-        );
-        debug!("closure_ty: {:?}", closure_ty);
-        trace!("deref_closure_var: {:?}", deref_closure_var);
-        let closure_subst = if let ty::TypeVariants::TyRef(_, ty::TyS{ sty: ty::TypeVariants::TyClosure(_, ref substs), ..}, _) = closure_ty.sty {
-            substs.clone()
-        } else {
-            unreachable!()
-        };
-        let captured_tys: Vec<ty::Ty> = closure_subst.upvar_tys(closure_def_id, tcx).collect();
-        debug!("captured_tys: {:?}", captured_tys);
-        assert_eq!(captured_tys.len(), captured_operands.len());
+        // For each of the enclosing closures, replace with the variables captured in the closure.
+        // We support at most 1000 nested closures (arbitrarly chosen).
+        for closure_counter in 0..1000 {
+            let (outer_def_id, outer_bb_index, outer_stmt_index, captured_operands) = {
+                let mut instantiations = self.encoder.get_closure_instantiations(curr_def_id);
+                if instantiations.is_empty() {
+                    // `curr_def_id` is not a closure and there are no captured variables
+                    break;
+                }
+                assert_eq!(instantiations.len(), 1);
+                instantiations.remove(0)
+            };
 
-        let closure_mir_expr_ref = &mut closure_mir_expr;
-        tcx.with_freevars(closure_node_id, |freevars| {
-            for (index, freevar) in freevars.iter().enumerate() {
-                let freevar_ty = &captured_tys[index];
-                let freevar_name = tcx.hir.name(freevar.var_id()).to_string();
-                let encoded_freevar = spec_method_mir_encoder.encode_local_var_with_name(
-                    freevar_name.clone()
-                );
+            // XXX: This definition has been moved in the loop to avoid NLL issues
+            let curr_procedure = self.encoder.env().get_procedure(curr_def_id);
+            let curr_mir = curr_procedure.get_mir();
+            let curr_mir_encoder = MirEncoder::new_with_namespace(self.encoder, curr_mir, curr_def_id, curr_namespace.clone());
 
-                let field_name = format!("closure_{}", index);
-                let encoded_field = self.encoder.encode_ref_field(&field_name, freevar_ty);
-                let (encoded_closure, ..) = closure_mir_encoder.encode_deref(
-                    deref_closure_var.clone().access(encoded_field),
-                    freevar_ty
-                );
+            trace!("Procedure {:?} is contained in {:?}", curr_def_id, outer_def_id);
+            let is_spec_function = self.encoder.get_closure_instantiations(outer_def_id).is_empty();
+            let outer_namespace = if is_spec_function {
+                "".to_string()
+            } else {
+                format!("_closure{}", closure_counter)
+            };
+            let outer_node_id = tcx.hir.as_local_node_id(outer_def_id).unwrap();
+            let outer_procedure = self.encoder.env().get_procedure(outer_def_id);
+            let outer_mir = outer_procedure.get_mir();
+            let outer_mir_encoder = MirEncoder::new_with_namespace(self.encoder, outer_mir, outer_def_id, outer_namespace.clone());
+            trace!("Replacing variables captured from {:?}", outer_def_id);
+
+            // Take the first local variable, that is the closure.
+            // The closure is a record containing all the captured variables.
+            let closure_local = curr_mir.local_decls.indices().skip(1).next().unwrap();
+            let closure_var = curr_mir_encoder.encode_local(closure_local);
+            let closure_ty = &curr_mir.local_decls[closure_local].ty;
+            let (deref_closure_var, ..) = curr_mir_encoder.encode_deref(
+                closure_var.clone().into(),
+                closure_ty
+            );
+            trace!("closure_ty: {:?}", closure_ty);
+            trace!("deref_closure_var: {:?}", deref_closure_var);
+            let closure_subst = if let ty::TypeVariants::TyRef(_, ty::TyS { sty: ty::TypeVariants::TyClosure(_, ref substs), .. }, _) = closure_ty.sty {
+                substs.clone()
+            } else {
+                unreachable!()
+            };
+            let captured_tys: Vec<ty::Ty> = closure_subst.upvar_tys(curr_def_id, tcx).collect();
+            trace!("captured_tys: {:?}", captured_tys);
+            assert_eq!(captured_tys.len(), captured_operands.len());
+
+            // Translate a local variable from the closure to a place in the enclosing closure
+            let inner_captured_places: Vec<_> = captured_tys.iter().enumerate().map(
+                |(index, &captured_ty)| {
+                    let field_name = format!("closure_{}", index);
+                    let encoded_field = self.encoder.encode_ref_field(&field_name, captured_ty);
+                    deref_closure_var.clone().access(encoded_field)
+                }
+            ).collect();
+            let outer_captured_places: Vec<_> = captured_operands.iter().map(
+                |operand| {
+                    outer_mir_encoder.encode_operand_place(operand).unwrap()
+                }
+            ).collect();
+            let take_addr_of = |place: vir::Place| {
+                match place {
+                    vir::Place::Field(box ref base, vir::Field { ref name, .. }) if name == "val_ref" => {
+                        base.clone()
+                    }
+                    other_place => other_place.addr_of()
+                }
+            };
+            for (index, (inner_place, outer_place)) in inner_captured_places.iter().zip(outer_captured_places.iter()).enumerate() {
                 trace!(
-                    "Field {} of closure, encoded as {}, corresponds to captured {}",
+                    "Field {} of closure, encoded as {}: {}, corresponds to {}: {} in the middle of the enclosing procedure",
                     index,
-                    encoded_closure,
-                    encoded_freevar
+                    inner_place,
+                    inner_place.get_type(),
+                    outer_place,
+                    outer_place.get_type()
                 );
-                *closure_mir_expr_ref = closure_mir_expr_ref.clone().substitute_place_with_expr(
-                    &encoded_closure,
-                    encoded_freevar.into()
+                assert_eq!(inner_place.get_type(), outer_place.get_type());
+                encoded_expr = encoded_expr.substitute_place_with_place(
+                    inner_place,
+                    outer_place.clone()
                 );
             }
-        });
 
-        // TODO: replace with quantified variables...
+            // Translate an intermediate state to the state at the beginning of the method
+            let state = MultiExprBackwardInterpreterState::new_single(
+                encoded_expr.clone()
+            );
+            let interpreter = StraightLineBackwardInterpreter::new(
+                self.encoder,
+                outer_mir,
+                outer_def_id,
+                outer_namespace.clone(),
+                outer_bb_index,
+                outer_stmt_index,
+                state,
+            );
+            let initial_state = run_backward_interpretation(outer_mir, &interpreter).unwrap();
+            encoded_expr = initial_state.into_expressions().remove(0);
+
+            // Replace the variables introduced in the quantifications
+            if !is_spec_function {
+                for local_arg_index in outer_mir.args_iter().skip(1) {
+                    let local_arg = &outer_mir.local_decls[local_arg_index];
+                    if let Some(var_name) = local_arg.name {
+                        let encoded_arg = outer_mir_encoder.encode_local(local_arg_index);
+                        let value_field = self.encoder.encode_value_field(local_arg.ty);
+                        let value_type = self.encoder.encode_value_type(local_arg.ty);
+                        let proper_var = vir::LocalVar::new(var_name.to_string(), value_type);
+                        let encoded_arg_value = vir::Place::Base(encoded_arg).access(value_field);
+                        trace!(
+                            "Place {}: {} is renamed to {} because a quantifier introduced it",
+                            encoded_arg_value,
+                            encoded_arg_value.get_type(),
+                            proper_var
+                        );
+                        encoded_expr = encoded_expr.substitute_place_with_place(
+                            &encoded_arg_value,
+                            proper_var.into()
+                        );
+                    }
+                }
+            }
+
+            trace!(
+                "Expr at the beginning of closure with namespace '{}': {}",
+                outer_namespace,
+                encoded_expr
+            );
+
+            // Outer is the new curr
+            curr_namespace = outer_namespace;
+            curr_node_id = outer_node_id;
+            curr_def_id = outer_def_id;
+        }
+
+        // XXX: This definition has been copied after the loop to avoid NLL issues
+        let curr_procedure = self.encoder.env().get_procedure(curr_def_id);
+        let curr_mir = curr_procedure.get_mir();
+        let curr_mir_encoder = MirEncoder::new_with_namespace(self.encoder, curr_mir, curr_def_id, "".to_string());
+
+        // At this point, `curr_def_id` corresponds to the SPEC method. Here is a simple check.
+        assert!(self.encoder.encode_item_name(curr_def_id).contains("__spec"));
 
         // Translate arguments and return for the SPEC to the TARGET context
-        for (local, target_arg) in spec_method_mir.args_iter().zip(self.target_args) {
-            let spec_local = spec_method_mir_encoder.encode_local(local);
-            closure_mir_expr = closure_mir_expr.substitute_place_with_expr(&spec_local.into(), target_arg.clone());
+        for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
+            let spec_local = curr_mir_encoder.encode_local(local);
+            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_local.into(), target_arg.clone());
         }
         {
-            let spec_fake_return = spec_method_mir_encoder.encode_local(
-                spec_method_mir.args_iter().last().unwrap()
+            let spec_fake_return = curr_mir_encoder.encode_local(
+                curr_mir.args_iter().last().unwrap()
             );
-            closure_mir_expr = closure_mir_expr.substitute_place_with_expr(&spec_fake_return.into(), self.target_return.clone());
+            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_fake_return.into(), self.target_return.clone());
         }
 
-        // Translate label of `old[pre]` expressions
-        closure_mir_expr = closure_mir_expr.map_old_expr_label(
+        // Translate label of `old[pre]` expressions to the TARGET label
+        encoded_expr = encoded_expr.map_old_expr_label(
             |label| if label == PRECONDITION_LABEL {
                 self.target_label.to_string()
             } else {
@@ -426,7 +516,72 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
         );
 
-        debug!("MIR expr {:?} --> {}", assertion_expr.id, closure_mir_expr);
-        closure_mir_expr
+        debug!("MIR expr {:?} --> {}", assertion_expr.id, encoded_expr);
+        encoded_expr
+    }
+}
+
+
+struct StraightLineBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
+    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>,
+    bb_index: mir::BasicBlock,
+    stmt_index: usize,
+    state: MultiExprBackwardInterpreterState,
+}
+
+/// XXX: This encoding works backward, but there is the risk of generating expressions whose length
+/// is exponential in the number of branches. If this becomes a problem, consider doing a forward
+/// encoding (keeping path conditions expressions).
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StraightLineBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
+    fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        mir: &'p mir::Mir<'tcx>,
+        def_id: DefId,
+        namespace: String,
+        bb_index: mir::BasicBlock,
+        stmt_index: usize,
+        state: MultiExprBackwardInterpreterState,
+    ) -> Self {
+        StraightLineBackwardInterpreter {
+            interpreter: PureFunctionBackwardInterpreter::new(encoder, mir, def_id, namespace),
+            bb_index,
+            stmt_index,
+            state,
+        }
+    }
+}
+
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for StraightLineBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
+    type State = MultiExprBackwardInterpreterState;
+
+    fn apply_terminator(&self, bb: mir::BasicBlock, term: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Self::State {
+        trace!("apply_terminator {:?}, states: {:?}", term, states);
+
+        if !states.is_empty() && states.values().all(|state| !state.exprs().is_empty()) {
+            // All states are initialized
+            self.interpreter.apply_terminator(bb, term, states)
+        } else {
+            // One of the states is not yet initialized
+            trace!("Skip terminator {:?}", term);
+            MultiExprBackwardInterpreterState::new(vec![])
+        }
+    }
+
+    fn apply_statement(&self, bb: mir::BasicBlock, stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State) {
+        trace!("apply_statement {:?}, state: {:?}", stmt, state);
+
+        if bb == self.bb_index && stmt_index == self.stmt_index {
+            // Initialize the state
+            trace!("Initialize state");
+            *state = self.state.clone();
+        } else {
+            if !state.exprs().is_empty() {
+                // The state is initialized
+                self.interpreter.apply_statement(bb, stmt_index, stmt, state);
+            } else {
+                // The state is not yet initialized
+                trace!("Skip statement {:?}", stmt);
+            }
+        }
     }
 }

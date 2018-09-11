@@ -147,7 +147,11 @@ impl RequiredPermissionsGetter for vir::Expr {
             }
 
             vir::Expr::Place(place) => {
-                Some(LabelledPerm::curr(Acc(place.clone()))).into_iter().collect()
+                if !place.is_base() {
+                    Some(LabelledPerm::curr(Acc(place.clone()))).into_iter().collect()
+                } else {
+                    None.into_iter().collect()
+                }
             },
 
             vir::Expr::PredicateAccess(_, args) => {

@@ -254,7 +254,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyNever => {
                 vec![
-                    vir::Expr::Const(false.into())
+                    // A `false` here is unsound. See issue #38.
+                    vir::Expr::Const(true.into())
                 ]
             },
 

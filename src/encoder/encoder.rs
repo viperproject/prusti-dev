@@ -46,21 +46,22 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
     type_predicates: RefCell<HashMap<String, vir::Predicate>>,
     fields: RefCell<HashMap<String, vir::Field>>,
-    closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, Vec<mir::Operand<'tcx>>)>>,
+    /// For each instantiation of each closure: DefId, basic block index, statement index, operands
+    closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, mir::BasicBlock, usize, Vec<mir::Operand<'tcx>>)>>,
     encoding_queue: RefCell<Vec<ProcedureDefId>>,
-    vir_initial_program_writer: RefCell<Box<Write>>,
-    vir_program_writer: RefCell<Box<Write>>,
+    vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
+    vir_program_before_viper_writer: RefCell<Box<Write>>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        let vir_initial_program_writer = RefCell::new(
-            Log::writer("vir_initial_program", format!("{}.vir", source_filename)).ok().unwrap()
+        let vir_program_before_foldunfold_writer = RefCell::new(
+            Log::writer("vir_program_before_foldunfold", format!("{}.vir", source_filename)).ok().unwrap()
         );
-        let vir_program_writer = RefCell::new(
-            Log::writer("vir_program", format!("{}.vir", source_filename)).ok().unwrap()
+        let vir_program_before_viper_writer = RefCell::new(
+            Log::writer("vir_program_before_viper", format!("{}.vir", source_filename)).ok().unwrap()
         );
 
         Encoder {
@@ -78,20 +79,20 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             fields: RefCell::new(HashMap::new()),
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
-            vir_initial_program_writer,
-            vir_program_writer
+            vir_program_before_foldunfold_writer,
+            vir_program_before_viper_writer
         }
     }
 
-    pub fn log_vir_initial_program<S: ToString>(&self, program: S) {
-        let mut writer = self.vir_initial_program_writer.borrow_mut();
+    pub fn log_vir_program_before_foldunfold<S: ToString>(&self, program: S) {
+        let mut writer = self.vir_program_before_foldunfold_writer.borrow_mut();
         writer.write_all(program.to_string().as_bytes()).ok().unwrap();
         writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
         writer.flush().ok().unwrap();
     }
 
-    pub fn log_vir_program<S: ToString>(&self, program: S) {
-        let mut writer = self.vir_program_writer.borrow_mut();
+    pub fn log_vir_program_before_viper<S: ToString>(&self, program: S) {
+        let mut writer = self.vir_program_before_viper_writer.borrow_mut();
         writer.write_all(program.to_string().as_bytes()).ok().unwrap();
         writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
         writer.flush().ok().unwrap();
@@ -155,12 +156,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         debug!("Collecting closure instantiations...");
         let tcx = self.env().tcx();
         let crate_num = hir::def_id::LOCAL_CRATE;
-        let mut closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, Vec<mir::Operand<'tcx>>)>> = HashMap::new();
+        let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
         for &mir_def_id in tcx.mir_keys(crate_num).iter() {
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
             let mir = tcx.mir_validated(mir_def_id).borrow();
-            for bb_data in mir.basic_blocks().iter() {
-                for stmt in &bb_data.statements {
+            for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
+                for (stmt_index, stmt) in bb_data.statements.iter().enumerate() {
                     if let mir::StatementKind::Assign(
                         _,
                         mir::Rvalue::Aggregate(
@@ -173,6 +174,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                         instantiations.push(
                             (
                                 mir_def_id,
+                                bb_index,
+                                stmt_index,
                                 operands.clone()
                             )
                         )
@@ -183,9 +186,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.closure_instantiations = closure_instantiations;
     }
 
-    pub fn get_closure_instantiations(&self, closure_def_id: DefId) -> Vec<(ProcedureDefId, Vec<mir::Operand<'tcx>>)> {
+    pub fn get_closure_instantiations(&self, closure_def_id: DefId) -> Vec<(ProcedureDefId, mir::BasicBlock, usize, Vec<mir::Operand<'tcx>>)> {
         trace!("Get closure instantiations for {:?}", closure_def_id);
-        let default: Vec<(ProcedureDefId, Vec<mir::Operand<'tcx>>)> = vec![];
         match self.closure_instantiations.get(&closure_def_id) {
             Some(result) => result.clone(),
             None => vec![]
@@ -267,7 +269,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
             let method = builtin_encoder.encode_builtin_method_def(method_kind);
-            self.log_vir_program(method.to_string());
+            self.log_vir_program_before_viper(method.to_string());
             self.builtin_methods.borrow_mut().insert(method_kind.clone(), method);
         }
         self.builtin_methods.borrow()[&method_kind].clone()
@@ -288,7 +290,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.builtin_functions.borrow().contains_key(&function_kind) {
             let builtin_encoder = BuiltinEncoder::new(self);
             let function = builtin_encoder.encode_builtin_function_def(function_kind.clone());
-            self.log_vir_program(function.to_string());
+            self.log_vir_program_before_viper(function.to_string());
             self.builtin_functions.borrow_mut().insert(function_kind.clone(), function);
         }
         self.builtin_functions.borrow()[&function_kind].clone()
@@ -321,7 +323,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let procedure = self.env.get_procedure(proc_def_id);
             let procedure_encoder = ProcedureEncoder::new(self, &procedure);
             let method = procedure_encoder.encode();
-            self.log_vir_program(method.to_string());
+            self.log_vir_program_before_viper(method.to_string());
             self.procedures.borrow_mut().insert(proc_def_id, method);
         }
         self.procedures.borrow()[&proc_def_id].clone()
@@ -364,7 +366,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
             let predicate = type_encoder.encode_predicate_def();
-            self.log_vir_program(predicate.to_string());
+            self.log_vir_program_before_viper(predicate.to_string());
             self.type_predicates.borrow_mut().insert(predicate_name.clone(), predicate);
         }
         self.type_predicates.borrow()[&predicate_name].clone()

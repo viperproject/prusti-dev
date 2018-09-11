@@ -68,11 +68,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
     }
 
-    pub fn encode_local_var_with_name(&self, name: String) -> vir::LocalVar {
-        let (index, decl) = self.mir.local_decls.iter_enumerated().find(|(index, decl)| decl.name.is_some() && decl.name.unwrap().to_string() == name).unwrap();
-        let var_name = format!("{}{:?}", self.namespace, index);
-        let type_name = self.encoder.encode_type_predicate_use(decl.ty);
-        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+    pub fn encode_local_var_with_name(&self, name: String) -> Option<vir::LocalVar> {
+        self.mir.local_decls.iter_enumerated()
+            .find(
+                |(index, decl)|
+                    decl.name.is_some() && decl.name.unwrap().to_string() == name
+            )
+            .map(
+                |(index, decl)| {
+                    let var_name = format!("{}{:?}", self.namespace, index);
+                    let type_name = self.encoder.encode_type_predicate_use(decl.ty);
+                    vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+                }
+            )
     }
 
     /// Returns

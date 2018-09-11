@@ -9,12 +9,13 @@ use std::marker::Sized;
 use std::iter::FromIterator;
 use std::fmt::Debug;
 use std::fmt::Display;
+use encoder::vir;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
     type State : Sized;
-    fn apply_terminator(&self, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Self::State;
-    fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State);
+    fn apply_terminator(&self, bb: mir::BasicBlock, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Self::State;
+    fn apply_statement(&self, bb: mir::BasicBlock, stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State);
 }
 
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
@@ -58,16 +59,17 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
         let mut curr_state = interpreter.apply_terminator(
+            curr_bb,
             terminator,
             states
         );
         trace!("State after: {:?}", curr_state);
 
         // Apply each statement, from the last
-        for stmt in bb_data.statements.iter().rev() {
+        for (stmt_index, stmt) in bb_data.statements.iter().enumerate().rev() {
             trace!("State before: {:?}", curr_state);
             trace!("Apply statement {:?}", stmt);
-            interpreter.apply_statement(stmt, &mut curr_state);
+            interpreter.apply_statement(curr_bb, stmt_index, stmt, &mut curr_state);
             trace!("State after: {:?}", curr_state);
         }
 
@@ -92,7 +94,6 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
 
     result
 }
-
 
 /// Forward interpreter for a loop-less MIR
 pub trait ForwardMirInterpreter<'tcx> {
@@ -186,4 +187,67 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
 
     trace!("Join {} final states", final_states.len());
     interpreter.join(&final_states.iter().collect::<Vec<_>>()[..])
+}
+
+
+
+#[derive(Clone, Debug)]
+pub struct MultiExprBackwardInterpreterState {
+    exprs: Vec<vir::Expr>
+}
+
+impl MultiExprBackwardInterpreterState {
+    pub fn new(exprs: Vec<vir::Expr>) -> Self {
+        MultiExprBackwardInterpreterState {
+            exprs
+        }
+    }
+
+    pub fn new_single(expr: vir::Expr) -> Self {
+        MultiExprBackwardInterpreterState {
+            exprs: vec![expr]
+        }
+    }
+
+    pub fn expr(&self, index: usize) -> &vir::Expr {
+        &self.exprs[index]
+    }
+
+    pub fn exprs(&self) -> &Vec<vir::Expr> {
+        &self.exprs
+    }
+
+    pub fn into_expressions(self) -> Vec<vir::Expr> {
+        self.exprs
+    }
+
+    pub fn substitute_place(&mut self, sub_target: &vir::Place, replacement: vir::Place) {
+        trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
+
+        // If `replacement` is a reference, simplify also its dereferentiations
+        if let vir::Place::AddrOf(box ref base_replacement, ref dereferenced_type) = replacement {
+            trace!("Substitution of a reference. Simplify its dereferentiations.");
+            let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
+            let deref_target = sub_target.clone().access(deref_field.clone());
+            self.substitute_place(&deref_target, base_replacement.clone());
+        }
+
+        for expr in &mut self.exprs {
+            *expr = vir::utils::ExprSubPlaceSubstitutor::substitute(expr.clone(), sub_target, replacement.clone());
+        }
+    }
+
+    pub fn substitute_value(&mut self, exact_target: &vir::Place, replacement: vir::Expr) {
+        trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
+        for expr in &mut self.exprs {
+            *expr = vir::utils::ExprExactPlaceSubstitutor::substitute(expr.clone(), exact_target, replacement.clone());
+        }
+    }
+
+    pub fn use_place(&self, sub_target: &vir::Place) -> bool {
+        trace!("use_place {:?}", sub_target);
+        self.exprs.iter().any(
+            |expr| vir::utils::ExprPlaceFinder::find(expr, sub_target)
+        )
+    }
 }

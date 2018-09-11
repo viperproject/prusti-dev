@@ -264,16 +264,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let method_name = self.cfg_method.name();
 
-        self.encoder.log_vir_initial_program(self.cfg_method.to_string());
+        self.encoder.log_vir_program_before_foldunfold(self.cfg_method.to_string());
 
         // Dump initial CFG
-        Log::report_with_writer("graphviz_initial_method", format!("{}.dot", method_name), |writer| self.cfg_method.to_graphviz(writer));
+        Log::report_with_writer("graphviz_method_before_foldunfold", format!("{}.dot", method_name), |writer| self.cfg_method.to_graphviz(writer));
 
         // Add fold/unfold
         let final_method = foldunfold::add_fold_unfold(self.cfg_method, self.encoder.get_used_viper_predicates_map());
 
         // Dump final CFG
-        Log::report_with_writer("graphviz_method", format!("{}.dot", method_name), |writer| final_method.to_graphviz(writer));
+        Log::report_with_writer("graphviz_method_before_viper", format!("{}.dot", method_name), |writer| final_method.to_graphviz(writer));
 
         final_method
     }

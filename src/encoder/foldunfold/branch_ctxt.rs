@@ -279,15 +279,17 @@ impl<'a> BranchCtxt<'a> {
         } else {
             // We have no predicate to obtain the access permission `req`
             unreachable!(
-                "There is no predicate to obtain {:?}. Predicates: {:?}",
-                req,
+                "There is no predicate to obtain {}: {}. Predicates: {:?}",
+                req.as_ref(),
+                req.as_ref().get_type(),
                 self.state.pred()
             );
         };
 
         unreachable!(
-            "It is not possible to obtain {:?}. Predicates: {:?}",
-            req,
+            "It is not possible to obtain {}: {}. Predicates: {:?}",
+            req.as_ref(),
+            req.as_ref().get_type(),
             self.state.pred()
         );
     }
