@@ -283,7 +283,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
             }
 
             TerminatorKind::DropAndReplace { ref target, ref location, ref value, .. } => {
-                unimplemented!();
+                unimplemented!()
             }
 
             TerminatorKind::Call {
@@ -428,9 +428,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let opt_encoded_rhs = self.mir_encoder.encode_operand_place(operand);
 
                         match opt_encoded_rhs {
-                            Some(encode_rhs) => {
+                            Some(encoded_rhs) => {
                                 // Substitute a place
-                                state.substitute_place(&encoded_lhs, encode_rhs);
+                                state.substitute_place(&encoded_lhs, encoded_rhs);
                             },
                             None => {
                                 // Substitute a place of a value with an expression
@@ -440,8 +440,67 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         }
                     }
 
-                    &mir::Rvalue::Aggregate(..) => {
-                        unimplemented!("TODO")
+                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
+                        debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
+                        match aggregate.as_ref() {
+                            &mir::AggregateKind::Tuple => {
+                                let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
+                                for (field_num, operand) in operands.iter().enumerate() {
+                                    let field_name = format!("tuple_{}", field_num);
+                                    let field_ty = field_types[field_num];
+                                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                                    let field_place = encoded_lhs.clone().access(encoded_field);
+
+                                    match self.mir_encoder.encode_operand_place(operand) {
+                                        Some(encoded_rhs) => {
+                                            // Substitute a place
+                                            state.substitute_place(&field_place, encoded_rhs);
+                                        },
+                                        None => {
+                                            // Substitute a place of a value with an expression
+                                            let rhs_expr = self.mir_encoder.encode_operand_expr(operand);
+                                            let value_field = self.encoder.encode_value_field(field_ty);
+                                            state.substitute_value(&field_place.access(value_field), rhs_expr);
+                                        },
+                                    }
+                                }
+                            }
+
+                            &mir::AggregateKind::Adt(adt_def, variant_index, subst, _) => {
+                                let num_variants = adt_def.variants.len();
+                                if num_variants > 1 {
+                                    let discr_field = self.encoder.encode_discriminant_field();
+                                    state.substitute_value(
+                                        &encoded_lhs.clone().access(discr_field),
+                                        variant_index.into()
+                                    );
+                                }
+                                let variant_def = &adt_def.variants[variant_index];
+                                for (field_index, field) in variant_def.fields.iter().enumerate() {
+                                    let operand = &operands[field_index];
+                                    let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
+                                    let tcx = self.encoder.env().tcx();
+                                    let field_ty = field.ty(tcx, subst);
+                                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+
+                                    let field_place = encoded_lhs.clone().access(encoded_field);
+                                    match self.mir_encoder.encode_operand_place(operand) {
+                                        Some(encoded_rhs) => {
+                                            // Substitute a place
+                                            state.substitute_place(&field_place, encoded_rhs);
+                                        },
+                                        None => {
+                                            // Substitute a place of a value with an expression
+                                            let rhs_expr = self.mir_encoder.encode_operand_expr(operand);
+                                            let value_field = self.encoder.encode_value_field(field_ty);
+                                            state.substitute_value(&field_place.access(value_field), rhs_expr);
+                                        },
+                                    }
+                                }
+                            }
+
+                            ref x => unimplemented!("{:?}", x)
+                        }
                     }
 
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
@@ -487,7 +546,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     }
 
                     &mir::Rvalue::NullaryOp(op, ref op_ty) => {
-                        unimplemented!("TODO")
+                        unimplemented!()
                     }
 
                     &mir::Rvalue::Discriminant(ref src) => {
@@ -533,7 +592,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 }
             }
 
-            ref stmt => unimplemented!("encoding of '{:?}'", stmt)
+            ref stmt => {
+                unimplemented!("encoding of '{:?}'", stmt)
+            }
         }
     }
 }
