@@ -13,8 +13,8 @@ jdk:
 addons:
   apt:
     sources:
-      - sourceline: 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /'
-        key_url: 'https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc'
+      - sourceline: "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /"
+        key_url: "https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc"
     update: true
     packages:
       - viper
@@ -42,17 +42,10 @@ matrix:
   allow_failures:
   - rust: nightly
 
-git:
-  # We need to change .gitmodules before getting submodules
-  submodules: false
-
 before_install:
   # Make sure stdout is in blocking mode. Otherwise builds will fail due to large writes to stdout
   # See https://github.com/travis-ci/travis-ci/issues/4704. If this gets fixed, this line can also be removed.
   - python3 -c 'import os,sys,fcntl; flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL); fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags&~os.O_NONBLOCK);'
-  # Replace the SSH URL with the public URL, then init and update submodules
-  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-  - git submodule update --init --recursive
   # Prepare directory for local installations
   - mkdir -p $USR_LOCAL
   # Download and compile Z3 with a known-to-work version
