@@ -265,12 +265,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 let default_target = targets[values.len()];
 
                 MultiExprBackwardInterpreterState::new(
-                    states[&default_target].exprs().iter().map(
-                        |expr| {
+                    (0..states[&default_target].exprs().len()).map(
+                        |expr_index| {
                             cfg_targets.iter().fold(
-                                expr.clone(),
-                                |else_expr, (guard, _)| {
-                                    vir::Expr::ite(guard.clone(), expr.clone(), else_expr)
+                                states[&default_target].exprs()[expr_index].clone(),
+                                |else_expr, (guard, target)| {
+                                    vir::Expr::ite(
+                                        guard.clone(),
+                                        states[&target].exprs()[expr_index].clone(),
+                                        else_expr
+                                    )
                                 }
                             )
                         }
