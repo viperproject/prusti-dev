@@ -1,0 +1,22 @@
+language: rust
+cache: cargo
+dist: trusty
+os:
+  - linux
+
+sudo: false
+
+rust:
+  - nightly
+
+before_script:
+  - ( ( cargo install clippy && export CLIPPY=true ) || export CLIPPY=false );
+  - export PATH=$PATH:~/.cargo/bin
+
+script:
+  - cargo build
+  - cargo test
+  - |
+      if [[ $CLIPPY ]]; then
+        cargo clippy
+      fi
