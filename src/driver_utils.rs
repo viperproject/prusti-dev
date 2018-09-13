@@ -18,7 +18,7 @@ use rustc::session::{config, Session};
 use std::panic;
 use rustc::session::CompileResult;
 
-static PRUSTI_BUG_REPORT_URL: &str = "<https://github.com/viperproject/prusti-dev/issues/new>";
+static PRUSTI_BUG_REPORT_URL: &str = "<redacted URL>";
 
 /// Run a procedure which will detect panics in the compiler and print nicer
 /// error messages rather than just failing the test.
