@@ -1,0 +1,81 @@
+language: rust
+dist: trusty
+sudo: false
+
+rust:
+  - stable
+  - beta
+  - nightly
+  - nightly-2018-06-27
+
+jdk:
+  - oraclejdk8
+
+matrix:
+  allow_failures:
+  - rust: stable
+  - rust: nightly
+
+# Add Viper's PPA and install Viper
+addons:
+  apt:
+    sources:
+      - sourceline: 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /'
+        key_url: 'https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc'
+    update: true
+    packages:
+      - viper
+
+cache:
+  cargo: true
+  directories:
+  - .cache
+
+env:
+  global:
+    - USR_LOCAL=$HOME/local
+    - JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    - LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/amd64/server
+    - RUST_BACKTRACE=1
+    - RUST_LOG=viper=debug,viper-sys=debug,jni-gen=debug
+    - Z3_PATH=$USR_LOCAL/bin/z3
+
+before_install:
+  # Make sure stdout is in blocking mode. Otherwise builds will fail due to large writes to stdout
+  # See https://github.com/travis-ci/travis-ci/issues/4704. If this gets fixed, this line can also be removed.
+  - python3 -c 'import os,sys,fcntl; flags = fcntl.fcntl(sys.stdout, fcntl.F_GETFL); fcntl.fcntl(sys.stdout, fcntl.F_SETFL, flags&~os.O_NONBLOCK);'
+  # Prepare directory for local installations
+  - mkdir -p $USR_LOCAL
+  # Download and compile Z3 with a known-to-work version
+  - if [ ! -d .cache/z3 ]; then
+      echo "Building Z3 from scratch";
+      wget -O z3.zip https://github.com/Z3Prover/z3/archive/3865c453827506fc5c9d6c6c7c3d66d17030f158.zip;
+      unzip z3.zip;
+      rm z3.zip;
+      mv z3-3865c453827506fc5c9d6c6c7c3d66d17030f158 tmp-z3;
+      cd tmp-z3;
+      ./configure --prefix=$USR_LOCAL;
+      cd build;
+      make -j 2;
+      cd ../..;
+      mv tmp-z3 .cache/z3;
+    else
+      echo "Using cached Z3";
+      ls .cache/z3;
+    fi
+
+install:
+  - cd .cache/z3/build; make install; cd ../../..
+  - if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
+      cargo install rustfmt-nightly clippy --force;
+    fi
+
+script:
+  - cargo build
+  - cargo test --verbose -- --nocapture
+  # Clippy often fails with "the compiler unexpectedly panicked. this is a bug"
+  - if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
+      cargo clean &&
+      cargo fmt -- --write-mode=diff &&
+      cargo clippy || true;
+    fi
