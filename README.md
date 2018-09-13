@@ -3,13 +3,27 @@ Prusti-dev
 
 [![Build Status][build_badge]][build_status]
 
-[Development documentation][documentation]
 
 Workspace project containing all Prusti sub-projects.
 
 [build_badge]: https://travis-ci.org/viperproject/prusti-dev.svg
 [build_status]: https://travis-ci.org/viperproject/prusti-dev
-[documentation]: https://viperproject.github.io/prusti-dev/
+
+
+Documentation
+-------------
+
+[Development documentation](https://viperproject.github.io/prusti-dev/)
+
+Modules:
+
+- [jni-gen](https://viperproject.github.io/prusti-dev/jni_gen/)
+- [viper-sys](https://viperproject.github.io/prusti-dev/viper_sys/)
+- [viper](https://viperproject.github.io/prusti-dev/viper/)
+- [prusti-viper](https://viperproject.github.io/prusti-dev/prusti_viper/)
+- [prusti-utils](https://viperproject.github.io/prusti-dev/prusti_utils/)
+- [prusti-interface](https://viperproject.github.io/prusti-dev/prusti_interface/)
+- [prusti](https://viperproject.github.io/prusti-dev/prusti/)
 
 
 Get started

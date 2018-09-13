@@ -26,7 +26,6 @@ bench:
 	$(SET_ENV_VARS) cargo bench --all
 
 update:
-	git submodule foreach git pull origin master
 	cargo update
 
 docs: update
@@ -36,11 +35,8 @@ clippy: clean
 	$(SET_ENV_VARS) cargo clippy --all
 
 clean:
-	git submodule foreach cargo clean
+	cargo clean
 	find . -name '*.bk' -delete
-
-diff:
-	git submodule foreach 'echo; echo "=== $$path ==="; git diff'
 
 todo:
 	git grep -i "todo\|fixme\|xxx\|hack"

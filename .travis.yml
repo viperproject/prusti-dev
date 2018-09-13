@@ -69,6 +69,10 @@ install:
   - ( cd .cache/z3/build && make install )
   - cargo install mdbook --vers 0.0.26 || true
 
+before_script:
+  # Avoid having multiple matching crates for `prusti_contracts`
+  - rm -f $TRAVIS_BUILD_DIR/target/debug/deps/libprusti-contracts-*
+
 script:
   - cargo build --all
   - cargo test --verbose -- --nocapture
@@ -77,7 +81,10 @@ after_success:
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_RUST_VERSION" != "nightly" ]]; then
         echo "Build documentation" &&
-        git submodule foreach 'echo "Build documentation for $name"; cargo rustdoc --lib -- --document-private-items' &&
+        for name in $(echo "jni-gen viper-sys viper prusti-viper prusti-utils prusti-interface prusti");
+          do echo "Build documentation for $name";
+          cargo rustdoc --lib -- --document-private-items;
+        done &&
         echo "Build design documentation" &&
         cd design &&
         mdbook build &&
