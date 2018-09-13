@@ -20,6 +20,7 @@ Get started
     ```bash
     wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
     echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
+    sudo apt-get update  
     sudo apt-get install viper
     ```
 
@@ -44,6 +45,13 @@ Get started
     Note: make sure that `LD_LIBRARY_PATH` does not contain empty
     segments because it can cause a crash with a “multiple inputs
     provided” error.
+
+- Set the Rust compiler version
+
+    ```bash
+    rustup toolchain install nightly-2018-06-27
+    rustup override set nightly-2018-06-27
+    ```
 
 - You can now build all crates
 
