@@ -1058,6 +1058,7 @@ pub struct Function {
     pub formal_args: Vec<LocalVar>,
     pub return_type: Type,
     pub pres: Vec<Expr>,
+    pub posts: Vec<Expr>,
     pub body: Option<Expr>,
 }
 
@@ -1075,6 +1076,9 @@ impl fmt::Display for Function {
         writeln!(f, "): {}", self.return_type)?;
         for pre in &self.pres {
             writeln!(f, "  requires {}", pre)?;
+        }
+        for post in &self.posts {
+            writeln!(f, "  ensures {}", post)?;
         }
         if let Some(ref body) = self.body {
             writeln!(f, "{{")?;

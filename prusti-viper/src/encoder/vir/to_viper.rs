@@ -27,7 +27,11 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for LocalVar {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        ast.local_var(&self.name, self.typ.to_viper(ast))
+        if self.name == "__result" {
+            ast.result(self.typ.to_viper(ast))
+        } else {
+            ast.local_var(&self.name, self.typ.to_viper(ast))
+        }
     }
 }
 
@@ -266,7 +270,7 @@ impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
             &self.formal_args.to_viper_decl(ast),
             self.return_type.to_viper(ast),
             &self.pres.to_viper(ast),
-            &[],
+            &self.posts.to_viper(ast),
             self.body.as_ref().map(|b| b.to_viper(ast))
         )
     }

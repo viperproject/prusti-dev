@@ -101,7 +101,7 @@ pub fn substitute_place_in_expr(expr: vir::Expr, sub_target: &vir::Place, replac
 
 impl vir::Expr {
     pub fn substitute_place_with_expr(self, sub_target: &vir::Place, replacement: vir::Expr) -> Self {
-        trace!("Expr::substitute_place_with_expr {}, {}, {}", self, sub_target, replacement);
+        trace!("Expr::substitute_place_with_expr {}, {:?}, {:?}", self, sub_target, replacement);
         substitute_place_in_expr(self, sub_target, replacement)
     }
 }

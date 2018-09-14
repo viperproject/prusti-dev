@@ -78,6 +78,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
         let preconditions = self.encode_precondition_expr(&contract);
+        let postcondition = self.encode_postcondition_expr(&contract);
 
         let formal_args: Vec<_> = self.mir.args_iter().map(
             |local| self.encode_local(local)
@@ -89,6 +90,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             formal_args,
             return_type,
             pres: vec![preconditions.0, preconditions.1],
+            posts: vec![postcondition],
             body: Some(body_expr)
         };
 
@@ -122,6 +124,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
+    }
+
+    /// Encode the postcondition with one expression just for the functional specification (no
+    /// type encoding).
+    fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>) -> vir::Expr {
+        let mut func_spec: Vec<vir::Expr> = vec![];
+
+        // Encode functional specification
+        let encoded_args: Vec<vir::Expr> = contract.args.iter()
+            .map(|local| self.encode_local(local.clone().into()).into())
+            .collect();
+        let encoded_return = self.interpreter.mir_encoder().encode_local(contract.returned_value.clone().into());
+        debug!("encoded_return: {:?}", encoded_return);
+        for item in contract.functional_postcondition() {
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return.clone().into()));
+        }
+
+        let post = func_spec.into_iter().conjoin();
+
+        // Fix return variable
+        let return_value_field = self.encoder.encode_value_field(self.mir.return_ty());
+        let return_value_place = vir::Place::Base(encoded_return).access(return_value_field);
+        let pure_fn_return_variable = vir::LocalVar::new("__result", self.encode_function_return_type());
+        post.substitute_place_with_place(&return_value_place, pure_fn_return_variable.into())
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
@@ -265,18 +291,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 let default_target = targets[values.len()];
 
                 let default_target_terminator = self.mir.basic_blocks()[default_target].terminator.as_ref().unwrap();
+                trace!("default_target_terminator: {:?}", default_target_terminator);
                 let default_is_unreachable = match default_target_terminator.kind {
                     TerminatorKind::Unreachable => true,
                     _ => false
                 };
 
+                trace!("cfg_targets: {:?}", cfg_targets);
+
                 let refined_default_target = if default_is_unreachable && !cfg_targets.is_empty() {
                     // Here we can assume that the `cfg_targets` are exhausive, and that
                     // `default_target` is unreachable
+                    trace!("The default target is unreachable");
                     cfg_targets.pop().unwrap().1
                 } else {
                     default_target
                 };
+
+                trace!("cfg_targets: {:?}", cfg_targets);
 
                 MultiExprBackwardInterpreterState::new(
                     (0..states[&refined_default_target].exprs().len()).map(

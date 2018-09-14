@@ -62,6 +62,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 formal_args: vec![],
                 return_type: typ,
                 pres: vec![],
+                posts: vec![],
                 body: None
             },
         }

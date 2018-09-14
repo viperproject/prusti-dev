@@ -43,11 +43,17 @@ pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     /// The context in which the specification should be encoded
     target_label: &'p str,
     target_args: &'p [vir::Expr],
-    target_return: &'p vir::Expr
+    target_return: &'p vir::Expr,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, target_label: &'p str, target_args: &'p [vir::Expr], target_return: &'p vir::Expr) -> Self {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        mir: &'p mir::Mir<'tcx>,
+        target_label: &'p str,
+        target_args: &'p [vir::Expr],
+        target_return: &'p vir::Expr,
+    ) -> Self {
         trace!("SpecEncoder constructor");
 
         SpecEncoder {
@@ -55,7 +61,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             mir,
             target_label,
             target_args,
-            target_return
+            target_return,
         }
     }
 
@@ -367,11 +373,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             trace!("Procedure {:?} is contained in {:?}", curr_def_id, outer_def_id);
             let is_spec_function = self.encoder.get_closure_instantiations(outer_def_id).is_empty();
-            let outer_namespace = if is_spec_function {
-                "".to_string()
-            } else {
-                format!("_closure{}", closure_counter)
-            };
+            let outer_namespace = format!("_closure{}", closure_counter);
             let outer_node_id = tcx.hir.as_local_node_id(outer_def_id).unwrap();
             let outer_procedure = self.encoder.env().get_procedure(outer_def_id);
             let outer_mir = outer_procedure.get_mir();
@@ -490,12 +492,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         // XXX: This definition has been copied after the loop to avoid NLL issues
         let curr_procedure = self.encoder.env().get_procedure(curr_def_id);
         let curr_mir = curr_procedure.get_mir();
-        let curr_mir_encoder = MirEncoder::new_with_namespace(self.encoder, curr_mir, curr_def_id, "".to_string());
+        let curr_mir_encoder = MirEncoder::new_with_namespace(self.encoder, curr_mir, curr_def_id, curr_namespace.clone());
 
         // At this point, `curr_def_id` corresponds to the SPEC method. Here is a simple check.
         assert!(self.encoder.encode_item_name(curr_def_id).contains("__spec"));
 
-        // Translate arguments and return for the SPEC to the TARGET context
+        // Translate arguments and return from the SPEC to the TARGET context
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
             let spec_local = curr_mir_encoder.encode_local(local);
             encoded_expr = encoded_expr.substitute_place_with_expr(&spec_local.into(), target_arg.clone());
@@ -504,7 +506,31 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let spec_fake_return = curr_mir_encoder.encode_local(
                 curr_mir.args_iter().last().unwrap()
             );
-            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_fake_return.into(), self.target_return.clone());
+
+            /*match self.target_return_value {
+                Some(target_return_value) => {
+                    match curr_mir.return_ty().sty {
+                        ty::TypeVariants::TyBool |
+                        ty::TypeVariants::TyInt(..) |
+                        ty::TypeVariants::TyUint(..) |
+                        ty::TypeVariants::TyRawPtr(..) |
+                        ty::TypeVariants::TyRef(..) => {
+                            let value_field = self.encoder.encode_value_field(curr_mir.return_ty());
+                            let spec_fake_return_value = vir::Place::Base(spec_fake_return.clone()).access(value_field);
+                            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_fake_return_value, target_return_value.clone());
+                        }
+                        _ => {}
+                    }
+                }
+                None => {}
+            }*/
+
+            debug!("spec_fake_return: {}", spec_fake_return);
+            debug!("target_return: {}", self.target_return);
+            encoded_expr = encoded_expr.substitute_place_with_expr(
+                &spec_fake_return.clone().into(),
+                self.target_return.clone()
+            );
         }
 
         // Translate label of `old[pre]` expressions to the TARGET label
