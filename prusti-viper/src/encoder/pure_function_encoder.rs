@@ -264,11 +264,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 }
                 let default_target = targets[values.len()];
 
+                let default_target_terminator = self.mir.basic_blocks()[default_target].terminator.as_ref().unwrap();
+                let default_is_unreachable = match default_target_terminator.kind {
+                    TerminatorKind::Unreachable => true,
+                    _ => false
+                };
+
+                let refined_default_target = if default_is_unreachable && !cfg_targets.is_empty() {
+                    // Here we can assume that the `cfg_targets` are exhausive, and that
+                    // `default_target` is unreachable
+                    cfg_targets.pop().unwrap().1
+                } else {
+                    default_target
+                };
+
                 MultiExprBackwardInterpreterState::new(
-                    (0..states[&default_target].exprs().len()).map(
+                    (0..states[&refined_default_target].exprs().len()).map(
                         |expr_index| {
                             cfg_targets.iter().fold(
-                                states[&default_target].exprs()[expr_index].clone(),
+                                states[&refined_default_target].exprs()[expr_index].clone(),
                                 |else_expr, (guard, target)| {
                                     vir::Expr::ite(
                                         guard.clone(),

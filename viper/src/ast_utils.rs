@@ -39,4 +39,8 @@ impl<'a> AstUtils<'a> {
             ),
         )
     }
+
+    pub fn to_string(&self, program: Program) -> String {
+        self.jni.to_string(program.to_jobject())
+    }
 }
