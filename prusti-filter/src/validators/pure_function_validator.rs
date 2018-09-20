@@ -5,67 +5,16 @@ use rustc::hir::intravisit::*;
 use syntax::codemap::Span;
 use rustc::ty;
 use rustc::ty::subst::Substs;
+use validators::SupportStatus;
+use rustc::hir::def_id::DefId;
 
-macro_rules! requires {
-    ($e:expr) => {
-        match $e {
-            SupportStatus::Unsupported(reason) => return SupportStatus::Unsupported(reason),
-            SupportStatus::Supported => {}
-        }
-    };
-
-    ($e:expr, $reason:expr) => {
-        if !$e {
-            return SupportStatus::Unsupported(
-                format!($reason)
-            );
-        }
-    };
-
-    ($e:expr, $reason:expr, $($args:expr),*) => {
-        if !$e {
-            return SupportStatus::Unsupported(
-                format!($reason, $($args:expr),*)
-            );
-        }
-    };
-}
-
-macro_rules! unsupported {
-    ($reason:expr) => {
-        return SupportStatus::unsupported(
-            format!($reason)
-        );
-    };
-
-    ($reason:expr, $($args:expr),*) => {
-        return SupportStatus::unsupported(
-            format!($reason, $($args:expr),*)
-        );
-    };
-}
-
-pub enum SupportStatus {
-    Supported,
-    Unsupported(String)
-}
-
-impl SupportStatus {
-    pub fn supported() -> Self {
-        SupportStatus::Supported
-    }
-    pub fn unsupported(reason: String) -> Self {
-        SupportStatus::Unsupported(reason)
-    }
-}
-
-pub struct ProcedureValidator<'a, 'tcx: 'a> {
+pub struct PureFunctionValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>
 }
 
-impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
+impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
     pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>) -> Self {
-        ProcedureValidator {
+        PureFunctionValidator {
             tcx
         }
     }
@@ -73,7 +22,10 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     pub fn is_supported_fn(&self, fk: FnKind<'tcx>, _fd: &hir::FnDecl, _b: hir::BodyId, _s: Span, id: NodeId) -> SupportStatus {
         requires!(self.is_supported_fn_kind(fk));
 
-        let def_id = self.tcx.hir.local_def_id(id);
+        self.is_supported_fn_item(self.tcx.hir.local_def_id(id))
+    }
+
+    pub fn is_supported_fn_item(&self, def_id: DefId) -> SupportStatus {
         let sig = self.tcx.fn_sig(def_id);
 
         requires!(self.is_supported_fn_sig(sig.skip_binder()));
@@ -96,10 +48,10 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
 
         for input_ty in sig.inputs() {
-            requires!(self.is_supported_ty(input_ty));
+            requires!(self.is_supported_local_ty(input_ty));
         }
 
-        requires!(self.is_supported_ty(sig.output()));
+        requires!(self.is_supported_return_ty(sig.output()));
 
         SupportStatus::supported()
     }
@@ -150,7 +102,23 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         SupportStatus::supported()
     }
 
-    fn is_supported_ty(&self, ty: ty::Ty<'tcx>) -> SupportStatus {
+    fn is_supported_return_ty(&self, ty: ty::Ty<'tcx>) -> SupportStatus {
+        match ty.sty {
+            ty::TypeVariants::TyBool => {} // OK
+
+            ty::TypeVariants::TyInt(_) => {} // OK
+
+            ty::TypeVariants::TyUint(_) => {} // OK
+
+            _ => unsupported!("pure functions can only return integer or boolean values"),
+        }
+
+        requires!(self.is_supported_local_ty(ty));
+
+        SupportStatus::supported()
+    }
+
+    fn is_supported_local_ty(&self, ty: ty::Ty<'tcx>) -> SupportStatus {
         match ty.sty {
             ty::TypeVariants::TyBool => {} // OK
 
@@ -180,9 +148,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyRawPtr(..) => unsupported!("raw pointers are not supported"),
 
-            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => requires!(self.is_supported_inner_ty(inner_ty)),
-
-            ty::TypeVariants::TyRef(_, _, hir::MutImmutable) => unsupported!("shared references are not supported"),
+            ty::TypeVariants::TyRef(_, inner_ty, _) => requires!(self.is_supported_inner_ty(inner_ty)),
 
             ty::TypeVariants::TyFnDef(..) => unsupported!("function types are not supported"),
 
@@ -231,10 +197,10 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn is_supported_inner_ty(&self, ty: ty::Ty<'tcx>) -> SupportStatus {
-        requires!(self.is_supported_ty(ty));
+        requires!(self.is_supported_local_ty(ty));
 
         match ty.sty {
-            ty::TypeVariants::TyRef(..) => unsupported!("references inside other data structures are not supported"),
+            ty::TypeVariants::TyRef(..) => unsupported!("references inside data structures are not supported"),
 
             _ => {} // OK
         }
@@ -243,12 +209,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn is_supported_mir(&self, mir: &mir::Mir<'tcx>) -> SupportStatus {
-        requires!(self.is_supported_ty(mir.return_ty()));
-        requires!(mir.yield_ty.is_none(), "`yield` is not suported");
-        requires!(mir.upvar_decls.is_empty(), "variables captured in closures are not suported");
+        requires!(self.is_supported_local_ty(mir.return_ty()));
+        requires!(mir.yield_ty.is_none(), "`yield` is not supported");
+        requires!(mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
 
         for local_decl in &mir.local_decls {
-            requires!(self.is_supported_ty(local_decl.ty));
+            requires!(self.is_supported_local_ty(local_decl.ty));
         }
 
         for basic_block_data in mir.basic_blocks() {
@@ -312,12 +278,29 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             }
 
             mir::TerminatorKind::Call { ref func, ref args, ref destination, .. } => {
-                requires!(self.is_supported_operand(func));
-                for arg in args {
-                    requires!(self.is_supported_operand(arg));
-                }
-                if let Some((ref place, _)) = destination {
-                    requires!(self.is_supported_place(place));
+                if let mir::Operand::Constant(
+                    box mir::Constant {
+                        literal: mir::Literal::Value {
+                            value: ty::Const {
+                                ty: &ty::TyS {
+                                    sty: ty::TyFnDef(_, ..),
+                                    ..
+                                },
+                                ..
+                            }
+                        },
+                        ..
+                    }
+                ) = func {
+                    requires!(self.is_supported_operand(func));
+                    for arg in args {
+                        requires!(self.is_supported_operand(arg));
+                    }
+                    if let Some((ref place, _)) = destination {
+                        requires!(self.is_supported_place(place));
+                    }
+                } else {
+                    unsupported!("non explicit function calls are not supported");
                 }
             }
 
@@ -373,7 +356,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 requires!(self.is_supported_operand(right_operand));
             }
 
-            mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => requires!(self.is_supported_ty(ty)),
+            mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => requires!(self.is_supported_local_ty(ty)),
 
             mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!("`sizeof` operations are not supported"),
 
@@ -394,7 +377,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::Operand::Move(ref place) => requires!(self.is_supported_place(place)),
 
             mir::Operand::Constant(box mir::Constant { ty, .. }) => {
-                requires!(self.is_supported_ty(ty));
+                requires!(self.is_supported_local_ty(ty));
             }
         }
 
@@ -403,7 +386,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
     fn is_supported_aggregate(&self, kind: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>) -> SupportStatus {
         match kind {
-            mir::AggregateKind::Array(ty) => requires!(self.is_supported_ty(ty)),
+            mir::AggregateKind::Array(ty) => requires!(self.is_supported_local_ty(ty)),
 
             mir::AggregateKind::Tuple => {} // OK
 
@@ -412,7 +395,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     match kind.unpack() {
                         ty::subst::UnpackedKind::Lifetime(..) => unsupported!("lifetime parameters are not supported"),
 
-                        ty::subst::UnpackedKind::Type(ty) => requires!(self.is_supported_ty(ty)),
+                        ty::subst::UnpackedKind::Type(ty) => requires!(self.is_supported_local_ty(ty)),
                     }
                 }
             }

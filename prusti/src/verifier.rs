@@ -47,9 +47,9 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         debug!("Verifier returned {:?}", verification_result);
 
         match verification_result {
-            VerificationResult::Success => info!("Prusti verification succeded"),
+            VerificationResult::Success => info!("Verification successful"),
             VerificationResult::Failure => {
-                info!("Prusti verification failed");
+                info!("Verification failed");
                 assert!(env.has_errors());
             },
         };

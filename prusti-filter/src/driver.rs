@@ -16,7 +16,7 @@ use rustc_driver::driver::{CompileController, CompileState};
 use std::env;
 use std::process::Command;
 use self::crate_visitor::CrateVisitor;
-use validators::ProcedureValidator;
+use validators::Validator;
 use rustc::hir::intravisit::Visitor;
 
 
@@ -81,7 +81,7 @@ fn main() {
             let mut cv = CrateVisitor {
                 crate_name: crate_name,
                 tcx,
-                validator: ProcedureValidator::new(tcx)
+                validator: Validator::new(tcx),
             };
 
             // **Deep visit**: Want to scan for specific kinds of HIR nodes within

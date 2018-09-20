@@ -85,7 +85,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     pub fn encode(mut self) -> vir::CfgMethod {
-        info!("Encode procedure {}", self.cfg_method.name());
+        debug!("Encode procedure {}", self.cfg_method.name());
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 

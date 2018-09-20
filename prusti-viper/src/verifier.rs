@@ -13,6 +13,8 @@ use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use prusti_interface::report::Log;
 use viper::{self, Viper, VerificationBackend};
 use prusti_interface::specifications::{TypedSpecificationMap};
+use prusti_filter::validators::{Validator, SupportStatus};
+use prusti_interface::environment::Environment;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -130,10 +132,31 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
 impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
     fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+        let validator = Validator::new(self.env.tcx());
         self.encoder.initialize();
 
-        for proc_id in &task.procedures {
-            self.encoder.queue_encoding(*proc_id)
+        for &proc_id in &task.procedures {
+            // Do some checks
+            let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
+
+            let support_status = if is_pure_function {
+                validator.is_supported_pure_function_item(proc_id)
+            } else {
+                validator.is_supported_procedure_item(proc_id)
+            };
+
+            if let SupportStatus::Unsupported(reason) = support_status {
+                let proc_name = self.env.get_item_name(proc_id);
+                let warn_message = if is_pure_function {
+                    format!("Verification of procedure {} is not supported. Reason: {}", proc_name, reason)
+                } else {
+                    format!("Verification of pure function {} is not supported. Reason: {}", proc_name, reason)
+                };
+                self.env.err(&warn_message);
+            }
+
+            // We could skip the verification if the checks failed
+            self.encoder.queue_encoding(proc_id)
         }
         self.encoder.process_encoding_queue();
 
@@ -152,7 +175,11 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
 
+        info!("Translation successful");
+
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
+
+        info!("Verification complete");
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,

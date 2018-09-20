@@ -148,7 +148,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             old(state);
         });
         if Ok(String::from("true")) != var("PRUSTI_FULL_COMPILATION") {
-            info!("Verification complete. Stop compiler.");
+            debug!("The program will not be compiled.");
             control.after_analysis.stop = Compilation::Stop;
         }
         control

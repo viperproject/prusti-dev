@@ -56,7 +56,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
     pub fn encode_function(&self) -> vir::Function {
         let function_name = self.encode_function_name();
-        info!("Encode pure function {}", function_name);
+        debug!("Encode pure function {}", function_name);
 
         let mut state = run_backward_interpretation(self.mir, &self.interpreter)
             .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
