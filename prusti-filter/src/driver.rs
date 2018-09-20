@@ -21,7 +21,7 @@ use rustc::hir::intravisit::Visitor;
 
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
 
     let exit_status = rustc_driver::run(move || {
         // Mostly copied from clippy

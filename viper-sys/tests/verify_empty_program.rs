@@ -18,7 +18,7 @@ use std::env;
 
 #[test]
 fn verify_empty_program() {
-    env_logger::init().expect("failed to initialize env_logger");
+    env_logger::init();
 
     let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
     debug!("Using Viper home: '{}'", &viper_home);

@@ -16,7 +16,7 @@ lazy_static! {
 /// <https://bitbucket.org/viperproject/silicon/issues/315/exception-while-building-silicon-instances>
 #[test]
 fn concurrent_verifier_initialization() {
-    env_logger::init().unwrap();
+    env_logger::init();
 
     const MIN_NUM_THREADS: u32 = 2;
     const MAX_NUM_THREADS: u32 = 10;

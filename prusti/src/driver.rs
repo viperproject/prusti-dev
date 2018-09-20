@@ -156,7 +156,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
 }
 
 pub fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
     trace!("[main] enter");
     set_var("POLONIUS_ALGORITHM", "Naive");
     let mut args: Vec<String> = std::env::args().collect();

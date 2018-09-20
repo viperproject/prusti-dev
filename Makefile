@@ -21,7 +21,7 @@ check:
 	$(SET_ENV_VARS) cargo check --all
 
 build:
-	$(SET_ENV_VARS) cargo build -vv --all
+	$(SET_ENV_VARS) cargo build --all
 
 test:
 	$(SET_ENV_VARS) cargo test --all

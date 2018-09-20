@@ -17,7 +17,7 @@ use std::fs::File;
 use tempdir::TempDir;
 
 fn main() {
-    env_logger::init().expect("failed to initialize env_logger");
+    env_logger::init();
     let generated_dir = format!("{}/gen", env::var("CARGO_MANIFEST_DIR").unwrap());
 
     let deps_dir = TempDir::new("deps").unwrap_or_else(|e| {

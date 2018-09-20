@@ -12,7 +12,7 @@ lazy_static! {
 
 #[test]
 fn success_with_complex_program() {
-    env_logger::init().unwrap();
+    env_logger::init();
 
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast = verification_context.new_ast_factory();

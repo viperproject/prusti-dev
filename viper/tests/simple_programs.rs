@@ -16,7 +16,7 @@ lazy_static! {
 /// Setup function that is only run once, even if called multiple times.
 fn setup() {
     INIT.call_once(|| {
-        env_logger::init().unwrap();
+        env_logger::init();
     });
 }
 
