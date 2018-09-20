@@ -354,7 +354,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id);
 
         // For each of the enclosing closures, replace with the variables captured in the closure.
-        // We support at most 1000 nested closures (arbitrarly chosen).
+        // We support at most 1000 nested closures (arbitrarily chosen).
         for closure_counter in 0..1000 {
             let (outer_def_id, outer_bb_index, outer_stmt_index, captured_operands) = {
                 let mut instantiations = self.encoder.get_closure_instantiations(curr_def_id);

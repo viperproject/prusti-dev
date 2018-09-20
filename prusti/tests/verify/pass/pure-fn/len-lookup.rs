@@ -24,6 +24,7 @@ fn lookup(head: &List, index: usize) -> u32 {
 }
 
 #[pure]
+#[ensures="result > 0"]
 fn len(head: &List) -> usize {
     match head.next {
         None => 1,
@@ -31,7 +32,7 @@ fn len(head: &List) -> usize {
     }
 }
 
-//#[ensures="len(&result) > 0"]
+#[ensures="len(&result) > 0"]
 #[ensures="old(len(&list)) == len(&result)"]
 #[ensures="if len(&result) > 0 { old(lookup(&list, 0)) == lookup(&result, 0) } else { true }"]
 fn identity(list: List) -> List { list }

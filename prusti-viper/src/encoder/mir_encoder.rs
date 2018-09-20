@@ -256,7 +256,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 );
                 vir::Expr::FuncApp(function_name, vec![], vec![], encoded_type)
             }
-            x => unimplemented!("{:?}", x)
         }
     }
 
