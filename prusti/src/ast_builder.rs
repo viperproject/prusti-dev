@@ -145,8 +145,8 @@ impl<'a> MinimalAstBuilder<'a> {
                             -> ast::ImplItem {
         ast::ImplItem {
             id: ast::DUMMY_NODE_ID,
-            ident: ident,
-            vis: dummy_spanned(ast::VisibilityKind::Public),
+            ident,
+            vis: dummy_spanned(ast::VisibilityKind::Inherited),
             defaultness: ast::Defaultness::Final,
             attrs,
             generics,
@@ -156,6 +156,32 @@ impl<'a> MinimalAstBuilder<'a> {
                     decl: self.fn_decl(inputs, ast::FunctionRetTy::Ty(output))
                 },
                 body
+            ),
+            span,
+            tokens: None
+        }
+    }
+
+    pub fn trait_item_method(&self,
+                            span: Span,
+                            ident: ast::Ident,
+                            attrs: Vec<ast::Attribute>,
+                            generics: Generics,
+                            inputs: Vec<ast::Arg>,
+                            output: P<ast::Ty>,
+                            body: P<ast::Block>)
+                            -> ast::TraitItem {
+        ast::TraitItem {
+            id: ast::DUMMY_NODE_ID,
+            ident,
+            attrs,
+            generics,
+            node: ast::TraitItemKind::Method(
+                ast::MethodSig {
+                    header: ast::FnHeader::default(),
+                    decl: self.fn_decl(inputs, ast::FunctionRetTy::Ty(output))
+                },
+                Some(body)
             ),
             span,
             tokens: None

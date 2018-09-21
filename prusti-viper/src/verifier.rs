@@ -166,8 +166,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             }
         }
 
-        info!("Basic support checks complete"); // TODO: remove this error message?
-
         for &proc_id in &task.procedures {
             // We could skip the verification if `support_status.is_unsupported()`
             self.encoder.queue_encoding(proc_id)

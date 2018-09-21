@@ -112,7 +112,7 @@ impl<'a> Verifier<'a, state::Started> {
             for error in consistency_errors {
                 error!("{}", self.jni.to_string(error));
             }
-            panic!();
+            panic!("Consistency errors");
         }
 
         let start_verification = Instant::now();

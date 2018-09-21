@@ -432,7 +432,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
-        self.env.get_item_name(def_id).replace("::", "$")
+        self.env.get_item_name(def_id)
+            .replace("::", "$")
+            .replace("<", "$_")
+            .replace(">", "_$")
+            .replace(" ", "_")
     }
 
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {
