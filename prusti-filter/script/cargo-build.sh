@@ -9,4 +9,7 @@ export LD_LIBRARY_PATH=${COMPILER_PATH}/lib:${DIR}/../../target/debug/deps
 
 export RUSTC=${DIR}/../script/rustc.sh
 
-cargo build
+#export RUST_LOG=info
+#export RUST_BACKTRACE=1
+
+cargo build #--verbose

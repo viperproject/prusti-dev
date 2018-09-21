@@ -4,6 +4,7 @@ mod procedure_validator;
 mod pure_function_validator;
 
 pub use self::support_status::SupportStatus;
+pub use self::support_status::SupportKind;
 use self::procedure_validator::*;
 use self::pure_function_validator::*;
 use syntax::ast::NodeId;
@@ -14,31 +15,41 @@ use rustc::ty;
 use rustc::hir::def_id::DefId;
 
 pub struct Validator<'a, 'tcx: 'a> {
-    procedure_validator: ProcedureValidator<'a, 'tcx>,
-    pure_function_validator: PureFunctionValidator<'a, 'tcx>,
+    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>
 }
 
 impl<'a, 'tcx: 'a> Validator<'a, 'tcx> {
     pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>) -> Self {
         Validator {
-            procedure_validator: ProcedureValidator::new(tcx),
-            pure_function_validator: PureFunctionValidator::new(tcx),
+            tcx
         }
     }
 
-    pub fn is_supported_procedure(&self, fk: FnKind<'tcx>, fd: &hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) -> SupportStatus {
-        self.procedure_validator.is_supported_fn(fk, fd, b, s, id)
+    #[allow(dead_code)]
+    pub fn procedure_support_status(&self, fk: FnKind<'tcx>, fd: &hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) -> SupportStatus {
+        let mut procedure_validator = ProcedureValidator::new(self.tcx);
+        procedure_validator.check_fn(fk, fd, b, s, id);
+        procedure_validator.get_support_status()
     }
 
-    pub fn is_supported_pure_function(&self, fk: FnKind<'tcx>, fd: &hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) -> SupportStatus {
-        self.pure_function_validator.is_supported_fn(fk, fd, b, s, id)
+    #[allow(dead_code)]
+    pub fn pure_function_support_status(&self, fk: FnKind<'tcx>, fd: &hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) -> SupportStatus {
+        let mut pure_function_validator = PureFunctionValidator::new(self.tcx);
+        pure_function_validator.check_fn(fk, fd, b, s, id);
+        pure_function_validator.get_support_status()
     }
 
-    pub fn is_supported_procedure_item(&self, def_id: DefId) -> SupportStatus {
-        self.procedure_validator.is_supported_fn_item(def_id)
+    #[allow(dead_code)]
+    pub fn procedure_item_support_status(&self, def_id: DefId) -> SupportStatus {
+        let mut procedure_validator = ProcedureValidator::new(self.tcx);
+        procedure_validator.check_fn_item(def_id);
+        procedure_validator.get_support_status()
     }
 
-    pub fn is_supported_pure_function_item(&self, def_id: DefId) -> SupportStatus {
-        self.pure_function_validator.is_supported_fn_item(def_id)
+    #[allow(dead_code)]
+    pub fn pure_function_item_support_status(&self, def_id: DefId) -> SupportStatus {
+        let mut pure_function_validator = PureFunctionValidator::new(self.tcx);
+        pure_function_validator.check_fn_item(def_id);
+        pure_function_validator.get_support_status()
     }
 }

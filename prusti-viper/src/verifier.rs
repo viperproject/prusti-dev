@@ -140,22 +140,36 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
 
             let support_status = if is_pure_function {
-                validator.is_supported_pure_function_item(proc_id)
+                validator.pure_function_item_support_status(proc_id)
             } else {
-                validator.is_supported_procedure_item(proc_id)
+                validator.procedure_item_support_status(proc_id)
             };
 
-            if let SupportStatus::Unsupported(reason) = support_status {
+            if support_status.is_partially_supported() {
+                let reasons = support_status.get_partially_supported_reasons().join(", ");
                 let proc_name = self.env.get_item_name(proc_id);
-                let warn_message = if is_pure_function {
-                    format!("Verification of procedure {} is not supported. Reason: {}", proc_name, reason)
+                let message = if is_pure_function {
+                    format!("verification of pure function '{}' is partially supported. Reasons: {}.", proc_name, reasons)
                 } else {
-                    format!("Verification of pure function {} is not supported. Reason: {}", proc_name, reason)
+                    format!("verification of procedure '{}' is partially supported. Reasons: {}.", proc_name, reasons)
                 };
-                self.env.err(&warn_message);
+                self.env.warn(&message);
+            } else if support_status.is_unsupported() {
+                let reasons = support_status.get_unsupported_reasons().join(", ");
+                let proc_name = self.env.get_item_name(proc_id);
+                let message = if is_pure_function {
+                    format!("verification of pure function '{}' is not supported. Reasons: {}.", proc_name, reasons)
+                } else {
+                    format!("verification of procedure '{}' is not supported. Reasons: {}.", proc_name, reasons)
+                };
+                self.env.err(&message);
             }
+        }
 
-            // We could skip the verification if the checks failed
+        info!("Basic support checks complete"); // TODO: remove this error message?
+
+        for &proc_id in &task.procedures {
+            // We could skip the verification if `support_status.is_unsupported()`
             self.encoder.queue_encoding(proc_id)
         }
         self.encoder.process_encoding_queue();
