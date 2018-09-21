@@ -120,7 +120,6 @@ impl<'a> MinimalAstBuilder<'a> {
         self.item_fn_poly(span, name, inputs, output, generics, body)
     }
 
-
     pub fn lambda_fn_decl_by_value(&self,
                       span: Span,
                       fn_decl: P<ast::FnDecl>,
@@ -135,6 +134,33 @@ impl<'a> MinimalAstBuilder<'a> {
                                                fn_decl_span))
     }
 
+    pub fn impl_item_method(&self,
+                            span: Span,
+                            ident: ast::Ident,
+                            attrs: Vec<ast::Attribute>,
+                            generics: Generics,
+                            inputs: Vec<ast::Arg>,
+                            output: P<ast::Ty>,
+                            body: P<ast::Block>)
+                            -> ast::ImplItem {
+        ast::ImplItem {
+            id: ast::DUMMY_NODE_ID,
+            ident: ident,
+            vis: dummy_spanned(ast::VisibilityKind::Public),
+            defaultness: ast::Defaultness::Final,
+            attrs,
+            generics,
+            node: ast::ImplItemKind::Method(
+                ast::MethodSig {
+                    header: ast::FnHeader::default(),
+                    decl: self.fn_decl(inputs, ast::FunctionRetTy::Ty(output))
+                },
+                body
+            ),
+            span,
+            tokens: None
+        }
+    }
 }
 
 /// The following implementation is copy-pasted from the Rust compiler source code.
@@ -840,7 +866,7 @@ impl<'a> AstBuilder for MinimalAstBuilder<'a> {
     fn item_fn_poly(&self,
                     span: Span,
                     name: Ident,
-                    inputs: Vec<ast::Arg> ,
+                    inputs: Vec<ast::Arg>,
                     output: P<ast::Ty>,
                     generics: Generics,
                     body: P<ast::Block>) -> P<ast::Item> {

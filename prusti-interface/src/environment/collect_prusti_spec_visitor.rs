@@ -32,7 +32,17 @@ impl<'a, 'gcx, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'gcx
         }
     }
 
-    fn visit_trait_item(&mut self, _trait_item: &hir::TraitItem) {}
+    fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
+        if attr::contains_name(&trait_item.attrs, PRUSTI_SPEC_ATTR) {
+            let def_id = self.tcx.hir.local_def_id(trait_item.id);
+            self.result.push(def_id);
+        }
+    }
 
-    fn visit_impl_item(&mut self, _impl_item: &hir::ImplItem) {}
+    fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
+        if attr::contains_name(&impl_item.attrs, PRUSTI_SPEC_ATTR) {
+            let def_id = self.tcx.hir.local_def_id(impl_item.id);
+            self.result.push(def_id);
+        }
+    }
 }

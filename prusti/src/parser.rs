@@ -131,7 +131,7 @@ use rustc_driver::driver;
 use syntax::{self, ast, parse, ptr};
 use syntax::codemap::Span;
 use syntax::ext::build::AstBuilder;
-use syntax::fold::Folder;
+use syntax::fold::{self, Folder};
 use syntax::util::small_vector::SmallVector;
 use syntax::attr;
 use syntax_pos::FileName;
@@ -381,13 +381,13 @@ impl<'tcx> SpecParser<'tcx> {
                 // Glue everything.
                 name.push_str("__spec");
                 let mut spec_item = self.ast_builder.item_fn_poly(
-                        item.span,
-                        ast::Ident::from_str(&name),
-                        inputs_with_result,
-                        unit_type,
-                        generics.clone(),
-                        self.ast_builder.block(item.span, statements),
-                    )
+                    item.span,
+                    ast::Ident::from_str(&name),
+                    inputs_with_result,
+                    unit_type,
+                    generics.clone(),
+                    self.ast_builder.block(item.span, statements),
+                )
                     .into_inner();
                 mem::replace(
                     &mut spec_item.attrs,
@@ -405,6 +405,76 @@ impl<'tcx> SpecParser<'tcx> {
                     ],
                 );
                 spec_item
+            }
+            _ => {
+                unreachable!();
+            }
+        }
+    }
+
+    /// Generate a function that contains only the precondition and postcondition
+    /// for type-checking.
+    fn generate_spec_impl_item(
+        &mut self,
+        item: &ast::ImplItem,
+        spec_id: SpecID,
+        preconditions: &[UntypedSpecification],
+        postconditions: &[UntypedSpecification],
+    ) -> ast::ImplItem {
+        let mut name = item.ident.to_string();
+        match item.node {
+            ast::ImplItemKind::Method(ref sig, ref _body) => {
+                // Import contracts.
+                let mut statements = vec![self.build_prusti_contract_import(item.span)];
+
+                // Add preconditions.
+                statements.extend(self.convert_to_statements(preconditions));
+
+                // Add postconditions.
+                statements.extend(self.convert_to_statements(postconditions));
+
+                // Add result to arguments
+                let unit_type = self.ast_builder.ty(
+                    item.span,
+                    ast::TyKind::Tup(Vec::new())
+                );
+                let return_type = match sig.decl.output.clone() {
+                    ast::FunctionRetTy::Ty(return_type) => return_type,
+                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                };
+                let mut inputs_with_result: Vec<ast::Arg> = sig.decl.inputs.clone();
+                inputs_with_result.push(
+                    self.ast_builder.arg(
+                        item.span,
+                        ast::Ident::from_str("result"),
+                        return_type.clone()
+                    )
+                );
+
+                let attrs = vec![
+                    self.ast_builder.attribute_name_value(
+                        item.span,
+                        "__PRUSTI_SPEC_ONLY",
+                        &spec_id.to_string(),
+                    ),
+                    self.ast_builder.attribute_allow(item.span, "unused_mut"),
+                    self.ast_builder.attribute_allow(item.span, "dead_code"),
+                    self.ast_builder.attribute_allow(item.span, "non_snake_case"),
+                    self.ast_builder.attribute_allow(item.span, "unused_imports"),
+                    self.ast_builder.attribute_allow(item.span, "unused_variables"),
+                ];
+
+                // Glue everything.
+                name.push_str("__spec");
+                self.ast_builder.impl_item_method(
+                    item.span,
+                    ast::Ident::from_str(&name),
+                    attrs,
+                    item.generics.clone(),
+                    inputs_with_result,
+                    unit_type,
+                    self.ast_builder.block(item.span, statements),
+                )
             }
             _ => {
                 unreachable!();
@@ -487,7 +557,7 @@ impl<'tcx> SpecParser<'tcx> {
     }
 
     fn rewrite_fn_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
-        trace!("[rewrite_function] enter");
+        trace!("[rewrite_fn_item] enter");
         let mut item = item.into_inner();
         let attrs = item.attrs;
         item.attrs = vec![];
@@ -534,10 +604,62 @@ impl<'tcx> SpecParser<'tcx> {
         debug!("spec_item:\n{}", spec_item_str);
         self.log_modified_program(spec_item_str);
 
-        trace!("[rewrite_function] exit");
+        trace!("[rewrite_fn_item] exit");
         let mut result = SmallVector::new();
         result.push(ptr::P(item));
         result.push(ptr::P(spec_item));
+        result
+    }
+
+    fn rewrite_impl_item_method(&mut self, mut impl_item: ast::ImplItem) -> SmallVector<ast::ImplItem> {
+        trace!("[rewrite_impl_item_method] enter");
+        let attrs = impl_item.attrs;
+        impl_item.attrs = vec![];
+        let is_pure_function = attr::contains_name(&attrs, "pure");
+        let is_trusted = attr::contains_name(&attrs, "trusted");
+        let specs = self.parse_specs(attrs);
+        if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
+            self.report_error(impl_item.span, "invariant not allowed for procedure");
+            return SmallVector::new();
+        }
+        let preconditions: Vec<_> = specs
+            .clone()
+            .into_iter()
+            .filter(|spec| spec.typ == SpecType::Precondition)
+            .collect();
+        let postconditions: Vec<_> = specs
+            .into_iter()
+            .filter(|spec| spec.typ == SpecType::Postcondition)
+            .collect();
+        let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
+        let id = self.register_specification(spec_set);
+        let spec_item = self.generate_spec_impl_item(&impl_item, id, &preconditions, &postconditions);
+        impl_item.attrs = vec![
+            self.ast_builder
+                .attribute_name_value(impl_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
+        ];
+        if is_pure_function {
+            impl_item.attrs.push(
+                self.ast_builder.attribute_word(impl_item.span, "pure")
+            );
+        }
+        if is_trusted {
+            impl_item.attrs.push(
+                self.ast_builder.attribute_word(impl_item.span, "trusted")
+            );
+        }
+
+        let new_item_str = syntax::print::pprust::impl_item_to_string(&impl_item);
+        let spec_item_str = syntax::print::pprust::impl_item_to_string(&spec_item);
+        debug!("new_item:\n{}", new_item_str);
+        self.log_modified_program(new_item_str);
+        debug!("spec_item:\n{}", spec_item_str);
+        self.log_modified_program(spec_item_str);
+
+        trace!("[rewrite_impl_item_method] exit");
+        let mut result = SmallVector::new();
+        result.push(impl_item);
+        result.push(spec_item);
         result
     }
 
@@ -968,8 +1090,18 @@ impl<'tcx> Folder for SpecParser<'tcx> {
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = match item.node {
-            ast::ItemKind::Fn(_, _, _, _) => self.rewrite_fn_item(item),
-            _ => SmallVector::one(item.map(|item| self.fold_item_simple(item))),
+            ast::ItemKind::Fn(..) => self.rewrite_fn_item(item),
+            _ => fold::noop_fold_item(item, self),
+        };
+        trace!("[fold_item] exit");
+        result
+    }
+
+    fn fold_impl_item(&mut self, item: ast::ImplItem) -> SmallVector<ast::ImplItem> {
+        trace!("[fold_impl_item] enter");
+        let result = match item.node {
+            ast::ImplItemKind::Method(..) => self.rewrite_impl_item_method(item),
+            _ => fold::noop_fold_impl_item(item, self),
         };
         trace!("[fold_item] exit");
         result
@@ -977,10 +1109,10 @@ impl<'tcx> Folder for SpecParser<'tcx> {
 
     fn fold_expr(&mut self, expr: ptr::P<ast::Expr>) -> ptr::P<ast::Expr> {
         match expr.node {
-            ast::ExprKind::While(_, _, _)
-            | ast::ExprKind::WhileLet(_, _, _, _)
-            | ast::ExprKind::ForLoop(_, _, _, _)
-            | ast::ExprKind::Loop(_, _) => self.rewrite_loop(expr),
+            ast::ExprKind::While(..)
+            | ast::ExprKind::WhileLet(..)
+            | ast::ExprKind::ForLoop(..)
+            | ast::ExprKind::Loop(..) => self.rewrite_loop(expr),
             _ => expr.map(|e| syntax::fold::noop_fold_expr(e, self)),
         }
     }
