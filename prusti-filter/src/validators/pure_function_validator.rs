@@ -249,8 +249,6 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             }
             self.check_mir_terminator(basic_block_data.terminator.as_ref().unwrap());
         }
-
-
     }
 
     fn check_mir_stmt(&mut self, stmt: &mir::Statement<'tcx>) {
@@ -325,7 +323,6 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                     if let Some((ref place, _)) = destination {
                         self.check_place(place);
                     }
-                    self.check_operand(func);
                 } else {
                     unsupported!(self, "non explicit function calls are not supported");
                 }
