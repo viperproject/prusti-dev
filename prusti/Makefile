@@ -2,6 +2,7 @@ SHELL := /bin/bash
 IMAGE_VERSION=2017-12-10
 IMAGE_NAME="vakaras/prusti:${IMAGE_VERSION}"
 LOG_LEVEL=error
+RUST_TEST_THREADS ?= 1
 RUN_FILE=tests/typecheck/pass/lint.rs
 STDERR_FILE=$(RUN_FILE:.rs=.stderr)
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
@@ -43,7 +44,7 @@ build:
 	cargo build
 
 test:
-	RUST_TEST_THREADS=1 \
+	RUST_TEST_THREADS=$(RUST_TEST_THREADS) \
 	RUST_BACKTRACE=1 \
 	JAVA_HOME=${JAVA_HOME} \
 	LD_LIBRARY_PATH=${LIB_PATH} \

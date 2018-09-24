@@ -170,10 +170,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let post = func_spec.into_iter().conjoin();
 
         // Fix return variable
-        let return_value_field = self.encoder.encode_value_field(self.mir.return_ty());
-        let return_value_place = vir::Place::Base(encoded_return).access(return_value_field);
         let pure_fn_return_variable = vir::LocalVar::new("__result", self.encode_function_return_type());
-        post.substitute_place_with_place(&return_value_place, pure_fn_return_variable.into())
+        post.substitute_place_with_place(&encoded_return.into(), pure_fn_return_variable.into())
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
