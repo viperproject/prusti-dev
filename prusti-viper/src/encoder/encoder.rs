@@ -339,8 +339,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         type_encoder.encode_type()
     }
 
-    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>, label: &str, encoded_args: &[vir::Expr], encoded_return: &vir::Expr) -> vir::Expr {
-        let spec_encoder = SpecEncoder::new(self, mir, label, encoded_args, encoded_return);
+    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>, label: &str, encoded_args: &[vir::Expr], encoded_return: &vir::Expr, targets_are_values: bool) -> vir::Expr {
+        let spec_encoder = SpecEncoder::new(self, mir, label, encoded_args, encoded_return, targets_are_values);
         spec_encoder.encode_assertion(assertion)
     }
 
@@ -453,7 +453,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let procedure_name = self.env().tcx().item_path_str(proc_def_id);
             let procedure = self.env.get_procedure(proc_def_id);
             let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
-            let function = pure_function_encoder.encode_function();
+            let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
+            let function = if is_trusted {
+                pure_function_encoder.encode_bodyless_function()
+            } else {
+                pure_function_encoder.encode_function()
+            };
             self.pure_functions.borrow_mut().insert(proc_def_id, function);
         }
         self.pure_functions.borrow()[&proc_def_id].clone()
@@ -487,11 +492,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
             let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
             if is_pure_function {
-                assert!(!is_trusted, "pure functions can not have the 'trusted' attribute");
                 self.encode_pure_function_def(proc_def_id);
             } else {
                 if is_trusted {
-                    debug!("Trusted procedure will not be verified: {:?}", proc_def_id);
+                    debug!("Trusted procedure will not be encoded or verified: {:?}", proc_def_id);
                 } else {
                     self.encode_procedure(proc_def_id);
                 }

@@ -51,7 +51,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_value_field(self) -> vir::Field {
-        debug!("Encode value field for type '{:?}'", self.ty);
+        trace!("Encode value field for type '{:?}'", self.ty);
         match self.ty.sty {
             ty::TypeVariants::TyBool => vir::Field::new("val_bool", vir::Type::Bool),
 

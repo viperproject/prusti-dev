@@ -44,6 +44,7 @@ pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     target_label: &'p str,
     target_args: &'p [vir::Expr],
     target_return: &'p vir::Expr,
+    targets_are_values: bool
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -53,6 +54,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         target_label: &'p str,
         target_args: &'p [vir::Expr],
         target_return: &'p vir::Expr,
+        targets_are_values: bool
     ) -> Self {
         trace!("SpecEncoder constructor");
 
@@ -62,6 +64,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             target_label,
             target_args,
             target_return,
+            targets_are_values
         }
     }
 
@@ -498,14 +501,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         assert!(self.encoder.encode_item_name(curr_def_id).contains("__spec"));
 
         // Translate arguments and return from the SPEC to the TARGET context
+        assert_eq!(curr_mir.args_iter().count(), self.target_args.len() + 1);
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
+            let local_ty = curr_mir.local_decls[local].ty;
             let spec_local = curr_mir_encoder.encode_local(local);
-            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_local.into(), target_arg.clone());
+            let spec_local_place: vir::Place = if self.targets_are_values {
+                let value_field = self.encoder.encode_value_field(local_ty);
+                vir::Place::Base(spec_local).access(value_field)
+            } else {
+                spec_local.into()
+            };
+            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_local_place, target_arg.clone());
         }
         {
-            let spec_fake_return = curr_mir_encoder.encode_local(
-                curr_mir.args_iter().last().unwrap()
-            );
+            let fake_return_local = curr_mir.args_iter().last().unwrap();
+            let fake_return_ty = curr_mir.local_decls[fake_return_local].ty;
+            let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local);
 
             /*match self.target_return_value {
                 Some(target_return_value) => {
@@ -525,10 +536,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 None => {}
             }*/
 
-            debug!("spec_fake_return: {}", spec_fake_return);
+            let spec_fake_return_place: vir::Place = if self.targets_are_values {
+                let value_field = self.encoder.encode_value_field(fake_return_ty);
+                vir::Place::Base(spec_fake_return).access(value_field)
+            } else {
+                spec_fake_return.clone().into()
+            };
+
+            debug!("spec_fake_return_place: {}", spec_fake_return_place);
             debug!("target_return: {}", self.target_return);
             encoded_expr = encoded_expr.substitute_place_with_expr(
-                &spec_fake_return.clone().into(),
+                &spec_fake_return_place,
                 self.target_return.clone()
             );
         }

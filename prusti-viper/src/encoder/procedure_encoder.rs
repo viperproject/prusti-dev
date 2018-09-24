@@ -216,6 +216,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
 
+        /*
         // Keep a copy of the value of the variable (fixes issue #20)
         let formal_args: Vec<_> = self.locals
             .iter()
@@ -261,6 +262,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             );
         }
+        */
 
         let method_name = self.cfg_method.name();
 
@@ -890,7 +892,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .collect();
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         for item in contract.functional_precondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return, false));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -961,7 +963,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         let mut func_spec = Vec::new();
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, label, &encoded_args, &encoded_return));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, label, &encoded_args, &encoded_return, false));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -978,8 +980,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::ExhalePostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
-        // TODO: Exhaling of postconditions is temporary disabled due to this issue #25
-        //self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
     fn encode_loop_invariant_exhale(&mut self, _loop_head: BasicBlockIndex,

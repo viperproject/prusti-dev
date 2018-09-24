@@ -31,7 +31,7 @@ pub struct MirEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, def_id: DefId) -> Self {
-        debug!("MirEncoder constructor");
+        trace!("MirEncoder constructor");
         MirEncoder {
             encoder,
             mir,
@@ -41,7 +41,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn new_with_namespace(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, def_id: DefId, namespace: String) -> Self {
-        debug!("MirEncoder constructor");
+        trace!("MirEncoder constructor with namespace");
         MirEncoder {
             encoder,
             mir,

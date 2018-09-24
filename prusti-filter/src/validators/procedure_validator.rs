@@ -233,9 +233,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
         requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
 
-        for local_decl in &mir.local_decls {
-            trace!("local_decl {:?}", local_decl);
+        for arg_index in mir.args_iter() {
+            let arg = &mir.local_decls[arg_index];
+            self.check_mir_arg(arg);
+        }
 
+        for local_decl in &mir.local_decls {
             self.check_ty(local_decl.ty);
         }
 
@@ -245,6 +248,15 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 self.check_mir_stmt(stmt);
             }
             self.check_mir_terminator(basic_block_data.terminator.as_ref().unwrap());
+        }
+    }
+
+    fn check_mir_arg(&mut self, arg: &mir::LocalDecl<'tcx>) {
+        self.check_ty(arg.ty);
+        match arg.mutability {
+            mir::Mutability::Mut => partially!(self, "mutable arguments are partially supported"),
+
+            mir::Mutability::Not => {} // OK
         }
     }
 

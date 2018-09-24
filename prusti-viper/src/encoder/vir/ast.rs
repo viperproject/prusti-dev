@@ -279,7 +279,14 @@ impl Place {
 
     pub fn replace_prefix(self, target: &Place, replacement: Place) -> Self {
         //assert_eq!(target.get_type(), replacement.get_type());
-        assert!(target.get_type().weak_eq(&replacement.get_type()));
+        assert!(
+            target.get_type().weak_eq(&replacement.get_type()),
+            "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
+            target,
+            replacement,
+            target.get_type(),
+            replacement.get_type()
+        );
         if &self == target {
             replacement
         } else {

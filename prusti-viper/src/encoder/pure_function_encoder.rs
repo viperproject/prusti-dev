@@ -76,6 +76,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let body_expr = state.into_expressions().remove(0);
         debug!("Pure function {} has been encoded with expr: {}", function_name, body_expr);
 
+        self.encode_function_given_body(Some(body_expr))
+    }
+
+    pub fn encode_bodyless_function(&self) -> vir::Function {
+        let function_name = self.encode_function_name();
+        debug!("Encode trusted (bodyless) pure function {}", function_name);
+
+        self.encode_function_given_body(None)
+    }
+
+    /// Private
+    fn encode_function_given_body(&self, body: Option<vir::Expr>) -> vir::Function {
+        let function_name = self.encode_function_name();
+        let is_bodyless = body.is_none();
+        if is_bodyless {
+            debug!("Encode pure function {} given body None", function_name);
+        } else {
+            debug!("Encode pure function {} given body Some({})", function_name, body.as_ref().unwrap());
+        }
+
         let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
         let preconditions = self.encode_precondition_expr(&contract);
         let postcondition = self.encode_postcondition_expr(&contract);
@@ -91,13 +111,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             return_type,
             pres: vec![preconditions.0, preconditions.1],
             posts: vec![postcondition],
-            body: Some(body_expr)
+            body
         };
 
         self.encoder.log_vir_program_before_foldunfold(function.to_string());
 
         // Add folding/unfolding
-        let final_function = foldunfold::add_folding_unfolding(function, self.encoder.get_used_viper_predicates_map());
+        let final_function = if is_bodyless {
+            function
+        } else {
+            foldunfold::add_folding_unfolding(function, self.encoder.get_used_viper_predicates_map())
+        };
 
         final_function
     }
@@ -118,9 +142,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_args: Vec<vir::Expr> = contract.args.iter()
             .map(|local| self.encode_local(local.clone().into()).into())
             .collect();
-        let encoded_return: vir::Expr = self.encode_local(contract.returned_value.clone().into()).into();
+        let encoded_return = self.encode_local(contract.returned_value.clone().into());
+        debug!("encoded_return: {:?}", encoded_return);
         for item in contract.functional_precondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return));
+            debug!("Encode spec item: {:?}", item);
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return.clone().into(), true));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -135,10 +161,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_args: Vec<vir::Expr> = contract.args.iter()
             .map(|local| self.encode_local(local.clone().into()).into())
             .collect();
-        let encoded_return = self.interpreter.mir_encoder().encode_local(contract.returned_value.clone().into());
+        let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return.clone().into()));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return.clone().into(), true));
         }
 
         let post = func_spec.into_iter().conjoin();
