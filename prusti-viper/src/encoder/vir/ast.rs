@@ -226,6 +226,13 @@ impl Place {
         }
     }
 
+    pub fn get_field(&self) -> Option<&Field> {
+        match self {
+            &Place::Field(_, ref field) => Some(field),
+            _ => None,
+        }
+    }
+
     pub fn is_addr_of(&self) -> bool {
         match self {
             &Place::AddrOf(..) => true,

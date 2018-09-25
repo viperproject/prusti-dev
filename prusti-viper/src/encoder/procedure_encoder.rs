@@ -980,6 +980,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::ExhalePostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
+
+        // Require the deref of reference arguments to be folded (see issue #47)
+        for arg_index in self.mir.args_iter() {
+            let arg_ty = self.mir.local_decls[arg_index].ty;
+            if self.mir_encoder.is_reference(arg_ty) {
+                let encoded_arg = self.mir_encoder.encode_local(arg_index);
+                let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
+                let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place).unwrap();
+                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Obtain(deref_pred));
+            }
+        }
+
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
@@ -1068,28 +1080,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             &mir::ProjectionElem::Deref => {
-                match base_ty.sty {
-                    ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
-                    ty::TypeVariants::TyRef(_, ty, _) => {
-                        let ref_field = self.encoder.encode_ref_field("val_ref", ty);
-                        let access = vir::Place::Field(
-                            box encoded_base,
-                            ref_field,
-                        );
-                        (access, ty, None)
-                    }
-                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
-                        let tcx = self.encoder.env().tcx();
-                        let field_ty = base_ty.boxed_ty();
-                        let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
-                        let access = vir::Place::Field(
-                            box encoded_base,
-                            ref_field,
-                        );
-                        (access, base_ty.boxed_ty(), None)
-                    }
-                    ref x => unimplemented!("{:?}", x),
-                }
+                self.mir_encoder.encode_deref(encoded_base, base_ty)
             }
 
             &mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {

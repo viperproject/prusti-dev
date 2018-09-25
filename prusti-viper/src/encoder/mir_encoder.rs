@@ -193,7 +193,31 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    pub fn is_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
+        trace!("is_reference {}", base_ty);
+        match base_ty.sty {
+            ty::TypeVariants::TyRawPtr(..) |
+            ty::TypeVariants::TyRef(..) => true,
+
+            _ => false,
+        }
+    }
+
+    pub fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
+        trace!("can_be_dereferenced {}", base_ty);
+        match base_ty.sty {
+            ty::TypeVariants::TyRawPtr(..) |
+            ty::TypeVariants::TyRef(..) => true,
+
+            ty::TypeVariants::TyAdt(ref adt_def, ..) if adt_def.is_box() => true,
+
+            _ => false,
+        }
+    }
+
     pub fn encode_deref(&self, encoded_base: vir::Place, base_ty: ty::Ty<'tcx>) -> (vir::Place, ty::Ty<'tcx>, Option<usize>) {
+        trace!("encode_deref {} {}", encoded_base, base_ty);
+        assert!(self.can_be_dereferenced(base_ty), "Type {:?} can not be dereferenced", base_ty);
         match base_ty.sty {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
             ty::TypeVariants::TyRef(_, ty, _) => {

@@ -388,13 +388,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let closure_local = curr_mir.local_decls.indices().skip(1).next().unwrap();
             let closure_var = curr_mir_encoder.encode_local(closure_local);
             let closure_ty = &curr_mir.local_decls[closure_local].ty;
-            let (deref_closure_var, ..) = curr_mir_encoder.encode_deref(
-                closure_var.clone().into(),
-                closure_ty
-            );
+            let should_closure_be_dereferenced = curr_mir_encoder.can_be_dereferenced(closure_ty);
+            let (deref_closure_var, deref_closure_ty) = if should_closure_be_dereferenced {
+                let res = curr_mir_encoder.encode_deref(
+                    closure_var.clone().into(),
+                    closure_ty
+                );
+                (res.0, res.1)
+            } else {
+                (
+                    closure_var.clone().into(),
+                    *closure_ty
+                )
+            };
             trace!("closure_ty: {:?}", closure_ty);
             trace!("deref_closure_var: {:?}", deref_closure_var);
-            let closure_subst = if let ty::TypeVariants::TyRef(_, ty::TyS { sty: ty::TypeVariants::TyClosure(_, ref substs), .. }, _) = closure_ty.sty {
+            trace!("deref_closure_ty: {:?}", deref_closure_ty);
+            let closure_subst = if let ty::TypeVariants::TyClosure(_, ref substs) = deref_closure_ty.sty {
                 substs.clone()
             } else {
                 unreachable!()
@@ -416,14 +426,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     outer_mir_encoder.encode_operand_place(operand).unwrap()
                 }
             ).collect();
-            let take_addr_of = |place: vir::Place| {
-                match place {
-                    vir::Place::Field(box ref base, vir::Field { ref name, .. }) if name == "val_ref" => {
-                        base.clone()
-                    }
-                    other_place => other_place.addr_of()
-                }
-            };
             for (index, (inner_place, outer_place)) in inner_captured_places.iter().zip(outer_captured_places.iter()).enumerate() {
                 trace!(
                     "Field {} of closure, encoded as {}: {}, corresponds to {}: {} in the middle of the enclosing procedure",
