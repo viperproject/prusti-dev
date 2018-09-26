@@ -165,6 +165,7 @@ pub fn collapse<'a, 'tcx: 'a>(
 }
 
 
+#[derive(Debug)]
 pub struct VecPlaceComponent<'tcx> {
     place: mir::Place<'tcx>,
 }
@@ -177,6 +178,7 @@ impl<'tcx> VecPlaceComponent<'tcx> {
 
 /// A different way to represent a place that is more similar to the one
 /// mentioned in the issue https://github.com/rust-lang/rust/issues/52708.
+#[derive(Debug)]
 pub struct VecPlace<'tcx> {
     components: Vec<VecPlaceComponent<'tcx>>,
 }

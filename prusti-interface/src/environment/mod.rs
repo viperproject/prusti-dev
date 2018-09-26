@@ -17,6 +17,7 @@ use syntax::attr;
 
 mod procedure;
 mod loops;
+mod loops_utils;
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
 pub mod borrowck;
@@ -25,6 +26,7 @@ pub mod mir_analyses;
 use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};
 pub use self::loops::{ProcedureLoops, PlaceAccess, PlaceAccessKind};
+pub use self::loops_utils::*;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use syntax::codemap::CodeMap;
 

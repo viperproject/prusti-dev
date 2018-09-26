@@ -38,7 +38,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir: &'p mir::Mir<'tcx>,
     cfg_method: vir::CfgMethod,
     locals: LocalVariableManager<'tcx>,
-    loops: LoopEncoder<'tcx>,
+    loops: LoopEncoder<'p, 'tcx>,
     auxiliar_local_vars: HashMap<String, vir::Type>,
     //dataflow_info: DataflowInfo<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
@@ -63,7 +63,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let mir = procedure.get_mir();
         let locals = LocalVariableManager::new(&mir.local_decls);
-        let loops = LoopEncoder::new(mir);
+        let loops = LoopEncoder::new(mir, encoder.env().tcx(), procedure.get_id());
         // let dataflow_info = procedure.construct_dataflow_info();
 
         ProcedureEncoder {
@@ -161,10 +161,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             let successor_count = bb_data.terminator().successors().count();
-            for successor in bb_data.terminator().successors() {
+            for &successor in bb_data.terminator().successors() {
                 if self.loops.is_loop_head(successor) {
                     assert!(successor_count == 1);
-                    self.encode_loop_invariant_exhale(*successor, bbi);
+                    self.encode_loop_invariant_exhale(successor, bbi);
                 }
             }
         });
@@ -998,10 +998,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
-    fn encode_loop_invariant_exhale(&mut self, _loop_head: BasicBlockIndex,
-                                    _source: BasicBlockIndex) {
-        // TODO
-        //let _invariant = self.loops.compute_loop_invariant(loop_head, &mut self.dataflow_info);
+    fn encode_loop_invariant_exhale(&mut self, loop_head: BasicBlockIndex, source: BasicBlockIndex) {
+        let permissions_forest = self.loops.compute_loop_invariant(loop_head);
+        debug!("permissions_forest: {:?}", permissions_forest);
+        unimplemented!("TODO: encode exhale of loop invariant...");
     }
 
     fn get_rust_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {

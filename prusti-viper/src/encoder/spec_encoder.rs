@@ -9,7 +9,6 @@ use encoder::Encoder;
 use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;
 use encoder::foldunfold;
-use encoder::loop_encoder::LoopEncoder;
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::vir::ExprIterator;
 use prusti_interface::data::ProcedureDefId;

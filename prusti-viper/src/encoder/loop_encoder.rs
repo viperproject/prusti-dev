@@ -2,176 +2,127 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use prusti_interface::utils;
 use prusti_interface::environment::{
-    BasicBlockIndex, PlaceAccess, PlaceAccessKind, ProcedureLoops};
+    BasicBlockIndex, PlaceAccess, PlaceAccessKind, ProcedureLoops, PermissionForest};
 use rustc::mir;
+use rustc::ty;
 use std::collections::HashMap;
+use prusti_interface::environment::mir_analyses::initialization::{
+    compute_definitely_initialized,
+    DefinitelyInitializedAnalysisResult,
+    PlaceSet,
+};
+use rustc::hir::def_id::DefId;
 
-pub struct LoopEncoder<'tcx> {
-    pub loop_info: ProcedureLoops,
-    /// Places that are accessed in each loop. The index of the loop
-    /// head basic block is used as a key.
-    pub accessed_places: HashMap<BasicBlockIndex, Vec<PlaceAccess<'tcx>>>,
+pub struct LoopEncoder<'a, 'tcx: 'a> {
+    mir: &'a mir::Mir<'tcx>,
+    loops: ProcedureLoops,
+    initialization: DefinitelyInitializedAnalysisResult<'tcx>,
 }
 
-/// Struct that defines permissions used in a loop invariant.
-pub struct LoopInvariant<'tcx> {
-    /// A set of places for which we need to provide read permissions in
-    /// the loop invariant. If a place `p` is in `read_places`, then
-    /// `acc(T(p), rd)` is added to the loop invariant.
-    read_places: Vec<mir::Place<'tcx>>,
-    /// A set of places for which we need to provide write permissions in
-    /// the loop invariant. If a place `p` is in `write_places`, then
-    /// `acc(T(p), write)` is added to the loop invariant.
-    written_places: Vec<mir::Place<'tcx>>,
-    /// A set of paths for which we need to provide read permissions in the
-    /// loop invariant. For example, if a path `x.f.g` is in
-    /// `read_access_paths`, then ``acc(x.f, rd) && acc(x.f.g, rd)`` is
-    /// added to the loop invariant.
-    read_access_paths: Vec<mir::Place<'tcx>>,
-    /// A set of paths for which we need to provide write permissions in the
-    /// loop invariant. For example, if a path `x.f.g` is in
-    /// `write_access_paths`, then ``acc(x.f, write) && acc(x.f.g, write)``
-    /// is added to the loop invariant.
-    write_access_paths: Vec<mir::Place<'tcx>>,
-}
+impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
-impl<'tcx> LoopEncoder<'tcx> {
-
-    pub fn new<'a>(mir: &'a mir::Mir<'tcx>) -> LoopEncoder<'tcx>
-        where 'tcx: 'a
+    pub fn new(mir: &'a mir::Mir<'tcx>, tcx: ty::TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId) -> LoopEncoder<'a, 'tcx>
     {
-        debug!("LoopEncoder constructor");
-
-        let loop_info = ProcedureLoops::new(mir);
-        let mut accessed_places = HashMap::new();
-        for &loop_head in loop_info.loop_heads.iter() {
-            let accesses = loop_info.compute_used_paths(loop_head, mir);
-            accessed_places.insert(loop_head, accesses);
-        }
+        let def_path = tcx.hir.def_path(def_id);
         LoopEncoder {
-            loop_info,
-            accessed_places,
+            mir,
+            loops: ProcedureLoops::new(mir),
+            initialization: compute_definitely_initialized(&mir, tcx, def_path),
         }
     }
 
     /// Is the given basic block a loop head?
-    pub fn is_loop_head(&self, basic_block: &BasicBlockIndex) -> bool {
-        self.loop_info.loop_heads.contains(basic_block)
+    pub fn is_loop_head(&self, basic_block: BasicBlockIndex) -> bool {
+        self.loops.loop_heads.contains(&basic_block)
     }
 
-    /// Check if the place `potential_prefix` is a prefix of `place`. For example:
-    ///
-    /// +   `is_prefix(x.f, x.f) == true`
-    /// +   `is_prefix(x.f.g, x.f) == true`
-    /// +   `is_prefix(x.f, x.f.g) == false`
-    fn is_prefix(&self, place: &mir::Place<'tcx>, potential_prefix: &mir::Place<'tcx>) -> bool {
-        if place == potential_prefix {
-            true
-        } else {
-            match place {
-                mir::Place::Local(_) => false,
-                mir::Place::Projection(box mir::Projection { base, ..  }) =>
-                    self.is_prefix(base, potential_prefix),
-                _ => unimplemented!(),
-            }
-        }
-    }
+    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest {
+        assert!(self.is_loop_head(bb));
 
-    /// Remove all places from `places` whose prefix is already in `places`.
-    fn deduplicate(&self, places: Vec<mir::Place<'tcx>>) -> Vec<mir::Place<'tcx>> {
-        let mut filtered_places = Vec::new();
-        for place in places.iter() {
-            let has_prefix = places
-                .iter()
-                .any(|prefix| {
-                    place != prefix &&
-                    self.is_prefix(place, prefix)
-                });
-            if !has_prefix && !filtered_places.contains(place) {
-                filtered_places.push(place.clone());
-            }
-        }
-        filtered_places
-    }
+        // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
+        //     accessed in the loop body and ``t`` is the type of access (read,
+        //     destructive read, …).
+        // 2.  Let ``A2`` be a subset of ``A1`` that contains only the prefixes
+        //     whose roots are defined before the loop. (The root of the prefix
+        //     ``x.f.g.h`` is ``x``.)
+        // 3.  Let ``A3`` be a subset of ``A2`` without accesses that are subsumed
+        //     by other accesses.
+        // 4.  Let ``U`` be a set of prefixes that are unreachable at the loop
+        //     head because they are either moved out or mutably borrowed.
+        // 5.  For each access ``(p, t)`` in the set ``A3``:
+        //
+        //     1.  Add a read permission to the loop invariant to read the prefix
+        //         up to the last element. If needed, unfold the corresponding
+        //         predicates.
+        //     2.  Add a permission to the last element based on what is required
+        //         by the type of access. If ``p`` is a prefix of some prefixes in
+        //         ``U``, then the invariant would contain corresponding predicate
+        //         bodies without unreachable elements instead of predicates.
 
-    /// To achieve good performance, the Rust compiler uses bitsets
-    /// to represent the analysis state. This design decision has two
-    /// interesting consequences. First, it can happen that a variable
-    /// `x` is marked as initialized while its field `x.f` is marked as
-    /// uninitialized. Second, the flow analysis tracks only the places
-    /// (`x`, `x.f.g.h`, etc.) that the later Rust compiler passes care
-    /// about. As a result, it can happen that the status of some places
-    /// at a specific program point is not explicitly available and we
-    /// need to compute it (seems that it is always possible to do that).
-    ///
-    /// Computation algorithm:
-    ///
-    /// 1.  `written_places := self.accessed_places.filter(kind in Store, Move, MutableBorrow)`
-    /// 2.  Deduplicate `written_places` by removing all places whose prefix
-    ///     is already in `written_places`.
-    /// 3.  Remove all places from `written_places` to which we might not have
-    ///     permissions at the loop head (repeat until a fix-point):
-    ///
-    ///     1.  Remove all places `p` that are mentioned in `maybe_uninit`.
-    ///     2.  For each place `p` that is a prefix of some place in
-    ///         `maybe_uninit`:
-    ///
-    ///         1.  Remove it from `written_places`.
-    ///         2.  Add all places that are accessible via `p` fields to
-    ///             `written_places` and `write_access_paths`.
-    ///
-    /// 4.  `read_places := self.accessed_places.filter(kind in Copy, SharedBorrow)`
-    /// 5.  Deduplicate `read_places`.
-    /// 6.  Remove all places from `read_places` to which we might not have
-    ///     permissions at the loop head or we already require write
-    ///     permissions (repeat until a fix-point):
-    ///
-    ///     1.  Remove all places `p` that are mentioned in `maybe_uninit`,
-    ///         `written_places`, or `write_access_paths`.
-    ///     2.  For each place `p` that is a prefix of some place in
-    ///         `maybe_uninit`, `written_places`, or `write_access_paths`:
-    ///
-    ///         1.  Remove it from `read_places`.
-    ///         2.  Add all places that are accessible via `p` fields to
-    ///             `read_places` and `read_access_paths`.
-    ///
-    /// 8.  Add all prefixes of all places in `read_places`,
-    ///     `written_places`, and `write_access_paths` to
-    ///     `read_access_paths`.
-    /// 9.  Remove all places from `read_access_paths` that are already in
-    ///     `read_places`, `written_places`, or `write_access_paths`.
-    pub fn compute_loop_invariant(&self, loop_head: BasicBlockIndex,
-                                  //dataflow_info: &mut DataflowInfo
-                                  ) -> LoopInvariant<'tcx> {
-        let location = mir::Location { block: loop_head, statement_index: 0 };
-
-        let written_places: Vec<_> = self.accessed_places[&loop_head]
+        // Paths accessed inside the loop body.
+        let accesses = self.loops.compute_used_paths(bb, self.mir);
+        let definitely_initalised_paths = self.initialization.get_before_block(bb);
+        // Paths that are defined before the loop.
+        let defined_accesses: Vec<_> = accesses
             .iter()
-            .filter(|access| {
-                match access.kind {
-                    PlaceAccessKind::Store |
-                    PlaceAccessKind::Move |
-                    PlaceAccessKind::MutableBorrow => true,
-                    PlaceAccessKind::Read |
-                    PlaceAccessKind::SharedBorrow => false,
-                }
-            })
-            .map(|access| {access.place.clone()})
+            .filter(
+                |PlaceAccess { place, kind, .. } |
+                    definitely_initalised_paths.iter().any(
+                        |initialised_place|
+                            // If the prefix is definitely initialised, then this place is a potential
+                            // loop invariant.
+                            utils::is_prefix(place, initialised_place) ||
+                                // If the access is store, then we only need the path to exist, which is
+                                // guaranteed if we have at least some of the leaves still initialised.
+                                //
+                                // Note that the Rust compiler is even more permissive as explained in this
+                                // issue: https://github.com/rust-lang/rust/issues/21232.
+                                (
+                                    *kind == PlaceAccessKind::Store &&
+                                        utils::is_prefix(initialised_place, place)
+                                )
+                    )
+            )
+            .map(|PlaceAccess { place, kind, .. } | (place, kind))
             .collect();
-        debug!("written_places1 = {:?}", written_places);
-        let written_places = self.deduplicate(written_places);
-        debug!("written_places2 = {:?}", written_places);
-        let mut written_places = written_places;
-        let mut changes = true;
-        //let maybe_uninit = dataflow_info.get_maybe_uninit_at(location);
-        while changes {
-            changes = false;
-            // TODO: Finish the implementation based on the description
-            // of the algorithm.
+        // Paths to whose leaves we need write permissions.
+        let mut write_leaves: Vec<mir::Place> = Vec::new();
+        for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+            if kind.is_write_access() {
+                let has_prefix = defined_accesses
+                    .iter()
+                    .any(|(potential_prefix, kind)|
+                        kind.is_write_access() &&
+                            place != potential_prefix &&
+                            utils::is_prefix(place, potential_prefix)
+                    );
+                if !has_prefix && !write_leaves.contains(place) {
+                    write_leaves.push((*place).clone());
+                }
+            }
         }
+        // Paths to whose leaves we need read permissions.
+        let mut read_leaves: Vec<mir::Place> = Vec::new();
+        for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+            if !kind.is_write_access() {
+                let has_prefix = defined_accesses
+                    .iter()
+                    .any(|(potential_prefix, kind)|
+                        place != potential_prefix &&
+                            utils::is_prefix(place, potential_prefix)
+                    );
+                if !has_prefix && !read_leaves.contains(place) && !write_leaves.contains(place) {
+                    read_leaves.push((*place).clone());
+                }
+            }
+        }
+        // Construct the permission forest.
+        let forest = PermissionForest::new(
+            &write_leaves, &read_leaves, &definitely_initalised_paths);
 
-        unimplemented!();
+        forest
     }
 
 }

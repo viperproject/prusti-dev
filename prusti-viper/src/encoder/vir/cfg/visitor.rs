@@ -158,7 +158,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone + PartialEq + Eq> {
                 let index = following_index.block_index;
                 if visited[index] {
                     debug!("Back edge from {:?} to {:?}", curr_block_index, following_index);
-                    assert_eq!(&bctxt, initial_bctxt[index].as_ref().unwrap());
+                    assert_eq!(&bctxt, initial_bctxt[index].as_ref().unwrap(), "A loop invariant seems to be missing");
                 }
             }
 
