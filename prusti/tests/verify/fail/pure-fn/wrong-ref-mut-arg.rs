@@ -1,6 +1,8 @@
 #![feature(nll)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
+#![feature(never_type)]
+#![allow(unconditional_recursion)]
 
 extern crate prusti_contracts;
 
@@ -31,6 +33,9 @@ fn len(head: &mut List) -> usize {
     }
 }
 
+fn diverging() -> ! {
+    diverging()
+}
 
 fn prepend_list(x: u32, tail: List, check: bool) -> List {
     let mut result = List {
@@ -38,12 +43,10 @@ fn prepend_list(x: u32, tail: List, check: bool) -> List {
         next: Some(Box::new(tail)),
     };
     if check {
-        assert!(lookup(&mut result, 0) == x);
         assert!(lookup(&mut result, 0) == 123); //~ ERROR assert!(..) statement might not hold
-        unreachable!() //~ ERROR unreachable!(..) statement might be reachable
-    } else {
-        result
+        diverging()
     }
+    result
 }
 
 
