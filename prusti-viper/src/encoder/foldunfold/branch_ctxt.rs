@@ -129,11 +129,19 @@ impl<'a> BranchCtxt<'a> {
             // Drop predicate permissions that can not be obtained due to a move
             for pred_place in &filter_proper_extensions_of(self.state.pred(), &moved_paths) {
                 debug!("Drop pred {} in left branch (it is moved out in the other branch)", pred_place);
+                assert!(self.state.pred().contains(&pred_place));
                 self.state.remove_pred(&pred_place);
+                left_actions.push(
+                    Action::Drop(Perm::Pred(pred_place.clone()))
+                );
             }
             for pred_place in &filter_proper_extensions_of(other.state.pred(), &moved_paths) {
                 debug!("Drop pred {} in right branch (it is moved out in the other branch)", pred_place);
+                assert!(other.state.pred().contains(&pred_place));
                 other.state.remove_pred(&pred_place);
+                right_actions.push(
+                    Action::Drop(Perm::Pred(pred_place.clone()))
+                );
             }
 
             // Compute preserved predicate permissions
@@ -143,21 +151,37 @@ impl<'a> BranchCtxt<'a> {
             // Drop predicate permissions that are not in the other branch
             for pred_place in self.state.pred().clone().difference(&preserved_preds) {
                 debug!("Drop pred {} in left branch (it is not in the other branch)", pred_place);
+                assert!(self.state.pred().contains(&pred_place));
                 self.state.remove_pred(&pred_place);
+                left_actions.push(
+                    Action::Drop(Perm::Pred(pred_place.clone()))
+                );
             }
             for pred_place in other.state.pred().clone().difference(&preserved_preds) {
                 debug!("Drop pred {} in right branch (it is not in the other branch)", pred_place);
+                assert!(other.state.pred().contains(&pred_place));
                 other.state.remove_pred(&pred_place);
+                right_actions.push(
+                    Action::Drop(Perm::Pred(pred_place.clone()))
+                );
             }
 
             // Drop access permissions that can not be obtained due to a move
             for acc_place in &filter_proper_extensions_of(self.state.acc(), &moved_paths) {
                 debug!("Drop acc {} in left branch (it is moved out in the other branch)", acc_place);
+                assert!(self.state.acc().contains(&acc_place));
                 self.state.remove_acc(&acc_place);
+                left_actions.push(
+                    Action::Drop(Perm::Acc(acc_place.clone()))
+                );
             }
             for acc_place in &filter_proper_extensions_of(other.state.acc(), &moved_paths) {
                 debug!("Drop acc {} in right branch (it is moved out in the other branch)", acc_place);
+                assert!(other.state.acc().contains(&acc_place));
                 other.state.remove_acc(&acc_place);
+                right_actions.push(
+                    Action::Drop(Perm::Acc(acc_place.clone()))
+                );
             }
 
             trace!("Actions in left branch: {:?}", &left_actions);
@@ -294,7 +318,8 @@ impl<'a> BranchCtxt<'a> {
         );
     }
 
-    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) {
+    /// Returns some of the dropped permissions
+    pub fn apply_stmt(&mut self, stmt: &vir::Stmt) -> HashSet<Perm> {
         debug!("apply_stmt: {}", stmt);
 
         trace!("Acc state before: {{{}}}", self.state.display_acc());
@@ -302,12 +327,16 @@ impl<'a> BranchCtxt<'a> {
 
         self.state.check_consistency();
 
-        stmt.apply_on_state(&mut self.state, self.predicates);
+        let mut dropped_permissions = HashSet::new();
+        stmt.apply_on_state(&mut self.state, self.predicates, &mut dropped_permissions);
 
+        trace!("Dropped permissions: {{{}}}", dropped_permissions.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "));
         trace!("Acc state after: {{{}}}", self.state.display_acc());
         trace!("Pred state after: {{{}}}", self.state.display_pred());
 
         self.state.check_consistency();
+
+        dropped_permissions
     }
 
     pub fn obtain_permissions(&mut self, permissions: Vec<Perm>) -> Vec<Action> {

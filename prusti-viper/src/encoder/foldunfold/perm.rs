@@ -42,6 +42,27 @@ pub enum Perm {
 }
 
 impl Perm {
+    pub fn is_acc(&self) -> bool {
+        match self {
+            Perm::Acc(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_pred(&self) -> bool {
+        match self {
+            Perm::Pred(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_pred(&self) -> Option<&vir::Place> {
+        match self {
+            Perm::Pred(ref place) => Some(place),
+            _ => None,
+        }
+    }
+
     pub fn get_place(&self) -> vir::Place {
         match self {
             &Perm::Acc(ref place) |

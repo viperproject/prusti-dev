@@ -981,23 +981,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
 
+        /*
         // Require the deref of reference arguments to be folded (see issue #47)
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment(format!("Fold predicates for &mut args")));
         for arg_index in self.mir.args_iter() {
             let arg_ty = self.mir.local_decls[arg_index].ty;
             if self.mir_encoder.is_reference(arg_ty) {
                 let encoded_arg = self.mir_encoder.encode_local(arg_index);
                 let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
                 let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place).unwrap();
-                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Obtain(deref_pred));
+                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::WeakObtain(deref_pred));
             }
         }
+        */
 
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
     fn encode_loop_invariant_exhale(&mut self, _loop_head: BasicBlockIndex,
                                     _source: BasicBlockIndex) {
-        // TODO: commented out because we need access to dataflow analysis (it requires a patch to rustc)
+        // TODO
         //let _invariant = self.loops.compute_loop_invariant(loop_head, &mut self.dataflow_info);
     }
 

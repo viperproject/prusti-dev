@@ -3,8 +3,7 @@
 extern crate prusti_contracts;
 
 fn diverging() -> ! {
-    // This error should be reported
-    loop {}
+    diverging()
 }
 
 fn test() {

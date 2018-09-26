@@ -5,10 +5,12 @@
 use encoder::vir;
 use self::branch_ctxt::*;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use encoder::vir::CfgReplacer;
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir::ExprFolder;
+use encoder::vir::ExprIterator;
 
 mod perm;
 mod permissions;
@@ -18,7 +20,7 @@ mod semantics;
 mod places_utils;
 mod action;
 
-const DEBUG_FOLDUNFOLD: bool = false;
+const DEBUG_FOLDUNFOLD: bool = true;
 
 
 pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<String, vir::Predicate>) -> vir::Function {
@@ -30,7 +32,7 @@ pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<St
     let mut bctxt = BranchCtxt::new(formal_vars, &predicates);
     // Inhale preconditions
     for pre in &function.pres {
-        bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()))
+        let _ = bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()));
     }
 
     let body = function.body.unwrap();
@@ -93,18 +95,64 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             self.bctxt_at_label.insert(label.clone(), bctxt.clone());
         }
 
+        let mut stmts: Vec<vir::Stmt> = vec![];
+
+        // 1. Preferred permissions
+        let (preferred_curr_perms, _) = stmt
+            .get_preferred_permissions(bctxt.predicates())
+            .into_iter()
+            .group_by_label();
+
+        let obtainable_preferred_curr_perms: Vec<_> = preferred_curr_perms.into_iter()
+            .filter(|p| !bctxt.state().is_prefix_of_some_moved(&p.get_place()))
+            .filter(|p| !bctxt.state().moved().iter().any(|mp| p.get_place().has_prefix(mp)))
+            .collect();
+
+        if !obtainable_preferred_curr_perms.is_empty() {
+            if DEBUG_FOLDUNFOLD {
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
+            }
+
+            stmts.extend(
+                bctxt
+                    .obtain_permissions(obtainable_preferred_curr_perms)
+                    .iter()
+                    .map(|a| a.to_stmt())
+            );
+
+            if DEBUG_FOLDUNFOLD {
+                stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+                stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
+            }
+        }
+
+        // 2. Required permissions
         let (curr_perms, old_perms) = stmt
             .get_required_permissions(bctxt.predicates())
             .into_iter()
             .group_by_label();
 
-        let mut stmts: Vec<vir::Stmt> = bctxt
-            .obtain_permissions(curr_perms)
-            .iter()
-            .map(|a| a.to_stmt())
-            .collect();
+        if !curr_perms.is_empty() {
+            if DEBUG_FOLDUNFOLD {
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
+                stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
+            }
 
-        // Add "fold/unfolding in" expressions in statement
+            stmts.extend(
+                bctxt
+                    .obtain_permissions(curr_perms)
+                    .iter()
+                    .map(|a| a.to_stmt())
+            );
+
+            if DEBUG_FOLDUNFOLD {
+                stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+                stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
+            }
+        }
+
+        // 3. Add "fold/unfolding in" expressions in statement
         let repl_expr = |expr: &vir::Expr| -> vir::Expr {
             self.replace_expr(expr, bctxt)
         };
@@ -123,9 +171,11 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             vir::Stmt::Fold(s, ve) => vir::Stmt::Fold(s.clone(), repl_exprs(ve)),
             vir::Stmt::Unfold(s, ve) => vir::Stmt::Unfold(s.clone(), repl_exprs(ve)),
             vir::Stmt::Obtain(e) => vir::Stmt::Obtain(repl_expr(e)),
+            vir::Stmt::WeakObtain(e) => vir::Stmt::WeakObtain(repl_expr(e)),
         };
 
-        bctxt.apply_stmt(&new_stmt);
+        // 4. Apply statement
+        let _ = bctxt.apply_stmt(&new_stmt);
         stmts.push(new_stmt);
 
         stmts
@@ -152,7 +202,6 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             if DEBUG_FOLDUNFOLD {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
-                //stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position()));
             }
 
             stmts.extend(
@@ -162,6 +211,11 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
                     .map(|a| a.to_stmt())
                     .collect::<Vec<_>>()
             );
+        }
+
+        if DEBUG_FOLDUNFOLD {
+            stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+            stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
         }
 
         // Add "fold/unfolding in" expressions in successor

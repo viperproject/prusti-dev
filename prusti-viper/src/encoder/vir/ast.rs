@@ -84,7 +84,7 @@ impl Type {
         match self {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
-            &Type::TypedRef(ref pred_name) => format!("ref${}", pred_name),
+            &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
         }
     }
 
@@ -341,6 +341,9 @@ pub enum Stmt {
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     Obtain(Expr),
+    /// WeakObtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
+    /// They will be used by the fold/unfold algorithm
+    WeakObtain(Expr),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -438,6 +441,8 @@ impl fmt::Display for Stmt {
             ),
 
             Stmt::Obtain(ref expr) => write!(f, "obtain {}", expr),
+
+            Stmt::WeakObtain(ref expr) => write!(f, "weak obtain {}", expr),
         }
     }
 }
@@ -456,6 +461,7 @@ pub trait StmtFolder {
             Stmt::Fold(s, ve) => self.fold_fold(s, ve),
             Stmt::Unfold(s, ve) => self.fold_unfold(s, ve),
             Stmt::Obtain(e) => self.fold_obtain(e),
+            Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
         }
     }
 
@@ -501,6 +507,10 @@ pub trait StmtFolder {
 
     fn fold_obtain(&mut self, e: Expr) -> Stmt {
         Stmt::Obtain(self.fold_expr(e))
+    }
+
+    fn fold_weak_obtain(&mut self, e: Expr) -> Stmt {
+        Stmt::WeakObtain(self.fold_expr(e))
     }
 }
 
@@ -783,6 +793,25 @@ impl fmt::Display for UnaryOpKind {
 }
 
 impl Expr {
+    pub fn pred_permission(place: Place, perm: Perm) -> Option<Self> {
+        place.typed_ref_name().map( |pred_name|
+            Expr::PredicateAccessPredicate(
+                box Expr::PredicateAccess(
+                    pred_name,
+                    vec![ place.into() ]
+                ),
+                perm
+            )
+        )
+    }
+
+    pub fn acc_permission(place: Place, perm: Perm) -> Self {
+        Expr::FieldAccessPredicate(
+            box place.into(),
+            perm
+        )
+    }
+
     pub fn labelled_old(label: &str, expr: Expr) -> Self {
         Expr::LabelledOld(label.to_string(), box expr)
     }

@@ -35,7 +35,7 @@ impl RequiredPermissionsGetter for Vec<vir::Expr> {
 }
 
 impl RequiredPermissionsGetter for vir::Stmt {
-    /// Returns the permissions required for the expression to be well-defined
+    /// Returns the permissions required for the statement to be well-defined
     fn get_required_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<LabelledPerm> {
         match self {
             &vir::Stmt::Comment(_) |
@@ -87,6 +87,28 @@ impl RequiredPermissionsGetter for vir::Stmt {
             },
 
             &vir::Stmt::Obtain(ref expr) => expr.get_required_permissions(predicates),
+
+            &vir::Stmt::WeakObtain(ref expr) => HashSet::new(),
+        }
+    }
+}
+
+impl vir::Stmt {
+    /// Returns the permissions that the statement would prefer to have
+    pub fn get_preferred_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<LabelledPerm> {
+        match self {
+            &vir::Stmt::Comment(_) |
+            &vir::Stmt::Label(_) |
+            &vir::Stmt::Inhale(_) |
+            &vir::Stmt::Exhale(_, _) |
+            &vir::Stmt::Assert(_, _) |
+            &vir::Stmt::MethodCall(_, _, _) |
+            &vir::Stmt::Assign(_, _, _) |
+            &vir::Stmt::Fold(_, _) |
+            &vir::Stmt::Unfold(_, _) |
+            &vir::Stmt::Obtain(_) => HashSet::new(),
+
+            &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }
     }
 }

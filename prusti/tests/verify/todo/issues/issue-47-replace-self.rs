@@ -12,9 +12,10 @@ impl T for S {
     #[requires="self.f == 123"]
     #[ensures="self.f == 456"]
     fn test(&mut self) {
-        *self = S {
+        let new_self = S {
             f: 456
         };
+        *self = new_self;
     }
 }
 

@@ -487,21 +487,13 @@ impl State {
         for place in &self.acc {
             if !place.is_base() {
                 exprs.push(
-                    vir::Expr::FieldAccessPredicate(
-                        box place.clone().into(),
-                        vir::Perm::full()
-                    )
+                    vir::Expr::acc_permission(place.clone(), vir::Perm::full())
                 );
             }
         }
         for place in &self.pred {
-            if let Some(pred_name) = place.typed_ref_name() {
-                exprs.push(
-                    vir::Expr::PredicateAccessPredicate(
-                        box vir::Expr::PredicateAccess(pred_name, vec![ place.clone().into() ]),
-                        vir::Perm::full()
-                    )
-                );
+            if let Some(perm) = vir::Expr::pred_permission(place.clone(), vir::Perm::full()) {
+                exprs.push(perm);
             }
         }
         exprs.into_iter().conjoin()
