@@ -12,7 +12,7 @@ struct List {
 }
 
 #[pure]
-fn lookup(head: &List, index: usize) -> u32 {
+fn lookup(head: &List, index: isize) -> u32 {
     if index == 0 {
         head.value
     } else {
@@ -24,7 +24,7 @@ fn lookup(head: &List, index: usize) -> u32 {
 }
 
 #[pure]
-fn len(head: &List) -> usize {
+fn len(head: &List) -> isize {
     match head.next {
         None => 1,
         Some(box ref tail) => 1 + len(tail)
