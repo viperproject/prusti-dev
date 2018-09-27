@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::borrowck::{facts, regions};
+use super::borrowck::facts;
 use std::fmt;
 use crate::utils;
 use super::mir_analyses::initialization::{
@@ -29,6 +29,19 @@ pub enum PermissionKind {
     None,
 }
 
+impl PermissionKind {
+    pub fn is_none(&self) -> bool {
+        match self {
+            PermissionKind::None => true,
+
+            PermissionKind::ReadNode |
+            PermissionKind::ReadSubtree |
+            PermissionKind::WriteNode |
+            PermissionKind::WriteSubtree => false,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Loan<'tcx> {
     /// ID used in Polonius.
@@ -52,12 +65,14 @@ pub enum PermissionNode<'tcx> {
         kind: PermissionKind,
         children: Vec<PermissionNode<'tcx>>,
     },
-    BorrowedNode {  // TODO: Make this the type only of the root node.
-    place: mir::Place<'tcx>,
+    // TODO: Make this the type only of the root node.
+    BorrowedNode {
+        place: mir::Place<'tcx>,
         kind: PermissionKind,
         child: Box<PermissionNode<'tcx>>,
         /// A list of locations from where this borrow may be borrowing.
-        may_borrow_from: Vec<Loan<'tcx>>,   // TODO: Is this needed?
+        // TODO: Is this needed?
+        may_borrow_from: Vec<Loan<'tcx>>,
     },
 }
 
@@ -78,6 +93,15 @@ impl<'tcx> PermissionNode<'tcx> {
             PermissionNode::BorrowedNode { .. } => {
                 unimplemented!();
             },
+        }
+    }
+
+    pub fn get_permission_kind(&self) -> PermissionKind {
+        match self {
+            PermissionNode::OwnedNode { kind, .. } |
+            PermissionNode::BorrowedNode { kind, .. } => {
+                *kind
+            }
         }
     }
 
@@ -105,7 +129,18 @@ impl<'tcx> PermissionNode<'tcx> {
                 // have to deal with this case.
             },
         }
+    }
 
+    pub fn get_children(&self) -> Vec<&PermissionNode<'tcx>> {
+        match self {
+            PermissionNode::OwnedNode { ref children, .. } => {
+                children.iter().collect()
+            }
+
+            PermissionNode::BorrowedNode { box ref child, .. } => {
+                vec![ child ]
+            }
+        }
     }
 }
 
@@ -178,7 +213,7 @@ impl<'tcx> PermissionTree<'tcx> {
     /// comment for the `new`.
     pub fn add(&mut self,
                place: &mir::Place<'tcx>,
-               target_place: &mir::Place<'tcx>,
+               _target_place: &mir::Place<'tcx>,
                is_target_write: bool) {
         let place = utils::VecPlace::new(place);
         let mut place_iter = place.iter();
@@ -203,12 +238,28 @@ impl<'tcx> PermissionTree<'tcx> {
         } else {
             PermissionKind::ReadSubtree
         };
-        let mut current_node = current_parent_node.get_or_create_child(
+        let mut _current_node = current_parent_node.get_or_create_child(
             component.get_mir_place(), kind);
     }
 
     pub fn get_root_place(&self) -> &mir::Place {
         self.root.get_place()
+    }
+
+    pub fn get_root(&self) -> &PermissionNode<'tcx> {
+        &self.root
+    }
+
+    pub fn get_nodes(&self) -> Vec<&PermissionNode<'tcx>> {
+        let mut visited = vec![];
+        let mut to_visit = vec![ &self.root ];
+        while let Some(node) = to_visit.pop() {
+            visited.push(node);
+            for child in node.get_children().iter() {
+                to_visit.push(child);
+            }
+        }
+        visited
     }
 }
 
@@ -226,23 +277,23 @@ pub struct PermissionForest<'tcx> {
 impl<'tcx> PermissionForest<'tcx> {
     /// +   `write_paths` – paths to whose leaves we should have write permission.
     /// +   `read_paths` – paths to whose leaves we should have read permission.
-    /// +   `definitely_initalised_paths` – which paths are definitely initialised.
+    /// +   `definitely_initialised_paths` – which paths are definitely initialised.
     pub fn new(
         write_paths: &Vec<mir::Place<'tcx>>,
         read_paths: &Vec<mir::Place<'tcx>>,
-        definitely_initalised_paths: &PlaceSet<'tcx>) -> Self {
+        definitely_initialised_paths: &PlaceSet<'tcx>) -> Self {
 
         let mut trees: Vec<PermissionTree> = Vec::new();
 
         /// Take the intended place to add and compute the set of places
         /// to add that are definitely initialised.
         fn compute_places_to_add<'a, 'tcx>(place: &'a mir::Place<'tcx>,
-                                           definitely_initalised_paths: &'a PlaceSet<'tcx>
+                                           definitely_initialised_paths: &'a PlaceSet<'tcx>
         ) -> Vec<(&'a mir::Place<'tcx>, &'a mir::Place<'tcx>)> {
             let mut found_def_init_prefix = false;
             let mut found_target_prefix = false;
             let mut result = Vec::new();
-            for def_init_place in definitely_initalised_paths.iter() {
+            for def_init_place in definitely_initialised_paths.iter() {
                 if utils::is_prefix(place, def_init_place) {
                     assert!(!found_target_prefix && !found_def_init_prefix);
                     result.push((place, place));
@@ -261,10 +312,10 @@ impl<'tcx> PermissionForest<'tcx> {
         fn add_paths<'tcx>(paths: &Vec<mir::Place<'tcx>>,
                            trees: &mut Vec<PermissionTree<'tcx>>,
                            is_write: bool,
-                           definitely_initalised_paths: &PlaceSet<'tcx>) {
+                           definitely_initialised_paths: &PlaceSet<'tcx>) {
             for place in paths.iter() {
                 let mut found = false;
-                let places_to_add = compute_places_to_add(place, definitely_initalised_paths);
+                let places_to_add = compute_places_to_add(place, definitely_initialised_paths);
                 for tree in trees.iter_mut() {
                     if utils::is_prefix(place, tree.get_root_place()) {
                         found = true;
@@ -281,11 +332,15 @@ impl<'tcx> PermissionForest<'tcx> {
                 }
             }
         }
-        add_paths(write_paths, &mut trees, true, definitely_initalised_paths);
-        add_paths(read_paths, &mut trees, false, definitely_initalised_paths);
+        add_paths(write_paths, &mut trees, true, definitely_initialised_paths);
+        add_paths(read_paths, &mut trees, false, definitely_initialised_paths);
         Self {
             trees: trees,
         }
+    }
+
+    pub fn get_trees(&self) -> &[PermissionTree<'tcx>] {
+        &self.trees
     }
 }
 

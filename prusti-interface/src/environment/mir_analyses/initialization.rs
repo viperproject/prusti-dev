@@ -215,7 +215,7 @@ impl<'tcx> DefinitelyInitializedAnalysisResult<'tcx> {
     }
     /// Get the initialization set before the first statement of the
     /// basic block.
-    pub fn get_before_block(&self, bb: mir::BasicBlock) -> &PlaceSet {
+    pub fn get_before_block(&self, bb: mir::BasicBlock) -> &PlaceSet<'tcx> {
         self.before_block
             .get(&bb)
             .expect(&format!("Missing initialization info for block {:?}", bb))

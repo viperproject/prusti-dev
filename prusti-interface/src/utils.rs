@@ -150,7 +150,7 @@ pub fn collapse<'a, 'tcx: 'a>(
     guide_place: &mir::Place<'tcx>,
 ) {
     let mut guide_place = guide_place.clone();
-    while let mir::Place::Projection(box mir::Projection { base, elem }) = guide_place {
+    while let mir::Place::Projection(box mir::Projection { base, elem: _ }) = guide_place {
         let expansion = expand_struct_place(&base, mir, tcx, None);
         if expansion.iter().all(|place| places.contains(place)) {
             for place in expansion {

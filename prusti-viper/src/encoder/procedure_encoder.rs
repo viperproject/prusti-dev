@@ -17,6 +17,7 @@ use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::ProcedureImpl;
+use prusti_interface::environment::PermissionKind;
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
@@ -38,7 +39,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir: &'p mir::Mir<'tcx>,
     cfg_method: vir::CfgMethod,
     locals: LocalVariableManager<'tcx>,
-    loops: LoopEncoder<'p, 'tcx>,
+    loop_encoder: LoopEncoder<'p, 'tcx>,
     auxiliar_local_vars: HashMap<String, vir::Type>,
     //dataflow_info: DataflowInfo<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
@@ -63,7 +64,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let mir = procedure.get_mir();
         let locals = LocalVariableManager::new(&mir.local_decls);
-        let loops = LoopEncoder::new(mir, encoder.env().tcx(), procedure.get_id());
+        let loop_encoder = LoopEncoder::new(mir, encoder.env().tcx(), procedure.get_id());
         // let dataflow_info = procedure.construct_dataflow_info();
 
         ProcedureEncoder {
@@ -73,7 +74,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir,
             cfg_method,
             locals,
-            loops,
+            loop_encoder,
             auxiliar_local_vars: HashMap::new(),
             //dataflow_info: dataflow_info,
             mir_encoder: MirEncoder::new(encoder, mir, procedure.get_id())
@@ -143,16 +144,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode statements
         self.procedure.walk_once_cfg(|bbi, bb_data| {
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
+            let cfg_block = *cfg_blocks.get(&bbi).unwrap();
 
-            //TODO: Implement:
-            //if self.loop_encoder.is_loop_head(bbi) {
-            //self.encode_loop_invariant_inhale(bbi);
-            //}
+            if self.loop_encoder.is_loop_head(bbi) {
+                let stmts = self.encode_loop_invariant_inhale(bbi);
+                for stmt in stmts.into_iter() {
+                    self.cfg_method.add_stmt(cfg_block, stmt);
+                }
+            }
 
             // Encode statements
             for (stmt_index, stmt) in statements.iter().enumerate() {
                 trace!("Encode statement {:?}:{}", bbi, stmt_index);
-                let cfg_block = *cfg_blocks.get(&bbi).unwrap();
                 self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
                 let stmts = self.encode_statement(stmt);
                 for stmt in stmts.into_iter() {
@@ -162,9 +165,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             let successor_count = bb_data.terminator().successors().count();
             for &successor in bb_data.terminator().successors() {
-                if self.loops.is_loop_head(successor) {
-                    assert!(successor_count == 1);
-                    self.encode_loop_invariant_exhale(successor, bbi);
+                if self.loop_encoder.is_loop_head(successor) {
+                    assert!(successor_count == 1); // FIXME: I don't think this will hold
+                    let stmts = self.encode_loop_invariant_exhale(successor);
+                    for stmt in stmts.into_iter() {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
                 }
             }
         });
@@ -998,10 +1004,112 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
-    fn encode_loop_invariant_exhale(&mut self, loop_head: BasicBlockIndex, source: BasicBlockIndex) {
-        let permissions_forest = self.loops.compute_loop_invariant(loop_head);
+    fn encode_loop_invariant_permissions(&self, loop_head: BasicBlockIndex) -> Vec<vir::Expr> {
+        let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
         debug!("permissions_forest: {:?}", permissions_forest);
-        unimplemented!("TODO: encode exhale of loop invariant...");
+
+        let mut permissions = vec![];
+        for tree in permissions_forest.get_trees().iter() {
+            for node in tree.get_nodes().iter() {
+                let kind = node.get_permission_kind();
+                if kind.is_none() {
+                    continue;
+                }
+                let mir_place = node.get_place();
+                let (encoded_place, ty, _) = self.encode_place(mir_place);
+                let perm = match kind {
+                    /// Gives read permission to this node. It must not be a leaf node.
+                    PermissionKind::ReadNode => {
+                        unimplemented!()
+                    }
+
+                    /// Gives read permission to the entire subtree including this node.
+                    /// This must be a leaf node.
+                    PermissionKind::ReadSubtree => {
+                        unimplemented!()
+                    }
+
+                    /// Gives write permission to this node. It must not be a leaf node.
+                    PermissionKind::WriteNode => {
+                        vir::Expr::acc_permission(
+                            encoded_place,
+                            vir::Perm::full()
+                        )
+                    }
+
+                    /// Gives read permission to the entire subtree including this node.
+                    /// This must be a leaf node.
+                    PermissionKind::WriteSubtree => {
+                        vir::Expr::pred_permission(
+                            encoded_place,
+                            vir::Perm::full()
+                        ).unwrap()
+                    }
+
+                    /// Give no permission to this node and the entire subtree. This
+                    /// must be a leaf node.
+                    PermissionKind::None => {
+                        unreachable!()
+                    }
+                };
+                permissions.push(perm)
+            }
+        }
+
+        permissions
+    }
+
+    fn encode_loop_invariant_exhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+        let permissions = self.encode_loop_invariant_permissions(loop_head);
+
+        // TODO: use different positions, and generate different error messages, for the exhale
+        // before the loop and after the loop body
+
+        let assert_pos = self.encoder.error_manager().register(
+            // TODO: choose a proper error span
+            self.mir.span,
+            ErrorCtxt::AssertLoopInvariant
+        );
+
+        let exhale_pos = self.encoder.error_manager().register(
+            // TODO: choose a proper error span
+            self.mir.span,
+            ErrorCtxt::ExhaleLoopInvariant
+        );
+
+        warn!("TODO: encode functional specification of loop invariant");
+
+        vec![
+            vir::Stmt::comment(
+                format!("Assert and exhale the loop invariant of block {:?}", loop_head)
+            ),
+            vir::Stmt::Assert(
+                true.into(), // TODO: functional specification
+                assert_pos
+            ),
+            vir::Stmt::Exhale(
+                permissions.into_iter().conjoin(),
+                exhale_pos
+            )
+        ]
+    }
+
+    fn encode_loop_invariant_inhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+        let permissions = self.encode_loop_invariant_permissions(loop_head);
+
+        warn!("TODO: encode functional specification of loop invariant");
+
+        vec![
+            vir::Stmt::comment(
+                format!("Inhale the loop invariant of block {:?}", loop_head)
+            ),
+            vir::Stmt::Inhale(
+                permissions.into_iter().conjoin()
+            ),
+            vir::Stmt::Inhale(
+                true.into() // TODO: functional specification
+            ),
+        ]
     }
 
     fn get_rust_local_decl(&self, local: mir::Local) -> &mir::LocalDecl<'tcx> {
@@ -1499,6 +1607,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> Vec<vir::Stmt> {
         debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
         let mut stmts: Vec<vir::Stmt> = vec![];
+        stmts.extend(
+            self.encode_havoc_and_allocation(dst, ty)
+        );
         // Initialize values
         match aggregate {
             &mir::AggregateKind::Tuple => {

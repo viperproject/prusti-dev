@@ -38,7 +38,8 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         self.loops.loop_heads.contains(&basic_block)
     }
 
-    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest {
+    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx>
+    {
         assert!(self.is_loop_head(bb));
 
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
@@ -63,13 +64,13 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
         // Paths accessed inside the loop body.
         let accesses = self.loops.compute_used_paths(bb, self.mir);
-        let definitely_initalised_paths = self.initialization.get_before_block(bb);
+        let definitely_initialised_paths = self.initialization.get_before_block(bb);
         // Paths that are defined before the loop.
         let defined_accesses: Vec<_> = accesses
             .iter()
             .filter(
                 |PlaceAccess { place, kind, .. } |
-                    definitely_initalised_paths.iter().any(
+                    definitely_initialised_paths.iter().any(
                         |initialised_place|
                             // If the prefix is definitely initialised, then this place is a potential
                             // loop invariant.
@@ -120,7 +121,7 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         }
         // Construct the permission forest.
         let forest = PermissionForest::new(
-            &write_leaves, &read_leaves, &definitely_initalised_paths);
+            &write_leaves, &read_leaves, &definitely_initialised_paths);
 
         forest
     }

@@ -49,7 +49,6 @@ extern crate prusti_contracts;
 extern crate prusti_interface;
 extern crate prusti_viper;
 extern crate regex;
-#[macro_use]
 extern crate rustc;
 extern crate rustc_data_structures;
 extern crate rustc_driver;

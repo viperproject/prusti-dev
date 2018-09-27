@@ -27,10 +27,14 @@ pub enum PanicCause {
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
     Panic(PanicCause),
-    /// A Viper `exhale expr` that encodes the call of a Rust procedure wit precondition `expr`
+    /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
     ExhalePrecondition,
-    /// A Viper `exhale expr` that encodes the end of a Rust procedure wit postcondition `expr`
+    /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhalePostcondition,
+    /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
+    ExhaleLoopInvariant,
+    /// A Viper `assert expr` that asserts the functional specification of a loop invariant `expr`
+    AssertLoopInvariant,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
@@ -153,6 +157,18 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::ExhalePostcondition) => CompilerError::new(
                 "P????",
                 format!("Postcondition might not hold."),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariant) => CompilerError::new(
+                "P????",
+                format!("The loop invariant might not hold."),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariant) => CompilerError::new(
+                "P????",
+                format!("The loop invariant might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 

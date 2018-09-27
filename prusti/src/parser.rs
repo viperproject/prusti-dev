@@ -326,16 +326,20 @@ impl<'tcx> SpecParser<'tcx> {
 
     fn build_prusti_contract_import(&self, span: Span) -> ast::Stmt {
         let builder = &self.ast_builder;
+        let mut item = builder.item_use_glob(
+            span,
+            respan(span.shrink_to_lo(), ast::VisibilityKind::Inherited),
+            vec![
+                builder.ident_of("prusti_contracts"),
+                builder.ident_of("internal"),
+            ],
+        ).into_inner();
+        item.attrs = vec![
+            self.ast_builder.attribute_allow(item.span, "unused_import"),
+        ];
         builder.stmt_item(
             span,
-            builder.item_use_glob(
-                span,
-                respan(span.shrink_to_lo(), ast::VisibilityKind::Inherited),
-                vec![
-                    builder.ident_of("prusti_contracts"),
-                    builder.ident_of("internal"),
-                ],
-            ),
+            ptr::P(item),
         )
     }
 

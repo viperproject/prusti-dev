@@ -12,6 +12,12 @@ use utils::to_string::ToString;
 /// However, the structure of the CFG can not change.
 /// For each branch a context is updated, duplicated at forks, and merged with other contexts at joins.
 pub trait CfgReplacer<BranchCtxt: Debug + Clone + PartialEq + Eq> {
+    /// Define `lub` by using the definition of `join`
+    fn contained_in(&mut self, left: &BranchCtxt, right: &BranchCtxt) -> bool {
+        let (_, joined) = self.prepend_join(vec![left, right]);
+        left == right
+    }
+
     /// Give the initial branch context
     fn initial_context(&mut self) -> BranchCtxt;
 
@@ -158,7 +164,9 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone + PartialEq + Eq> {
                 let index = following_index.block_index;
                 if visited[index] {
                     debug!("Back edge from {:?} to {:?}", curr_block_index, following_index);
-                    assert_eq!(&bctxt, initial_bctxt[index].as_ref().unwrap(), "A loop invariant seems to be missing");
+                    if self.contained_in(initial_bctxt[index].as_ref().unwrap(), &bctxt) {
+                        panic!("A loop invariant seems to be missing")
+                    }
                 }
             }
 

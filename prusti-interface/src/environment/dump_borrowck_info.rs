@@ -505,7 +505,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 .collect();
             // Paths to whose leaves we need write permissions.
             let mut write_leaves: Vec<mir::Place> = Vec::new();
-            for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+            for (_i, (place, kind)) in defined_accesses.iter().enumerate() {
                 if kind.is_write_access() {
                     let has_prefix = defined_accesses
                         .iter()
@@ -521,11 +521,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
             // Paths to whose leaves we need read permissions.
             let mut read_leaves: Vec<mir::Place> = Vec::new();
-            for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+            for (_i, (place, kind)) in defined_accesses.iter().enumerate() {
                 if !kind.is_write_access() {
                     let has_prefix = defined_accesses
                         .iter()
-                        .any(|(potential_prefix, kind)|
+                        .any(|(potential_prefix, _kind)|
                              place != potential_prefix &&
                              utils::is_prefix(place, potential_prefix)
                          );
