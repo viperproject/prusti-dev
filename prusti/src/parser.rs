@@ -335,7 +335,7 @@ impl<'tcx> SpecParser<'tcx> {
             ],
         ).into_inner();
         item.attrs = vec![
-            self.ast_builder.attribute_allow(item.span, "unused_import"),
+            self.ast_builder.attribute_allow(item.span, "unused_imports"),
         ];
         builder.stmt_item(
             span,
