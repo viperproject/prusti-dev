@@ -12,6 +12,7 @@ use encoder::loop_encoder::LoopEncoder;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::vir::ExprIterator;
+use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
@@ -43,6 +44,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     auxiliar_local_vars: HashMap<String, vir::Type>,
     //dataflow_info: DataflowInfo<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
+    check_panics: bool,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -77,7 +79,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loop_encoder,
             auxiliar_local_vars: HashMap::new(),
             //dataflow_info: dataflow_info,
-            mir_encoder: MirEncoder::new(encoder, mir, procedure.get_id())
+            mir_encoder: MirEncoder::new(encoder, mir, procedure.get_id()),
+            check_panics: config::check_panics()
         }
     }
 
@@ -604,7 +607,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // This is called when a Rust assertion fails
                         // args[0]: message
                         // args[1]: position of failing assertions
-                        stmts.push(vir::Stmt::comment(format!("Rust panic - {:?}", args[0])));
+                        
+                        // Example of args[0]: 'const "internal error: entered unreachable code"'
+                        let panic_message = format!("{:?}", args[0]);
 
                         // Pattern match on the macro that generated the panic
                         // TODO: use a better approach to match macros
@@ -644,7 +649,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             term.source_info.span,
                             ErrorCtxt::Panic(panic_cause)
                         );
-                        stmts.push(vir::Stmt::Assert(false.into(), pos));
+
+                        if self.check_panics {
+                            stmts.push(vir::Stmt::comment(format!("Rust panic - {}", panic_message)));
+                            stmts.push(vir::Stmt::Assert(false.into(), pos));
+                        } else {
+                            debug!("Absence of panic will not be checked")
+                        }
                     }
 
                     "<std::boxed::Box<T>>::new" => {

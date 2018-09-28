@@ -44,8 +44,8 @@ impl<'a> VerificationContext<'a> {
         let mut verifier_args = vec![];
         verifier_args.extend(args);
         if let VerificationBackend::Carbon = backend {
-                verifier_args.extend(vec![
-                "--boogieExe",
+            verifier_args.extend(vec![
+            "--boogieExe",
             &boogie_path,
             ]);
         }

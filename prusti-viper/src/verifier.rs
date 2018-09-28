@@ -133,6 +133,9 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
 impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
     fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+        // Dump the configuration
+        Log::report("config", "prusti", config::dump());
+
         let validator = Validator::new(self.env.tcx());
         self.encoder.initialize();
 
