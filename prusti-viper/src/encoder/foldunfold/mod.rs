@@ -11,6 +11,7 @@ use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
+use prusti_interface::config;
 
 mod perm;
 mod permissions;
@@ -19,8 +20,6 @@ mod branch_ctxt;
 mod semantics;
 mod places_utils;
 mod action;
-
-const DEBUG_FOLDUNFOLD: bool = true;
 
 
 pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<String, vir::Predicate>) -> vir::Function {
@@ -67,6 +66,7 @@ pub fn add_fold_unfold(cfg: vir::CfgMethod, predicates: HashMap<String, vir::Pre
 struct FoldUnfold<'a> {
     initial_bctxt: BranchCtxt<'a>,
     bctxt_at_label: HashMap<String, BranchCtxt<'a>>,
+    debug_foldunfold: bool,
 }
 
 impl<'a> FoldUnfold<'a> {
@@ -74,6 +74,7 @@ impl<'a> FoldUnfold<'a> {
         FoldUnfold {
             initial_bctxt,
             bctxt_at_label: HashMap::new(),
+            debug_foldunfold: config::debug_foldunfold()
         }
     }
 
@@ -109,7 +110,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             .collect();
 
         if !obtainable_preferred_curr_perms.is_empty() {
-            if DEBUG_FOLDUNFOLD {
+            if self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -121,7 +122,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
                     .map(|a| a.to_stmt())
             );
 
-            if DEBUG_FOLDUNFOLD {
+            if self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
                 stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
             }
@@ -134,7 +135,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             .group_by_label();
 
         if !curr_perms.is_empty() {
-            if DEBUG_FOLDUNFOLD {
+            if self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -146,7 +147,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
                     .map(|a| a.to_stmt())
             );
 
-            if DEBUG_FOLDUNFOLD {
+            if self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
                 stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
             }
@@ -199,7 +200,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         if !curr_perms.is_empty() {
-            if DEBUG_FOLDUNFOLD {
+            if self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -213,7 +214,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             );
         }
 
-        if DEBUG_FOLDUNFOLD {
+        if self.debug_foldunfold {
             stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
             stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
         }

@@ -4,6 +4,7 @@
 
 use encoder::Encoder;
 use encoder::vir::ToViper;
+use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::EnvironmentImpl;
@@ -67,7 +68,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
     type VerifierImpl = Verifier<'v, 'r, 'a, 'tcx>;
 
     fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Verifier<'v, 'r, 'a, 'tcx> {
-        let backend = VerificationBackend::Silicon;
+        let backend = VerificationBackend::from_str(&config::viper_backend());
 
         let mut verifier_args = vec![];
         if let VerificationBackend::Silicon = backend {
@@ -80,7 +81,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
         } else {
             verifier_args.extend(vec![
                 "--disableAllocEncoding",
-                "--print", "./log/boogie_program/program.bpl",
+                //"--print", "./log/boogie_program/program.bpl",
                 "--boogieOpt", "/logPrefix ./log/viper_tmp"
             ]);
         }

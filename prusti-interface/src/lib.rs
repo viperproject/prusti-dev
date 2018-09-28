@@ -28,6 +28,9 @@ extern crate serde_derive;
 extern crate serde;
 extern crate syntax;
 extern crate syntax_pos;
+extern crate config as config_crate;
+#[macro_use]
+extern crate lazy_static;
 
 pub mod environment;
 pub mod verifier;
@@ -36,3 +39,4 @@ pub mod constants;
 pub mod specifications;
 pub mod utils;
 pub mod report;
+pub mod config;
