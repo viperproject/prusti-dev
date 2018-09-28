@@ -7,8 +7,7 @@ use super::loops;
 use super::loops_utils::*;
 use super::mir_analyses::initialization::{
     compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult,
-    PlaceSet,
+    DefinitelyInitializedAnalysisResult
 };
 use crate::utils;
 use datafrog::{Iteration, Relation};

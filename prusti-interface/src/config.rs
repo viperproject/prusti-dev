@@ -8,7 +8,8 @@ use std::env;
 use config_crate::{Config, Environment, File};
 
 lazy_static! {
-	static ref SETTINGS: RwLock<Config> = RwLock::new({
+    // Is this RwLock<..> necessary?
+    static ref SETTINGS: RwLock<Config> = RwLock::new({
         let mut settings = Config::default();
 
         // 1. Default values

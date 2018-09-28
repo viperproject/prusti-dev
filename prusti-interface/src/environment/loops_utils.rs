@@ -7,9 +7,9 @@ use std::fmt;
 use crate::utils;
 use super::mir_analyses::initialization::{
     compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult,
-    PlaceSet,
+    DefinitelyInitializedAnalysisResult
 };
+use super::place_set::PlaceSet;
 use rustc::mir;
 
 #[derive(Clone, Copy, Debug)]
@@ -277,23 +277,19 @@ pub struct PermissionForest<'tcx> {
 impl<'tcx> PermissionForest<'tcx> {
     /// +   `write_paths` – paths to whose leaves we should have write permission.
     /// +   `read_paths` – paths to whose leaves we should have read permission.
-    /// +   `definitely_initialised_paths` – which paths are definitely initialised.
-    pub fn new(
-        write_paths: &Vec<mir::Place<'tcx>>,
-        read_paths: &Vec<mir::Place<'tcx>>,
-        definitely_initialised_paths: &PlaceSet<'tcx>) -> Self {
+    pub fn new(write_paths: &Vec<mir::Place<'tcx>>, read_paths: &Vec<mir::Place<'tcx>>, all_places: &PlaceSet<'tcx>) -> Self {
 
         let mut trees: Vec<PermissionTree> = Vec::new();
 
         /// Take the intended place to add and compute the set of places
         /// to add that are definitely initialised.
         fn compute_places_to_add<'a, 'tcx>(place: &'a mir::Place<'tcx>,
-                                           definitely_initialised_paths: &'a PlaceSet<'tcx>
+                                           all_places: &'a PlaceSet<'tcx>
         ) -> Vec<(&'a mir::Place<'tcx>, &'a mir::Place<'tcx>)> {
             let mut found_def_init_prefix = false;
             let mut found_target_prefix = false;
             let mut result = Vec::new();
-            for def_init_place in definitely_initialised_paths.iter() {
+            for def_init_place in all_places.iter() {
                 if utils::is_prefix(place, def_init_place) {
                     assert!(!found_target_prefix && !found_def_init_prefix);
                     result.push((place, place));
@@ -312,10 +308,10 @@ impl<'tcx> PermissionForest<'tcx> {
         fn add_paths<'tcx>(paths: &Vec<mir::Place<'tcx>>,
                            trees: &mut Vec<PermissionTree<'tcx>>,
                            is_write: bool,
-                           definitely_initialised_paths: &PlaceSet<'tcx>) {
+                           all_places: &PlaceSet<'tcx>) {
             for place in paths.iter() {
                 let mut found = false;
-                let places_to_add = compute_places_to_add(place, definitely_initialised_paths);
+                let places_to_add = compute_places_to_add(place, all_places);
                 for tree in trees.iter_mut() {
                     if utils::is_prefix(place, tree.get_root_place()) {
                         found = true;
@@ -332,8 +328,8 @@ impl<'tcx> PermissionForest<'tcx> {
                 }
             }
         }
-        add_paths(write_paths, &mut trees, true, definitely_initialised_paths);
-        add_paths(read_paths, &mut trees, false, definitely_initialised_paths);
+        add_paths(write_paths, &mut trees, true, all_places);
+        add_paths(read_paths, &mut trees, false, all_places);
         Self {
             trees: trees,
         }

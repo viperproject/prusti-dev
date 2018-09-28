@@ -22,6 +22,7 @@ mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
 pub mod borrowck;
 pub mod mir_analyses;
+pub mod place_set;
 
 use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};

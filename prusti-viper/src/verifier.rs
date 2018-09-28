@@ -139,6 +139,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         let validator = Validator::new(self.env.tcx());
         self.encoder.initialize();
 
+        /*
         for &proc_id in &task.procedures {
             // Do some checks
             let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
@@ -169,9 +170,9 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 self.env.err(&message);
             }
         }
+        */
 
         for &proc_id in &task.procedures {
-            // We could skip the verification if `support_status.is_unsupported()`
             self.encoder.queue_encoding(proc_id)
         }
         self.encoder.process_encoding_queue();

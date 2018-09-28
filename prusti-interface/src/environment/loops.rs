@@ -142,6 +142,8 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
         context: mir::visit::PlaceContext<'tcx>,
         location: mir::Location
     ) {
+        // TODO: using `location`, skip the places that are used for typechecking
+        // because that part of the generated code contains closures.
         if self.body.contains(&location.block) {
             trace!("visit_place(place={:?}, context={:?}, location={:?})",
                    place, context, location);

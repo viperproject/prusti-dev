@@ -10,13 +10,14 @@ use rustc::ty;
 use std::collections::HashMap;
 use prusti_interface::environment::mir_analyses::initialization::{
     compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult,
-    PlaceSet,
+    DefinitelyInitializedAnalysisResult
 };
 use rustc::hir::def_id::DefId;
+use prusti_interface::environment::place_set::PlaceSet;
 
 pub struct LoopEncoder<'a, 'tcx: 'a> {
     mir: &'a mir::Mir<'tcx>,
+    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
     loops: ProcedureLoops,
     initialization: DefinitelyInitializedAnalysisResult<'tcx>,
 }
@@ -28,6 +29,7 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         let def_path = tcx.hir.def_path(def_id);
         LoopEncoder {
             mir,
+            tcx,
             loops: ProcedureLoops::new(mir),
             initialization: compute_definitely_initialized(&mir, tcx, def_path),
         }
@@ -64,35 +66,14 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
         // Paths accessed inside the loop body.
         let accesses = self.loops.compute_used_paths(bb, self.mir);
-        let definitely_initialised_paths = self.initialization.get_before_block(bb);
-        // Paths that are defined before the loop.
-        let defined_accesses: Vec<_> = accesses
-            .iter()
-            .filter(
-                |PlaceAccess { place, kind, .. } |
-                    definitely_initialised_paths.iter().any(
-                        |initialised_place|
-                            // If the prefix is definitely initialised, then this place is a potential
-                            // loop invariant.
-                            utils::is_prefix(place, initialised_place) ||
-                                // If the access is store, then we only need the path to exist, which is
-                                // guaranteed if we have at least some of the leaves still initialised.
-                                //
-                                // Note that the Rust compiler is even more permissive as explained in this
-                                // issue: https://github.com/rust-lang/rust/issues/21232.
-                                (
-                                    *kind == PlaceAccessKind::Store &&
-                                        utils::is_prefix(initialised_place, place)
-                                )
-                    )
-            )
-            .map(|PlaceAccess { place, kind, .. } | (place, kind))
+        let accesses_pairs: Vec<_> = accesses.iter()
+            .map(|PlaceAccess {place, kind, .. }| (place, kind))
             .collect();
         // Paths to whose leaves we need write permissions.
         let mut write_leaves: Vec<mir::Place> = Vec::new();
-        for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+        for (i, (place, kind)) in accesses_pairs.iter().enumerate() {
             if kind.is_write_access() {
-                let has_prefix = defined_accesses
+                let has_prefix = accesses_pairs
                     .iter()
                     .any(|(potential_prefix, kind)|
                         kind.is_write_access() &&
@@ -106,9 +87,9 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         }
         // Paths to whose leaves we need read permissions.
         let mut read_leaves: Vec<mir::Place> = Vec::new();
-        for (i, (place, kind)) in defined_accesses.iter().enumerate() {
+        for (i, (place, kind)) in accesses_pairs.iter().enumerate() {
             if !kind.is_write_access() {
-                let has_prefix = defined_accesses
+                let has_prefix = accesses_pairs
                     .iter()
                     .any(|(potential_prefix, kind)|
                         place != potential_prefix &&
@@ -119,11 +100,18 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
                 }
             }
         }
+
+        let mut all_places = PlaceSet::new();
+        for place in &read_leaves {
+            all_places.insert(&place, self.mir, self.tcx)
+        }
+        for place in &write_leaves {
+            all_places.insert(&place, self.mir, self.tcx)
+        }
+
         // Construct the permission forest.
-        let forest = PermissionForest::new(
-            &write_leaves, &read_leaves, &definitely_initialised_paths);
+        let forest = PermissionForest::new(&write_leaves, &read_leaves, &all_places);
 
         forest
     }
-
 }

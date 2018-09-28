@@ -215,7 +215,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             Some(fun_spec) => fun_spec.clone(),
             None => {
                 warn!("Procedure {:?} has no specification", proc_def_id);
-                // TODO: use false as precondition
+                // TODO: use false as precondition as default?
                 SpecificationSet::Procedure(vec![], vec![])
             }
         };
@@ -459,6 +459,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             } else {
                 pure_function_encoder.encode_function()
             };
+            self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(proc_def_id, function);
         }
         self.pure_functions.borrow()[&proc_def_id].clone()

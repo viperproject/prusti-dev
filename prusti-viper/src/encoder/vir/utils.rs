@@ -149,7 +149,6 @@ impl vir::Expr {
 }
 
 /// In an expression, substitute labels of old expressions
-/// Substitute (map) old expressions in an expression
 pub struct ExprLabelSubstitutor<F> where F: Fn(String) -> String {
     substitutor: F,
 }

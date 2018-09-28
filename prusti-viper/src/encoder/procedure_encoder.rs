@@ -225,7 +225,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
 
-        /*
         // Keep a copy of the value of the variable (fixes issue #20)
         let formal_args: Vec<_> = self.locals
             .iter()
@@ -263,7 +262,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         if label == PRECONDITION_LABEL {
                             old_expr.substitute_place_with_place(local_var_ref, old_local_var_ref.clone())
                         } else {
-                            // See issue #20
+                            // See issue #20 "Evaluation of arguments in old expressions"
                             warn!("TODO: local variables may be evaluated in the wrong state");
                             old_expr
                         }
@@ -271,7 +270,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             );
         }
-        */
 
         let method_name = self.cfg_method.name();
 
@@ -607,7 +605,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // This is called when a Rust assertion fails
                         // args[0]: message
                         // args[1]: position of failing assertions
-                        
+
                         // Example of args[0]: 'const "internal error: entered unreachable code"'
                         let panic_message = format!("{:?}", args[0]);
 
@@ -1313,9 +1311,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::Operand::Move(ref place) => {
                 let (src, ty, _) = self.encode_place(place);
                 // Move the values from `src` to `lhs`
-                vec![
+                let mut stmts = vec![
                     vir::Stmt::Assign(lhs.clone(), src.clone().into(), vir::AssignKind::Move)
-                ]
+                ];
+                // Re-allocate the rhs
+                stmts.extend(
+                    self.encode_havoc_and_allocation(&src, ty)
+                );
+                stmts
             }
 
             &mir::Operand::Copy(ref place) => {

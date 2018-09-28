@@ -223,9 +223,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
         let repl_expr = |expr: &vir::Expr| -> vir::Expr {
             self.replace_expr(expr, bctxt)
         };
-        let repl_exprs = |expr: &Vec<vir::Expr>| -> Vec<vir::Expr> {
-            exprs.iter().map(|e| self.replace_expr(e, bctxt)).collect()
-        };
+
         let new_succ= match succ {
             vir::Successor::Undefined => vir::Successor::Undefined,
             vir::Successor::Return => vir::Successor::Return,
@@ -299,13 +297,13 @@ impl<'b, 'a: 'b> ExprReplacer<'b, 'a>{
     }
 }
 
-impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a>{
+impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     fn fold_labelled_old(&mut self, label: String, expr: Box<vir::Expr>) -> vir::Expr {
         debug!("fold_labelled_old {}: {}", label, expr);
 
         let mut old_bctxt = self.bctxt_at_label.get(&label).unwrap().clone();
 
-        /*if label == "pre" {
+        if label == "pre" {
             // Rename the local variables from `_1, ..` to `_old_1, ..` (see issue #20)
             old_bctxt.mut_state().replace_local_vars(|local_var: &vir::LocalVar| {
                 vir::LocalVar::new(
@@ -313,7 +311,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a>{
                     local_var.typ.clone()
                 )
             });
-        };*/
+        };
 
         let (curr_perms, old_perms) = expr
             .get_required_permissions(old_bctxt.predicates())
