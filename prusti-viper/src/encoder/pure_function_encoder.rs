@@ -142,11 +142,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_args: Vec<vir::Expr> = contract.args.iter()
             .map(|local| self.encode_local(local.clone().into()).into())
             .collect();
-        let encoded_return = self.encode_local(contract.returned_value.clone().into());
-        debug!("encoded_return: {:?}", encoded_return);
         for item in contract.functional_precondition() {
             debug!("Encode spec item: {:?}", item);
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return.clone().into(), true));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, None, true));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -164,7 +162,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, &encoded_return.clone().into(), true));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, Some(&encoded_return.clone().into()), true));
         }
 
         let post = func_spec.into_iter().conjoin();

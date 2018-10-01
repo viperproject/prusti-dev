@@ -25,22 +25,20 @@ pub mod mir_analyses;
 pub mod place_set;
 
 use data::ProcedureDefId;
-pub use self::procedure::{BasicBlockIndex, Procedure, ProcedureImpl};
+pub use self::procedure::{BasicBlockIndex, Procedure};
 pub use self::loops::{ProcedureLoops, PlaceAccess, PlaceAccessKind};
 pub use self::loops_utils::*;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use syntax::codemap::CodeMap;
+use utils::get_attr_value;
 
 /// A facade to the Rust compiler.
-pub trait Environment<'tcx> {
-    /// The concrete type that implements the Procedure interface
-    type ProcedureImpl: Procedure<'tcx>;
-
+pub trait Environment<'a, 'tcx: 'a> {
     /// Get the name of an item
     fn get_item_name(&self, proc_def_id: DefId) -> String;
 
     /// Get a Procedure.
-    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Self::ProcedureImpl;
+    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx>;
 }
 
 /// Facade to the Rust compiler.
@@ -120,6 +118,19 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         annotated_procedures
     }
 
+    pub fn get_attr(&self, def_id: ProcedureDefId, name: &str) -> Option<String> {
+        let tcx = self.tcx();
+        let opt_node_id = tcx.hir.as_local_node_id(def_id);
+        match opt_node_id {
+            None => None,
+            Some(node_id) => {
+                tcx.hir.attrs(node_id).iter()
+                    .find(|item| item.path.to_string() == name)
+                    .map(get_attr_value)
+            }
+        }
+    }
+
     /// Find whether the procedure has a particular attribute
     pub fn has_attribute_name(&self, def_id: ProcedureDefId, name: &str) -> bool {
         let tcx = self.tcx();
@@ -143,15 +154,13 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     }
 }
 
-impl<'r, 'a, 'tcx> Environment<'tcx> for EnvironmentImpl<'r, 'a, 'tcx> {
-    type ProcedureImpl = ProcedureImpl<'a, 'tcx>;
-
+impl<'r, 'a, 'tcx> Environment<'a, 'tcx> for EnvironmentImpl<'r, 'a, 'tcx> {
     fn get_item_name(&self, def_id: DefId) -> String {
         self.tcx().item_path_str(def_id)
     }
 
     /// Get a Procedure.
-    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> ProcedureImpl<'a, 'tcx> {
-        ProcedureImpl::new(self.tcx(), proc_def_id)
+    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
+        Procedure::new(self.tcx(), proc_def_id)
     }
 }

@@ -339,7 +339,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         type_encoder.encode_type()
     }
 
-    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>, label: &str, encoded_args: &[vir::Expr], encoded_return: &vir::Expr, targets_are_values: bool) -> vir::Expr {
+    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>,
+                            label: &str, encoded_args: &[vir::Expr],
+                            encoded_return: Option<&vir::Expr>, targets_are_values: bool
+    ) -> vir::Expr {
         let spec_encoder = SpecEncoder::new(self, mir, label, encoded_args, encoded_return, targets_are_values);
         spec_encoder.encode_assertion(assertion)
     }

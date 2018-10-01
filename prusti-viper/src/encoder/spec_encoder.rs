@@ -15,7 +15,6 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
-use prusti_interface::environment::ProcedureImpl;
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
@@ -42,7 +41,7 @@ pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     /// The context in which the specification should be encoded
     target_label: &'p str,
     target_args: &'p [vir::Expr],
-    target_return: &'p vir::Expr,
+    target_return: Option<&'p vir::Expr>,
     targets_are_values: bool
 }
 
@@ -52,7 +51,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         mir: &'p mir::Mir<'tcx>,
         target_label: &'p str,
         target_args: &'p [vir::Expr],
-        target_return: &'p vir::Expr,
+        target_return: Option<&'p vir::Expr>,
         targets_are_values: bool
     ) -> Self {
         trace!("SpecEncoder constructor");
@@ -545,11 +544,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             };
 
             debug!("spec_fake_return_place: {}", spec_fake_return_place);
-            debug!("target_return: {}", self.target_return);
-            encoded_expr = encoded_expr.substitute_place_with_expr(
-                &spec_fake_return_place,
-                self.target_return.clone()
-            );
+            if let Some(target_return) = self.target_return {
+                debug!("target_return: {}", target_return);
+                encoded_expr = encoded_expr.substitute_place_with_expr(
+                    &spec_fake_return_place,
+                    target_return.clone()
+                );
+            }
         }
 
         // Translate label of `old[pre]` expressions to the TARGET label
@@ -564,6 +565,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         debug!("MIR expr {:?} --> {}", assertion_expr.id, encoded_expr);
         encoded_expr
     }
+
+
 }
 
 

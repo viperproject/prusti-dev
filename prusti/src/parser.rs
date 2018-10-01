@@ -221,6 +221,26 @@ impl<'tcx> SpecParser<'tcx> {
         err.emit();
     }
 
+    /// Construct a lambda function with an attribute that identifies the spec id of the loop
+    fn build_loop_mark(&self, spec_id: SpecID) -> ast::Stmt {
+        let builder = &self.ast_builder;
+        let span = DUMMY_SP;
+        let mut lambda_fn = builder.lambda_fn_decl(
+            span,
+            builder.fn_decl(
+                vec![],
+                ast::FunctionRetTy::Default(span)
+            ),
+            builder.expr_block(builder.block(span, vec![])),
+            span
+        ).into_inner();
+        lambda_fn.attrs = vec![
+            self.ast_builder
+                .attribute_name_value(span, "__PRUSTI_LOOP_SPEC_ID", &spec_id.to_string()),
+        ].into();
+        builder.stmt_semi(ptr::P(lambda_fn))
+    }
+
     /// Construct a lambda function with given expression to make that expression
     /// to be type-checked by the Rust compiler.
     fn build_typeck_call(&self, expression: &UntypedExpression, expected_ty: Option<ptr::P<ast::Ty>>) -> ast::Stmt {
@@ -241,7 +261,7 @@ impl<'tcx> SpecParser<'tcx> {
         ).into_inner();
         lambda_fn.attrs = vec![
             self.ast_builder
-                .attribute_name_value(span, "__PRUSTI_SPEC_EXPR_ID", &expr_id.to_string()),
+                .attribute_name_value(span, "__PRUSTI_EXPR_ID", &expr_id.to_string()),
             self.ast_builder.attribute_word(span, "pure"),
         ].into();
         builder.stmt_semi(ptr::P(lambda_fn))
@@ -301,7 +321,7 @@ impl<'tcx> SpecParser<'tcx> {
                 ).into_inner();
 
                 lambda_fn.attrs = vec![
-                    builder.attribute_name_value(span, "__PRUSTI_SPEC_FORALL_VARS_ID", &vars.id.to_string()),
+                    builder.attribute_name_value(span, "__PRUSTI_FORALL_ID", &vars.id.to_string()),
                     builder.attribute_word(span, "pure"),
                 ].into();
 
@@ -570,6 +590,7 @@ impl<'tcx> SpecParser<'tcx> {
         let span = block.span;
         let mut statements = self.convert_to_statements(invariants);
         statements.insert(0, self.build_prusti_contract_import(span));
+        statements.insert(1, self.build_loop_mark(spec_id));
         let builder = &self.ast_builder;
         let expr = builder.expr_if(
             span,

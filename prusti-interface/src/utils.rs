@@ -6,6 +6,7 @@
 
 use rustc_data_structures::indexed_vec::Idx;
 use rustc::mir;
+use syntax::ast;
 use rustc::ty::{self, TyCtxt};
 use std::collections::HashSet;
 
@@ -208,5 +209,32 @@ impl<'tcx> VecPlace<'tcx> {
     }
     pub fn component_count(&self) -> usize {
         self.components.len()
+    }
+}
+
+pub fn get_attr_value(attr: &ast::Attribute) -> String {
+    use syntax::tokenstream::TokenTree;
+    use syntax::parse::token;
+
+    let trees: Vec<_> = attr.tokens.trees().collect();
+    assert_eq!(trees.len(), 2);
+
+    match trees[0] {
+        TokenTree::Token(_, ref token) => assert_eq!(*token, token::Token::Eq),
+        _ => unreachable!()
+    };
+
+    match trees[1] {
+        TokenTree::Token(_, ref token) => match *token {
+            token::Token::Literal(ref lit, None) => match *lit {
+                token::Lit::Str_(ref name) |
+                token::Lit::StrRaw(ref name, _) => {
+                    name.as_str().to_string()
+                }
+                _ => unreachable!(),
+            },
+            _ => unreachable!(),
+        },
+        _ => unreachable!(),
     }
 }

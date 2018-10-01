@@ -251,7 +251,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Place {
+    pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Place {
         let (encoded_place, place_ty, _) = self.encode_place(place);
         let value_field = self.encoder.encode_value_field(place_ty);
         encoded_place.access(value_field)
@@ -279,6 +279,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     BuiltinFunctionKind::Undefined(uuid, encoded_type.clone())
                 );
                 vir::Expr::FuncApp(function_name, vec![], vec![], encoded_type)
+            }
+        }
+    }
+
+    pub fn get_operand_ty(&mut self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
+        debug!("Get operand ty {:?}", operand);
+        match operand {
+            &mir::Operand::Move(ref place) => {
+                let (_, ty, _) = self.encode_place(place);
+                ty
+            }
+            &mir::Operand::Copy(ref place) => {
+                let (_, ty, _) = self.encode_place(place);
+                ty
+            }
+            &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
+                ty
             }
         }
     }
@@ -368,5 +385,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_old_expr(&self, mut expr: vir::Expr, label: &str) -> vir::Expr {
         debug!("encode_old_expr {}, {}", expr, label);
         vir::Expr::labelled_old(label, expr)
+    }
+
+    pub fn encode_place_predicate_body(&self, place: vir::Place) -> vir::Expr {
+        let predicate_name = place.typed_ref_name().unwrap();
+        let predicate = self.encoder.get_type_predicate_by_name(&predicate_name).unwrap();
+        let pred_self_place: vir::Place = predicate.args[0].clone().into();
+        predicate.body.unwrap().replace(&pred_self_place, &place)
     }
 }

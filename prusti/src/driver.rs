@@ -117,11 +117,15 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
                     AttributeType::Whitelisted,
                 );
                 registry.register_attribute(
-                    String::from("__PRUSTI_SPEC_EXPR_ID"),
+                    String::from("__PRUSTI_LOOP_SPEC_ID"),
                     AttributeType::Whitelisted,
                 );
                 registry.register_attribute(
-                    String::from("__PRUSTI_SPEC_FORALL_VARS_ID"),
+                    String::from("__PRUSTI_EXPR_ID"),
+                    AttributeType::Whitelisted,
+                );
+                registry.register_attribute(
+                    String::from("__PRUSTI_FORALL_ID"),
                     AttributeType::Whitelisted,
                 );
             }

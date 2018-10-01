@@ -7,4 +7,6 @@ fn main() {
     while i > 2 {
         i -= 1;
     }
+
+    assert!(i == 2);
 }

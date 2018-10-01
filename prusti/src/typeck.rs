@@ -18,6 +18,7 @@ use prusti_interface::specifications::{Assertion, AssertionKind, Expression, Exp
                      TypedSpecificationMap, TypedTriggerSet, UntypedAssertion,
                      UntypedSpecification, UntypedSpecificationMap, UntypedTriggerSet};
 use syntax_pos::Span;
+use prusti_interface::utils::get_attr_value;
 
 /// Convert untyped specifications to typed specifications.
 pub fn type_specifications(
@@ -166,33 +167,6 @@ impl<'a, 'tcx: 'a> TypeCollector<'a, 'tcx> {
     }
 }
 
-fn get_attr_value(attr: &ast::Attribute) -> String {
-    use syntax::tokenstream::TokenTree;
-    use syntax::parse::token;
-
-    let trees: Vec<_> = attr.tokens.trees().collect();
-    assert_eq!(trees.len(), 2);
-
-    match trees[0] {
-        TokenTree::Token(_, ref token) => assert_eq!(*token, token::Token::Eq),
-        _ => unreachable!()
-    };
-
-    match trees[1] {
-        TokenTree::Token(_, ref token) => match *token {
-            token::Token::Literal(ref lit, None) => match *lit {
-                token::Lit::Str_(ref name) |
-                token::Lit::StrRaw(ref name, _) => {
-                    name.as_str().to_string()
-                }
-                _ => unreachable!(),
-            },
-            _ => unreachable!(),
-        },
-        _ => unreachable!(),
-    }
-}
-
 impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
     fn nested_visit_map<'this>(&'this mut self) -> intravisit::NestedVisitorMap<'this, 'tcx> {
         let map = &self.tcx.hir;
@@ -206,11 +180,11 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
             let expr = &body.value;
 
             for attr in fk.attrs().iter() {
-                if attr.path.to_string() == "__PRUSTI_SPEC_EXPR_ID" {
+                if attr.path.to_string() == "__PRUSTI_EXPR_ID" {
                     let expr_id: u128 = get_attr_value(attr).parse().unwrap();
                     self.register_typed_expression(expr_id, expr.clone());
                 }
-                if attr.path.to_string() == "__PRUSTI_SPEC_FORALL_VARS_ID" {
+                if attr.path.to_string() == "__PRUSTI_FORALL_ID" {
                     let forall_id: u128 = get_attr_value(attr).parse().unwrap();
                     self.register_typed_forallargs(forall_id, args.clone().into_vec());
                 }
