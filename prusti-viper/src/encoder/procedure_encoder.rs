@@ -916,7 +916,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
         for item in contract.functional_precondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, None, false));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, None, false, None));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -987,7 +987,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         let mut func_spec = Vec::new();
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, label, &encoded_args, Some(&encoded_return), false));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, label, &encoded_args, Some(&encoded_return), false, None));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -1077,9 +1077,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         permissions
     }
 
+    /// Get the basic blocks that encode the specification of a loop invariant
+    fn get_loop_spec_blocks(&self, loop_head: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+        let mut res = vec![];
+        self.procedure.walk_once_raw_cfg(|bbi, bb_data| {
+            if Some(loop_head) == self.loop_encoder.get_first_loop_head(bbi) && self.procedure.is_spec_block(bbi) {
+                res.push(bbi)
+            }
+        });
+        res
+    }
+
     /// Encode the functional specification of a loop
-    fn encode_loop_invariant_spec(&self, loop_head: BasicBlockIndex) -> Vec<vir::Expr> {
-        let spec_blocks = self.procedure.get_loop_spec_blocks(loop_head);
+    fn encode_loop_invariant_specs(&self, loop_head: BasicBlockIndex) -> Vec<vir::Expr> {
+        let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!("loop head {:?} has spec blocks {:?}", loop_head, spec_blocks);
 
         let mut spec_ids = vec![];
@@ -1104,6 +1115,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         assert_eq!(spec_ids.len(), 1);
 
         let mut encoded_specs = vec![];
+        let encoded_args: Vec<vir::Expr> = self.mir.args_iter()
+            .map(|local| self.mir_encoder.encode_local(local).into())
+            .collect();
         for spec_id in &spec_ids {
             let spec_set = self.encoder.spec().get(spec_id).unwrap();
             match spec_set {
@@ -1114,9 +1128,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             &spec.assertion,
                             self.mir,
                             PRECONDITION_LABEL,
-                            &[],
+                            &encoded_args,
                             None,
-                            false
+                            false,
+                            Some(loop_head)
                         );
                         encoded_specs.push(encoded_spec)
                     }
@@ -1131,6 +1146,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_loop_invariant_exhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
         let permissions = self.encode_loop_invariant_permissions(loop_head);
+        let func_spec = self.encode_loop_invariant_specs(loop_head);
 
         // TODO: use different positions, and generate different error messages, for the exhale
         // before the loop and after the loop body
@@ -1147,14 +1163,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::ExhaleLoopInvariant
         );
 
-        warn!("TODO: encode functional specification of loop invariant");
-
         vec![
             vir::Stmt::comment(
                 format!("Assert and exhale the loop invariant of block {:?}", loop_head)
             ),
             vir::Stmt::Assert(
-                true.into(), // TODO: functional specification
+                func_spec.into_iter().conjoin(),
                 assert_pos
             ),
             vir::Stmt::Exhale(
@@ -1166,8 +1180,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_loop_invariant_inhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
         let permissions = self.encode_loop_invariant_permissions(loop_head);
-
-        warn!("TODO: encode functional specification of loop invariant");
+        let func_spec = self.encode_loop_invariant_specs(loop_head);
 
         vec![
             vir::Stmt::comment(
@@ -1177,7 +1190,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 permissions.into_iter().conjoin()
             ),
             vir::Stmt::Inhale(
-                true.into() // TODO: functional specification
+                func_spec.into_iter().conjoin(),
             ),
         ]
     }

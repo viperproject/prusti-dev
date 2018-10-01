@@ -175,6 +175,8 @@ pub struct ProcedureLoops {
     pub loop_heads: Vec<BasicBlockIndex>,
     /// A map from loop heads to the corresponding bodies.
     pub loop_bodies: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
+    /// A map from loop bodies to the first corresponding loop head.
+    first_loop_head: HashMap<BasicBlockIndex, BasicBlockIndex>,
     /// Dominators graph.
     dominators: Dominators<BasicBlockIndex>,
 }
@@ -197,12 +199,24 @@ impl ProcedureLoops {
             let body = loop_bodies.entry(target).or_insert(HashSet::new());
             collect_loop_body(target, source, mir, body);
         }
+        let mut first_loop_head = HashMap::new();
+        for (&loop_head, loop_body) in loop_bodies.iter() {
+            for &block in loop_body.iter() {
+                first_loop_head.insert(block, loop_head);
+            }
+        }
         let loop_heads: Vec<_> = loop_bodies.keys().map(|k| *k).collect();
         ProcedureLoops {
             loop_heads: loop_heads,
             loop_bodies: loop_bodies,
+            first_loop_head,
             dominators: dominators,
         }
+    }
+
+    /// Get the first dominating loop head, if any
+    pub fn get_first_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
+        self.first_loop_head.get(&bbi).cloned()
     }
 
     /// Compute what paths that come from the outside of the loop are accessed

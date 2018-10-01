@@ -30,9 +30,10 @@ use syntax::ast;
 use prusti_interface::specifications::*;
 use encoder::mir_encoder::MirEncoder;
 use rustc::hir::def_id::DefId;
-use encoder::mir_interpreter::{BackwardMirInterpreter, run_backward_interpretation, MultiExprBackwardInterpreterState};
+use encoder::mir_interpreter::{BackwardMirInterpreter, run_backward_interpretation_point_to_point, MultiExprBackwardInterpreterState};
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
+use std::cell::RefCell;
 
 pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -42,7 +43,10 @@ pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     target_label: &'p str,
     target_args: &'p [vir::Expr],
     target_return: Option<&'p vir::Expr>,
-    targets_are_values: bool
+    /// Used to encode pure functions
+    targets_are_values: bool,
+    /// Used to encode loop invariants
+    stop_at_bbi: Option<mir::BasicBlock>
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -52,7 +56,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         target_label: &'p str,
         target_args: &'p [vir::Expr],
         target_return: Option<&'p vir::Expr>,
-        targets_are_values: bool
+        targets_are_values: bool,
+        stop_at_bbi: Option<mir::BasicBlock>
     ) -> Self {
         trace!("SpecEncoder constructor");
 
@@ -62,7 +67,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             target_label,
             target_args,
             target_return,
-            targets_are_values
+            targets_are_values,
+            stop_at_bbi
         }
     }
 
@@ -367,6 +373,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 instantiations.remove(0)
             };
 
+            let is_last_iteration = self.encoder
+                .get_closure_instantiations(outer_def_id).is_empty();
+
             // XXX: This definition has been moved in the loop to avoid NLL issues
             let curr_procedure = self.encoder.env().get_procedure(curr_def_id);
             let curr_mir = curr_procedure.get_mir();
@@ -374,10 +383,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             trace!("Procedure {:?} is contained in {:?}", curr_def_id, outer_def_id);
             let is_spec_function = self.encoder.get_closure_instantiations(outer_def_id).is_empty();
-            let outer_namespace = format!("_closure{}", closure_counter);
             let outer_node_id = tcx.hir.as_local_node_id(outer_def_id).unwrap();
             let outer_procedure = self.encoder.env().get_procedure(outer_def_id);
             let outer_mir = outer_procedure.get_mir();
+            // HACK: don't use a namespace for the last iteration if we are encoding a loop invariant
+            let outer_namespace = if self.stop_at_bbi.is_some() && is_last_iteration {
+                "".to_string()
+            } else {
+                format!("_closure{}", closure_counter)
+            };
             let outer_mir_encoder = MirEncoder::new_with_namespace(self.encoder, outer_mir, outer_def_id, outer_namespace.clone());
             trace!("Replacing variables captured from {:?}", outer_def_id);
 
@@ -449,11 +463,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 outer_mir,
                 outer_def_id,
                 outer_namespace.clone(),
+            );
+            let initial_state = run_backward_interpretation_point_to_point(
+                outer_mir,
+                &interpreter,
+                self.stop_at_bbi.unwrap_or(mir::START_BLOCK),
                 outer_bb_index,
                 outer_stmt_index,
                 state,
-            );
-            let initial_state = run_backward_interpretation(outer_mir, &interpreter).unwrap();
+                MultiExprBackwardInterpreterState::new(vec![])
+            ).unwrap();
             encoded_expr = initial_state.into_expressions().remove(0);
 
             // Replace the variables introduced in the quantifications
@@ -497,11 +516,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let curr_mir = curr_procedure.get_mir();
         let curr_mir_encoder = MirEncoder::new_with_namespace(self.encoder, curr_mir, curr_def_id, curr_namespace.clone());
 
-        // At this point, `curr_def_id` corresponds to the SPEC method. Here is a simple check.
-        assert!(self.encoder.encode_item_name(curr_def_id).contains("__spec"));
+        if self.stop_at_bbi.is_none() {
+            // At this point, `curr_def_id` corresponds to the SPEC method. Here is a simple check.
+            assert!(self.encoder.encode_item_name(curr_def_id).contains("__spec"));
+        }
 
         // Translate arguments and return from the SPEC to the TARGET context
-        assert_eq!(curr_mir.args_iter().count(), self.target_args.len() + 1);
+        if self.stop_at_bbi.is_none() {
+            assert_eq!(curr_mir.args_iter().count(), self.target_args.len() + 1);
+        } else {
+            assert_eq!(curr_mir.args_iter().count(), self.target_args.len());
+        }
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
             let local_ty = curr_mir.local_decls[local].ty;
             let spec_local = curr_mir_encoder.encode_local(local);
@@ -571,10 +596,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
 
 struct StraightLineBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>,
-    bb_index: mir::BasicBlock,
-    stmt_index: usize,
-    state: MultiExprBackwardInterpreterState,
+    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>
 }
 
 /// XXX: This encoding works backward, but there is the risk of generating expressions whose length
@@ -586,25 +608,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StraightLineBackwardInterpreter<'p, '
         mir: &'p mir::Mir<'tcx>,
         def_id: DefId,
         namespace: String,
-        bb_index: mir::BasicBlock,
-        stmt_index: usize,
-        state: MultiExprBackwardInterpreterState,
     ) -> Self {
         StraightLineBackwardInterpreter {
             interpreter: PureFunctionBackwardInterpreter::new(encoder, mir, def_id, namespace),
-            bb_index,
-            stmt_index,
-            state,
         }
     }
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for StraightLineBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
     type State = MultiExprBackwardInterpreterState;
-
     fn apply_terminator(&self, bb: mir::BasicBlock, term: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Self::State {
         trace!("apply_terminator {:?}, states: {:?}", term, states);
-
         if !states.is_empty() && states.values().all(|state| !state.exprs().is_empty()) {
             // All states are initialized
             self.interpreter.apply_terminator(bb, term, states)
@@ -614,22 +628,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Stra
             MultiExprBackwardInterpreterState::new(vec![])
         }
     }
-
     fn apply_statement(&self, bb: mir::BasicBlock, stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State) {
         trace!("apply_statement {:?}, state: {:?}", stmt, state);
-
-        if bb == self.bb_index && stmt_index == self.stmt_index {
-            // Initialize the state
-            trace!("Initialize state");
-            *state = self.state.clone();
+        if !state.exprs().is_empty() {
+            // The state is initialized
+            self.interpreter.apply_statement(bb, stmt_index, stmt, state);
         } else {
-            if !state.exprs().is_empty() {
-                // The state is initialized
-                self.interpreter.apply_statement(bb, stmt_index, stmt, state);
-            } else {
-                // The state is not yet initialized
-                trace!("Skip statement {:?}", stmt);
-            }
+            // The state is not yet initialized
+            trace!("Skip statement {:?}", stmt);
         }
     }
 }

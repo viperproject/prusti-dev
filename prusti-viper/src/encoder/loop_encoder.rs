@@ -40,6 +40,11 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         self.loops.loop_heads.contains(&basic_block)
     }
 
+    /// Get the first dominating loop head, if any
+    pub fn get_first_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
+        self.loops.get_first_loop_head(bbi)
+    }
+
     pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx>
     {
         assert!(self.is_loop_head(bb));

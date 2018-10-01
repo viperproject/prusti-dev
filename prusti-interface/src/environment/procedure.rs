@@ -86,18 +86,6 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             }
         }
     }
-
-    /// Given a loop head block, returns the specification
-    pub fn get_loop_spec_blocks(&self, loop_head: BasicBlockIndex) -> Vec<BasicBlockIndex> {
-        let mut res = vec![];
-        self.walk_once_raw_cfg(|bbi, bb_data| {
-            let dominator = self.mir.dominators().immediate_dominator(bbi);
-            if loop_head == dominator {
-                res.push(bbi)
-            }
-        });
-        res
-    }
 }
 
 fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {

@@ -144,7 +144,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .collect();
         for item in contract.functional_precondition() {
             debug!("Encode spec item: {:?}", item);
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, None, true));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, None, true, None));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
@@ -162,7 +162,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, Some(&encoded_return.clone().into()), true));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, Some(&encoded_return.clone().into()), true, None));
         }
 
         let post = func_spec.into_iter().conjoin();
@@ -250,10 +250,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
         match term.kind {
             TerminatorKind::Unreachable |
             TerminatorKind::Abort |
-            TerminatorKind::Drop{..} |
             TerminatorKind::Resume{..} => {
                 assert!(states.is_empty());
                 MultiExprBackwardInterpreterState::new_single(undef_expr(0))
+            }
+
+            TerminatorKind::Drop{ ref target, .. } => {
+                assert_eq!(states.len(), 2);
+                states[target].clone()
             }
 
             TerminatorKind::Goto { ref target } => {
@@ -338,11 +342,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                             cfg_targets.iter().fold(
                                 states[&refined_default_target].exprs()[expr_index].clone(),
                                 |else_expr, (guard, target)| {
-                                    vir::Expr::ite(
-                                        guard.clone(),
-                                        states[&target].exprs()[expr_index].clone(),
+                                    let then_expr = states[&target].exprs()[expr_index].clone();
+                                    if then_expr == else_expr {
+                                        // Optimization
                                         else_expr
-                                    )
+                                    } else {
+                                        vir::Expr::ite(
+                                            guard.clone(),
+                                            then_expr,
+                                            else_expr
+                                        )
+                                    }
                                 }
                             )
                         }
