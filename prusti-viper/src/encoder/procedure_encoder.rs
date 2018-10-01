@@ -497,7 +497,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
                 trace!("SwitchInt ty '{:?}', discr '{:?}', values '{:?}'", switch_ty, discr, values);
                 let mut cfg_targets: Vec<(vir::Expr, CfgBlockIndex)> = vec![];
-                let discr_val = self.encode_operand_expr(discr);
+
+                // Use a local variable for the discriminant (see issue #57)
+                let discr_var = match switch_ty.sty {
+                    ty::TypeVariants::TyBool => {
+                        self.cfg_method.add_fresh_local_var(vir::Type::Bool)
+                    }
+
+                    ty::TypeVariants::TyInt(_) |
+                    ty::TypeVariants::TyUint(_) => {
+                        self.cfg_method.add_fresh_local_var(vir::Type::Int)
+                    }
+
+                    ref x => unreachable!("{:?}", x)
+                };
+                stmts.push(
+                    vir::Stmt::Assign(
+                        discr_var.clone().into(),
+                        self.encode_operand_expr(discr),
+                        vir::AssignKind::Copy
+                    )
+                );
+
                 for (i, &value) in values.iter().enumerate() {
                     let target = targets[i as usize];
                     // Convert int to bool, if required
@@ -505,17 +526,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         ty::TypeVariants::TyBool => {
                             if value == 0 {
                                 // If discr is 0 (false)
-                                vir::Expr::not(discr_val.clone().into())
+                                vir::Expr::not(discr_var.clone().into())
                             } else {
                                 // If discr is not 0 (true)
-                                discr_val.clone().into()
+                                discr_var.clone().into()
                             }
                         }
 
                         ty::TypeVariants::TyInt(_) |
                         ty::TypeVariants::TyUint(_) => {
                             vir::Expr::eq_cmp(
-                                discr_val.clone().into(),
+                                discr_var.clone().into(),
                                 self.encoder.encode_int_cast(value, switch_ty)
                             )
                         }
@@ -527,6 +548,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
                 let default_target = targets[values.len()];
                 let cfg_default_target = cfg_blocks.get(&default_target).unwrap_or(&spec_cfg_block);
+
                 (stmts, Successor::GotoSwitch(cfg_targets, *cfg_default_target))
             }
 
@@ -833,11 +855,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             TerminatorKind::Assert { ref cond, expected, ref target, ref msg, .. } => {
                 trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
-                let cond_val = self.encode_operand_expr(cond);
+
+                // Use local variables in the switch/if (see issue #57)
+                let cond_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
+                stmts.push(
+                    vir::Stmt::Assign(
+                        cond_var.clone().into(),
+                        self.encode_operand_expr(cond),
+                        vir::AssignKind::Copy
+                    )
+                );
+
                 let viper_guard = if expected {
-                    cond_val
+                    cond_var.into()
                 } else {
-                    vir::Expr::not(cond_val)
+                    vir::Expr::not(cond_var.into())
                 };
                 let target_cfg_block = *cfg_blocks.get(&target).unwrap();
 

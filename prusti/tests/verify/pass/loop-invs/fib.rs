@@ -5,7 +5,7 @@ struct MyStruct {
 }
 
 #[requires="0 < n"]
-#[ensures="result > 0"]
+//#[ensures="result > 0"]
 fn fib(n: i32) -> i32 {
     let mut k = n;
     let mut i = 1;
@@ -23,5 +23,5 @@ fn fib(n: i32) -> i32 {
 #[requires="true ==> forall x: i32, y45: usize ::  (x > 0 && y45 > 0) ==> y45 + 2 > 2"]
 fn main() {
     let x = fib(10);
-    assert!(x != 0);
+    //assert!(x != 0);
 }

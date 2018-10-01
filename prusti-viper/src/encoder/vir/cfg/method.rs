@@ -166,10 +166,10 @@ impl CfgMethod {
     }
 
     fn generate_fresh_local_var_name(&mut self) -> String {
-        let mut candidate_name = format!("__{}", self.fresh_var_index);
+        let mut candidate_name = format!("__t{}", self.fresh_var_index);
         self.fresh_var_index += 1;
         while !self.is_fresh_local_name(&candidate_name) || self.reserved_labels.contains(&candidate_name) {
-            candidate_name = format!("__{}", self.fresh_var_index);
+            candidate_name = format!("__t{}", self.fresh_var_index);
             self.fresh_var_index += 1;
         }
         candidate_name
