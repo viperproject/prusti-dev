@@ -4,6 +4,8 @@ struct T {
     f: i32,
 }
 
+fn rand() -> bool { true }
+
 #[ensures="old(x.f) == result"]
 fn extract(x: &mut T) -> i32 {
     // `x` is moved to `y`
