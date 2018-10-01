@@ -456,10 +456,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Mut{ .. }, ref place)=> {
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.encode_place(place);
-                        // Havoc lhs (fixes issue #1)
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&encoded_lhs, ty)
-                        );
                         // Initialize ref_var.ref_field
                         stmts.push(
                             vir::Stmt::Assign(
