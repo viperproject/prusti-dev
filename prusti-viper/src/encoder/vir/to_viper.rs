@@ -5,6 +5,7 @@
 use encoder::vir::ast::*;
 use viper;
 use viper::AstFactory;
+use prusti_interface::config;
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;
@@ -128,7 +129,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
 
 impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        match self {
+        let expr = match self {
             &Expr::Const(ref val) => val.to_viper(ast),
             &Expr::Place(ref place) => place.to_viper(ast),
             &Expr::LabelledOld(ref old_label, ref expr) => ast.labelled_old(
@@ -200,6 +201,11 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 &formal_args.to_viper_decl(ast)[..],
                 return_type.to_viper(ast),
             ),
+        };
+        if config::simplify_expressions() {
+            ast.simplified_expression(expr)
+        } else {
+            expr
         }
     }
 }

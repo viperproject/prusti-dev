@@ -1041,7 +1041,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            vir::Perm::frac(1, 2 * (loop_depth + 1))
+                            vir::Perm::full()
+                            //vir::Perm::frac(1, 2 * (loop_depth + 1))
                         )
                     }
 
@@ -1050,7 +1051,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            vir::Perm::frac(1, 2 * (loop_depth + 1))
+                            vir::Perm::full()
+                            //vir::Perm::frac(1, 2 * (loop_depth + 1))
                         ).unwrap()
                     }
 

@@ -571,6 +571,10 @@ fn main() {
             java_class!("viper.silver.ast.utility.QuantifiedPermissions$", vec![
                 object_getter!(),
             ]),
+            java_class!("viper.silver.ast.utility.Simplifier$", vec![
+                object_getter!(),
+                method!("simplify")
+            ]),
             java_class!("viper.silver.ast.Wand$", vec![
                 object_getter!(),
             ]),

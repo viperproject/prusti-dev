@@ -16,6 +16,7 @@ lazy_static! {
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("DEBUG_FOLDUNFOLD", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
+        settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -42,6 +43,7 @@ pub fn dump() -> String {
 }
 
 /// Generate additional, slow, checks for the foldunfold algorithm
+/// Note: this might not work in programs that contain loops.
 pub fn debug_foldunfold() -> bool {
     SETTINGS.read().unwrap().get::<bool>("DEBUG_FOLDUNFOLD").unwrap()
 }
@@ -54,4 +56,9 @@ pub fn viper_backend() -> String {
 /// Should we check absence of panics?
 pub fn check_panics() -> bool {
     SETTINGS.read().unwrap().get::<bool>("CHECK_PANICS").unwrap()
+}
+
+/// Should we simplify expressions?
+pub fn simplify_expressions() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("SIMPLIFY_EXPRESSIONS").unwrap()
 }
