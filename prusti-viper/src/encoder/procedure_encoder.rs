@@ -1024,6 +1024,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_loop_invariant_permissions(&self, loop_head: BasicBlockIndex) -> Vec<vir::Expr> {
         let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
+        let loop_depth = self.loop_encoder.get_loop_depth(loop_head) as u32;
         debug!("permissions_forest: {:?}", permissions_forest);
 
         let mut permissions = vec![];
@@ -1038,20 +1039,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let perm = match kind {
                     /// Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
-                        // TODO: choose a non-full fraction
                         vir::Expr::acc_permission(
                             encoded_place,
-                            vir::Perm::full()
+                            vir::Perm::frac(1, 2 * (loop_depth + 1))
                         )
                     }
 
                     /// Gives read permission to the entire subtree including this node.
                     /// This must be a leaf node.
                     PermissionKind::ReadSubtree => {
-                        // TODO: choose a non-full fraction
                         vir::Expr::pred_permission(
                             encoded_place,
-                            vir::Perm::full()
+                            vir::Perm::frac(1, 2 * (loop_depth + 1))
                         ).unwrap()
                     }
 
@@ -1089,7 +1088,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn get_loop_spec_blocks(&self, loop_head: BasicBlockIndex) -> Vec<BasicBlockIndex> {
         let mut res = vec![];
         self.procedure.walk_once_raw_cfg(|bbi, bb_data| {
-            if Some(loop_head) == self.loop_encoder.get_first_loop_head(bbi) && self.procedure.is_spec_block(bbi) {
+            if Some(loop_head) == self.loop_encoder.get_loop_head(bbi) && self.procedure.is_spec_block(bbi) {
                 res.push(bbi)
             }
         });

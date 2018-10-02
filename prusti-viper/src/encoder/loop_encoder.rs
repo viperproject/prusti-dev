@@ -36,13 +36,18 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
     }
 
     /// Is the given basic block a loop head?
-    pub fn is_loop_head(&self, basic_block: BasicBlockIndex) -> bool {
-        self.loops.loop_heads.contains(&basic_block)
+    pub fn is_loop_head(&self, bbi: BasicBlockIndex) -> bool {
+        self.loops.is_loop_head(bbi)
     }
 
-    /// Get the first dominating loop head, if any
-    pub fn get_first_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
-        self.loops.get_first_loop_head(bbi)
+    /// Note: a loop head is loop head of itself
+    pub fn get_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
+        self.loops.get_loop_head(bbi)
+    }
+
+    pub fn get_loop_depth(&self, bbi: BasicBlockIndex) -> usize {
+        assert!(self.is_loop_head(bbi));
+        self.loops.get_loop_head_depth(bbi)
     }
 
     pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx>

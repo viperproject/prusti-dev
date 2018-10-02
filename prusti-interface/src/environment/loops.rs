@@ -173,10 +173,12 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
 pub struct ProcedureLoops {
     /// A list of basic blocks that are loop heads.
     pub loop_heads: Vec<BasicBlockIndex>,
+    /// The depth of each loop head, starting from zero.
+    pub loop_head_depths: HashMap<BasicBlockIndex, usize>,
     /// A map from loop heads to the corresponding bodies.
     pub loop_bodies: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
-    /// A map from loop bodies to the first corresponding loop head.
-    first_loop_head: HashMap<BasicBlockIndex, BasicBlockIndex>,
+    /// A map from loop bodies to the ordered vector of enclosing loop heads.
+    enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// Dominators graph.
     dominators: Dominators<BasicBlockIndex>,
 }
@@ -194,29 +196,59 @@ impl ProcedureLoops {
             visitor.visit_mir(mir);
             back_edges = visitor.back_edges;
         }
+
         let mut loop_bodies = HashMap::new();
         for &(source, target) in back_edges.iter() {
             let body = loop_bodies.entry(target).or_insert(HashSet::new());
             collect_loop_body(target, source, mir, body);
         }
-        let mut first_loop_head = HashMap::new();
+
+        let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> = HashMap::new();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             for &block in loop_body.iter() {
-                first_loop_head.insert(block, loop_head);
+                let heads_set = enclosing_loop_heads_set.entry(block).or_insert(HashSet::new());
+                heads_set.insert(loop_head);
             }
         }
+
         let loop_heads: Vec<_> = loop_bodies.keys().map(|k| *k).collect();
+        let mut loop_head_depths = HashMap::new();
+        for &loop_head in loop_heads.iter() {
+            loop_head_depths.insert(loop_head, enclosing_loop_heads_set[&loop_head].len() - 1);
+        }
+
+        let mut enclosing_loop_heads = HashMap::new();
+        for (&block, loop_heads) in enclosing_loop_heads_set.iter() {
+            let mut heads: Vec<BasicBlockIndex> = loop_heads.iter().cloned().collect();
+            heads.sort_unstable_by_key(|bbi| loop_head_depths[bbi]);
+            enclosing_loop_heads.insert(block, heads);
+        }
+
         ProcedureLoops {
-            loop_heads: loop_heads,
-            loop_bodies: loop_bodies,
-            first_loop_head,
+            loop_heads,
+            loop_head_depths,
+            loop_bodies,
+            enclosing_loop_heads,
             dominators: dominators,
         }
     }
 
-    /// Get the first dominating loop head, if any
-    pub fn get_first_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
-        self.first_loop_head.get(&bbi).cloned()
+    pub fn is_loop_head(&self, bbi: BasicBlockIndex) -> bool {
+        self.loop_head_depths.contains_key(&bbi)
+    }
+
+    /// Get the loop head, if any
+    /// Note: a loop head **is** loop head of itself
+    pub fn get_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
+        self.enclosing_loop_heads
+            .get(&bbi)
+            .and_then(|heads| heads.last())
+            .cloned()
+    }
+
+    /// Get the depth of a loop head, starting from zero
+    pub fn get_loop_head_depth(&self, bbi: BasicBlockIndex) -> usize {
+        self.loop_head_depths[&bbi]
     }
 
     /// Compute what paths that come from the outside of the loop are accessed

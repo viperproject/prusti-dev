@@ -48,6 +48,13 @@ impl Perm {
         }
     }
 
+    pub fn frac(num: u32, den: u32) -> Self {
+        Perm {
+            num,
+            den
+        }
+    }
+
     pub fn none() -> Self {
         Perm {
             num: 0,
