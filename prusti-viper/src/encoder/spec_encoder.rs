@@ -538,7 +538,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             };
             encoded_expr = encoded_expr.substitute_place_with_expr(&spec_local_place, target_arg.clone());
         }
-        {
+        if let Some(target_return) = self.target_return {
             let fake_return_local = curr_mir.args_iter().last().unwrap();
             let fake_return_ty = curr_mir.local_decls[fake_return_local].ty;
             let spec_fake_return = curr_mir_encoder.encode_local(fake_return_local);
@@ -569,13 +569,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             };
 
             debug!("spec_fake_return_place: {}", spec_fake_return_place);
-            if let Some(target_return) = self.target_return {
-                debug!("target_return: {}", target_return);
-                encoded_expr = encoded_expr.substitute_place_with_expr(
-                    &spec_fake_return_place,
-                    target_return.clone()
-                );
-            }
+            debug!("target_return: {}", target_return);
+            encoded_expr = encoded_expr.substitute_place_with_expr(
+                &spec_fake_return_place,
+                target_return.clone()
+            );
         }
 
         // Translate label of `old[pre]` expressions to the TARGET label
