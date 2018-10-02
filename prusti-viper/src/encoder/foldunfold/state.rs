@@ -327,6 +327,10 @@ impl State {
         self.borrowed = HashSet::from_iter(self.borrowed.intersection(other_borrowed).cloned());
     }
 
+    pub fn remove_all(&mut self) {
+        self.remove_matching(|_| true);
+    }
+
     pub fn remove_matching<P>(&mut self, pred: P)
         where P: Fn(&vir::Place) -> bool
     {

@@ -344,6 +344,8 @@ pub enum Stmt {
     /// WeakObtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     WeakObtain(Expr),
+    /// Havoc: used for emptying the fold/unfold state
+    Havoc,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -443,6 +445,8 @@ impl fmt::Display for Stmt {
             Stmt::Obtain(ref expr) => write!(f, "obtain {}", expr),
 
             Stmt::WeakObtain(ref expr) => write!(f, "weak obtain {}", expr),
+
+            Stmt::Havoc => write!(f, "havoc"),
         }
     }
 }
@@ -462,6 +466,7 @@ pub trait StmtFolder {
             Stmt::Unfold(s, ve) => self.fold_unfold(s, ve),
             Stmt::Obtain(e) => self.fold_obtain(e),
             Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
+            Stmt::Havoc => self.fold_havoc(),
         }
     }
 
@@ -511,6 +516,10 @@ pub trait StmtFolder {
 
     fn fold_weak_obtain(&mut self, e: Expr) -> Stmt {
         Stmt::WeakObtain(self.fold_expr(e))
+    }
+
+    fn fold_havoc(&mut self) -> Stmt {
+        Stmt::Havoc
     }
 }
 

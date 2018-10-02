@@ -116,6 +116,12 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.assert(ast.true_lit(), fake_position)
                 //ast.comment(&format!("(old) obtain {}", expr))
             }
+            &Stmt::Havoc => {
+                // This could be encoded as a skip statement
+                let fake_position = ast.identifier_position(0, 0, "havoc");
+                ast.assert(ast.true_lit(), fake_position)
+                //ast.comment(&format!("(old) obtain {}", expr))
+            }
         }
     }
 }

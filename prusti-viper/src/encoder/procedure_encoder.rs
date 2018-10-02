@@ -1038,13 +1038,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let perm = match kind {
                     /// Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
-                        unimplemented!()
+                        // TODO: choose a non-full fraction
+                        vir::Expr::acc_permission(
+                            encoded_place,
+                            vir::Perm::full()
+                        )
                     }
 
                     /// Gives read permission to the entire subtree including this node.
                     /// This must be a leaf node.
                     PermissionKind::ReadSubtree => {
-                        unimplemented!()
+                        // TODO: choose a non-full fraction
+                        vir::Expr::pred_permission(
+                            encoded_place,
+                            vir::Perm::full()
+                        ).unwrap()
                     }
 
                     /// Gives write permission to this node. It must not be a leaf node.

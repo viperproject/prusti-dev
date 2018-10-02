@@ -1,3 +1,5 @@
+//! Issue #39 "Suspicious `_old_old_1` variable name"
+
 #![feature(nll)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
@@ -32,7 +34,7 @@ fn len(head: &List) -> usize {
 
 #[ensures="len(&result) == old(len(&tail)) + 1"]
 #[ensures="lookup(&result, 0) == old(x)"]
-#[ensures="forall i: usize :: (0 < i && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i + 1))"]
+#[ensures="forall i: usize :: (0 < i && i < len(&result)) ==> lookup(&result, i) == old(lookup(&tail, i - 1))"]
 fn prepend_list(x: u32, tail: List) -> List {
     List {
         value: x,

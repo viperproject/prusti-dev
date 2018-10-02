@@ -89,6 +89,8 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::Obtain(ref expr) => expr.get_required_permissions(predicates),
 
             &vir::Stmt::WeakObtain(ref expr) => HashSet::new(),
+
+            &vir::Stmt::Havoc => HashSet::new(),
         }
     }
 }
@@ -106,7 +108,8 @@ impl vir::Stmt {
             &vir::Stmt::Assign(_, _, _) |
             &vir::Stmt::Fold(_, _) |
             &vir::Stmt::Unfold(_, _) |
-            &vir::Stmt::Obtain(_) => HashSet::new(),
+            &vir::Stmt::Obtain(_) |
+            &vir::Stmt::Havoc => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }
@@ -169,21 +172,19 @@ impl RequiredPermissionsGetter for vir::Expr {
             }
 
             vir::Expr::Place(place) => {
-                if !place.is_base() {
-                    Some(LabelledPerm::curr(Acc(place.clone()))).into_iter().collect()
-                } else {
-                    None.into_iter().collect()
-                }
+                Some(LabelledPerm::curr(Acc(place.clone()))).into_iter().collect()
             },
 
             vir::Expr::PredicateAccess(_, args) => {
                 assert_eq!(args.len(), 1);
                 match args[0] {
-                    vir::Expr::Place(ref place) =>
-                        vec![LabelledPerm::curr(Pred(place.clone())), LabelledPerm::curr(Acc(place.clone()))].into_iter().collect(),
+                    vir::Expr::Place(ref place) => {
+                        vec![LabelledPerm::curr(Pred(place.clone())), LabelledPerm::curr(Acc(place.clone()))].into_iter().collect()
+                    }
 
-                    vir::Expr::LabelledOld(ref label, box vir::Expr::Place(ref place)) =>
-                        vec![LabelledPerm::old(label, Pred(place.clone())), LabelledPerm::old(label, Acc(place.clone()))].into_iter().collect(),
+                    vir::Expr::LabelledOld(ref label, box vir::Expr::Place(ref place)) => {
+                        vec![LabelledPerm::old(label, Pred(place.clone())), LabelledPerm::old(label, Acc(place.clone()))].into_iter().collect()
+                    }
 
                     _ => {
                         // Unreachable
@@ -276,7 +277,9 @@ impl vir::Expr {
             vir::Expr::FieldAccessPredicate(ref expr, _) => {
                 // In Prusti we assume to have only places here
                 let opt_perm = match expr {
-                    box vir::Expr::Place(ref place) => Some(Perm::Acc(place.clone())),
+                    box vir::Expr::Place(ref place) => {
+                        Some(Acc(place.clone()))
+                    },
 
                     box vir::Expr::PredicateAccess(_, ref args) => {
                         assert_eq!(args.len(), 1);

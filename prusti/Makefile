@@ -50,6 +50,14 @@ test:
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	cargo test
 
+test-carbon:
+	PRUSTI_VIPER_BACKEND=carbon \
+	RUST_TEST_THREADS=$(RUST_TEST_THREADS) \
+	RUST_BACKTRACE=1 \
+	JAVA_HOME=${JAVA_HOME} \
+	LD_LIBRARY_PATH=${LIB_PATH} \
+	cargo test
+
 clean:
 	cargo clean
 	rm -f lint

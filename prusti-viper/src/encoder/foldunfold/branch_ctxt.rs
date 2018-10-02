@@ -220,6 +220,11 @@ impl<'a> BranchCtxt<'a> {
             debug!("Requirement {} is satisfied", req);
             return actions;
         }
+        if let Perm::Acc(vir::Place::Base(_)) = req {
+            // access permissions on local variables are always satisfied
+            debug!("Requirement {} is satisfied", req);
+            return actions;
+        }
 
         debug!("Try to satisfy requirement {:?}", req);
 

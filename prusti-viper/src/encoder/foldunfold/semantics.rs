@@ -180,6 +180,11 @@ impl vir::Stmt {
                 state.remove_pred(&place);
                 state.insert_all_perms(places_in_pred.into_iter());
             },
+
+
+            &vir::Stmt::Havoc => {
+                state.remove_matching(|p| !p.is_base());
+            },
         }
     }
 }

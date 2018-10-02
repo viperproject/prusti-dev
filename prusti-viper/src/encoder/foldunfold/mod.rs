@@ -173,6 +173,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             vir::Stmt::Unfold(s, ve) => vir::Stmt::Unfold(s.clone(), repl_exprs(ve)),
             vir::Stmt::Obtain(e) => vir::Stmt::Obtain(repl_expr(e)),
             vir::Stmt::WeakObtain(e) => vir::Stmt::WeakObtain(repl_expr(e)),
+            vir::Stmt::Havoc => vir::Stmt::Havoc,
         };
 
         // 4. Apply statement
