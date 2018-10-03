@@ -9,6 +9,9 @@ struct MyStruct {
 fn sum(n: i32) -> i32 {
     let mut res = 0;
     let mut i = 0;
+    // TODO: we should avoid the following `n == old(n)` invariant.
+    // It is needed because we use a full permission instead of a fractional permission.
+    #[invariant="n == old(n)"]
     #[invariant="i <= (n + 1)"]
     #[invariant="res == (i - 1) * i / 2"]
     while i <= n {
