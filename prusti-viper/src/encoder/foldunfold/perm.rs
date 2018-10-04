@@ -6,6 +6,8 @@ use encoder::vir;
 use std::fmt;
 use std::iter::FlatMap;
 use std::collections::HashMap;
+use std::collections::HashSet;
+use std::collections::hash_set;
 
 /// A permission in the current state or in the (old) state of a label
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -107,6 +109,71 @@ impl fmt::Display for Perm {
             &Perm::Acc(ref place) => write!(f, "Acc({})", place),
             &Perm::Pred(ref place) => write!(f, "Pred({})", place),
         }
+    }
+}
+
+
+/// A set of permissions
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PermSet {
+    perms: HashSet<Perm>
+}
+
+impl PermSet {
+    pub fn empty() -> Self {
+        PermSet {
+            perms: HashSet::new()
+        }
+    }
+
+    /// Corresponds to an `inhale`
+    pub fn add(&mut self, perm: Perm) {
+        self.perms.insert(perm);
+    }
+
+    pub fn add_all(&mut self, mut perms: Vec<Perm>) {
+        for perm in perms.drain(..) {
+            self.add(perm);
+        }
+    }
+
+    /// Corresponds to an `exhale`
+    pub fn remove(&mut self, perm: &Perm) {
+        self.perms.remove(perm);
+    }
+
+    pub fn remove_all(&mut self, mut perms: Vec<&Perm>) {
+        for perm in perms.drain(..) {
+            self.remove(perm);
+        }
+    }
+
+    /// Corresponds to an `assert`
+    pub fn contains(&self, perm: &Perm) -> bool {
+        self.perms.contains(perm)
+    }
+
+    pub fn contains_all(&self, perms: Vec<&Perm>) -> bool {
+        perms.iter().all(|x| self.contains(x))
+    }
+
+    pub fn perms(self) -> Vec<Perm> {
+        self.perms.into_iter().collect()
+    }
+}
+
+impl fmt::Display for PermSet {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{")?;
+        let mut first = true;
+        for perm in self.perms.iter() {
+            if !first {
+                write!(f, ", ")?;
+            }
+            first = false;
+            write!(f, "{}", perm)?;
+        }
+        write!(f, "}}")
     }
 }
 

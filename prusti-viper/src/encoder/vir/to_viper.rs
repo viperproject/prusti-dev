@@ -109,19 +109,22 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // This could be encoded as a skip statement
                 let fake_position = ast.identifier_position(0, 0, "obtain");
                 ast.assert(expr.to_viper(ast), fake_position)
-                //ast.comment(&format!("(old) obtain {}", expr))
             }
             &Stmt::WeakObtain(ref expr) => {
-                // This could be encoded as a skip statement
-                let fake_position = ast.identifier_position(0, 0, "weak obtain");
-                ast.assert(ast.true_lit(), fake_position)
-                //ast.comment(&format!("(old) obtain {}", expr))
+                // Skip
+                ast.comment("weak obtain")
             }
             &Stmt::Havoc => {
-                // This could be encoded as a skip statement
-                let fake_position = ast.identifier_position(0, 0, "havoc");
-                ast.assert(ast.true_lit(), fake_position)
-                //ast.comment(&format!("(old) obtain {}", expr))
+                // Skip
+                ast.comment("havoc")
+            }
+            &Stmt::BeginFrame => {
+                // Skip
+                ast.comment("begin frame")
+            }
+            &Stmt::EndFrame => {
+                // Skip
+                ast.comment("end frame")
             }
         }
     }

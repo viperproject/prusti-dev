@@ -5,6 +5,7 @@
 use rustc::mir;
 use rustc::ty::{Ty, TyCtxt};
 use std::collections::HashSet;
+use std::collections::HashMap;
 use rustc::mir::Mir;
 use std::cell::Ref;
 use rustc::mir::Terminator;
@@ -24,6 +25,7 @@ pub struct Procedure<'a, 'tcx: 'a> {
     proc_def_id: ProcedureDefId,
     mir: Ref<'a, Mir<'tcx>>,
     nonspec_basic_blocks: HashSet<BasicBlock>,
+    predecessors: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>
 }
 
 impl<'a, 'tcx> Procedure<'a, 'tcx> {
@@ -32,7 +34,25 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, proc_def_id: ProcedureDefId) -> Self {
         let mir = tcx.mir_validated(proc_def_id).borrow();
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
-        Procedure { tcx, proc_def_id, mir, nonspec_basic_blocks }
+
+        let mut predecessors = HashMap::new();
+        for bbi in mir.basic_blocks().indices() {
+            let bb_data = &mir.basic_blocks()[bbi];
+            let term = bb_data.terminator.as_ref().unwrap();
+            for succ in get_normal_targets(term) {
+                predecessors.entry(succ)
+                    .or_insert(HashSet::new())
+                    .insert(bbi);
+            }
+        }
+
+        Procedure { tcx, proc_def_id, mir, nonspec_basic_blocks, predecessors }
+    }
+
+    pub fn predecessors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+        self.predecessors.get(&bbi)
+            .map(|p| p.iter().cloned().collect())
+            .unwrap_or(vec![])
     }
 
     /// Returns all the types used in the procedure, and any types reachable from them
