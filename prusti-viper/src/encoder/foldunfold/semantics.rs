@@ -19,15 +19,15 @@ impl vir::Stmt {
             &vir::Stmt::Label(_) |
             &vir::Stmt::Assert(_, _) |
             &vir::Stmt::Obtain(_) |
-            &vir::Stmt::WeakObtain(_) => {},
+            &vir::Stmt::WeakObtain(_) => {}
 
             &vir::Stmt::Inhale(ref expr) => {
                 state.insert_all_perms(expr.get_permissions(predicates).into_iter());
-            },
+            }
 
             &vir::Stmt::Exhale(ref expr, _) => {
                 state.remove_all_perms(expr.get_permissions(predicates).iter());
-            },
+            }
 
             &vir::Stmt::MethodCall(_, _, ref targets) => {
                 // We know that in Prusti method's preconditions and postconditions are empty
@@ -44,7 +44,7 @@ impl vir::Stmt {
                 state.remove_moved_matching(|p| targets.contains(p.base()));
                 state.remove_pred_matching(|p| targets.contains(p.base()));
                 state.remove_acc_matching(|p| !p.is_base() && targets.contains(p.base()));
-            },
+            }
 
             &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
                 let original_state = state.clone();
@@ -122,13 +122,13 @@ impl vir::Stmt {
                             .cloned()
                             .map(|p| p.replace_prefix(&rhs_place, lhs_place.clone()));
                         state.insert_all_pred(new_pred_places);
-                    },
+                    }
                     _ => {
                         // This is not move assignemnt or the creation of a mutable borrow
                         assert!(match kind { vir::AssignKind::Copy => true, _ => false }, "Unexpected assignment kind: {:?}", kind);
                     }
                 }
-            },
+            }
 
             &vir::Stmt::Fold(ref pred_name, ref args) => {
                 assert_eq!(args.len(), 1);
@@ -154,7 +154,7 @@ impl vir::Stmt {
                 // Simulate folding of `place`
                 state.remove_all_perms(places_in_pred.iter());
                 state.insert_pred(place.clone());
-            },
+            }
 
             &vir::Stmt::Unfold(ref pred_name, ref args) => {
                 assert_eq!(args.len(), 1);
@@ -179,12 +179,20 @@ impl vir::Stmt {
                 // Simulate unfolding of `place`
                 state.remove_pred(&place);
                 state.insert_all_perms(places_in_pred.into_iter());
-            },
+            }
 
 
             &vir::Stmt::Havoc => {
                 state.remove_matching(|p| !p.is_base());
-            },
+            }
+
+            &vir::Stmt::BeginFrame => {
+                state.begin_frame()
+            }
+
+            &vir::Stmt::EndFrame => {
+                state.end_frame()
+            }
         }
     }
 }

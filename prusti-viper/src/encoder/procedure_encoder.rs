@@ -149,6 +149,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
             let cfg_block = *cfg_blocks.get(&bbi).unwrap();
 
+            // Inhale the loop invariant if this is a loop head
             if self.loop_encoder.is_loop_head(bbi) {
                 let stmts = self.encode_loop_invariant_inhale(bbi);
                 for stmt in stmts.into_iter() {
@@ -156,7 +157,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
             }
 
-            // Encode statements
+            // Add an `EndFrame` statement if the incoming edge is an *out* edge from a loop
+            let predecessors = self.procedure.predecessors(bbi);
+            let predecessor_count = predecessors.len();
+            for &predecessor in predecessors.iter() {
+                let is_edge_out_loop = self.loop_encoder.get_loop_depth(predecessor) > self.loop_encoder.get_loop_depth(bbi);
+                if is_edge_out_loop {
+                    assert!(predecessor_count == 1); // FIXME: this is a bug. See issue #58
+                    self.cfg_method.add_stmt(cfg_block, vir::Stmt::EndFrame);
+                }
+            }
+
+            // Encode statements of the block
             for (stmt_index, stmt) in statements.iter().enumerate() {
                 trace!("Encode statement {:?}:{}", bbi, stmt_index);
                 self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
@@ -166,20 +178,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
             }
 
-            let successor_count = bb_data.terminator().successors().count();
-            for &successor in bb_data.terminator().successors() {
-                if self.loop_encoder.is_loop_head(successor) {
-                    assert!(successor_count == 1); // FIXME: I don't think this will hold
-                    let stmts = self.encode_loop_invariant_exhale(successor);
-                    for stmt in stmts.into_iter() {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
-                    }
-                }
-            }
-        });
-
-        // Encode terminators and set CFG edges
-        self.procedure.walk_once_cfg(|bbi, bb_data| {
+            // Encode terminators and set CFG edges
             if let Some(ref term) = bb_data.terminator {
                 trace!("Encode terminator of {:?}", bbi);
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
@@ -194,6 +193,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     self.cfg_method.add_stmt(cfg_block, stmt);
                 }
                 self.cfg_method.set_successor(cfg_block, successor);
+            }
+
+            // Enhale the loop invariant if the successor is a loop head
+            // Add an `BeginFrame` statement if the outgoing edge is an *in* edge
+            let successor_count = bb_data.terminator().successors().count();
+            for &successor in bb_data.terminator().successors() {
+                if self.loop_encoder.is_loop_head(successor) {
+                    assert!(successor_count == 1); // FIXME: this is a bug. See issue #58
+                    let stmts = self.encode_loop_invariant_exhale(successor);
+                    for stmt in stmts.into_iter() {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
+                    let is_edge_in_loop = self.loop_encoder.get_loop_depth(successor) > self.loop_encoder.get_loop_depth(bbi);
+                    if is_edge_in_loop {
+                        self.cfg_method.add_stmt(cfg_block, vir::Stmt::BeginFrame);
+                    }
+                }
             }
         });
 
@@ -1042,7 +1058,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vir::Expr::acc_permission(
                             encoded_place,
                             vir::Perm::full()
-                            //vir::Perm::frac(1, 2 * (loop_depth + 1))
+                            //vir::Perm::frac(1, 2 * loop_depth)
                         )
                     }
 
@@ -1052,7 +1068,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vir::Expr::pred_permission(
                             encoded_place,
                             vir::Perm::full()
-                            //vir::Perm::frac(1, 2 * (loop_depth + 1))
+                            //vir::Perm::frac(1, 2 * loop_depth)
                         ).unwrap()
                     }
 

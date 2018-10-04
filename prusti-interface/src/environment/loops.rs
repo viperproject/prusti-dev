@@ -173,7 +173,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
 pub struct ProcedureLoops {
     /// A list of basic blocks that are loop heads.
     pub loop_heads: Vec<BasicBlockIndex>,
-    /// The depth of each loop head, starting from zero.
+    /// The depth of each loop head, starting from one.
     pub loop_head_depths: HashMap<BasicBlockIndex, usize>,
     /// A map from loop heads to the corresponding bodies.
     pub loop_bodies: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
@@ -214,7 +214,7 @@ impl ProcedureLoops {
         let loop_heads: Vec<_> = loop_bodies.keys().map(|k| *k).collect();
         let mut loop_head_depths = HashMap::new();
         for &loop_head in loop_heads.iter() {
-            loop_head_depths.insert(loop_head, enclosing_loop_heads_set[&loop_head].len() - 1);
+            loop_head_depths.insert(loop_head, enclosing_loop_heads_set[&loop_head].len());
         }
 
         let mut enclosing_loop_heads = HashMap::new();
@@ -246,7 +246,7 @@ impl ProcedureLoops {
             .cloned()
     }
 
-    /// Get the depth of a loop head, starting from zero
+    /// Get the depth of a loop head, starting from one
     pub fn get_loop_head_depth(&self, bbi: BasicBlockIndex) -> usize {
         self.loop_head_depths[&bbi]
     }

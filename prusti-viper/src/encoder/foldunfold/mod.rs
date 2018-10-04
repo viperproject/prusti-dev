@@ -174,6 +174,8 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             vir::Stmt::Obtain(e) => vir::Stmt::Obtain(repl_expr(e)),
             vir::Stmt::WeakObtain(e) => vir::Stmt::WeakObtain(repl_expr(e)),
             vir::Stmt::Havoc => vir::Stmt::Havoc,
+            vir::Stmt::BeginFrame => vir::Stmt::BeginFrame,
+            vir::Stmt::EndFrame => vir::Stmt::EndFrame,
         };
 
         // 4. Apply statement

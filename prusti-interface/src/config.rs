@@ -43,7 +43,6 @@ pub fn dump() -> String {
 }
 
 /// Generate additional, slow, checks for the foldunfold algorithm
-/// Note: this might not work in programs that contain loops.
 pub fn debug_foldunfold() -> bool {
     SETTINGS.read().unwrap().get::<bool>("DEBUG_FOLDUNFOLD").unwrap()
 }
