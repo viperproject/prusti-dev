@@ -18,6 +18,8 @@ pub struct State {
     moved: HashSet<vir::Place>,
     /// paths that are blocked because they may have been mutably borrowed
     borrowed: HashSet<vir::Place>,
+    /// Permissions currently framed
+    framing_stack: Vec<PermSet>,
 }
 
 impl State {
@@ -27,6 +29,7 @@ impl State {
             pred,
             moved,
             borrowed,
+            framing_stack: vec![]
         }
     }
 
@@ -36,15 +39,6 @@ impl State {
             if !self.contains_acc(place) {
                 panic!(
                     "Consistency error: state has pred {}, but not acc {}",
-                    place,
-                    place
-                );
-            }
-        }
-        for place in &self.moved {
-            if !self.contains_acc(place) {
-                panic!(
-                    "Consistency error: state has moved path {}, but not acc {}",
                     place,
                     place
                 );
@@ -111,6 +105,16 @@ impl State {
                         moved_place
                     );
                 }
+            }
+        }
+        // Check moved
+        for place in &self.moved {
+            if !self.contains_acc(place) && !self.framing_stack.iter().any(|fs| fs.contains(&Perm::Acc(place.clone()))) {
+                panic!(
+                    "Consistency error: state has moved path {}, but not acc {} (not even a framed one)",
+                    place,
+                    place
+                );
             }
         }
         // Check borrowed
@@ -501,5 +505,38 @@ impl State {
             }
         }
         exprs.into_iter().conjoin()
+    }
+
+    pub fn begin_frame(&mut self) {
+        trace!("begin_frame");
+        trace!("Before: {} frames are on the stack", self.framing_stack.len());
+        let mut framed_perms = PermSet::empty();
+        for place in self.acc.clone().into_iter() {
+            if !place.is_base() {
+                self.acc.remove(&place);
+                framed_perms.add(Perm::Acc(place));
+            }
+        }
+        for place in self.pred.drain() {
+            framed_perms.add(Perm::Pred(place))
+        }
+        debug!("Framed permissions: {}", framed_perms);
+        self.framing_stack.push(framed_perms);
+        trace!("After: {} frames are on the stack", self.framing_stack.len());
+    }
+
+    pub fn end_frame(&mut self) {
+        trace!("end_frame");
+        trace!("Before: {} frames are on the stack", self.framing_stack.len());
+        let mut framed_perms = self.framing_stack.pop().unwrap();
+        debug!("Framed permissions: {}", framed_perms);
+        for perm in framed_perms.perms().drain(..) {
+            match perm {
+                Perm::Acc(place) => self.acc.insert(place),
+                Perm::Pred(place) => self.pred.insert(place),
+            };
+        }
+
+        trace!("After: {} frames are on the stack", self.framing_stack.len());
     }
 }

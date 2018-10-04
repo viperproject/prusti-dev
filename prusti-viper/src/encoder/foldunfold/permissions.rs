@@ -90,7 +90,9 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::WeakObtain(ref expr) => HashSet::new(),
 
-            &vir::Stmt::Havoc => HashSet::new(),
+            &vir::Stmt::Havoc |
+            &vir::Stmt::BeginFrame |
+            &vir::Stmt::EndFrame => HashSet::new(),
         }
     }
 }
@@ -109,7 +111,9 @@ impl vir::Stmt {
             &vir::Stmt::Fold(_, _) |
             &vir::Stmt::Unfold(_, _) |
             &vir::Stmt::Obtain(_) |
-            &vir::Stmt::Havoc => HashSet::new(),
+            &vir::Stmt::Havoc |
+            &vir::Stmt::BeginFrame |
+            &vir::Stmt::EndFrame => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }

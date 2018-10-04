@@ -9,12 +9,14 @@ struct MyStruct {
 fn sum(n: i32) -> i32 {
     let mut res = 0;
     let mut i = 0;
-    #[invariant="n == old(n)"]
-    #[invariant="i <= (n + 1)"]
-    #[invariant="res == (i - 1) * i / 2"]
-    while i <= n {
-        res = res + i;
-        i = i + 1;
+    // Note: here we branch just before the loop
+    if true {
+        #[invariant = "i <= (old(n) + 1)"]
+        #[invariant = "res == (i - 1) * i / 2"]
+        while i <= n {
+            res = res + i;
+            i = i + 1;
+        }
     }
     res
 }

@@ -46,8 +46,9 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
     }
 
     pub fn get_loop_depth(&self, bbi: BasicBlockIndex) -> usize {
-        assert!(self.is_loop_head(bbi));
-        self.loops.get_loop_head_depth(bbi)
+        self.get_loop_head(bbi).map(
+            |head| self.loops.get_loop_head_depth(head)
+        ).unwrap_or(0)
     }
 
     pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx>

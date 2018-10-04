@@ -347,12 +347,21 @@ pub enum Stmt {
     Unfold(String, Vec<Expr>),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
+    #[deprecated]
     Obtain(Expr),
     /// WeakObtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
+    #[deprecated]
     WeakObtain(Expr),
     /// Havoc: used for emptying the fold/unfold state
+    #[deprecated]
     Havoc,
+    /// Mark a CFG point in which all current permissions are framed out
+    /// They will be used by the fold/unfold algorithm
+    BeginFrame,
+    /// Mark a CFG point in which all the permissions of a corresponding `BeginFraming` are framed in
+    /// They will be used by the fold/unfold algorithm
+    EndFrame,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -454,6 +463,10 @@ impl fmt::Display for Stmt {
             Stmt::WeakObtain(ref expr) => write!(f, "weak obtain {}", expr),
 
             Stmt::Havoc => write!(f, "havoc"),
+
+            Stmt::BeginFrame => write!(f, "begin frame"),
+
+            Stmt::EndFrame => write!(f, "end frame"),
         }
     }
 }
@@ -474,6 +487,8 @@ pub trait StmtFolder {
             Stmt::Obtain(e) => self.fold_obtain(e),
             Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
             Stmt::Havoc => self.fold_havoc(),
+            Stmt::BeginFrame => self.fold_begin_frame(),
+            Stmt::EndFrame => self.fold_end_frame(),
         }
     }
 
@@ -527,6 +542,14 @@ pub trait StmtFolder {
 
     fn fold_havoc(&mut self) -> Stmt {
         Stmt::Havoc
+    }
+
+    fn fold_begin_frame(&mut self) -> Stmt {
+        Stmt::BeginFrame
+    }
+
+    fn fold_end_frame(&mut self) -> Stmt {
+        Stmt::EndFrame
     }
 }
 
