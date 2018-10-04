@@ -84,8 +84,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let variable_regions = regions::load_variable_regions(&renumber_path).unwrap();
 
         let all_facts = facts_loader.facts;
-        // TODO: do we need Polonius dump enabled? By setting it to `true`, Polonius prints stuff to stdout
-        let polonius_dump_enabled = false;
+        let polonius_dump_enabled = true;
         let output = Output::compute(&all_facts, Algorithm::Naive, polonius_dump_enabled);
         let additional_facts = compute_additional_facts(&all_facts, &output);
 
