@@ -84,8 +84,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let variable_regions = regions::load_variable_regions(&renumber_path).unwrap();
 
         let all_facts = facts_loader.facts;
-        // TODO: do we need Polonius dump enabled? By setting it to `true`, Polonius prints stuff to stdout
-        let polonius_dump_enabled = false;
+        let polonius_dump_enabled = true;
         let output = Output::compute(&all_facts, Algorithm::Naive, polonius_dump_enabled);
         let additional_facts = compute_additional_facts(&all_facts, &output);
 
@@ -302,6 +301,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             block: mir::BasicBlock::new(0),
             statement_index: 0,
         });
+        self.print_subset_at_start(mir::Location {
+            block: mir::BasicBlock::new(0),
+            statement_index: 0,
+        });
         self.print_borrow_regions();
         self.print_restricts();
         write_graph!(self, "}}\n");
@@ -454,6 +457,47 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td colspan=\"7\"></td>");
         write_graph!(self, "<td>Definitely Initialized</td>");
         write_graph!(self, "</th>");
+
+        // Is this the entry point of a procedure?
+        if bb == mir::BasicBlock::new(0) {
+            // TODO: Refactor out this code that computes magic wands.
+            let blocker = mir::RETURN_PLACE;
+            let location = mir::Location {
+                block: bb,
+                statement_index: 0,
+            };
+            let start_point = self.get_point(location, facts::PointType::Start);
+
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
+            if let Some(region) = self.variable_regions.get(&blocker) {
+                let subset_map = &self.borrowck_out_facts.subset;
+                if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+                    let mut blocked_variables = Vec::new();
+                    if let Some(blocked_regions) = subset.get(&region) {
+                        for blocked_region in blocked_regions.iter() {
+                            if blocked_region == region {
+                                continue;
+                            }
+                            if let Some(local) = self.find_variable(*blocked_region) {
+                                blocked_variables.push(format!("{:?}:{:?}", local, blocked_region));
+                            }
+                        }
+                        write_graph!(self, "<td colspan=\"7\">{:?}:{:?} --* {}</td>",
+                                     blocker, region, to_sorted_string!(blocked_variables));
+                    } else {
+                        write_graph!(self, "<td colspan=\"7\">BUG: no blocked region</td>");
+                    }
+                } else {
+                    write_graph!(self, "<td colspan=\"7\">BUG: no subsets</td>");
+                }
+            } else {
+                write_graph!(self, "<td colspan=\"7\">Return place is not a reference</td>");
+            }
+            write_graph!(self, "</tr>");
+        }
+
+        // Is this a loop head?
         if self.loops.loop_heads.contains(&bb) {
 //              1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
 //                  accessed in the loop body and ``t`` is the type of access (read,
@@ -875,6 +919,35 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
 /// Maybe blocking analysis.
 impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
+
+    /// Print the subset relation at a given program point.
+    fn print_subset_at_start(&self, location: mir::Location) -> Result<(),io::Error> {
+        let point = self.get_point(location, facts::PointType::Start);
+        let subset_map = &self.borrowck_out_facts.subset;
+        if let Some(ref subset) = subset_map.get(&point).as_ref() {
+            write_graph!(self, "subgraph cluster_{:?} {{", point);
+            let mut used_regions = HashSet::new();
+            for (from_region, to_regions) in subset.iter() {
+                used_regions.insert(*from_region);
+                for to_region in to_regions.iter() {
+                    used_regions.insert(*to_region);
+                    write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                 point, from_region, point, to_region);
+                }
+            }
+            for region in used_regions {
+                if let Some(local) = self.find_variable(region) {
+                    write_graph!(self, "{:?}_{:?} [shape=box label=\"{:?}:{:?}\"]",
+                                 point, region, local, region);
+                } else {
+                    write_graph!(self, "{:?}_{:?} [shape=box label=\"{:?}\"]",
+                                 point, region, region);
+                }
+            }
+            write_graph!(self, "}}");
+        }
+        Ok(())
+    }
 
     /// Print variables that are maybe blocked by the given variable at
     /// the start of the given location.
