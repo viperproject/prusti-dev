@@ -767,7 +767,19 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td></td>");
         }
         if let Some(ref blas) = self.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
-            write_graph!(self, "<td>{}</td>", to_sorted_string!(blas));
+            let dying_loans = self.get_dying_loans(location);
+            let mut blas = (**blas).clone();
+            blas.sort();
+            let blas: Vec<_> = blas.into_iter()
+                .map(|loan| {
+                    if dying_loans.contains(&loan) {
+                        format!("<b><font color=\"red\">{:?}</font></b>", loan)
+                    } else {
+                        format!("{:?}", loan)
+                    }
+                })
+                .collect();
+            write_graph!(self, "<td>{}</td>", blas.join(", "));
         } else {
             write_graph!(self, "<td></td>");
         }
@@ -989,6 +1001,73 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
         }
         local
+    }
+}
+
+/// Loan end analysis.
+impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
+
+    /// Get locations that are reachable from this location in one step.
+    fn get_successors(&self, location: mir::Location) -> Vec<mir::Location> {
+        let statements_len = self.mir[location.block].statements.len();
+        if location.statement_index < statements_len {
+            vec![mir::Location {
+                statement_index: location.statement_index + 1,
+                .. location
+            }]
+        } else {
+            let mut successors = Vec::new();
+            for successor in self.mir[location.block].terminator.as_ref().unwrap().successors() {
+                successors.push(mir::Location {
+                    block: *successor,
+                    statement_index: 0,
+                });
+            }
+            successors
+        }
+    }
+
+    /// Get loans that dye at the given location.
+    fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
+        let start_point = self.get_point(location, facts::PointType::Start);
+        let mid_point = self.get_point(location, facts::PointType::Mid);
+
+        if let Some(mid_loans) = self.borrowck_out_facts.borrow_live_at.get(&mid_point) {
+            let mut mid_loans = mid_loans.clone();
+            mid_loans.sort();
+            let start_loans = self.borrowck_out_facts.borrow_live_at.get(&start_point).unwrap();
+            let mut start_loans = start_loans.clone();
+            start_loans.sort();
+            debug!("start_loans = {:?}", start_loans);
+            debug!("mid_loans = {:?}", mid_loans);
+            // Loans are created in mid point, so mid_point may contain more loans than the start
+            // point.
+            assert!(start_loans.iter().all(|loan| mid_loans.contains(loan)));
+
+            let mir: &mir::Mir = &self.mir;
+            let successors = self.get_successors(location);
+
+            // Filter loans that are not missing in all successors.
+            mid_loans
+                .into_iter()
+                .filter(|loan| {
+                    !successors
+                        .iter()
+                        .any(|successor_location| {
+                            let point = self.get_point(*successor_location, facts::PointType::Start);
+                            self.borrowck_out_facts
+                                .borrow_live_at
+                                .get(&point)
+                                .map_or(false, |successor_loans| {
+                                    successor_loans.contains(loan)
+                                })
+                        })
+                })
+                .collect()
+        } else {
+            assert!(self.borrowck_out_facts.borrow_live_at.get(&start_point).is_none());
+            vec![]
+        }
     }
 }
 
