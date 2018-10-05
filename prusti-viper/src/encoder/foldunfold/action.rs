@@ -3,6 +3,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::vir;
+use encoder::vir::Frac;
+use encoder::vir::One;
 use std::fmt;
 use std::iter::FlatMap;
 use std::collections::HashMap;
@@ -11,22 +13,22 @@ use encoder::foldunfold::perm::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Action {
-    Fold(String, Vec<vir::Expr>),
-    Unfold(String, Vec<vir::Expr>),
+    Fold(String, Vec<vir::Expr>, Frac),
+    Unfold(String, Vec<vir::Expr>, Frac),
     Drop(Perm),
 }
 
 impl Action {
     pub fn to_stmt(&self) -> vir::Stmt {
         match self {
-            Action::Fold(ref pred, ref args) => vir::Stmt::Fold(pred.clone(), args.clone()),
+            Action::Fold(ref pred, ref args, frac) => vir::Stmt::Fold(pred.clone(), args.clone(), *frac),
 
-            Action::Unfold(ref pred, ref args) => vir::Stmt::Unfold(pred.clone(), args.clone()),
+            Action::Unfold(ref pred, ref args, frac) => vir::Stmt::Unfold(pred.clone(), args.clone(), *frac),
 
-            Action::Drop(Perm::Pred(ref place)) => {
+            Action::Drop(Perm::Pred(ref place, frac)) => {
                 let exhale_body: vir::Expr = vir::Expr::pred_permission(
                     place.clone(),
-                    vir::Perm::full()
+                    *frac
                 ).unwrap_or(true.into());
                 vir::Stmt::Exhale(
                     exhale_body,
@@ -34,9 +36,9 @@ impl Action {
                 )
             }
 
-            Action::Drop(Perm::Acc(ref place)) => {
+            Action::Drop(Perm::Acc(ref place, frac)) => {
                 vir::Stmt::Exhale(
-                    vir::Expr::acc_permission(place.clone(), vir::Perm::full()),
+                    vir::Expr::acc_permission(place.clone(), *frac),
                     vir::Position::new(0, 0, "exhale dropped predicate".to_string())
                 )
             }
@@ -45,13 +47,13 @@ impl Action {
 
     pub fn to_expr(&self, inner_expr: vir::Expr) -> vir::Expr {
         match self {
-            Action::Fold(ref pred, ref args) => {
+            Action::Fold(ref pred, ref args, frac) => {
                 // Currently unsupported in Viper
                 unimplemented!()
             }
 
-            Action::Unfold(ref pred, ref args) => {
-                vir::Expr::Unfolding(pred.clone(), args.clone(), box inner_expr)
+            Action::Unfold(ref pred, ref args, frac) => {
+                vir::Expr::Unfolding(pred.clone(), args.clone(), box inner_expr, *frac)
             }
 
             Action::Drop(_) => {
@@ -65,8 +67,9 @@ impl Action {
 impl fmt::Display for Action {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Action::Fold(ref pred, ref args) => write!(f, "fold {}({})", pred, args.iter().to_string()),
-            Action::Unfold(ref pred, ref args) => write!(f, "unfold {}({})", pred, args.iter().to_string()),
+            Action::Fold(..) |
+            Action::Unfold(..) => write!(f, "{}", self.to_stmt().to_string()),
+
             Action::Drop(ref perm) => write!(f, "drop {}", perm),
         }
     }

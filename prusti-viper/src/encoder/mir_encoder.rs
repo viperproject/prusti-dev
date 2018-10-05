@@ -4,6 +4,7 @@
 
 use encoder::Encoder;
 use encoder::vir;
+use encoder::vir::{Zero, One};
 use rustc::mir;
 use rustc::ty;
 use rustc::hir::def_id::DefId;
@@ -372,7 +373,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     predicate_name,
                     vec![place.into()],
                 ),
-                vir::Perm::full(),
+                vir::Frac::one(),
             )
         )
     }

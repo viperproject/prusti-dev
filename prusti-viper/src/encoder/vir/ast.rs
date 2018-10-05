@@ -3,6 +3,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
+use std::ops::Mul;
+use num_rational::Ratio;
+
+pub use num_traits::One;
+pub use num_traits::Zero;
 
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -34,40 +39,7 @@ impl Position {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Perm {
-    pub num: u32,
-    pub den: u32,
-}
-
-impl Perm {
-    pub fn full() -> Self {
-        Perm {
-            num: 1,
-            den: 1
-        }
-    }
-
-    pub fn frac(num: u32, den: u32) -> Self {
-        Perm {
-            num,
-            den
-        }
-    }
-
-    pub fn none() -> Self {
-        Perm {
-            num: 0,
-            den: 1
-        }
-    }
-}
-
-impl fmt::Display for Perm {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}/{}", self.num, self.den)
-    }
-}
+pub type Frac = Ratio<u32>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
@@ -343,8 +315,8 @@ pub enum Stmt {
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Place, Expr, AssignKind),
-    Fold(String, Vec<Expr>),
-    Unfold(String, Vec<Expr>),
+    Fold(String, Vec<Expr>, Frac),
+    Unfold(String, Vec<Expr>, Frac),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     #[deprecated]
@@ -387,7 +359,7 @@ impl Stmt {
         Stmt::Obtain(
             Expr::FieldAccessPredicate(
                 box place.into(),
-                Perm::full(),
+                Frac::one(),
             )
         )
     }
@@ -400,28 +372,30 @@ impl Stmt {
                     predicate_name,
                     vec![place.into()],
                 ),
-                Perm::full(),
+                Frac::one(),
             )
         )
     }
 
-    pub fn fold_pred(place: Place) -> Self {
+    pub fn fold_pred(place: Place, frac: Frac) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Fold(
             predicate_name,
             vec![
                 place.into()
-            ]
+            ],
+            frac
         )
     }
 
-    pub fn unfold_pred(place: Place) -> Self {
+    pub fn unfold_pred(place: Place, frac: Frac) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Unfold(
             predicate_name,
             vec![
                 place.into()
-            ]
+            ],
+            frac
         )
     }
 }
@@ -446,17 +420,35 @@ impl fmt::Display for Stmt {
                 AssignKind::MutableBorrow => write!(f, "{} := borrow {}", lhs, rhs),
             },
 
-            Stmt::Fold(ref pred_name, ref args) => write!(
-                f, "fold {}({})",
-                pred_name,
-                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
-            ),
+            Stmt::Fold(ref pred_name, ref args, frac) => if *frac == Frac::one() {
+                write!(
+                    f, "fold {}({})",
+                    pred_name,
+                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                )
+            } else {
+                write!(
+                    f, "fold acc({}({}), {})",
+                    pred_name,
+                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                    frac,
+                )
+            },
 
-            Stmt::Unfold(ref pred_name, ref args) => write!(
-                f, "unfold {}({})",
-                pred_name,
-                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
-            ),
+            Stmt::Unfold(ref pred_name, ref args, frac) => if *frac == Frac::one() {
+                write!(
+                    f, "unfold {}({})",
+                    pred_name,
+                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                )
+            } else {
+                write!(
+                    f, "unfold acc({}({}), {})",
+                    pred_name,
+                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                    frac,
+                )
+            },
 
             Stmt::Obtain(ref expr) => write!(f, "obtain {}", expr),
 
@@ -482,8 +474,8 @@ pub trait StmtFolder {
             Stmt::Assert(e, p) => self.fold_assert(e, p),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
-            Stmt::Fold(s, ve) => self.fold_fold(s, ve),
-            Stmt::Unfold(s, ve) => self.fold_unfold(s, ve),
+            Stmt::Fold(s, ve, frac) => self.fold_fold(s, ve, frac),
+            Stmt::Unfold(s, ve, frac) => self.fold_unfold(s, ve, frac),
             Stmt::Obtain(e) => self.fold_obtain(e),
             Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
             Stmt::Havoc => self.fold_havoc(),
@@ -524,12 +516,12 @@ pub trait StmtFolder {
         Stmt::Assign(p, self.fold_expr(e), k)
     }
 
-    fn fold_fold(&mut self, s: String, ve: Vec<Expr>) -> Stmt {
-        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect())
+    fn fold_fold(&mut self, s: String, ve: Vec<Expr>, frac: Frac) -> Stmt {
+        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), frac)
     }
 
-    fn fold_unfold(&mut self, s: String, ve: Vec<Expr>) -> Stmt {
-        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect())
+    fn fold_unfold(&mut self, s: String, ve: Vec<Expr>, frac: Frac) -> Stmt {
+        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), frac)
     }
 
     fn fold_obtain(&mut self, e: Expr) -> Stmt {
@@ -562,12 +554,12 @@ pub enum Expr {
     MagicWand(Box<Expr>, Box<Expr>),
     /// PredicateAccess: predicate_name, args
     PredicateAccess(String, Vec<Expr>),
-    PredicateAccessPredicate(Box<Expr>, Perm),
-    FieldAccessPredicate(Box<Expr>, Perm),
+    PredicateAccessPredicate(Box<Expr>, Frac),
+    FieldAccessPredicate(Box<Expr>, Frac),
     UnaryOp(UnaryOpKind, Box<Expr>),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>),
     // Unfolding: predicate name, predicate_args, in_expr
-    Unfolding(String, Vec<Expr>, Box<Expr>),
+    Unfolding(String, Vec<Expr>, Box<Expr>, Frac),
     // Cond: guard, then_expr, else_expr
     Cond(Box<Expr>, Box<Expr>, Box<Expr>),
     // ForAll: variables, triggers, body
@@ -588,7 +580,7 @@ pub trait ExprFolder {
             Expr::FieldAccessPredicate(x, y) => self.fold_field_access_predicate(x, y),
             Expr::UnaryOp(x, y) => self.fold_unary_op(x, y),
             Expr::BinOp(x, y, z) => self.fold_bin_op(x, y, z),
-            Expr::Unfolding(x, y, z) => self.fold_unfolding(x, y, z),
+            Expr::Unfolding(x, y, z, frac) => self.fold_unfolding(x, y, z, frac),
             Expr::Cond(x, y, z) => self.fold_cond(x, y, z),
             Expr::ForAll(x, y, z) => self.fold_forall(x, y, z),
             Expr::FuncApp(x, y, z, k) => self.fold_func_app(x, y, z, k),
@@ -614,10 +606,10 @@ pub trait ExprFolder {
     fn fold_predicate_access(&mut self, x: String, y: Vec<Expr>) -> Expr {
         Expr::PredicateAccess(x, y.into_iter().map(|e| self.fold(e)).collect())
     }
-    fn fold_predicate_access_predicate(&mut self, x: Box<Expr>, y: Perm) -> Expr {
+    fn fold_predicate_access_predicate(&mut self, x: Box<Expr>, y: Frac) -> Expr {
         Expr::PredicateAccessPredicate(self.fold_boxed(x), y)
     }
-    fn fold_field_access_predicate(&mut self, x: Box<Expr>, y: Perm) -> Expr {
+    fn fold_field_access_predicate(&mut self, x: Box<Expr>, y: Frac) -> Expr {
         Expr::FieldAccessPredicate(self.fold_boxed(x), y)
     }
     fn fold_unary_op(&mut self, x: UnaryOpKind, y: Box<Expr>) -> Expr {
@@ -626,8 +618,8 @@ pub trait ExprFolder {
     fn fold_bin_op(&mut self, x: BinOpKind, y: Box<Expr>, z: Box<Expr>) -> Expr {
         Expr::BinOp(x, self.fold_boxed(y), self.fold_boxed(z))
     }
-    fn fold_unfolding(&mut self, x: String, y: Vec<Expr>, z: Box<Expr>) -> Expr {
-        Expr::Unfolding(x, y.into_iter().map(|e| self.fold(e)).collect(), self.fold_boxed(z))
+    fn fold_unfolding(&mut self, x: String, y: Vec<Expr>, z: Box<Expr>, frac: Frac) -> Expr {
+        Expr::Unfolding(x, y.into_iter().map(|e| self.fold(e)).collect(), self.fold_boxed(z), frac)
     }
     fn fold_cond(&mut self, x: Box<Expr>, y: Box<Expr>, z: Box<Expr>) -> Expr {
         Expr::Cond(self.fold_boxed(x), self.fold_boxed(y), self.fold_boxed(z))
@@ -652,7 +644,7 @@ pub trait ExprWalker {
             Expr::FieldAccessPredicate(ref x, y) => self.walk_field_access_predicate(x, y),
             Expr::UnaryOp(x, ref y) => self.walk_unary_op(x, y),
             Expr::BinOp(x, ref y, ref z) => self.walk_bin_op(x, y, z),
-            Expr::Unfolding(ref x, ref y, ref z) => self.walk_unfolding(x, y, z),
+            Expr::Unfolding(ref x, ref y, ref z, frac) => self.walk_unfolding(x, y, z, frac),
             Expr::Cond(ref x, ref y, ref z) => self.walk_cond(x, y, z),
             Expr::ForAll(ref x, ref y, ref z) => self.walk_forall(x, y, z),
             Expr::FuncApp(ref x, ref y, ref z, ref k) => self.walk_func_app(x, y, z, k),
@@ -676,10 +668,10 @@ pub trait ExprWalker {
             self.walk(e);
         }
     }
-    fn walk_predicate_access_predicate(&mut self, x: &Expr, y: Perm) {
+    fn walk_predicate_access_predicate(&mut self, x: &Expr, y: Frac) {
         self.walk(x)
     }
-    fn walk_field_access_predicate(&mut self, x: &Expr, y: Perm) {
+    fn walk_field_access_predicate(&mut self, x: &Expr, y: Frac) {
         self.walk(x)
     }
     fn walk_unary_op(&mut self, x: UnaryOpKind, y: &Expr) {
@@ -689,7 +681,7 @@ pub trait ExprWalker {
         self.walk(y);
         self.walk(z);
     }
-    fn walk_unfolding(&mut self, x: &str, y: &Vec<Expr>, z: &Expr) {
+    fn walk_unfolding(&mut self, x: &str, y: &Vec<Expr>, z: &Expr, frac: Frac) {
         for e in y {
             self.walk(e);
         }
@@ -728,12 +720,22 @@ impl fmt::Display for Expr {
             ),
             Expr::LabelledOld(ref label, ref expr) => write!(f, "old[{}]({})", label, expr),
             Expr::MagicWand(ref left, ref right) => write!(f, "({}) --* ({})", left, right),
-            Expr::Unfolding(ref pred_name, ref args, ref expr) => write!(
-                f, "unfolding {}({}) in ({})",
-                pred_name,
-                args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
-                expr
-            ),
+            Expr::Unfolding(ref pred_name, ref args, ref expr, frac) => if *frac == Frac::one() {
+                write!(
+                    f, "unfolding {}({}) in ({})",
+                    pred_name,
+                    args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                    expr
+                )
+            } else {
+                write!(
+                    f, "unfolding acc({}({}), {}) in ({})",
+                    pred_name,
+                    args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                    frac,
+                    expr
+                )
+            },
             Expr::Cond(ref guard, ref left, ref right) => write!(f, "({})?({}):({})", guard, left, right),
             Expr::ForAll(ref vars, ref triggers, ref body) => write!(
                 f, "forall {} {} :: {}",
@@ -832,7 +834,7 @@ impl fmt::Display for UnaryOpKind {
 }
 
 impl Expr {
-    pub fn pred_permission(place: Place, perm: Perm) -> Option<Self> {
+    pub fn pred_permission(place: Place, perm: Frac) -> Option<Self> {
         place.typed_ref_name().map( |pred_name|
             Expr::PredicateAccessPredicate(
                 box Expr::PredicateAccess(
@@ -844,7 +846,7 @@ impl Expr {
         )
     }
 
-    pub fn acc_permission(place: Place, perm: Perm) -> Self {
+    pub fn acc_permission(place: Place, perm: Frac) -> Self {
         Expr::FieldAccessPredicate(
             box place.into(),
             perm
@@ -954,11 +956,12 @@ impl Expr {
         }
     }
 
-    pub fn unfolding(place: Place, expr: Expr) -> Self {
+    pub fn unfolding(place: Place, expr: Expr, frac: Frac) -> Self {
         Expr::Unfolding(
             place.typed_ref_name().unwrap(),
             vec![ place.into() ],
-            box expr
+            box expr,
+            frac
         )
     }
 
@@ -986,10 +989,11 @@ impl Expr {
             ),
             Expr::LabelledOld(label, expr) => Expr::LabelledOld(label, replace(expr)),
             Expr::MagicWand(left, right) => Expr::MagicWand(replace(left), replace(right)),
-            Expr::Unfolding(pred_name, args, expr) => Expr::Unfolding(
+            Expr::Unfolding(pred_name, args, expr, frac) => Expr::Unfolding(
                 pred_name,
                 args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>(),
-                replace(expr)
+                replace(expr),
+                frac
             ),
             Expr::Cond(guard, left, right) => Expr::Cond(replace(guard), replace(left), replace(right)),
             Expr::ForAll(vars, triggers, body) => {

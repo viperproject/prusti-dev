@@ -18,6 +18,8 @@ extern crate syntax;
 extern crate syntax_pos;
 extern crate uuid;
 extern crate viper;
+extern crate num_rational;
+extern crate num_traits;
 
 mod encoder;
 mod utils;
