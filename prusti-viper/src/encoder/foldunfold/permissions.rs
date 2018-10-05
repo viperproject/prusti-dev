@@ -5,6 +5,8 @@
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::perm::Perm::*;
 use encoder::vir;
+use encoder::vir::Frac;
+use encoder::vir::{Zero, One};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -43,9 +45,10 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::Inhale(ref expr) => {
                 // footprint = used - inhaled
-                expr.get_required_permissions(predicates).difference(
-                    &expr.get_permissions(predicates).into_iter().map(|p| LabelledPerm::curr(p)).collect()
-                ).cloned().collect()
+                labelled_perm_difference(
+                    expr.get_required_permissions(predicates),
+                    expr.get_permissions(predicates).into_iter().map(|p| LabelledPerm::curr(p)).collect()
+                )
             },
 
             &vir::Stmt::Exhale(ref expr, _) => expr.get_required_permissions(predicates),
@@ -55,16 +58,16 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::MethodCall(_, ref args, ref vars) => {
                 // Preconditions and postconditions are empty
                 assert!(args.is_empty());
-                HashSet::from_iter(vars.iter().cloned().map(|v| LabelledPerm::curr(Acc(vir::Place::Base(v)))))
+                HashSet::from_iter(vars.iter().cloned().map(|v| LabelledPerm::curr(Acc(vir::Place::Base(v), Frac::one()))))
             },
 
             &vir::Stmt::Assign(ref lhs_place, ref expr, kind) => {
                 let mut res = expr.get_required_permissions(predicates);
-                res.insert(LabelledPerm::curr(Acc(lhs_place.clone())));
+                res.insert(LabelledPerm::curr(Acc(lhs_place.clone(), Frac::one())));
                 res
             },
 
-            &vir::Stmt::Fold(ref _pred_name, ref args) => {
+            &vir::Stmt::Fold(_, ref args, frac) => {
                 assert_eq!(args.len(), 1);
                 let arg_place = &args[0].clone().as_place().unwrap();
 
@@ -74,16 +77,26 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
                 let pred_self_place: vir::Place = predicate.args[0].clone().into();
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
-                    .map( |aop| aop.map( |p|
-                        p.replace_prefix(&pred_self_place, arg_place.clone())
-                    )).collect();
+                    .map(
+                        |perm| {
+                            perm.map_place(
+                                |place| place.replace_prefix(&pred_self_place, arg_place.clone())
+                            )
+                        }
+                    ).collect();
 
-                places_in_pred.into_iter().map(|p| LabelledPerm::curr(p)).collect()
+                places_in_pred.into_iter().map(|p| LabelledPerm::curr(p)).map(
+                    |perm| perm * frac
+                ).collect()
             },
 
-            &vir::Stmt::Unfold(ref _pred_name, ref args) => {
+            &vir::Stmt::Unfold(ref _pred_name, ref args, frac) => {
                 assert_eq!(args.len(), 1);
                 args[0].get_required_permissions(predicates)
+                    .into_iter()
+                    .map(
+                        |perm| perm * frac
+                    ).collect()
             },
 
             &vir::Stmt::Obtain(ref expr) => expr.get_required_permissions(predicates),
@@ -108,8 +121,8 @@ impl vir::Stmt {
             &vir::Stmt::Assert(_, _) |
             &vir::Stmt::MethodCall(_, _, _) |
             &vir::Stmt::Assign(_, _, _) |
-            &vir::Stmt::Fold(_, _) |
-            &vir::Stmt::Unfold(_, _) |
+            &vir::Stmt::Fold(_, _, _) |
+            &vir::Stmt::Unfold(_, _, _) |
             &vir::Stmt::Obtain(_) |
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
@@ -126,7 +139,7 @@ impl RequiredPermissionsGetter for vir::Expr {
         match self {
             vir::Expr::Const(_) => HashSet::new(),
 
-            vir::Expr::Unfolding(_, args, expr) => {
+            vir::Expr::Unfolding(_, args, expr, frac) => {
                 assert_eq!(args.len(), 1);
                 let arg_place = &args[0].clone().as_place().unwrap();
 
@@ -136,7 +149,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
                 let pred_self_place: vir::Place = predicate.args[0].clone().into();
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
-                    .map( |aop| aop.map( |p|
+                    .map( |aop| aop.map_place( |p|
                         p.replace_prefix(&pred_self_place, arg_place.clone())
                     )).collect();
 
@@ -145,8 +158,9 @@ impl RequiredPermissionsGetter for vir::Expr {
                 let mut req_places: HashSet<_> = expr_req_places.difference(
                     &places_in_pred.into_iter().map(|p| LabelledPerm::curr(p)).collect()
                 ).cloned().collect();
-                req_places.insert(LabelledPerm::curr(Pred(arg_place.clone())));
-                req_places
+                req_places.insert(LabelledPerm::curr(Pred(arg_place.clone(), Frac::one())));
+
+                req_places.into_iter().map(|p| p * frac).collect()
             }
 
             vir::Expr::LabelledOld(ref label, expr) => {
@@ -157,8 +171,11 @@ impl RequiredPermissionsGetter for vir::Expr {
                 }).collect()
             }
 
-            vir::Expr::PredicateAccessPredicate(expr, _) |
-            vir::Expr::FieldAccessPredicate(expr, _) |
+            vir::Expr::PredicateAccessPredicate(expr, frac) |
+            vir::Expr::FieldAccessPredicate(expr, frac) => {
+                expr.get_required_permissions(predicates).into_iter().map(|p| p * frac).collect()
+            },
+
             vir::Expr::UnaryOp(_, expr) => expr.get_required_permissions(predicates),
 
             vir::Expr::BinOp(_, box left, box right) => vec![left, right].get_required_permissions(predicates),
@@ -170,24 +187,28 @@ impl RequiredPermissionsGetter for vir::Expr {
 
                 let vars_places: HashSet<_> = vars
                     .iter()
-                    .map(|var| LabelledPerm::curr(Acc(vir::Place::Base(var.clone()))))
+                    .map(|var| LabelledPerm::curr(Acc(vir::Place::Base(var.clone()), Frac::one())))
                     .collect();
                 body.get_required_permissions(predicates).difference(&vars_places).cloned().collect()
             }
 
             vir::Expr::Place(place) => {
-                Some(LabelledPerm::curr(Acc(place.clone()))).into_iter().collect()
+                // FIXME: Don't use full permissions
+                let epsilon = Frac::new(1, 1000);
+                Some(LabelledPerm::curr(Acc(place.clone(), epsilon))).into_iter().collect()
             },
 
             vir::Expr::PredicateAccess(_, args) => {
                 assert_eq!(args.len(), 1);
+                let epsilon = Frac::new(1, 1000);
+                // FIXME: Don't use full permissions
                 match args[0] {
                     vir::Expr::Place(ref place) => {
-                        vec![LabelledPerm::curr(Pred(place.clone())), LabelledPerm::curr(Acc(place.clone()))].into_iter().collect()
+                        vec![LabelledPerm::curr(Pred(place.clone(), epsilon)), LabelledPerm::curr(Acc(place.clone(), epsilon))].into_iter().collect()
                     }
 
                     vir::Expr::LabelledOld(ref label, box vir::Expr::Place(ref place)) => {
-                        vec![LabelledPerm::old(label, Pred(place.clone())), LabelledPerm::old(label, Acc(place.clone()))].into_iter().collect()
+                        vec![LabelledPerm::old(label, Pred(place.clone(), epsilon)), LabelledPerm::old(label, Acc(place.clone(), epsilon))].into_iter().collect()
                     }
 
                     _ => {
@@ -211,7 +232,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                                     place.get_type().to_string(),
                                     vec![ place.clone().into() ]
                                 ),
-                                vir::Perm::full()
+                                vir::Frac::one()
                             ).into(),
 
                         _ => {
@@ -236,7 +257,7 @@ impl vir::Expr {
             vir::Expr::PredicateAccess(_, _) |
             vir::Expr::FuncApp(..)=> HashSet::new(),
 
-            vir::Expr::Unfolding(_, args, expr) => {
+            vir::Expr::Unfolding(_, args, expr, frac) => {
                 assert_eq!(args.len(), 1);
                 let arg_place = &args[0].clone().as_place().unwrap();
 
@@ -246,14 +267,19 @@ impl vir::Expr {
 
                 let pred_self_place: vir::Place = predicate.args[0].clone().into();
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
-                    .map( |aop| aop.map( |p|
-                        p.replace_prefix(&pred_self_place, arg_place.clone())
-                    )).collect();
+                    .map(
+                        |aop| {
+                            aop.map_place( |p|
+                                p.replace_prefix(&pred_self_place, arg_place.clone())
+                            ) * frac
+                        }
+                    ).collect();
 
                 // Simulate temporary unfolding of `place`
                 let expr_access_places = expr.get_permissions(predicates);
-                let access_places: HashSet<_> = expr_access_places.difference(&places_in_pred).cloned().collect();
-                access_places
+                let access_places: HashSet<_> = perm_difference(expr_access_places, places_in_pred);
+
+                access_places.into_iter().collect()
             }
 
             vir::Expr::UnaryOp(_, ref expr) => expr.get_permissions(predicates),
@@ -272,23 +298,23 @@ impl vir::Expr {
 
                 let vars_places: HashSet<_> = vars
                     .iter()
-                    .map(|var| Acc(vir::Place::Base(var.clone())))
+                    .map(|var| Acc(vir::Place::Base(var.clone()), Frac::one()))
                     .collect();
-                body.get_permissions(predicates).difference(&vars_places).cloned().collect()
+                perm_difference(body.get_permissions(predicates), vars_places)
             }
 
-            vir::Expr::PredicateAccessPredicate(ref expr, _) |
-            vir::Expr::FieldAccessPredicate(ref expr, _) => {
+            vir::Expr::PredicateAccessPredicate(ref expr, frac) |
+            vir::Expr::FieldAccessPredicate(ref expr, frac) => {
                 // In Prusti we assume to have only places here
                 let opt_perm = match expr {
                     box vir::Expr::Place(ref place) => {
-                        Some(Acc(place.clone()))
+                        Some(Acc(place.clone(), *frac))
                     },
 
                     box vir::Expr::PredicateAccess(_, ref args) => {
                         assert_eq!(args.len(), 1);
                         match args[0] {
-                            vir::Expr::Place(ref place) => Some(Perm::Pred(place.clone())),
+                            vir::Expr::Place(ref place) => Some(Perm::Pred(place.clone(), *frac)),
 
                             vir::Expr::LabelledOld(..) => None,
 

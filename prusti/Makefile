@@ -23,6 +23,16 @@ run:
 	@#dot -Tpdf graph.dot -O
 	@#dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
 
+run-perf:
+	RUST_LOG=${LOG_LEVEL} \
+	LD_LIBRARY_PATH=${LIB_PATH} \
+	perf record -g -F 99 ${DRIVER} \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
+		-Z dump-mir-graphviz \
+		${RUN_FILE}
+	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
+
 generate_ui_stderr:
 	-LD_LIBRARY_PATH=${LIB_PATH} \
 	${DRIVER} \

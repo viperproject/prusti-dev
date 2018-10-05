@@ -87,22 +87,28 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 lhs.to_viper(ast),
                 rhs.to_viper(ast)
             ),
-            &Stmt::Fold(ref pred_name, ref args) => ast.fold(
+            &Stmt::Fold(ref pred_name, ref args, frac) => ast.fold(
                 ast.predicate_access_predicate(
                     ast.predicate_access(
                         &args.to_viper(ast),
                         &pred_name
                     ),
-                    ast.full_perm()
+                    ast.fractional_perm(
+                        ast.int_lit(*frac.numer() as i64),
+                        ast.int_lit(*frac.denom() as i64),
+                    )
                 )
             ),
-            &Stmt::Unfold(ref pred_name, ref args) => ast.unfold(
+            &Stmt::Unfold(ref pred_name, ref args, frac) => ast.unfold(
                 ast.predicate_access_predicate(
                     ast.predicate_access(
                         &args.to_viper(ast),
                         &pred_name
                     ),
-                    ast.full_perm()
+                    ast.fractional_perm(
+                        ast.int_lit(*frac.numer() as i64),
+                        ast.int_lit(*frac.denom() as i64),
+                    )
                 )
             ),
             &Stmt::Obtain(ref expr) => {
@@ -147,13 +153,19 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 &args.to_viper(ast)[..],
                 &predicate_name
             ),
-            &Expr::PredicateAccessPredicate(ref loc, perm) => ast.predicate_access_predicate(
+            &Expr::PredicateAccessPredicate(ref loc, frac) => ast.predicate_access_predicate(
                 loc.to_viper(ast),
-                perm.to_viper(ast)
+                ast.fractional_perm(
+                    ast.int_lit(*frac.numer() as i64),
+                    ast.int_lit(*frac.denom() as i64),
+                )
             ),
-            &Expr::FieldAccessPredicate(ref loc, perm) => ast.field_access_predicate(
+            &Expr::FieldAccessPredicate(ref loc, frac) => ast.field_access_predicate(
                 loc.to_viper(ast),
-                perm.to_viper(ast)
+                ast.fractional_perm(
+                    ast.int_lit(*frac.numer() as i64),
+                    ast.int_lit(*frac.denom() as i64),
+                )
             ),
             &Expr::UnaryOp(op, ref expr) => {
                 match op {
@@ -178,13 +190,16 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     BinOpKind::Implies => ast.implies(left.to_viper(ast), right.to_viper(ast)),
                 }
             },
-            &Expr::Unfolding(ref predicate_name, ref args, ref expr) => ast.unfolding(
+            &Expr::Unfolding(ref predicate_name, ref args, ref expr, frac) => ast.unfolding(
                 ast.predicate_access_predicate(
                     ast.predicate_access(
                         &args.to_viper(ast)[..],
                         &predicate_name
                     ),
-                    ast.full_perm()
+                    ast.fractional_perm(
+                        ast.int_lit(*frac.numer() as i64),
+                        ast.int_lit(*frac.denom() as i64),
+                    )
                 ),
                 expr.to_viper(ast)
             ),
@@ -229,21 +244,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Const {
             &Const::Null => ast.null_lit(),
             &Const::Int(x) => ast.int_lit(x),
             &Const::BigInt(ref x) => ast.int_lit_from_ref(x),
-        }
-    }
-}
-
-impl<'v> ToViper<'v, viper::Expr<'v>> for Perm {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        if self.den != 0 && self.num == self.den {
-            ast.full_perm()
-        } else if self.den != 0 && self.num == 0 {
-            ast.no_perm()
-        } else {
-            ast.fractional_perm(
-                Expr::from(self.num).to_viper(ast),
-                Expr::from(self.den).to_viper(ast)
-            )
         }
     }
 }

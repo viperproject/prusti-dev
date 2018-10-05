@@ -5,6 +5,7 @@
 use encoder::Encoder;
 use encoder::vir;
 use encoder::vir::ExprIterator;
+use encoder::vir::{Zero, One};
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
 use std::collections::hash_map::DefaultHasher;
@@ -85,7 +86,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         box vir::Place::from(self_local_var.clone()).access(
                             self.encoder.encode_value_field(self.ty)
                         ).into(),
-                        vir::Perm::full()
+                        vir::Frac::one()
                     )
                 ],
 
@@ -97,14 +98,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vec![
                     vir::Expr::FieldAccessPredicate(
                         box elem_loc.clone().into(),
-                        vir::Perm::full()
+                        vir::Frac::one()
                     ),
                     vir::Expr::PredicateAccessPredicate(
                         box vir::Expr::PredicateAccess(
                             predicate_name,
                             vec![ elem_loc.into() ]
                         ),
-                        vir::Perm::full()
+                        vir::Frac::one()
                     ),
                 ]
             }
@@ -118,14 +119,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     vec![
                         vir::Expr::FieldAccessPredicate(
                             box elem_loc.clone().into(),
-                            vir::Perm::full()
+                            vir::Frac::one()
                         ),
                         vir::Expr::PredicateAccessPredicate(
                             box vir::Expr::PredicateAccess(
                                 predicate_name,
                                 vec![ elem_loc.into() ]
                             ),
-                            vir::Perm::full()
+                            vir::Frac::one()
                         ),
                     ]
                 }).collect()
@@ -149,7 +150,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         perms.push(
                             vir::Expr::FieldAccessPredicate(
                                 box elem_loc.clone().into(),
-                                vir::Perm::full()
+                                vir::Frac::one()
                             )
                         );
                         perms.push(
@@ -158,7 +159,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                     predicate_name,
                                     vec![ elem_loc.into() ]
                                 ),
-                                vir::Perm::full()
+                                vir::Frac::one()
                             )
                         )
                     }
@@ -170,7 +171,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     perms.push(
                         vir::Expr::FieldAccessPredicate(
                             box discriminan_loc.clone().into(),
-                            vir::Perm::full()
+                            vir::Frac::one()
                         )
                     );
                     // 0 <= self.discriminant <= num_variants - 1
@@ -200,7 +201,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             variant_perms.push(
                                 vir::Expr::FieldAccessPredicate(
                                     box elem_loc.clone().into(),
-                                    vir::Perm::full()
+                                    vir::Frac::one()
                                 )
                             );
                             variant_perms.push(
@@ -209,7 +210,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                         predicate_name,
                                         vec![ elem_loc.into() ]
                                     ),
-                                    vir::Perm::full()
+                                    vir::Frac::one()
                                 )
                             )
                         }
@@ -237,7 +238,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 perms.push(
                     vir::Expr::FieldAccessPredicate(
                         box elem_loc.clone().into(),
-                        vir::Perm::full()
+                        vir::Frac::one()
                     )
                 );
                 perms.push(
@@ -246,7 +247,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             predicate_name,
                             vec![ elem_loc.into() ]
                         ),
-                        vir::Perm::full()
+                        vir::Frac::one()
                     )
                 );
                 perms
