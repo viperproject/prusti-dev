@@ -301,6 +301,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             block: mir::BasicBlock::new(0),
             statement_index: 0,
         });
+        self.print_subset_at_start(mir::Location {
+            block: mir::BasicBlock::new(0),
+            statement_index: 0,
+        });
         self.print_borrow_regions();
         self.print_restricts();
         write_graph!(self, "}}\n");
@@ -453,6 +457,47 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td colspan=\"7\"></td>");
         write_graph!(self, "<td>Definitely Initialized</td>");
         write_graph!(self, "</th>");
+
+        // Is this the entry point of a procedure?
+        if bb == mir::BasicBlock::new(0) {
+            // TODO: Refactor out this code that computes magic wands.
+            let blocker = mir::RETURN_PLACE;
+            let location = mir::Location {
+                block: bb,
+                statement_index: 0,
+            };
+            let start_point = self.get_point(location, facts::PointType::Start);
+
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
+            if let Some(region) = self.variable_regions.get(&blocker) {
+                let subset_map = &self.borrowck_out_facts.subset;
+                if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+                    let mut blocked_variables = Vec::new();
+                    if let Some(blocked_regions) = subset.get(&region) {
+                        for blocked_region in blocked_regions.iter() {
+                            if blocked_region == region {
+                                continue;
+                            }
+                            if let Some(local) = self.find_variable(*blocked_region) {
+                                blocked_variables.push(format!("{:?}:{:?}", local, blocked_region));
+                            }
+                        }
+                        write_graph!(self, "<td colspan=\"7\">{:?}:{:?} --* {}</td>",
+                                     blocker, region, to_sorted_string!(blocked_variables));
+                    } else {
+                        write_graph!(self, "<td colspan=\"7\">BUG: no blocked region</td>");
+                    }
+                } else {
+                    write_graph!(self, "<td colspan=\"7\">BUG: no subsets</td>");
+                }
+            } else {
+                write_graph!(self, "<td colspan=\"7\">Return place is not a reference</td>");
+            }
+            write_graph!(self, "</tr>");
+        }
+
+        // Is this a loop head?
         if self.loops.loop_heads.contains(&bb) {
 //              1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
 //                  accessed in the loop body and ``t`` is the type of access (read,
@@ -722,7 +767,19 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td></td>");
         }
         if let Some(ref blas) = self.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
-            write_graph!(self, "<td>{}</td>", to_sorted_string!(blas));
+            let dying_loans = self.get_dying_loans(location);
+            let mut blas = (**blas).clone();
+            blas.sort();
+            let blas: Vec<_> = blas.into_iter()
+                .map(|loan| {
+                    if dying_loans.contains(&loan) {
+                        format!("<b><font color=\"red\">{:?}</font></b>", loan)
+                    } else {
+                        format!("{:?}", loan)
+                    }
+                })
+                .collect();
+            write_graph!(self, "<td>{}</td>", blas.join(", "));
         } else {
             write_graph!(self, "<td></td>");
         }
@@ -875,6 +932,35 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 /// Maybe blocking analysis.
 impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
+    /// Print the subset relation at a given program point.
+    fn print_subset_at_start(&self, location: mir::Location) -> Result<(),io::Error> {
+        let point = self.get_point(location, facts::PointType::Start);
+        let subset_map = &self.borrowck_out_facts.subset;
+        if let Some(ref subset) = subset_map.get(&point).as_ref() {
+            write_graph!(self, "subgraph cluster_{:?} {{", point);
+            let mut used_regions = HashSet::new();
+            for (from_region, to_regions) in subset.iter() {
+                used_regions.insert(*from_region);
+                for to_region in to_regions.iter() {
+                    used_regions.insert(*to_region);
+                    write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
+                                 point, from_region, point, to_region);
+                }
+            }
+            for region in used_regions {
+                if let Some(local) = self.find_variable(region) {
+                    write_graph!(self, "{:?}_{:?} [shape=box label=\"{:?}:{:?}\"]",
+                                 point, region, local, region);
+                } else {
+                    write_graph!(self, "{:?}_{:?} [shape=box label=\"{:?}\"]",
+                                 point, region, region);
+                }
+            }
+            write_graph!(self, "}}");
+        }
+        Ok(())
+    }
+
     /// Print variables that are maybe blocked by the given variable at
     /// the start of the given location.
     fn print_blocked(&self, blocker: mir::Local, location: mir::Location) -> Result<(),io::Error> {
@@ -915,6 +1001,73 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
         }
         local
+    }
+}
+
+/// Loan end analysis.
+impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
+
+    /// Get locations that are reachable from this location in one step.
+    fn get_successors(&self, location: mir::Location) -> Vec<mir::Location> {
+        let statements_len = self.mir[location.block].statements.len();
+        if location.statement_index < statements_len {
+            vec![mir::Location {
+                statement_index: location.statement_index + 1,
+                .. location
+            }]
+        } else {
+            let mut successors = Vec::new();
+            for successor in self.mir[location.block].terminator.as_ref().unwrap().successors() {
+                successors.push(mir::Location {
+                    block: *successor,
+                    statement_index: 0,
+                });
+            }
+            successors
+        }
+    }
+
+    /// Get loans that dye at the given location.
+    fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
+        let start_point = self.get_point(location, facts::PointType::Start);
+        let mid_point = self.get_point(location, facts::PointType::Mid);
+
+        if let Some(mid_loans) = self.borrowck_out_facts.borrow_live_at.get(&mid_point) {
+            let mut mid_loans = mid_loans.clone();
+            mid_loans.sort();
+            let start_loans = self.borrowck_out_facts.borrow_live_at.get(&start_point).unwrap();
+            let mut start_loans = start_loans.clone();
+            start_loans.sort();
+            debug!("start_loans = {:?}", start_loans);
+            debug!("mid_loans = {:?}", mid_loans);
+            // Loans are created in mid point, so mid_point may contain more loans than the start
+            // point.
+            assert!(start_loans.iter().all(|loan| mid_loans.contains(loan)));
+
+            let mir: &mir::Mir = &self.mir;
+            let successors = self.get_successors(location);
+
+            // Filter loans that are not missing in all successors.
+            mid_loans
+                .into_iter()
+                .filter(|loan| {
+                    !successors
+                        .iter()
+                        .any(|successor_location| {
+                            let point = self.get_point(*successor_location, facts::PointType::Start);
+                            self.borrowck_out_facts
+                                .borrow_live_at
+                                .get(&point)
+                                .map_or(false, |successor_loans| {
+                                    successor_loans.contains(loan)
+                                })
+                        })
+                })
+                .collect()
+        } else {
+            assert!(self.borrowck_out_facts.borrow_live_at.get(&start_point).is_none());
+            vec![]
+        }
     }
 }
 
