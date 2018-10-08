@@ -93,7 +93,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             let mut last_loan_id = all_facts.borrow_region.last().map_or(
                 0,
                 |(_, loan, _)| {
-                    loan.index()
+                    loan.index() + 1
             });
 
             // Create a map from points to (region1, region2) vectors.
