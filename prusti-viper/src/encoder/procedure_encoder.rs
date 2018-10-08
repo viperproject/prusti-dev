@@ -11,6 +11,7 @@ use encoder::foldunfold;
 use encoder::loop_encoder::LoopEncoder;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::vir::{self, CfgBlockIndex, Successor};
+use encoder::vir::{Zero, One};
 use encoder::vir::ExprIterator;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
@@ -164,6 +165,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let is_edge_out_loop = self.loop_encoder.get_loop_depth(predecessor) > self.loop_encoder.get_loop_depth(bbi);
                 if is_edge_out_loop {
                     assert!(predecessor_count == 1); // FIXME: this is a bug. See issue #58
+                    let loop_head = self.loop_encoder.get_loop_head(predecessor).unwrap();
+                    let stmts = self.encode_loop_invariant_obtain(loop_head);
+                    for stmt in stmts.into_iter() {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
                     self.cfg_method.add_stmt(cfg_block, vir::Stmt::EndFrame);
                 }
             }
@@ -195,7 +201,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.cfg_method.set_successor(cfg_block, successor);
             }
 
-            // Enhale the loop invariant if the successor is a loop head
+            // Exhale the loop invariant if the successor is a loop head
             // Add an `BeginFrame` statement if the outgoing edge is an *in* edge
             let successor_count = bb_data.terminator().successors().count();
             for &successor in bb_data.terminator().successors() {
@@ -965,7 +971,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 ],
             ),
-            vir::Perm::full(),
+            vir::Frac::one(),
         )
     }
 
@@ -1057,8 +1063,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            vir::Perm::full()
-                            //vir::Perm::frac(1, 2 * loop_depth)
+                            //vir::Frac::one()
+                            vir::Frac::new(1, 2 * loop_depth)
                         )
                     }
 
@@ -1067,8 +1073,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            vir::Perm::full()
-                            //vir::Perm::frac(1, 2 * loop_depth)
+                            //vir::Frac::one()
+                            vir::Frac::new(1, 2 * loop_depth)
                         ).unwrap()
                     }
 
@@ -1076,7 +1082,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::WriteNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            vir::Perm::full()
+                            vir::Frac::one()
                         )
                     }
 
@@ -1085,7 +1091,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::WriteSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            vir::Perm::full()
+                            vir::Frac::one()
                         ).unwrap()
                     }
 
@@ -1167,6 +1173,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("encoded_specs: {:?}", encoded_specs);
 
         encoded_specs
+    }
+
+    fn encode_loop_invariant_obtain(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+        let permissions = self.encode_loop_invariant_permissions(loop_head);
+
+        vec![
+            vir::Stmt::comment(
+                format!("Restore the fold/unfold state of the loop invariant of {:?}", loop_head)
+            ),
+            vir::Stmt::Obtain(
+                permissions.into_iter().conjoin()
+            )
+        ]
     }
 
     fn encode_loop_invariant_exhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {

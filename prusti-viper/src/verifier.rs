@@ -177,6 +177,8 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         }
         self.encoder.process_encoding_queue();
 
+        info!("Translation to Viper successful");
+
         let ast = &self.ast_factory;
 
         let program = ast.program(
@@ -192,7 +194,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
 
-        info!("Translation successful");
+        info!("Construction of JVM objects successful");
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
 

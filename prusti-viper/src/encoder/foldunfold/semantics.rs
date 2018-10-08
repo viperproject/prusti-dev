@@ -33,17 +33,17 @@ impl vir::Stmt {
                 // We know that in Prusti method's preconditions and postconditions are empty
                 dropped.extend(
                     state.pred().iter()
-                        .filter(|p| targets.contains(p.base()))
-                        .map(|p| Perm::Pred(p.clone()))
+                        .filter(|(p, _)| targets.contains(p.base()))
+                        .map(|(p, frac)| Perm::Pred(p.clone(), *frac))
                 );
                 dropped.extend(
                     state.acc().iter()
-                        .filter(|p| !p.is_base() && targets.contains(p.base()))
-                        .map(|p| Perm::Acc(p.clone()))
+                        .filter(|(p, _)| !p.is_base() && targets.contains(p.base()))
+                        .map(|(p, frac)| Perm::Acc(p.clone(), *frac))
                 );
                 state.remove_moved_matching(|p| targets.contains(p.base()));
-                state.remove_pred_matching(|p| targets.contains(p.base()));
-                state.remove_acc_matching(|p| !p.is_base() && targets.contains(p.base()));
+                state.remove_pred_matching_place(|p| targets.contains(p.base()));
+                state.remove_acc_matching_place(|p| !p.is_base() && targets.contains(p.base()));
             }
 
             &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
@@ -87,17 +87,17 @@ impl vir::Stmt {
                 // Remove places that will not have a name
                 dropped.extend(
                     state.pred().iter()
-                        .filter(|p| p.has_prefix(&lhs_place))
-                        .map(|p| Perm::Pred(p.clone()))
+                        .filter(|(p, _)| p.has_prefix(&lhs_place))
+                        .map(|(p, frac)| Perm::Pred(p.clone(), *frac))
                 );
                 dropped.extend(
                     state.acc().iter()
-                        .filter(|p| p.has_proper_prefix(&lhs_place))
-                        .map(|p| Perm::Acc(p.clone()))
+                        .filter(|(p, _)| p.has_proper_prefix(&lhs_place))
+                        .map(|(p, frac)| Perm::Acc(p.clone(), *frac))
                 );
                 state.remove_moved_matching( |p| p.has_prefix(&lhs_place));
-                state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
-                state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place));
+                state.remove_pred_matching_place( |p| p.has_prefix(&lhs_place));
+                state.remove_acc_matching_place( |p| p.has_proper_prefix(&lhs_place));
                 state.remove_borrowed_matching( |p| p.has_prefix(&lhs_place));
 
                 // In case of move or borrowing, move permissions from the `rhs` to the `lhs`
@@ -107,20 +107,18 @@ impl vir::Stmt {
                         assert!(match kind { vir::AssignKind::Copy => false, _ => true }, "Unexpected assignment kind: {:?}", kind);
 
                         // In Prusti, we lose permission on the rhs
-                        state.remove_pred_matching( |p| p.has_prefix(&rhs_place));
-                        state.remove_acc_matching( |p| p.has_proper_prefix(&rhs_place));
+                        state.remove_pred_matching_place( |p| p.has_prefix(&rhs_place));
+                        state.remove_acc_matching_place( |p| p.has_proper_prefix(&rhs_place));
 
                         // And we create permissions for the lhs
                         let new_acc_places = original_state.acc().iter()
-                            .filter(|p| p.has_prefix(&rhs_place))
-                            .cloned()
-                            .map(|p| p.replace_prefix(&rhs_place, lhs_place.clone()));
+                            .filter(|(p, _)| p.has_prefix(&rhs_place))
+                            .map(|(p, frac)| (p.clone().replace_prefix(&rhs_place, lhs_place.clone()), *frac));
                         state.insert_all_acc(new_acc_places);
 
                         let new_pred_places = original_state.pred().iter()
-                            .filter(|p| p.has_prefix(&rhs_place))
-                            .cloned()
-                            .map(|p| p.replace_prefix(&rhs_place, lhs_place.clone()));
+                            .filter(|(p, _)| p.has_prefix(&rhs_place))
+                            .map(|(p, frac)| (p.clone().replace_prefix(&rhs_place, lhs_place.clone()), *frac));
                         state.insert_all_pred(new_pred_places);
                     }
                     _ => {
@@ -130,7 +128,7 @@ impl vir::Stmt {
                 }
             }
 
-            &vir::Stmt::Fold(ref pred_name, ref args) => {
+            &vir::Stmt::Fold(ref pred_name, ref args, frac) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0].clone().as_place().unwrap();
                 assert!(!state.contains_pred(&place));
@@ -142,9 +140,13 @@ impl vir::Stmt {
 
                 let pred_self_place: vir::Place = predicate.args[0].clone().into();
                 let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
-                    .map( |aop| aop.map( |p|
-                        p.replace_prefix(&pred_self_place, place.clone())
-                    )).collect();
+                    .map(
+                        |perm| {
+                            perm.map_place( |p|
+                                p.replace_prefix(&pred_self_place, place.clone())
+                            ) * frac
+                        }
+                    ).collect();
 
                 // Commented due to the presence of implications in the body of predicates
                 //for contained_place in &places_in_pred {
@@ -153,10 +155,10 @@ impl vir::Stmt {
 
                 // Simulate folding of `place`
                 state.remove_all_perms(places_in_pred.iter());
-                state.insert_pred(place.clone());
+                state.insert_pred(place.clone(), frac);
             }
 
-            &vir::Stmt::Unfold(ref pred_name, ref args) => {
+            &vir::Stmt::Unfold(ref pred_name, ref args, frac) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0].clone().as_place().unwrap();
                 assert!(state.contains_pred(&place));
@@ -168,7 +170,7 @@ impl vir::Stmt {
 
                 let pred_self_place: vir::Place = predicate.args[0].clone().into();
                 let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
-                    .map( |aop| aop.map( |p|
+                    .map( |aop| aop.map_place( |p|
                         p.replace_prefix(&pred_self_place, place.clone())
                     )).collect();
 
@@ -177,7 +179,7 @@ impl vir::Stmt {
                 }
 
                 // Simulate unfolding of `place`
-                state.remove_pred(&place);
+                state.remove_pred(&place, frac);
                 state.insert_all_perms(places_in_pred.into_iter());
             }
 
