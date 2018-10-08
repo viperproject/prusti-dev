@@ -12,17 +12,17 @@ struct F {
 fn test1(x: &mut F) {
     let y = x;
     let z = y;
-    let _z = &*z;
-    let _z = &*_z;
-    let _z = &*_z;
-    let _z = &*_z;
-    let _z = &*_z;
-    let _z = &*_z;
-    let _z = &*_z;
+    let _z = &mut *z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
 }
 
 fn test2(x: &mut F, b: bool) {
-    let y = &*x;
+    let y = &mut *x;
     let z = y;
     let z2;
     if b {
@@ -32,10 +32,10 @@ fn test2(x: &mut F, b: bool) {
     }
     let _z = z2;
     let _z = _z;
-    let _z = &*_z;
-    let _z = &*_z;
-    let _z = &*_z;
-    let _z = &*_z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
+    let _z = &mut *_z;
 }
 
 fn main() {
