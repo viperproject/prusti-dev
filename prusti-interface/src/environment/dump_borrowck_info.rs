@@ -17,7 +17,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{self, Write, BufWriter};
 use std::path::PathBuf;
-use polonius_engine::{Algorithm, Output};
+use polonius_engine::{Algorithm, Output, Atom};
 use rustc::hir::{self, intravisit};
 use rustc::mir;
 use rustc::ty::TyCtxt;
@@ -83,7 +83,44 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         debug!("Renumber path: {:?}", renumber_path);
         let variable_regions = regions::load_variable_regions(&renumber_path).unwrap();
 
-        let all_facts = facts_loader.facts;
+        let mut all_facts = facts_loader.facts;
+        {
+            // TODO: Refactor.
+            // The code that adds a creation of a new borrow for each
+            // move of a borrow.
+
+            // Find the last loan index.
+            let mut last_loan_id = all_facts.borrow_region.last().map_or(
+                0,
+                |(_, loan, _)| {
+                    loan.index()
+            });
+
+            // Create a map from points to (region1, region2) vectors.
+            let universal_region = &all_facts.universal_region;
+            let mut outlives_at_point = HashMap::new();
+            for (region1, region2, point) in all_facts.outlives.iter() {
+                if !universal_region.contains(region1) && !universal_region.contains(region2) {
+                    let outlives = outlives_at_point.entry(point).or_insert(vec![]);
+                    outlives.push((region1, region2));
+                }
+            }
+
+            // Create new borrow_region facts for points where is only one outlives
+            // fact and there is not a borrow_region fact already.
+            let borrow_region = &mut all_facts.borrow_region;
+            for (point, mut regions) in outlives_at_point {
+                if regions.len() > 1 {
+                    continue;
+                }
+                if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
+                    let (_region1, region2) = regions.pop().unwrap();
+                    borrow_region.push((*region2, facts::Loan::from(last_loan_id), *point));
+                    last_loan_id += 1;
+                }
+            }
+        }
+
         let polonius_dump_enabled = true;
         let output = Output::compute(&all_facts, Algorithm::Naive, polonius_dump_enabled);
         let additional_facts = compute_additional_facts(&all_facts, &output);
@@ -1035,7 +1072,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         if let Some(mid_loans) = self.borrowck_out_facts.borrow_live_at.get(&mid_point) {
             let mut mid_loans = mid_loans.clone();
             mid_loans.sort();
-            let start_loans = self.borrowck_out_facts.borrow_live_at.get(&start_point).unwrap();
+            let default_vec = vec![];
+            let start_loans = self.borrowck_out_facts
+                .borrow_live_at
+                .get(&start_point)
+                .unwrap_or(&default_vec);
             let mut start_loans = start_loans.clone();
             start_loans.sort();
             debug!("start_loans = {:?}", start_loans);
