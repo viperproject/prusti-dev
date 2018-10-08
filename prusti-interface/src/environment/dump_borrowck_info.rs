@@ -90,11 +90,13 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             // move of a borrow.
 
             // Find the last loan index.
-            let mut last_loan_id = all_facts.borrow_region.last().map_or(
-                0,
-                |(_, loan, _)| {
-                    loan.index() + 1
-            });
+            let mut last_loan_id = 0;
+            for (_, loan, _) in all_facts.borrow_region.iter() {
+                if loan.index() > last_loan_id {
+                    last_loan_id = loan.index();
+                }
+            }
+            last_loan_id += 1;
 
             // Create a map from points to (region1, region2) vectors.
             let universal_region = &all_facts.universal_region;
@@ -185,6 +187,8 @@ struct AdditionalFacts {
     ///     reborrows(L2, L3).
     /// ```
     pub reborrows: Vec<(facts::Loan, facts::Loan)>,
+    /// Non-transitive `reborrows`.
+    pub reborrows_direct: Vec<(facts::Loan, facts::Loan)>,
 }
 
 /// Derive additional facts from the borrow checker facts.
@@ -243,6 +247,18 @@ fn compute_additional_facts(all_facts: &facts::AllInputFacts,
         .filter(|(l1, l2)| l1 != l2)
         .cloned()
         .collect();
+    // A non-transitive version of reborrows.
+    let mut reborrows_direct = Vec::new();
+    for &(l1, l2) in reborrows.iter() {
+        let is_l2_minimal = !reborrows
+            .iter()
+            .any(|&(l3, l4)| {
+                l4 == l2 && reborrows.contains(&(l1, l3))
+            });
+        if is_l2_minimal {
+            reborrows_direct.push((l1, l2));
+        }
+    }
     // Compute the sorted list of all loans.
     let mut loans: Vec<_> = all_facts
         .borrow_region
@@ -253,6 +269,7 @@ fn compute_additional_facts(all_facts: &facts::AllInputFacts,
     AdditionalFacts {
         loans: loans,
         reborrows: reborrows,
+        reborrows_direct: reborrows_direct,
     }
 }
 
@@ -804,7 +821,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td></td>");
         }
         if let Some(ref blas) = self.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
+            // Get the loans that dye in this statement.
             let dying_loans = self.get_dying_loans(location);
+
+            // Format the loans and mark the dying ones.
             let mut blas = (**blas).clone();
             blas.sort();
             let blas: Vec<_> = blas.into_iter()
@@ -816,7 +836,57 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     }
                 })
                 .collect();
-            write_graph!(self, "<td>{}</td>", blas.join(", "));
+
+            let reborrowing = if !dying_loans.is_empty() {
+                // Find minimal elements that are the tree roots.
+                let mut roots = Vec::new();
+                for &loan in dying_loans.iter() {
+                    let is_smallest = !dying_loans
+                        .iter()
+                        .any(|&other_loan| {
+                            self.additional_facts.reborrows.contains(&(other_loan, loan))
+                        });
+                    if is_smallest {
+                        roots.push(loan);
+                    }
+                }
+                // Reconstruct the tree from each root.
+                let mut trees = String::new();
+                for &root in roots.iter() {
+                    trees.push_str("<br />");
+                    fn render(trees: &mut String,
+                              dying_loans: &[facts::Loan],
+                              reborrows: &[(facts::Loan, facts::Loan)],
+                              node: facts::Loan) {
+                        trees.push_str(&format!("{:?}", node));
+                        let mut children = Vec::new();
+                        for &loan in dying_loans.iter() {
+                            if reborrows.contains(&(node, loan)) {
+                                children.push(loan);
+                            }
+                        }
+                        if children.len() == 1 {
+                            trees.push_str("→");
+                            let child = children.pop().unwrap();
+                            render(trees, dying_loans, reborrows, child);
+                        } else if children.len() > 1 {
+                            trees.push_str("→«");
+                            for child in children {
+                                render(trees, dying_loans, reborrows, child);
+                                trees.push_str(",");
+                            }
+                            trees.push_str("»");
+                        }
+                    }
+                    render(&mut trees, &dying_loans,
+                           &self.additional_facts.reborrows_direct, root);
+                }
+                trees
+            } else {
+                String::from("")
+            };
+
+            write_graph!(self, "<td>{}{}</td>", blas.join(", "), reborrowing);
         } else {
             write_graph!(self, "<td></td>");
         }
