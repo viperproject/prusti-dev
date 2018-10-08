@@ -514,41 +514,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
         // Is this the entry point of a procedure?
         if bb == mir::BasicBlock::new(0) {
-            // TODO: Refactor out this code that computes magic wands.
-            let blocker = mir::RETURN_PLACE;
-            let location = mir::Location {
-                block: bb,
+            self.write_magic_wands(false, mir::Location {
+                block: mir::BasicBlock::new(0),
                 statement_index: 0,
-            };
-            let start_point = self.get_point(location, facts::PointType::Start);
-
-            write_graph!(self, "<tr>");
-            write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
-            if let Some(region) = self.variable_regions.get(&blocker) {
-                let subset_map = &self.borrowck_out_facts.subset;
-                if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
-                    let mut blocked_variables = Vec::new();
-                    if let Some(blocked_regions) = subset.get(&region) {
-                        for blocked_region in blocked_regions.iter() {
-                            if blocked_region == region {
-                                continue;
-                            }
-                            if let Some(local) = self.find_variable(*blocked_region) {
-                                blocked_variables.push(format!("{:?}:{:?}", local, blocked_region));
-                            }
-                        }
-                        write_graph!(self, "<td colspan=\"7\">{:?}:{:?} --* {}</td>",
-                                     blocker, region, to_sorted_string!(blocked_variables));
-                    } else {
-                        write_graph!(self, "<td colspan=\"7\">BUG: no blocked region</td>");
-                    }
-                } else {
-                    write_graph!(self, "<td colspan=\"7\">BUG: no subsets</td>");
-                }
-            } else {
-                write_graph!(self, "<td colspan=\"7\">Return place is not a reference</td>");
-            }
-            write_graph!(self, "</tr>");
+            });
         }
 
         // Is this a loop head?
@@ -687,7 +656,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             self.visit_statement(location, &statements[location.statement_index])?;
             location.statement_index += 1;
         }
-        let term_str = if let Some(ref term) = *terminator {
+        let terminator = terminator.clone();
+        let term_str = if let Some(ref term) = &terminator {
             to_html!(term.kind)
         } else {
             String::from("")
@@ -701,9 +671,14 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td>{}</td>",
                      self.get_definitely_initialized_after_statement(location));
         write_graph!(self, "</tr>");
+        if let Some(ref term) = &terminator {
+            if let mir::TerminatorKind::Return = term.kind {
+                self.write_magic_wands(true, location);
+            }
+        }
         write_graph!(self, "</table>> ];");
 
-        if let Some(ref terminator) = *terminator {
+        if let Some(ref terminator) = &terminator {
             self.visit_terminator(bb, terminator)?;
         }
 
@@ -837,56 +812,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 })
                 .collect();
 
-            let reborrowing = if !dying_loans.is_empty() {
-                // Find minimal elements that are the tree roots.
-                let mut roots = Vec::new();
-                for &loan in dying_loans.iter() {
-                    let is_smallest = !dying_loans
-                        .iter()
-                        .any(|&other_loan| {
-                            self.additional_facts.reborrows.contains(&(other_loan, loan))
-                        });
-                    if is_smallest {
-                        roots.push(loan);
-                    }
-                }
-                // Reconstruct the tree from each root.
-                let mut trees = String::new();
-                for &root in roots.iter() {
-                    trees.push_str("<br />");
-                    fn render(trees: &mut String,
-                              dying_loans: &[facts::Loan],
-                              reborrows: &[(facts::Loan, facts::Loan)],
-                              node: facts::Loan) {
-                        trees.push_str(&format!("{:?}", node));
-                        let mut children = Vec::new();
-                        for &loan in dying_loans.iter() {
-                            if reborrows.contains(&(node, loan)) {
-                                children.push(loan);
-                            }
-                        }
-                        if children.len() == 1 {
-                            trees.push_str("→");
-                            let child = children.pop().unwrap();
-                            render(trees, dying_loans, reborrows, child);
-                        } else if children.len() > 1 {
-                            trees.push_str("→«");
-                            for child in children {
-                                render(trees, dying_loans, reborrows, child);
-                                trees.push_str(",");
-                            }
-                            trees.push_str("»");
-                        }
-                    }
-                    render(&mut trees, &dying_loans,
-                           &self.additional_facts.reborrows_direct, root);
-                }
-                trees
-            } else {
-                String::from("")
-            };
-
-            write_graph!(self, "<td>{}{}</td>", blas.join(", "), reborrowing);
+            write_graph!(self, "<td>{}", blas.join(", "));
+            self.write_reborrowing_trees(&dying_loans);
+            write_graph!(self, "</td>");
         } else {
             write_graph!(self, "<td></td>");
         }
@@ -1179,6 +1107,105 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             assert!(self.borrowck_out_facts.borrow_live_at.get(&start_point).is_none());
             vec![]
         }
+    }
+
+    /// `package` – should it also try to compute the package statements?
+    fn write_magic_wands(&mut self, package: bool,
+                         location: mir::Location) -> Result<(), io::Error> {
+        // TODO: Refactor out this code that computes magic wands.
+        let blocker = mir::RETURN_PLACE;
+        //TODO: Check if it really is always start and not the mid point.
+        let start_point = self.get_point(location, facts::PointType::Start);
+
+        if let Some(region) = self.variable_regions.get(&blocker) {
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
+            let subset_map = &self.borrowck_out_facts.subset;
+            if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
+                let mut blocked_variables = Vec::new();
+                if let Some(blocked_regions) = subset.get(&region) {
+                    for blocked_region in blocked_regions.iter() {
+                        if blocked_region == region {
+                            continue;
+                        }
+                        if let Some(local) = self.find_variable(*blocked_region) {
+                            blocked_variables.push(format!("{:?}:{:?}", local, blocked_region));
+                        }
+                    }
+                    write_graph!(self, "<td colspan=\"7\">{:?}:{:?} --* {}</td>",
+                                 blocker, region, to_sorted_string!(blocked_variables));
+                } else {
+                    write_graph!(self, "<td colspan=\"7\">BUG: no blocked region</td>");
+                }
+            } else {
+                write_graph!(self, "<td colspan=\"7\">BUG: no subsets</td>");
+            }
+            write_graph!(self, "</tr>");
+            if package {
+                let restricts_map = &self.borrowck_out_facts.restricts;
+                write_graph!(self, "<tr>");
+                write_graph!(self, "<td colspan=\"2\">Package</td>");
+                if let Some(ref restricts) = restricts_map.get(&start_point).as_ref() {
+                    if let Some(loans) = restricts.get(&region) {
+                        let loans: Vec<_> = loans.iter().cloned().collect();
+                        write_graph!(self, "<td colspan=\"7\">{}", to_sorted_string!(loans));
+                        self.write_reborrowing_trees(&loans)?;
+                        write_graph!(self, "</td>");
+                    } else {
+                        write_graph!(self, "<td colspan=\"7\">BUG: no loans</td>");
+                    }
+                } else {
+                    write_graph!(self, "<td colspan=\"7\">BUG: no restricts</td>");
+                }
+                write_graph!(self, "</tr>");
+            }
+        }
+        Ok(())
+    }
+
+    fn write_reborrowing_trees(&self, loans: &[facts::Loan]) -> Result<(), io::Error> {
+        // Find minimal elements that are the tree roots.
+        let mut roots = Vec::new();
+        for &loan in loans.iter() {
+            let is_smallest = !loans
+                .iter()
+                .any(|&other_loan| {
+                    self.additional_facts.reborrows.contains(&(other_loan, loan))
+                });
+            if is_smallest {
+                roots.push(loan);
+            }
+        }
+        // Reconstruct the tree from each root.
+        for &root in roots.iter() {
+            write_graph!(self, "<br />");
+            self.write_reborrowing_tree(loans, root)?;
+        }
+        Ok(())
+    }
+
+    fn write_reborrowing_tree(&self, loans: &[facts::Loan],
+                              node: facts::Loan) -> Result<(), io::Error> {
+        write_graph!(self, "{:?}", node);
+        let mut children = Vec::new();
+        for &loan in loans.iter() {
+            if self.additional_facts.reborrows_direct.contains(&(node, loan)) {
+                children.push(loan);
+            }
+        }
+        if children.len() == 1 {
+            write_graph!(self, "→");
+            let child = children.pop().unwrap();
+            self.write_reborrowing_tree(loans, child);
+        } else if children.len() > 1 {
+            write_graph!(self, "→«");
+            for child in children {
+                self.write_reborrowing_tree(loans, child);
+                write_graph!(self, ",");
+            }
+            write_graph!(self, "»");
+        }
+        Ok(())
     }
 }
 
