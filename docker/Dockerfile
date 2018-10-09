@@ -46,16 +46,15 @@ ENV JAVA_HOME="/usr/lib/jvm/default-java"
 ENV LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
 
 # Install Prusti.
-RUN cd /tmp && \
-    git clone https://github.com/viperproject/prusti.git prusti && \
-    cd prusti && \
+RUN echo "TODO: Download prusti-dev in /tmp/prusti-dev"
+ADD . /tmp/prusti-dev
+RUN cd /tmp/prusti-dev && \
     cargo build --release && \
 	mkdir -p /usr/local/prusti/lib && \
 	cp target/release/prusti-driver /usr/local/prusti/prusti-driver && \
 	cp target/release/libprusti.so /usr/local/prusti/libprusti.so && \
-	cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib && \
-	true # rm -rf /tmp/*
-ADD prusti /usr/local/bin/prusti
+	cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib
+ADD docker/prusti /usr/local/bin/prusti
 ENV RUSTC="/usr/local/bin/prusti"
 
 # Set up locale.
@@ -67,7 +66,7 @@ ENV LC_ALL en_US.UTF-8
 # Mark container.
 ENV RUST_CONTAINER 1
 
-ADD entrypoint.sh /root/
+ADD docker/entrypoint.sh /root/
 ENTRYPOINT ["/root/entrypoint.sh"]
 
 # Set up workdir.
