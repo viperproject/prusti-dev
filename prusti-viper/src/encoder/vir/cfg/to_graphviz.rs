@@ -70,16 +70,48 @@ impl CfgMethod {
                 lines.push("<br/>".to_string());
             }
             first_row = false;
-            lines.push(escape_html(stmt.to_string()));
+            {
+                let full_stmt = stmt.to_string();
+                let splitted_stmt = sub_strings(&full_stmt, 120, 116);
+                lines.push(splitted_stmt.into_iter().map(|x| escape_html(x)).collect::<Vec<_>>().join(" \\ <br/>    "));
+            }
         }
         lines.push("</td></tr>".to_string());
 
         lines.push("<tr><td align=\"left\">".to_string());
-        lines.push(escape_html(format!("{}", &block.successor)));
+        {
+            let full_successor = block.successor.to_string();
+            let splitted_successor = sub_strings(&full_successor, 120, 116);
+            lines.push(splitted_successor.into_iter().map(|x| escape_html(x)).collect::<Vec<_>>().join(" \\ <br/>    "));
+        }
         lines.push("</td></tr>".to_string());
 
         lines.push("</table>".to_string());
 
         lines.join("")
     }
+}
+
+fn sub_strings(string: &str, first_sub_len: usize, sub_len: usize) -> Vec<&str> {
+    let mut subs = Vec::with_capacity(string.len() / sub_len);
+    let mut iter = string.chars();
+    let mut pos = 0;
+    let mut is_first = true;
+
+    while pos < string.len() {
+        let mut len = 0;
+        if is_first {
+            for ch in iter.by_ref().take(first_sub_len) {
+                len += ch.len_utf8();
+            }
+            is_first = false;
+        } else {
+            for ch in iter.by_ref().take(sub_len) {
+                len += ch.len_utf8();
+            }
+        }
+        subs.push(&string[pos..pos + len]);
+        pos += len;
+    }
+    subs
 }

@@ -5,7 +5,6 @@
 use viper_sys::wrappers::viper::silver::ast;
 use ast_factory::AstFactory;
 use ast_factory::structs::Type;
-use ast_factory::structs::Function;
 use ast_factory::structs::DomainFunc;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Trigger;
