@@ -23,6 +23,9 @@ check:
 build:
 	$(SET_ENV_VARS) cargo build --all
 
+release:
+	$(SET_ENV_VARS) cargo build --release --all
+
 test:
 	$(SET_ENV_VARS) cargo test --all
 
