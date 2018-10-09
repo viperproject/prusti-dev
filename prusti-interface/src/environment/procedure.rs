@@ -24,6 +24,7 @@ pub struct Procedure<'a, 'tcx: 'a> {
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     proc_def_id: ProcedureDefId,
     mir: Ref<'a, Mir<'tcx>>,
+    reachable_basic_blocks: HashSet<BasicBlock>,
     nonspec_basic_blocks: HashSet<BasicBlock>,
     predecessors: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>
 }
@@ -33,6 +34,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// identifier of a procedure
     pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, proc_def_id: ProcedureDefId) -> Self {
         let mir = tcx.mir_validated(proc_def_id).borrow();
+        let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
 
         let mut predecessors = HashMap::new();
@@ -46,7 +48,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             }
         }
 
-        Procedure { tcx, proc_def_id, mir, nonspec_basic_blocks, predecessors }
+        Procedure { tcx, proc_def_id, mir, reachable_basic_blocks, nonspec_basic_blocks, predecessors }
     }
 
     pub fn predecessors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
@@ -82,13 +84,26 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         self.tcx.item_path_str(self.proc_def_id)
     }
 
+    /// Get the first CFG block
+    pub fn get_first_cfg_block(&self) -> BasicBlock {
+        self.mir.basic_blocks().indices().next().unwrap()
+    }
+
     /// Iterate over all CFG basic blocks
-    pub fn walk_once_raw_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData<'tcx>) {
-        let basic_blocks = self.mir.basic_blocks();
-        for bbi in basic_blocks.indices() {
-            let bb_data = &basic_blocks[bbi];
-            visitor(bbi, bb_data);
-        }
+    pub fn get_all_cfg_blocks(&self) -> Vec<BasicBlock> {
+        self.mir.basic_blocks().indices().collect()
+    }
+
+    /// Iterate over all reachable CFG basic blocks
+    pub fn get_reachable_cfg_blocks(&self) -> Vec<BasicBlock> {
+        self.reachable_basic_blocks.iter().map(|bbi| *bbi).collect()
+    }
+
+    /// Iterate over all reachable CFG basic blocks that are not part of the specification type checking
+    pub fn get_reachable_nonspec_cfg_blocks(&self) -> Vec<BasicBlock> {
+        self.get_reachable_cfg_blocks().into_iter()
+            .filter(|bbi| !self.is_spec_block(*bbi))
+            .collect()
     }
 
     /// Check whether the block is used for typechecking the specification
@@ -96,15 +111,9 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         !self.nonspec_basic_blocks.contains(&bbi)
     }
 
-    /// Iterate over all CFG basic blocks that are not part of the specification type checking
-    pub fn walk_once_cfg<F>(&self, mut visitor: F) where F: FnMut(BasicBlock, &BasicBlockData<'tcx>) {
-        let basic_blocks = self.mir.basic_blocks();
-        for bbi in basic_blocks.indices() {
-            if !self.is_spec_block(bbi) {
-                let bb_data = &basic_blocks[bbi];
-                visitor(bbi, bb_data);
-            }
-        }
+    /// Check whether the block is reachable
+    pub fn is_reachable_block(&self, bbi: BasicBlockIndex) -> bool {
+        self.reachable_basic_blocks.contains(&bbi)
     }
 }
 
@@ -144,6 +153,48 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
+fn build_reachable_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
+    let dominators = mir.dominators();
+    let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
+
+    for source in mir.basic_blocks().indices() {
+        let terminator = &mir[source].terminator;
+        if let Some(ref term) = *terminator {
+            for target in get_normal_targets(term) {
+                if dominators.is_dominated_by(source, target) {
+                    loop_heads.insert(target);
+                }
+            }
+        }
+    }
+
+    let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
+    let mut visited: HashSet<BasicBlock> = HashSet::new();
+    let mut to_visit: Vec<BasicBlock> = vec![];
+    to_visit.push(mir.basic_blocks().indices().next().unwrap());
+
+    while !to_visit.is_empty() {
+        let source = to_visit.pop().unwrap();
+
+        if visited.contains(&source) {
+            continue;
+        }
+
+        visited.insert(source);
+        reachable_basic_blocks.insert(source);
+
+        let term = mir[source].terminator.as_ref().unwrap();
+        for target in get_normal_targets(term) {
+            if !visited.contains(&target) {
+                to_visit.push(target);
+            }
+        }
+    }
+
+    reachable_basic_blocks
+}
+
+/// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
 fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
     let dominators = mir.dominators();
     let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
@@ -169,39 +220,37 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
 
         if visited.contains(&source) {
             continue;
-        } else {
-            visited.insert(source);
-            nonspec_basic_blocks.insert(source);
         }
 
-        let terminator = &mir[source].terminator;
-        if let Some(ref term) = *terminator {
-            let is_loop_head = loop_heads.contains(&source);
-            if is_loop_head {
-                debug!("MIR block {:?} is a loop head", source);
-            }
-            for target in get_normal_targets(term) {
-                if is_loop_head {
-                    // Skip the following "if false"
-                    let target_terminator = &mir[target].terminator;
-                    if let Some(ref target_term) = *target_terminator {
-                        if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
-                            if format!("{:?}", discr) == "const false" {
-                                // Some assumptions
-                                assert!(values[0] == 0 as u128);
-                                assert!(values.len() == 1);
+        visited.insert(source);
+        nonspec_basic_blocks.insert(source);
 
-                                // Do not visit the 'then' branch.
-                                // So, it will not be put into nonspec_basic_blocks.
-                                debug!("MIR block {:?} is the head of a specification branch", targets[1]);
-                                visited.insert(targets[1]);
-                            }
+        let term = mir[source].terminator.as_ref().unwrap();
+        let is_loop_head = loop_heads.contains(&source);
+        if is_loop_head {
+            trace!("MIR block {:?} is a loop head", source);
+        }
+        for target in get_normal_targets(term) {
+            if is_loop_head {
+                // Skip the following "if false"
+                let target_terminator = &mir[target].terminator;
+                if let Some(ref target_term) = *target_terminator {
+                    if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
+                        if format!("{:?}", discr) == "const false" {
+                            // Some assumptions
+                            assert!(values[0] == 0 as u128);
+                            assert!(values.len() == 1);
+
+                            // Do not visit the 'then' branch.
+                            // So, it will not be put into nonspec_basic_blocks.
+                            debug!("MIR block {:?} is the head of a specification branch", targets[1]);
+                            visited.insert(targets[1]);
                         }
                     }
                 }
-                if !visited.contains(&target) {
-                    to_visit.push(target);
-                }
+            }
+            if !visited.contains(&target) {
+                to_visit.push(target);
             }
         }
     }

@@ -1,9 +1,5 @@
 extern crate prusti_contracts;
 
-struct MyStruct {
-    field: i32,
-}
-
 #[requires="0 <= n"]
 #[ensures="result == old(n) * (old(n) + 1) / 2"]
 fn sum(n: i32) -> i32 {

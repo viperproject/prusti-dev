@@ -84,6 +84,15 @@ impl<'a> FoldUnfold<'a> {
 }
 
 impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
+    fn compatible_back_edge(left: &BranchCtxt<'a>, right: &BranchCtxt<'a>) -> bool {
+        let left_state = left.state();
+        let right_state = right.state();
+
+        left_state.acc() == right_state.acc() &&
+            left_state.pred() == right_state.pred() &&
+            left_state.framing_stack() == right_state.framing_stack()
+    }
+
     /// Give the initial branch context
     fn initial_context(&mut self) -> BranchCtxt<'a> {
         self.initial_bctxt.clone()

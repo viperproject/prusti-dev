@@ -583,7 +583,8 @@ impl<'tcx> SpecParser<'tcx> {
         invariants: &[UntypedSpecification],
     ) -> ptr::P<ast::Block> {
         trace!("[rewrite_loop_block] enter");
-        let mut block = block.into_inner();
+        // Important: fold the content of the loop with `self.fold_block`
+        let mut block = self.fold_block(block).into_inner();
         if invariants.is_empty() {
             return ptr::P(block);
         }

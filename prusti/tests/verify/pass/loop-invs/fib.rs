@@ -1,9 +1,5 @@
 extern crate prusti_contracts;
 
-struct MyStruct {
-    field: i32,
-}
-
 #[requires="0 < n"]
 #[ensures="result > 0"]
 fn fib(n: i32) -> i32 {

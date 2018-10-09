@@ -22,11 +22,17 @@ impl vir::Stmt {
             &vir::Stmt::WeakObtain(_) => {}
 
             &vir::Stmt::Inhale(ref expr) => {
-                state.insert_all_perms(expr.get_permissions(predicates).into_iter());
+                state.insert_all_perms(
+                    expr.get_permissions(predicates).into_iter()
+                        .filter(|p| !(p.is_acc() && p.get_place().is_base()))
+                );
             }
 
             &vir::Stmt::Exhale(ref expr, _) => {
-                state.remove_all_perms(expr.get_permissions(predicates).iter());
+                state.remove_all_perms(
+                    expr.get_permissions(predicates).iter()
+                        .filter(|p| !(p.is_acc() && p.get_place().is_base()))
+                );
             }
 
             &vir::Stmt::MethodCall(_, _, ref targets) => {
@@ -109,6 +115,10 @@ impl vir::Stmt {
                         // In Prusti, we lose permission on the rhs
                         state.remove_pred_matching_place( |p| p.has_prefix(&rhs_place));
                         state.remove_acc_matching_place( |p| p.has_proper_prefix(&rhs_place));
+
+                        // We also lose permission on the lhs
+                        state.remove_pred_matching_place( |p| p.has_prefix(&lhs_place));
+                        state.remove_acc_matching_place( |p| p.has_prefix(&lhs_place));
 
                         // And we create permissions for the lhs
                         let new_acc_places = original_state.acc().iter()
