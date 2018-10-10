@@ -155,6 +155,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 Borrow { kind: mir::BorrowKind::Shared, .. } => PlaceAccessKind::SharedBorrow,
                 Borrow { kind: mir::BorrowKind::Mut { .. }, .. } => PlaceAccessKind::MutableBorrow,
                 Call => PlaceAccessKind::Read,
+                Inspect => PlaceAccessKind::Read,
                 x => unimplemented!("{:?}", x),
             };
             let access = PlaceAccess {
