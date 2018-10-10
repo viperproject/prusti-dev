@@ -5,10 +5,6 @@
 use super::borrowck::facts;
 use std::fmt;
 use crate::utils;
-use super::mir_analyses::initialization::{
-    compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult
-};
 use super::place_set::PlaceSet;
 use rustc::mir;
 
