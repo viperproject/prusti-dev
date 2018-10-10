@@ -14,12 +14,10 @@
 //! the set at the same time. For example, having `x.f` and `x.f.g` in
 //! `S` at the same time is illegal.
 
-use crate::utils::{self, is_prefix};
 use csv::{ReaderBuilder, WriterBuilder};
 use rustc::{hir, mir};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::env;
-use std::mem;
 use std::path::Path;
 use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;

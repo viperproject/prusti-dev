@@ -3,12 +3,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::utils::{self, is_prefix};
-use csv::{ReaderBuilder, WriterBuilder};
-use rustc::{hir, mir};
-use std::collections::{HashMap, HashSet};
-use std::env;
+use rustc::mir;
+use std::collections::HashSet;
 use std::mem;
-use std::path::Path;
 use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 
