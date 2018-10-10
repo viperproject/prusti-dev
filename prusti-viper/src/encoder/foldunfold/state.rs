@@ -219,6 +219,10 @@ impl State {
         &self.borrowed
     }
 
+    pub fn framing_stack(&self) -> &Vec<PermSet> {
+        &self.framing_stack
+    }
+
     pub fn set_acc(&mut self, acc: HashMap<vir::Place, Frac>) {
         self.acc = acc
     }
@@ -433,8 +437,14 @@ impl State {
     }
 
     pub fn insert_acc(&mut self, place: vir::Place, frac: Frac) {
-        //assert!(!self.acc.contains(&place), "Place {} is already in state (acc), so it can not be added.", place);
-        self.acc.insert(place, frac);
+        trace!("insert_acc {}, {}", place, frac);
+        if self.acc.contains_key(&place) {
+            let new_frac = self.acc[&place] + frac;
+            assert!(new_frac <= Frac::one(), "{} <= 1", new_frac);
+            self.acc.insert(place, new_frac);
+        } else {
+            self.acc.insert(place, frac);
+        }
     }
 
     pub fn insert_all_acc<I>(&mut self, items: I) where I: Iterator<Item = (vir::Place, Frac)> {
@@ -444,8 +454,14 @@ impl State {
     }
 
     pub fn insert_pred(&mut self, place: vir::Place, frac: Frac) {
-        //assert!(!self.pred.contains(&place), "Place {} is already in state (pred), so it can not be added.", place);
-        self.pred.insert(place, frac);
+        trace!("insert_pred {}, {}", place, frac);
+        if self.pred.contains_key(&place) {
+            let new_frac = self.pred[&place] + frac;
+            assert!(new_frac <= Frac::one(), "{} <= 1", new_frac);
+            self.pred.insert(place, new_frac);
+        } else {
+            self.pred.insert(place, frac);
+        }
     }
 
     pub fn insert_all_pred<I>(&mut self, items: I) where I: Iterator<Item = (vir::Place, Frac)> {
@@ -510,8 +526,9 @@ impl State {
     }
 
     pub fn remove_pred(&mut self, place: &vir::Place, frac: Frac) {
+        trace!("remove_pred {}, {}", place, frac);
         assert!(self.pred.contains_key(place), "Place {} is not in state (pred), so it can not be removed.", place);
-        assert!(self.pred[place] >= frac);
+        assert!(self.pred[place] >= frac, "{} >= {}", frac, self.pred[place]);
         if self.pred[place] == frac {
             self.pred.remove(place);
         } else {
@@ -544,15 +561,15 @@ impl State {
 
     pub fn as_vir_expr(&self) -> vir::Expr {
         let mut exprs: Vec<vir::Expr> = vec![];
-        for place in self.acc.keys() {
+        for (place, frac) in self.acc.iter() {
             if !place.is_base() {
                 exprs.push(
-                    vir::Expr::acc_permission(place.clone(), Frac::one())
+                    vir::Expr::acc_permission(place.clone(), *frac)
                 );
             }
         }
-        for place in self.pred.keys() {
-            if let Some(perm) = vir::Expr::pred_permission(place.clone(), Frac::one()) {
+        for (place, frac) in self.pred.iter() {
+            if let Some(perm) = vir::Expr::pred_permission(place.clone(), *frac) {
                 exprs.push(perm);
             }
         }
@@ -583,10 +600,7 @@ impl State {
         let mut framed_perms = self.framing_stack.pop().unwrap();
         debug!("Framed permissions: {}", framed_perms);
         for perm in framed_perms.perms().drain(..) {
-            match perm {
-                Perm::Acc(place, frac) => self.acc.insert(place, frac),
-                Perm::Pred(place, frac) => self.pred.insert(place, frac),
-            };
+            self.insert_perm(perm);
         }
 
         trace!("After: {} frames are on the stack", self.framing_stack.len());
