@@ -11,7 +11,7 @@ use super::mir_analyses::initialization::{
 };
 use crate::utils;
 use datafrog::{Iteration, Relation};
-use std::{cell, fmt};
+use std::cell;
 use std::env;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -83,6 +83,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         debug!("Renumber path: {:?}", renumber_path);
         let variable_regions = regions::load_variable_regions(&renumber_path).unwrap();
 
+        let mir = self.tcx.mir_validated(def_id).borrow();
+
+        let mut call_magic_wands = HashMap::new();
+
         let mut all_facts = facts_loader.facts;
         {
             // TODO: Refactor.
@@ -112,13 +116,34 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             // fact and there is not a borrow_region fact already.
             let borrow_region = &mut all_facts.borrow_region;
             for (point, mut regions) in outlives_at_point {
-                if regions.len() > 1 {
-                    continue;
-                }
                 if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
-                    let (_region1, region2) = regions.pop().unwrap();
-                    borrow_region.push((*region2, facts::Loan::from(last_loan_id), *point));
-                    last_loan_id += 1;
+                    if regions.len() > 1 {
+                        let location = facts_loader.interner.get_point(*point).location.clone();
+                        for &(region1, region2) in regions.iter() {
+                            debug!("{:?} {:?} {:?}", location, region1, region2);
+                        }
+                        let call_destination = self.get_call_destination(&mir, location);
+                        if let Some(place) = call_destination {
+                            match place {
+                                mir::Place::Local(local) => {
+                                    let var_region = variable_regions.get(&local);
+                                    debug!("var_region = {:?}", var_region);
+                                    let loan = facts::Loan::from(last_loan_id);
+                                    borrow_region.push(
+                                        (*var_region.unwrap(),
+                                        loan,
+                                        *point));
+                                    last_loan_id += 1;
+                                    call_magic_wands.insert(loan, local);
+                                }
+                                x => unimplemented!("{:?}", x)
+                            }
+                        }
+                    } else {
+                        let (_region1, region2) = regions.pop().unwrap();
+                        borrow_region.push((*region2, facts::Loan::from(last_loan_id), *point));
+                        last_loan_id += 1;
+                    }
                 }
             }
         }
@@ -127,7 +152,6 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let output = Output::compute(&all_facts, Algorithm::Naive, polonius_dump_enabled);
         let additional_facts = compute_additional_facts(&all_facts, &output);
 
-        let mir = self.tcx.mir_validated(def_id).borrow();
         let loop_info = loops::ProcedureLoops::new(&mir);
 
         let graph_path = PathBuf::from("nll-facts")
@@ -159,11 +183,38 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             variable_regions: variable_regions,
             loan_position: loan_position,
             initialization: initialization,
+            call_magic_wands: call_magic_wands,
         };
         mir_info_printer.print_info();
 
         trace!("[visit_fn] exit");
     }
+}
+
+
+impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
+
+    /// Extract the call terminator at the location. Otherwise return None.
+    fn get_call_destination(&self, mir: &mir::Mir<'tcx>,
+                            location: mir::Location) -> Option<mir::Place<'tcx>> {
+        let mir::BasicBlockData { ref statements, ref terminator, .. } = mir[location.block];
+        if statements.len() != location.statement_index {
+            return None;
+        }
+        match terminator.as_ref().unwrap().kind {
+            mir::TerminatorKind::Call { ref destination, .. } => {
+                if let Some((ref place, _)) = destination {
+                    Some(place.clone())
+                } else {
+                    None
+                }
+            }
+            ref x => {
+                panic!("Expected call, got {:?} at {:?}", x, location);
+            }
+        }
+    }
+
 }
 
 
@@ -287,6 +338,7 @@ struct MirInfoPrinter<'a, 'tcx: 'a> {
     /// Position at which a specific loan was created.
     pub loan_position: HashMap<facts::Loan, mir::Location>,
     pub initialization: DefinitelyInitializedAnalysisResult<'tcx>,
+    pub call_magic_wands: HashMap<facts::Loan, mir::Local>,
 }
 
 macro_rules! write_graph {
@@ -1186,7 +1238,12 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     fn write_reborrowing_tree(&self, loans: &[facts::Loan],
                               node: facts::Loan) -> Result<(), io::Error> {
-        write_graph!(self, "{:?}", node);
+        if let Some(local) = self.call_magic_wands.get(&node) {
+            let var_region = self.variable_regions[&local];
+            write_graph!(self, "apply({:?}, {:?}:{:?})", node, local, var_region);
+        } else {
+            write_graph!(self, "{:?}", node);
+        }
         let mut children = Vec::new();
         for &loan in loans.iter() {
             if self.additional_facts.reborrows_direct.contains(&(node, loan)) {
