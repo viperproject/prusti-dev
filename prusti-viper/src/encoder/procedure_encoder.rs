@@ -1073,6 +1073,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loop_depth = self.loop_encoder.get_loop_depth(loop_head) as u32;
         debug!("permissions_forest: {:?}", permissions_forest);
 
+        fn read_frac_by_loop_depth(loop_depth: u32) -> vir::Frac {
+            vir::Frac::new(1, 2) + vir::Frac::new(1, 2 * (1 + loop_depth))
+        }
+
         let mut permissions = vec![];
         for tree in permissions_forest.get_trees().iter() {
             for node in tree.get_nodes().iter() {
@@ -1091,8 +1095,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            //vir::Frac::one()
-                            vir::Frac::new(1, 2 * loop_depth)
+                            read_frac_by_loop_depth(loop_depth)
                         )
                     }
 
@@ -1101,8 +1104,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            //vir::Frac::one()
-                            vir::Frac::new(1, 2 * loop_depth)
+                            read_frac_by_loop_depth(loop_depth)
                         ).unwrap()
                     }
 
