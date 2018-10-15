@@ -21,13 +21,109 @@ pub struct ExpiringBorrow<'tcx> {
     pub location: mir::Location,
 }
 
+pub enum ReborrowingKind {
+    Assignment {
+        /// The actual loan that expired.
+        loan: facts::Loan,
+    },
+    Call {
+        /// The actual loan that expired.
+        loan: facts::Loan,
+        /// MIR local variable used as a target to which the result was assigned.
+        variable: mir::Local,
+        /// The region of the MIR local variable.
+        region: facts::Region,
+    },
+    Loop,
+}
+
+pub enum ReborrowingBranching {
+    /// This node is a leaf node.
+    Leaf,
+    /// This node has a single child, no branch is needed.
+    Single {
+        child: Box<ReborrowingNode>,
+    },
+    /// This node has multiple children, a ghost variable based
+    /// branching is needed.
+    Multiple {
+        children: Vec<ReborrowingNode>,
+    }
+}
+
+pub struct ReborrowingNode {
+    kind: ReborrowingKind,
+    branching: ReborrowingBranching,
+}
+
+impl fmt::Debug for ReborrowingNode {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.kind {
+            ReborrowingKind::Assignment { ref loan } => {
+                write!(f, "{:?}", loan)?;
+            }
+            ReborrowingKind::Call { ref loan, ref variable, ref region } => {
+                write!(f, "Call({:?}, {:?}:{:?})", loan, variable, region)?;
+            }
+            ReborrowingKind::Loop => {
+                unimplemented!();
+            }
+        }
+        match self.branching {
+            ReborrowingBranching::Leaf => {
+                write!(f, "▪")?;
+            }
+            ReborrowingBranching::Single { box ref child }  => {
+                write!(f, "→")?;
+                child.fmt(f)?;
+            }
+            ReborrowingBranching::Multiple { ref children }  => {
+                write!(f, "→ ⟦")?;
+                for child in children.iter() {
+                    child.fmt(f)?;
+                    write!(f, ",")?;
+                }
+                write!(f, "⟧")?;
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct ReborrowingTree {
+    root: ReborrowingNode,
+}
+
+impl fmt::Debug for ReborrowingTree {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.root.fmt(f)
+    }
+}
+
+pub struct ReborrowingForest {
+    trees: Vec<ReborrowingTree>,
+}
+
+impl ToString for ReborrowingForest {
+
+    fn to_string(&self) -> String {
+        let trees: Vec<_> = self.trees.iter().map(|tree| format!("{:?}", tree)).collect();
+        trees.join(";")
+    }
+}
+
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
     mir: &'a mir::Mir<'tcx>,
-    borrowck_in_facts: facts::AllInputFacts,
-    borrowck_out_facts: facts::AllOutputFacts,
-    interner: facts::Interner,
-    loan_position: HashMap<facts::Loan, mir::Location>,
-    call_magic_wands: HashMap<facts::Loan, mir::Local>,
+    pub(crate) borrowck_in_facts: facts::AllInputFacts,
+    pub(crate) borrowck_out_facts: facts::AllOutputFacts,
+    pub(crate) interner: facts::Interner,
+    /// Position at which a specific loan was created.
+    pub(crate) loan_position: HashMap<facts::Loan, mir::Location>,
+    pub(crate) call_magic_wands: HashMap<facts::Loan, mir::Local>,
+    pub(crate) variable_regions: HashMap<mir::Local, facts::Region>,
+    pub(crate) additional_facts: AdditionalFacts,
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
@@ -122,13 +218,17 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             })
             .collect();
 
+        let additional_facts = AdditionalFacts::new(&all_facts, &output);
+
         PoloniusInfo {
             mir,
             borrowck_in_facts: all_facts,
             borrowck_out_facts: output,
             interner,
             loan_position,
-            call_magic_wands
+            call_magic_wands,
+            variable_regions,
+            additional_facts,
         }
     }
 
@@ -141,7 +241,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loans that dye at the given location.
-    fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
+    pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
         let start_point = self.get_point(location, facts::PointType::Start);
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
@@ -186,29 +286,100 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
-    pub fn get_expiring_borrows(&self, location: mir::Location) -> Vec<ExpiringBorrow<'tcx>> {
-        let mut expiring_borrows = vec![];
-        for loan in self.get_dying_loans(location).iter() {
-            let loan_location = self.loan_position[loan];
-            let mir_block = &self.mir[loan_location.block];
-            debug_assert!(loan_location.statement_index < mir_block.statements.len());
-            let mir_stmt = &mir_block.statements[loan_location.statement_index];
-            match mir_stmt.kind {
-                mir::StatementKind::Assign(ref lhs_place, ref rvalue) => {
-                    expiring_borrows.push(
-                        ExpiringBorrow {
-                            expiring: lhs_place.clone(),
-                            restored: rvalue.clone(),
-                            location: loan_location
-                        }
-                    )
-                }
+    pub fn construct_reborrowing_forest(&self, loans: &[facts::Loan]) -> ReborrowingForest {
 
-                ref x => unreachable!("Borrow starts at statement {:?}", x),
+        // Find minimal elements that are the tree roots.
+        let mut roots = Vec::new();
+        for &loan in loans.iter() {
+            let is_smallest = !loans
+                .iter()
+                .any(|&other_loan| {
+                    self.additional_facts.reborrows.contains(&(other_loan, loan))
+                });
+            if is_smallest {
+                roots.push(loan);
             }
         }
-        expiring_borrows
+
+        // Reconstruct the tree from each root.
+        let mut trees = Vec::new();
+        for &root in roots.iter() {
+            let tree = ReborrowingTree {
+                root: self.construct_reborrowing_tree(&loans, root),
+            };
+            trees.push(tree);
+        }
+
+        let mut forest = ReborrowingForest {
+            trees: trees,
+        };
+        forest
     }
+
+    fn construct_reborrowing_tree(&self, loans: &[facts::Loan],
+                                  node: facts::Loan) -> ReborrowingNode {
+
+        let kind = if let Some(local) = self.call_magic_wands.get(&node) {
+            let region = self.variable_regions[&local];
+            ReborrowingKind::Call {
+                loan: node,
+                variable: *local,
+                region: region,
+            }
+        } else {
+            ReborrowingKind::Assignment {
+                loan: node,
+            }
+        };
+        let mut children = Vec::new();
+        for &loan in loans.iter() {
+            if self.additional_facts.reborrows_direct.contains(&(node, loan)) {
+                children.push(loan);
+            }
+        }
+        let branching = if children.len() == 1 {
+            let child = children.pop().unwrap();
+            ReborrowingBranching::Single {
+                child: box self.construct_reborrowing_tree(loans, child),
+            }
+        } else if children.len() > 1 {
+            ReborrowingBranching::Multiple {
+                children: children.iter().map(|&child| {
+                    self.construct_reborrowing_tree(loans, child)
+                }).collect(),
+            }
+        } else {
+            ReborrowingBranching::Leaf
+        };
+        ReborrowingNode {
+            kind: kind,
+            branching: branching,
+        }
+    }
+
+//  pub fn get_expiring_borrows(&self, location: mir::Location) -> Vec<ExpiringBorrow<'tcx>> {
+//      let mut expiring_borrows = vec![];
+//      for loan in self.get_dying_loans(location).iter() {
+//          let loan_location = self.loan_position[loan];
+//          let mir_block = &self.mir[loan_location.block];
+//          debug_assert!(loan_location.statement_index < mir_block.statements.len());
+//          let mir_stmt = &mir_block.statements[loan_location.statement_index];
+//          match mir_stmt.kind {
+//              mir::StatementKind::Assign(ref lhs_place, ref rvalue) => {
+//                  expiring_borrows.push(
+//                      ExpiringBorrow {
+//                          expiring: lhs_place.clone(),
+//                          restored: rvalue.clone(),
+//                          location: loan_location
+//                      }
+//                  )
+//              }
+
+//              ref x => unreachable!("Borrow starts at statement {:?}", x),
+//          }
+//      }
+//      expiring_borrows
+//  }
 
     fn get_successors(&self, location: mir::Location) -> Vec<mir::Location> {
         let statements_len = self.mir[location.block].statements.len();
@@ -355,4 +526,117 @@ fn get_call_destination<'tcx>(mir: &mir::Mir<'tcx>,
             panic!("Expected call, got {:?} at {:?}", x, location);
         }
     }
+}
+
+
+/// Additional facts derived from the borrow checker facts.
+pub struct AdditionalFacts {
+    /// A list of loans sorted by id.
+    pub loans: Vec<facts::Loan>,
+    /// The ``reborrows`` facts are needed for removing “fake” loans: at
+    /// a specific program point there are often more than one loan active,
+    /// but we are interested in only one of them, which is the original one.
+    /// Therefore, we find all loans that are reborrows of the original loan
+    /// and remove them. Reborrowing is defined as follows:
+    ///
+    /// ```datalog
+    /// reborrows(Loan, Loan);
+    /// reborrows(L1, L2) :-
+    ///     borrow_region(R, L1, P),
+    ///     restricts(R, P, L2).
+    /// reborrows(L1, L3) :-
+    ///     reborrows(L1, L2),
+    ///     reborrows(L2, L3).
+    /// ```
+    pub reborrows: Vec<(facts::Loan, facts::Loan)>,
+    /// Non-transitive `reborrows`.
+    pub reborrows_direct: Vec<(facts::Loan, facts::Loan)>,
+}
+
+
+impl AdditionalFacts {
+
+    /// Derive additional facts from the borrow checker facts.
+    pub fn new(all_facts: &facts::AllInputFacts,
+               output: &facts::AllOutputFacts) -> AdditionalFacts {
+
+        use datafrog::{Iteration, Relation};
+        use self::facts::{PointIndex as Point, Loan, Region};
+
+        let mut iteration = Iteration::new();
+
+        // Variables that are outputs of our computation.
+        let reborrows = iteration.variable::<(Loan, Loan)>("reborrows");
+
+        // Variables for initial data.
+        let restricts = iteration.variable::<((Point, Region), Loan)>("restricts");
+        let borrow_region = iteration.variable::<((Point, Region), Loan)>("borrow_region");
+
+        // Load initial data.
+        restricts.insert(Relation::from(
+            output.restricts.iter().flat_map(
+                |(&point, region_map)|
+                region_map.iter().flat_map(
+                    move |(&region, loans)|
+                    loans.iter().map(move |&loan| ((point, region), loan))
+                )
+            )
+        ));
+        borrow_region.insert(Relation::from(
+            all_facts.borrow_region.iter().map(|&(r, l, p)| ((p, r), l))
+        ));
+
+        // Temporaries for performing join.
+        let reborrows_1 = iteration.variable_indistinct("reborrows_1");
+        let reborrows_2 = iteration.variable_indistinct("reborrows_2");
+
+        while iteration.changed() {
+
+            // reborrows(L1, L2) :-
+            //   borrow_region(R, L1, P),
+            //   restricts(R, P, L2).
+            reborrows.from_join(&borrow_region, &restricts, |_, &l1, &l2| (l1, l2));
+
+            // Compute transitive closure of reborrows:
+            // reborrows(L1, L3) :-
+            //   reborrows(L1, L2),
+            //   reborrows(L2, L3).
+            reborrows_1.from_map(&reborrows, |&(l1, l2)| (l2, l1));
+            reborrows_2.from_map(&reborrows, |&(l2, l3)| (l2, l3));
+            reborrows.from_join(&reborrows_1, &reborrows_2, |_, &l1, &l3| (l1, l3));
+        }
+
+        // Remove reflexive edges.
+        let reborrows: Vec<_> = reborrows
+            .complete()
+            .iter()
+            .filter(|(l1, l2)| l1 != l2)
+            .cloned()
+            .collect();
+        // A non-transitive version of reborrows.
+        let mut reborrows_direct = Vec::new();
+        for &(l1, l2) in reborrows.iter() {
+            let is_l2_minimal = !reborrows
+                .iter()
+                .any(|&(l3, l4)| {
+                    l4 == l2 && reborrows.contains(&(l1, l3))
+                });
+            if is_l2_minimal {
+                reborrows_direct.push((l1, l2));
+            }
+        }
+        // Compute the sorted list of all loans.
+        let mut loans: Vec<_> = all_facts
+            .borrow_region
+            .iter()
+            .map(|&(_, l, _)| l)
+            .collect();
+        loans.sort();
+        AdditionalFacts {
+            loans: loans,
+            reborrows: reborrows,
+            reborrows_direct: reborrows_direct,
+        }
+    }
+
 }
