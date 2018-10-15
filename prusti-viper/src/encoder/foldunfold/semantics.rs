@@ -81,8 +81,6 @@ impl vir::Stmt {
                             for prefix in rhs_place.all_proper_prefixes() {
                                 assert!(!state.contains_pred(prefix));
                             }
-
-                            state.insert_borrowed(rhs_place.clone());
                         } else {
                             unreachable!()
                         }
@@ -104,7 +102,6 @@ impl vir::Stmt {
                 state.remove_moved_matching( |p| p.has_prefix(&lhs_place));
                 state.remove_pred_matching_place( |p| p.has_prefix(&lhs_place));
                 state.remove_acc_matching_place( |p| p.has_proper_prefix(&lhs_place));
-                state.remove_borrowed_matching( |p| p.has_prefix(&lhs_place));
 
                 // In case of move or borrowing, move permissions from the `rhs` to the `lhs`
                 match rhs {
@@ -204,6 +201,43 @@ impl vir::Stmt {
 
             &vir::Stmt::EndFrame => {
                 state.end_frame()
+            }
+
+            &vir::Stmt::ExpireBorrow(ref lhs_place, ref rhs_place) => {
+                let original_state = state.clone();
+
+                assert!(lhs_place.get_type().is_ref());
+                assert!(rhs_place.get_type().is_ref());
+                assert_eq!(lhs_place.get_type(), rhs_place.get_type());
+                assert!(!state.is_proper_prefix_of_some_acc(&rhs_place));
+                assert!(!state.is_prefix_of_some_pred(&rhs_place));
+                assert!(!state.is_prefix_of_some_moved(&rhs_place));
+                assert!(!state.is_prefix_of_some_moved(&lhs_place));
+
+                // Restore permissions from the `lhs` to the `rhs`
+
+                // This is the creation of a mutable borrow
+
+                // In Prusti, lose permission from the lhs and rhs
+                state.remove_pred_matching_place(|p| p.has_prefix(&lhs_place));
+                state.remove_acc_matching_place(|p| p.has_proper_prefix(&lhs_place));
+                state.remove_pred_matching_place(|p| p.has_prefix(&rhs_place));
+                state.remove_acc_matching_place(|p| p.has_proper_prefix(&rhs_place));
+
+                // The rhs is no longer moved
+                state.remove_moved_matching(|p| p.has_prefix(&rhs_place));
+
+                // And we create permissions for the rhs
+                let new_acc_places = original_state.acc().iter()
+                    .filter(|(p, _)| p.has_prefix(&lhs_place))
+                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac));
+                state.insert_all_acc(new_acc_places);
+
+                let new_pred_places = original_state.pred().iter()
+                    .filter(|(p, _)| p.has_prefix(&lhs_place))
+                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac));
+                state.insert_all_pred(new_pred_places);
+
             }
         }
     }

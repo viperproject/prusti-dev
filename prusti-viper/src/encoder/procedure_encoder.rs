@@ -19,6 +19,7 @@ use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::PermissionKind;
+use prusti_interface::environment::polonius_info::{ExpiringBorrow, PoloniusInfo};
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
@@ -43,18 +44,22 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     locals: LocalVariableManager<'tcx>,
     loop_encoder: LoopEncoder<'p, 'tcx>,
     auxiliar_local_vars: HashMap<String, vir::Type>,
-    //dataflow_info: DataflowInfo<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     check_panics: bool,
+    polonius_info: PoloniusInfo<'p, 'tcx>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p Procedure<'a, 'tcx>) -> Self {
         debug!("ProcedureEncoder constructor");
 
+        let mir = procedure.get_mir();
+        let def_id = procedure.get_id();
+        let tcx = encoder.env().tcx();
+
         let cfg_method = vir::CfgMethod::new(
             // method name
-            encoder.encode_item_name(procedure.get_id()),
+            encoder.encode_item_name(def_id),
             // formal args
             vec![],
             // formal returns
@@ -65,23 +70,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vec![],
         );
 
-        let mir = procedure.get_mir();
-        let locals = LocalVariableManager::new(&mir.local_decls);
-        let loop_encoder = LoopEncoder::new(mir, encoder.env().tcx(), procedure.get_id());
-        // let dataflow_info = procedure.construct_dataflow_info();
-
         ProcedureEncoder {
             encoder,
-            proc_def_id: procedure.get_id(),
+            proc_def_id: def_id,
             procedure,
             mir,
             cfg_method,
-            locals,
-            loop_encoder,
+            locals: LocalVariableManager::new(&mir.local_decls),
+            loop_encoder: LoopEncoder::new(mir, tcx, def_id),
             auxiliar_local_vars: HashMap::new(),
-            //dataflow_info: dataflow_info,
-            mir_encoder: MirEncoder::new(encoder, mir, procedure.get_id()),
-            check_panics: config::check_panics()
+            mir_encoder: MirEncoder::new(encoder, mir, def_id),
+            check_panics: config::check_panics(),
+            polonius_info: PoloniusInfo::new(tcx, def_id, mir)
         }
     }
 
@@ -168,10 +168,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for (stmt_index, stmt) in statements.iter().enumerate() {
                     trace!("Encode statement {:?}:{}", bbi, stmt_index);
                     self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
-                    let stmts = self.encode_statement(stmt);
-                    for stmt in stmts.into_iter() {
+                    for stmt in self.encode_statement(stmt).drain(..) {
                         self.cfg_method.add_stmt(cfg_block, stmt);
                     }
+                    let location = mir::Location {
+                        block: bbi,
+                        statement_index: stmt_index
+                    };
+
+                    /* TODO: WORK IN PROGRESS
+                    for stmt in self.encode_expiring_borrows(location).drain(..) {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
+                    */
                 }
             } else {
                 // Any spec block must be unreachable
@@ -519,6 +528,48 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             ref x => unimplemented!("{:?}", x)
         }
+    }
+
+    fn encode_expiring_borrows(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
+        debug!("encode_expiring_borrows '{:?}'", location);
+        let mut stmts: Vec<vir::Stmt> = vec![];
+
+        for expiring_borrow in self.polonius_info.get_expiring_borrows(location).drain(..) {
+            let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&expiring_borrow.expiring);
+
+            match expiring_borrow.restored {
+                mir::Rvalue::Ref(_, _, ref rhs_place) => {
+                    let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
+                    let ref_field = self.encoder.encode_value_field(expiring_ty);
+                    let expiring = expiring_base.clone().access(ref_field);
+                    assert_eq!(expiring.get_type(), restored.get_type());
+                    stmts.push(
+                        vir::Stmt::ExpireBorrow(expiring, restored)
+                    )
+                }
+
+                mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
+                    let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
+                    let expiring = expiring_base;
+                    assert_eq!(expiring.get_type(), restored.get_type());
+                    stmts.push(
+                        vir::Stmt::ExpireBorrow(expiring, restored)
+                    )
+                }
+
+                ref x => unreachable!("Borrow restores rvalue {:?}", x)
+            }
+
+        }
+
+        if stmts.len() > 0 {
+            stmts.insert(
+                0,
+                vir::Stmt::comment(format!("Expire {} dying loans", stmts.len()))
+            )
+        }
+
+        stmts
     }
 
     fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>,

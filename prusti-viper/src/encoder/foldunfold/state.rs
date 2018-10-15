@@ -19,19 +19,16 @@ pub struct State {
     pred: HashMap<vir::Place, Frac>,
     /// paths that have been "moved out" (for sure)
     moved: HashSet<vir::Place>,
-    /// paths that are blocked because they may have been mutably borrowed
-    borrowed: HashSet<vir::Place>,
     /// Permissions currently framed
     framing_stack: Vec<PermSet>,
 }
 
 impl State {
-    pub fn new(acc: HashMap<vir::Place, Frac>, pred: HashMap<vir::Place, Frac>, moved: HashSet<vir::Place>, borrowed: HashSet<vir::Place>) -> Self {
+    pub fn new(acc: HashMap<vir::Place, Frac>, pred: HashMap<vir::Place, Frac>, moved: HashSet<vir::Place>) -> Self {
         State {
             acc,
             pred,
             moved,
-            borrowed,
             framing_stack: vec![]
         }
     }
@@ -120,38 +117,6 @@ impl State {
                 );
             }
         }
-        // Check borrowed
-        for place in &self.borrowed {
-            for other_place in &self.borrowed {
-                if place.has_proper_prefix(other_place) {
-                    panic!(
-                        "Consistency error: state has borrowed {}, but also borrowed {}",
-                        place,
-                        other_place
-                    );
-                }
-            }
-        }
-        for borrowed_place in &self.borrowed {
-            if self.is_proper_prefix_of_some_acc(borrowed_place) {
-                panic!(
-                    "Consistency error: borrowed place {} can not be a proper prefix of some access permissions",
-                    borrowed_place
-                );
-            }
-            if self.is_prefix_of_some_pred(borrowed_place) {
-                panic!(
-                    "Consistency error: borrowed place {} can not be a prefix of some predicate permissions",
-                    borrowed_place
-                );
-            }
-            if self.is_prefix_of_some_moved(borrowed_place) {
-                panic!(
-                    "Consistency error: borrowed place {} can not be a prefix of some moved path",
-                    borrowed_place
-                );
-            }
-        }
     }
 
     pub fn replace_local_vars<F>(&mut self, replace: F) where F: Fn(&vir::LocalVar) -> vir::LocalVar {
@@ -170,7 +135,7 @@ impl State {
             }
         }
 
-        for coll in vec![&mut self.moved, &mut self.borrowed] {
+        for coll in vec![&mut self.moved] {
             let new_values = coll.clone().into_iter().map(
                 |place| {
                     let base_var = place.base();
@@ -215,10 +180,6 @@ impl State {
         &self.moved
     }
 
-    pub fn borrowed(&self) -> &HashSet<vir::Place> {
-        &self.borrowed
-    }
-
     pub fn framing_stack(&self) -> &Vec<PermSet> {
         &self.framing_stack
     }
@@ -235,10 +196,6 @@ impl State {
         self.moved = moved
     }
 
-    pub fn set_borrowed(&mut self, borrowed: HashSet<vir::Place>) {
-        self.borrowed = borrowed
-    }
-
     pub fn contains_acc(&self, place: &vir::Place) -> bool {
         self.acc.contains_key(&place)
     }
@@ -249,10 +206,6 @@ impl State {
 
     pub fn contains_moved(&self, place: &vir::Place) -> bool {
         self.moved.contains(&place)
-    }
-
-    pub fn contains_borrowed(&self, place: &vir::Place) -> bool {
-        self.borrowed.contains(&place)
     }
 
     /// Note: the fraction is currently ignored
@@ -294,15 +247,6 @@ impl State {
         false
     }
 
-    pub fn is_proper_prefix_of_some_borrowed(&self, prefix: &vir::Place) -> bool {
-        for place in &self.borrowed {
-            if place.has_prefix(prefix) {
-                return true;
-            }
-        }
-        false
-    }
-
     pub fn is_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
         for place in self.acc.keys() {
             if place.has_prefix(prefix) {
@@ -323,15 +267,6 @@ impl State {
 
     pub fn is_prefix_of_some_moved(&self, prefix: &vir::Place) -> bool {
         for place in &self.moved {
-            if place.has_prefix(prefix) {
-                return true;
-            }
-        }
-        false
-    }
-
-    pub fn is_prefix_of_some_borrowed(&self, prefix: &vir::Place) -> bool {
-        for place in &self.borrowed {
             if place.has_prefix(prefix) {
                 return true;
             }
@@ -363,10 +298,6 @@ impl State {
         self.moved = HashSet::from_iter(self.moved.intersection(other_moved).cloned());
     }
 
-    pub fn intersect_borrowed(&mut self, other_borrowed: &HashSet<vir::Place>) {
-        self.borrowed = HashSet::from_iter(self.borrowed.intersection(other_borrowed).cloned());
-    }
-
     pub fn remove_all(&mut self) {
         self.remove_matching(|_| true);
     }
@@ -377,7 +308,6 @@ impl State {
         self.remove_acc_matching_place(|x| pred(x));
         self.remove_pred_matching_place(|x| pred(x));
         self.remove_moved_matching(|x| pred(x));
-        self.remove_borrowed_matching(|x| pred(x));
     }
 
     pub fn remove_acc_matching_place<P>(&mut self, pred: P)
@@ -398,12 +328,6 @@ impl State {
         self.moved.retain(|e| !pred(e));
     }
 
-    pub fn remove_borrowed_matching<P>(&mut self, pred: P)
-        where P: Fn(&vir::Place) -> bool
-    {
-        self.borrowed.retain(|e| !pred(e));
-    }
-
     pub fn display_acc(&self) -> String {
         self.acc.iter().map(|(p, f)| format!("{}: {}", p, f)).collect::<Vec<String>>().join(", ")
     }
@@ -414,10 +338,6 @@ impl State {
 
     pub fn display_moved(&self) -> String {
         self.moved.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
-    }
-
-    pub fn display_borrowed(&self) -> String {
-        self.borrowed.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
     }
 
     pub fn display_debug_acc(&self) -> String {
@@ -432,15 +352,11 @@ impl State {
         self.moved.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
     }
 
-    pub fn display_debug_borrowed(&self) -> String {
-        self.borrowed.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
-    }
-
     pub fn insert_acc(&mut self, place: vir::Place, frac: Frac) {
         trace!("insert_acc {}, {}", place, frac);
         if self.acc.contains_key(&place) {
             let new_frac = self.acc[&place] + frac;
-            assert!(new_frac <= Frac::one(), "{} <= 1", new_frac);
+            assert!(new_frac <= Frac::one(), "insert_acc: {} <= 1", new_frac);
             self.acc.insert(place, new_frac);
         } else {
             self.acc.insert(place, frac);
@@ -478,17 +394,6 @@ impl State {
     pub fn insert_all_moved<I>(&mut self, items: I) where I: Iterator<Item = vir::Place> {
         for item in items {
             self.insert_moved(item);
-        }
-    }
-
-    pub fn insert_borrowed(&mut self, place: vir::Place) {
-        //assert!(!self.pred.contains(&place), "Place {} is already in state (pred), so it can not be added.", place);
-        self.borrowed.insert(place);
-    }
-
-    pub fn insert_all_borrowed<I>(&mut self, items: I) where I: Iterator<Item = vir::Place> {
-        for item in items {
-            self.insert_borrowed(item);
         }
     }
 
@@ -539,11 +444,6 @@ impl State {
     pub fn remove_moved(&mut self, place: &vir::Place) {
         assert!(self.moved.contains(place), "Place {} is not in state (moved), so it can not be removed.", place);
         self.moved.remove(place);
-    }
-
-    pub fn remove_borrowed(&mut self, place: &vir::Place) {
-        assert!(self.borrowed.contains(place), "Place {} is not in state (borrowed), so it can not be removed.", place);
-        self.borrowed.remove(place);
     }
 
     pub fn remove_perm(&mut self, item: &Perm) {

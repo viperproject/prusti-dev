@@ -1251,16 +1251,16 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
         }
         if children.len() == 1 {
-            write_graph!(self, "→");
+            write_graph!(self, "{}", to_html_display!("->"));
             let child = children.pop().unwrap();
             self.write_reborrowing_tree(loans, child);
         } else if children.len() > 1 {
-            write_graph!(self, "→«");
+            write_graph!(self, "{}", to_html_display!("-> ("));
             for child in children {
                 self.write_reborrowing_tree(loans, child);
                 write_graph!(self, ",");
             }
-            write_graph!(self, "»");
+            write_graph!(self, ")");
         }
         Ok(())
     }

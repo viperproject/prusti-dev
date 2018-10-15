@@ -132,6 +132,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment("end frame")
             }
+            &Stmt::ExpireBorrow(ref expiring, ref restored) => {
+                // Skip
+                ast.comment("expire borrow")
+            }
         }
     }
 }

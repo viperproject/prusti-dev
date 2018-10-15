@@ -29,7 +29,6 @@ impl<'a> BranchCtxt<'a> {
             state: State::new(
                 HashMap::from_iter(local_vars.into_iter().map(|v| (vir::Place::Base(v), Frac::one()))),
                 HashMap::new(),
-                HashSet::new(),
                 HashSet::new()
             ),
             predicates
@@ -236,6 +235,7 @@ impl<'a> BranchCtxt<'a> {
 
         debug!("Try to satisfy requirement {:?}", req);
 
+        /*
         // 2. Obtain by restoring a borrowed path with a magic wand
         let existing_prefix_borrowed_opt: Option<vir::Place> = self.state.borrowed().iter()
             .find(|p| req_place.has_prefix(p))
@@ -250,6 +250,7 @@ impl<'a> BranchCtxt<'a> {
             actions.extend(self.obtain(req));
             return actions;
         }
+        */
 
         // 3. Obtain with an unfold
         // Find a predicate on a proper prefix of req_place

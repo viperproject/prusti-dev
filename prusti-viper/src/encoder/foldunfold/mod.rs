@@ -185,6 +185,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             vir::Stmt::Havoc => vir::Stmt::Havoc,
             vir::Stmt::BeginFrame => vir::Stmt::BeginFrame,
             vir::Stmt::EndFrame => vir::Stmt::EndFrame,
+            vir::Stmt::ExpireBorrow(a, b) => vir::Stmt::ExpireBorrow(a.clone(), b.clone()),
         };
 
         // 4. Apply statement

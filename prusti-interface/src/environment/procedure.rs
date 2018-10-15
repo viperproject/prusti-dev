@@ -96,7 +96,9 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Iterate over all reachable CFG basic blocks
     pub fn get_reachable_cfg_blocks(&self) -> Vec<BasicBlock> {
-        self.reachable_basic_blocks.iter().map(|bbi| *bbi).collect()
+        self.get_all_cfg_blocks().into_iter()
+            .filter(|bbi| self.is_reachable_block(*bbi))
+            .collect()
     }
 
     /// Iterate over all reachable CFG basic blocks that are not part of the specification type checking

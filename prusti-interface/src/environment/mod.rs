@@ -23,6 +23,7 @@ mod dump_borrowck_info;
 pub mod borrowck;
 pub mod mir_analyses;
 pub mod place_set;
+pub mod polonius_info;
 
 use data::ProcedureDefId;
 pub use self::procedure::{BasicBlockIndex, Procedure};

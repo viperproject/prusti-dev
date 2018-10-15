@@ -334,6 +334,12 @@ pub enum Stmt {
     /// Mark a CFG point in which all the permissions of a corresponding `BeginFraming` are framed in
     /// They will be used by the fold/unfold algorithm
     EndFrame,
+    /// Mark a CFG point in which a borrow ends and a corresponding location is restored.
+    /// They will be used by the fold/unfold algorithm.
+    /// Arguments: the expiring location, then the restored location.
+    /// That is, the lhs and rhs of the assignment that created the borrow.
+    /// Permissions will move from the expiring to the restored location.
+    ExpireBorrow(Place, Place)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -459,6 +465,8 @@ impl fmt::Display for Stmt {
             Stmt::BeginFrame => write!(f, "begin frame"),
 
             Stmt::EndFrame => write!(f, "end frame"),
+
+            Stmt::ExpireBorrow(ref lhs, ref rhs) => write!(f, "expire borrow {} --> {}", lhs, rhs),
         }
     }
 }
@@ -481,6 +489,7 @@ pub trait StmtFolder {
             Stmt::Havoc => self.fold_havoc(),
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
+            Stmt::ExpireBorrow(a, b) => self.fold_expire_borrow(a, b),
         }
     }
 
@@ -542,6 +551,10 @@ pub trait StmtFolder {
 
     fn fold_end_frame(&mut self) -> Stmt {
         Stmt::EndFrame
+    }
+
+    fn fold_expire_borrow(&mut self, a: Place, b: Place) -> Stmt {
+        Stmt::ExpireBorrow(a, b)
     }
 }
 
