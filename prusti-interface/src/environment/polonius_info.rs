@@ -422,29 +422,29 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         entry.push(magic_wand);
     }
 
-//  pub fn get_expiring_borrows(&self, location: mir::Location) -> Vec<ExpiringBorrow<'tcx>> {
-//      let mut expiring_borrows = vec![];
-//      for loan in self.get_dying_loans(location).iter() {
-//          let loan_location = self.loan_position[loan];
-//          let mir_block = &self.mir[loan_location.block];
-//          debug_assert!(loan_location.statement_index < mir_block.statements.len());
-//          let mir_stmt = &mir_block.statements[loan_location.statement_index];
-//          match mir_stmt.kind {
-//              mir::StatementKind::Assign(ref lhs_place, ref rvalue) => {
-//                  expiring_borrows.push(
-//                      ExpiringBorrow {
-//                          expiring: lhs_place.clone(),
-//                          restored: rvalue.clone(),
-//                          location: loan_location
-//                      }
-//                  )
-//              }
+    pub fn get_expiring_borrows(&self, location: mir::Location) -> Vec<ExpiringBorrow<'tcx>> {
+        let mut expiring_borrows = vec![];
+        for loan in self.get_dying_loans(location).iter() {
+            let loan_location = self.loan_position[loan];
+            let mir_block = &self.mir[loan_location.block];
+            debug_assert!(loan_location.statement_index < mir_block.statements.len());
+            let mir_stmt = &mir_block.statements[loan_location.statement_index];
+            match mir_stmt.kind {
+                mir::StatementKind::Assign(ref lhs_place, ref rvalue) => {
+                    expiring_borrows.push(
+                        ExpiringBorrow {
+                            expiring: lhs_place.clone(),
+                            restored: rvalue.clone(),
+                            location: loan_location
+                        }
+                    )
+                }
 
-//              ref x => unreachable!("Borrow starts at statement {:?}", x),
-//          }
-//      }
-//      expiring_borrows
-//  }
+                ref x => unreachable!("Borrow starts at statement {:?}", x),
+            }
+        }
+        expiring_borrows
+    }
 
     fn get_successors(&self, location: mir::Location) -> Vec<mir::Location> {
         let statements_len = self.mir[location.block].statements.len();

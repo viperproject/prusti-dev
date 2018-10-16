@@ -175,12 +175,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         block: bbi,
                         statement_index: stmt_index
                     };
-
-                    /* TODO: WORK IN PROGRESS
                     for stmt in self.encode_expiring_borrows(location).drain(..) {
                         self.cfg_method.add_stmt(cfg_block, stmt);
                     }
-                    */
                 }
             } else {
                 // Any spec block must be unreachable
@@ -210,6 +207,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     return_cfg_block,
                 );
                 for stmt in stmts.into_iter() {
+                    self.cfg_method.add_stmt(cfg_block, stmt);
+                }
+                let location = mir::Location {
+                    block: bbi,
+                    statement_index: bb_data.statements.len()
+                };
+                for stmt in self.encode_expiring_borrows(location).drain(..) {
                     self.cfg_method.add_stmt(cfg_block, stmt);
                 }
                 self.cfg_method.set_successor(cfg_block, successor);
@@ -534,34 +538,33 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("encode_expiring_borrows '{:?}'", location);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        unimplemented!();
-        //for expiring_borrow in self.polonius_info.get_expiring_borrows(location).drain(..) {
-            //let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&expiring_borrow.expiring);
+        for expiring_borrow in self.polonius_info.get_expiring_borrows(location).drain(..) {
+            let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&expiring_borrow.expiring);
 
-            //match expiring_borrow.restored {
-                //mir::Rvalue::Ref(_, _, ref rhs_place) => {
-                    //let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                    //let ref_field = self.encoder.encode_value_field(expiring_ty);
-                    //let expiring = expiring_base.clone().access(ref_field);
-                    //assert_eq!(expiring.get_type(), restored.get_type());
-                    //stmts.push(
-                        //vir::Stmt::ExpireBorrow(expiring, restored)
-                    //)
-                //}
+            match expiring_borrow.restored {
+                mir::Rvalue::Ref(_, _, ref rhs_place) => {
+                    let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
+                    let ref_field = self.encoder.encode_value_field(expiring_ty);
+                    let expiring = expiring_base.clone().access(ref_field);
+                    assert_eq!(expiring.get_type(), restored.get_type());
+                    stmts.push(
+                        vir::Stmt::ExpireBorrow(expiring, restored)
+                    )
+                }
 
-                //mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                    //let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                    //let expiring = expiring_base;
-                    //assert_eq!(expiring.get_type(), restored.get_type());
-                    //stmts.push(
-                        //vir::Stmt::ExpireBorrow(expiring, restored)
-                    //)
-                //}
+                mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
+                    let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
+                    let expiring = expiring_base;
+                    assert_eq!(expiring.get_type(), restored.get_type());
+                    stmts.push(
+                        vir::Stmt::ExpireBorrow(expiring, restored)
+                    )
+                }
 
-                //ref x => unreachable!("Borrow restores rvalue {:?}", x)
-            //}
+                ref x => unreachable!("Borrow restores rvalue {:?}", x)
+            }
 
-        //}
+        }
 
         if stmts.len() > 0 {
             stmts.insert(
