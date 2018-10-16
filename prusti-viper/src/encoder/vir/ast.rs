@@ -962,7 +962,7 @@ impl Expr {
         Expr::Cond(box guard, box left, box right)
     }
 
-    pub fn as_place(&mut self) -> Option<Place> {
+    pub fn as_place(&self) -> Option<Place> {
         match self {
             Expr::Place(ref place) => Some(place.clone()),
             _ => None,

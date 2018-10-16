@@ -111,16 +111,17 @@ impl vir::Stmt {
 
                         // In Prusti, we lose permission on the rhs
                         state.remove_pred_matching_place( |p| p.has_prefix(&rhs_place));
-                        state.remove_acc_matching_place( |p| p.has_proper_prefix(&rhs_place));
+                        state.remove_acc_matching_place( |p| p.has_proper_prefix(&rhs_place) && !p.is_base());
 
                         // We also lose permission on the lhs
                         state.remove_pred_matching_place( |p| p.has_prefix(&lhs_place));
-                        state.remove_acc_matching_place( |p| p.has_prefix(&lhs_place));
+                        state.remove_acc_matching_place( |p| p.has_prefix(&lhs_place) && !p.is_base());
 
                         // And we create permissions for the lhs
                         let new_acc_places = original_state.acc().iter()
                             .filter(|(p, _)| p.has_prefix(&rhs_place))
-                            .map(|(p, frac)| (p.clone().replace_prefix(&rhs_place, lhs_place.clone()), *frac));
+                            .map(|(p, frac)| (p.clone().replace_prefix(&rhs_place, lhs_place.clone()), *frac))
+                            .filter(|(p, _)| !p.is_base());
                         state.insert_all_acc(new_acc_places);
 
                         let new_pred_places = original_state.pred().iter()
@@ -220,9 +221,9 @@ impl vir::Stmt {
 
                 // In Prusti, lose permission from the lhs and rhs
                 state.remove_pred_matching_place(|p| p.has_prefix(&lhs_place));
-                state.remove_acc_matching_place(|p| p.has_proper_prefix(&lhs_place));
+                state.remove_acc_matching_place(|p| p.has_prefix(&lhs_place) && !p.is_base());
                 state.remove_pred_matching_place(|p| p.has_prefix(&rhs_place));
-                state.remove_acc_matching_place(|p| p.has_proper_prefix(&rhs_place));
+                state.remove_acc_matching_place(|p| p.has_prefix(&rhs_place) && !p.is_base());
 
                 // The rhs is no longer moved
                 state.remove_moved_matching(|p| p.has_prefix(&rhs_place));
@@ -230,7 +231,8 @@ impl vir::Stmt {
                 // And we create permissions for the rhs
                 let new_acc_places = original_state.acc().iter()
                     .filter(|(p, _)| p.has_prefix(&lhs_place))
-                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac));
+                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac))
+                    .filter(|(p, _)| !p.is_base());
                 state.insert_all_acc(new_acc_places);
 
                 let new_pred_places = original_state.pred().iter()

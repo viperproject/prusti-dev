@@ -950,6 +950,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .cloned()
             .unwrap_or(Vec::new());
 
+        // TODO(Federico): What this code does?
+        //let dying_loans = self.polonius_info.get_loans_dying_at(location);
 
         // Format the loans and mark the dying ones.
         blas.sort();

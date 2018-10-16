@@ -19,7 +19,7 @@ use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::PermissionKind;
-use prusti_interface::environment::polonius_info::{ExpiringBorrow, PoloniusInfo};
+use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
@@ -168,14 +168,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for (stmt_index, stmt) in statements.iter().enumerate() {
                     trace!("Encode statement {:?}:{}", bbi, stmt_index);
                     self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
-                    for stmt in self.encode_statement(stmt).drain(..) {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
-                    }
                     let location = mir::Location {
                         block: bbi,
                         statement_index: stmt_index
                     };
-                    for stmt in self.encode_expiring_borrows(location).drain(..) {
+                    if location.statement_index == 0 {
+                        for stmt in self.encode_expiring_borrows_before(location).drain(..) {
+                            self.cfg_method.add_stmt(cfg_block, stmt);
+                        }
+                    }
+                    for stmt in self.encode_statement(stmt, location).drain(..) {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
+                    for stmt in self.encode_expiring_borrows_at(location).drain(..) {
                         self.cfg_method.add_stmt(cfg_block, stmt);
                     }
                 }
@@ -201,19 +206,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 trace!("Encode terminator of {:?}", bbi);
                 let cfg_block = *cfg_blocks.get(&bbi).unwrap();
                 self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", term.kind)));
+                let location = mir::Location {
+                    block: bbi,
+                    statement_index: bb_data.statements.len()
+                };
+                if location.statement_index == 0 {
+                    for stmt in self.encode_expiring_borrows_before(location).drain(..) {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
+                }
                 let (stmts, successor) = self.encode_terminator(
                     term,
+                    location,
                     &cfg_blocks,
                     return_cfg_block,
                 );
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
                 }
-                let location = mir::Location {
-                    block: bbi,
-                    statement_index: bb_data.statements.len()
-                };
-                for stmt in self.encode_expiring_borrows(location).drain(..) {
+                for stmt in self.encode_expiring_borrows_at(location).drain(..) {
                     self.cfg_method.add_stmt(cfg_block, stmt);
                 }
                 self.cfg_method.set_successor(cfg_block, successor);
@@ -344,7 +355,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         final_method
     }
 
-    fn encode_statement(&mut self, stmt: &mir::Statement<'tcx>) -> Vec<vir::Stmt> {
+    fn encode_statement(&mut self, stmt: &mir::Statement<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("Encode statement '{:?}', span: {:?}", stmt.kind, stmt.source_info.span);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
@@ -469,7 +480,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 let discr_value: vir::Expr = if num_variants <= 1 {
                                     0.into()
                                 } else {
-                                    encoded_src.access(discr_field).into()
+                                    self.translate_maybe_borrowed_place(
+                                        location,
+                                        encoded_src.access(discr_field)
+                                    ).into()
                                 };
                                 let int_field = self.encoder.encode_value_field(ty);
                                 stmts.push(
@@ -485,7 +499,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             ty::TypeVariants::TyInt(_) |
                             ty::TypeVariants::TyUint(_) => {
                                 let value_field = self.encoder.encode_value_field(src_ty);
-                                let discr_value: vir::Expr = encoded_src.access(value_field).into();
+                                let discr_value: vir::Expr = self.translate_maybe_borrowed_place(
+                                    location,
+                                    encoded_src.access(value_field)
+                                ).into();
                                 let int_field = self.encoder.encode_value_field(ty);
                                 stmts.push(
                                     vir::Stmt::Assign(
@@ -504,13 +521,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
 
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Shared, ref place) => {
-                        warn!("TODO: Incomplete encoding of shared references");
-                        stmts
-                    }
-
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Unique, ref place) |
-                    &mir::Rvalue::Ref(ref _region, mir::BorrowKind::Mut{ .. }, ref place)=> {
+                    &mir::Rvalue::Ref(ref _region, _, ref place) => {
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
                         // Initialize ref_var.ref_field
@@ -534,36 +545,65 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_expiring_borrows(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("encode_expiring_borrows '{:?}'", location);
-        let mut stmts: Vec<vir::Stmt> = vec![];
+    /// Translate a borrowed place to a place that is currently usable
+    fn translate_maybe_borrowed_place(&self, location: mir::Location, place: vir::Place) -> vir::Place {
+        let relevant_active_loan_places: Vec<_> = self.polonius_info.get_active_loans(location)
+            .iter()
+            .flat_map(|p| self.polonius_info.get_loan_places(p))
+            .filter(|loan_places| {
+                let (_, encoded_source) = self.encode_loan_places(loan_places);
+                place.has_prefix(&encoded_source)
+            })
+            .collect();
+        assert!(relevant_active_loan_places.len() <= 1);
+        if !relevant_active_loan_places.is_empty() {
+            let loan_places = &relevant_active_loan_places[0];
+            let (encoded_dest, encoded_source) = self.encode_loan_places(loan_places);
+            // Recursive translation
+            self.translate_maybe_borrowed_place(
+                loan_places.location,
+                place.replace_prefix(&encoded_source, encoded_dest)
+            )
+        } else {
+            place
+        }
+    }
 
-        for expiring_borrow in self.polonius_info.get_expiring_borrows(location).drain(..) {
-            let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&expiring_borrow.expiring);
-
-            match expiring_borrow.restored {
-                mir::Rvalue::Ref(_, _, ref rhs_place) => {
-                    let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                    let ref_field = self.encoder.encode_value_field(expiring_ty);
-                    let expiring = expiring_base.clone().access(ref_field);
-                    assert_eq!(expiring.get_type(), restored.get_type());
-                    stmts.push(
-                        vir::Stmt::ExpireBorrow(expiring, restored)
-                    )
-                }
-
-                mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                    let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                    let expiring = expiring_base;
-                    assert_eq!(expiring.get_type(), restored.get_type());
-                    stmts.push(
-                        vir::Stmt::ExpireBorrow(expiring, restored)
-                    )
-                }
-
-                ref x => unreachable!("Borrow restores rvalue {:?}", x)
+    /// Encode the lhs and the rhs of the assignment that create the loan
+    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Place, vir::Place) {
+        debug!("encode_loan_rvalue '{:?}'", loan_places);
+        let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest);
+        match loan_places.source {
+            mir::Rvalue::Ref(_, _, ref rhs_place) => {
+                let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
+                let ref_field = self.encoder.encode_value_field(expiring_ty);
+                let expiring = expiring_base.clone().access(ref_field);
+                assert_eq!(expiring.get_type(), restored.get_type());
+                (expiring, restored)
             }
 
+            mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
+                let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
+                let expiring = expiring_base;
+                assert_eq!(expiring.get_type(), restored.get_type());
+                (expiring, restored)
+            }
+
+            ref x => unreachable!("Borrow restores rvalue {:?}", x)
+        }
+    }
+
+    fn encode_expiring_borrows_before(&self, location: mir::Location) -> Vec<vir::Stmt> {
+        debug!("encode_expiring_borrows_before '{:?}'", location);
+        let mut stmts: Vec<vir::Stmt> = vec![];
+
+        for loan in self.polonius_info.get_loans_dying_before(location).drain(..) {
+            if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
+                let (expiring, restored) = self.encode_loan_places(&loan_places);
+                stmts.push(
+                    vir::Stmt::ExpireBorrow(expiring, restored)
+                );
+            }
         }
 
         if stmts.len() > 0 {
@@ -576,7 +616,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>,
+    fn encode_expiring_borrows_at(&self, location: mir::Location) -> Vec<vir::Stmt> {
+        debug!("encode_expiring_borrows_at '{:?}'", location);
+        let mut stmts: Vec<vir::Stmt> = vec![];
+
+        for loan in self.polonius_info.get_loans_dying_at(location).drain(..) {
+            if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
+                let (expiring, restored) = self.encode_loan_places(&loan_places);
+                stmts.push(
+                    vir::Stmt::ExpireBorrow(expiring, restored)
+                );
+            }
+        }
+
+        if stmts.len() > 0 {
+            stmts.insert(
+                0,
+                vir::Stmt::comment(format!("Expire {} dying loans", stmts.len()))
+            )
+        }
+
+        stmts
+    }
+
+    fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>, location: mir::Location,
                          cfg_blocks: &HashMap<BasicBlockIndex, CfgBlockIndex>,
                          return_cfg_block: CfgBlockIndex) -> (Vec<vir::Stmt>, Successor) {
         debug!("Encode terminator '{:?}', span: {:?}", term.kind, term.source_info.span);
@@ -609,10 +672,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     ref x => unreachable!("{:?}", x)
                 };
+                let encoded_discr = self.mir_encoder.encode_operand_expr(discr);
                 stmts.push(
                     vir::Stmt::Assign(
                         discr_var.clone().into(),
-                        self.mir_encoder.encode_operand_expr(discr),
+                        match encoded_discr.as_place() {
+                            Some(discr_place) => self.translate_maybe_borrowed_place(location, discr_place).into(),
+                            None => encoded_discr
+                        },
                         vir::AssignKind::Copy
                     )
                 );
@@ -645,21 +712,40 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     cfg_targets.push((viper_guard, *target_cfg_block))
                 }
                 let default_target = targets[values.len()];
-                let cfg_default_target = cfg_blocks.get(&default_target).unwrap();
+                let cfg_default_target = if let Some(cfg_target) = cfg_blocks.get(&default_target) {
+                    *cfg_target
+                } else {
+                    // Prepare a block that encodes the unreachable branch
+                    assert!(
+                        if let mir::TerminatorKind::Unreachable = self.mir[default_target].terminator.as_ref().unwrap().kind {
+                            true
+                        } else {
+                            false
+                        }
+                    );
+                    let unreachable_label = self.cfg_method.get_fresh_label_name();
+                    let unreachable_block = self.cfg_method.add_block(&unreachable_label, vec![], vec![
+                        vir::Stmt::comment(format!("========== {} ==========", &unreachable_label)),
+                        vir::Stmt::comment(format!("Block marked as 'unreachable' by the compiler")),
+                    ]);
+                    if config::check_unreachable_terminators() {
+                        let pos = self.encoder.error_manager().register(
+                            term.source_info.span,
+                            ErrorCtxt::UnreachableTerminator
+                        );
+                        self.cfg_method.add_stmt(
+                            unreachable_block,
+                            vir::Stmt::Assert(false.into(), pos)
+                        );
+                    }
+                    self.cfg_method.set_successor(unreachable_block, Successor::Return);
+                    unreachable_block
+                };
 
-                (stmts, Successor::GotoSwitch(cfg_targets, *cfg_default_target))
+                (stmts, Successor::GotoSwitch(cfg_targets, cfg_default_target))
             }
 
-            TerminatorKind::Unreachable => {
-                let pos = self.encoder.error_manager().register(
-                    term.source_info.span,
-                    ErrorCtxt::UnreachableTerminator
-                );
-                stmts.push(
-                    vir::Stmt::Assert(false.into(), pos)
-                );
-                (stmts, Successor::Return)
-            }
+            TerminatorKind::Unreachable => unreachable!(),
 
             TerminatorKind::Abort => {
                 let pos = self.encoder.error_manager().register(

@@ -31,7 +31,7 @@ struct T3 {
     h: T2,
 }
 
-fn _test1(x: T3, y: T2) {
+fn test2(x: T3, y: T2) {
     let mut x = x;
     if let T2::E2c(T1 { f: z, .. }) = x.g {}
     x.g = y;
