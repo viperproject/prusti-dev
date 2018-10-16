@@ -234,7 +234,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 }
             }
         }
-        unimplemented!();
 
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
 
