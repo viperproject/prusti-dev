@@ -616,10 +616,153 @@ pub struct AdditionalFacts {
     pub reborrows: Vec<(facts::Loan, facts::Loan)>,
     /// Non-transitive `reborrows`.
     pub reborrows_direct: Vec<(facts::Loan, facts::Loan)>,
+    /// The ``zombie_requires`` facts are ``requires`` facts for the loans
+    /// that were killed.
+    ///
+    /// ```datalog
+    /// zombie_requires(Region, Loan, Point);
+    /// zombie_requires(R, L, Q) :-
+    ///     requires(R, L, P),
+    ///     killed(L, P),
+    ///     cfg_edge(P, Q),
+    ///     region_live_at(R, Q).
+    /// zombie_requires(R2, L, P) :-
+    ///     zombie_requires(R1, L, P),
+    ///     subset(R1, R2, P).
+    /// zombie_requires(R, L, Q) :-
+    ///     zombie_requires(R, L, P),
+    ///     cfg_edge(P, Q),
+    ///     region_live_at(R, Q).
+    /// ```
+    pub zombie_requires: HashMap<facts::PointIndex, HashMap<facts::Region, HashSet<facts::Loan>>>,
+    /// The ``zombie_borrow_live_at`` facts are ``borrow_live_at`` facts
+    /// for the loans that were killed.
+    ///
+    /// ```datalog
+    /// zombie_borrow_live_at(L, P) :-
+    ///     zombie_requires(R, L, P),
+    ///     region_live_at(R, P).
+    /// ```
+    pub zombie_borrow_live_at: HashMap<facts::PointIndex, Vec<facts::Loan>>,
 }
 
 
 impl AdditionalFacts {
+
+    /// Derive ``zombie_requires``.
+    fn derive_zombie_requires(all_facts: &facts::AllInputFacts,
+                              output: &facts::AllOutputFacts
+                              ) -> (
+                                  HashMap<facts::PointIndex, HashMap<facts::Region, HashSet<facts::Loan>>>,
+                                  HashMap<facts::PointIndex, Vec<facts::Loan>>) {
+
+        use datafrog::{Iteration, Relation};
+        use self::facts::{PointIndex as Point, Loan, Region};
+
+        let mut iteration = Iteration::new();
+
+        // Variables that are outputs of our computation.
+        let zombie_requires = iteration.variable::<(Region, Loan, Point)>("zombie_requires");
+        let zombie_borrow_live_at = iteration.variable::<(Loan, Point)>("zombie_borrow_live_at");
+
+        // Variables for initial data.
+        let requires_lp = iteration.variable::<((Loan, Point), Region)>("requires_lp");
+        let killed = iteration.variable::<((Loan, Point), ())>("killed");
+        let cfg_edge_p = iteration.variable::<(Point, Point)>("cfg_edge_p");
+        let region_live_at = iteration.variable::<((Region, Point), ())>("region_live_at");
+        let subset_r1p = iteration.variable::<((Region, Point), Region)>("subset_r1p");
+
+        // Temporaries as we perform a multi-way join.
+        let zombie_requires_rp = iteration.variable_indistinct("zombie_requires_rp");
+        let zombie_requires_p = iteration.variable_indistinct("zombie_requires_p");
+        let zombie_requires_1 = iteration.variable_indistinct("zombie_requires_1");
+        let zombie_requires_2 = iteration.variable_indistinct("zombie_requires_2");
+        let zombie_requires_3 = iteration.variable_indistinct("zombie_requires_3");
+
+        // Load initial facts.
+        requires_lp.insert(Relation::from(
+            output.restricts.iter().flat_map(
+                |(&point, region_map)|
+                region_map.iter().flat_map(
+                    move |(&region, loans)|
+                    loans.iter().map(move |&loan| ((loan, point), region))
+                )
+            )
+        ));
+        killed.insert(Relation::from(
+            all_facts.killed.iter().map(
+                |&(loan, point)|
+                ((loan, point), ())
+            )
+        ));
+        cfg_edge_p.insert(all_facts.cfg_edge.clone().into());
+        region_live_at.insert(Relation::from(
+            all_facts.region_live_at.iter().map(|&(r, p)| ((r, p), ())),
+        ));
+        subset_r1p.insert(Relation::from(
+            output.subset.iter().flat_map(
+                |(&point, subset_map)|
+                subset_map.iter().flat_map(
+                    move |(&region1, regions)|
+                    regions.iter().map(move |&region2| ((region1, point), region2))
+                )
+            )
+        ));
+
+        while iteration.changed() {
+
+            zombie_requires_rp.from_map(&zombie_requires, |&(r, l, p)| ((r, p), l));
+            zombie_requires_p.from_map(&zombie_requires, |&(r, l, p)| (p, (l, r)));
+
+            // zombie_requires(R, L, Q) :-
+            //     requires(R, L, P),
+            //     killed(L, P),
+            //     cfg_edge(P, Q),
+            //     region_live_at(R, Q).
+            zombie_requires_1.from_join(&requires_lp, &killed, |&(l, p), &r, _| (p, (l, r)));
+            zombie_requires_2.from_join(&zombie_requires_1, &cfg_edge_p, |&_p, &(l, r), &q| ((r, q), l));
+            zombie_requires.from_join(&zombie_requires_2, &region_live_at, |&(r, q), &l, &()| (r, l, q));
+
+            // zombie_requires(R2, L, P) :-
+            //     zombie_requires(R1, L, P),
+            //     subset(R1, R2, P).
+            zombie_requires.from_join(&zombie_requires_rp, &subset_r1p, |&(_r1, p), &b, &r2| (r2, b, p));
+
+            // zombie_requires(R, L, Q) :-
+            //     zombie_requires(R, L, P),
+            //     cfg_edge(P, Q),
+            //     region_live_at(R, Q).
+            zombie_requires_3.from_join(&zombie_requires_p, &cfg_edge_p, |&_p, &(l, r), &q| ((r, q), l));
+            zombie_requires.from_join(&zombie_requires_3, &region_live_at, |&(r, q), &l, &()| (r, l, q));
+
+            // zombie_borrow_live_at(L, P) :-
+            //     zombie_requires(R, L, P),
+            //     region_live_at(R, P).
+            zombie_borrow_live_at.from_join(&zombie_requires_rp, &region_live_at, |&(_r, p), &l, &()| (l, p));
+        }
+
+        let zombie_requires = zombie_requires.complete();
+        let mut zombie_requires_map = HashMap::new();
+        for (region, loan, point) in &zombie_requires.elements {
+            zombie_requires_map
+                .entry(*point)
+                .or_insert(HashMap::new())
+                .entry(*region)
+                .or_insert(HashSet::new())
+                .insert(*loan);
+        }
+
+        let zombie_borrow_live_at = zombie_borrow_live_at.complete();
+        let mut zombie_borrow_live_at_map = HashMap::new();
+        for (loan, point) in &zombie_borrow_live_at.elements {
+            zombie_borrow_live_at_map
+                .entry(*point)
+                .or_insert(Vec::new())
+                .push(*loan);
+        }
+
+        (zombie_requires_map, zombie_borrow_live_at_map)
+    }
 
     /// Derive additional facts from the borrow checker facts.
     pub fn new(all_facts: &facts::AllInputFacts,
@@ -697,10 +840,15 @@ impl AdditionalFacts {
             .map(|&(_, l, _)| l)
             .collect();
         loans.sort();
+
+        let (zombie_requires, zombie_borrow_live_at) =
+            Self::derive_zombie_requires(all_facts, output);
         AdditionalFacts {
             loans: loans,
             reborrows: reborrows,
             reborrows_direct: reborrows_direct,
+            zombie_requires: zombie_requires,
+            zombie_borrow_live_at: zombie_borrow_live_at,
         }
     }
 
