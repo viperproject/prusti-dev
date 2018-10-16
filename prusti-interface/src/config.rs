@@ -15,7 +15,7 @@ lazy_static! {
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("DEBUG_FOLDUNFOLD", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
-        settings.set_default("SIMPLIFY_EXPRESSIONS", false).unwrap();
+        settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(

@@ -10,12 +10,6 @@ struct F {
     g: G,
 }
 
-fn test1(x: &mut F) {
-    let y = x;
-    let z = y;
-    let z2 = &mut *z;
-    let z3 = &mut *z;
-}
+fn use_mut_ref(x: &mut F) {}
 
-fn main() {
-}
+fn main() {}
