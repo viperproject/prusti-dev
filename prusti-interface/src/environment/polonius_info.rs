@@ -9,6 +9,7 @@ use rustc::ty;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
+use super::loops;
 use super::borrowck::{facts, regions};
 use std::fs::File;
 use polonius_engine::{Algorithm, Output, Atom};
@@ -19,6 +20,28 @@ pub struct ExpiringBorrow<'tcx> {
     pub expiring: mir::Place<'tcx>,
     pub restored: mir::Rvalue<'tcx>,
     pub location: mir::Location,
+}
+
+pub struct LoopMagicWand {
+    /// Basic block that is the loop head.
+    loop_id: mir::BasicBlock,
+    /// The reference on the left hand side of the magic wand.
+    variable: mir::Local,
+    /// The region of the reference.
+    region: facts::Region,
+    /// Loans that are kept alive by this reference.
+    loans: Vec<facts::Loan>,
+}
+
+impl fmt::Debug for LoopMagicWand {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({:?}:{:?} --* ", self.variable, self.region)?;
+        for loan in self.loans.iter() {
+            write!(f, "{:?},", loan)?;
+        }
+        write!(f, ")")
+    }
 }
 
 pub enum ReborrowingKind {
@@ -124,6 +147,8 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) call_magic_wands: HashMap<facts::Loan, mir::Local>,
     pub(crate) variable_regions: HashMap<mir::Local, facts::Region>,
     pub(crate) additional_facts: AdditionalFacts,
+    /// Loop head → Vector of magic wands in that loop.
+    pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
@@ -185,15 +210,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                         if let Some(place) = call_destination {
                             match place {
                                 mir::Place::Local(local) => {
-                                    let var_region = variable_regions.get(&local);
-                                    debug!("var_region = {:?}", var_region);
-                                    let loan = facts::Loan::from(last_loan_id);
-                                    borrow_region.push(
-                                        (*var_region.unwrap(),
-                                         loan,
-                                         *point));
-                                    last_loan_id += 1;
-                                    call_magic_wands.insert(loan, local);
+                                    if let Some(var_region) = variable_regions.get(&local) {
+                                        debug!("var_region = {:?}", var_region);
+                                        let loan = facts::Loan::from(last_loan_id);
+                                        borrow_region.push(
+                                            (*var_region,
+                                             loan,
+                                             *point));
+                                        last_loan_id += 1;
+                                        call_magic_wands.insert(loan, local);
+                                    }
                                 }
                                 x => unimplemented!("{:?}", x)
                             }
@@ -221,14 +247,15 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let additional_facts = AdditionalFacts::new(&all_facts, &output);
 
         PoloniusInfo {
-            mir,
+            mir: mir,
             borrowck_in_facts: all_facts,
             borrowck_out_facts: output,
-            interner,
-            loan_position,
-            call_magic_wands,
-            variable_regions,
-            additional_facts,
+            interner: interner,
+            loan_position: loan_position,
+            call_magic_wands: call_magic_wands,
+            variable_regions: variable_regions,
+            additional_facts: additional_facts,
+            loop_magic_wands: HashMap::new(),
         }
     }
 
@@ -286,9 +313,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
-    pub fn construct_reborrowing_forest(&self, loans: &[facts::Loan]) -> ReborrowingForest {
-
-        // Find minimal elements that are the tree roots.
+    /// Find minimal elements that are the tree roots.
+    fn find_loan_roots(&self, loans: &[facts::Loan]) -> Vec<facts::Loan> {
         let mut roots = Vec::new();
         for &loan in loans.iter() {
             let is_smallest = !loans
@@ -296,10 +322,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 .any(|&other_loan| {
                     self.additional_facts.reborrows.contains(&(other_loan, loan))
                 });
+            debug!("loan={:?} is_smallest={}", loan, is_smallest);
             if is_smallest {
                 roots.push(loan);
             }
         }
+        roots
+    }
+
+    pub fn construct_reborrowing_forest(&self, loans: &[facts::Loan]) -> ReborrowingForest {
+        let roots = self.find_loan_roots(loans);
 
         // Reconstruct the tree from each root.
         let mut trees = Vec::new();
@@ -355,6 +387,39 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             kind: kind,
             branching: branching,
         }
+    }
+
+    pub fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock,
+                               loop_info: &loops::ProcedureLoops,
+                               local: mir::Local) {
+        let region = self.variable_regions[&local];
+        let location = mir::Location {
+            block: loop_head,
+            statement_index: 0,
+        };
+        let point = self.get_point(location, facts::PointType::Start);
+        let restricts_map = &self.borrowck_out_facts.restricts;
+        let restricts_at_point = restricts_map.get(&point);
+        let restricts = restricts_at_point.as_ref().expect("BUG: No restricts");
+        let loans = restricts.get(&region).expect("BUG: no loans");
+        let loans: Vec<_> = loans
+            .iter()
+            .filter(|loan| {
+                // Drop all loans that are from inside of the loop.
+                let loan_block = self.loan_position[loan].block;
+                !loop_info.is_block_in_loop(loop_head, loan_block)
+            })
+            .cloned()
+            .collect();
+        let roots = self.find_loan_roots(&loans);
+        let magic_wand = LoopMagicWand {
+            loop_id: loop_head,
+            variable: local,
+            region: region,
+            loans: roots,
+        };
+        let mut entry = self.loop_magic_wands.entry(loop_head).or_insert(Vec::new());
+        entry.push(magic_wand);
     }
 
 //  pub fn get_expiring_borrows(&self, location: mir::Location) -> Vec<ExpiringBorrow<'tcx>> {

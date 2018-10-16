@@ -264,4 +264,10 @@ impl ProcedureLoops {
         visitor.visit_mir(mir);
         visitor.accessed_places
     }
+
+    /// Check if ``block`` is inside a loop.
+    pub fn is_block_in_loop(&self, loop_head: BasicBlockIndex,
+                            block: BasicBlockIndex) -> bool {
+        self.dominators.is_dominated_by(block, loop_head)
+    }
 }

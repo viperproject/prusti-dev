@@ -484,6 +484,37 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td colspan=\"7\">{}</td>", to_html_display!(forest));
             write_graph!(self, "</tr>");
 
+            let mut reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
+                .iter()
+                .flat_map(|place| {
+                    // Only locals – we do not support references in fields.
+                    match place {
+                        mir::Place::Local(local) => Some(local),
+                        _ => None,
+                    }
+                })
+                .flat_map(|local| {
+                    // Only references (variables that have regions).
+                    self.polonius_info.variable_regions.get(&local).map(|region| (*local, *region))
+                })
+                // Note: With our restrictions these two checks are sufficient to ensure
+                // that we have reborrowing. For example, we do not need to check that
+                // at least one of the loans is coming from inside of the loop body.
+                .collect();
+
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Reborrows:</td>");
+            write_graph!(self, "<td colspan=\"7\">{}</td>", to_sorted_string!(reborrows));
+            write_graph!(self, "</tr>");
+
+            for &(local, _) in reborrows.iter() {
+                self.polonius_info.add_loop_magic_wand(bb, &self.loops, local);
+            }
+            write_graph!(self, "<tr>");
+            write_graph!(self, "<td colspan=\"2\">Magic wands:</td>");
+            write_graph!(self, "<td colspan=\"7\">{}</td>",
+                         to_sorted_string!(self.polonius_info.loop_magic_wands[&bb]));
+            write_graph!(self, "</tr>");
         }
         write_graph!(self, "<th>");
         if self.show_statement_indices() {
@@ -515,7 +546,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td></td>");
         }
         write_graph!(self, "<td>{}</td>", term_str);
-        write_graph!(self, "<td colspan=\"6\"></td>");
+        write_graph!(self, "<td></td>");
+        self.write_mid_point_blas(location);
+        write_graph!(self, "<td colspan=\"4\"></td>");
         write_graph!(self, "<td>{}</td>",
                      self.get_definitely_initialized_after_statement(location));
         write_graph!(self, "</tr>");
@@ -644,32 +677,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         } else {
             write_graph!(self, "<td></td>");
         }
-        if let Some(ref blas) = self.polonius_info.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
-            // Get the loans that dye in this statement.
-            let dying_loans = self.polonius_info.get_dying_loans(location);
-
-            // Format the loans and mark the dying ones.
-            let mut blas = (**blas).clone();
-            blas.sort();
-            let blas: Vec<_> = blas.into_iter()
-                .map(|loan| {
-                    if dying_loans.contains(&loan) {
-                        format!("<b><font color=\"red\">{:?}</font></b>", loan)
-                    } else {
-                        format!("{:?}", loan)
-                    }
-                })
-                .collect();
-
-            write_graph!(self, "<td>{}", blas.join(", "));
-            let forest = self.polonius_info.construct_reborrowing_forest(&dying_loans);
-            if !dying_loans.is_empty() {
-                write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
-            }
-            write_graph!(self, "</td>");
-        } else {
-            write_graph!(self, "<td></td>");
-        }
+        self.write_mid_point_blas(location);
 
         // Borrow regions (loan start points).
         let borrow_regions: Vec<_> = self.polonius_info.borrowck_in_facts
@@ -912,6 +920,38 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
             successors
         }
+    }
+
+    /// Print the HTML cell with loans at given location.
+    fn write_mid_point_blas(&self, location: mir::Location) -> Result<(),io::Error> {
+        let mid_point = self.get_point(location, facts::PointType::Mid);
+        if let Some(ref blas) = self.polonius_info.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
+            // Get the loans that dye in this statement.
+            let dying_loans = self.polonius_info.get_dying_loans(location);
+
+            // Format the loans and mark the dying ones.
+            let mut blas = (**blas).clone();
+            blas.sort();
+            let blas: Vec<_> = blas.into_iter()
+                .map(|loan| {
+                    if dying_loans.contains(&loan) {
+                        format!("<b><font color=\"red\">{:?}</font></b>", loan)
+                    } else {
+                        format!("{:?}", loan)
+                    }
+                })
+                .collect();
+
+            write_graph!(self, "<td>{}", blas.join(", "));
+            let forest = self.polonius_info.construct_reborrowing_forest(&dying_loans);
+            if !dying_loans.is_empty() {
+                write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
+            }
+            write_graph!(self, "</td>");
+        } else {
+            write_graph!(self, "<td></td>");
+        }
+        Ok(())
     }
 
     /// `package` – should it also try to compute the package statements?
