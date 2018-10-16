@@ -925,32 +925,35 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     /// Print the HTML cell with loans at given location.
     fn write_mid_point_blas(&self, location: mir::Location) -> Result<(),io::Error> {
         let mid_point = self.get_point(location, facts::PointType::Mid);
-        if let Some(ref blas) = self.polonius_info.borrowck_out_facts.borrow_live_at.get(&mid_point).as_ref() {
-            // Get the loans that dye in this statement.
-            let dying_loans = self.polonius_info.get_dying_loans(location);
-
-            // Format the loans and mark the dying ones.
-            let mut blas = (**blas).clone();
-            blas.sort();
-            let blas: Vec<_> = blas.into_iter()
-                .map(|loan| {
-                    if dying_loans.contains(&loan) {
-                        format!("<b><font color=\"red\">{:?}</font></b>", loan)
-                    } else {
-                        format!("{:?}", loan)
-                    }
-                })
-                .collect();
-
-            write_graph!(self, "<td>{}", blas.join(", "));
-            let forest = self.polonius_info.construct_reborrowing_forest(&dying_loans);
-            if !dying_loans.is_empty() {
-                write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
-            }
-            write_graph!(self, "</td>");
+        let borrow_live_at_map = &self.polonius_info.borrowck_out_facts.borrow_live_at;
+        let mut blas = if let Some(ref blas) = borrow_live_at_map.get(&mid_point).as_ref() {
+            (**blas).clone()
         } else {
-            write_graph!(self, "<td></td>");
+            Vec::new()
+        };
+
+        // Get the loans that dye in this statement.
+        let dying_loans = self.polonius_info.get_dying_loans(location);
+
+        // Format the loans and mark the dying ones.
+        blas.sort();
+        let blas: Vec<_> = blas.into_iter()
+            .map(|loan| {
+                if dying_loans.contains(&loan) {
+                    format!("<b><font color=\"red\">{:?}</font></b>", loan)
+                } else {
+                    format!("{:?}", loan)
+                }
+            })
+            .collect();
+
+        write_graph!(self, "<td>{}", blas.join(", "));
+        let forest = self.polonius_info.construct_reborrowing_forest(&dying_loans);
+        if !dying_loans.is_empty() {
+            write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
         }
+        write_graph!(self, "</td>");
+
         Ok(())
     }
 
