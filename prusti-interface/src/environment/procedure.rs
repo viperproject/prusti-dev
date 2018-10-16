@@ -115,7 +115,11 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Check whether the block is reachable
     pub fn is_reachable_block(&self, bbi: BasicBlockIndex) -> bool {
-        self.reachable_basic_blocks.contains(&bbi)
+        if let mir::TerminatorKind::Unreachable = self.mir[bbi].terminator.as_ref().unwrap().kind {
+            false
+        } else {
+            self.reachable_basic_blocks.contains(&bbi)
+        }
     }
 }
 

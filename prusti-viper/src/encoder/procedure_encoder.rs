@@ -708,9 +708,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     cfg_targets.push((viper_guard, *target_cfg_block))
                 }
                 let default_target = targets[values.len()];
-                let cfg_default_target = cfg_blocks.get(&default_target).unwrap();
+                let cfg_default_target = if let Some(cfg_target) = cfg_blocks.get(&default_target) {
+                    *cfg_target
+                } else {
+                    // Prepare a block that encodes the unreachable branch
+                    let unreachable_label = self.cfg_method.get_fresh_label_name();
+                    let unreachable_block = self.cfg_method.add_block(&unreachable_label, vec![], vec![
+                        vir::Stmt::comment(format!("========== {} ==========", &unreachable_label)),
+                        vir::Stmt::comment(format!("Block marked as 'unreachable' by the compiler")),
+                    ]);
+                    self.cfg_method.set_successor(unreachable_block, Successor::Return);
+                    unreachable_block
+                };
 
-                (stmts, Successor::GotoSwitch(cfg_targets, *cfg_default_target))
+                (stmts, Successor::GotoSwitch(cfg_targets, cfg_default_target))
             }
 
             TerminatorKind::Unreachable => {

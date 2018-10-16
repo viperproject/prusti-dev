@@ -352,7 +352,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             );
             let dying_before_loc: HashSet<_> = dying_between.difference(&dying_at_predecessor).cloned().collect();
             if let Some(ref dying_before_content) = dying_before {
-                debug_assert!(dying_before_content == &dying_before_loc);
+                if dying_before_content != &dying_before_loc {
+                    debug!("Incoming CFG edges have different expiring loans");
+                    return vec![];
+                }
             } else {
                 dying_before = Some(dying_before_loc);
             }
