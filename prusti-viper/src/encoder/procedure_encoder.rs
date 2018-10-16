@@ -672,10 +672,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     ref x => unreachable!("{:?}", x)
                 };
+                let encoded_discr = self.mir_encoder.encode_operand_expr(discr);
                 stmts.push(
                     vir::Stmt::Assign(
                         discr_var.clone().into(),
-                        self.mir_encoder.encode_operand_expr(discr),
+                        match encoded_discr.as_place() {
+                            Some(discr_place) => self.translate_maybe_borrowed_place(location, discr_place).into(),
+                            None => encoded_discr
+                        },
                         vir::AssignKind::Copy
                     )
                 );
@@ -741,7 +745,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::GotoSwitch(cfg_targets, cfg_default_target))
             }
 
-            TerminatorKind::Unreachable => unreachable!("blocks with an unreachable terminator are not encoded"),
+            TerminatorKind::Unreachable => unreachable!(),
 
             TerminatorKind::Abort => {
                 let pos = self.encoder.error_manager().register(
