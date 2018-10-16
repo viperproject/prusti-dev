@@ -513,7 +513,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Magic wands:</td>");
             write_graph!(self, "<td colspan=\"7\">{}</td>",
-                         to_sorted_string!(self.polonius_info.loop_magic_wands[&bb]));
+                         to_sorted_string!(self.polonius_info.loop_magic_wands.get(&bb).unwrap_or(&vec![])));
             write_graph!(self, "</tr>");
         }
         write_graph!(self, "<th>");
