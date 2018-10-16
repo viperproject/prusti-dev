@@ -2,7 +2,7 @@
 
 extern crate prusti_contracts;
 
-fn _test1() {
+fn test3() {
     let x = 5;
     if false {
         let y = 4;

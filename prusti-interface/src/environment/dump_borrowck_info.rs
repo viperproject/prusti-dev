@@ -933,7 +933,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         };
 
         // Get the loans that dye in this statement.
-        let dying_loans = self.polonius_info.get_dying_loans(location);
+        let dying_loans = self.polonius_info.get_loans_dying_at(location);
 
         // Format the loans and mark the dying ones.
         blas.sort();

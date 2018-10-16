@@ -8,6 +8,7 @@ use rustc::mir;
 use rustc::ty;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::iter::FromIterator;
 use std::fmt;
 use super::loops;
 use super::borrowck::{facts, regions};
@@ -16,9 +17,9 @@ use polonius_engine::{Algorithm, Output, Atom};
 use std::path::PathBuf;
 
 #[derive(Clone, Debug)]
-pub struct ExpiringBorrow<'tcx> {
-    pub expiring: mir::Place<'tcx>,
-    pub restored: mir::Rvalue<'tcx>,
+pub struct LoanPlaces<'tcx> {
+    pub dest: mir::Place<'tcx>,
+    pub source: mir::Rvalue<'tcx>,
     pub location: mir::Location,
 }
 
@@ -269,8 +270,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         self.interner.get_point_index(&point)
     }
 
-    /// Get loans that dye at the given location.
-    pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
+    /// Get loans that are active (including those that are about to die) at the given location.
+    pub fn get_active_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
         let start_point = self.get_point(location, facts::PointType::Start);
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
@@ -290,28 +291,99 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             // point.
             assert!(start_loans.iter().all(|loan| mid_loans.contains(loan)));
 
-            let successors = self.get_successors(location);
 
             // Filter loans that are not missing in all successors.
             mid_loans
-                .into_iter()
-                .filter(|loan| {
-                    !successors
-                        .iter()
-                        .any(|successor_location| {
-                            let point = self.get_point(*successor_location, facts::PointType::Start);
-                            self.borrowck_out_facts
-                                .borrow_live_at
-                                .get(&point)
-                                .map_or(false, |successor_loans| {
-                                    successor_loans.contains(loan)
-                                })
-                        })
-                })
-                .collect()
         } else {
             assert!(self.borrowck_out_facts.borrow_live_at.get(&start_point).is_none());
             vec![]
+        }
+    }
+
+    /// Get loans that die *at* (that is, exactly after) the given location.
+    pub fn get_loans_dying_at(&self, location: mir::Location) -> Vec<facts::Loan> {
+        let successors = self.get_successors(location);
+        self.get_active_loans(location)
+            .into_iter()
+            .filter(|loan| {
+                !successors
+                    .iter()
+                    .any(|successor_location| {
+                        let point = self.get_point(*successor_location, facts::PointType::Start);
+                        self.borrowck_out_facts
+                            .borrow_live_at
+                            .get(&point)
+                            .map_or(false, |successor_loans| {
+                                successor_loans.contains(loan)
+                            })
+                    })
+            })
+            .collect()
+    }
+
+    /// Get loans that die between two consecutive locations
+    pub fn get_loans_dying_between(&self, initial_loc: mir::Location, final_loc: mir::Location) -> Vec<facts::Loan> {
+        debug_assert!(self.get_successors(initial_loc).contains(&final_loc));
+        self.get_active_loans(initial_loc)
+            .into_iter()
+            .filter(|loan| {
+                let point = self.get_point(final_loc, facts::PointType::Start);
+                self.borrowck_out_facts
+                    .borrow_live_at
+                    .get(&point)
+                    .map_or(true, |successor_loans| {
+                        !successor_loans.contains(loan)
+                    })
+            })
+            .collect()
+    }
+
+    /// Get loans that die exactly before the given location, but not *at* any of the predecessors.
+    /// Note: we don't handle a loan that dies just in a subset of the incoming CFG edges.
+    pub fn get_loans_dying_before(&self, location: mir::Location) -> Vec<facts::Loan> {
+        let mut predecessors = self.get_predecessors(location);
+        let mut dying_before: Option<HashSet<facts::Loan>> = None;
+        for predecessor in predecessors.drain(..) {
+            let dying_at_predecessor: HashSet<_> = HashSet::from_iter(
+                self.get_loans_dying_at(predecessor)
+            );
+            let dying_between: HashSet<_> = HashSet::from_iter(
+                self.get_loans_dying_between(predecessor, location)
+            );
+            let dying_before_loc: HashSet<_> = dying_between.difference(&dying_at_predecessor).cloned().collect();
+            if let Some(ref dying_before_content) = dying_before {
+                debug_assert!(dying_before_content == &dying_before_loc);
+            } else {
+                dying_before = Some(dying_before_loc);
+            }
+        }
+        dying_before.map(|d| d.into_iter().collect()).unwrap_or(vec![])
+    }
+
+    /// Convert a facts::Loan to LoanPlaces<'tcx> (if possible)
+    pub fn get_loan_places(&self, loan: &facts::Loan) -> Option<LoanPlaces<'tcx>> {
+        let loan_location = self.loan_position[loan];
+        let mir_block = &self.mir[loan_location.block];
+        if loan_location.statement_index < mir_block.statements.len() {
+            let mir_stmt = &mir_block.statements[loan_location.statement_index];
+            match mir_stmt.kind {
+                mir::StatementKind::Assign(ref lhs_place, ref rvalue) => {
+                    Some(
+                        LoanPlaces {
+                            dest: lhs_place.clone(),
+                            source: rvalue.clone(),
+                            location: loan_location
+                        }
+                    )
+                }
+
+                ref x => {
+                    debug!("Borrow starts at statement {:?}", x);
+                    None
+                }
+            }
+        } else {
+            None
         }
     }
 
@@ -424,30 +496,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         entry.push(magic_wand);
     }
 
-    pub fn get_expiring_borrows(&self, location: mir::Location) -> Vec<ExpiringBorrow<'tcx>> {
-        let mut expiring_borrows = vec![];
-        for loan in self.get_dying_loans(location).iter() {
-            let loan_location = self.loan_position[loan];
-            let mir_block = &self.mir[loan_location.block];
-            debug_assert!(loan_location.statement_index < mir_block.statements.len());
-            let mir_stmt = &mir_block.statements[loan_location.statement_index];
-            match mir_stmt.kind {
-                mir::StatementKind::Assign(ref lhs_place, ref rvalue) => {
-                    expiring_borrows.push(
-                        ExpiringBorrow {
-                            expiring: lhs_place.clone(),
-                            restored: rvalue.clone(),
-                            location: loan_location
-                        }
-                    )
-                }
-
-                ref x => unreachable!("Borrow starts at statement {:?}", x),
-            }
-        }
-        expiring_borrows
-    }
-
     fn get_successors(&self, location: mir::Location) -> Vec<mir::Location> {
         let statements_len = self.mir[location.block].statements.len();
         if location.statement_index < statements_len {
@@ -467,111 +515,28 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
-    /*
-    /// `package` – should it also try to compute the package statements?
-    pub fn write_magic_wands(&mut self, package: bool,
-                         location: mir::Location) -> Result<(), io::Error> {
-        // TODO: Refactor out this code that computes magic wands.
-        let blocker = mir::RETURN_PLACE;
-        //TODO: Check if it really is always start and not the mid point.
-        let start_point = self.get_point(location, facts::PointType::Start);
-
-        if let Some(region) = self.variable_regions.get(&blocker) {
-            write_graph!(self, "<tr>");
-            write_graph!(self, "<td colspan=\"2\">Magic wand</td>");
-            let subset_map = &self.borrowck_out_facts.subset;
-            if let Some(ref subset) = subset_map.get(&start_point).as_ref() {
-                let mut blocked_variables = Vec::new();
-                if let Some(blocked_regions) = subset.get(&region) {
-                    for blocked_region in blocked_regions.iter() {
-                        if blocked_region == region {
-                            continue;
-                        }
-                        if let Some(local) = self.find_variable(*blocked_region) {
-                            blocked_variables.push(format!("{:?}:{:?}", local, blocked_region));
-                        }
-                    }
-                    write_graph!(self, "<td colspan=\"7\">{:?}:{:?} --* {}</td>",
-                                 blocker, region, to_sorted_string!(blocked_variables));
-                } else {
-                    write_graph!(self, "<td colspan=\"7\">BUG: no blocked region</td>");
-                }
-            } else {
-                write_graph!(self, "<td colspan=\"7\">BUG: no subsets</td>");
-            }
-            write_graph!(self, "</tr>");
-            if package {
-                let restricts_map = &self.borrowck_out_facts.restricts;
-                write_graph!(self, "<tr>");
-                write_graph!(self, "<td colspan=\"2\">Package</td>");
-                if let Some(ref restricts) = restricts_map.get(&start_point).as_ref() {
-                    if let Some(loans) = restricts.get(&region) {
-                        let loans: Vec<_> = loans.iter().cloned().collect();
-                        write_graph!(self, "<td colspan=\"7\">{}", to_sorted_string!(loans));
-                        self.write_reborrowing_trees(&loans)?;
-                        write_graph!(self, "</td>");
-                    } else {
-                        write_graph!(self, "<td colspan=\"7\">BUG: no loans</td>");
-                    }
-                } else {
-                    write_graph!(self, "<td colspan=\"7\">BUG: no restricts</td>");
-                }
-                write_graph!(self, "</tr>");
-            }
-        }
-        Ok(())
-    }
-
-    fn write_reborrowing_trees(&self, loans: &[facts::Loan]) -> Result<(), io::Error> {
-        // Find minimal elements that are the tree roots.
-        let mut roots = Vec::new();
-        for &loan in loans.iter() {
-            let is_smallest = !loans
-                .iter()
-                .any(|&other_loan| {
-                    self.additional_facts.reborrows.contains(&(other_loan, loan))
-                });
-            if is_smallest {
-                roots.push(loan);
-            }
-        }
-        // Reconstruct the tree from each root.
-        for &root in roots.iter() {
-            write_graph!(self, "<br />");
-            self.write_reborrowing_tree(loans, root)?;
-        }
-        Ok(())
-    }
-
-    fn write_reborrowing_tree(&self, loans: &[facts::Loan],
-                              node: facts::Loan) -> Result<(), io::Error> {
-        if let Some(local) = self.call_magic_wands.get(&node) {
-            let var_region = self.variable_regions[&local];
-            write_graph!(self, "apply({:?}, {:?}:{:?})", node, local, var_region);
+    fn get_predecessors(&self, location: mir::Location) -> Vec<mir::Location> {
+        if location.statement_index > 0 {
+            vec![mir::Location {
+                statement_index: location.statement_index - 1,
+                .. location
+            }]
         } else {
-            write_graph!(self, "{:?}", node);
-        }
-        let mut children = Vec::new();
-        for &loan in loans.iter() {
-            if self.additional_facts.reborrows_direct.contains(&(node, loan)) {
-                children.push(loan);
+            debug_assert!(location.statement_index == 0);
+            let mut predecessors = HashSet::new();
+            for (bbi, bb_data) in self.mir.basic_blocks().iter_enumerated() {
+                for &bb_successor in bb_data.terminator.as_ref().unwrap().successors() {
+                    if bb_successor == location.block {
+                        predecessors.insert(mir::Location {
+                            block: bbi,
+                            statement_index: bb_data.statements.len(),
+                        });
+                    }
+                }
             }
+            predecessors.into_iter().collect()
         }
-        if children.len() == 1 {
-            write_graph!(self, "{}", to_html_display!("->"));
-            let child = children.pop().unwrap();
-            self.write_reborrowing_tree(loans, child);
-        } else if children.len() > 1 {
-            write_graph!(self, "{}", to_html_display!("-> ("));
-            for child in children {
-                self.write_reborrowing_tree(loans, child);
-                write_graph!(self, ",");
-            }
-            write_graph!(self, ")");
-        }
-        Ok(())
     }
-    */
 }
 
 /// Extract the call terminator at the location. Otherwise return None.
