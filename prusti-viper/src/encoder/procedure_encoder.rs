@@ -712,11 +712,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     *cfg_target
                 } else {
                     // Prepare a block that encodes the unreachable branch
+                    assert!(
+                        if let mir::TerminatorKind::Unreachable = self.mir[default_target].terminator.as_ref().unwrap().kind {
+                            true
+                        } else {
+                            false
+                        }
+                    );
                     let unreachable_label = self.cfg_method.get_fresh_label_name();
                     let unreachable_block = self.cfg_method.add_block(&unreachable_label, vec![], vec![
                         vir::Stmt::comment(format!("========== {} ==========", &unreachable_label)),
                         vir::Stmt::comment(format!("Block marked as 'unreachable' by the compiler")),
                     ]);
+                    if config::check_unreachable_terminators() {
+                        let pos = self.encoder.error_manager().register(
+                            term.source_info.span,
+                            ErrorCtxt::UnreachableTerminator
+                        );
+                        self.cfg_method.add_stmt(
+                            unreachable_block,
+                            vir::Stmt::Assert(false.into(), pos)
+                        );
+                    }
                     self.cfg_method.set_successor(unreachable_block, Successor::Return);
                     unreachable_block
                 };
@@ -724,16 +741,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::GotoSwitch(cfg_targets, cfg_default_target))
             }
 
-            TerminatorKind::Unreachable => {
-                let pos = self.encoder.error_manager().register(
-                    term.source_info.span,
-                    ErrorCtxt::UnreachableTerminator
-                );
-                stmts.push(
-                    vir::Stmt::Assert(false.into(), pos)
-                );
-                (stmts, Successor::Return)
-            }
+            TerminatorKind::Unreachable => unreachable!("blocks with an unreachable terminator are not encoded"),
 
             TerminatorKind::Abort => {
                 let pos = self.encoder.error_manager().register(

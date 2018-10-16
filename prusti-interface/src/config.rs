@@ -16,6 +16,7 @@ lazy_static! {
         settings.set_default("DEBUG_FOLDUNFOLD", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
+        settings.set_default("CHECK_UNREACHABLE_TERMINATORS", false).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -59,4 +60,9 @@ pub fn check_panics() -> bool {
 /// Should we simplify expressions?
 pub fn simplify_expressions() -> bool {
     SETTINGS.read().unwrap().get::<bool>("SIMPLIFY_EXPRESSIONS").unwrap()
+}
+
+/// Should we check that "Unreachable" terminators are actually unreachable?
+pub fn check_unreachable_terminators() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("CHECK_UNREACHABLE_TERMINATORS").unwrap()
 }
