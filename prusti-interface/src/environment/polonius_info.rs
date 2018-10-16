@@ -201,17 +201,18 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             let borrow_region = &mut all_facts.borrow_region;
             for (point, mut regions) in outlives_at_point {
                 if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
+                    let location = facts_loader.interner.get_point(*point).location.clone();
                     if regions.len() > 1 {
-                        let location = facts_loader.interner.get_point(*point).location.clone();
-                        for &(region1, region2) in regions.iter() {
-                            debug!("{:?} {:?} {:?}", location, region1, region2);
-                        }
                         let call_destination = get_call_destination(&mir, location);
                         if let Some(place) = call_destination {
+                            debug!("Adding for call destination:");
+                            for &(region1, region2) in regions.iter() {
+                                debug!("{:?} {:?} {:?}", location, region1, region2);
+                            }
                             match place {
                                 mir::Place::Local(local) => {
                                     if let Some(var_region) = variable_regions.get(&local) {
-                                        debug!("var_region = {:?}", var_region);
+                                        debug!("var_region = {:?} loan = {}", var_region, last_loan_id);
                                         let loan = facts::Loan::from(last_loan_id);
                                         borrow_region.push(
                                             (*var_region,
@@ -224,14 +225,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                                 x => unimplemented!("{:?}", x)
                             }
                         }
-                    } else {
+                    } else if is_assignment(&mir, location) {
                         let (_region1, region2) = regions.pop().unwrap();
                         borrow_region.push((*region2, facts::Loan::from(last_loan_id), *point));
+                        debug!("Adding generic: {:?} {:?} {:?} {}", _region1, region2, location, last_loan_id);
                         last_loan_id += 1;
                     }
                 }
             }
         }
+        unimplemented!();
 
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
 
@@ -573,8 +576,21 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 }
 
 /// Extract the call terminator at the location. Otherwise return None.
+fn is_assignment<'tcx>(mir: &mir::Mir<'tcx>,
+                 location: mir::Location) -> bool {
+    let mir::BasicBlockData { ref statements, .. } = mir[location.block];
+    if statements.len() == location.statement_index {
+        return false;
+    }
+    match statements[location.statement_index].kind {
+        mir::StatementKind::Assign { .. } => true,
+        _ => false,
+    }
+}
+
+/// Extract the call terminator at the location. Otherwise return None.
 fn get_call_destination<'tcx>(mir: &mir::Mir<'tcx>,
-                        location: mir::Location) -> Option<mir::Place<'tcx>> {
+                              location: mir::Location) -> Option<mir::Place<'tcx>> {
     let mir::BasicBlockData { ref statements, ref terminator, .. } = mir[location.block];
     if statements.len() != location.statement_index {
         return None;
