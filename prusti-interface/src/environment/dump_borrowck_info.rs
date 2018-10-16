@@ -931,24 +931,62 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         } else {
             Vec::new()
         };
+        let zombie_borrow_live_at_map = &self.polonius_info.additional_facts.zombie_borrow_live_at;
+        let mut zombie_blas = if let Some(ref zombie_blas) =
+            zombie_borrow_live_at_map.get(&mid_point).as_ref() {
+            (**zombie_blas).clone()
+        } else {
+            Vec::new()
+        };
+
 
         // Get the loans that dye in this statement.
         let dying_loans = self.polonius_info.get_dying_loans(location);
+        let dying_zombie_loans = self.polonius_info.get_dying_zombie_loans(location);
+        let becoming_zombie_loans = self.polonius_info
+            .additional_facts
+            .borrow_become_zombie_at
+            .get(&mid_point)
+            .cloned()
+            .unwrap_or(Vec::new());
+
 
         // Format the loans and mark the dying ones.
         blas.sort();
-        let blas: Vec<_> = blas.into_iter()
+        let mut blas: Vec<_> = blas.into_iter()
             .map(|loan| {
-                if dying_loans.contains(&loan) {
+                if becoming_zombie_loans.contains(&loan) {
+                    format!("<b><font color=\"orchid\">{:?}</font></b>", loan)
+                } else if dying_loans.contains(&loan) {
                     format!("<b><font color=\"red\">{:?}</font></b>", loan)
                 } else {
                     format!("{:?}", loan)
                 }
             })
             .collect();
+        zombie_blas.sort();
+        blas.extend(
+            zombie_blas
+                .iter()
+                .map(|loan| {
+                    if dying_zombie_loans.contains(&loan) {
+                        format!("<b><font color=\"brown\">{:?}</font></b>", loan)
+                    } else {
+                        format!("<b><font color=\"forestgreen\">{:?}</font></b>", loan)
+                    }
+                })
+        );
 
         write_graph!(self, "<td>{}", blas.join(", "));
-        let forest = self.polonius_info.construct_reborrowing_forest(&dying_loans);
+        let mut all_dying_loans: Vec<_> = dying_loans
+            .iter()
+            .filter(|loan| {
+                !becoming_zombie_loans.contains(loan)
+            })
+            .cloned()
+            .collect();
+        all_dying_loans.extend(dying_zombie_loans.iter().cloned());
+        let forest = self.polonius_info.construct_reborrowing_forest(&all_dying_loans);
         if !dying_loans.is_empty() {
             write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
         }

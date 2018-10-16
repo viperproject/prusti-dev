@@ -21,6 +21,7 @@ extern crate polonius_engine;
 extern crate regex;
 extern crate rustc;
 extern crate rustc_driver;
+extern crate rustc_hash;
 extern crate rustc_mir;
 extern crate rustc_data_structures;
 #[macro_use]

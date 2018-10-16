@@ -8,6 +8,7 @@ use rustc::mir;
 use rustc::ty;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use rustc_hash::FxHashMap;
 use std::fmt;
 use super::loops;
 use super::borrowck::{facts, regions};
@@ -271,15 +272,26 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     /// Get loans that dye at the given location.
     pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
+        self.get_dying_loans_from(location, &self.borrowck_out_facts.borrow_live_at)
+    }
+
+    /// Get loans that dye at the given location.
+    pub(crate) fn get_dying_zombie_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
+        self.get_dying_loans_from(location, &self.additional_facts.zombie_borrow_live_at)
+    }
+
+    /// Get loans that dye at the given location from the given ``borrow_live_at``.
+    fn get_dying_loans_from(&self, location: mir::Location,
+                            borrow_live_at: &FxHashMap<facts::PointIndex, Vec<facts::Loan>>
+                            ) -> Vec<facts::Loan> {
         let start_point = self.get_point(location, facts::PointType::Start);
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
-        if let Some(mid_loans) = self.borrowck_out_facts.borrow_live_at.get(&mid_point) {
+        if let Some(mid_loans) = borrow_live_at.get(&mid_point) {
             let mut mid_loans = mid_loans.clone();
             mid_loans.sort();
             let default_vec = vec![];
-            let start_loans = self.borrowck_out_facts
-                .borrow_live_at
+            let start_loans = borrow_live_at
                 .get(&start_point)
                 .unwrap_or(&default_vec);
             let mut start_loans = start_loans.clone();
@@ -300,8 +312,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                         .iter()
                         .any(|successor_location| {
                             let point = self.get_point(*successor_location, facts::PointType::Start);
-                            self.borrowck_out_facts
-                                .borrow_live_at
+                            borrow_live_at
                                 .get(&point)
                                 .map_or(false, |successor_loans| {
                                     successor_loans.contains(loan)
@@ -310,7 +321,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 })
                 .collect()
         } else {
-            assert!(self.borrowck_out_facts.borrow_live_at.get(&start_point).is_none());
+            assert!(borrow_live_at.get(&start_point).is_none());
             vec![]
         }
     }
@@ -649,7 +660,7 @@ pub struct AdditionalFacts {
     ///     cfg_edge(P, Q),
     ///     region_live_at(R, Q).
     /// ```
-    pub zombie_requires: HashMap<facts::PointIndex, HashMap<facts::Region, HashSet<facts::Loan>>>,
+    pub zombie_requires: FxHashMap<facts::PointIndex, FxHashMap<facts::Region, HashSet<facts::Loan>>>,
     /// The ``zombie_borrow_live_at`` facts are ``borrow_live_at`` facts
     /// for the loans that were killed.
     ///
@@ -658,7 +669,9 @@ pub struct AdditionalFacts {
     ///     zombie_requires(R, L, P),
     ///     region_live_at(R, P).
     /// ```
-    pub zombie_borrow_live_at: HashMap<facts::PointIndex, Vec<facts::Loan>>,
+    pub zombie_borrow_live_at: FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+    /// Which loans were killed (become zombies) at a given point.
+    pub borrow_become_zombie_at: FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
 }
 
 
@@ -668,8 +681,9 @@ impl AdditionalFacts {
     fn derive_zombie_requires(all_facts: &facts::AllInputFacts,
                               output: &facts::AllOutputFacts
                               ) -> (
-                                  HashMap<facts::PointIndex, HashMap<facts::Region, HashSet<facts::Loan>>>,
-                                  HashMap<facts::PointIndex, Vec<facts::Loan>>) {
+                                  FxHashMap<facts::PointIndex, FxHashMap<facts::Region, HashSet<facts::Loan>>>,
+                                  FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
+                                  FxHashMap<facts::PointIndex, Vec<facts::Loan>>) {
 
         use datafrog::{Iteration, Relation};
         use self::facts::{PointIndex as Point, Loan, Region};
@@ -679,6 +693,7 @@ impl AdditionalFacts {
         // Variables that are outputs of our computation.
         let zombie_requires = iteration.variable::<(Region, Loan, Point)>("zombie_requires");
         let zombie_borrow_live_at = iteration.variable::<(Loan, Point)>("zombie_borrow_live_at");
+        let borrow_become_zombie_at = iteration.variable::<(Loan, Point)>("borrow_become_zombie_at");
 
         // Variables for initial data.
         let requires_lp = iteration.variable::<((Loan, Point), Region)>("requires_lp");
@@ -693,6 +708,7 @@ impl AdditionalFacts {
         let zombie_requires_1 = iteration.variable_indistinct("zombie_requires_1");
         let zombie_requires_2 = iteration.variable_indistinct("zombie_requires_2");
         let zombie_requires_3 = iteration.variable_indistinct("zombie_requires_3");
+        let zombie_requires_4 = iteration.variable_indistinct("zombie_requires_4");
 
         // Load initial facts.
         requires_lp.insert(Relation::from(
@@ -737,6 +753,8 @@ impl AdditionalFacts {
             zombie_requires_1.from_join(&requires_lp, &killed, |&(l, p), &r, _| (p, (l, r)));
             zombie_requires_2.from_join(&zombie_requires_1, &cfg_edge_p, |&_p, &(l, r), &q| ((r, q), l));
             zombie_requires.from_join(&zombie_requires_2, &region_live_at, |&(r, q), &l, &()| (r, l, q));
+            zombie_requires_4.from_join(&zombie_requires_1, &cfg_edge_p, |&p, &(l, r), &q| ((r, q), (p, l)));
+            borrow_become_zombie_at.from_join(&zombie_requires_4, &region_live_at, |_, &(p, l), &()| (l, p));
 
             // zombie_requires(R2, L, P) :-
             //     zombie_requires(R1, L, P),
@@ -757,18 +775,18 @@ impl AdditionalFacts {
         }
 
         let zombie_requires = zombie_requires.complete();
-        let mut zombie_requires_map = HashMap::new();
+        let mut zombie_requires_map = FxHashMap::default();
         for (region, loan, point) in &zombie_requires.elements {
             zombie_requires_map
                 .entry(*point)
-                .or_insert(HashMap::new())
+                .or_insert(FxHashMap::default())
                 .entry(*region)
                 .or_insert(HashSet::new())
                 .insert(*loan);
         }
 
         let zombie_borrow_live_at = zombie_borrow_live_at.complete();
-        let mut zombie_borrow_live_at_map = HashMap::new();
+        let mut zombie_borrow_live_at_map = FxHashMap::default();
         for (loan, point) in &zombie_borrow_live_at.elements {
             zombie_borrow_live_at_map
                 .entry(*point)
@@ -776,7 +794,16 @@ impl AdditionalFacts {
                 .push(*loan);
         }
 
-        (zombie_requires_map, zombie_borrow_live_at_map)
+        let borrow_become_zombie_at = borrow_become_zombie_at.complete();
+        let mut borrow_become_zombie_at_map = FxHashMap::default();
+        for (loan, point) in &borrow_become_zombie_at.elements {
+            borrow_become_zombie_at_map
+                .entry(*point)
+                .or_insert(Vec::new())
+                .push(*loan);
+        }
+
+        (zombie_requires_map, zombie_borrow_live_at_map, borrow_become_zombie_at_map)
     }
 
     /// Derive additional facts from the borrow checker facts.
@@ -785,6 +812,9 @@ impl AdditionalFacts {
 
         use datafrog::{Iteration, Relation};
         use self::facts::{PointIndex as Point, Loan, Region};
+
+        let (zombie_requires, zombie_borrow_live_at, borrow_become_zombie_at) =
+            Self::derive_zombie_requires(all_facts, output);
 
         let mut iteration = Iteration::new();
 
@@ -798,6 +828,15 @@ impl AdditionalFacts {
         // Load initial data.
         restricts.insert(Relation::from(
             output.restricts.iter().flat_map(
+                |(&point, region_map)|
+                region_map.iter().flat_map(
+                    move |(&region, loans)|
+                    loans.iter().map(move |&loan| ((point, region), loan))
+                )
+            )
+        ));
+        restricts.insert(Relation::from(
+            zombie_requires.iter().flat_map(
                 |(&point, region_map)|
                 region_map.iter().flat_map(
                     move |(&region, loans)|
@@ -856,14 +895,13 @@ impl AdditionalFacts {
             .collect();
         loans.sort();
 
-        let (zombie_requires, zombie_borrow_live_at) =
-            Self::derive_zombie_requires(all_facts, output);
         AdditionalFacts {
             loans: loans,
             reborrows: reborrows,
             reborrows_direct: reborrows_direct,
             zombie_requires: zombie_requires,
             zombie_borrow_live_at: zombie_borrow_live_at,
+            borrow_become_zombie_at: borrow_become_zombie_at,
         }
     }
 
