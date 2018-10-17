@@ -1,17 +1,57 @@
 #!/bin/bash
 
-COMPILER_PATH="$(rustup which rustc | sed 's/\/bin\/rustc$//')"
+# Get the directory in which this script is contained
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
+# Read and set some environment variables
+export JAVA_HOME=${JAVA_HOME:-"/usr/lib/jvm/default-java"}
+export RUST_LOG=${RUST_LOG:-info}
+
+# The compiler version for which Prusti has been compiled
+RUST_VERSION=nightly-2018-06-27-x86_64-unknown-linux-gnu
+
+# Build the COMPILER_PATH path
+COMPILER_PATH=/usr/local/rustup/toolchains/${RUST_VERSION}
+if [ -d "$HOME/.rustup/toolchains/${RUST_VERSION}" ]; then
+	COMPILER_PATH="$HOME/.rustup/toolchains/${RUST_VERSION}"
+fi
+if [ -d "$RUSTUP_HOME/toolchains/${RUST_VERSION}" ]; then
+	COMPILER_PATH="$RUSTUP_HOME/.rustup/toolchains/${RUST_VERSION}"
+fi
+echo "Using COMPILER_PATH '$COMPILER_PATH'"
+
+# Build the PRUSTI_HOME path
 PRUSTI_HOME=/usr/local/prusti
+if [ -x "$DIR/../target/debug/prusti-driver" ]; then
+	PRUSTI_HOME="$DIR/../target/debug"
+fi
+if [ -x "$DIR/../target/release/prusti-driver" ]; then
+	PRUSTI_HOME="$DIR/../target/release"
+fi
+echo "Using PRUSTI_HOME '$PRUSTI_HOME'"
+
+# Build the PRUSTI_CONTRACTS_LIB path
+for file in "${PRUSTI_HOME}"/deps/libprusti_contracts-*.rlib; do
+	[[ $file -nt $PRUSTI_CONTRACTS_LIB ]] && PRUSTI_CONTRACTS_LIB=$file
+done
+if [ -x "${PRUSTI_HOME}/libprusti_contracts.rlib" ]; then
+	PRUSTI_CONTRACTS_LIB="${PRUSTI_HOME}/libprusti_contracts.rlib"
+fi
+echo "Using PRUSTI_CONTRACTS_LIB '$PRUSTI_CONTRACTS_LIB'"
+
+# Build the PRUSTI_DRIVER path
 PRUSTI_DRIVER=${PRUSTI_HOME}/prusti-driver
+echo "Using PRUSTI_DRIVER '$PRUSTI_DRIVER'"
 
-#export RUST_BACKTRACE=1
-export PRUSTI_FULL_COMPILATION=true
-export RUST_LOG=info
-export LD_LIBRARY_PATH=${COMPILER_PATH}/lib:${JAVA_HOME}/jre/lib/amd64/server:${PRUSTI_HOME}
+# Build the JAVA_LIBJVM_DIR path
+JAVA_LIBJVM_DIR="$(dirname "$(find "$(readlink -f "$JAVA_HOME")" -name "libjvm.so")")"
+echo "Using JAVA_LIBJVM_DIR '$JAVA_LIBJVM_DIR'"
 
-#echo "$@" >> /tmp/rustc_args.log
+export LD_LIBRARY_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:${PRUSTI_HOME}:${PRUSTI_HOME}/deps
+echo "Using LD_LIBRARY_PATH '$LD_LIBRARY_PATH'"
 
+# Run Prusti
 ${PRUSTI_DRIVER} \
 	-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-	--extern prusti_contracts=${PRUSTI_HOME}/libprusti_contracts.rlib \
+	--extern prusti_contracts="${PRUSTI_CONTRACTS_LIB}" \
 	$@

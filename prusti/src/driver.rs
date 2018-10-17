@@ -171,6 +171,7 @@ pub fn main() {
     args.push("-Zidentify-regions".to_owned());
     args.push("-Zdump-mir=all".to_owned());
     args.push("-Zdump-mir-dir=log/mir/".to_owned());
+    args.push("-Zdump-mir-graphviz".to_owned());
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
     trace!("[main] exit");

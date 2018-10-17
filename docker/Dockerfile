@@ -66,6 +66,9 @@ ENV LC_ALL en_US.UTF-8
 # Mark container.
 ENV RUST_CONTAINER 1
 
+# Continue compilation after the verification succeeds
+ENV PRUSTI_FULL_COMPILATION true
+
 ADD docker/entrypoint.sh /root/
 ENTRYPOINT ["/root/entrypoint.sh"]
 

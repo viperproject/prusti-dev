@@ -10,7 +10,7 @@ JAVA_HOME ?= $(shell readlink -f /usr/lib/jvm/default-java)
 JAVA_LIBJVM_DIR=$(shell dirname "$(shell find "$(shell readlink -f ${JAVA_HOME})" -name "libjvm.so")")
 RUST_VERSION=nightly-2018-06-27-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}
-LIB_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/debug
+LIB_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/debug:../target/debug/deps
 PRUSTI_DRIVER=../target/debug/prusti-driver
 
 run:
@@ -19,7 +19,6 @@ run:
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
-		-Z dump-mir-graphviz \
 		${RUN_FILE}
 	@#dot -Tpdf graph.dot -O
 	@#dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
@@ -31,7 +30,6 @@ run-profile:
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
-		-Z dump-mir-graphviz \
 		${RUN_FILE}
 	@echo "Now run 'kcachegrind callgrind.out.*'"
 
@@ -42,7 +40,6 @@ run-flamegraph:
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
-		-Z dump-mir-graphviz \
 		${RUN_FILE}
 	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
