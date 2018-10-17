@@ -54,6 +54,10 @@ clippy: clean
 clean:
 	cargo clean
 	find . -name '*.bk' -delete
+	rm -rf log
+	rm -rf nll-facts
+	rm -rf prusti/log
+	rm -rf prusti/nll-facts
 
 todo:
 	git grep -i "todo\|fixme\|xxx\|hack"
