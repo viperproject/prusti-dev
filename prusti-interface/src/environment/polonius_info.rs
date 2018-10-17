@@ -332,7 +332,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
         let borrow_live_at = &self.borrowck_out_facts.borrow_live_at;
-        
+
         if let Some(mid_loans) = borrow_live_at.get(&mid_point) {
             let mut mid_loans = mid_loans.clone();
             mid_loans.sort();

@@ -44,27 +44,6 @@ Option (a): local development
     sudo apt-get install default-jre
     ```
 
-- Check that the `JAVA_HOME` env var is set. If not, set it.
-
-    ```bash
-    export JAVA_HOME=/usr/lib/jvm/default-java
-    ```
-
-- Set the `LD_LIBRARY_PATH` environment variable
-	This depends on 
-	
-    ```bash
-    export LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
-	```
-
-    ```bash
-    export LD_LIBRARY_PATH="$JAVA_HOME/lib/server/"
-    ```
-
-    Note: make sure that `LD_LIBRARY_PATH` does not contain empty
-    segments because it can cause a crash with a “multiple inputs
-    provided” error.
-
 - Install Rustup
 
 	```bash
@@ -80,7 +59,7 @@ Option (a): local development
 - Download this Prusti repository and move to the `prusti-dev` folder
 
 	```bash
-	git clone <prusti-repository-url>
+	git clone "<prusti-repository-url>"
 	cd prusti-dev
 	```
 
@@ -99,7 +78,13 @@ Option (a): local development
 - You can now build Prusti
 
     ```bash
-    cargo build --all
+    make build
+    ```
+
+- Make sure that the tests are passing
+
+    ```bash
+    make test
     ```
 
 

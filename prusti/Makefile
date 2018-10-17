@@ -3,19 +3,20 @@ IMAGE_VERSION=2017-12-10
 IMAGE_NAME="vakaras/prusti:${IMAGE_VERSION}"
 LOG_LEVEL=error
 RUST_TEST_THREADS ?= 1
-RUN_FILE=tests/typecheck/pass/lint.rs
-STDERR_FILE=$(RUN_FILE:.rs=.stderr)
+RUN_FILE ?= tests/typecheck/pass/lint.rs
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
-JAVA_HOME=/usr/lib/jvm/default-java
+STDERR_FILE=$(RUN_FILE:.rs=.stderr)
+JAVA_HOME ?= $(shell readlink -f /usr/lib/jvm/default-java)
+JAVA_LIBJVM_DIR=$(shell dirname "$(shell find "$(shell readlink -f ${JAVA_HOME})" -name "libjvm.so")")
 RUST_VERSION=nightly-2018-06-27-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}
-LIB_PATH=${COMPILER_PATH}/lib:${JAVA_HOME}/jre/lib/amd64/server:${JAVA_HOME}/lib/server:../target/debug
-DRIVER=../target/debug/prusti-driver
+LIB_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/debug
+PRUSTI_DRIVER=../target/debug/prusti-driver
 
 run:
 	RUST_LOG=${LOG_LEVEL} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
-	${DRIVER} \
+	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z dump-mir-graphviz \
@@ -27,7 +28,7 @@ run-profile:
 	RUST_LOG=${LOG_LEVEL} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	valgrind --tool=callgrind \
-	${DRIVER} \
+	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z dump-mir-graphviz \
@@ -38,7 +39,7 @@ run-flamegraph:
 	RUST_LOG=${LOG_LEVEL} \
 	LD_LIBRARY_PATH=${LIB_PATH} \
 	perf record -g -F 99 \
-	${DRIVER} \
+	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		-Z dump-mir-graphviz \
@@ -47,7 +48,7 @@ run-flamegraph:
 
 generate_ui_stderr:
 	-LD_LIBRARY_PATH=${LIB_PATH} \
-	${DRIVER} \
+	${PRUSTI_DRIVER} \
 		--sysroot ${COMPILER_PATH}/lib/ \
 		-L ../target/debug/ \
 		-L ${COMPILER_PATH}/lib/ \
