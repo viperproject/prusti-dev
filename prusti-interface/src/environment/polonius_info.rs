@@ -303,7 +303,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             // point.
             assert!(start_loans.iter().all(|loan| mid_loans.contains(loan)));
 
-
+            let successors = self.get_successors(location);
             // Filter loans that are not missing in all successors.
             mid_loans
                 .into_iter()
@@ -331,6 +331,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let start_point = self.get_point(location, facts::PointType::Start);
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
+        let borrow_live_at = &self.borrowck_out_facts.borrow_live_at;
+        
         if let Some(mid_loans) = borrow_live_at.get(&mid_point) {
             let mut mid_loans = mid_loans.clone();
             mid_loans.sort();

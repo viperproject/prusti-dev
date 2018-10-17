@@ -50,24 +50,53 @@ Option (a): local development
     export JAVA_HOME=/usr/lib/jvm/default-java
     ```
 
-- Add `$JAVA_HOME/jre/lib/amd64/server/` to the `LD_LIBRARY_PATH` env var
-
+- Set the `LD_LIBRARY_PATH` environment variable
+	This depends on 
+	
     ```bash
     export LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
+	```
+
+    ```bash
+    export LD_LIBRARY_PATH="$JAVA_HOME/lib/server/"
     ```
 
     Note: make sure that `LD_LIBRARY_PATH` does not contain empty
     segments because it can cause a crash with a “multiple inputs
     provided” error.
 
-- Set the Rust compiler version
+- Install Rustup
+
+	```bash
+	curl https://sh.rustup.rs -sSf | sh
+	```
+
+- Install the Rust compiler
 
     ```bash
     rustup toolchain install nightly-2018-06-27
+    ```
+
+- Download this Prusti repository and move to the `prusti-dev` folder
+
+	```bash
+	git clone <prusti-repository-url>
+	cd prusti-dev
+	```
+
+- Set the Rust compiler version for this folder
+
+    ```bash
     rustup override set nightly-2018-06-27
     ```
 
-- You can now build all crates
+- Make sure to have some dependencies
+
+	```bash
+	sudo apt-get install build-essential pkg-config gcc libssl-dev
+	```
+
+- You can now build Prusti
 
     ```bash
     cargo build --all

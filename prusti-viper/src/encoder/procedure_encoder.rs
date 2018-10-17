@@ -597,6 +597,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("encode_expiring_borrows_before '{:?}'", location);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
+        // TODO: use self.polonius_info.construct_reborrowing_forest(..)
         for loan in self.polonius_info.get_loans_dying_before(location).drain(..) {
             if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
                 let (expiring, restored) = self.encode_loan_places(&loan_places);
@@ -620,6 +621,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
+        // TODO: use self.polonius_info.construct_reborrowing_forest(..)
         for loan in self.polonius_info.get_loans_dying_at(location).drain(..) {
             if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
                 let (expiring, restored) = self.encode_loan_places(&loan_places);
