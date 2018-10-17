@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 RUN_FILE = tests/typecheck/pass/lint.rs
 RUN_FILE_FOLDER = $(shell dirname ${RUN_FILE})
-RUST_LOG ?= prusti=info,prusti_viper=info
+RUST_LOG ?= prusti=info
 RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
 RUN_FILE ?= prusti/tests/typecheck/pass/lint.rs
@@ -12,7 +12,7 @@ COMPILER_PATH = $$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH = ${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:./target/debug
 PRUSTI_DRIVER=./target/debug/prusti-driver
 
-SET_ENV_VARS = RUST_LOG=$(RUST_LOG) LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
+SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
 
 default: build
 
@@ -35,7 +35,7 @@ bench:
 	$(SET_ENV_VARS) cargo bench --all
 
 run:
-	$(SET_ENV_VARS)  \
+	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
