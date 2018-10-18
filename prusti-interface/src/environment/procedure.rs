@@ -237,24 +237,26 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
             trace!("MIR block {:?} is a loop head", source);
         }
         for target in get_normal_targets(term) {
-            if is_loop_head {
+            trace!("Try target {:?} of {:?}", target, source);
+            //if is_loop_head {
                 // Skip the following "if false"
-                let target_terminator = &mir[target].terminator;
-                if let Some(ref target_term) = *target_terminator {
-                    if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
-                        if format!("{:?}", discr) == "const false" {
-                            // Some assumptions
-                            assert!(values[0] == 0 as u128);
-                            assert!(values.len() == 1);
+                let target_term = &mir[target].terminator.as_ref().unwrap();
+                trace!("target_term {:?}", target_term);
+                if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
+                    trace!("target_term is a SwitchInt");
+                    trace!("discr: '{:?}'", discr);
+                    if format!("{:?}", discr) == "const false" {
+                        // Some assumptions
+                        assert!(values[0] == 0 as u128);
+                        assert!(values.len() == 1);
 
-                            // Do not visit the 'then' branch.
-                            // So, it will not be put into nonspec_basic_blocks.
-                            debug!("MIR block {:?} is the head of a specification branch", targets[1]);
-                            visited.insert(targets[1]);
-                        }
+                        // Do not visit the 'then' branch.
+                        // So, it will not be put into nonspec_basic_blocks.
+                        debug!("MIR block {:?} is the head of a specification branch", targets[1]);
+                        visited.insert(targets[1]);
                     }
                 }
-            }
+            //}
             if !visited.contains(&target) {
                 to_visit.push(target);
             }

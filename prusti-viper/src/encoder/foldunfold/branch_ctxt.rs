@@ -216,8 +216,8 @@ impl<'a> BranchCtxt<'a> {
 
         let mut actions: Vec<Action> = vec![];
 
-        trace!("Acc state: {{{}}}", self.state.display_debug_acc());
-        trace!("Pred state: {{{}}}", self.state.display_debug_pred());
+        trace!("Acc state before: {{{}}}", self.state.display_debug_acc());
+        trace!("Pred state before: {{{}}}", self.state.display_debug_pred());
 
         let req_place = req.get_place();
 
@@ -233,7 +233,7 @@ impl<'a> BranchCtxt<'a> {
             return actions;
         }
 
-        debug!("Try to satisfy requirement {:?}", req);
+        debug!("Try to satisfy requirement {}", req);
 
         /*
         // 2. Obtain by restoring a borrowed path with a magic wand
@@ -259,11 +259,11 @@ impl<'a> BranchCtxt<'a> {
             .cloned();
         if let Some(existing_pred_to_unfold) = existing_prefix_pred_opt {
             let frac = self.state.pred()[&existing_pred_to_unfold];
-            debug!("We want to unfold {:?} with permission {} (we need at least {})", existing_pred_to_unfold, frac, req.get_frac());
+            debug!("We want to unfold {} with permission {} (we need at least {})", existing_pred_to_unfold, frac, req.get_frac());
             assert!(frac >= req.get_frac());
             let action = self.unfold(&existing_pred_to_unfold, frac);
             actions.push(action);
-            debug!("We unfolded {:?}", existing_pred_to_unfold);
+            debug!("We unfolded {}", existing_pred_to_unfold);
 
             // Check if we are done
             actions.extend(self.obtain(req));
@@ -273,7 +273,7 @@ impl<'a> BranchCtxt<'a> {
         // 4. Obtain with a fold
         if let Perm::Pred(_, _) = req {
             // We want to fold `req_place`
-            debug!("We want to fold {:?}", req_place);
+            debug!("We want to fold {}", req_place);
             let predicate_name = req_place.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 

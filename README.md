@@ -26,8 +26,8 @@ Modules:
 - [prusti](https://viperproject.github.io/prusti-dev/prusti/)
 
 
-Option (a): local development
------------------------------
+Build for local development
+---------------------------
 
 - Install the `viper` package.
 
@@ -59,23 +59,23 @@ Option (a): local development
 - Download this Prusti repository and move to the `prusti-dev` folder
 
 	```bash
-	git clone "<prusti-repository-url>"
+	git clone "<url-of-prusti-repository>"
 	cd prusti-dev
 	```
 
-- Set the Rust compiler version for this folder
+- Set the Rust compiler version
 
     ```bash
     rustup override set nightly-2018-06-27
     ```
 
-- Make sure to have some dependencies
+- Install the dependencies required by some Rust libraries
 
 	```bash
 	sudo apt-get install build-essential pkg-config gcc libssl-dev
 	```
 
-- You can now build Prusti
+- You can now compile Prusti
 
     ```bash
     make build
@@ -87,26 +87,41 @@ Option (a): local development
     make test
     ```
 
+- To run Prusti and verify a program there are two options:
 
-Option (b): demo with `rust-playground`
----------------------------------------
+    ```bash
+    make run RUN_FILE=path/to/the/program_to_be_verified.rs
+    ```
+
+	or
+
+    ```bash
+    ./docker/prusti path/to/the/program_to_be_verified.rs
+    ```
+
+- To see examples of programs with annotation, look into the `prusti/tests/verify/pass` folder.
+
+
+Demo with `rust-playground`
+---------------------------
 
 Choose a folder in which to run the demo
 ```bash
-export DEV_DIR="/tmp/prusti-demo"
-mkdir -p $DEV_DIR
+export PRUSTI_DEMO_DIR="/tmp/prusti-demo"
+mkdir -p "$PRUSTI_DEMO_DIR"
 ```
 
 ### 1. Build Prusti
 ```bash
-cd $DEV_DIR
-git clone git@github.com:viperproject/prusti-dev.git
+cd "$PRUSTI_DEMO_DIR"
+git clone "<url-of-prusti-repository>"
+make clean # optional if this is a fresh repository
 docker build --no-cache -t rust-nightly -f docker/Dockerfile .
 ```
 
 ### 2. Build `rust-playground`
 ```bash
-cd $DEV_DIR
+cd "$PRUSTI_DEMO_DIR"
 git clone git@github.com:integer32llc/rust-playground.git
 cd rust-playground/ui
 cargo build --release
@@ -117,7 +132,7 @@ yarn run build
 
 ### 3. Start demo
 ```bash
-cd $DEV_DIR/rust-playground/ui
+cd "$PRUSTI_DEMO_DIR/rust-playground/ui"
 TMPDIR=/tmp \
 RUST_LOG=debug \
 PLAYGROUND_UI_ADDRESS=0.0.0.0 \
@@ -133,7 +148,7 @@ Visit <http://localhost:8080/>
 
 Select "Nightly channel".
 
-Start with the following program:
+Write with the following program:
 ```rust
 extern crate prusti_contracts;
 
@@ -142,4 +157,4 @@ fn main() {
 }
 ```
 
-Click on "Build" and watch at the compiler messages.
+Click on "Build" and watch at the compiler and verifier messages.

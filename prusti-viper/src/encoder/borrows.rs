@@ -317,7 +317,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
 
     if let None = tcx.hir.as_local_node_id(proc_def_id) {
         unimplemented!(
-            "We don't support non-local procedure calls (yet). Procedure name: {}{}",
+            "We don't support extern function calls. Function name: {}{}",
            tcx.crate_name(tcx.def_path(proc_def_id).krate),
            tcx.def_path(proc_def_id).to_string_no_crate()
         )

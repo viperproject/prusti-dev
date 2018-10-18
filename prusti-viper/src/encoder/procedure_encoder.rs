@@ -1287,6 +1287,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             if Some(loop_head) == self.loop_encoder.get_loop_head(bbi) && self.procedure.is_spec_block(bbi) {
                 res.push(bbi)
+            } else {
+                debug!("bbi {:?} has head {:?} and 'is spec' is {}", bbi, self.loop_encoder.get_loop_head(bbi), self.procedure.is_spec_block(bbi));
             }
         }
         res
@@ -1316,7 +1318,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
         trace!("spec_ids: {:?}", spec_ids);
-        assert_eq!(spec_ids.len(), 1);
+        assert_eq!(spec_ids.len(), 1, "a loop has no automatically generated loop invariant");
 
         let mut encoded_specs = vec![];
         let encoded_args: Vec<vir::Expr> = self.mir.args_iter()
