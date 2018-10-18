@@ -4,6 +4,7 @@
 
 use encoder::vir;
 use std::collections::HashSet;
+use std::hash::Hash;
 
 /// Returns the elements of A1 or A2 that have a prefix in the other set.
 ///
@@ -12,7 +13,7 @@ use std::collections::HashSet;
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { a, b.c.d, b.c.e, d.e.f }
-pub fn filter_with_prefix_in_other(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_with_prefix_in_other(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -34,7 +35,7 @@ pub fn filter_with_prefix_in_other(left: &HashSet<vir::Place>, right: &HashSet<v
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { a, b.c }
-pub fn filter_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_prefixes_of(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -53,7 +54,7 @@ pub fn filter_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { b.c }
-pub fn filter_proper_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_proper_prefixes_of(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -72,7 +73,7 @@ pub fn filter_proper_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir
 ///   { a, b.c.d, b.c.e, d.e,h },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, b.c.d, b.c.e }
-pub fn filter_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_extensions_of(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -91,7 +92,7 @@ pub fn filter_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Pla
 ///   { a, b.c.d, b.c.e, d.e,h },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { b.c.d, b.c.e }
-pub fn filter_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_proper_extensions_of(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -111,7 +112,7 @@ pub fn filter_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<v
 ///   { a, b.c.d, b.c.e, d.e },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, b.c.d }
-pub fn filter_not_proper_prefix_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_not_proper_prefix_of(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -135,7 +136,7 @@ pub fn filter_not_proper_prefix_of(left: &HashSet<vir::Place>, right: &HashSet<v
 ///   { a, b.c.d, b.c.e, d.e },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, d.e }
-pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_not_proper_extensions_of(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -159,12 +160,12 @@ pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashS
 ///   { a, b.c, d.e.g, d.g }
 ///   { a, b.c.d, b.c.e, d.e.f },
 /// ) = { a, b.c, d }
-pub fn common_ancestors(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn common_ancestors(left: &HashSet<vir::LabelledPlace>, right: &HashSet<vir::LabelledPlace>) -> HashSet<vir::LabelledPlace> {
     let mut intermediate = HashSet::new();
     for left_item in left.iter() {
         for candidate_ancestor in left_item.all_prefixes().into_iter().rev() {
-            if right.iter().any(|right_item| right_item.has_prefix(candidate_ancestor)) {
-                intermediate.insert(candidate_ancestor.clone());
+            if right.iter().any(|right_item| right_item.has_prefix(&candidate_ancestor)) {
+                intermediate.insert(candidate_ancestor);
                 break;
             }
         }
@@ -212,24 +213,27 @@ pub fn ancestors(initial: &HashSet<vir::Place>) -> HashSet<vir::Place> {
     res
 }
 
-/// Returns the union of A1 and A2.
-///
-/// e.g.
-/// union(
-///   { a, b.c.d, b.c.e, d.e.f },
-///   { a, b.c, d.e.g, d.g }
-/// ) = { a, b.c, b.c.d, b.c.e, d.g, d.e.f, d.e.g }
-
-pub fn union(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+/// Returns the union of two sets
+pub fn union<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
     left.clone().union(right).cloned().collect()
 }
-/// Returns the intersection of A1 and A2.
-///
-/// e.g.
-/// intersection(
-///   { a, b.c.d, b.c.e, d.e.f },
-///   { a, b.c, d.e.g, d.g }
-/// ) = { a }
-pub fn intersection(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+
+/// Returns the union of three sets
+pub fn union3<T: Eq + Hash + Clone>(left: &HashSet<T>, mid: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
+    left.clone().union(mid).cloned().collect::<HashSet<T>>().union(right).cloned().collect()
+}
+
+/// Returns the intersection of two sets
+pub fn intersection<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
     left.clone().intersection(right).cloned().collect()
+}
+
+/// Returns the difference of two sets
+pub fn difference<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
+    left.clone().difference(right).cloned().collect()
+}
+
+/// Convert Places to curr LabelledPlaces
+pub fn labelled_curr_places(places: &HashSet<vir::Place>) -> HashSet<vir::LabelledPlace> {
+    places.iter().map(|p| vir::LabelledPlace::curr(p.clone())).collect()
 }

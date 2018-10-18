@@ -33,19 +33,19 @@ pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<St
     let mut bctxt = BranchCtxt::new(formal_vars, &predicates);
     // Inhale preconditions
     for pre in &function.pres {
-        let _ = bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()));
+        bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()));
     }
 
     let body = function.body.unwrap();
 
-    let (curr_perms, old_perms) = body
+    let perms: Vec<_> = body
         .get_required_permissions(&predicates)
         .into_iter()
-        .group_by_label();
+        .collect();
 
     // Add appropriate unfolding around this expression
     let new_body = bctxt
-        .obtain_permissions(curr_perms)
+        .obtain_permissions(perms)
         .into_iter()
         .rev()
         .fold(
@@ -125,23 +125,33 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
     fn replace_stmt(&mut self, stmt: &vir::Stmt, bctxt: &mut BranchCtxt<'p>) -> Vec<vir::Stmt> {
         debug!("replace_stmt: {}", stmt);
         if let vir::Stmt::Label(ref label) = stmt {
-            self.bctxt_at_label.insert(label.clone(), bctxt.clone());
+            let mut labelled_bctxt = bctxt.clone();
+            let labelled_state = labelled_bctxt.mut_state();
+            labelled_state.replace_labels(|opt_label| {
+                if opt_label == None {
+                    Some(label.clone())
+                } else {
+                    opt_label
+                }
+            });
+            self.bctxt_at_label.insert(label.clone(), labelled_bctxt);
         }
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        // 1. Preferred permissions
-        let (preferred_curr_perms, _) = stmt
+        // 1. Obtain "preferred" permissions (i.e. due to "weak obtain" statements)
+        let preferred_perms: Vec<_> = stmt
             .get_preferred_permissions(bctxt.predicates())
             .into_iter()
-            .group_by_label();
-
-        let obtainable_preferred_curr_perms: Vec<_> = preferred_curr_perms.into_iter()
-            .filter(|p| !bctxt.state().is_prefix_of_some_moved(&p.get_place()))
-            .filter(|p| !bctxt.state().moved().iter().any(|mp| p.get_place().has_prefix(mp)))
+            .filter(|p| p.is_curr())
             .collect();
 
-        if !obtainable_preferred_curr_perms.is_empty() {
+        let obtainable_preferred_perms: Vec<_> = preferred_perms.into_iter()
+            .filter(|p| !(p.is_curr() && bctxt.state().is_prefix_of_some_moved(&p.get_place())))
+            .filter(|p| !(p.is_curr() && bctxt.state().moved().iter().any(|mp| p.get_place().has_prefix(mp))))
+            .collect();
+
+        if !obtainable_preferred_perms.is_empty() {
             if false && self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
@@ -149,7 +159,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
             stmts.extend(
                 bctxt
-                    .obtain_permissions(obtainable_preferred_curr_perms)
+                    .obtain_permissions(obtainable_preferred_perms)
                     .iter()
                     .map(|a| a.to_stmt())
             );
@@ -160,13 +170,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
         }
 
-        // 2. Required permissions
-        let (curr_perms, old_perms) = stmt
+        // 2. Obtain required *curr* permissions. *old* requirements will be handled at step 3.
+        let perms: Vec<_> = stmt
             .get_required_permissions(bctxt.predicates())
             .into_iter()
-            .group_by_label();
+            .filter(|p| p.is_curr())
+            .collect();
 
-        if !curr_perms.is_empty() {
+        if !perms.is_empty() {
             if false && self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
@@ -174,7 +185,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
             stmts.extend(
                 bctxt
-                    .obtain_permissions(curr_perms)
+                    .obtain_permissions(perms)
                     .iter()
                     .map(|a| a.to_stmt())
             );
@@ -185,7 +196,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
         }
 
-        // 3. Add "fold/unfolding in" expressions in statement
+        // 3. Add "folding/unfolding in" expressions in statement. This handles *old* requirements.
         let repl_expr = |expr: &vir::Expr| -> vir::Expr {
             self.replace_expr(expr, bctxt)
         };
@@ -211,8 +222,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             vir::Stmt::ExpireBorrow(a, b) => vir::Stmt::ExpireBorrow(a.clone(), b.clone()),
         };
 
-        // 4. Apply statement
-        let _ = bctxt.apply_stmt(&new_stmt);
+        // 4. Apply effect of statement on state
+        bctxt.apply_stmt(&new_stmt);
         stmts.push(new_stmt);
 
         stmts
@@ -229,25 +240,32 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             _ => vec![]
         };
 
-        let (curr_perms, old_perms) = exprs.iter().flat_map(
+        let grouped_perms: HashMap<_, _> = exprs.iter().flat_map(
             |e| e.get_required_permissions(bctxt.predicates())
         ).group_by_label();
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        if !curr_perms.is_empty() {
-            if false && self.debug_foldunfold {
-                stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
-                stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
-            }
+        if false && !grouped_perms.is_empty() && self.debug_foldunfold {
+            stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
+            stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
+        }
 
-            stmts.extend(
-                bctxt
-                    .obtain_permissions(curr_perms)
-                    .iter()
-                    .map(|a| a.to_stmt())
-                    .collect::<Vec<_>>()
-            );
+        for (label, perms) in grouped_perms.into_iter() {
+            debug!("Obtain at label {:?} permissions {:?}", label, perms);
+            if !perms.is_empty() {
+                let mut opt_old_bctxt = label.map(
+                    |label_name| self.bctxt_at_label.get(&label_name).unwrap().clone()
+                );
+                let label_bctxt = opt_old_bctxt.as_mut().unwrap_or(bctxt);
+                stmts.extend(
+                    label_bctxt
+                        .obtain_permissions(perms)
+                        .iter()
+                        .map(|a| a.to_stmt())
+                        .collect::<Vec<_>>()
+                );
+            }
         }
 
         if self.check_foldunfold_state {
@@ -339,6 +357,15 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
 
         let mut old_bctxt = self.bctxt_at_label.get(&label).unwrap().clone();
 
+        // Replace old[label] with curr
+        old_bctxt.mut_state().replace_labels(|opt_label| {
+            if opt_label == Some(label.clone()) {
+                None
+            } else {
+                opt_label
+            }
+        });
+
         if label == "pre" {
             // Rename the local variables from `_1, ..` to `_old_1, ..` (see issue #20)
             old_bctxt.mut_state().replace_local_vars(|local_var: &vir::LocalVar| {
@@ -349,14 +376,14 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             });
         };
 
-        let (curr_perms, old_perms) = expr
+        let perms: Vec<_> = expr
             .get_required_permissions(old_bctxt.predicates())
             .into_iter()
-            .group_by_label();
+            .collect();
 
         // Add appropriate unfolding around this old expression
         let inner_expr = old_bctxt
-            .obtain_permissions(curr_perms)
+            .obtain_permissions(perms)
             .into_iter()
             .rev()
             .fold(

@@ -38,7 +38,7 @@ impl Viper {
             .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
             .option("-Xdebug")
             .option("-Xmx2048m")
-            .option("-Xss256m") // stack size
+            .option("-Xss512m") // stack size
             //.option("-verbose:gc")
             //.option("-Xcheck:jni")
             //.option("-XX:+CheckJNICalls")

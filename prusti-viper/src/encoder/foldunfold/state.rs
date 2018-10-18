@@ -14,17 +14,17 @@ use std::iter::FromIterator;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
     /// paths on which we (may) have a full access permission
-    acc: HashMap<vir::Place, Frac>,
+    acc: HashMap<vir::LabelledPlace, Frac>,
     /// paths on which we (may) have a full predicate permission
-    pred: HashMap<vir::Place, Frac>,
+    pred: HashMap<vir::LabelledPlace, Frac>,
     /// paths that have been "moved out" (for sure)
     moved: HashSet<vir::Place>,
     /// Permissions currently framed
-    framing_stack: Vec<PermSet>,
+    framing_stack: Vec<LabelledPermSet>,
 }
 
 impl State {
-    pub fn new(acc: HashMap<vir::Place, Frac>, pred: HashMap<vir::Place, Frac>, moved: HashSet<vir::Place>) -> Self {
+    pub fn new(acc: HashMap<vir::LabelledPlace, Frac>, pred: HashMap<vir::LabelledPlace, Frac>, moved: HashSet<vir::Place>) -> Self {
         State {
             acc,
             pred,
@@ -36,7 +36,7 @@ impl State {
     pub fn check_consistency(&self) {
         // Check access permissions
         for place in self.pred.keys() {
-            if !self.contains_acc(place) {
+            if place.is_curr() && !self.contains_acc(place) {
                 panic!(
                     "Consistency error: state has pred {}, but not acc {}",
                     place,
@@ -45,12 +45,12 @@ impl State {
             }
         }
         for place in self.acc.keys() {
-            if !place.is_base() {
-                if !self.contains_acc(place.parent().unwrap()) {
+            if !place.get_place().is_base() {
+                if !self.contains_acc(&place.clone().map_place(|p| p.parent().unwrap().clone())) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
                         place,
-                        place.parent().unwrap()
+                        place.clone().map_place(|p| p.parent().unwrap().clone())
                     );
                 }
             }
@@ -58,7 +58,7 @@ impl State {
         // Check predicates and moved paths
         for place in self.pred.keys() {
             for other_place in self.pred.keys() {
-                if place.has_proper_prefix(other_place) {
+                if place.get_place().has_proper_prefix(&other_place.get_place()) {
                     panic!(
                         "Consistency error: state has pred {}, but also pred {}",
                         place,
@@ -69,7 +69,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for pred_place in self.pred.keys() {
-                if acc_place.has_proper_prefix(pred_place) {
+                if acc_place.get_place().has_proper_prefix(&pred_place.get_place()) {
                     panic!(
                         "Consistency error: state has acc {}, but also pred {}",
                         acc_place,
@@ -80,7 +80,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for moved_place in &self.moved {
-                if acc_place.has_proper_prefix(moved_place) {
+                if acc_place.get_place().has_proper_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has acc {}, but also moved path {}",
                         acc_place,
@@ -91,14 +91,14 @@ impl State {
         }
         for pred_place in self.pred.keys() {
             for moved_place in &self.moved {
-                if pred_place.has_prefix(moved_place) {
+                if pred_place.get_place().has_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
                         moved_place
                     );
                 }
-                if moved_place.has_prefix(pred_place) {
+                if moved_place.has_prefix(pred_place.get_place()) && pred_place.is_curr() {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
@@ -109,7 +109,10 @@ impl State {
         }
         // Check moved
         for place in &self.moved {
-            if !self.contains_acc(place) && !self.framing_stack.iter().any(|fs| fs.contains(&Perm::Acc(place.clone(), Frac::one()))) {
+            if !self.contains_acc(&vir::LabelledPlace::curr(place.clone())) &&
+                !self.framing_stack.iter().any(|fs|
+                    fs.contains(&LabelledPerm::curr(Perm::Acc(place.clone(), Frac::one())))
+                ) {
                 panic!(
                     "Consistency error: state has moved path {}, but not acc {} (not even a framed one)",
                     place,
@@ -121,14 +124,15 @@ impl State {
 
     pub fn replace_local_vars<F>(&mut self, replace: F) where F: Fn(&vir::LocalVar) -> vir::LocalVar {
         for coll in vec![&mut self.acc, &mut self.pred] {
-            let new_values = coll.clone().into_iter().map(
-                |(place, frac)| {
-                    let base_var = place.base();
-                    let new_base_var = replace(base_var);
-                    let new_place = place.clone().replace_prefix(&vir::Place::Base(base_var.clone()), new_base_var.into());
-                    (new_place , frac)
-                }
-            );
+            let new_values = coll.clone().into_iter()
+                .map(|(p, frac)| {
+                    (p.map_place(|place| {
+                        let base_var = place.base();
+                        let new_base_var = replace(base_var);
+                        let new_place = place.clone().replace_prefix(&vir::Place::Base(base_var.clone()), new_base_var.into());
+                        new_place
+                    }), frac)
+                });
             coll.clear();
             for (key, value) in new_values {
                 coll.insert(key, value);
@@ -150,15 +154,29 @@ impl State {
         }
     }
 
-    pub fn acc(&self) -> &HashMap<vir::Place, Frac> {
+
+    pub fn replace_labels<F>(&mut self, replace: F) where F: Fn(Option<String>) -> Option<String> {
+        for coll in vec![&mut self.acc, &mut self.pred] {
+            let new_values = coll.clone().into_iter()
+                .map(|(p, frac)| {
+                    (p.map_label(|l| replace(l)), frac)
+                });
+            coll.clear();
+            for (key, value) in new_values {
+                coll.insert(key, value);
+            }
+        }
+    }
+
+    pub fn acc(&self) -> &HashMap<vir::LabelledPlace, Frac> {
         &self.acc
     }
 
-    pub fn acc_places(&self) -> HashSet<vir::Place> {
+    pub fn acc_places(&self) -> HashSet<vir::LabelledPlace> {
         self.acc.keys().cloned().collect()
     }
 
-    pub fn acc_leafes(&self) -> HashSet<vir::Place> {
+    pub fn acc_leafes(&self) -> HashSet<vir::LabelledPlace> {
         let mut acc_leafes = HashSet::new();
         for place in self.acc.keys() {
             if !self.is_proper_prefix_of_some_acc(place) {
@@ -168,11 +186,11 @@ impl State {
         acc_leafes
     }
 
-    pub fn pred(&self) -> &HashMap<vir::Place, Frac> {
+    pub fn pred(&self) -> &HashMap<vir::LabelledPlace, Frac> {
         &self.pred
     }
 
-    pub fn pred_places(&self) -> HashSet<vir::Place> {
+    pub fn pred_places(&self) -> HashSet<vir::LabelledPlace> {
         self.pred.keys().cloned().collect()
     }
 
@@ -180,15 +198,15 @@ impl State {
         &self.moved
     }
 
-    pub fn framing_stack(&self) -> &Vec<PermSet> {
+    pub fn framing_stack(&self) -> &Vec<LabelledPermSet> {
         &self.framing_stack
     }
 
-    pub fn set_acc(&mut self, acc: HashMap<vir::Place, Frac>) {
+    pub fn set_acc(&mut self, acc: HashMap<vir::LabelledPlace, Frac>) {
         self.acc = acc
     }
 
-    pub fn set_pred(&mut self, pred: HashMap<vir::Place, Frac>) {
+    pub fn set_pred(&mut self, pred: HashMap<vir::LabelledPlace, Frac>) {
         self.pred = pred
     }
 
@@ -196,11 +214,11 @@ impl State {
         self.moved = moved
     }
 
-    pub fn contains_acc(&self, place: &vir::Place) -> bool {
+    pub fn contains_acc(&self, place: &vir::LabelledPlace) -> bool {
         self.acc.contains_key(&place)
     }
 
-    pub fn contains_pred(&self, place: &vir::Place) -> bool {
+    pub fn contains_pred(&self, place: &vir::LabelledPlace) -> bool {
         self.pred.contains_key(&place)
     }
 
@@ -209,18 +227,18 @@ impl State {
     }
 
     /// Note: the fraction is currently ignored
-    pub fn contains_perm(&self, item: &Perm) -> bool {
-        match item {
-            &Perm::Acc(ref place, _) => self.contains_acc(&place),
-            &Perm::Pred(ref place, _) => self.contains_pred(&place),
+    pub fn contains_perm(&self, item: &LabelledPerm) -> bool {
+        match item.get_perm() {
+            &Perm::Acc(ref place, _) => self.contains_acc(&item.get_labelled_place()),
+            &Perm::Pred(ref place, _) => self.contains_pred(&item.get_labelled_place()),
         }
     }
 
-    pub fn contains_all_perms<'a, I>(&mut self, mut items: I) -> bool where I: Iterator<Item = &'a Perm> {
+    pub fn contains_all_perms<'a, I>(&mut self, mut items: I) -> bool where I: Iterator<Item = &'a LabelledPerm> {
         items.all(|x| self.contains_perm(x))
     }
 
-    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
+    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::LabelledPlace) -> bool {
         for place in self.acc.keys() {
             if place.has_proper_prefix(prefix) {
                 return true;
@@ -229,7 +247,7 @@ impl State {
         false
     }
 
-    pub fn is_proper_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {
+    pub fn is_proper_prefix_of_some_pred(&self, prefix: &vir::LabelledPlace) -> bool {
         for place in self.pred.keys() {
             if place.has_proper_prefix(prefix) {
                 return true;
@@ -247,7 +265,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
+    pub fn is_prefix_of_some_acc(&self, prefix: &vir::LabelledPlace) -> bool {
         for place in self.acc.keys() {
             if place.has_prefix(prefix) {
                 return true;
@@ -256,7 +274,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {
+    pub fn is_prefix_of_some_pred(&self, prefix: &vir::LabelledPlace) -> bool {
         for place in self.pred.keys() {
             if place.has_prefix(prefix) {
                 return true;
@@ -274,7 +292,7 @@ impl State {
         false
     }
 
-    pub fn intersect_acc(&mut self, acc_set: &HashSet<vir::Place>) {
+    pub fn intersect_acc(&mut self, acc_set: &HashSet<vir::LabelledPlace>) {
         let mut new_acc = HashMap::new();
         for (place, frac) in self.acc.drain() {
             if acc_set.contains(&place) {
@@ -284,7 +302,7 @@ impl State {
         self.acc = new_acc;
     }
 
-    pub fn intersect_pred(&mut self, pred_set: &HashSet<vir::Place>) {
+    pub fn intersect_pred(&mut self, pred_set: &HashSet<vir::LabelledPlace>) {
         let mut new_pred = HashMap::new();
         for (place, frac) in self.pred.drain() {
             if pred_set.contains(&place) {
@@ -299,10 +317,10 @@ impl State {
     }
 
     pub fn remove_all(&mut self) {
-        self.remove_matching(|_| true);
+        self.remove_matching_place(|_| true);
     }
 
-    pub fn remove_matching<P>(&mut self, pred: P)
+    pub fn remove_matching_place<P>(&mut self, pred: P)
         where P: Fn(&vir::Place) -> bool
     {
         self.remove_acc_matching_place(|x| pred(x));
@@ -313,11 +331,23 @@ impl State {
     pub fn remove_acc_matching_place<P>(&mut self, pred: P)
         where P: Fn(&vir::Place) -> bool
     {
-        self.acc.retain(|e, _| !pred(e));
+        self.acc.retain(|e, _| !pred(e.get_place()));
     }
 
     pub fn remove_pred_matching_place<P>(&mut self, pred: P)
         where P: Fn(&vir::Place) -> bool
+    {
+        self.pred.retain(|e, _| !pred(e.get_place()));
+    }
+
+    pub fn remove_acc_matching<P>(&mut self, pred: P)
+        where P: Fn(&vir::LabelledPlace) -> bool
+    {
+        self.acc.retain(|e, _| !pred(e));
+    }
+
+    pub fn remove_pred_matching<P>(&mut self, pred: P)
+        where P: Fn(&vir::LabelledPlace) -> bool
     {
         self.pred.retain(|e, _| !pred(e));
     }
@@ -352,7 +382,7 @@ impl State {
         self.moved.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
     }
 
-    pub fn insert_acc(&mut self, place: vir::Place, frac: Frac) {
+    pub fn insert_acc(&mut self, place: vir::LabelledPlace, frac: Frac) {
         trace!("insert_acc {}, {}", place, frac);
         if self.acc.contains_key(&place) {
             let new_frac = self.acc[&place] + frac;
@@ -363,13 +393,13 @@ impl State {
         }
     }
 
-    pub fn insert_all_acc<I>(&mut self, items: I) where I: Iterator<Item = (vir::Place, Frac)> {
+    pub fn insert_all_acc<I>(&mut self, items: I) where I: Iterator<Item = (vir::LabelledPlace, Frac)> {
         for (place, frac) in items {
             self.insert_acc(place, frac);
         }
     }
 
-    pub fn insert_pred(&mut self, place: vir::Place, frac: Frac) {
+    pub fn insert_pred(&mut self, place: vir::LabelledPlace, frac: Frac) {
         trace!("insert_pred {}, {}", place, frac);
         if self.pred.contains_key(&place) {
             let new_frac = self.pred[&place] + frac;
@@ -380,7 +410,7 @@ impl State {
         }
     }
 
-    pub fn insert_all_pred<I>(&mut self, items: I) where I: Iterator<Item = (vir::Place, Frac)> {
+    pub fn insert_all_pred<I>(&mut self, items: I) where I: Iterator<Item = (vir::LabelledPlace, Frac)> {
         for (place, frac) in items {
             self.insert_pred(place, frac);
         }
@@ -397,30 +427,30 @@ impl State {
         }
     }
 
-    pub fn insert_perm(&mut self, item: Perm) {
-        match item {
-            Perm::Acc(place, frac) => self.insert_acc(place, frac),
-            Perm::Pred(place, frac) => self.insert_pred(place, frac),
+    pub fn insert_perm(&mut self, item: LabelledPerm) {
+        match item.get_perm() {
+            &Perm::Acc(_, frac) => self.insert_acc(item.get_labelled_place(), frac),
+            &Perm::Pred(_, frac) => self.insert_pred(item.get_labelled_place(), frac),
         };
     }
 
-    pub fn insert_all_perms<I>(&mut self, items: I) where I: Iterator<Item =Perm> {
+    pub fn insert_all_perms<I>(&mut self, items: I) where I: Iterator<Item=LabelledPerm> {
         for item in items {
             self.insert_perm(item);
         }
     }
 
-    pub fn remove_acc_place(&mut self, place: &vir::Place) -> Frac {
+    pub fn remove_acc_place(&mut self, place: &vir::LabelledPlace) -> Frac {
         assert!(self.acc.contains_key(place), "Place {} is not in state (acc), so it can not be removed.", place);
         self.acc.remove(place).unwrap()
     }
 
-    pub fn remove_pred_place(&mut self, place: &vir::Place) -> Frac {
+    pub fn remove_pred_place(&mut self, place: &vir::LabelledPlace) -> Frac {
         assert!(self.pred.contains_key(place), "Place {} is not in state (pred), so it can not be removed.", place);
         self.pred.remove(place).unwrap()
     }
 
-    pub fn remove_acc(&mut self, place: &vir::Place, frac: Frac) {
+    pub fn remove_acc(&mut self, place: &vir::LabelledPlace, frac: Frac) {
         assert!(self.acc.contains_key(place), "Place {} is not in state (acc), so it can not be removed.", place);
         assert!(self.acc[place] >= frac);
         if self.acc[place] == frac {
@@ -430,7 +460,7 @@ impl State {
         }
     }
 
-    pub fn remove_pred(&mut self, place: &vir::Place, frac: Frac) {
+    pub fn remove_pred(&mut self, place: &vir::LabelledPlace, frac: Frac) {
         trace!("remove_pred {}, {}", place, frac);
         assert!(self.pred.contains_key(place), "Place {} is not in state (pred), so it can not be removed.", place);
         assert!(self.pred[place] >= frac, "{} >= {}", frac, self.pred[place]);
@@ -446,14 +476,14 @@ impl State {
         self.moved.remove(place);
     }
 
-    pub fn remove_perm(&mut self, item: &Perm) {
-        match item {
-            &Perm::Acc(ref place, frac) => self.remove_acc(place, frac),
-            &Perm::Pred(ref place, frac) => self.remove_pred(place, frac)
+    pub fn remove_perm(&mut self, item: &LabelledPerm) {
+        match item.get_perm() {
+            &Perm::Acc(_, frac) => self.remove_acc(&item.get_labelled_place(), frac),
+            &Perm::Pred(_, frac) => self.remove_pred(&item.get_labelled_place(), frac)
         };
     }
 
-    pub fn remove_all_perms<'a, I>(&mut self, items: I) where I: Iterator<Item = &'a Perm> {
+    pub fn remove_all_perms<'a, I>(&mut self, items: I) where I: Iterator<Item = &'a LabelledPerm> {
         for item in items {
             self.remove_perm(item);
         }
@@ -462,7 +492,7 @@ impl State {
     pub fn as_vir_expr(&self) -> vir::Expr {
         let mut exprs: Vec<vir::Expr> = vec![];
         for (place, frac) in self.acc.iter() {
-            if !place.is_base() {
+            if !place.get_place().is_base() {
                 exprs.push(
                     vir::Expr::acc_permission(place.clone(), *frac)
                 );
@@ -479,15 +509,15 @@ impl State {
     pub fn begin_frame(&mut self) {
         trace!("begin_frame");
         trace!("Before: {} frames are on the stack", self.framing_stack.len());
-        let mut framed_perms = PermSet::empty();
+        let mut framed_perms = LabelledPermSet::empty();
         for (place, frac) in self.acc.clone().into_iter() {
-            if !place.is_base() {
+            if !place.get_place().is_base() {
                 self.acc.remove(&place);
-                framed_perms.add(Perm::Acc(place, frac));
+                framed_perms.add(LabelledPerm::new(place.get_label(), Perm::Acc(place.get_place().clone(), frac)));
             }
         }
         for (place, frac) in self.pred.drain() {
-            framed_perms.add(Perm::Pred(place, frac))
+            framed_perms.add(LabelledPerm::new(place.get_label(), Perm::Pred(place.get_place().clone(), frac)));
         }
         debug!("Framed permissions: {}", framed_perms);
         self.framing_stack.push(framed_perms);
@@ -506,10 +536,10 @@ impl State {
         trace!("After: {} frames are on the stack", self.framing_stack.len());
     }
 
-    pub fn get_available_frac(&self, perm: &Perm) -> Frac {
-        match perm {
-            Perm::Acc(ref place, _) => self.acc.get(place).cloned().unwrap_or(Frac::zero()),
-            Perm::Pred(ref place, _) => self.pred.get(place).cloned().unwrap_or(Frac::zero()),
+    pub fn get_available_frac(&self, perm: &LabelledPerm) -> Frac {
+        match perm.get_perm() {
+            Perm::Acc(..) => self.acc.get(&perm.get_labelled_place()).cloned().unwrap_or(Frac::zero()),
+            Perm::Pred(..) => self.pred.get(&perm.get_labelled_place()).cloned().unwrap_or(Frac::zero()),
         }
     }
 }

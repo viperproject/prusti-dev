@@ -71,9 +71,9 @@ pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> 
     #[invariant="true"]
     while left <= right && !done {
         let mid = (left + right) / 2;
-        if arr.lookup(mid) < target {
+        if arr.lookup(mid) < target { //~ ERROR
             left = mid + 1;
-        } else if arr.lookup(mid) > target {
+        } else if arr.lookup(mid) > target { //~ ERROR
             right = mid - 1;
         } else {
             result = Some(mid);

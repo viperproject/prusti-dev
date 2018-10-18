@@ -153,12 +153,11 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 lhs.to_viper(ast),
                 rhs.to_viper(ast)
             ),
-            &Expr::PredicateAccess(ref predicate_name, ref args) => ast.predicate_access(
-                &args.to_viper(ast)[..],
-                &predicate_name
-            ),
-            &Expr::PredicateAccessPredicate(ref loc, frac) => ast.predicate_access_predicate(
-                loc.to_viper(ast),
+            &Expr::PredicateAccessPredicate(ref predicate_name, ref args, frac) => ast.predicate_access_predicate(
+                ast.predicate_access(
+                    &args.to_viper(ast)[..],
+                    &predicate_name
+                ),
                 ast.fractional_perm(
                     ast.int_lit(*frac.numer() as i64),
                     ast.int_lit(*frac.denom() as i64),

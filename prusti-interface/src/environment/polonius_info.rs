@@ -422,6 +422,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         dying_before.map(|d| d.into_iter().collect()).unwrap_or(vec![])
     }
 
+    pub fn get_loan_location(&self, loan: &facts::Loan) -> mir::Location {
+        self.loan_position[loan].clone()
+    }
+
     /// Convert a facts::Loan to LoanPlaces<'tcx> (if possible)
     pub fn get_loan_places(&self, loan: &facts::Loan) -> Option<LoanPlaces<'tcx>> {
         let loan_location = self.loan_position[loan];

@@ -101,11 +101,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         vir::Frac::one()
                     ),
                     vir::Expr::PredicateAccessPredicate(
-                        box vir::Expr::PredicateAccess(
-                            predicate_name,
-                            vec![ elem_loc.into() ]
-                        ),
-                        vir::Frac::one()
+                        predicate_name,
+                        vec![ elem_loc.into() ],
+                        vir::Frac::one(),
                     ),
                 ]
             }
@@ -122,11 +120,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             vir::Frac::one()
                         ),
                         vir::Expr::PredicateAccessPredicate(
-                            box vir::Expr::PredicateAccess(
-                                predicate_name,
-                                vec![ elem_loc.into() ]
-                            ),
-                            vir::Frac::one()
+                            predicate_name,
+                            vec![ elem_loc.into() ],
+                            vir::Frac::one(),
                         ),
                     ]
                 }).collect()
@@ -155,11 +151,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         );
                         perms.push(
                             vir::Expr::PredicateAccessPredicate(
-                                box vir::Expr::PredicateAccess(
-                                    predicate_name,
-                                    vec![ elem_loc.into() ]
-                                ),
-                                vir::Frac::one()
+                                predicate_name,
+                                vec![ elem_loc.into() ],
+                                vir::Frac::one(),
                             )
                         )
                     }
@@ -206,11 +200,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             );
                             variant_perms.push(
                                 vir::Expr::PredicateAccessPredicate(
-                                    box vir::Expr::PredicateAccess(
-                                        predicate_name,
-                                        vec![ elem_loc.into() ]
-                                    ),
-                                    vir::Frac::one()
+                                    predicate_name,
+                                    vec![ elem_loc.into() ],
+                                    vir::Frac::one(),
                                 )
                             )
                         }
@@ -243,11 +235,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 );
                 perms.push(
                     vir::Expr::PredicateAccessPredicate(
-                        box vir::Expr::PredicateAccess(
-                            predicate_name,
-                            vec![ elem_loc.into() ]
-                        ),
-                        vir::Frac::one()
+                        predicate_name,
+                        vec![ elem_loc.into() ],
+                        vir::Frac::one(),
                     )
                 );
                 perms

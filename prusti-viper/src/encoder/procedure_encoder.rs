@@ -49,6 +49,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     check_panics: bool,
     polonius_info: PoloniusInfo<'p, 'tcx>,
+    label_after_location: HashMap<mir::Location, String>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -83,7 +84,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             auxiliar_local_vars: HashMap::new(),
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             check_panics: config::check_panics(),
-            polonius_info: PoloniusInfo::new(tcx, def_id, mir)
+            polonius_info: PoloniusInfo::new(tcx, def_id, mir),
+            label_after_location: HashMap::new(),
         }
     }
 
@@ -226,8 +228,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
                 }
-                for stmt in self.encode_expiring_borrows_at(location).drain(..) {
-                    self.cfg_method.add_stmt(cfg_block, stmt);
+                if successor != vir::Successor::Return {
+                    for stmt in self.encode_expiring_borrows_at(location).drain(..) {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
                 }
                 self.cfg_method.set_successor(cfg_block, successor);
             }
@@ -390,7 +394,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let encoded_left = self.mir_encoder.encode_operand_expr(left);
                         let encoded_right = self.mir_encoder.encode_operand_expr(right);
                         let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.encode_bin_op_expr(op, encoded_left, encoded_right, ty);
+                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left, encoded_right, ty);
                         // Initialize lhs.field
                         stmts.push(
                             vir::Stmt::Assign(
@@ -405,8 +409,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
                         let encoded_left = self.mir_encoder.encode_operand_expr(left);
                         let encoded_right = self.mir_encoder.encode_operand_expr(right);
-                        let encoded_value = self.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
-                        let encoded_check = self.encode_bin_op_check(op, encoded_left, encoded_right);
+                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
+                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right);
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                         let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
                         let value_field_value = self.encoder.encode_value_field(field_types[0]);
@@ -437,7 +441,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
                         let encoded_val = self.mir_encoder.encode_operand_expr(operand);
                         let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.encode_unary_op_expr(op, encoded_val);
+                        let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
                         // Initialize `lhs.field`
                         stmts.push(
                             vir::Stmt::Assign(
@@ -599,6 +603,39 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("encode_expiration_of_reborrowing_node '{:?}'", node);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
+        // Expire current loan
+        match node.kind {
+            ReborrowingKind::Assignment { ref loan } => {
+                let loan_location = self.polonius_info.get_loan_location(&loan);
+                if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
+                    let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
+                    // TODO: choose labels in a better way
+                    let label = self.label_after_location.get(&loan_location).cloned();
+                    stmts.push(
+                        vir::Stmt::ExpireBorrow(
+                            vir::LabelledPlace::new(expiring.clone(), label.clone()),
+                            vir::LabelledPlace::new(restored, label.clone())
+                        )
+                    );
+                    if label.is_none() {
+                        stmts.extend(
+                            self.encode_havoc_and_allocation(&expiring, expiring_ty)
+                        );
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+
+            ReborrowingKind::Call { .. } => {
+                unimplemented!();
+            }
+
+            ReborrowingKind::Loop => {
+                unimplemented!();
+            }
+        }
+
         // Expire subtrees
         match node.branching {
             ReborrowingBranching::Leaf => {} // Nothing to do
@@ -611,31 +648,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             ReborrowingBranching::Multiple { children }  => {
                 unimplemented!("TODO")
-            }
-        }
-
-        // Expire current loan
-        match node.kind {
-            ReborrowingKind::Assignment { ref loan } => {
-                if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
-                    let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
-                    stmts.push(
-                        vir::Stmt::ExpireBorrow(expiring.clone(), restored)
-                    );
-                    stmts.extend(
-                        self.encode_havoc_and_allocation(&expiring, expiring_ty)
-                    );
-                } else {
-                    unreachable!()
-                }
-            }
-
-            ReborrowingKind::Call { .. } => {
-                unimplemented!();
-            }
-
-            ReborrowingKind::Loop => {
-                unimplemented!();
             }
         }
 
@@ -920,7 +932,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         );
                     }
 
-                    // generic function call
                     _ => {
                         let is_pure_function = self.encoder.env().has_attribute_name(def_id, "pure");
                         if is_pure_function {
@@ -984,16 +995,33 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         } else {
                             debug!("Encoding non-pure function call '{}'", func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
-                            let mut arg_vars = Vec::new();
-                            let mut encoded_args = Vec::new();
+                            let mut args_exprs: HashMap<vir::Place, vir::Expr> = HashMap::new();
+                            let mut fake_arg_vars = Vec::new();
 
                             for operand in args.iter() {
-                                let (arg_var, _, effects_before, effects_after) = self.encode_operand(operand);
-                                arg_vars.push(arg_var);
-                                encoded_args.push(self.encode_prusti_local(arg_var));
-                                stmts.extend(effects_before);
-                                stmts_after.extend(effects_after);
+                                let arg_ty = self.mir_encoder.get_operand_ty(operand);
+                                let fake_arg = self.locals.get_fresh(arg_ty);
+                                fake_arg_vars.push(fake_arg.clone());
+                                let encoded_local = self.encode_prusti_local(fake_arg);
+                                let fake_arg_place = vir::Place::Base(encoded_local);
+                                match self.mir_encoder.encode_operand_place(operand) {
+                                    Some(place) => {
+                                        args_exprs.insert(fake_arg_place, place.into());
+                                    }
+                                    None => {
+                                        let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
+                                        let val_field = self.encoder.encode_value_field(arg_ty);
+                                        args_exprs.insert(fake_arg_place.access(val_field), arg_val_expr);
+                                    }
+                                }
                             }
+
+                            let replace_fake_args = |mut expr: vir::Expr| -> vir::Expr {
+                                for (fake_arg, arg_expr) in args_exprs.iter() {
+                                    expr = expr.substitute_place_with_expr(&fake_arg, arg_expr.clone());
+                                }
+                                expr
+                            };
 
                             let mut encoded_target: vir::LocalVar;
                             let target = {
@@ -1009,7 +1037,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         // The return type is Never
                                         // This means that the function call never returns
                                         // So, we `assume false` after the function call
-                                        stmts_after.push(vir::Stmt::Inhale(vir::Const::Bool(false).into()));
+                                        stmts_after.push(vir::Stmt::Inhale(false.into()));
                                         // Return a dummy local variable
                                         let never_ty = self.encoder.env().tcx().mk_ty(
                                             ty::TypeVariants::TyNever
@@ -1022,9 +1050,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             };
 
                             let procedure_contract = self.encoder
-                                .get_procedure_contract_for_call(def_id, &arg_vars, target);
+                                .get_procedure_contract_for_call(def_id, &fake_arg_vars, target);
 
                             let label = self.cfg_method.get_fresh_label_name();
+                            assert_eq!(stmts.len(), 0);
+                            if location.statement_index > 0 {
+                                let prev_loc = mir::Location {
+                                    statement_index: location.statement_index - 1,
+                                    ..location.clone()
+                                };
+                                debug!("Previous loc {:?} has label {}", prev_loc, label);
+                                self.label_after_location.insert(prev_loc, label.clone());
+                            }
                             stmts.push(vir::Stmt::Label(label.clone()));
 
                             let (pre_type_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
@@ -1032,8 +1069,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 term.source_info.span,
                                 ErrorCtxt::ExhaleMethodPrecondition
                             );
-                            stmts.push(vir::Stmt::Assert(pre_func_spec, pos.clone()));
-                            stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
+                            stmts.push(vir::Stmt::Assert(replace_fake_args(pre_func_spec), pos.clone()));
+                            stmts.push(vir::Stmt::Exhale(replace_fake_args(pre_type_spec), pos));
 
                             let is_trusted = self.encoder.env()
                                 .has_attribute_name(def_id, "trusted");
@@ -1045,19 +1082,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 );
                             } else {
                                 stmts.push(vir::Stmt::MethodCall(
-                                    self.encoder.encode_procedure_use(def_id), // TODO
+                                    self.encoder.encode_procedure_use(def_id),
                                     vec![],
                                     vec![ encoded_target ],
                                 ));
                             }
 
                             let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &label);
-                            stmts.push(vir::Stmt::Inhale(post_type_spec));
-                            stmts.push(vir::Stmt::Inhale(post_func_spec));
+                            stmts.push(vir::Stmt::Inhale(replace_fake_args(post_type_spec)));
+                            stmts.push(vir::Stmt::Inhale(replace_fake_args(post_func_spec)));
 
                             stmts.extend(stmts_after);
                         }
                     }
+                    // generic (pure on non-pure) function call
                 }
 
                 if let &Some((_, target)) = destination {
@@ -1065,9 +1103,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     (stmts, Successor::Goto(*target_cfg_block))
                 } else {
                     // Encode unreachability
-                    stmts.push(
-                        vir::Stmt::Inhale(false.into())
-                    );
+                    //stmts.push(
+                    //    vir::Stmt::Inhale(false.into())
+                    //);
                     (stmts, Successor::Return)
                 }
             }
@@ -1168,16 +1206,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (mut encoded_place, place_ty, _) = self.encode_generic_place(place);
         let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
         vir::Expr::PredicateAccessPredicate(
-            box vir::Expr::PredicateAccess(
-                predicate_name,
-                vec![
-                    if let Some(label) = state_label {
-                        self.mir_encoder.encode_old_place(encoded_place, label)
-                    } else {
-                        encoded_place.into()
-                    }
-                ],
-            ),
+            predicate_name,
+            vec![
+                if let Some(label) = state_label {
+                    self.mir_encoder.encode_old_place(encoded_place, label)
+                } else {
+                    encoded_place.into()
+                }
+            ],
             vir::Frac::one(),
         )
     }
@@ -1286,7 +1322,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     /// This must be a leaf node.
                     PermissionKind::ReadSubtree => {
                         vir::Expr::pred_permission(
-                            encoded_place,
+                            vir::LabelledPlace::curr(encoded_place),
                             read_frac_by_loop_depth(loop_depth)
                         ).unwrap()
                     }
@@ -1303,7 +1339,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     /// This must be a leaf node.
                     PermissionKind::WriteSubtree => {
                         vir::Expr::pred_permission(
-                            encoded_place,
+                            vir::LabelledPlace::curr(encoded_place),
                             vir::Frac::one()
                         ).unwrap()
                     }
@@ -1610,71 +1646,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    #[deprecated(note="please use `encode_assign_operand` instead")]
-    fn encode_operand(&mut self, operand: &mir::Operand<'tcx>) -> (Local,
-                                                                   vir::LocalVar,
-                                                                   Vec<vir::Stmt>,
-                                                                   Vec<vir::Stmt>) {
-        debug!("Encode operand {:?}", operand);
-        match operand {
-            &mir::Operand::Move(ref place) => {
-                let (src, ty, _) = self.mir_encoder.encode_place(place);
-                let local = self.locals.get_fresh(ty);
-                let viper_local = self.encode_prusti_local(local);
-                // Before, move to a temporary variable (used to encode procedure calls)
-                let stmt_before = vir::Stmt::Assign(viper_local.clone().into(), src.clone().into(), vir::AssignKind::Move);
-                (local, viper_local, vec![stmt_before], vec![])
-            }
-            &mir::Operand::Copy(ref place) => {
-                let (src, ty, _) = self.mir_encoder.encode_place(place);
-                let local = self.locals.get_fresh(ty);
-                let viper_local = self.encode_prusti_local(local);
-                let mut stmts: Vec<vir::Stmt> = vec![];
-                // Before, copy the values from src to viper_local
-                stmts.extend(
-                    self.encode_copy(src, viper_local.clone().into(), ty, false)
-                );
-                (local, viper_local, stmts, vec![])
-            }
-            &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
-                let local = self.locals.get_fresh(ty);
-                let viper_local = self.encode_prusti_local(local);
-                let mut stmts = Vec::new();
-                let field = self.encoder.encode_value_field(ty);
-                // Evaluate the constant
-                /* TODO: in the future use the following commented code (not exposed by the compiler)
-                let tcx = self.encoder.env().tcx();
-                let const_prop = ConstPropagator::new(self.mir, tcx, MirSource::item(self.proc_def_id));
-                let evaluated_const = const_prop.eval_constant(constant);
-                let const_val = self.encoder.encode_const_expr(value);
-                */
-                match literal {
-                    mir::Literal::Value { value } => {
-                        let const_val = self.encoder.encode_const_expr(value);
-                        // Before, initialize viper_local
-                        stmts.push(
-                            vir::Stmt::Assign(vir::Place::from(viper_local.clone()).access(field), const_val, vir::AssignKind::Copy)
-                        );
-                    }
-                    mir::Literal::Promoted { index } => {
-                        trace!("promoted constant literal {:?}: {:?}", index, ty);
-                        trace!("{:?}", self.mir.promoted[*index].basic_blocks());
-                        trace!("{:?}", self.mir.promoted[*index].basic_blocks().into_iter().next().unwrap().statements[0]);
-                        // TODO
-                        warn!("TODO: encoding of promoted constant literal '{:?}: {:?}' is incomplete", index, ty);
-                        /*
-                        let tcx = self.encoder.env().tcx();
-                        let const_prop = ConstPropagator::new(self.mir, tcx, MirSource::item(self.proc_def_id));
-                        let evaluated_const = const_prop.eval_constant(constant);
-                        let const_val = self.encoder.encode_const_expr(value);
-                        */
-                    }
-                }
-                (local, viper_local, stmts, vec![])
-            }
-        }
-    }
-
     pub fn get_auxiliar_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {
         let name = format!("_aux_{}_{}", suffix, vir_type.name());
         if self.auxiliar_local_vars.contains_key(&name) {
@@ -1833,40 +1804,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             ref x => unimplemented!("{:?}", x),
         }
-    }
-
-    fn encode_bin_op_expr(&mut self, op: mir::BinOp, left: vir::Expr, right: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
-        let is_bool = ty.sty == ty::TypeVariants::TyBool;
-        match op {
-            mir::BinOp::Eq => vir::Expr::eq_cmp(left, right),
-            mir::BinOp::Ne => vir::Expr::ne_cmp(left, right),
-            mir::BinOp::Gt => vir::Expr::gt_cmp(left, right),
-            mir::BinOp::Ge => vir::Expr::ge_cmp(left, right),
-            mir::BinOp::Lt => vir::Expr::lt_cmp(left, right),
-            mir::BinOp::Le => vir::Expr::le_cmp(left, right),
-            mir::BinOp::Add => vir::Expr::add(left, right),
-            mir::BinOp::Sub => vir::Expr::sub(left, right),
-            mir::BinOp::Rem => vir::Expr::rem(left, right),
-            mir::BinOp::Div => vir::Expr::div(left, right),
-            mir::BinOp::Mul => vir::Expr::mul(left, right),
-            mir::BinOp::BitAnd if is_bool => vir::Expr::and(left, right),
-            mir::BinOp::BitOr if is_bool => vir::Expr::or(left, right),
-            mir::BinOp::BitXor if is_bool => vir::Expr::xor(left, right),
-            x => unimplemented!("{:?}", x)
-        }
-    }
-
-    fn encode_unary_op_expr(&mut self, op: mir::UnOp, expr: vir::Expr) -> vir::Expr {
-        match op {
-            mir::UnOp::Not => vir::Expr::not(expr),
-            mir::UnOp::Neg => vir::Expr::minus(expr),
-        }
-    }
-
-    fn encode_bin_op_check(&mut self, op: mir::BinOp, _left: vir::Expr, _right: vir::Expr) -> vir::Expr {
-        warn!("TODO: encoding of bin op check '{:?}' is incomplete", op);
-        // TODO
-        false.into()
     }
 
     fn encode_assign_aggregate(

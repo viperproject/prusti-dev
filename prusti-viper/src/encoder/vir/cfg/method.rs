@@ -32,7 +32,7 @@ pub(super) struct CfgBlock {
     pub(super) successor: Successor,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Successor {
     Undefined,
     Return,

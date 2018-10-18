@@ -158,6 +158,116 @@ impl fmt::Debug for Field {
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
+pub struct LabelledPlace {
+    place: Place,
+    label: Option<String>
+}
+
+impl LabelledPlace {
+    pub fn new(place: Place, label: Option<String>) -> Self {
+        LabelledPlace {
+            place,
+            label
+        }
+    }
+
+    pub fn curr(place: Place) -> Self {
+        Self::new(place, None)
+    }
+
+    pub fn old(place: Place, label: String) -> Self {
+        Self::new(place, Some(label))
+    }
+
+    pub fn get_place(&self) -> &Place {
+        &self.place
+    }
+
+    pub fn get_label(&self) -> Option<&String> {
+        self.label.as_ref()
+    }
+
+    pub fn is_curr(&self) -> bool {
+        self.label.is_none()
+    }
+
+    pub fn is_old(&self) -> bool {
+        self.label.is_some()
+    }
+
+    pub fn is_base(&self) -> bool {
+        self.get_place().is_base()
+    }
+
+    pub fn get_type(&self) -> &Type {
+        self.get_place().get_type()
+    }
+
+    // Returns all prefixes, from the shortest to the longest
+    pub fn all_prefixes(&self) -> Vec<LabelledPlace> {
+        self.get_place().all_prefixes().into_iter().map(
+            |p| LabelledPlace { place: p.clone(), ..self.clone() }
+        ).collect()
+    }
+
+    pub fn map_place<F>(self, f: F) -> Self
+        where F: Fn(Place) -> Place
+    {
+        LabelledPlace {
+            place: f(self.place),
+            ..self
+        }
+    }
+
+    pub fn map_label<F>(self, f: F) -> Self
+        where F: Fn(Option<String>) -> Option<String>
+    {
+        LabelledPlace {
+            label: f(self.label),
+            ..self
+        }
+    }
+
+    pub fn has_proper_prefix(&self, other: &LabelledPlace) -> bool {
+        self.get_label() == other.get_label() && self.get_place().has_proper_prefix(other.get_place())
+    }
+
+    pub fn has_prefix(&self, other: &LabelledPlace) -> bool {
+        self.get_label() == other.get_label() && self.get_place().has_prefix(other.get_place())
+    }
+
+    pub fn replace_prefix(&self, target: &LabelledPlace, replacement: LabelledPlace) -> Self {
+        assert_eq!(target.get_label(), replacement.get_label());
+        if target.get_label() == self.get_label() {
+            LabelledPlace {
+                place: self.place.clone().replace_prefix(target.get_place(), replacement.get_place().clone()),
+                ..self.clone()
+            }
+        } else {
+            self.clone()
+        }
+    }
+}
+
+impl fmt::Display for LabelledPlace {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.label {
+            None => write!(f, "{}", self.place),
+            Some(ref label) => write!(f, "old[{}]({})", label, self.place),
+        }
+    }
+}
+
+impl fmt::Debug for LabelledPlace {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.label {
+            None => write!(f, "{}", self.place),
+            Some(ref label) => write!(f, "old[{}]({:?})", label, self.place),
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Place {
     Base(LocalVar),
     Field(Box<Place>, Field),
@@ -339,7 +449,7 @@ pub enum Stmt {
     /// Arguments: the expiring location, then the restored location.
     /// That is, the lhs and rhs of the assignment that created the borrow.
     /// Permissions will move from the expiring to the restored location.
-    ExpireBorrow(Place, Place)
+    ExpireBorrow(LabelledPlace, LabelledPlace)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -374,10 +484,8 @@ impl Stmt {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Obtain(
             Expr::PredicateAccessPredicate(
-                box Expr::PredicateAccess(
-                    predicate_name,
-                    vec![place.into()],
-                ),
+                predicate_name,
+                vec![place.into()],
                 Frac::one(),
             )
         )
@@ -553,7 +661,7 @@ pub trait StmtFolder {
         Stmt::EndFrame
     }
 
-    fn fold_expire_borrow(&mut self, a: Place, b: Place) -> Stmt {
+    fn fold_expire_borrow(&mut self, a: LabelledPlace, b: LabelledPlace) -> Stmt {
         Stmt::ExpireBorrow(a, b)
     }
 }
@@ -565,9 +673,8 @@ pub enum Expr {
     Place(Place),
     LabelledOld(String, Box<Expr>),
     MagicWand(Box<Expr>, Box<Expr>),
-    /// PredicateAccess: predicate_name, args
-    PredicateAccess(String, Vec<Expr>),
-    PredicateAccessPredicate(Box<Expr>, Frac),
+    /// PredicateAccessPredicate: predicate_name, args, frac
+    PredicateAccessPredicate(String, Vec<Expr>, Frac),
     FieldAccessPredicate(Box<Expr>, Frac),
     UnaryOp(UnaryOpKind, Box<Expr>),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>),
@@ -588,8 +695,7 @@ pub trait ExprFolder {
             Expr::Place(x) => self.fold_place(x),
             Expr::LabelledOld(x, y) => self.fold_labelled_old(x, y),
             Expr::MagicWand(x, y) => self.fold_magic_wand(x, y),
-            Expr::PredicateAccess(x, y) => self.fold_predicate_access(x, y),
-            Expr::PredicateAccessPredicate(x, y) => self.fold_predicate_access_predicate(x, y),
+            Expr::PredicateAccessPredicate(x, y, z) => self.fold_predicate_access_predicate(x, y, z),
             Expr::FieldAccessPredicate(x, y) => self.fold_field_access_predicate(x, y),
             Expr::UnaryOp(x, y) => self.fold_unary_op(x, y),
             Expr::BinOp(x, y, z) => self.fold_bin_op(x, y, z),
@@ -616,11 +722,8 @@ pub trait ExprFolder {
     fn fold_magic_wand(&mut self, x: Box<Expr>, y: Box<Expr>) -> Expr {
         Expr::MagicWand(self.fold_boxed(x), self.fold_boxed(y))
     }
-    fn fold_predicate_access(&mut self, x: String, y: Vec<Expr>) -> Expr {
-        Expr::PredicateAccess(x, y.into_iter().map(|e| self.fold(e)).collect())
-    }
-    fn fold_predicate_access_predicate(&mut self, x: Box<Expr>, y: Frac) -> Expr {
-        Expr::PredicateAccessPredicate(self.fold_boxed(x), y)
+    fn fold_predicate_access_predicate(&mut self, x: String, y: Vec<Expr>, z: Frac) -> Expr {
+        Expr::PredicateAccessPredicate(x, y.into_iter().map(|e| self.fold(e)).collect(), z)
     }
     fn fold_field_access_predicate(&mut self, x: Box<Expr>, y: Frac) -> Expr {
         Expr::FieldAccessPredicate(self.fold_boxed(x), y)
@@ -652,8 +755,7 @@ pub trait ExprWalker {
             Expr::Place(ref x) => self.walk_place(x),
             Expr::LabelledOld(ref x, ref y) => self.walk_labelled_old(x, y),
             Expr::MagicWand(ref x, ref y) => self.walk_magic_wand(x, y),
-            Expr::PredicateAccess(ref x, ref y) => self.walk_predicate_access(x, y),
-            Expr::PredicateAccessPredicate(ref x, y) => self.walk_predicate_access_predicate(x, y),
+            Expr::PredicateAccessPredicate(ref x, ref y, z) => self.walk_predicate_access_predicate(x, y, z),
             Expr::FieldAccessPredicate(ref x, y) => self.walk_field_access_predicate(x, y),
             Expr::UnaryOp(x, ref y) => self.walk_unary_op(x, y),
             Expr::BinOp(x, ref y, ref z) => self.walk_bin_op(x, y, z),
@@ -676,13 +778,10 @@ pub trait ExprWalker {
         self.walk(x);
         self.walk(y);
     }
-    fn walk_predicate_access(&mut self, x: &str, y: &Vec<Expr>) {
+    fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: Frac) {
         for e in y {
             self.walk(e);
         }
-    }
-    fn walk_predicate_access_predicate(&mut self, x: &Expr, y: Frac) {
-        self.walk(x)
     }
     fn walk_field_access_predicate(&mut self, x: &Expr, y: Frac) {
         self.walk(x)
@@ -725,12 +824,13 @@ impl fmt::Display for Expr {
             Expr::Place(ref place) => write!(f, "{}", place),
             Expr::BinOp(op, ref left, ref right) => write!(f, "({}) {} ({})", left, op, right),
             Expr::UnaryOp(op, ref expr) => write!(f, "{}({})", op, expr),
-            Expr::PredicateAccessPredicate(ref expr, perm) => write!(f, "acc({}, {})", expr, perm),
-            Expr::FieldAccessPredicate(ref expr, perm) => write!(f, "acc({}, {})", expr, perm),
-            Expr::PredicateAccess(ref pred_name, ref args) => write!(
-                f, "{}({})", pred_name,
-                args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+            Expr::PredicateAccessPredicate(ref pred_name, ref args, perm) => write!(
+                f, "acc({}({}), {})",
+                pred_name,
+                args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                perm
             ),
+            Expr::FieldAccessPredicate(ref expr, perm) => write!(f, "acc({}, {})", expr, perm),
             Expr::LabelledOld(ref label, ref expr) => write!(f, "old[{}]({})", label, expr),
             Expr::MagicWand(ref left, ref right) => write!(f, "({}) --* ({})", left, right),
             Expr::Unfolding(ref pred_name, ref args, ref expr, frac) => if *frac == Frac::one() {
@@ -847,22 +947,20 @@ impl fmt::Display for UnaryOpKind {
 }
 
 impl Expr {
-    pub fn pred_permission(place: Place, perm: Frac) -> Option<Self> {
-        place.typed_ref_name().map( |pred_name|
+    pub fn pred_permission(place: LabelledPlace, frac: Frac) -> Option<Self> {
+        place.get_place().typed_ref_name().map( |pred_name|
             Expr::PredicateAccessPredicate(
-                box Expr::PredicateAccess(
-                    pred_name,
-                    vec![ place.into() ]
-                ),
-                perm
+                pred_name,
+                vec![ place.into() ],
+                frac,
             )
         )
     }
 
-    pub fn acc_permission(place: Place, perm: Frac) -> Self {
+    pub fn acc_permission<P: Into<Expr>>(place: P, frac: Frac) -> Self {
         Expr::FieldAccessPredicate(
             box place.into(),
-            perm
+            frac
         )
     }
 
@@ -995,12 +1093,12 @@ impl Expr {
             Expr::Place(place) => Expr::Place(place.replace_prefix(target, replacement.clone())),
             Expr::BinOp(op, left, right) => Expr::BinOp(op, replace(left), replace(right)),
             Expr::UnaryOp(op, expr) => Expr::UnaryOp(op, replace(expr)),
-            Expr::PredicateAccessPredicate(expr, perm) => Expr::PredicateAccessPredicate(replace(expr), perm),
-            Expr::FieldAccessPredicate(expr, perm) => Expr::FieldAccessPredicate(replace(expr), perm),
-            Expr::PredicateAccess(pred_name, args) => Expr::PredicateAccess(
-                pred_name,
-                args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>()
+            Expr::PredicateAccessPredicate(name, args, perm) => Expr::PredicateAccessPredicate(
+                name,
+                args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>(),
+                perm
             ),
+            Expr::FieldAccessPredicate(expr, perm) => Expr::FieldAccessPredicate(replace(expr), perm),
             Expr::LabelledOld(label, expr) => Expr::LabelledOld(label, replace(expr)),
             Expr::MagicWand(left, right) => Expr::MagicWand(replace(left), replace(right)),
             Expr::Unfolding(pred_name, args, expr, frac) => Expr::Unfolding(

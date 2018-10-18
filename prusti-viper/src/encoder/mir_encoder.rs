@@ -374,10 +374,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_place_predicate_permission(&self, place: vir::Place, frac: vir::Frac) -> Option<vir::Expr> {
         place.typed_ref_name().map(|predicate_name|
             vir::Expr::PredicateAccessPredicate(
-                box vir::Expr::PredicateAccess(
-                    predicate_name,
-                    vec![place.into()],
-                ),
+                predicate_name,
+                vec![place.into()],
                 frac,
             )
         )

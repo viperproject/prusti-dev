@@ -15,7 +15,7 @@ use encoder::foldunfold::perm::*;
 pub enum Action {
     Fold(String, Vec<vir::Expr>, Frac),
     Unfold(String, Vec<vir::Expr>, Frac),
-    Drop(Perm),
+    Drop(LabelledPerm),
 }
 
 impl Action {
@@ -25,23 +25,7 @@ impl Action {
 
             Action::Unfold(ref pred, ref args, frac) => vir::Stmt::Unfold(pred.clone(), args.clone(), *frac),
 
-            Action::Drop(Perm::Pred(ref place, frac)) => {
-                let exhale_body: vir::Expr = vir::Expr::pred_permission(
-                    place.clone(),
-                    *frac
-                ).unwrap_or(true.into());
-                vir::Stmt::Exhale(
-                    exhale_body,
-                    vir::Position::new(0, 0, "exhale dropped predicate".to_string())
-                )
-            }
-
-            Action::Drop(Perm::Acc(ref place, frac)) => {
-                vir::Stmt::Exhale(
-                    vir::Expr::acc_permission(place.clone(), *frac),
-                    vir::Position::new(0, 0, "exhale dropped predicate".to_string())
-                )
-            }
+            Action::Drop(perm) => vir::Stmt::comment(self.to_string()),
         }
     }
 
