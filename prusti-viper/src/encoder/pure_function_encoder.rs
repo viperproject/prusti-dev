@@ -10,6 +10,8 @@ use encoder::mir_encoder::MirEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::mir_encoder::PRECONDITION_LABEL;
 use encoder::vir;
+use encoder::vir::{Zero, One};
+use rustc::hir;
 use rustc::mir;
 use rustc::ty;
 use rustc::hir::def_id::DefId;
@@ -132,10 +134,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     /// - one for the functional specification.
     fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> (vir::Expr, vir::Expr) {
         let type_spec = contract.args.iter()
-            .flat_map(|&local|
-                self.interpreter.mir_encoder().encode_place_predicate_permission(
-                    self.encode_local(local.into()).into()
-                )
+            .flat_map(
+                |&local| {
+                    let local_ty = self.interpreter.mir_encoder().get_local_ty(local.into());
+                    let fraction = if let ty::TypeVariants::TyRef(_, _, hir::Mutability::MutImmutable) = local_ty.sty {
+                        // FIXME: this is an hardcoded epsilon permission
+                        vir::Frac::new(1, 1000)
+                    } else {
+                        vir::Frac::one()
+                    };
+                    self.interpreter.mir_encoder().encode_place_predicate_permission(
+                        self.encode_local(local.into()).into(),
+                        fraction
+                    )
+                }
             );
         let mut func_spec: Vec<vir::Expr> = vec![];
 

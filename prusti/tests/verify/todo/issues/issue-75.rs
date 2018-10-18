@@ -1,4 +1,4 @@
-/// Issue #75:
+/// Issue #75: "Fold/unfold state invariant not respected"
 extern crate prusti_contracts;
 
 pub struct VecWrapperI32{

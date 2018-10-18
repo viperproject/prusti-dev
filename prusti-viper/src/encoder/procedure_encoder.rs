@@ -20,6 +20,8 @@ use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
+use prusti_interface::environment::polonius_info::{ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
+use prusti_interface::environment::borrowck::{facts};
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
@@ -281,7 +283,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let var_type = vir::Type::TypedRef(type_name.clone());
             let local_var = vir::LocalVar::new(var_name.clone(), var_type);
             let alloc_stmt = vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(local_var.clone().into()).unwrap()
+                self.mir_encoder.encode_place_predicate_permission(local_var.clone().into(), vir::Frac::one()).unwrap()
             );
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
@@ -593,21 +595,62 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("encode_expiring_borrows_before '{:?}'", location);
+    fn encode_expiration_of_reborrowing_node(&mut self, node: ReborrowingNode) -> Vec<vir::Stmt> {
+        trace!("encode_expiration_of_reborrowing_node '{:?}'", node);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        // TODO: use self.polonius_info.construct_reborrowing_forest(..)
-        for loan in self.polonius_info.get_loans_dying_before(location).drain(..) {
-            if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
-                let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
-                stmts.push(
-                    vir::Stmt::ExpireBorrow(expiring.clone(), restored)
-                );
+        // Expire subtrees
+        match node.branching {
+            ReborrowingBranching::Leaf => {} // Nothing to do
+
+            ReborrowingBranching::Single { child: box child }  => {
                 stmts.extend(
-                    self.encode_havoc_and_allocation(&expiring, expiring_ty)
+                    self.encode_expiration_of_reborrowing_node(child)
                 );
             }
+
+            ReborrowingBranching::Multiple { children }  => {
+                unimplemented!("TODO")
+            }
+        }
+
+        // Expire current loan
+        match node.kind {
+            ReborrowingKind::Assignment { ref loan } => {
+                if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
+                    let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
+                    stmts.push(
+                        vir::Stmt::ExpireBorrow(expiring.clone(), restored)
+                    );
+                    stmts.extend(
+                        self.encode_havoc_and_allocation(&expiring, expiring_ty)
+                    );
+                } else {
+                    unreachable!()
+                }
+            }
+
+            ReborrowingKind::Call { .. } => {
+                unimplemented!();
+            }
+
+            ReborrowingKind::Loop => {
+                unimplemented!();
+            }
+        }
+
+        stmts
+    }
+
+    fn encode_expiration_of_loans(&mut self, loans: Vec<facts::Loan>) -> Vec<vir::Stmt> {
+        trace!("encode_expiration_of_loans '{:?}'", loans);
+        let mut stmts: Vec<vir::Stmt> = vec![];
+
+        let mut reborrowing_forest = self.polonius_info.construct_reborrowing_forest(&loans);
+        for reborrowing_tree in reborrowing_forest.trees.drain(..) {
+            stmts.extend(
+                self.encode_expiration_of_reborrowing_node(reborrowing_tree.root)
+            );
         }
 
         if stmts.len() > 0 {
@@ -620,31 +663,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
+    fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
+        debug!("encode_expiring_borrows_before '{:?}'", location);
+        let dying_loans = self.polonius_info.get_loans_dying_before(location);
+        self.encode_expiration_of_loans(dying_loans)
+    }
+
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
-        let mut stmts: Vec<vir::Stmt> = vec![];
-
-        // TODO: use self.polonius_info.construct_reborrowing_forest(..)
-        for loan in self.polonius_info.get_loans_dying_at(location).drain(..) {
-            if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
-                let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
-                stmts.push(
-                    vir::Stmt::ExpireBorrow(expiring.clone(), restored)
-                );
-                stmts.extend(
-                    self.encode_havoc_and_allocation(&expiring, expiring_ty)
-                );
-            }
-        }
-
-        if stmts.len() > 0 {
-            stmts.insert(
-                0,
-                vir::Stmt::comment(format!("Expire {} dying loans", stmts.len()))
-            )
-        }
-
-        stmts
+        let dying_loans = self.polonius_info.get_loans_dying_at(location);
+        self.encode_expiration_of_loans(dying_loans)
     }
 
     fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>, location: mir::Location,
@@ -1100,7 +1128,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode permissions that are implicitly carried by the given local variable.
     fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
         self.mir_encoder.encode_place_predicate_permission(
-            self.encode_prusti_local(local).into()
+            self.encode_prusti_local(local).into(),
+            vir::Frac::one()
         ).unwrap()
     }
 
@@ -1213,7 +1242,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             if self.mir_encoder.is_reference(arg_ty) {
                 let encoded_arg = self.mir_encoder.encode_local(arg_index);
                 let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
-                let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place).unwrap();
+                let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
                 self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::WeakObtain(deref_pred));
             }
         }
@@ -1685,7 +1714,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Allocate `dst`
         stmts.push(
             vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(dst.clone()).unwrap()
+                self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap()
             )
         );
         stmts

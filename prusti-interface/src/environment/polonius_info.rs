@@ -46,6 +46,7 @@ impl fmt::Debug for LoopMagicWand {
     }
 }
 
+#[derive(Debug)]
 pub enum ReborrowingKind {
     Assignment {
         /// The actual loan that expired.
@@ -62,6 +63,7 @@ pub enum ReborrowingKind {
     Loop,
 }
 
+#[derive(Debug)]
 pub enum ReborrowingBranching {
     /// This node is a leaf node.
     Leaf,
@@ -77,8 +79,8 @@ pub enum ReborrowingBranching {
 }
 
 pub struct ReborrowingNode {
-    kind: ReborrowingKind,
-    branching: ReborrowingBranching,
+    pub kind: ReborrowingKind,
+    pub branching: ReborrowingBranching,
 }
 
 impl fmt::Debug for ReborrowingNode {
@@ -117,7 +119,7 @@ impl fmt::Debug for ReborrowingNode {
 }
 
 pub struct ReborrowingTree {
-    root: ReborrowingNode,
+    pub root: ReborrowingNode,
 }
 
 impl fmt::Debug for ReborrowingTree {
@@ -128,7 +130,7 @@ impl fmt::Debug for ReborrowingTree {
 }
 
 pub struct ReborrowingForest {
-    trees: Vec<ReborrowingTree>,
+    pub trees: Vec<ReborrowingTree>,
 }
 
 impl ToString for ReborrowingForest {

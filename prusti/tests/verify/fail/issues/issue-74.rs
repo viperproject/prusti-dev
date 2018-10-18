@@ -51,7 +51,7 @@ pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> 
     let mut done = false;
 
     #[invariant="true"]
-    while left <= right && !done {
+    while left <= right && !done { //~ ERROR: precondition of pure function call might not hold.
         let mid = (left + right) / 2;
         if arr.lookup(mid) < target {
             left = mid + 1;

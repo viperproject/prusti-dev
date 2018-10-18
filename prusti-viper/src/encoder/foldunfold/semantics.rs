@@ -207,13 +207,18 @@ impl vir::Stmt {
             &vir::Stmt::ExpireBorrow(ref lhs_place, ref rhs_place) => {
                 let original_state = state.clone();
 
+                assert!(
+                    state.is_prefix_of_some_pred(lhs_place),
+                    "The fold/unfold state does not contain the permission for an expiring borrow: {}",
+                    lhs_place
+                );
                 assert!(lhs_place.get_type().is_ref());
                 assert!(rhs_place.get_type().is_ref());
                 assert_eq!(lhs_place.get_type(), rhs_place.get_type());
-                assert!(!state.is_proper_prefix_of_some_acc(&rhs_place));
-                assert!(!state.is_prefix_of_some_pred(&rhs_place));
-                assert!(!state.is_prefix_of_some_moved(&rhs_place));
-                assert!(!state.is_prefix_of_some_moved(&lhs_place));
+                assert!(!state.is_proper_prefix_of_some_acc(rhs_place));
+                assert!(!state.is_prefix_of_some_pred(rhs_place));
+                assert!(!state.is_prefix_of_some_moved(rhs_place));
+                assert!(!state.is_prefix_of_some_moved(lhs_place));
 
                 // Restore permissions from the `lhs` to the `rhs`
 
