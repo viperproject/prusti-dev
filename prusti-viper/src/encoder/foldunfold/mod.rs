@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::vir;
+use encoder::Encoder;
 use self::branch_ctxt::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -12,6 +13,7 @@ use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
 use prusti_interface::config;
+use prusti_interface::report::Log;
 
 mod perm;
 mod permissions;
@@ -56,25 +58,32 @@ pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<St
 }
 
 
-pub fn add_fold_unfold(cfg: vir::CfgMethod, predicates: HashMap<String, vir::Predicate>) -> vir::CfgMethod {
+pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, cfg: vir::CfgMethod) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
+    let predicates = encoder.get_used_viper_predicates_map();
     let initial_bctxt = BranchCtxt::new(cfg_vars, &predicates);
-    FoldUnfold::new(initial_bctxt).replace_cfg(&cfg)
+    FoldUnfold::new(encoder, initial_bctxt, &cfg).replace_cfg(&cfg)
 }
 
-#[derive(Debug, Clone)]
-struct FoldUnfold<'a> {
-    initial_bctxt: BranchCtxt<'a>,
-    bctxt_at_label: HashMap<String, BranchCtxt<'a>>,
+#[derive(Clone)]
+struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
+    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+    initial_bctxt: BranchCtxt<'p>,
+    bctxt_at_label: HashMap<String, BranchCtxt<'p>>,
     debug_foldunfold: bool,
+    check_foldunfold_state: bool,
+    cfg: &'p vir::CfgMethod,
 }
 
-impl<'a> FoldUnfold<'a> {
-    pub fn new(initial_bctxt: BranchCtxt<'a>) -> Self {
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
+    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, initial_bctxt: BranchCtxt<'p>, cfg: &'p vir::CfgMethod) -> Self {
         FoldUnfold {
+            encoder,
             initial_bctxt,
             bctxt_at_label: HashMap::new(),
-            debug_foldunfold: config::debug_foldunfold()
+            debug_foldunfold: config::debug_foldunfold(),
+            check_foldunfold_state: config::check_foldunfold_state(),
+            cfg,
         }
     }
 
@@ -83,8 +92,22 @@ impl<'a> FoldUnfold<'a> {
     }
 }
 
-impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
-    fn compatible_back_edge(left: &BranchCtxt<'a>, right: &BranchCtxt<'a>) -> bool {
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
+    /// Dump the current CFG, for debugging purposes
+    fn current_cfg(&self, new_cfg: &vir::CfgMethod) {
+        if self.debug_foldunfold {
+            let source_path = self.encoder.env().source_path();
+            let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+            let method_name = new_cfg.name();
+            Log::report_with_writer(
+                "graphviz_method_during_foldunfold",
+                format!("{}.{}.dot", source_filename, method_name),
+                |writer| new_cfg.to_graphviz(writer)
+            );
+        }
+    }
+
+    fn compatible_back_edge(left: &BranchCtxt<'p>, right: &BranchCtxt<'p>) -> bool {
         let left_state = left.state();
         let right_state = right.state();
 
@@ -94,12 +117,12 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
     }
 
     /// Give the initial branch context
-    fn initial_context(&mut self) -> BranchCtxt<'a> {
+    fn initial_context(&mut self) -> BranchCtxt<'p> {
         self.initial_bctxt.clone()
     }
 
     /// Replace some statements, mutating the branch context
-    fn replace_stmt(&mut self, stmt: &vir::Stmt, bctxt: &mut BranchCtxt<'a>) -> Vec<vir::Stmt> {
+    fn replace_stmt(&mut self, stmt: &vir::Stmt, bctxt: &mut BranchCtxt<'p>) -> Vec<vir::Stmt> {
         debug!("replace_stmt: {}", stmt);
         if let vir::Stmt::Label(ref label) = stmt {
             self.bctxt_at_label.insert(label.clone(), bctxt.clone());
@@ -119,7 +142,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             .collect();
 
         if !obtainable_preferred_curr_perms.is_empty() {
-            if self.debug_foldunfold {
+            if false && self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -131,7 +154,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
                     .map(|a| a.to_stmt())
             );
 
-            if self.debug_foldunfold {
+            if self.check_foldunfold_state {
                 stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
                 stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
             }
@@ -144,7 +167,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             .group_by_label();
 
         if !curr_perms.is_empty() {
-            if self.debug_foldunfold {
+            if false && self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -156,7 +179,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
                     .map(|a| a.to_stmt())
             );
 
-            if self.debug_foldunfold {
+            if self.check_foldunfold_state {
                 stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
                 stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
             }
@@ -196,7 +219,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
     }
 
     /// Inject some statements and replace a successor, mutating the branch context
-    fn replace_successor(&mut self, succ: &vir::Successor, bctxt: &mut BranchCtxt<'a>) -> (Vec<vir::Stmt>, vir::Successor) {
+    fn replace_successor(&mut self, succ: &vir::Successor, bctxt: &mut BranchCtxt<'p>) -> (Vec<vir::Stmt>, vir::Successor) {
         debug!("replace_successor: {}", succ);
         let exprs: Vec<&vir::Expr> = match succ {
             &vir::Successor::GotoSwitch(ref guarded_targets, _) => {
@@ -213,7 +236,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         if !curr_perms.is_empty() {
-            if self.debug_foldunfold {
+            if false && self.debug_foldunfold {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -227,7 +250,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
             );
         }
 
-        if self.debug_foldunfold {
+        if self.check_foldunfold_state {
             stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
             stmts.push(vir::Stmt::Assert(bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check state".to_string())));
         }
@@ -259,7 +282,7 @@ impl<'a> vir::CfgReplacer<BranchCtxt<'a>> for FoldUnfold<'a> {
     }
 
     /// Prepend some statements to an existing join point, returning the merged branch context.
-    fn prepend_join(&mut self, bcs: Vec<&BranchCtxt<'a>>) -> (Vec<Vec<vir::Stmt>>, BranchCtxt<'a>) {
+    fn prepend_join(&mut self, bcs: Vec<&BranchCtxt<'p>>) -> (Vec<Vec<vir::Stmt>>, BranchCtxt<'p>) {
         trace!("[enter] prepend_join(..{})", &bcs.len());
         assert!(bcs.len() > 0);
         if bcs.len() == 1 {

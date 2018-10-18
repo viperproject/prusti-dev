@@ -78,7 +78,13 @@ impl CfgMethod {
         }
         lines.push("</td></tr>".to_string());
 
-        lines.push("<tr><td align=\"left\">".to_string());
+        match block.successor {
+            // Red
+            Successor::Undefined => lines.push("<tr><td align=\"left\" bgcolor=\"#F43E3E\">".to_string()),
+            // Green
+            Successor::Return => lines.push("<tr><td align=\"left\" bgcolor=\"#82CA9D\">".to_string()),
+            _ => lines.push("<tr><td align=\"left\">".to_string()),
+        }
         {
             let full_successor = block.successor.to_string();
             let splitted_successor = sub_strings(&full_successor, 120, 116);

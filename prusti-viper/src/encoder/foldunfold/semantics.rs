@@ -221,7 +221,7 @@ impl vir::Stmt {
 
                 // In Prusti, lose permission from the lhs and rhs
                 state.remove_pred_matching_place(|p| p.has_prefix(&lhs_place));
-                state.remove_acc_matching_place(|p| p.has_prefix(&lhs_place) && !p.is_base());
+                state.remove_acc_matching_place(|p| p.has_proper_prefix(&lhs_place) && !p.is_base());
                 state.remove_pred_matching_place(|p| p.has_prefix(&rhs_place));
                 state.remove_acc_matching_place(|p| p.has_prefix(&rhs_place) && !p.is_base());
 
@@ -230,7 +230,7 @@ impl vir::Stmt {
 
                 // And we create permissions for the rhs
                 let new_acc_places = original_state.acc().iter()
-                    .filter(|(p, _)| p.has_prefix(&lhs_place))
+                    .filter(|(p, _)| p.has_proper_prefix(&lhs_place))
                     .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac))
                     .filter(|(p, _)| !p.is_base());
                 state.insert_all_acc(new_acc_places);

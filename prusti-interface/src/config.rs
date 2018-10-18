@@ -13,6 +13,7 @@ lazy_static! {
 
         // 1. Default values
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
+        settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
         settings.set_default("DEBUG_FOLDUNFOLD", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
@@ -42,7 +43,12 @@ pub fn dump() -> String {
     format!("{:?}", SETTINGS.read().unwrap())
 }
 
-/// Generate additional, slow, checks for the foldunfold algorithm
+/// Generate additional, *slow*, checks for the foldunfold algorithm
+pub fn check_foldunfold_state() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("CHECK_FOLDUNFOLD_STATE").unwrap()
+}
+
+/// Generate additional, *slow*, debug dumps for the foldunfold algorithm
 pub fn debug_foldunfold() -> bool {
     SETTINGS.read().unwrap().get::<bool>("DEBUG_FOLDUNFOLD").unwrap()
 }
@@ -63,6 +69,7 @@ pub fn simplify_expressions() -> bool {
 }
 
 /// Should we check that "Unreachable" terminators are actually unreachable?
+/// It should be guaranteed by the compiler.
 pub fn check_unreachable_terminators() -> bool {
     SETTINGS.read().unwrap().get::<bool>("CHECK_UNREACHABLE_TERMINATORS").unwrap()
 }

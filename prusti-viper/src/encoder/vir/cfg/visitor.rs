@@ -20,6 +20,9 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
     }
     */
 
+    /// Callback method called each time the CFG is modified. Useful for debugging purposes.
+    fn current_cfg(&self, cfg: &CfgMethod) {}
+
     /// Are two branch context compatible for a back edge?
     fn compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt) -> bool;
 
@@ -138,6 +141,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
 
             // REPLACE statement
             for stmt in &curr_block.stmts {
+                self.current_cfg(&new_cfg);
                 let new_stmts = self.replace_stmt(stmt, &mut bctxt);
                 trace!("Replace stmt '{}' with [{}]", stmt, new_stmts.iter().to_string());
                 for new_stmt in new_stmts {
@@ -146,6 +150,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
             }
 
             // REPLACE successor
+            self.current_cfg(&new_cfg);
             let (new_stmts, new_successor) = self.replace_successor(&curr_block.successor, &mut bctxt);
             trace!("Replace successor of {:?} with {:?} and {:?}", curr_block_index, new_stmts, new_successor);
             for new_stmt in new_stmts {

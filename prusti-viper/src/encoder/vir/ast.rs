@@ -577,8 +577,8 @@ pub enum Expr {
     Cond(Box<Expr>, Box<Expr>, Box<Expr>),
     // ForAll: variables, triggers, body
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>),
-    /// FuncApp: function_name, args, formal_args, return_type
-    FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type),
+    /// FuncApp: function_name, args, formal_args, return_type, Viper position
+    FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
 }
 
 pub trait ExprFolder {
@@ -596,7 +596,7 @@ pub trait ExprFolder {
             Expr::Unfolding(x, y, z, frac) => self.fold_unfolding(x, y, z, frac),
             Expr::Cond(x, y, z) => self.fold_cond(x, y, z),
             Expr::ForAll(x, y, z) => self.fold_forall(x, y, z),
-            Expr::FuncApp(x, y, z, k) => self.fold_func_app(x, y, z, k),
+            Expr::FuncApp(x, y, z, k, p) => self.fold_func_app(x, y, z, k, p),
         }
     }
 
@@ -640,8 +640,8 @@ pub trait ExprFolder {
     fn fold_forall(&mut self, x: Vec<LocalVar>, y: Vec<Trigger>, z: Box<Expr>) -> Expr {
         Expr::ForAll(x, y, self.fold_boxed(z))
     }
-    fn fold_func_app(&mut self, x: String, y: Vec<Expr>, z: Vec<LocalVar>, k: Type) -> Expr {
-        Expr::FuncApp(x, y.into_iter().map(|e| self.fold(e)).collect(), z, k)
+    fn fold_func_app(&mut self, x: String, y: Vec<Expr>, z: Vec<LocalVar>, k: Type, p: Position) -> Expr {
+        Expr::FuncApp(x, y.into_iter().map(|e| self.fold(e)).collect(), z, k, p)
     }
 }
 
@@ -660,7 +660,7 @@ pub trait ExprWalker {
             Expr::Unfolding(ref x, ref y, ref z, frac) => self.walk_unfolding(x, y, z, frac),
             Expr::Cond(ref x, ref y, ref z) => self.walk_cond(x, y, z),
             Expr::ForAll(ref x, ref y, ref z) => self.walk_forall(x, y, z),
-            Expr::FuncApp(ref x, ref y, ref z, ref k) => self.walk_func_app(x, y, z, k),
+            Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => self.walk_func_app(x, y, z, k, p),
         }
     }
 
@@ -708,7 +708,7 @@ pub trait ExprWalker {
     fn walk_forall(&mut self, x: &Vec<LocalVar>, y: &Vec<Trigger>, z: &Expr) {
         self.walk(z);
     }
-    fn walk_func_app(&mut self, x: &str, y: &Vec<Expr>, z: &Vec<LocalVar>, k: &Type) {
+    fn walk_func_app(&mut self, x: &str, y: &Vec<Expr>, z: &Vec<LocalVar>, k: &Type, p: &Position) {
         for e in y {
             self.walk(e)
         }
@@ -978,12 +978,13 @@ impl Expr {
         )
     }
 
-    pub fn func_app(name: String, args: Vec<Expr>, internal_args: Vec<LocalVar>, return_type: Type) -> Self {
+    pub fn func_app(name: String, args: Vec<Expr>, internal_args: Vec<LocalVar>, return_type: Type, pos: Position) -> Self {
         Expr::FuncApp(
             name,
             args,
             internal_args,
-            return_type
+            return_type,
+            pos
         )
     }
 
@@ -1021,11 +1022,12 @@ impl Expr {
                     )
                 }
             },
-            Expr::FuncApp(name, args, formal_args, return_type) => Expr::FuncApp(
+            Expr::FuncApp(name, args, formal_args, return_type, pos) => Expr::FuncApp(
                 name,
                 args.into_iter().map(|arg| arg.replace(target, replacement)).collect(),
                 formal_args,
-                return_type
+                return_type,
+                pos
             ),
         }
     }

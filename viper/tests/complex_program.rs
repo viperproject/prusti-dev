@@ -63,10 +63,10 @@ fn success_with_complex_program() {
                                 ast.domain_func_app(
                                     wrap_domain_function,
                                     &[ast.local_var("x", ast.type_var("T"))],
-                                    &[(ast.type_var("T"), ast.type_var("T"))],
+                                    &[(ast.type_var("T"), ast.type_var("T"))]
                                 ),
                             ],
-                            &[(ast.type_var("T"), ast.type_var("T"))],
+                            &[(ast.type_var("T"), ast.type_var("T"))]
                         ),
                         ast.local_var("x", ast.type_var("T")),
                     ),
@@ -117,6 +117,7 @@ fn success_with_complex_program() {
                     ],
                     &[ast.local_var_decl("v", ast.int_type())],
                     ast.bool_type(),
+                    ast.no_position(),
                 ),
             ),
         ),
@@ -133,6 +134,7 @@ fn success_with_complex_program() {
                 &[ast.local_var("v", ast.int_type())],
                 &[ast.local_var_decl("v", ast.int_type())],
                 ast.bool_type(),
+                ast.no_position(),
             ),
         ],
         &[

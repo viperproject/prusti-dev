@@ -29,7 +29,10 @@ release:
 	$(SET_ENV_VARS) cargo build --release --all
 
 test:
-	$(SET_ENV_VARS) cargo test --all
+	$(SET_ENV_VARS) \
+	PRUSTI_CHECK_UNREACHABLE_TERMINATORS=1 \
+	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
+	cargo test --all
 
 bench:
 	$(SET_ENV_VARS) cargo bench --all

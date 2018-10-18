@@ -238,25 +238,24 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
         }
         for target in get_normal_targets(term) {
             trace!("Try target {:?} of {:?}", target, source);
-            //if is_loop_head {
-                // Skip the following "if false"
-                let target_term = &mir[target].terminator.as_ref().unwrap();
-                trace!("target_term {:?}", target_term);
-                if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
-                    trace!("target_term is a SwitchInt");
-                    trace!("discr: '{:?}'", discr);
-                    if format!("{:?}", discr) == "const false" {
-                        // Some assumptions
-                        assert!(values[0] == 0 as u128);
-                        assert!(values.len() == 1);
+            // Skip the following "if false"
+            // TODO: this is an approximation: it treats all `if false {...}` as specification blocks
+            let target_term = &mir[target].terminator.as_ref().unwrap();
+            trace!("target_term {:?}", target_term);
+            if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
+                trace!("target_term is a SwitchInt");
+                trace!("discr: '{:?}'", discr);
+                if format!("{:?}", discr) == "const false" {
+                    // Some assumptions
+                    assert!(values[0] == 0 as u128);
+                    assert!(values.len() == 1);
 
-                        // Do not visit the 'then' branch.
-                        // So, it will not be put into nonspec_basic_blocks.
-                        debug!("MIR block {:?} is the head of a specification branch", targets[1]);
-                        visited.insert(targets[1]);
-                    }
+                    // Do not visit the 'then' branch.
+                    // So, it will not be put into nonspec_basic_blocks.
+                    debug!("MIR block {:?} is the head of a specification branch", targets[1]);
+                    visited.insert(targets[1]);
                 }
-            //}
+            }
             if !visited.contains(&target) {
                 to_visit.push(target);
             }

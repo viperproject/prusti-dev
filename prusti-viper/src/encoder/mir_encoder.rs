@@ -18,6 +18,7 @@ use encoder::vir::ExprIterator;
 use encoder::vir::utils::ExprSubPlaceSubstitutor;
 use encoder::places::LocalVariableManager;
 use encoder::builtin_encoder::BuiltinFunctionKind;
+use encoder::error_manager::ErrorCtxt;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 
@@ -279,7 +280,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let function_name = self.encoder.encode_builtin_function_use(
                     BuiltinFunctionKind::Undefined(uuid, encoded_type.clone())
                 );
-                vir::Expr::FuncApp(function_name, vec![], vec![], encoded_type)
+                let pos = self.encoder.error_manager().register(
+                    self.mir.span,
+                    ErrorCtxt::PureFunctionCall
+                );
+                vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
             }
         }
     }

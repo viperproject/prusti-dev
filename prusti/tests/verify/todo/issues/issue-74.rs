@@ -1,0 +1,69 @@
+/// Issue #74: "Pure function call fails with insufficient permissions"
+
+// From: https://github.com/xcaptain/rust-algorithms/blob/master/algorithms/src/search/binary_search.rs
+
+extern crate prusti_contracts;
+
+// Prusti Vec wrapper
+pub struct VecWrapperusize{
+    v: Vec<usize>
+}
+
+impl VecWrapperusize {
+    // Encoded as body-less Viper function
+    #[trusted]
+    #[pure]
+    pub fn len(&self) -> usize {
+        self.v.len()
+    }
+
+    // Encoded as body-less Viper method
+    #[trusted]
+    #[ensures="result.len() == length"]
+    #[ensures="forall i: usize :: (0 <= i && i < length) ==> result.lookup(i) == 0"]
+    pub fn new(length: usize) -> Self {
+        VecWrapperusize{ v: vec![0; length] }
+    }
+
+    // Encoded as body-less Viper function
+    #[trusted]
+    #[pure]
+    #[requires="0 <= index && index < self.len()"]
+    pub fn lookup(&self, index: usize) -> usize {
+        self.v[index]
+    }
+
+    // Encoded as body-less Viper method
+    #[trusted]
+    #[requires="0 <= index && index < self.len()"]
+    #[ensures="self.lookup(old(index)) == old(value)"]
+    pub fn store(&mut self, index: usize, value: usize) {
+        self.v[index] = value;
+    }
+}
+
+// binary search using iteration
+pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> {
+    let len = arr.len();
+    let mut left = 0;
+    let mut right = len - 1;
+    let mut result = None;
+    let mut done = false;
+
+    #[invariant="true"]
+    while left <= right && !done {
+        let mid = (left + right) / 2;
+        if arr.lookup(mid) < target {
+            left = mid + 1;
+        } else if arr.lookup(mid) > target {
+            right = mid - 1;
+        } else {
+            result = Some(mid);
+            done = false;
+        }
+    }
+
+    return result;
+}
+
+fn main() {}

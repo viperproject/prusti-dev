@@ -347,7 +347,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         Log::report_with_writer("graphviz_method_before_foldunfold", format!("{}.{}.dot", source_filename, method_name), |writer| self.cfg_method.to_graphviz(writer));
 
         // Add fold/unfold
-        let final_method = foldunfold::add_fold_unfold(self.cfg_method, self.encoder.get_used_viper_predicates_map());
+        let final_method = foldunfold::add_fold_unfold(self.encoder, self.cfg_method);
 
         // Dump final CFG
         Log::report_with_writer("graphviz_method_before_viper", format!("{}.{}.dot", source_filename, method_name), |writer| final_method.to_graphviz(writer));
@@ -551,14 +551,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .iter()
             .flat_map(|p| self.polonius_info.get_loan_places(p))
             .filter(|loan_places| {
-                let (_, encoded_source) = self.encode_loan_places(loan_places);
+                let (_, _, encoded_source) = self.encode_loan_places(loan_places);
                 place.has_prefix(&encoded_source)
             })
             .collect();
         assert!(relevant_active_loan_places.len() <= 1);
         if !relevant_active_loan_places.is_empty() {
             let loan_places = &relevant_active_loan_places[0];
-            let (encoded_dest, encoded_source) = self.encode_loan_places(loan_places);
+            let (encoded_dest, _, encoded_source) = self.encode_loan_places(loan_places);
             // Recursive translation
             self.translate_maybe_borrowed_place(
                 loan_places.location,
@@ -570,7 +570,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Place, vir::Place) {
+    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Place, ty::Ty<'tcx>, vir::Place) {
         debug!("encode_loan_rvalue '{:?}'", loan_places);
         let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest);
         match loan_places.source {
@@ -579,30 +579,33 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let ref_field = self.encoder.encode_value_field(expiring_ty);
                 let expiring = expiring_base.clone().access(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored)
+                (expiring, expiring_ty, restored)
             }
 
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
                 let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
                 let expiring = expiring_base;
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored)
+                (expiring, expiring_ty, restored)
             }
 
             ref x => unreachable!("Borrow restores rvalue {:?}", x)
         }
     }
 
-    fn encode_expiring_borrows_before(&self, location: mir::Location) -> Vec<vir::Stmt> {
+    fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_before '{:?}'", location);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         // TODO: use self.polonius_info.construct_reborrowing_forest(..)
         for loan in self.polonius_info.get_loans_dying_before(location).drain(..) {
             if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
-                let (expiring, restored) = self.encode_loan_places(&loan_places);
+                let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
                 stmts.push(
-                    vir::Stmt::ExpireBorrow(expiring, restored)
+                    vir::Stmt::ExpireBorrow(expiring.clone(), restored)
+                );
+                stmts.extend(
+                    self.encode_havoc_and_allocation(&expiring, expiring_ty)
                 );
             }
         }
@@ -617,16 +620,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_expiring_borrows_at(&self, location: mir::Location) -> Vec<vir::Stmt> {
+    fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         // TODO: use self.polonius_info.construct_reborrowing_forest(..)
         for loan in self.polonius_info.get_loans_dying_at(location).drain(..) {
             if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
-                let (expiring, restored) = self.encode_loan_places(&loan_places);
+                let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
                 stmts.push(
-                    vir::Stmt::ExpireBorrow(expiring, restored)
+                    vir::Stmt::ExpireBorrow(expiring.clone(), restored)
+                );
+                stmts.extend(
+                    self.encode_havoc_and_allocation(&expiring, expiring_ty)
                 );
             }
         }
@@ -912,11 +918,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         )
                                 ).collect();
 
+                            let pos = self.encoder.error_manager().register(
+                                term.source_info.span,
+                                ErrorCtxt::PureFunctionCall
+                            );
                             let func_call = vir::Expr::func_app(
                                 function_name,
                                 arg_exprs,
                                 formal_args,
-                                return_type
+                                return_type,
+                                pos
                             );
 
                             // Havoc the lhs
@@ -991,7 +1002,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let (pre_type_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
                             let pos = self.encoder.error_manager().register(
                                 term.source_info.span,
-                                ErrorCtxt::ExhalePrecondition
+                                ErrorCtxt::ExhaleMethodPrecondition
                             );
                             stmts.push(vir::Stmt::Assert(pre_func_spec, pos.clone()));
                             stmts.push(vir::Stmt::Exhale(pre_type_spec, pos));
@@ -1190,7 +1201,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,
-            ErrorCtxt::ExhalePostcondition
+            ErrorCtxt::ExhaleMethodPostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
 

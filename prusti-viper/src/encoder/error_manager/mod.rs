@@ -28,9 +28,9 @@ pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
     Panic(PanicCause),
     /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
-    ExhalePrecondition,
+    ExhaleMethodPrecondition,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
-    ExhalePostcondition,
+    ExhaleMethodPostcondition,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
     ExhaleLoopInvariant,
     /// A Viper `assert expr` that asserts the functional specification of a loop invariant `expr`
@@ -44,6 +44,8 @@ pub enum ErrorCtxt {
     UnreachableTerminator,
     /// An error that should never happen
     Unexpected,
+    /// A pure function call
+    PureFunctionCall,
 }
 
 /// The Rust error that will be reported from the compiler
@@ -143,32 +145,44 @@ impl<'tcx> ErrorManager<'tcx> {
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => CompilerError::new(
-                "P????",
+                "P0007",
                 format!("statement might abort"),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => CompilerError::new(
-                "P????",
+                "P0008",
                 format!("unreachable code might be reachable. This might be a bug in the compiler."),
                 MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhalePostcondition) => CompilerError::new(
-                "P????",
-                format!("Postcondition might not hold."),
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => CompilerError::new(
+                "P0009",
+                format!("precondition might not hold."),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => CompilerError::new(
+                "P0010",
+                format!("postcondition might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariant) => CompilerError::new(
-                "P????",
-                format!("The loop invariant might not hold."),
+                "P0011",
+                format!("loop invariant might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariant) => CompilerError::new(
-                "P????",
-                format!("The loop invariant might not hold."),
+                "P0012",
+                format!("loop invariant might not hold."),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => CompilerError::new(
+                "P0013",
+                format!("precondition of pure function call might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 

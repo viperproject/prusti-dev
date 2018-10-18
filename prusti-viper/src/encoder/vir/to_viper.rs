@@ -217,12 +217,16 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 &triggers.to_viper(ast),
                 body.to_viper(ast)
             ),
-            &Expr::FuncApp(ref function_name, ref args, ref formal_args, ref return_type) => ast.func_app(
-                &function_name,
-                &args.to_viper(ast),
-                &formal_args.to_viper_decl(ast)[..],
-                return_type.to_viper(ast),
-            ),
+            &Expr::FuncApp(ref function_name, ref args, ref formal_args, ref return_type, ref pos) => {
+                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
+                ast.func_app(
+                    &function_name,
+                    &args.to_viper(ast),
+                    &formal_args.to_viper_decl(ast)[..],
+                    return_type.to_viper(ast),
+                    position
+                )
+            }
         };
         if config::simplify_expressions() {
             ast.simplified_expression(expr)
