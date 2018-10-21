@@ -989,7 +989,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         all_dying_loans.extend(dying_zombie_loans.iter().cloned());
         let dag = self.polonius_info.construct_reborrowing_dag(
             &all_dying_loans, &dying_zombie_loans, location);
-        let forest = self.polonius_info.construct_reborrowing_forest(&all_dying_loans);
+        let forest = self.polonius_info.construct_reborrowing_forest(
+            &all_dying_loans, &dying_zombie_loans);
         if !all_dying_loans.is_empty() {
             write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
             write_graph!(self, "<br />{}", dag.to_string());
@@ -1037,11 +1038,27 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 write_graph!(self, "<td colspan=\"2\">Package</td>");
                 if let Some(ref restricts) = restricts_map.get(&start_point).as_ref() {
                     if let Some(loans) = restricts.get(&region) {
+                        let zombie_loans = {
+                            let zmap = &self.polonius_info.additional_facts.zombie_requires;
+                            zmap.get(&start_point)
+                                .as_ref()
+                                .and_then(|zrestricts| {
+                                    zrestricts.get(&region)
+                                })
+                                .map(|zombie_loans| {
+                                    zombie_loans.iter().cloned().collect()
+                                })
+                                .unwrap_or(Vec::new())
+                        };
                         let loans: Vec<_> = loans.iter().cloned().collect();
                         write_graph!(self, "<td colspan=\"7\">{}", to_sorted_string!(loans));
-                        let forest = self.polonius_info.construct_reborrowing_forest(&loans);
+                        let forest = self.polonius_info.construct_reborrowing_forest(
+                            &loans, &zombie_loans);
+                        let dag = self.polonius_info.construct_reborrowing_dag(
+                            &loans, &zombie_loans, location);
                         if !loans.is_empty() {
                             write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
+                            write_graph!(self, "<br />{}", dag.to_string());
                         }
                         write_graph!(self, "</td>");
                     } else {

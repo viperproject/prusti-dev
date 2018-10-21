@@ -658,7 +658,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("encode_expiration_of_loans '{:?}'", loans);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        let mut reborrowing_forest = self.polonius_info.construct_reborrowing_forest(&loans);
+        let zombie_loans = Vec::new();  // TODO: Fix.
+        let mut reborrowing_forest = self.polonius_info.construct_reborrowing_forest(
+            &loans, &zombie_loans);
         for reborrowing_tree in reborrowing_forest.trees.drain(..) {
             stmts.extend(
                 self.encode_expiration_of_reborrowing_node(reborrowing_tree.root)

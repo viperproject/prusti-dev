@@ -81,6 +81,7 @@ pub enum ReborrowingBranching {
 pub struct ReborrowingNode {
     pub kind: ReborrowingKind,
     pub branching: ReborrowingBranching,
+    pub zombity: ReborrowingZombity,
 }
 
 impl fmt::Debug for ReborrowingNode {
@@ -646,14 +647,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
-    pub fn construct_reborrowing_forest(&self, loans: &[facts::Loan]) -> ReborrowingForest {
+    /// Note: `loans` includes all `zombie_loans`.
+    pub fn construct_reborrowing_forest(&self, loans: &[facts::Loan],
+                                        zombie_loans: &[facts::Loan]) -> ReborrowingForest {
         let roots = self.find_loan_roots(loans);
 
         // Reconstruct the tree from each root.
         let mut trees = Vec::new();
         for &root in roots.iter() {
             let tree = ReborrowingTree {
-                root: self.construct_reborrowing_tree(&loans, root),
+                root: self.construct_reborrowing_tree(&loans, zombie_loans, root),
             };
             trees.push(tree);
         }
@@ -665,6 +668,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     fn construct_reborrowing_tree(&self, loans: &[facts::Loan],
+                                  zombie_loans: &[facts::Loan],
                                   node: facts::Loan) -> ReborrowingNode {
 
         let kind = if let Some(local) = self.call_magic_wands.get(&node) {
@@ -688,12 +692,12 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let branching = if children.len() == 1 {
             let child = children.pop().unwrap();
             ReborrowingBranching::Single {
-                child: box self.construct_reborrowing_tree(loans, child),
+                child: box self.construct_reborrowing_tree(loans, zombie_loans, child),
             }
         } else if children.len() > 1 {
             ReborrowingBranching::Multiple {
                 children: children.iter().map(|&child| {
-                    self.construct_reborrowing_tree(loans, child)
+                    self.construct_reborrowing_tree(loans, zombie_loans, child)
                 }).collect(),
             }
         } else {
@@ -702,6 +706,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         ReborrowingNode {
             kind: kind,
             branching: branching,
+            zombity: self.construct_reborrowing_zombity(node, zombie_loans),
         }
     }
 
