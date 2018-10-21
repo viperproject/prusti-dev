@@ -939,7 +939,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             Vec::new()
         };
 
-
         // Get the loans that dye in this statement.
         let dying_loans = self.polonius_info.get_dying_loans(location);
         let dying_zombie_loans = self.polonius_info.get_dying_zombie_loans(location);
@@ -988,9 +987,12 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .cloned()
             .collect();
         all_dying_loans.extend(dying_zombie_loans.iter().cloned());
+        let dag = self.polonius_info.construct_reborrowing_dag(
+            &all_dying_loans, &dying_zombie_loans, location);
         let forest = self.polonius_info.construct_reborrowing_forest(&all_dying_loans);
-        if !dying_loans.is_empty() {
+        if !all_dying_loans.is_empty() {
             write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
+            write_graph!(self, "<br />{}", dag.to_string());
         }
         write_graph!(self, "</td>");
 

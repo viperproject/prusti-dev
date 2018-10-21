@@ -141,6 +141,92 @@ impl ToString for ReborrowingForest {
     }
 }
 
+#[derive(Debug)]
+pub enum ReborrowingGuard {
+    /// The reborrow can be restored unconditionally.
+    NoGuard,
+    /// The reborrow can be restored only if the given basic block was
+    /// executed.
+    MirBlock(mir::BasicBlock),
+}
+
+#[derive(Debug)]
+pub enum ReborrowingZombity {
+    /// The loan is not a zombie, which means that the borrowed path is
+    /// still real.
+    Real,
+    /// The loan is a zombie, which means that the ghost variable
+    /// created at given location should be used as the borrowed path.
+    Zombie(mir::Location),
+}
+
+pub struct ReborrowingDAGNode {
+    /// The loan to be restored.
+    loan: facts::Loan,
+    /// Should this loan be restored only if the specific basic block
+    /// was executed.
+    guard: ReborrowingGuard,
+    /// How this loan should be restored: by fold-unfold algorithm, by
+    /// applying call magic wand, or by applying the loop magic wand.
+    kind: ReborrowingKind,
+    /// Is the loan a zombie?
+    zombity: ReborrowingZombity,
+}
+
+impl fmt::Debug for ReborrowingDAGNode {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "(")?;
+        match self.kind {
+            ReborrowingKind::Assignment { .. } => {
+                write!(f, "{:?}", self.loan)?;
+            }
+            ReborrowingKind::Call { ref variable, ref region, .. } => {
+                write!(f, "Call({:?}, {:?}:{:?})", self.loan, variable, region)?;
+            }
+            ReborrowingKind::Loop => {
+                unimplemented!();
+            }
+        }
+        match self.guard {
+            ReborrowingGuard::NoGuard => {},
+            ReborrowingGuard::MirBlock(bb) => {
+                write!(f, ",guard={:?}", bb)?;
+            },
+        }
+        match self.zombity {
+            ReborrowingZombity::Real => {},
+            ReborrowingZombity::Zombie(_) => {
+                write!(f, ",zombie")?;
+            },
+        }
+        write!(f, ")")?;
+        Ok(())
+    }
+}
+
+pub struct ReborrowingDAG {
+    /// Loans sorted in topological order.
+    nodes: Vec<ReborrowingDAGNode>,
+}
+
+impl ToString for ReborrowingDAG {
+
+    fn to_string(&self) -> String {
+        let nodes: Vec<_> = self.nodes.iter().map(|node| format!("{:?}", node)).collect();
+        nodes.join(";")
+    }
+
+}
+
+impl ReborrowingDAG {
+
+    pub fn iter(&self) -> impl Iterator<Item=&ReborrowingDAGNode> {
+        self.nodes.iter()
+    }
+
+}
+
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
     mir: &'a mir::Mir<'tcx>,
     pub(crate) borrowck_in_facts: facts::AllInputFacts,
@@ -468,6 +554,96 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             }
         }
         roots
+    }
+
+    /// ``loans`` – all loans, including the zombie loans.
+    pub fn construct_reborrowing_dag(&self, loans: &[facts::Loan],
+                                     zombie_loans: &[facts::Loan],
+                                     location: mir::Location) -> ReborrowingDAG {
+        // Topologically sort loans.
+        let mut sorted_loans = Vec::new();
+        let mut permanent_mark = vec![false;loans.len()];
+        let mut temporary_mark = vec![false;loans.len()];
+        fn visit(this: &PoloniusInfo,
+                 loans: &[facts::Loan],
+                 current: usize,
+                 sorted_loans: &mut Vec<facts::Loan>,
+                 permanent_mark: &mut Vec<bool>,
+                 temporary_mark: &mut Vec<bool>) {
+            if permanent_mark[current] {
+                return;
+            }
+            assert!(!temporary_mark[current], "Not a DAG!");
+            temporary_mark[current] = true;
+            let current_loan = loans[current];
+            for &loan in loans.iter() {
+                if this.additional_facts.reborrows_direct.contains(&(current_loan, loan)) {
+                    let new_current = loans.iter().position(|&l| l == loan).unwrap();
+                    visit(this, loans, new_current, sorted_loans, permanent_mark, temporary_mark);
+                }
+            }
+            permanent_mark[current] = true;
+            sorted_loans.push(loans[current]);
+        }
+        loop {
+            let index = if let Some(index) = permanent_mark.iter().position(|x| !*x) {
+                index
+            } else {
+                break
+            };
+            visit(self, loans, index, &mut sorted_loans, &mut permanent_mark, &mut temporary_mark);
+        }
+        sorted_loans.reverse();
+        let nodes = sorted_loans.into_iter().map(|loan| {
+            ReborrowingDAGNode {
+                loan: loan,
+                guard: self.construct_reborrowing_guard(loan, location),
+                kind: self.construct_reborrowing_kind(loan),
+                zombity: self.construct_reborrowing_zombity(loan, zombie_loans),
+            }
+        }).collect();
+        ReborrowingDAG {
+            nodes: nodes,
+        }
+    }
+
+    /// Checks if restoration of the `loan` needs to be guarded at `location`.
+    ///
+    /// If the basic block that creates the loan dominates the location
+    /// basic block of the location, then guard is not necessary.
+    fn construct_reborrowing_guard(&self, loan: facts::Loan,
+                                   location: mir::Location) -> ReborrowingGuard {
+        let loan_location = self.loan_position[&loan];
+        let dominators = self.mir.dominators();
+        if dominators.is_dominated_by(location.block, loan_location.block) {
+            ReborrowingGuard::NoGuard
+        } else {
+            ReborrowingGuard::MirBlock(loan_location.block)
+        }
+    }
+
+    fn construct_reborrowing_kind(&self, loan: facts::Loan) -> ReborrowingKind {
+        if let Some(local) = self.call_magic_wands.get(&loan) {
+            let region = self.variable_regions[&local];
+            ReborrowingKind::Call {
+                loan: loan,
+                variable: *local,
+                region: region,
+            }
+        } else {
+            ReborrowingKind::Assignment {
+                loan: loan,
+            }
+        }
+    }
+
+    fn construct_reborrowing_zombity(&self, loan: facts::Loan,
+                                     zombie_loans: &[facts::Loan]) -> ReborrowingZombity {
+        if zombie_loans.contains(&loan) {
+            ReborrowingZombity::Zombie(self.loan_position[&loan])
+        } else {
+            ReborrowingZombity::Real
+        }
     }
 
     pub fn construct_reborrowing_forest(&self, loans: &[facts::Loan]) -> ReborrowingForest {
