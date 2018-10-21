@@ -433,8 +433,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     .iter()
                     .any(|successor_location| {
                         let point = self.get_point(*successor_location, facts::PointType::Start);
-                        self.borrowck_out_facts
-                            .borrow_live_at
+                        borrow_live_at
                             .get(&point)
                             .map_or(false, |successor_loans| {
                                 successor_loans.contains(loan)
