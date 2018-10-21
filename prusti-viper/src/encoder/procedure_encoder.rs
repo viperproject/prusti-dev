@@ -553,7 +553,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Translate a borrowed place to a place that is currently usable
     fn translate_maybe_borrowed_place(&self, location: mir::Location, place: vir::Place) -> vir::Place {
-        let relevant_active_loan_places: Vec<_> = self.polonius_info.get_active_loans(location)
+        let (all_active_loans, _) = self.polonius_info.get_all_active_loans(location);
+        let relevant_active_loan_places: Vec<_> = all_active_loans
             .iter()
             .flat_map(|p| self.polonius_info.get_loan_places(p))
             .filter(|loan_places| {
@@ -654,11 +655,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_expiration_of_loans(&mut self, loans: Vec<facts::Loan>) -> Vec<vir::Stmt> {
-        trace!("encode_expiration_of_loans '{:?}'", loans);
+    fn encode_expiration_of_loans(&mut self, loans: Vec<facts::Loan>,
+                                  zombie_loans: &[facts::Loan]) -> Vec<vir::Stmt> {
+        trace!("encode_expiration_of_loans '{:?}' '{:?}'", loans, zombie_loans);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        let zombie_loans = Vec::new();  // TODO: Fix.
         let mut reborrowing_forest = self.polonius_info.construct_reborrowing_forest(
             &loans, &zombie_loans);
         for reborrowing_tree in reborrowing_forest.trees.drain(..) {
@@ -679,14 +680,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_before '{:?}'", location);
-        let dying_loans = self.polonius_info.get_loans_dying_before(location);
-        self.encode_expiration_of_loans(dying_loans)
+        let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_before(location);
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans)
     }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
-        let dying_loans = self.polonius_info.get_loans_dying_at(location);
-        self.encode_expiration_of_loans(dying_loans)
+        let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_at(location);
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans)
     }
 
     fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>, location: mir::Location,
