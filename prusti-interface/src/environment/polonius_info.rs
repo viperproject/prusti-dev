@@ -6,9 +6,9 @@ use rustc::hir::def_id::DefId;
 use rustc::hir;
 use rustc::mir;
 use rustc::ty;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use rustc_data_structures::indexed_vec::Idx;
 use rustc_hash::FxHashMap;
+use std::collections::{HashMap, HashSet, BTreeMap, BTreeSet};
 use std::iter::FromIterator;
 use std::fmt;
 use super::loops;
@@ -24,25 +24,57 @@ pub struct LoanPlaces<'tcx> {
     pub location: mir::Location,
 }
 
+/// We are guaranteed to have only the permissions that are currently
+/// borrowed by the variable. For instance, in the example below `x`
+/// borrows one variable while the other one is consumed. As a result,
+/// we can restore the permissions only to the variable which we know
+/// was borrowed by `x`.
+/// ```rust
+/// fn test7(y: F, z: F, b: bool) {
+///     let mut y = y;
+///     let mut z = z;
+///     let mut x;
+///     if b {
+///         x = &mut y;
+///     } else {
+///         x = &mut z;
+///     }
+///     let f = &mut x.f;
+///     consume_F(y);
+///     consume_F(z);
+/// }
+/// ```
+///
+/// Therefore, the loop magic wand should be:
+/// ```
+/// T(c) --* T(_orig_c)
+/// ```
+/// where `c` is a reference typed variable that is reassigned in the
+/// loop and `_orig_c` is a ghost variable that stores the value `c` had
+/// just before entering the loop. The package statement just before the
+/// loop should be something like this:
+/// ```silver
+/// _orig_c := c.ref_val;
+/// fold T$Ref(c);
+/// package T$Ref(c) --* T(_orig_c) {
+///     unfold T$Ref(c)
+/// }
+/// ```
 pub struct LoopMagicWand {
     /// Basic block that is the loop head.
-    loop_id: mir::BasicBlock,
+    pub loop_id: mir::BasicBlock,
     /// The reference on the left hand side of the magic wand.
-    variable: mir::Local,
+    pub variable: mir::Local,
     /// The region of the reference.
-    region: facts::Region,
-    /// Loans that are kept alive by this reference.
-    loans: Vec<facts::Loan>,
+    pub region: facts::Region,
 }
 
 impl fmt::Debug for LoopMagicWand {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({:?}:{:?} --* ", self.variable, self.region)?;
-        for loan in self.loans.iter() {
-            write!(f, "{:?},", loan)?;
-        }
-        write!(f, ")")
+        write!(f, "({:?}:{:?} --* _orig_{:?}_{:?})",
+               self.variable, self.region,
+               self.variable, self.loop_id)
     }
 }
 
@@ -360,6 +392,35 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         self.interner.get_point_index(&point)
     }
 
+    pub fn get_all_loans_kept_alive_by(&self, point: facts::PointIndex,
+                                       region: facts::Region
+                                       ) -> (Vec<facts::Loan>, Vec<facts::Loan>) {
+        let mut loans = self.get_loans_kept_alive_by(
+            point, region, &self.borrowck_out_facts.restricts);
+        let zombie_loans = self.get_loans_kept_alive_by(
+            point, region, &self.additional_facts.zombie_requires);
+        loans.extend(zombie_loans.iter().cloned());
+        (loans, zombie_loans)
+    }
+
+    /// Get loans that are kept alive by the given region.
+    fn get_loans_kept_alive_by(
+        &self, point: facts::PointIndex, region: facts::Region,
+        restricts_map: &FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>
+        ) -> Vec<facts::Loan> {
+
+        restricts_map
+            .get(&point)
+            .as_ref()
+            .and_then(|restricts| {
+                restricts.get(&region)
+            })
+            .map(|loans| {
+                loans.iter().cloned().collect()
+            })
+            .unwrap_or(Vec::new())
+    }
+
     /// Get loans that dye at the given location.
     pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
         self.get_loans_dying_at(location, &self.borrowck_out_facts.borrow_live_at)
@@ -426,10 +487,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                               borrow_live_at: &FxHashMap<facts::PointIndex, Vec<facts::Loan>>
                               ) -> Vec<facts::Loan> {
         let successors = self.get_successors(location);
+        let is_return = is_return(self.mir, location);
         self.get_active_loans(location, borrow_live_at)
             .into_iter()
             .filter(|loan| {
-                !successors
+                let alive_in_successor = successors
                     .iter()
                     .any(|successor_location| {
                         let point = self.get_point(*successor_location, facts::PointType::Start);
@@ -438,7 +500,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                             .map_or(false, |successor_loans| {
                                 successor_loans.contains(loan)
                             })
-                    })
+                    });
+                !alive_in_successor && !(successors.is_empty() && is_return)
             })
             .collect()
     }
@@ -710,26 +773,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             block: loop_head,
             statement_index: 0,
         };
-        let point = self.get_point(location, facts::PointType::Start);
-        let restricts_map = &self.borrowck_out_facts.restricts;
-        let restricts_at_point = restricts_map.get(&point);
-        let restricts = restricts_at_point.as_ref().expect("BUG: No restricts");
-        let loans = restricts.get(&region).expect("BUG: no loans");
-        let loans: Vec<_> = loans
-            .iter()
-            .filter(|loan| {
-                // Drop all loans that are from inside of the loop.
-                let loan_block = self.loan_position[loan].block;
-                !loop_info.is_block_in_loop(loop_head, loan_block)
-            })
-            .cloned()
-            .collect();
-        let roots = self.find_loan_roots(&loans);
         let magic_wand = LoopMagicWand {
             loop_id: loop_head,
             variable: local,
             region: region,
-            loans: roots,
         };
         let mut entry = self.loop_magic_wands.entry(loop_head).or_insert(Vec::new());
         entry.push(magic_wand);
@@ -778,15 +825,28 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 }
 
-/// Extract the call terminator at the location. Otherwise return None.
+/// Check if the statement is assignment.
 fn is_assignment<'tcx>(mir: &mir::Mir<'tcx>,
-                 location: mir::Location) -> bool {
+                       location: mir::Location) -> bool {
     let mir::BasicBlockData { ref statements, .. } = mir[location.block];
     if statements.len() == location.statement_index {
         return false;
     }
     match statements[location.statement_index].kind {
         mir::StatementKind::Assign { .. } => true,
+        _ => false,
+    }
+}
+
+/// Check if the terminator is return.
+fn is_return<'tcx>(mir: &mir::Mir<'tcx>,
+                   location: mir::Location) -> bool {
+    let mir::BasicBlockData { ref statements, ref terminator, .. } = mir[location.block];
+    if statements.len() != location.statement_index {
+        return false;
+    }
+    match terminator.as_ref().unwrap().kind {
+        mir::TerminatorKind::Return => true,
         _ => false,
     }
 }
@@ -853,7 +913,7 @@ pub struct AdditionalFacts {
     ///     cfg_edge(P, Q),
     ///     region_live_at(R, Q).
     /// ```
-    pub zombie_requires: FxHashMap<facts::PointIndex, FxHashMap<facts::Region, HashSet<facts::Loan>>>,
+    pub zombie_requires: FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
     /// The ``zombie_borrow_live_at`` facts are ``borrow_live_at`` facts
     /// for the loans that were killed.
     ///
@@ -874,7 +934,7 @@ impl AdditionalFacts {
     fn derive_zombie_requires(all_facts: &facts::AllInputFacts,
                               output: &facts::AllOutputFacts
                               ) -> (
-                                  FxHashMap<facts::PointIndex, FxHashMap<facts::Region, HashSet<facts::Loan>>>,
+                                  FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
                                   FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
                                   FxHashMap<facts::PointIndex, Vec<facts::Loan>>) {
 
@@ -972,9 +1032,9 @@ impl AdditionalFacts {
         for (region, loan, point) in &zombie_requires.elements {
             zombie_requires_map
                 .entry(*point)
-                .or_insert(FxHashMap::default())
+                .or_insert(BTreeMap::default())
                 .entry(*region)
-                .or_insert(HashSet::new())
+                .or_insert(BTreeSet::new())
                 .insert(*loan);
         }
 

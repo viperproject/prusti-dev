@@ -510,11 +510,30 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             for &(local, _) in reborrows.iter() {
                 self.polonius_info.add_loop_magic_wand(bb, &self.loops, local);
             }
-            write_graph!(self, "<tr>");
-            write_graph!(self, "<td colspan=\"2\">Magic wands:</td>");
-            write_graph!(self, "<td colspan=\"7\">{}</td>",
-                         to_sorted_string!(self.polonius_info.loop_magic_wands.get(&bb).unwrap_or(&vec![])));
-            write_graph!(self, "</tr>");
+
+            if let Some(ref magic_wands) = self.polonius_info.loop_magic_wands.get(&bb) {
+                write_graph!(self, "<tr>");
+                write_graph!(self, "<td colspan=\"2\">Magic wands:</td>");
+                write_graph!(self, "<td colspan=\"7\">{}</td>", to_sorted_string!(magic_wands));
+                write_graph!(self, "</tr>");
+
+                let location = mir::Location {
+                    block: bb,
+                    statement_index: 0,
+                };
+                let point = self.get_point(location, facts::PointType::Start);
+                let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
+                let restricts = restricts_map.get(&point);
+                let restricts = restricts.as_ref().unwrap();
+
+                for magic_wand in magic_wands.iter() {
+                    let loans = &restricts[&magic_wand.region];
+                    write_graph!(self, "<tr>");
+                    write_graph!(self, "<td colspan=\"2\">Package (end loop body):</td>");
+                    write_graph!(self, "<td colspan=\"7\">TODO</td>");
+                    write_graph!(self, "</tr>");
+                }
+            }
         }
         write_graph!(self, "<th>");
         if self.show_statement_indices() {
@@ -1030,40 +1049,21 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             }
             write_graph!(self, "</tr>");
             if package {
-                let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
+                let (all_loans, zombie_loans) = self.polonius_info.get_all_loans_kept_alive_by(
+                    start_point, *region);
+                let forest = self.polonius_info.construct_reborrowing_forest(
+                    &all_loans, &zombie_loans);
+                let dag = self.polonius_info.construct_reborrowing_dag(
+                    &all_loans, &zombie_loans, location);
+                //let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
                 write_graph!(self, "<tr>");
                 write_graph!(self, "<td colspan=\"2\">Package</td>");
-                if let Some(ref restricts) = restricts_map.get(&start_point).as_ref() {
-                    if let Some(loans) = restricts.get(&region) {
-                        let zombie_loans = {
-                            let zmap = &self.polonius_info.additional_facts.zombie_requires;
-                            zmap.get(&start_point)
-                                .as_ref()
-                                .and_then(|zrestricts| {
-                                    zrestricts.get(&region)
-                                })
-                                .map(|zombie_loans| {
-                                    zombie_loans.iter().cloned().collect()
-                                })
-                                .unwrap_or(Vec::new())
-                        };
-                        let loans: Vec<_> = loans.iter().cloned().collect();
-                        write_graph!(self, "<td colspan=\"7\">{}", to_sorted_string!(loans));
-                        let forest = self.polonius_info.construct_reborrowing_forest(
-                            &loans, &zombie_loans);
-                        let dag = self.polonius_info.construct_reborrowing_dag(
-                            &loans, &zombie_loans, location);
-                        if !loans.is_empty() {
-                            write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
-                            write_graph!(self, "<br />{}", dag.to_string());
-                        }
-                        write_graph!(self, "</td>");
-                    } else {
-                        write_graph!(self, "<td colspan=\"7\">BUG: no loans</td>");
-                    }
-                } else {
-                    write_graph!(self, "<td colspan=\"7\">BUG: no restricts</td>");
+                write_graph!(self, "<td colspan=\"7\">{}", to_sorted_string!(all_loans));
+                if !all_loans.is_empty() {
+                    write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
+                    write_graph!(self, "<br />{}", dag.to_string());
                 }
+                write_graph!(self, "</td>");
                 write_graph!(self, "</tr>");
             }
         }
