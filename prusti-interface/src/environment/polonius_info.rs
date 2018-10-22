@@ -204,6 +204,8 @@ pub struct ReborrowingDAGNode {
     kind: ReborrowingKind,
     /// Is the loan a zombie?
     zombity: ReborrowingZombity,
+    /// Are the loans reborrowing this one zombies?
+    incoming_zombies: bool,
 }
 
 impl fmt::Debug for ReborrowingDAGNode {
@@ -232,6 +234,9 @@ impl fmt::Debug for ReborrowingDAGNode {
             ReborrowingZombity::Zombie(_) => {
                 write!(f, ",zombie")?;
             },
+        }
+        if self.incoming_zombies {
+            write!(f, ",in_zombie")?;
         }
         write!(f, ")")?;
         Ok(())
@@ -656,6 +661,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 guard: self.construct_reborrowing_guard(loan, location),
                 kind: self.construct_reborrowing_kind(loan),
                 zombity: self.construct_reborrowing_zombity(loan, zombie_loans),
+                incoming_zombies: self.check_incoming_zombies(loan, loans, zombie_loans),
             }
         }).collect();
         ReborrowingDAG {
@@ -699,6 +705,29 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             ReborrowingZombity::Zombie(self.loan_position[&loan])
         } else {
             ReborrowingZombity::Real
+        }
+    }
+
+    fn check_incoming_zombies(&self, loan: facts::Loan,
+                              loans: &[facts::Loan],
+                              zombie_loans: &[facts::Loan]) -> bool {
+        let incoming_loans: Vec<_> = loans
+            .iter()
+            .filter(|&&incoming_loan| {
+                self.additional_facts.reborrows_direct.contains(&(incoming_loan, loan))
+            })
+            .map(|incoming_loan| {
+                zombie_loans.contains(incoming_loan)
+            })
+            .collect();
+        if !incoming_loans.is_empty() {
+            let incoming_zombies = incoming_loans.iter().any(|&b| b);
+            debug!("incoming_loans={:?} loan={:?} zombie_loans={:?}",
+                   incoming_loans, loan, zombie_loans);
+            assert!(incoming_zombies == incoming_loans.iter().all(|&b| b));
+            incoming_zombies
+        } else {
+            false
         }
     }
 
