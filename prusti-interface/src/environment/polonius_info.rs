@@ -200,17 +200,17 @@ pub enum ReborrowingZombity {
 
 pub struct ReborrowingDAGNode {
     /// The loan to be restored.
-    loan: facts::Loan,
+    pub loan: facts::Loan,
     /// Should this loan be restored only if the specific basic block
     /// was executed.
-    guard: ReborrowingGuard,
+    pub guard: ReborrowingGuard,
     /// How this loan should be restored: by fold-unfold algorithm, by
     /// applying call magic wand, or by applying the loop magic wand.
-    kind: ReborrowingKind,
+    pub kind: ReborrowingKind,
     /// Is the loan a zombie?
-    zombity: ReborrowingZombity,
+    pub zombity: ReborrowingZombity,
     /// Are the loans reborrowing this one zombies?
-    incoming_zombies: bool,
+    pub incoming_zombies: bool,
 }
 
 impl fmt::Debug for ReborrowingDAGNode {

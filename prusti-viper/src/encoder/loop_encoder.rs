@@ -45,6 +45,7 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         self.loops.get_loop_head(bbi)
     }
 
+    /// 0 = outside loops, 1 = inside one loop, 2 = inside 2 loops and so on
     pub fn get_loop_depth(&self, bbi: BasicBlockIndex) -> usize {
         self.get_loop_head(bbi).map(
             |head| self.loops.get_loop_head_depth(head)
