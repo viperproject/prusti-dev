@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc::hir::def_id::DefId;
-use rustc::hir;
 use rustc::mir;
 use rustc::ty;
 use rustc_data_structures::indexed_vec::Idx;
@@ -13,7 +12,6 @@ use std::iter::FromIterator;
 use std::fmt;
 use super::loops;
 use super::borrowck::{facts, regions};
-use std::fs::File;
 use polonius_engine::{Algorithm, Output, Atom};
 use std::path::PathBuf;
 
