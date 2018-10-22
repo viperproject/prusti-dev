@@ -1,8 +1,9 @@
+#![allow(unused_comparisons)]
+
 /// Issue #73: "Properly report failing precondition of pure functions"
 
 // From: https://github.com/xcaptain/rust-algorithms/blob/master/algorithms/src/search/binary_search.rs
 
-#![allow(unused_comparisons)]
 extern crate prusti_contracts;
 
 // Prusti Vec wrapper
