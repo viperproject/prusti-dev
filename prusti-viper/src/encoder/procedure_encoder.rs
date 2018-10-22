@@ -20,7 +20,7 @@ use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
-use prusti_interface::environment::polonius_info::{ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
+use prusti_interface::environment::polonius_info::{ReborrowingZombity, ReborrowingGuard, ReborrowingDAGNode, ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
 use prusti_interface::environment::borrowck::{facts};
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
@@ -601,53 +601,59 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_expiration_of_reborrowing_node(&mut self, node: ReborrowingNode) -> Vec<vir::Stmt> {
-        trace!("encode_expiration_of_reborrowing_node '{:?}'", node);
+    fn encode_expiration_of_reborrowing_dag_node(&mut self, node: &ReborrowingDAGNode) -> Vec<vir::Stmt> {
+        trace!("encode_expiration_of_reborrowing_dag_node '{:?}'", node);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        // Expire current loan
-        match node.kind {
-            ReborrowingKind::Assignment { ref loan } => {
-                let loan_location = self.polonius_info.get_loan_location(&loan);
-                if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
-                    let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
-                    let label = self.label_after_location.get(&loan_location).cloned();
-                    // TODO: choose labels in a better way
-                    let lhs_place = vir::LabelledPlace::new(expiring.clone(), label.clone());
-                    let rhs_place = vir::LabelledPlace::new(restored, label.clone());
-                    stmts.push(
-                        vir::Stmt::ExpireBorrow(lhs_place, rhs_place)
-                    );
-                    if label.is_none() {
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&expiring, expiring_ty)
+        match node.guard {
+            ReborrowingGuard::NoGuard => {
+                match node.kind {
+                    ReborrowingKind::Assignment { ref loan } => {
+                        let loan_location = self.polonius_info.get_loan_location(&loan);
+                        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
+                        let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
+                        let lhs_place = if node.incoming_zombies {
+                            let lhs_label = self.label_after_location.get(&loan_location).unwrap();
+                            vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
+                        } else {
+                            vir::LabelledPlace::curr(expiring.clone())
+                        };
+                        let rhs_place = match node.zombity {
+                            ReborrowingZombity::Real => {
+                                vir::LabelledPlace::curr(restored)
+                            }
+
+                            ReborrowingZombity::Zombie(rhs_location) => {
+                                let rhs_label = self.label_after_location.get(&rhs_location).unwrap();
+                                vir::LabelledPlace::old(expiring.clone(), rhs_label.clone())
+                            }
+                        };
+                        stmts.push(
+                            vir::Stmt::ExpireBorrow(lhs_place, rhs_place)
                         );
+                        if self.loop_encoder.get_loop_depth(loan_location.block) > 0 {
+                            // When we restore a loan in a loop body, we want to have the permission
+                            // on the borrowed thing because it may be go in the loop invariant that
+                            // encodes *allocation*, not definedness
+                            if !node.incoming_zombies {
+                                stmts.extend(
+                                    self.encode_havoc_and_allocation(&expiring, expiring_ty)
+                                );
+                            }
+                        }
                     }
-                } else {
-                    unreachable!()
+
+                    ReborrowingKind::Call { .. } => {
+                        unimplemented!("TODO");
+                    }
+
+                    ReborrowingKind::Loop => {
+                        unimplemented!("TODO");
+                    }
                 }
             }
 
-            ReborrowingKind::Call { .. } => {
-                unimplemented!();
-            }
-
-            ReborrowingKind::Loop => {
-                unimplemented!();
-            }
-        }
-
-        // Expire subtrees
-        match node.branching {
-            ReborrowingBranching::Leaf => {} // Nothing to do
-
-            ReborrowingBranching::Single { child: box child }  => {
-                stmts.extend(
-                    self.encode_expiration_of_reborrowing_node(child)
-                );
-            }
-
-            ReborrowingBranching::Multiple { children }  => {
+            ReborrowingGuard::MirBlock(guard_bbi) => {
                 unimplemented!("TODO")
             }
         }
@@ -656,16 +662,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_expiration_of_loans(&mut self, loans: Vec<facts::Loan>,
-                                  zombie_loans: &[facts::Loan]) -> Vec<vir::Stmt> {
+                                  zombie_loans: &[facts::Loan], location: mir::Location) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_loans '{:?}' '{:?}'", loans, zombie_loans);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        let mut reborrowing_forest = self.polonius_info.construct_reborrowing_forest(
-            &loans, &zombie_loans);
-        for reborrowing_tree in reborrowing_forest.trees.drain(..) {
+        let reborrowing_dag = self.polonius_info.construct_reborrowing_dag(&loans, &zombie_loans, location);
+        for node in reborrowing_dag.iter() {
             stmts.extend(
-                self.encode_expiration_of_reborrowing_node(reborrowing_tree.root)
-            );
+                self.encode_expiration_of_reborrowing_dag_node(node)
+            )
         }
 
         if stmts.len() > 0 {
@@ -681,13 +686,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_before '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_before(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location)
     }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_at(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location)
     }
 
     fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>, location: mir::Location,

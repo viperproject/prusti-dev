@@ -13,19 +13,19 @@ COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/debug:../target/debug/deps
 PRUSTI_DRIVER=../target/debug/prusti-driver
 
+SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS) RUST_BACKTRACE=1
+
 run:
-	RUST_LOG=${LOG_LEVEL} \
-	LD_LIBRARY_PATH=${LIB_PATH} \
+	$(SET_ENV_VARS) \
+    RUST_LOG=${LOG_LEVEL} \
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		${RUN_FILE}
-	@#dot -Tpdf graph.dot -O
-	@#dot -Tpdf mir_dump/rustc.test.-------.nll.0.regioncx.dot -O
 
 run-profile:
-	RUST_LOG=${LOG_LEVEL} \
-	LD_LIBRARY_PATH=${LIB_PATH} \
+	$(SET_ENV_VARS) \
+    RUST_LOG=${LOG_LEVEL} \
 	valgrind --tool=callgrind \
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
@@ -34,8 +34,8 @@ run-profile:
 	@echo "Now run 'kcachegrind callgrind.out.*'"
 
 run-flamegraph:
-	RUST_LOG=${LOG_LEVEL} \
-	LD_LIBRARY_PATH=${LIB_PATH} \
+	$(SET_ENV_VARS) \
+    RUST_LOG=${LOG_LEVEL} \
 	perf record -g -F 99 \
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
@@ -44,8 +44,8 @@ run-flamegraph:
 	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
 generate_ui_stderr:
-	-LD_LIBRARY_PATH=${LIB_PATH} \
-	${PRUSTI_DRIVER} \
+	-$(SET_ENV_VARS) \
+    ${PRUSTI_DRIVER} \
 		--sysroot ${COMPILER_PATH}/lib/ \
 		-L ../target/debug/ \
 		-L ${COMPILER_PATH}/lib/ \
@@ -57,26 +57,18 @@ generate_ui_stderr:
 		${RUN_FILE} 2> ${STDERR_FILE}
 	sed -e "s|${RUN_FILE_FOLDER}|\$$DIR|g" -i ${STDERR_FILE}
 
-
 build:
-	JAVA_HOME=${JAVA_HOME} \
-	LD_LIBRARY_PATH=${LIB_PATH} \
+	$(SET_ENV_VARS) \
 	cargo build
 
 test:
+	$(SET_ENV_VARS) \
 	PRUSTI_CHECK_UNREACHABLE_TERMINATORS=1 \
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
-	RUST_TEST_THREADS=$(RUST_TEST_THREADS) \
-	RUST_BACKTRACE=1 \
-	JAVA_HOME=${JAVA_HOME} \
-	LD_LIBRARY_PATH=${LIB_PATH} \
 	cargo test
 
 quick-test:
-	RUST_TEST_THREADS=$(RUST_TEST_THREADS) \
-	RUST_BACKTRACE=1 \
-	JAVA_HOME=${JAVA_HOME} \
-	LD_LIBRARY_PATH=${LIB_PATH} \
+	$(SET_ENV_VARS) \
 	cargo test
 
 clean:
