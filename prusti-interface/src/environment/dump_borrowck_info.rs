@@ -17,13 +17,14 @@ use super::polonius_info::PoloniusInfo;
 use crate::utils;
 use std::cell;
 use std::env;
-use std::collections::HashSet;
+use std::collections::{HashSet, BTreeMap, BTreeSet};
 use std::fs::File;
 use std::io::{self, Write, BufWriter};
 use std::path::PathBuf;
 use rustc::hir::{self, intravisit};
 use rustc::mir;
 use rustc::ty::TyCtxt;
+use rustc_hash::FxHashMap;
 use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
 use syntax::codemap::Span;
@@ -85,10 +86,11 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let graph = BufWriter::new(graph_file);
 
-        let initialization = compute_definitely_initialized(&mir, self.tcx, def_path);
+        let initialization = compute_definitely_initialized(&mir, self.tcx, def_path.clone());
         let liveness = compute_liveness(&mir);
 
         let mut mir_info_printer = MirInfoPrinter {
+            def_path: def_path,
             tcx: self.tcx,
             mir: &mir,
             graph: cell::RefCell::new(graph),
@@ -131,6 +133,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
 
 
 struct MirInfoPrinter<'a, 'tcx: 'a> {
+    pub def_path: hir::map::DefPath,
     pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
     pub mir: &'a mir::Mir<'tcx>,
     pub graph: cell::RefCell<BufWriter<File>>,
@@ -197,6 +200,11 @@ macro_rules! to_sorted_string {
 impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     pub fn print_info(&mut self) -> Result<(),io::Error> {
+        //self.dump_to_file("/tmp/requires",
+                          //&self.polonius_info.borrowck_out_facts.restricts);
+        //self.dump_to_file("/tmp/zrequires",
+                          //&self.polonius_info.additional_facts.zombie_requires);
+
         write_graph!(self, "digraph G {{\n");
         for bb in self.mir.basic_blocks().indices() {
             self.visit_basic_block(bb);
@@ -1010,6 +1018,42 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         }
         local
     }
+}
+
+/// Debug printing.
+impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
+
+    fn dump_to_file(
+        &self,
+        file: &str,
+        requires: &FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>) {
+
+        use csv::WriterBuilder;
+
+        let mut file = String::from(file);
+        file.push_str(&self.def_path.to_filename_friendly_no_crate());
+        file.push_str(".csv");
+
+        let path = PathBuf::from(&file);
+        let mut writer = WriterBuilder::new()
+             .from_path(file)
+             .unwrap();
+        for (point_index, map) in requires.iter() {
+            for (region, loans) in map.iter() {
+                for loan in loans.iter() {
+                    let point = self.polonius_info.interner.get_point(*point_index);
+                    writer.write_record(&[
+                        format!("{:?}", point_index),
+                        format!("{:?}", point),
+                        format!("{:?}", region),
+                        format!("{:?}", loan),
+                    ]).unwrap();
+                }
+            }
+        }
+        writer.flush().unwrap();
+    }
+
 }
 
 /// Loan end analysis.

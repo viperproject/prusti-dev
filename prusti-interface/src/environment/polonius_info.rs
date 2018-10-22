@@ -1084,8 +1084,24 @@ impl AdditionalFacts {
             )
         ));
         cfg_edge_p.insert(all_facts.cfg_edge.clone().into());
+        let region_live_at_vec = {
+            let mut region_live_at = all_facts.region_live_at.clone();
+            let all_points: BTreeSet<Point> = all_facts
+                .cfg_edge
+                .iter()
+                .map(|&(p, _)| p)
+                .chain(all_facts.cfg_edge.iter().map(|&(_, q)| q))
+                .collect();
+
+            for &r in &all_facts.universal_region {
+                for &p in &all_points {
+                    region_live_at.push((r, p));
+                }
+            }
+            region_live_at
+        };
         region_live_at.insert(Relation::from(
-            all_facts.region_live_at.iter().map(|&(r, p)| ((r, p), ())),
+            region_live_at_vec.iter().map(|&(r, p)| ((r, p), ())),
         ));
         subset_r1p.insert(Relation::from(
             output.subset.iter().flat_map(
