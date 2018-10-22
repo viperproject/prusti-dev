@@ -242,7 +242,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             for &successor in bb_data.terminator().successors() {
                 if self.loop_encoder.is_loop_head(successor) {
                     assert!(successor_count == 1); // FIXME: this is a bug. See issue #58
-                    let stmts = self.encode_loop_invariant_exhale(successor);
+                    let after_loop_iteration = self.loop_encoder.get_loop_head(bbi) == Some(successor);
+                    let stmts = self.encode_loop_invariant_exhale(successor, after_loop_iteration);
                     for stmt in stmts.into_iter() {
                         self.cfg_method.add_stmt(cfg_block, stmt);
                     }
@@ -610,13 +611,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let loan_location = self.polonius_info.get_loan_location(&loan);
                 if let Some(loan_places) = self.polonius_info.get_loan_places(&loan) {
                     let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
-                    // TODO: choose labels in a better way
                     let label = self.label_after_location.get(&loan_location).cloned();
+                    // TODO: choose labels in a better way
+                    let lhs_place = vir::LabelledPlace::new(expiring.clone(), label.clone());
+                    let rhs_place = vir::LabelledPlace::new(restored, label.clone());
                     stmts.push(
-                        vir::Stmt::ExpireBorrow(
-                            vir::LabelledPlace::new(expiring.clone(), label.clone()),
-                            vir::LabelledPlace::new(restored, label.clone())
-                        )
+                        vir::Stmt::ExpireBorrow(lhs_place, rhs_place)
                     );
                     if label.is_none() {
                         stmts.extend(
@@ -1442,7 +1442,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ]
     }
 
-    fn encode_loop_invariant_exhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+    fn encode_loop_invariant_exhale(&self, loop_head: BasicBlockIndex, after_loop_iteration: bool) -> Vec<vir::Stmt> {
         let permissions = self.encode_loop_invariant_permissions(loop_head);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
@@ -1452,13 +1452,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let assert_pos = self.encoder.error_manager().register(
             // TODO: choose a proper error span
             self.mir.span,
-            ErrorCtxt::AssertLoopInvariant
+            if after_loop_iteration {
+                ErrorCtxt::AssertLoopInvariantAfterIteration
+            } else {
+                ErrorCtxt::AssertLoopInvariantOnEntry
+            }
         );
 
         let exhale_pos = self.encoder.error_manager().register(
             // TODO: choose a proper error span
             self.mir.span,
-            ErrorCtxt::ExhaleLoopInvariant
+            if after_loop_iteration {
+                ErrorCtxt::ExhaleLoopInvariantAfterIteration
+            } else {
+                ErrorCtxt::ExhaleLoopInvariantOnEntry
+            }
         );
 
         vec![

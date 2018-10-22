@@ -32,9 +32,11 @@ pub enum ErrorCtxt {
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
-    ExhaleLoopInvariant,
+    ExhaleLoopInvariantOnEntry,
+    ExhaleLoopInvariantAfterIteration,
     /// A Viper `assert expr` that asserts the functional specification of a loop invariant `expr`
-    AssertLoopInvariant,
+    AssertLoopInvariantOnEntry,
+    AssertLoopInvariantAfterIteration,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
@@ -168,20 +170,32 @@ impl<'tcx> ErrorManager<'tcx> {
                 MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariant) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => CompilerError::new(
                 "P0011",
-                format!("loop invariant might not hold."),
+                format!("loop invariant might not hold on entry."),
                 MultiSpan::from_span(*error_span)
             ),
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariant) => CompilerError::new(
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => CompilerError::new(
                 "P0012",
-                format!("loop invariant might not hold."),
+                format!("loop invariant might not hold on entry."),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => CompilerError::new(
+                "P0013",
+                format!("loop invariant might not hold after one loop iteration."),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => CompilerError::new(
+                "P0014",
+                format!("loop invariant might not hold after one loop iteration."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => CompilerError::new(
-                "P0013",
+                "P0015",
                 format!("precondition of pure function call might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
