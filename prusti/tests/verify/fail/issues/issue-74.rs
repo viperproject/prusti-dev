@@ -1,3 +1,5 @@
+#![allow(unused_comparisons)]
+
 /// Issue #74: "Pure function call fails with insufficient permissions"
 
 // From: https://github.com/xcaptain/rust-algorithms/blob/master/algorithms/src/search/binary_search.rs
@@ -51,9 +53,9 @@ pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> 
     let mut done = false;
 
     #[invariant="true"]
-    while left <= right && !done { //~ ERROR precondition of pure function call might not hold.
+    while left <= right && !done {
         let mid = (left + right) / 2;
-        if arr.lookup(mid) < target {
+        if arr.lookup(mid) < target { //~ ERROR precondition of pure function call might not hold.
             left = mid + 1;
         } else if arr.lookup(mid) > target {
             right = mid - 1;

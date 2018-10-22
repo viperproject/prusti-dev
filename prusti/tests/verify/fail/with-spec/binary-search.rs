@@ -1,5 +1,6 @@
 // From: https://github.com/xcaptain/rust-algorithms/blob/master/algorithms/src/search/binary_search.rs
 
+#![allow(unused_comparisons)]
 extern crate prusti_contracts;
 
 // Prusti Vec wrapper
