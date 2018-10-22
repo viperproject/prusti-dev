@@ -280,6 +280,100 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) additional_facts: AdditionalFacts,
     /// Loop head → Vector of magic wands in that loop.
     pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
+
+    /// Facts without back edges.
+    pub(crate) borrowck_in_facts_no_back: facts::AllInputFacts,
+    pub(crate) borrowck_out_facts_no_back: facts::AllOutputFacts,
+    pub(crate) additional_facts_no_back: AdditionalFacts,
+}
+
+fn add_fake_facts<'a, 'tcx:'a>(all_facts: &mut facts::AllInputFacts,
+                               interner: &facts::Interner, mir: &'a mir::Mir<'tcx>,
+                               variable_regions: &HashMap<mir::Local, facts::Region>,
+                               call_magic_wands: &mut HashMap<facts::Loan, mir::Local>) {
+    // The code that adds a creation of a new borrow for each
+    // move of a borrow.
+
+    // Find the last loan index.
+    let mut last_loan_id = 0;
+    for (_, loan, _) in all_facts.borrow_region.iter() {
+        if loan.index() > last_loan_id {
+            last_loan_id = loan.index();
+        }
+    }
+    last_loan_id += 1;
+
+    // Create a map from points to (region1, region2) vectors.
+    let universal_region = &all_facts.universal_region;
+    let mut outlives_at_point = HashMap::new();
+    for (region1, region2, point) in all_facts.outlives.iter() {
+        if !universal_region.contains(region1) && !universal_region.contains(region2) {
+            let outlives = outlives_at_point.entry(point).or_insert(vec![]);
+            outlives.push((region1, region2));
+        }
+    }
+
+    // Create new borrow_region facts for points where is only one outlives
+    // fact and there is not a borrow_region fact already.
+    let borrow_region = &mut all_facts.borrow_region;
+    for (point, mut regions) in outlives_at_point {
+        if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
+            let location = interner.get_point(*point).location.clone();
+            if regions.len() > 1 {
+                let call_destination = get_call_destination(&mir, location);
+                if let Some(place) = call_destination {
+                    debug!("Adding for call destination:");
+                    for &(region1, region2) in regions.iter() {
+                        debug!("{:?} {:?} {:?}", location, region1, region2);
+                    }
+                    match place {
+                        mir::Place::Local(local) => {
+                            if let Some(var_region) = variable_regions.get(&local) {
+                                debug!("var_region = {:?} loan = {}", var_region, last_loan_id);
+                                let loan = facts::Loan::from(last_loan_id);
+                                borrow_region.push(
+                                    (*var_region,
+                                     loan,
+                                     *point));
+                                last_loan_id += 1;
+                                call_magic_wands.insert(loan, local);
+                            }
+                        }
+                        x => unimplemented!("{:?}", x)
+                    }
+                }
+            } else if is_assignment(&mir, location) {
+                let (_region1, region2) = regions.pop().unwrap();
+                borrow_region.push((*region2, facts::Loan::from(last_loan_id), *point));
+                debug!("Adding generic: {:?} {:?} {:?} {}", _region1, region2, location, last_loan_id);
+                last_loan_id += 1;
+            }
+        }
+    }
+}
+
+/// Remove back edges to make MIR uncyclic so that we can compute reborrowing dags at the end of
+/// the loop body.
+fn remove_back_edges(
+    mut all_facts: facts::AllInputFacts,
+    interner: &facts::Interner,
+    back_edges: Vec<(mir::BasicBlock, mir::BasicBlock)>
+) -> facts::AllInputFacts {
+    let cfg_edge = all_facts.cfg_edge;
+    let cfg_edge = cfg_edge
+        .into_iter()
+        .filter(|(from, to)| {
+            let from_block = interner.get_point(*from).location.block;
+            let to_block = interner.get_point(*to).location.block;
+            let remove = back_edges.contains(&(from_block, to_block));
+            if remove {
+                debug!("remove cfg_edge: {:?} → {:?}", from_block, to_block);
+            }
+            !remove
+        })
+        .collect();
+    all_facts.cfg_edge = cfg_edge;
+    all_facts
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
@@ -303,70 +397,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let mut call_magic_wands = HashMap::new();
 
         let mut all_facts = facts_loader.facts;
-        {
-            // TODO: Refactor.
-            // The code that adds a creation of a new borrow for each
-            // move of a borrow.
-
-            // Find the last loan index.
-            let mut last_loan_id = 0;
-            for (_, loan, _) in all_facts.borrow_region.iter() {
-                if loan.index() > last_loan_id {
-                    last_loan_id = loan.index();
-                }
-            }
-            last_loan_id += 1;
-
-            // Create a map from points to (region1, region2) vectors.
-            let universal_region = &all_facts.universal_region;
-            let mut outlives_at_point = HashMap::new();
-            for (region1, region2, point) in all_facts.outlives.iter() {
-                if !universal_region.contains(region1) && !universal_region.contains(region2) {
-                    let outlives = outlives_at_point.entry(point).or_insert(vec![]);
-                    outlives.push((region1, region2));
-                }
-            }
-
-            // Create new borrow_region facts for points where is only one outlives
-            // fact and there is not a borrow_region fact already.
-            let borrow_region = &mut all_facts.borrow_region;
-            for (point, mut regions) in outlives_at_point {
-                if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
-                    let location = facts_loader.interner.get_point(*point).location.clone();
-                    if regions.len() > 1 {
-                        let call_destination = get_call_destination(&mir, location);
-                        if let Some(place) = call_destination {
-                            debug!("Adding for call destination:");
-                            for &(region1, region2) in regions.iter() {
-                                debug!("{:?} {:?} {:?}", location, region1, region2);
-                            }
-                            match place {
-                                mir::Place::Local(local) => {
-                                    if let Some(var_region) = variable_regions.get(&local) {
-                                        debug!("var_region = {:?} loan = {}", var_region, last_loan_id);
-                                        let loan = facts::Loan::from(last_loan_id);
-                                        borrow_region.push(
-                                            (*var_region,
-                                             loan,
-                                             *point));
-                                        last_loan_id += 1;
-                                        call_magic_wands.insert(loan, local);
-                                    }
-                                }
-                                x => unimplemented!("{:?}", x)
-                            }
-                        }
-                    } else if is_assignment(&mir, location) {
-                        let (_region1, region2) = regions.pop().unwrap();
-                        borrow_region.push((*region2, facts::Loan::from(last_loan_id), *point));
-                        debug!("Adding generic: {:?} {:?} {:?} {}", _region1, region2, location, last_loan_id);
-                        last_loan_id += 1;
-                    }
-                }
-            }
-        }
+        // TODO: Optimise: do not construct loops info just for getting back_edges.
+        let back_edges = loops::ProcedureLoops::new(&mir).back_edges;
+        add_fake_facts(&mut all_facts, &facts_loader.interner, &mir,
+                       &variable_regions, &mut call_magic_wands);
 
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
+        let all_facts_without_back_edges = remove_back_edges(
+            all_facts.clone(), &facts_loader.interner, back_edges);
+        let output_without_back_edges = Output::compute(
+            &all_facts_without_back_edges, Algorithm::Naive, true);
 
         let interner = facts_loader.interner;
         let loan_position = all_facts.borrow_region
@@ -378,6 +418,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             .collect();
 
         let additional_facts = AdditionalFacts::new(&all_facts, &output);
+        let additional_facts_without_back_edges = AdditionalFacts::new(
+            &all_facts_without_back_edges, &output_without_back_edges);
 
         PoloniusInfo {
             mir: mir,
@@ -389,6 +431,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             variable_regions: variable_regions,
             additional_facts: additional_facts,
             loop_magic_wands: HashMap::new(),
+            borrowck_in_facts_no_back: all_facts_without_back_edges,
+            borrowck_out_facts_no_back: output_without_back_edges,
+            additional_facts_no_back: additional_facts_without_back_edges,
         }
     }
 
@@ -624,11 +669,28 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     pub fn construct_reborrowing_dag(&self, loans: &[facts::Loan],
                                      zombie_loans: &[facts::Loan],
                                      location: mir::Location) -> ReborrowingDAG {
+        self.construct_reborrowing_dag_custom_reborrows(
+            loans, zombie_loans, location, &self.additional_facts.reborrows_direct)
+    }
+
+    pub fn construct_reborrowing_dag_loop_body(
+        &self, loans: &[facts::Loan], zombie_loans: &[facts::Loan],
+        location: mir::Location
+    ) -> ReborrowingDAG {
+        self.construct_reborrowing_dag_custom_reborrows(
+            loans, zombie_loans, location, &self.additional_facts_no_back.reborrows_direct)
+    }
+
+    /// ``loans`` – all loans, including the zombie loans.
+    pub fn construct_reborrowing_dag_custom_reborrows(
+        &self, loans: &[facts::Loan], zombie_loans: &[facts::Loan],
+        location: mir::Location, reborrows_direct: &Vec<(facts::Loan, facts::Loan)>,
+    ) -> ReborrowingDAG {
         // Topologically sort loans.
         let mut sorted_loans = Vec::new();
         let mut permanent_mark = vec![false;loans.len()];
         let mut temporary_mark = vec![false;loans.len()];
-        fn visit(this: &PoloniusInfo,
+        fn visit(reborrows_direct: &Vec<(facts::Loan, facts::Loan)>,
                  loans: &[facts::Loan],
                  current: usize,
                  sorted_loans: &mut Vec<facts::Loan>,
@@ -641,9 +703,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             temporary_mark[current] = true;
             let current_loan = loans[current];
             for &loan in loans.iter() {
-                if this.additional_facts.reborrows_direct.contains(&(current_loan, loan)) {
+                if reborrows_direct.contains(&(current_loan, loan)) {
                     let new_current = loans.iter().position(|&l| l == loan).unwrap();
-                    visit(this, loans, new_current, sorted_loans, permanent_mark, temporary_mark);
+                    visit(reborrows_direct, loans, new_current, sorted_loans, permanent_mark, temporary_mark);
                 }
             }
             permanent_mark[current] = true;
@@ -655,7 +717,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             } else {
                 break
             };
-            visit(self, loans, index, &mut sorted_loans, &mut permanent_mark, &mut temporary_mark);
+            visit(reborrows_direct, loans, index, &mut sorted_loans,
+                  &mut permanent_mark, &mut temporary_mark);
         }
         sorted_loans.reverse();
         let nodes = sorted_loans.into_iter().map(|loan| {
@@ -754,7 +817,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         forest
     }
 
-    fn construct_reborrowing_tree(&self, loans: &[facts::Loan],
+    pub fn construct_reborrowing_tree(&self, loans: &[facts::Loan],
                                   zombie_loans: &[facts::Loan],
                                   node: facts::Loan) -> ReborrowingNode {
 

@@ -14,8 +14,8 @@ use std::fmt;
 
 #[derive(PartialEq, Eq, Hash, Clone, Ord, PartialOrd)]
 pub struct Assignment {
-    target: mir::Local,
-    location: mir::Location,
+    pub target: mir::Local,
+    pub location: mir::Location,
 }
 
 impl fmt::Debug for Assignment {

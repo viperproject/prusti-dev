@@ -571,39 +571,38 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(not_loop_loans));
                     write_graph!(self, "</tr>");
 
-                    //let intersect = || {
-                        //for &loop_loan in loop_loans.iter() {
-                            //for &not_loop_loan in not_loop_loans.iter() {
-                                //if self.polonius_info.additional_facts
-                                        //.reborrows_direct.contains(&(not_loop_loan, loop_loan)) {
-                                    //return (loop_loan, not_loop_loan);
-                                //}
-                                //debug!("Check: {:?} {:?}", loop_loan, not_loop_loan);
-                            //}
-                        //}
-                        //for (l1, l2) in self.polonius_info.additional_facts.reborrows_direct.iter() {
-                            //debug!("reborrows_direct: {:?} {:?}", l1, l2);
-                        //}
-                        //unreachable!();
-                    //};
-                    //let (loop_loan, not_loop_loan) = intersect();
-                    //write_graph!(self, "<tr>");
-                    //write_graph!(self, "<td colspan=\"2\">{:?} (intersection):</td>",
-                                 //magic_wand.variable);
-                    //write_graph!(self, "<td colspan=\"8\">{:?} {:?}</td>", loop_loan, not_loop_loan);
-                    //write_graph!(self, "</tr>");
+                    let liveness = self.liveness.get_before_block(bb);
+                    let mut root_loans = Vec::new();
+                    for assignment in liveness.iter() {
+                        debug!("assignment={:?} target={:?} var={:?} equal={:?}",
+                               assignment,
+                               assignment.target,
+                               magic_wand.variable,
+                               assignment.target == magic_wand.variable);
+                        if assignment.target == magic_wand.variable {
+                            for loan in loop_loans.iter() {
+                                debug!("loan: {:?} position: {:?}", loan,
+                                       self.polonius_info.loan_position[loan]);
+                                if assignment.location == self.polonius_info.loan_position[loan] {
+                                    root_loans.push(*loan);
+                                }
+                            }
+                        }
+                    }
 
-                    let forest = self.polonius_info.construct_reborrowing_forest(
-                        &loop_loans, &zombie_loans);
-                    let dag = self.polonius_info.construct_reborrowing_dag(
+                    write_graph!(self, "<tr>");
+                    write_graph!(self, "<td colspan=\"2\">{:?} (root loans):</td>",
+                                 magic_wand.variable);
+                    write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(root_loans));
+                    write_graph!(self, "</tr>");
+                    assert!(root_loans.len() == 1);
+
+                    let dag = self.polonius_info.construct_reborrowing_dag_loop_body(
                         &loop_loans, &zombie_loans, location);
-                    // TODO: Need to find the loan at which to cut the cycle.
-                    // Idea: do not allow to propage via back_edges.
                     write_graph!(self, "<tr>");
                     write_graph!(self, "<td colspan=\"2\">{:?} (package end loop body):</td>",
                                  magic_wand.variable);
                     write_graph!(self, "<td colspan=\"8\">");
-                    write_graph!(self, "{}", forest.to_string().replace(";", "<br />"));
                     write_graph!(self, "<br />{}", dag.to_string());
                     write_graph!(self, "</td>");
                     write_graph!(self, "</tr>");

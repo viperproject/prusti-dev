@@ -180,6 +180,8 @@ pub struct ProcedureLoops {
     pub loop_bodies: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
     /// A map from loop bodies to the ordered vector of enclosing loop heads.
     enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
+    /// Back edges.
+    pub back_edges: Vec<(BasicBlockIndex, BasicBlockIndex)>,
     /// Dominators graph.
     dominators: Dominators<BasicBlockIndex>,
 }
@@ -230,6 +232,7 @@ impl ProcedureLoops {
             loop_head_depths,
             loop_bodies,
             enclosing_loop_heads,
+            back_edges: back_edges,
             dominators: dominators,
         }
     }
