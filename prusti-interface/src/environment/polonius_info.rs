@@ -30,6 +30,12 @@ pub struct LoanPlaces<'tcx> {
 /// we can restore the permissions only to the variable which we know
 /// was borrowed by `x`.
 /// ```rust
+/// #![feature(nll)]
+///
+/// struct F { f: u32 }
+///
+/// fn consume_F(x: F) {}
+///
 /// fn test7(y: F, z: F, b: bool) {
 ///     let mut y = y;
 ///     let mut z = z;
@@ -46,7 +52,7 @@ pub struct LoanPlaces<'tcx> {
 /// ```
 ///
 /// Therefore, the loop magic wand should be:
-/// ```
+/// ```silver
 /// T(c) --* T(_orig_c)
 /// ```
 /// where `c` is a reference typed variable that is reassigned in the
@@ -70,7 +76,6 @@ pub struct LoopMagicWand {
 }
 
 impl fmt::Debug for LoopMagicWand {
-
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({:?}:{:?} --* _orig_{:?}_{:?})",
                self.variable, self.region,
