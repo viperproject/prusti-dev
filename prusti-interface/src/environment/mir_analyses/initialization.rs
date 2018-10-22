@@ -16,55 +16,15 @@
 
 use csv::{ReaderBuilder, WriterBuilder};
 use rustc::{hir, mir};
-use std::collections::HashMap;
 use std::env;
 use std::path::Path;
 use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 use crate::environment::place_set::PlaceSet;
+use super::common::{self, WorkItem};
 
 /// The result of the definitely initialized analysis.
-pub struct DefinitelyInitializedAnalysisResult<'tcx> {
-    /// The state before the basic block.
-    before_block: HashMap<mir::BasicBlock, PlaceSet<'tcx>>,
-    /// The state after the statement.
-    after_statement: HashMap<mir::Location, PlaceSet<'tcx>>,
-}
-
-impl<'tcx> DefinitelyInitializedAnalysisResult<'tcx> {
-    pub fn new() -> Self {
-        Self {
-            before_block: HashMap::new(),
-            after_statement: HashMap::new(),
-        }
-    }
-    /// Get the initialization set before the first statement of the
-    /// basic block.
-    pub fn get_before_block(&self, bb: mir::BasicBlock) -> &PlaceSet<'tcx> {
-        self.before_block
-            .get(&bb)
-            .expect(&format!("Missing initialization info for block {:?}", bb))
-    }
-    /// Get the initialization set after the statement.
-    /// If `location.statement_index` is equal to the number of statements,
-    /// returns the initialization set after the terminator.
-    pub fn get_after_statement(&self, location: mir::Location) -> &PlaceSet {
-        self.after_statement.get(&location).expect(&format!(
-            "Missing initialization info for location {:?}",
-            location
-        ))
-    }
-}
-
-/// A work item used in the fixpoint computation's work queue.
-enum WorkItem {
-    /// Need to apply the effects of the statement.
-    ApplyStatementEffects(mir::Location),
-    /// Need to apply the effects of the terminator.
-    ApplyTerminatorEffects(mir::BasicBlock),
-    /// Need to merge the incoming effects of multiple edges.
-    MergeEffects(mir::BasicBlock),
-}
+pub type DefinitelyInitializedAnalysisResult<'tcx> = common::AnalysisResult<PlaceSet<'tcx>>;
 
 /// How place sets comming from different branches should be joined?
 #[derive(Clone, Copy, Debug)]
@@ -125,6 +85,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
         self.result.before_block.insert(mir::START_BLOCK, place_set);
     }
     /// Add all statements to the work queue.
+    /// TODO: Refactor to avoid code duplication with liveness analysis.
     fn propagate_work_queue(&mut self) {
         for bb in self.mir.basic_blocks().indices() {
             let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
