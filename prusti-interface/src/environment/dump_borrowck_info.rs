@@ -2,23 +2,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::borrowck::{facts, regions};
+use super::borrowck::facts;
 use super::loops;
 use super::loops_utils::*;
 use super::mir_analyses::initialization::{
     compute_definitely_initialized,
     DefinitelyInitializedAnalysisResult
 };
-use super::polonius_info::{AdditionalFacts, PoloniusInfo};
+use super::mir_analyses::liveness::{
+    compute_liveness,
+    LivenessAnalysisResult
+};
+use super::polonius_info::PoloniusInfo;
 use crate::utils;
-use datafrog::{Iteration, Relation};
 use std::cell;
 use std::env;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, Write, BufWriter};
 use std::path::PathBuf;
-use polonius_engine::{Algorithm, Output, Atom};
 use rustc::hir::{self, intravisit};
 use rustc::mir;
 use rustc::ty::TyCtxt;
@@ -84,6 +86,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let graph = BufWriter::new(graph_file);
 
         let initialization = compute_definitely_initialized(&mir, self.tcx, def_path);
+        let liveness = compute_liveness(&mir);
 
         let mut mir_info_printer = MirInfoPrinter {
             tcx: self.tcx,
@@ -91,6 +94,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             graph: cell::RefCell::new(graph),
             loops: loop_info,
             initialization: initialization,
+            liveness: liveness,
             polonius_info: PoloniusInfo::new(self.tcx, def_id, &mir),
         };
         mir_info_printer.print_info();
@@ -132,6 +136,7 @@ struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub graph: cell::RefCell<BufWriter<File>>,
     pub loops: loops::ProcedureLoops,
     pub initialization: DefinitelyInitializedAnalysisResult<'tcx>,
+    pub liveness: LivenessAnalysisResult,
     pub polonius_info: PoloniusInfo<'a, 'tcx>,
 }
 
@@ -357,6 +362,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td>{:?}</td>", bb);
         write_graph!(self, "<td colspan=\"7\"></td>");
         write_graph!(self, "<td>Definitely Initialized</td>");
+        write_graph!(self, "<td>Liveness</td>");
         write_graph!(self, "</th>");
 
         // Is this the entry point of a procedure?
@@ -458,30 +464,30 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 //.map(|loops::PlaceAccess { place, kind, .. } | (place, kind))
                 //.collect();
             //write_graph!(self, "<td colspan=\"2\">Accessed paths (A1):</td>");
-            //write_graph!(self, "<td colspan=\"7\">{}</td>", to_sorted_string!(accesses_str));
+            //write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(accesses_str));
             //write_graph!(self, "</tr>");
 
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Def. before loop (A2):</td>");
-            write_graph!(self, "<td colspan=\"7\">{}</td>",
+            write_graph!(self, "<td colspan=\"8\">{}</td>",
                          to_sorted_string!(defined_accesses));
             write_graph!(self, "</tr>");
 
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Write paths (A3):</td>");
-            write_graph!(self, "<td colspan=\"7\">{}</td>",
+            write_graph!(self, "<td colspan=\"8\">{}</td>",
                          to_sorted_string!(write_leaves));
             write_graph!(self, "</tr>");
 
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Read paths (A3):</td>");
-            write_graph!(self, "<td colspan=\"7\">{}</td>",
+            write_graph!(self, "<td colspan=\"8\">{}</td>",
                          to_sorted_string!(read_leaves));
             write_graph!(self, "</tr>");
 
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Invariant:</td>");
-            write_graph!(self, "<td colspan=\"7\">{}</td>", to_html_display!(forest));
+            write_graph!(self, "<td colspan=\"8\">{}</td>", to_html_display!(forest));
             write_graph!(self, "</tr>");
 
             let mut reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
@@ -504,7 +510,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Reborrows:</td>");
-            write_graph!(self, "<td colspan=\"7\">{}</td>", to_sorted_string!(reborrows));
+            write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(reborrows));
             write_graph!(self, "</tr>");
 
             for &(local, _) in reborrows.iter() {
@@ -514,7 +520,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             if let Some(ref magic_wands) = self.polonius_info.loop_magic_wands.get(&bb) {
                 write_graph!(self, "<tr>");
                 write_graph!(self, "<td colspan=\"2\">Magic wands:</td>");
-                write_graph!(self, "<td colspan=\"7\">{}</td>", to_sorted_string!(magic_wands));
+                write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(magic_wands));
                 write_graph!(self, "</tr>");
 
                 let location = mir::Location {
@@ -527,10 +533,79 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 let restricts = restricts.as_ref().unwrap();
 
                 for magic_wand in magic_wands.iter() {
-                    let loans = &restricts[&magic_wand.region];
+                    let (all_loans, zombie_loans) = self.polonius_info.get_all_loans_kept_alive_by(
+                        point, magic_wand.region);
                     write_graph!(self, "<tr>");
-                    write_graph!(self, "<td colspan=\"2\">Package (end loop body):</td>");
-                    write_graph!(self, "<td colspan=\"7\">TODO</td>");
+                    write_graph!(self, "<td colspan=\"2\">{:?} (all loans):</td>",
+                                 magic_wand.variable);
+                    write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(all_loans));
+                    write_graph!(self, "</tr>");
+
+                    let loop_loans: Vec<_> = all_loans
+                        .iter()
+                        .filter(|loan| {
+                            let location = self.polonius_info.loan_position[loan];
+                            let loop_body = &self.loops.loop_bodies[&magic_wand.loop_id];
+                            loop_body.contains(&location.block)
+                        })
+                        .cloned()
+                        .collect();
+                    write_graph!(self, "<tr>");
+                    write_graph!(self, "<td colspan=\"2\">{:?} (loop loans):</td>",
+                                 magic_wand.variable);
+                    write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(loop_loans));
+                    write_graph!(self, "</tr>");
+
+                    let not_loop_loans: Vec<_> = all_loans
+                        .iter()
+                        .filter(|loan| {
+                            let location = self.polonius_info.loan_position[loan];
+                            let loop_body = &self.loops.loop_bodies[&magic_wand.loop_id];
+                            !loop_body.contains(&location.block)
+                        })
+                        .cloned()
+                        .collect();
+                    write_graph!(self, "<tr>");
+                    write_graph!(self, "<td colspan=\"2\">{:?} (not loop loans):</td>",
+                                 magic_wand.variable);
+                    write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(not_loop_loans));
+                    write_graph!(self, "</tr>");
+
+                    //let intersect = || {
+                        //for &loop_loan in loop_loans.iter() {
+                            //for &not_loop_loan in not_loop_loans.iter() {
+                                //if self.polonius_info.additional_facts
+                                        //.reborrows_direct.contains(&(not_loop_loan, loop_loan)) {
+                                    //return (loop_loan, not_loop_loan);
+                                //}
+                                //debug!("Check: {:?} {:?}", loop_loan, not_loop_loan);
+                            //}
+                        //}
+                        //for (l1, l2) in self.polonius_info.additional_facts.reborrows_direct.iter() {
+                            //debug!("reborrows_direct: {:?} {:?}", l1, l2);
+                        //}
+                        //unreachable!();
+                    //};
+                    //let (loop_loan, not_loop_loan) = intersect();
+                    //write_graph!(self, "<tr>");
+                    //write_graph!(self, "<td colspan=\"2\">{:?} (intersection):</td>",
+                                 //magic_wand.variable);
+                    //write_graph!(self, "<td colspan=\"8\">{:?} {:?}</td>", loop_loan, not_loop_loan);
+                    //write_graph!(self, "</tr>");
+
+                    let forest = self.polonius_info.construct_reborrowing_forest(
+                        &loop_loans, &zombie_loans);
+                    let dag = self.polonius_info.construct_reborrowing_dag(
+                        &loop_loans, &zombie_loans, location);
+                    // TODO: Need to find the loan at which to cut the cycle.
+                    // Idea: do not allow to propage via back_edges.
+                    write_graph!(self, "<tr>");
+                    write_graph!(self, "<td colspan=\"2\">{:?} (package end loop body):</td>",
+                                 magic_wand.variable);
+                    write_graph!(self, "<td colspan=\"8\">");
+                    write_graph!(self, "{}", forest.to_string().replace(";", "<br />"));
+                    write_graph!(self, "<br />{}", dag.to_string());
+                    write_graph!(self, "</td>");
                     write_graph!(self, "</tr>");
                 }
             }
@@ -544,6 +619,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td colspan=\"2\">Borrow Regions</td>");
         write_graph!(self, "<td colspan=\"2\">Regions</td>");
         write_graph!(self, "<td>{}</td>", self.get_definitely_initialized_before_block(bb));
+        write_graph!(self, "<td>{}</td>", self.get_live_before_block(bb));
         write_graph!(self, "</th>");
 
         let mir::BasicBlockData { ref statements, ref terminator, .. } = self.mir[bb];
@@ -570,6 +646,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td colspan=\"4\"></td>");
         write_graph!(self, "<td>{}</td>",
                      self.get_definitely_initialized_after_statement(location));
+        write_graph!(self, "<td>{}</td>",
+                     self.get_live_after_statement(location));
         write_graph!(self, "</tr>");
         if let Some(ref term) = &terminator {
             if let mir::TerminatorKind::Return = term.kind {
@@ -738,6 +816,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
         write_graph!(self, "<td>{}</td>",
                      self.get_definitely_initialized_after_statement(location));
+        write_graph!(self, "<td>{}</td>",
+                     self.get_live_after_statement(location));
 
         write_graph!(self, "</tr>");
         Ok(())
@@ -840,6 +920,21 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
     fn get_definitely_initialized_after_statement(&self, location: mir::Location) -> String {
         let place_set = self.initialization.get_after_statement(location);
         to_sorted_string!(place_set)
+    }
+}
+
+/// Liveness analysis.
+impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
+
+    fn get_live_before_block(&self, bb: mir::BasicBlock) -> String {
+        let set = self.liveness.get_before_block(bb);
+        to_sorted_string!(set)
+    }
+
+
+    fn get_live_after_statement(&self, location: mir::Location) -> String {
+        let set = self.liveness.get_after_statement(location);
+        to_sorted_string!(set)
     }
 }
 
