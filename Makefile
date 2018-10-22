@@ -34,6 +34,10 @@ test:
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
 	cargo test --all
 
+quick-test:
+	$(SET_ENV_VARS) \
+	cargo test --all
+
 bench:
 	$(SET_ENV_VARS) cargo bench --all
 
