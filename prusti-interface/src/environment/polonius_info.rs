@@ -476,33 +476,39 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     /// Get loans that dye at the given location.
     pub(crate) fn get_dying_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
-        self.get_loans_dying_at(location, &self.borrowck_out_facts.borrow_live_at)
+        self.get_loans_dying_at(location, false)
     }
 
     /// Get loans that dye at the given location.
     pub(crate) fn get_dying_zombie_loans(&self, location: mir::Location) -> Vec<facts::Loan> {
-        self.get_loans_dying_at(location, &self.additional_facts.zombie_borrow_live_at)
+        self.get_loans_dying_at(location, true)
     }
 
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
     pub fn get_all_active_loans(&self, location: mir::Location
                                 ) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
-        let mut loans = self.get_active_loans(
-            location, &self.borrowck_out_facts.borrow_live_at);
-        let zombie_loans = self.get_active_loans(
-            location, &self.additional_facts.zombie_borrow_live_at);
+        let mut loans = self.get_active_loans(location, false);
+        let zombie_loans = self.get_active_loans(location, true);
         loans.extend(zombie_loans.iter().cloned());
         (loans, zombie_loans)
     }
 
+    fn get_borrow_live_at(&self, zombie: bool) -> &FxHashMap<facts::PointIndex, Vec<facts::Loan>> {
+        if zombie {
+            &self.additional_facts.zombie_borrow_live_at
+        } else {
+            &self.borrowck_out_facts.borrow_live_at
+        }
+    }
+
     /// Get loans that are active (including those that are about to die) at the given location.
     pub fn get_active_loans(&self, location: mir::Location,
-                            borrow_live_at: &FxHashMap<facts::PointIndex, Vec<facts::Loan>>
-                            ) -> Vec<facts::Loan> {
+                            zombie: bool) -> Vec<facts::Loan> {
+        let borrow_live_at = self.get_borrow_live_at(zombie);
         let start_point = self.get_point(location, facts::PointType::Start);
         let mid_point = self.get_point(location, facts::PointType::Mid);
 
-        if let Some(mid_loans) = borrow_live_at.get(&mid_point) {
+        let mut loans = if let Some(mid_loans) = borrow_live_at.get(&mid_point) {
             let mut mid_loans = mid_loans.clone();
             mid_loans.sort();
             let default_vec = vec![];
@@ -521,27 +527,33 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         } else {
             assert!(borrow_live_at.get(&start_point).is_none());
             vec![]
+        };
+        if !zombie {
+            for (_, loan, point) in self.borrowck_in_facts.borrow_region.iter() {
+                if point == &mid_point && !loans.contains(loan) {
+                    loans.push(*loan);
+                }
+            }
         }
+        loans
     }
 
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
     pub fn get_all_loans_dying_at(&self, location: mir::Location
                                   ) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
-        let mut loans = self.get_loans_dying_at(
-            location, &self.borrowck_out_facts.borrow_live_at);
-        let zombie_loans = self.get_loans_dying_at(
-            location, &self.additional_facts.zombie_borrow_live_at);
+        let mut loans = self.get_loans_dying_at(location, false);
+        let zombie_loans = self.get_loans_dying_at(location, true);
         loans.extend(zombie_loans.iter().cloned());
         (loans, zombie_loans)
     }
 
     /// Get loans that die *at* (that is, exactly after) the given location.
     pub fn get_loans_dying_at(&self, location: mir::Location,
-                              borrow_live_at: &FxHashMap<facts::PointIndex, Vec<facts::Loan>>
-                              ) -> Vec<facts::Loan> {
+                              zombie: bool) -> Vec<facts::Loan> {
+        let borrow_live_at = self.get_borrow_live_at(zombie);
         let successors = self.get_successors(location);
         let is_return = is_return(self.mir, location);
-        self.get_active_loans(location, borrow_live_at)
+        self.get_active_loans(location, zombie)
             .into_iter()
             .filter(|loan| {
                 let alive_in_successor = successors
@@ -562,10 +574,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     /// Get loans that die between two consecutive locations
     pub fn get_loans_dying_between(
             &self, initial_loc: mir::Location, final_loc: mir::Location,
-            borrow_live_at: &FxHashMap<facts::PointIndex, Vec<facts::Loan>>
-            ) -> Vec<facts::Loan> {
+            zombie: bool) -> Vec<facts::Loan> {
+        let borrow_live_at = self.get_borrow_live_at(zombie);
         debug_assert!(self.get_successors(initial_loc).contains(&final_loc));
-        self.get_active_loans(initial_loc, borrow_live_at)
+        self.get_active_loans(initial_loc, zombie)
             .into_iter()
             .filter(|loan| {
                 let point = self.get_point(final_loc, facts::PointType::Start);
@@ -582,10 +594,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
     pub fn get_all_loans_dying_before(&self, location: mir::Location
                                       ) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
-        let mut loans = self.get_loans_dying_before(
-            location, &self.borrowck_out_facts.borrow_live_at);
-        let zombie_loans = self.get_loans_dying_before(
-            location, &self.additional_facts.zombie_borrow_live_at);
+        let mut loans = self.get_loans_dying_before(location, false);
+        let zombie_loans = self.get_loans_dying_before(location, true);
         loans.extend(zombie_loans.iter().cloned());
         (loans, zombie_loans)
     }
@@ -593,16 +603,15 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     /// Get loans that die exactly before the given location, but not *at* any of the predecessors.
     /// Note: we don't handle a loan that dies just in a subset of the incoming CFG edges.
     pub fn get_loans_dying_before(&self, location: mir::Location,
-                                  borrow_live_at: &FxHashMap<facts::PointIndex, Vec<facts::Loan>>
-                                  ) -> Vec<facts::Loan> {
+                                  zombie: bool) -> Vec<facts::Loan> {
         let mut predecessors = self.get_predecessors(location);
         let mut dying_before: Option<HashSet<facts::Loan>> = None;
         for predecessor in predecessors.drain(..) {
             let dying_at_predecessor: HashSet<_> = HashSet::from_iter(
-                self.get_loans_dying_at(predecessor, borrow_live_at)
+                self.get_loans_dying_at(predecessor, zombie)
             );
             let dying_between: HashSet<_> = HashSet::from_iter(
-                self.get_loans_dying_between(predecessor, location, borrow_live_at)
+                self.get_loans_dying_between(predecessor, location, zombie)
             );
             let dying_before_loc: HashSet<_> = dying_between.difference(&dying_at_predecessor).cloned().collect();
             if let Some(ref dying_before_content) = dying_before {
