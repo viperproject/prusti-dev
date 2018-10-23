@@ -197,30 +197,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         }
 
         // 3. Add "folding/unfolding in" expressions in statement. This handles *old* requirements.
-        let repl_expr = |expr: &vir::Expr| -> vir::Expr {
-            self.replace_expr(expr, bctxt)
-        };
-        let repl_exprs = |exprs: &Vec<vir::Expr>| -> Vec<vir::Expr> {
-            exprs.iter().map(|e| self.replace_expr(e, bctxt)).collect()
-        };
-
-        let new_stmt= match stmt {
-            vir::Stmt::Comment(s) => vir::Stmt::Comment(s.clone()),
-            vir::Stmt::Label(s) => vir::Stmt::Label(s.clone()),
-            vir::Stmt::Inhale(e) => vir::Stmt::Inhale(repl_expr(e)),
-            vir::Stmt::Exhale(e, p) => vir::Stmt::Exhale(repl_expr(e), p.clone()),
-            vir::Stmt::Assert(e, p) => vir::Stmt::Assert(repl_expr(e), p.clone()),
-            vir::Stmt::MethodCall(s, ve, vv) => vir::Stmt::MethodCall(s.clone(), repl_exprs(ve), vv.clone()),
-            vir::Stmt::Assign(p, e, k) => vir::Stmt::Assign(p.clone(), repl_expr(e), k.clone()),
-            vir::Stmt::Fold(s, ve, fr) => vir::Stmt::Fold(s.clone(), repl_exprs(ve), *fr),
-            vir::Stmt::Unfold(s, ve, fr) => vir::Stmt::Unfold(s.clone(), repl_exprs(ve), *fr),
-            vir::Stmt::Obtain(e) => vir::Stmt::Obtain(repl_expr(e)),
-            vir::Stmt::WeakObtain(e) => vir::Stmt::WeakObtain(repl_expr(e)),
-            vir::Stmt::Havoc => vir::Stmt::Havoc,
-            vir::Stmt::BeginFrame => vir::Stmt::BeginFrame,
-            vir::Stmt::EndFrame => vir::Stmt::EndFrame,
-            vir::Stmt::ExpireBorrow(a, b) => vir::Stmt::ExpireBorrow(a.clone(), b.clone()),
-        };
+        let new_stmt= stmt.clone().map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt));
 
         // 4. Apply effect of statement on state
         bctxt.apply_stmt(&new_stmt);
