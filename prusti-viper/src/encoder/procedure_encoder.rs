@@ -50,6 +50,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     check_panics: bool,
     polonius_info: PoloniusInfo<'p, 'tcx>,
     label_after_location: HashMap<mir::Location, String>,
+    // /// Contains the boolean local variables that became `true` the first time the block is executed
+    //cfg_block_has_been_executed: HashMap<mir::Location, String>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -379,14 +381,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         stmts.extend(
-                            self.encode_assign_operand(&encoded_lhs, operand)
+                            self.encode_assign_operand(&encoded_lhs, operand, location)
                         );
                         stmts
                     }
 
                     &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
                         stmts.extend(
-                            self.encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands)
+                            self.encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location)
                         );
                         stmts
                     }
@@ -624,7 +626,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
 
                             ReborrowingZombity::Zombie(rhs_location) => {
-                                let rhs_label = self.label_after_location.get(&rhs_location).unwrap();
+                                let rhs_label = self.label_after_location.get(&rhs_location).expect(
+                                    &format!(
+                                        "No label has been saved for location {:?} ({:?})",
+                                        rhs_location,
+                                        self.label_after_location
+                                    )
+                                );
                                 vir::LabelledPlace::old(expiring.clone(), rhs_label.clone())
                             }
                         };
@@ -830,10 +838,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::Goto(*target_cfg_block))
             }
 
-            TerminatorKind::DropAndReplace { ref target, ref location, ref value, .. } => {
-                let (encoded_loc, _, _) = self.mir_encoder.encode_place(location);
+            TerminatorKind::DropAndReplace { ref target, location: ref lhs, ref value, .. } => {
+                let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs);
                 stmts.extend(
-                    self.encode_assign_operand(&encoded_loc, value)
+                    self.encode_assign_operand(&encoded_lhs, value, location)
                 );
                 let target_cfg_block = cfg_blocks.get(&target).unwrap();
                 (stmts, Successor::Goto(*target_cfg_block))
@@ -937,7 +945,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         // Initialize `box_content`
                         stmts.extend(
-                            self.encode_assign_operand(&box_content, &args[0])
+                            self.encode_assign_operand(&box_content, &args[0], location)
                         );
                     }
 
@@ -1615,7 +1623,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Return type:
     /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`
-    fn encode_assign_operand(&mut self, lhs: &vir::Place, operand: &mir::Operand<'tcx>) -> Vec<vir::Stmt> {
+    fn encode_assign_operand(&mut self, lhs: &vir::Place, operand: &mir::Operand<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("Encode assign operand {:?}", operand);
         match operand {
             &mir::Operand::Move(ref place) => {
@@ -1624,6 +1632,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut stmts = vec![
                     vir::Stmt::Assign(lhs.clone(), src.clone().into(), vir::AssignKind::Move)
                 ];
+                // Store a label for this state
+                let label = self.cfg_method.get_fresh_label_name();
+                debug!("Current loc {:?} has label {}", location, label);
+                self.label_after_location.insert(location, label.clone());
+                stmts.push(vir::Stmt::Label(label.clone()));
                 // Re-allocate the rhs
                 stmts.extend(
                     self.encode_havoc_and_allocation(&src, ty)
@@ -1829,6 +1842,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ty: ty::Ty<'tcx>,
         aggregate: &mir::AggregateKind<'tcx>,
         operands: &Vec<mir::Operand<'tcx>>,
+        location: mir::Location
     ) -> Vec<vir::Stmt> {
         debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -1843,7 +1857,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let field_name = format!("tuple_{}", field_num);
                     let encoded_field = self.encoder.encode_ref_field(&field_name, field_types[field_num]);
                     stmts.extend(
-                        self.encode_assign_operand(&dst.clone().access(encoded_field), operand)
+                        self.encode_assign_operand(&dst.clone().access(encoded_field), operand, location)
                     );
                 }
                 stmts
@@ -1869,7 +1883,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let field_ty = field.ty(tcx, subst);
                     let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
                     stmts.extend(
-                        self.encode_assign_operand(&dst.clone().access(encoded_field), operand)
+                        self.encode_assign_operand(&dst.clone().access(encoded_field), operand, location)
                     );
                 }
                 stmts

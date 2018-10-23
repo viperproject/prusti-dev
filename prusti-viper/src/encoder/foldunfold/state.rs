@@ -45,7 +45,7 @@ impl State {
             }
         }
         for place in self.acc.keys() {
-            if !place.get_place().is_base() {
+            if !place.get_place().is_base() && place.is_curr() {
                 if !self.contains_acc(&place.clone().map_place(|p| p.parent().unwrap().clone())) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",

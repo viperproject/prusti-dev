@@ -237,11 +237,10 @@ impl LabelledPlace {
     }
 
     pub fn replace_prefix(&self, target: &LabelledPlace, replacement: LabelledPlace) -> Self {
-        assert_eq!(target.get_label(), replacement.get_label());
         if target.get_label() == self.get_label() {
             LabelledPlace {
                 place: self.place.clone().replace_prefix(target.get_place(), replacement.get_place().clone()),
-                ..self.clone()
+                label: replacement.get_label().cloned(),
             }
         } else {
             self.clone()
@@ -450,8 +449,10 @@ pub enum Stmt {
     /// That is, the lhs and rhs of the assignment that created the borrow.
     /// Permissions will move from the expiring to the restored location.
     ExpireBorrow(LabelledPlace, LabelledPlace),
-    /// An `if` statement: the guard, then branch, else branch
-    If(Expr, Vec<Stmt>, Vec<Stmt>),
+    /// An `if` statement: the guard, the 'then' branch, the 'else' branch
+    /// Note: this is only used to restore permissions of expiring loans, so the fold/unfold
+    /// algorithms threats this statement (and statements in the branches) in a very special way.
+    ExpireBorrowsIf(Expr, Vec<Stmt>, Vec<Stmt>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -578,8 +579,8 @@ impl fmt::Display for Stmt {
 
             Stmt::ExpireBorrow(ref lhs, ref rhs) => write!(f, "expire borrow {} --> {}", lhs, rhs),
 
-            Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
-                write!(f, "if {} {{", guard)?;
+            Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
+                write!(f, "expire borrows if {} {{", guard)?;
                 if !then_stmts.is_empty() {
                     write!(f, "\n")?;
                 }
@@ -618,7 +619,7 @@ pub trait StmtFolder {
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::ExpireBorrow(a, b) => self.fold_expire_borrow(a, b),
-            Stmt::If(g, t, e) => self.fold_if(g, t, e),
+            Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
         }
     }
 
@@ -686,8 +687,8 @@ pub trait StmtFolder {
         Stmt::ExpireBorrow(a, b)
     }
 
-    fn fold_if(&mut self, g: Expr, t: Vec<Stmt>, e: Vec<Stmt>) -> Stmt {
-        Stmt::If(g, t, e)
+    fn fold_expire_borrows_if(&mut self, g: Expr, t: Vec<Stmt>, e: Vec<Stmt>) -> Stmt {
+        Stmt::ExpireBorrowsIf(g, t, e)
     }
 }
 
