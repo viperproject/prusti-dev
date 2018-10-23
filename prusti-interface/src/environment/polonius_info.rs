@@ -846,13 +846,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                   &mut permanent_mark, &mut temporary_mark);
         }
         sorted_loans.reverse();
-        let nodes = sorted_loans.into_iter().map(|loan| {
+        let nodes: Vec<_> = sorted_loans.into_iter().map(|loan| {
             ReborrowingDAGNode {
                 loan: loan,
                 guard: self.construct_reborrowing_guard(loan, location),
                 kind: self.construct_reborrowing_kind(loan, representative_loan),
-                zombity: self.construct_reborrowing_zombity(loan, zombie_loans),
-                incoming_zombies: self.check_incoming_zombies(loan, &loans, zombie_loans),
+                zombity: self.construct_reborrowing_zombity(loan, &loans, zombie_loans, location),
+                incoming_zombies: self.check_incoming_zombies(loan, &loans, zombie_loans, location),
             }
         }).collect();
         ReborrowingDAG {
@@ -903,8 +903,15 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     fn construct_reborrowing_zombity(&self, loan: facts::Loan,
-                                     zombie_loans: &[facts::Loan]) -> ReborrowingZombity {
-        if zombie_loans.contains(&loan) || self.reference_moves.contains(&loan) {
+                                     loans: &[facts::Loan],
+                                     zombie_loans: &[facts::Loan],
+                                     location: mir::Location) -> ReborrowingZombity {
+        // Is the loan is a move of a reference, then this source is moved out and,
+        // therefore, a zombie.
+        let is_reference_move = self.reference_moves.contains(&loan);
+
+        debug!("loan={:?} is_reference_move={:?}", loan, is_reference_move);
+        if zombie_loans.contains(&loan) || is_reference_move {
             ReborrowingZombity::Zombie(self.loan_position[&loan])
         } else {
             ReborrowingZombity::Real
@@ -913,7 +920,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     fn check_incoming_zombies(&self, loan: facts::Loan,
                               loans: &[facts::Loan],
-                              zombie_loans: &[facts::Loan]) -> bool {
+                              zombie_loans: &[facts::Loan],
+                              location: mir::Location) -> bool {
         let incoming_loans: Vec<_> = loans
             .iter()
             .filter(|&&incoming_loan| {
@@ -924,7 +932,31 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 self.reference_moves.contains(incoming_loan)
             })
             .collect();
-        if !incoming_loans.is_empty() {
+
+        // If a loan is kept alive by a loan that is a call, this means
+        // that this loan is an argument to that call and the reference
+        // that created it was moved into the call and as a result is a
+        // zombie now.
+        let has_incoming_call = loans
+            .iter()
+            .filter(|&&incoming_loan| {
+                self.additional_facts.reborrows_direct.contains(&(incoming_loan, loan))
+            })
+            .any(|incoming_loan| {
+                self.call_magic_wands.contains_key(incoming_loan)
+            });
+
+        // If a root loan dies at a call, this means that it is kept
+        // alive by a reference that was moved into the call and,
+        // therefore, its blocking reference is now a zombie.
+        let root_die_at_call = {
+            get_call_destination(self.mir, location).is_some() &&
+            self.find_loan_roots(loans).contains(&loan)
+        };
+
+        if root_die_at_call || has_incoming_call {
+            true
+        } else if !incoming_loans.is_empty() {
             let incoming_zombies = incoming_loans.iter().any(|&b| b);
             debug!("incoming_loans={:?} loan={:?} zombie_loans={:?}",
                    incoming_loans, loan, zombie_loans);
@@ -936,15 +968,19 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Note: `loans` includes all `zombie_loans`.
-    pub fn construct_reborrowing_forest(&self, loans: &[facts::Loan],
-                                        zombie_loans: &[facts::Loan]) -> ReborrowingForest {
+    ///
+    /// This is function is deprecated. Please use
+    /// `construct_reborrowing_dag` instead.
+    pub(super) fn construct_reborrowing_forest(&self, loans: &[facts::Loan],
+                                        zombie_loans: &[facts::Loan],
+                                        location: mir::Location) -> ReborrowingForest {
         let roots = self.find_loan_roots(loans);
 
         // Reconstruct the tree from each root.
         let mut trees = Vec::new();
         for &root in roots.iter() {
             let tree = ReborrowingTree {
-                root: self.construct_reborrowing_tree(&loans, zombie_loans, root),
+                root: self.construct_reborrowing_tree(&loans, zombie_loans, root, location),
             };
             trees.push(tree);
         }
@@ -955,9 +991,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         forest
     }
 
-    pub fn construct_reborrowing_tree(&self, loans: &[facts::Loan],
-                                  zombie_loans: &[facts::Loan],
-                                  node: facts::Loan) -> ReborrowingNode {
+    pub(super) fn construct_reborrowing_tree(
+        &self,
+        loans: &[facts::Loan],
+        zombie_loans: &[facts::Loan],
+        node: facts::Loan,
+        location: mir::Location
+    ) -> ReborrowingNode {
 
         let kind = if let Some(local) = self.call_magic_wands.get(&node) {
             let region = self.variable_regions[&local];
@@ -980,12 +1020,12 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let branching = if children.len() == 1 {
             let child = children.pop().unwrap();
             ReborrowingBranching::Single {
-                child: box self.construct_reborrowing_tree(loans, zombie_loans, child),
+                child: box self.construct_reborrowing_tree(loans, zombie_loans, child, location),
             }
         } else if children.len() > 1 {
             ReborrowingBranching::Multiple {
                 children: children.iter().map(|&child| {
-                    self.construct_reborrowing_tree(loans, zombie_loans, child)
+                    self.construct_reborrowing_tree(loans, zombie_loans, child, location)
                 }).collect(),
             }
         } else {
@@ -994,7 +1034,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         ReborrowingNode {
             kind: kind,
             branching: branching,
-            zombity: self.construct_reborrowing_zombity(node, zombie_loans),
+            zombity: self.construct_reborrowing_zombity(node, &loans, zombie_loans, location),
         }
     }
 

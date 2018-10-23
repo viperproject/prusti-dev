@@ -1144,7 +1144,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         let dag = self.polonius_info.construct_reborrowing_dag(
             &all_dying_loans, &dying_zombie_loans, location);
         let forest = self.polonius_info.construct_reborrowing_forest(
-            &all_dying_loans, &dying_zombie_loans);
+            &all_dying_loans, &dying_zombie_loans, location);
         if !all_dying_loans.is_empty() {
             write_graph!(self, "<br />{}", forest.to_string().replace(";", "<br />"));
             write_graph!(self, "<br />{}", dag.to_string());
@@ -1190,7 +1190,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 let (all_loans, zombie_loans) = self.polonius_info.get_all_loans_kept_alive_by(
                     start_point, *region);
                 let forest = self.polonius_info.construct_reborrowing_forest(
-                    &all_loans, &zombie_loans);
+                    &all_loans, &zombie_loans, location);
                 let dag = self.polonius_info.construct_reborrowing_dag(
                     &all_loans, &zombie_loans, location);
                 //let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
