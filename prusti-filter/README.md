@@ -8,6 +8,14 @@ Note: this crate does not verify code.
 Usage
 -----
 
+1.  Download all crates:
+
+    ```
+    mkdir -p crates/index
+    git clone https://github.com/rust-lang/crates.io-index.git crates/index
+    python3 script/download.py
+    ```
+
 1. Build `prusti-filter` with `cargo build`. 
 2. Move to the folder containing the source code of a crate of interest.
 3. In that folder, run `cargo clean`.
