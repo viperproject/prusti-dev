@@ -13,19 +13,8 @@ fn consume_F(_f: F) {}
 
 fn use_both(_f: &mut G, _g: &mut G) {}
 
-fn test1(x: &mut F) {
-    let y = x;
-    let z = y;
-    let _z = &mut *z;
-    let _z = &mut *_z;
-    let _z = &mut *_z;
-    let _z = &mut *_z;
-    let _z = &mut *_z;
-    let _z = &mut *_z;
-    let _z = &mut *_z;
-}
+fn either<'a>(f: &'a mut G, _g: &'a mut G) -> &'a mut G { f }
 
-/*
 fn test3(y: &mut F) {
     let x = &mut *y;
     let f = &mut x.f;
@@ -33,6 +22,17 @@ fn test3(y: &mut F) {
     use_both(f, g);
 }
 
+/*
+fn test3b(y: &mut F) {
+    let x = &mut *y;
+    let f = &mut x.f;
+    let g = &mut x.g;
+    // This generates a magic wand
+    let m = either(f, g);
+}
+*/
+
+/*
 fn test4(y: &mut F, z: &mut F) {
     let mut x = &mut *y;
     let f = &mut x.f;
@@ -40,7 +40,6 @@ fn test4(y: &mut F, z: &mut F) {
     x = &mut *z;
     use_both(f, g);
     let f2 = &mut x.f;
-}
-*/
+}*/
 
 fn main() {}

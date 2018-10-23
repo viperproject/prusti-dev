@@ -21,6 +21,9 @@ pub struct State {
     moved: HashSet<vir::Place>,
     /// Permissions currently framed
     framing_stack: Vec<LabelledPermSet>,
+    /// Permissions that should be removed from the state
+    /// This is a hack for restoring borrows
+    dropped: HashSet<LabelledPerm>,
 }
 
 impl State {
@@ -29,7 +32,8 @@ impl State {
             acc,
             pred,
             moved,
-            framing_stack: vec![]
+            framing_stack: vec![],
+            dropped: HashSet::new(),
         }
     }
 
@@ -427,6 +431,22 @@ impl State {
         }
     }
 
+    pub fn insert_dropped(&mut self, item: LabelledPerm) {
+        self.dropped.insert(item);
+    }
+
+    pub fn is_dropped(&self, item: &LabelledPerm) -> bool {
+        self.dropped.contains(item)
+    }
+
+    pub fn remove_dropped(&mut self) {
+        let mut to_remove: Vec<_> = self.dropped.iter().cloned().collect();
+        self.dropped.clear();
+        for item in to_remove.iter() {
+            self.remove_perm(item);
+        }
+    }
+
     pub fn insert_perm(&mut self, item: LabelledPerm) {
         match item.get_perm() {
             &Perm::Acc(_, frac) => self.insert_acc(item.get_labelled_place(), frac),
@@ -493,14 +513,18 @@ impl State {
         let mut exprs: Vec<vir::Expr> = vec![];
         for (place, frac) in self.acc.iter() {
             if !place.get_place().is_base() {
-                exprs.push(
-                    vir::Expr::acc_permission(place.clone(), *frac)
-                );
+                if !self.is_dropped(&LabelledPerm::acc_from_labelled_place(place.clone(), *frac)) {
+                    exprs.push(
+                        vir::Expr::acc_permission(place.clone(), *frac)
+                    );
+                }
             }
         }
         for (place, frac) in self.pred.iter() {
             if let Some(perm) = vir::Expr::pred_permission(place.clone(), *frac) {
-                exprs.push(perm);
+                if !self.is_dropped(&LabelledPerm::pred_from_labelled_place(place.clone(), *frac)) {
+                    exprs.push(perm);
+                }
             }
         }
         exprs.into_iter().conjoin()

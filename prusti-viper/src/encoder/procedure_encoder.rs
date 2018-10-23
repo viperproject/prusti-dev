@@ -615,7 +615,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
                         let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
                         let lhs_place = if node.incoming_zombies {
-                            let lhs_label = self.label_after_location.get(&loan_location).unwrap();
+                            let lhs_label = self.label_after_location.get(&loan_location).expect(
+                                &format!(
+                                    "No label has been saved for location {:?} ({:?})",
+                                    loan_location,
+                                    self.label_after_location
+                                )
+                            );
                             vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
                         } else {
                             vir::LabelledPlace::curr(expiring.clone())
@@ -653,11 +659,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     ReborrowingKind::Call { .. } => {
-                        unimplemented!("TODO");
+                        unimplemented!("TODO: handle magic wand(s) obtained from function calls");
                     }
 
                     ReborrowingKind::Loop => {
-                        unimplemented!("TODO");
+                        unimplemented!("TODO: handle magic wand(s) obtained from loops");
                     }
                 }
             }
@@ -686,7 +692,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             stmts.insert(
                 0,
                 vir::Stmt::comment(format!("Expire {} dying loans", stmts.len()))
-            )
+            );
+            stmts.push(
+                vir::Stmt::StopExpiringBorrows
+            );
         }
 
         stmts
@@ -1287,8 +1296,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
 
-        /*
         // Require the deref of reference arguments to be folded (see issue #47)
+        // FIXME: if the content of the referente has been replaced then this does not work
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment(format!("Fold predicates for &mut args")));
         for arg_index in self.mir.args_iter() {
             let arg_ty = self.mir.local_decls[arg_index].ty;
@@ -1299,7 +1308,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::WeakObtain(deref_pred));
             }
         }
-        */
 
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
