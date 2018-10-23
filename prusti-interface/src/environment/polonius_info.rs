@@ -280,6 +280,8 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) additional_facts: AdditionalFacts,
     /// Loop head → Vector of magic wands in that loop.
     pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
+    /// Fake loans that were created due to fake moves.
+    pub(crate) reference_moves: Vec<facts::Loan>,
 
     /// Facts without back edges.
     pub(crate) borrowck_in_facts_no_back: facts::AllInputFacts,
@@ -287,12 +289,17 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) additional_facts_no_back: AdditionalFacts,
 }
 
-fn add_fake_facts<'a, 'tcx:'a>(all_facts: &mut facts::AllInputFacts,
-                               interner: &facts::Interner, mir: &'a mir::Mir<'tcx>,
-                               variable_regions: &HashMap<mir::Local, facts::Region>,
-                               call_magic_wands: &mut HashMap<facts::Loan, mir::Local>) {
+/// Returns moves that were turned into fake reborrows.
+fn add_fake_facts<'a, 'tcx:'a>(
+    all_facts: &mut facts::AllInputFacts,
+    interner: &facts::Interner,
+    mir: &'a mir::Mir<'tcx>,
+    variable_regions: &HashMap<mir::Local, facts::Region>,
+    call_magic_wands: &mut HashMap<facts::Loan, mir::Local>
+) -> Vec<facts::Loan> {
     // The code that adds a creation of a new borrow for each
     // move of a borrow.
+    let mut reference_moves = Vec::new();
 
     // Find the last loan index.
     let mut last_loan_id = 0;
@@ -344,12 +351,15 @@ fn add_fake_facts<'a, 'tcx:'a>(all_facts: &mut facts::AllInputFacts,
                 }
             } else if is_assignment(&mir, location) {
                 let (_region1, region2) = regions.pop().unwrap();
-                borrow_region.push((*region2, facts::Loan::from(last_loan_id), *point));
+                let new_loan = facts::Loan::from(last_loan_id);
+                borrow_region.push((*region2, new_loan, *point));
+                reference_moves.push(new_loan);
                 debug!("Adding generic: {:?} {:?} {:?} {}", _region1, region2, location, last_loan_id);
                 last_loan_id += 1;
             }
         }
     }
+    reference_moves
 }
 
 /// Remove back edges to make MIR uncyclic so that we can compute reborrowing dags at the end of
@@ -399,8 +409,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let mut all_facts = facts_loader.facts;
         // TODO: Optimise: do not construct loops info just for getting back_edges.
         let back_edges = loops::ProcedureLoops::new(&mir).back_edges;
-        add_fake_facts(&mut all_facts, &facts_loader.interner, &mir,
-                       &variable_regions, &mut call_magic_wands);
+        let reference_moves = add_fake_facts(
+            &mut all_facts, &facts_loader.interner, &mir,
+            &variable_regions, &mut call_magic_wands);
 
         let output = Output::compute(&all_facts, Algorithm::Naive, true);
         let all_facts_without_back_edges = remove_back_edges(
@@ -434,6 +445,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             borrowck_in_facts_no_back: all_facts_without_back_edges,
             borrowck_out_facts_no_back: output_without_back_edges,
             additional_facts_no_back: additional_facts_without_back_edges,
+            reference_moves: reference_moves,
         }
     }
 
@@ -776,7 +788,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     fn construct_reborrowing_zombity(&self, loan: facts::Loan,
                                      zombie_loans: &[facts::Loan]) -> ReborrowingZombity {
-        if zombie_loans.contains(&loan) {
+        if zombie_loans.contains(&loan) || self.reference_moves.contains(&loan) {
             ReborrowingZombity::Zombie(self.loan_position[&loan])
         } else {
             ReborrowingZombity::Real
@@ -792,7 +804,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 self.additional_facts.reborrows_direct.contains(&(incoming_loan, loan))
             })
             .map(|incoming_loan| {
-                zombie_loans.contains(incoming_loan)
+                zombie_loans.contains(incoming_loan) ||
+                self.reference_moves.contains(incoming_loan)
             })
             .collect();
         if !incoming_loans.is_empty() {
