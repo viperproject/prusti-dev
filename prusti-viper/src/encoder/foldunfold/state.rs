@@ -512,7 +512,7 @@ impl State {
     pub fn as_vir_expr(&self) -> vir::Expr {
         let mut exprs: Vec<vir::Expr> = vec![];
         for (place, frac) in self.acc.iter() {
-            if !place.get_place().is_base() {
+            if !place.get_place().is_base() && place.is_curr() {
                 if !self.is_dropped(&LabelledPerm::acc_from_labelled_place(place.clone(), *frac)) {
                     exprs.push(
                         vir::Expr::acc_permission(place.clone(), *frac)
@@ -522,7 +522,7 @@ impl State {
         }
         for (place, frac) in self.pred.iter() {
             if let Some(perm) = vir::Expr::pred_permission(place.clone(), *frac) {
-                if !self.is_dropped(&LabelledPerm::pred_from_labelled_place(place.clone(), *frac)) {
+                if !self.is_dropped(&LabelledPerm::pred_from_labelled_place(place.clone(), *frac)) && place.is_curr() {
                     exprs.push(perm);
                 }
             }
