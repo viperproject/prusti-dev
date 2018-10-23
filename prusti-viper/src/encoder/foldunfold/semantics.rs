@@ -232,7 +232,7 @@ impl vir::Stmt {
 
             }
 
-            &vir::Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+            &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
                 unimplemented!("TODO")
             }
         }
