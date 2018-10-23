@@ -24,7 +24,7 @@ fn test7(y: F, z: F, b: bool) {
     consume_F(y);
     consume_F(z);
 }
-
+/*
 fn test6(y: F, z: F, b: bool) {
     let mut y = y;
     let mut z = z;
@@ -55,7 +55,7 @@ fn test2(x: &mut F, b: bool) {
     let _z = &mut *_z;
     let _z = &mut *_z;
 }
-
+*/
 fn use_both(_f: &mut G, _g: &mut G) {
 }
 

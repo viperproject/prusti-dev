@@ -205,12 +205,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             let mut new_else_stmts = vec![];
             for then_stmt in then_branch.iter() {
                 new_then_stmts.extend(
-                    self.replace_stmt(stmt, &mut then_bctxt)
+                    self.replace_stmt(then_stmt, &mut then_bctxt)
                 );
             }
             for else_stmt in else_branch.iter() {
                 new_else_stmts.extend(
-                    self.replace_stmt(stmt, &mut else_bctxt)
+                    self.replace_stmt(else_stmt, &mut else_bctxt)
                 );
             }
             let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
