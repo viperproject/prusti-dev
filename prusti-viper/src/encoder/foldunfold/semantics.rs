@@ -231,6 +231,10 @@ impl vir::Stmt {
                 state.insert_all_pred(new_pred_places);
 
             }
+
+            &vir::Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                unimplemented!("TODO")
+            }
         }
     }
 }

@@ -189,6 +189,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
             final_bctxt[curr_index] = Some(bctxt);
         }
 
+        self.current_cfg(&new_cfg);
         new_cfg
     }
 }

@@ -10,7 +10,7 @@ use encoder::vir::{Zero, One};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
-use super::places_utils::{union, union3, difference};
+use super::places_utils::{union, union3, difference, intersection};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined
@@ -108,6 +108,21 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
             &vir::Stmt::ExpireBorrow(_, _) => HashSet::new(),
+
+            &vir::Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                let mut permissions = guard.get_required_permissions(predicates);
+                // A little optimization
+                if !then_stmts.is_empty() && !else_stmts.is_empty() {
+                    permissions = union(
+                        &permissions,
+                        &intersection(
+                            &then_stmts[0].get_required_permissions(predicates),
+                            &else_stmts[0].get_required_permissions(predicates),
+                        )
+                    );
+                }
+                permissions
+            },
         }
     }
 }
@@ -129,7 +144,8 @@ impl vir::Stmt {
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
-            &vir::Stmt::ExpireBorrow(_, _) => HashSet::new(),
+            &vir::Stmt::ExpireBorrow(_, _) |
+            &vir::Stmt::If(_, _, _) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }

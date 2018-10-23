@@ -118,23 +118,36 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             }
             &Stmt::WeakObtain(ref expr) => {
                 // Skip
-                ast.comment("weak obtain")
+                ast.comment(&self.to_string())
             }
             &Stmt::Havoc => {
                 // Skip
-                ast.comment("havoc")
+                ast.comment(&self.to_string())
             }
             &Stmt::BeginFrame => {
                 // Skip
-                ast.comment("begin frame")
+                ast.comment(&self.to_string())
             }
             &Stmt::EndFrame => {
                 // Skip
-                ast.comment("end frame")
+                ast.comment(&self.to_string())
             }
             &Stmt::ExpireBorrow(ref expiring, ref restored) => {
                 // Skip
-                ast.comment("expire borrow")
+                ast.comment(&self.to_string())
+            }
+            &Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                ast.if_stmt(
+                    guard.to_viper(ast),
+                    ast.seqn(
+                        &then_stmts.to_viper(ast),
+                        &[],
+                    ),
+                    ast.seqn(
+                        &else_stmts.to_viper(ast),
+                        &[],
+                    ),
+                )
             }
         }
     }

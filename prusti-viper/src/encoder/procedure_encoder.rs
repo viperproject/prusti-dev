@@ -631,6 +631,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.push(
                             vir::Stmt::ExpireBorrow(lhs_place, rhs_place)
                         );
+                        // Apply the following (expensive) encoding only if we are in a loop
                         if self.loop_encoder.get_loop_depth(loan_location.block) > 0 {
                             // When we restore a loan in a loop body, we want to have the permission
                             // on the borrowed thing because it may be go in the loop invariant that

@@ -449,7 +449,9 @@ pub enum Stmt {
     /// Arguments: the expiring location, then the restored location.
     /// That is, the lhs and rhs of the assignment that created the borrow.
     /// Permissions will move from the expiring to the restored location.
-    ExpireBorrow(LabelledPlace, LabelledPlace)
+    ExpireBorrow(LabelledPlace, LabelledPlace),
+    /// An `if` statement: the guard, then branch, else branch
+    If(Expr, Vec<Stmt>, Vec<Stmt>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -575,6 +577,24 @@ impl fmt::Display for Stmt {
             Stmt::EndFrame => write!(f, "end frame"),
 
             Stmt::ExpireBorrow(ref lhs, ref rhs) => write!(f, "expire borrow {} --> {}", lhs, rhs),
+
+            Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+                write!(f, "if {} {{", guard)?;
+                if !then_stmts.is_empty() {
+                    write!(f, "\n")?;
+                }
+                for stmt in then_stmts.iter() {
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "    \n"))?;
+                }
+                write!(f, "}} else {{")?;
+                if !else_stmts.is_empty() {
+                    write!(f, "\n")?;
+                }
+                for stmt in else_stmts.iter() {
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "    \n"))?;
+                }
+                writeln!(f, "}}")
+            },
         }
     }
 }
@@ -598,6 +618,7 @@ pub trait StmtFolder {
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::ExpireBorrow(a, b) => self.fold_expire_borrow(a, b),
+            Stmt::If(g, t, e) => self.fold_if(g, t, e),
         }
     }
 
@@ -663,6 +684,10 @@ pub trait StmtFolder {
 
     fn fold_expire_borrow(&mut self, a: LabelledPlace, b: LabelledPlace) -> Stmt {
         Stmt::ExpireBorrow(a, b)
+    }
+
+    fn fold_if(&mut self, g: Expr, t: Vec<Stmt>, e: Vec<Stmt>) -> Stmt {
+        Stmt::If(g, t, e)
     }
 }
 

@@ -35,7 +35,7 @@ test:
 	cargo test --all
 
 quick-test:
-	$(SET_ENV_VARS) RUST_TEST_THREADS=2 \
+	$(SET_ENV_VARS) RUST_TEST_THREADS=1 \
 	cargo test --all
 
 bench:
