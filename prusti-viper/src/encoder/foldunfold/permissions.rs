@@ -109,7 +109,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::EndFrame |
             &vir::Stmt::ExpireBorrow(_, _) => HashSet::new(),
 
-            &vir::Stmt::If(ref guard, ref then_stmts, ref else_stmts) => {
+            &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
                 let mut permissions = guard.get_required_permissions(predicates);
                 // A little optimization
                 if !then_stmts.is_empty() && !else_stmts.is_empty() {
@@ -145,7 +145,7 @@ impl vir::Stmt {
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
             &vir::Stmt::ExpireBorrow(_, _) |
-            &vir::Stmt::If(_, _, _) => HashSet::new(),
+            &vir::Stmt::ExpireBorrowsIf(_, _, _) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }
@@ -318,18 +318,21 @@ impl vir::Expr {
 
             vir::Expr::PredicateAccessPredicate(_, ref args, frac) => {
                 assert_eq!(args.len(), 1);
-                let perm = match args[0] {
-                    vir::Expr::Place(ref place) => {
+                let opt_perm = match args[0] {
+                    vir::Expr::Place(ref place) => Some(
                         LabelledPerm::curr(Perm::Pred(place.clone(), *frac))
-                    }
+                    ),
 
-                    vir::Expr::LabelledOld(ref label, box vir::Expr::Place(ref place)) => {
+                    vir::Expr::LabelledOld(ref label, box vir::Expr::Place(ref place)) => Some(
                         LabelledPerm::old(label, Perm::Pred(place.clone(), *frac))
-                    }
+                    ),
 
-                    _ => unreachable!()
+                    ref x => {
+                        debug!("Ignore permissions for {}", x);
+                        None
+                    }
                 };
-                Some(perm).into_iter().collect()
+                opt_perm.into_iter().collect()
             }
 
             vir::Expr::FieldAccessPredicate(ref expr, frac) => {
