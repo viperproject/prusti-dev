@@ -656,7 +656,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         unimplemented!("TODO");
                     }
 
-                    ReborrowingKind::Loop => {
+                    ReborrowingKind::Loop { .. } => {
                         unimplemented!("TODO");
                     }
                 }
