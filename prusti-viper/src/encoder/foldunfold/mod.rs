@@ -8,6 +8,7 @@ use self::branch_ctxt::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use encoder::vir::CfgReplacer;
+use encoder::foldunfold::action::Action;
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir::ExprFolder;
@@ -196,8 +197,48 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
         }
 
-        // 3. Add "folding/unfolding in" expressions in statement. This handles *old* requirements.
-        let new_stmt= stmt.clone().map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt));
+        let new_stmt= if let vir::Stmt::ExpireBorrowsIf(ref guard, ref then_branch, ref else_branch) = stmt {
+            // 3.a. Do the special join for restoring permissions of expiring loans
+            let mut then_bctxt = bctxt.clone();
+            let mut else_bctxt = bctxt.clone();
+            let mut new_then_stmts = vec![];
+            let mut new_else_stmts = vec![];
+            for then_stmt in then_branch.iter() {
+                new_then_stmts.extend(
+                    self.replace_stmt(then_stmt, &mut then_bctxt)
+                );
+            }
+            for else_stmt in else_branch.iter() {
+                new_else_stmts.extend(
+                    self.replace_stmt(else_stmt, &mut else_bctxt)
+                );
+            }
+            let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
+            *bctxt = then_bctxt;
+            new_then_stmts.extend(
+                then_actions.iter().map(|a| a.to_stmt())
+            );
+            new_else_stmts.extend(
+                else_actions.iter().map(|a| a.to_stmt())
+            );
+            // Restore dropped permissions
+            for action in then_actions.iter() {
+                if let Action::Drop(ref perm) = action {
+                    bctxt.mut_state().insert_perm(perm.clone());
+                    bctxt.mut_state().insert_dropped(perm.clone());
+                }
+            }
+            for action in else_actions.iter() {
+                if let Action::Drop(ref perm) = action {
+                    bctxt.mut_state().insert_perm(perm.clone());
+                    bctxt.mut_state().insert_dropped(perm.clone());
+                }
+            }
+            vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
+        } else {
+            // 3.b. Add "folding/unfolding in" expressions in statement. This handles *old* requirements.
+            stmt.clone().map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
+        };
 
         // 4. Apply effect of statement on state
         bctxt.apply_stmt(&new_stmt);
@@ -223,10 +264,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        if false && !grouped_perms.is_empty() && self.debug_foldunfold {
+        /*
+        if !grouped_perms.is_empty() && self.debug_foldunfold {
             stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
             stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
         }
+        */
 
         for (label, perms) in grouped_perms.into_iter() {
             debug!("Obtain at label {:?} permissions {:?}", label, perms);

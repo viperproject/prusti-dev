@@ -107,7 +107,8 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
-            &vir::Stmt::ExpireBorrow(_, _) => HashSet::new(),
+            &vir::Stmt::ExpireBorrow(_, _) |
+            &vir::Stmt::StopExpiringBorrows => HashSet::new(),
 
             &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
                 let mut permissions = guard.get_required_permissions(predicates);
@@ -145,7 +146,8 @@ impl vir::Stmt {
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
             &vir::Stmt::ExpireBorrow(_, _) |
-            &vir::Stmt::ExpireBorrowsIf(_, _, _) => HashSet::new(),
+            &vir::Stmt::ExpireBorrowsIf(_, _, _) |
+            &vir::Stmt::StopExpiringBorrows => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }
@@ -318,6 +320,26 @@ impl vir::Expr {
 
             vir::Expr::PredicateAccessPredicate(_, ref args, frac) => {
                 assert_eq!(args.len(), 1);
+
+                /*fn extract_place(expr: &vir::Expr) -> Option<vir::LabelledPlace> {
+                    match expr {
+                        &vir::Expr::Place(ref place) => Some(
+                            LabelledPlace::curr(place.clone())
+                        ),
+
+                        &vir::Expr::LabelledOld(ref label, box ref expr) => {
+                            extract_place(expr).map(
+                                |p| LabelledPlace::old(
+                                    p.get_place().clone(),
+                                    p.get_label().unwrap_or(label).clone()
+                                )
+                            )
+                        }
+
+                        _ => None
+                    }
+                }*/
+
                 let opt_perm = match args[0] {
                     vir::Expr::Place(ref place) => Some(
                         LabelledPerm::curr(Perm::Pred(place.clone(), *frac))
@@ -332,6 +354,7 @@ impl vir::Expr {
                         None
                     }
                 };
+
                 opt_perm.into_iter().collect()
             }
 
