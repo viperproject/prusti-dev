@@ -77,41 +77,8 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         //         bodies without unreachable elements instead of predicates.
 
         // Paths accessed inside the loop body.
-        let accesses = self.loops.compute_used_paths(bb, self.mir);
-        let accesses_pairs: Vec<_> = accesses.iter()
-            .map(|PlaceAccess {place, kind, .. }| (place, kind))
-            .collect();
-        // Paths to whose leaves we need write permissions.
-        let mut write_leaves: Vec<mir::Place> = Vec::new();
-        for (i, (place, kind)) in accesses_pairs.iter().enumerate() {
-            if kind.is_write_access() {
-                let has_prefix = accesses_pairs
-                    .iter()
-                    .any(|(potential_prefix, kind)|
-                        kind.is_write_access() &&
-                            place != potential_prefix &&
-                            utils::is_prefix(place, potential_prefix)
-                    );
-                if !has_prefix && !write_leaves.contains(place) {
-                    write_leaves.push((*place).clone());
-                }
-            }
-        }
-        // Paths to whose leaves we need read permissions.
-        let mut read_leaves: Vec<mir::Place> = Vec::new();
-        for (i, (place, kind)) in accesses_pairs.iter().enumerate() {
-            if !kind.is_write_access() {
-                let has_prefix = accesses_pairs
-                    .iter()
-                    .any(|(potential_prefix, kind)|
-                        place != potential_prefix &&
-                            utils::is_prefix(place, potential_prefix)
-                    );
-                if !has_prefix && !read_leaves.contains(place) && !write_leaves.contains(place) {
-                    read_leaves.push((*place).clone());
-                }
-            }
-        }
+        let (write_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
+            bb, self.mir, None);
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {

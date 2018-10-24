@@ -12,6 +12,10 @@ use std::iter::FromIterator;
 use std::fmt;
 use super::loops;
 use super::borrowck::{facts, regions};
+use super::mir_analyses::initialization::{
+    compute_definitely_initialized,
+    DefinitelyInitializedAnalysisResult
+};
 use super::mir_analyses::liveness::{
     compute_liveness,
     LivenessAnalysisResult
@@ -299,6 +303,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
     /// Loans that are created inside loops. Loan → loop head.
     pub(crate) loops: loops::ProcedureLoops,
+    pub(crate) initialization: DefinitelyInitializedAnalysisResult<'tcx>,
     pub(crate) liveness: LivenessAnalysisResult,
     /// Fake loans that were created due to fake moves.
     pub(crate) reference_moves: Vec<facts::Loan>,
@@ -407,7 +412,7 @@ fn remove_back_edges(
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
-    pub fn new(tcx: ty::TyCtxt, def_id: DefId, mir: &'a mir::Mir<'tcx>) -> Self {
+    pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId, mir: &'a mir::Mir<'tcx>) -> Self {
         // Read Polonius facts.
         let def_path = tcx.hir.def_path(def_id);
         let dir_path = PathBuf::from("nll-facts").join(def_path.to_filename_friendly_no_crate());
@@ -450,9 +455,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let additional_facts = AdditionalFacts::new(&all_facts, &output);
         let additional_facts_without_back_edges = AdditionalFacts::new(
             &all_facts_without_back_edges, &output_without_back_edges);
+        let initialization = compute_definitely_initialized(&mir, tcx, def_path.clone());
         let liveness = compute_liveness(&mir);
 
-        PoloniusInfo {
+        let mut info = Self {
             mir: mir,
             borrowck_in_facts: all_facts,
             borrowck_out_facts: output,
@@ -467,8 +473,49 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             additional_facts_no_back: additional_facts_without_back_edges,
             loops: loop_info,
             reference_moves: reference_moves,
+            initialization: initialization,
             liveness: liveness,
+        };
+        info.compute_loop_magic_wands();
+        info
+    }
+
+    fn compute_loop_magic_wands(&mut self) {
+        trace!("[enter] compute_loop_magic_wands");
+        let loop_heads = self.loops.loop_heads.clone();
+        for &loop_head in loop_heads.iter() {
+            debug!("loop_head = {:?}", loop_head);
+            let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
+            let (write_leaves, _read_leaves) = self.loops.compute_read_and_write_leaves(
+                loop_head, self.mir, Some(&definitely_initalised_paths));
+            debug!("write_leaves = {:?}", write_leaves);
+            let mut reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
+                .iter()
+                .flat_map(|place| {
+                    // Only locals – we do not support references in fields.
+                    match place {
+                        mir::Place::Local(local) => Some(local),
+                        _ => None,
+                    }
+                })
+                .flat_map(|local| {
+                    // Only references (variables that have regions).
+                    self.variable_regions.get(&local).map(|region| (*local, *region))
+                })
+                // Note: With our restrictions these two checks are sufficient to ensure
+                // that we have reborrowing. For example, we do not need to check that
+                // at least one of the loans is coming from inside of the loop body.
+                .collect();
+            debug!("reborrows = {:?}", reborrows);
+            for &(local, _) in reborrows.iter() {
+                debug!("loop_head = {:?} reborrow={:?}", loop_head, local);
+                self.add_loop_magic_wand(loop_head, local);
+            }
         }
+        if !loop_heads.is_empty() {
+            assert!(!self.loop_magic_wands.is_empty());
+        }
+        trace!("[exit] compute_loop_magic_wands");
     }
 
     fn get_point(&self, location: mir::Location, point_type: facts::PointType) -> facts::PointIndex {
@@ -772,6 +819,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     debug!("loan={:?} loop_head={:?}", loan, loop_head);
                 }
                 let (_, loop_head) = loan_loops[0];
+                debug!("loop_head = {:?}", loop_head);
+                assert!(!self.loop_magic_wands.is_empty());
                 let loop_magic_wands = &self.loop_magic_wands[&loop_head];
                 assert!(loop_magic_wands.len() == 1,
                         "We currently support only one reborrowing chain per loop.");
@@ -1038,9 +1087,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
-    pub fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock,
-                               loop_info: &loops::ProcedureLoops,
-                               local: mir::Local) {
+    fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock, local: mir::Local) {
         let region = self.variable_regions[&local];
         let location = mir::Location {
             block: loop_head,

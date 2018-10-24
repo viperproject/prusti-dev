@@ -14,7 +14,6 @@ use super::mir_analyses::liveness::{
     LivenessAnalysisResult
 };
 use super::polonius_info::PoloniusInfo;
-use crate::utils;
 use std::cell;
 use std::env;
 use std::collections::{HashSet, BTreeMap, BTreeSet};
@@ -404,82 +403,12 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 //                      bodies without unreachable elements instead of predicates.
 
 
-            // Paths accessed inside the loop body.
-            let accesses = self.loops.compute_used_paths(bb, &self.mir);
             let definitely_initalised_paths = self.initialization.get_before_block(bb);
-            // Paths that are defined before the loop.
-            let defined_accesses: Vec<_> = accesses
-                .iter()
-                .filter(
-                    |loops::PlaceAccess { place, kind, .. } |
-                    definitely_initalised_paths.iter().any(
-                        |initialised_place|
-                        // If the prefix is definitely initialised, then this place is a potential
-                        // loop invariant.
-                        utils::is_prefix(place, initialised_place) ||
-                        // If the access is store, then we only need the path to exist, which is
-                        // guaranteed if we have at least some of the leaves still initialised.
-                        //
-                        // Note that the Rust compiler is even more permissive as explained in this
-                        // issue: https://github.com/rust-lang/rust/issues/21232.
-                        (
-                            *kind == loops::PlaceAccessKind::Store &&
-                            utils::is_prefix(initialised_place, place)
-                        )
-                    )
-                )
-                .map(|loops::PlaceAccess { place, kind, .. } | (place, kind))
-                .collect();
-            // Paths to whose leaves we need write permissions.
-            let mut write_leaves: Vec<mir::Place> = Vec::new();
-            for (_i, (place, kind)) in defined_accesses.iter().enumerate() {
-                if kind.is_write_access() {
-                    let has_prefix = defined_accesses
-                        .iter()
-                        .any(|(potential_prefix, kind)|
-                             kind.is_write_access() &&
-                             place != potential_prefix &&
-                             utils::is_prefix(place, potential_prefix)
-                         );
-                    if !has_prefix && !write_leaves.contains(place) {
-                        write_leaves.push((*place).clone());
-                    }
-                }
-            }
-            // Paths to whose leaves we need read permissions.
-            let mut read_leaves: Vec<mir::Place> = Vec::new();
-            for (_i, (place, kind)) in defined_accesses.iter().enumerate() {
-                if !kind.is_write_access() {
-                    let has_prefix = defined_accesses
-                        .iter()
-                        .any(|(potential_prefix, _kind)|
-                             place != potential_prefix &&
-                             utils::is_prefix(place, potential_prefix)
-                         );
-                    if !has_prefix && !read_leaves.contains(place) && !write_leaves.contains(place) {
-                        read_leaves.push((*place).clone());
-                    }
-                }
-            }
+            let (write_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
+                bb, self.mir, Some(&definitely_initalised_paths));
             // Construct the permission forest.
             let forest = PermissionForest::new(
                 &write_leaves, &read_leaves, &definitely_initalised_paths);
-
-            //write_graph!(self, "<tr>");
-            //let accesses_str: Vec<_> = accesses
-                //.iter()
-                //.cloned()
-                //.map(|loops::PlaceAccess { place, kind, .. } | (place, kind))
-                //.collect();
-            //write_graph!(self, "<td colspan=\"2\">Accessed paths (A1):</td>");
-            //write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(accesses_str));
-            //write_graph!(self, "</tr>");
-
-            write_graph!(self, "<tr>");
-            write_graph!(self, "<td colspan=\"2\">Def. before loop (A2):</td>");
-            write_graph!(self, "<td colspan=\"8\">{}</td>",
-                         to_sorted_string!(defined_accesses));
-            write_graph!(self, "</tr>");
 
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Write paths (A3):</td>");
@@ -497,33 +426,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "<td colspan=\"2\">Invariant:</td>");
             write_graph!(self, "<td colspan=\"8\">{}</td>", to_html_display!(forest));
             write_graph!(self, "</tr>");
-
-            let mut reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
-                .iter()
-                .flat_map(|place| {
-                    // Only locals – we do not support references in fields.
-                    match place {
-                        mir::Place::Local(local) => Some(local),
-                        _ => None,
-                    }
-                })
-                .flat_map(|local| {
-                    // Only references (variables that have regions).
-                    self.polonius_info.variable_regions.get(&local).map(|region| (*local, *region))
-                })
-                // Note: With our restrictions these two checks are sufficient to ensure
-                // that we have reborrowing. For example, we do not need to check that
-                // at least one of the loans is coming from inside of the loop body.
-                .collect();
-
-            write_graph!(self, "<tr>");
-            write_graph!(self, "<td colspan=\"2\">Reborrows:</td>");
-            write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(reborrows));
-            write_graph!(self, "</tr>");
-
-            for &(local, _) in reborrows.iter() {
-                self.polonius_info.add_loop_magic_wand(bb, &self.loops, local);
-            }
 
             if let Some(ref magic_wands) = self.polonius_info.loop_magic_wands.get(&bb) {
                 write_graph!(self, "<tr>");
