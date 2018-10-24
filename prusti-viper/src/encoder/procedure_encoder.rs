@@ -1854,12 +1854,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         dst.clone().access(ref_field.clone()),
                         src.clone().access(ref_field.clone()).into(),
                         vir::AssignKind::Move
-                    ),
-                    // Store a label for this state
-                    let label = self.cfg_method.get_fresh_label_name();
-                    debug!("Current loc {:?} has label {}", location, label);
-                    self.label_after_location.insert(location, label.clone());
-                    stmts.push(vir::Stmt::Label(label.clone()));
+                    )
                 ]
             }
 
