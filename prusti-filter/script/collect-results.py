@@ -28,7 +28,7 @@ def count_supported_functions(data):
     return count
 
 
-def collect(crate_download_folder):
+def analyse(crate_download_folder):
     supported_functions = 0
     for path in glob.glob(os.path.join(crate_download_folder, '*', 'results.json')):
         with open(path) as fp:
