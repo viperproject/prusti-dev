@@ -3,7 +3,8 @@ use std::collections::HashSet;
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum SupportKind {
     PartiallySupported(String),
-    Unsupported(String)
+    Unsupported(String),
+    Interesting(String),
 }
 
 impl SupportKind {
@@ -13,6 +14,10 @@ impl SupportKind {
 
     pub fn unsupported(reason: String) -> Self {
         SupportKind::Unsupported(reason)
+    }
+
+    pub fn interesting(reason: String) -> Self {
+        SupportKind::Interesting(reason)
     }
 
     pub fn is_partially_supported(&self) -> bool {
@@ -32,7 +37,8 @@ impl SupportKind {
     pub fn reason(&self) -> &str {
         match self {
             SupportKind::Unsupported(ref reason) |
-            SupportKind::PartiallySupported(ref reason) => reason,
+            SupportKind::PartiallySupported(ref reason) |
+            SupportKind::Interesting(ref reason) => reason,
         }
     }
 }
@@ -60,6 +66,13 @@ impl SupportStatus {
     pub fn unsupported(&mut self, reason: String) {
         self.restrictions.insert(
             SupportKind::unsupported(reason)
+        );
+    }
+
+    #[allow(dead_code)]
+    pub fn interesting(&mut self, reason: String) {
+        self.restrictions.insert(
+            SupportKind::interesting(reason)
         );
     }
 
@@ -111,6 +124,15 @@ macro_rules! requires {
 }
 
 #[macro_export]
+macro_rules! unsupportedp {
+    ($self:expr, $position:expr, $reason:expr) => {
+        $self.support.unsupported(
+            format!("{} position={}", $reason, $position)
+        );
+    };
+}
+
+#[macro_export]
 macro_rules! unsupported {
     ($self:expr, $reason:expr) => {
         $self.support.unsupported(
@@ -135,6 +157,21 @@ macro_rules! partially {
 
     ($self:expr, $reason:expr, $($args:expr),*) => {
         $self.support.partially(
+            format!($reason, $($args:expr),*)
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! interesting {
+    ($self:expr, $reason:expr) => {
+        $self.support.interesting(
+            format!($reason)
+        );
+    };
+
+    ($self:expr, $reason:expr, $($args:expr),*) => {
+        $self.support.interesting(
             format!($reason, $($args:expr),*)
         );
     };
