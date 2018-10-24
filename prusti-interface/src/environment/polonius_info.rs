@@ -950,7 +950,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         // alive by a reference that was moved into the call and,
         // therefore, its blocking reference is now a zombie.
         let root_die_at_call = {
-            get_call_destination(self.mir, location).is_some() &&
+            is_call(self.mir, location) &&
             self.find_loan_roots(loans).contains(&loan)
         };
 
@@ -1174,6 +1174,18 @@ fn is_return<'tcx>(mir: &mir::Mir<'tcx>,
     }
     match terminator.as_ref().unwrap().kind {
         mir::TerminatorKind::Return => true,
+        _ => false,
+    }
+}
+
+fn is_call<'tcx>(mir: &mir::Mir<'tcx>,
+                 location: mir::Location) -> bool {
+    let mir::BasicBlockData { ref statements, ref terminator, .. } = mir[location.block];
+    if statements.len() != location.statement_index {
+        return false;
+    }
+    match terminator.as_ref().unwrap().kind {
+        mir::TerminatorKind::Call { .. } => true,
         _ => false,
     }
 }
