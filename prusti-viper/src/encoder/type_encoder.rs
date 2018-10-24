@@ -79,7 +79,16 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         let field_predicates = match self.ty.sty {
             ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyInt(_) |
+            ty::TypeVariants::TyInt(_) =>
+                vec![
+                    vir::Expr::FieldAccessPredicate(
+                        box vir::Place::from(self_local_var.clone()).access(
+                            self.encoder.encode_value_field(self.ty)
+                        ).into(),
+                        vir::Frac::one()
+                    )
+                ],
+
             ty::TypeVariants::TyUint(_) =>
                 vec![
                     vir::Expr::FieldAccessPredicate(
@@ -87,6 +96,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             self.encoder.encode_value_field(self.ty)
                         ).into(),
                         vir::Frac::one()
+                    ),
+                    vir::Expr::ge_cmp(
+                        vir::Place::from(self_local_var.clone()).access(
+                            self.encoder.encode_value_field(self.ty)
+                        ).into(),
+                        0.into()
                     )
                 ],
 
