@@ -9,4 +9,9 @@ extern crate rustc;
 extern crate rustc_plugin;
 extern crate syntax;
 
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+
 pub mod validators;

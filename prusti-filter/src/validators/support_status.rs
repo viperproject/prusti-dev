@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum SupportKind {
     PartiallySupported(String),
     Unsupported(String)
@@ -38,6 +38,7 @@ impl SupportKind {
 }
 
 
+#[derive(Serialize, Deserialize)]
 pub struct SupportStatus {
     restrictions: HashSet<SupportKind>
 }

@@ -10,13 +10,19 @@ extern crate rustc;
 extern crate rustc_plugin;
 extern crate syntax;
 
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+
 mod crate_visitor;
 mod validators;
 
 use rustc_driver::driver::{CompileController, CompileState};
 use std::env;
+use std::fs;
 use std::process::Command;
-use self::crate_visitor::CrateVisitor;
+use self::crate_visitor::{CrateVisitor, CrateStatus};
 use validators::Validator;
 use rustc::hir::intravisit::Visitor;
 
@@ -83,12 +89,19 @@ fn main() {
                 crate_name: crate_name,
                 tcx,
                 validator: Validator::new(tcx),
+                crate_status: CrateStatus {
+                    crate_name: String::from(crate_name),
+                    functions: Vec::new(),
+                },
             };
 
             // **Deep visit**: Want to scan for specific kinds of HIR nodes within
             // an item, but don't care about how item-like things are nested
             // within one another.
-            tcx.hir.krate().visit_all_item_likes(&mut cv.as_deep_visitor())
+            tcx.hir.krate().visit_all_item_likes(&mut cv.as_deep_visitor());
+
+            let data = serde_json::to_string_pretty(&cv.crate_status).unwrap();
+            fs::write("../results.json", data).expect("Unable to write file");
         };
 
         //controller.compilation_done.stop = Compilation::Stop;
