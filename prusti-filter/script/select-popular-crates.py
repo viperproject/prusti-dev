@@ -59,7 +59,7 @@ def select_crates(crate_download_folder, count):
             write("\n")
 
 def main(crate_download_folder):
-    select_crates(crate_download_folder, 2)
+    select_crates(crate_download_folder, 500)
 
 
 if __name__ == '__main__':
