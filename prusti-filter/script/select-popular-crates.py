@@ -45,6 +45,8 @@ def select_crates(crate_download_folder, count):
             fp.write(s.format(*args, **kwargs))
         write("#!/bin/bash\n")
         write("\n")
+        write("rustup toolchain install nightly-2018-06-27\n")
+        write("rustup default nightly-2018-06-27\n")
         write("cargo build\n")
         for i, (_, crate) in crates:
             identifier = crate[0]
