@@ -512,9 +512,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 self.add_loop_magic_wand(loop_head, local);
             }
         }
-        if !loop_heads.is_empty() {
-            assert!(!self.loop_magic_wands.is_empty());
-        }
         trace!("[exit] compute_loop_magic_wands");
     }
 
