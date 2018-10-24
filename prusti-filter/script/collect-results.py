@@ -50,6 +50,7 @@ def analyse(crate_download_folder):
     print("Supported functions: {}", supported_functions)
     supported_crates.sort()
     supported_crates.reverse()
+    small_supported_crates = [crate for crate in supported_crates if crate[-2] < 50]
     for i, (level, count, total, name) in zip(range(10), supported_crates):
         print(i, level, count, total, name)
 
