@@ -29,4 +29,11 @@ Usage
     bash crates/analyse.sh
     ```
 
+4.  Collect results:
+
+    ```bash
+    python3 script/collect-results.py ../../crates
+    ```
+
+
 4. The script will list which functions/methods are supported by Prusti.
