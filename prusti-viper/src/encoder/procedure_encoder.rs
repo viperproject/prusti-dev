@@ -554,6 +554,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 vir::AssignKind::MutableBorrow
                             )
                         );
+                        // Store a label for this state
+                        let label = self.cfg_method.get_fresh_label_name();
+                        debug!("Current loc {:?} has label {}", location, label);
+                        self.label_after_location.insert(location, label.clone());
+                        stmts.push(vir::Stmt::Label(label.clone()));
                         stmts
                     }
 
@@ -1679,7 +1684,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::Operand::Copy(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
                 // Copy the values from `src` to `lhs`
-                self.encode_copy(src, lhs.clone(), ty, false)
+                self.encode_copy(src, lhs.clone(), ty, false, location)
             }
 
             &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
@@ -1763,7 +1768,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ///
     /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
     /// a Rust move assignment, and not a copy assignment.
-    fn encode_copy(&mut self, src: vir::Place, dst: vir::Place, self_ty: ty::Ty<'tcx>, is_move: bool) -> Vec<vir::Stmt> {
+    fn encode_copy(&mut self, src: vir::Place, dst: vir::Place, self_ty: ty::Ty<'tcx>, is_move: bool, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("Encode copy {:?}, {:?}, {:?}", src, dst, self_ty);
 
         match self_ty.sty {
@@ -1792,7 +1797,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             src.clone().access(field.clone()),
                             dst.clone().access(field.clone()),
                             ty,
-                            is_move
+                            is_move,
+                            location
                         )
                     );
                 }
@@ -1825,7 +1831,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 src.clone().access(elem_field.clone()),
                                 dst.clone().access(elem_field.clone()),
                                 field_ty,
-                                is_move
+                                is_move,
+                                location
                             )
                         )
                     }
@@ -1844,7 +1851,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         dst.clone().access(ref_field.clone()),
                         src.clone().access(ref_field.clone()).into(),
                         vir::AssignKind::Move
-                    )
+                    ),
+                    // Store a label for this state
+                    let label = self.cfg_method.get_fresh_label_name();
+                    debug!("Current loc {:?} has label {}", location, label);
+                    self.label_after_location.insert(location, label.clone());
+                    stmts.push(vir::Stmt::Label(label.clone()));
                 ]
             }
 
