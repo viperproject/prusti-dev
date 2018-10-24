@@ -1448,34 +1448,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
         trace!("spec_ids: {:?}", spec_ids);
-        assert_eq!(spec_ids.len(), 1, "a loop has no automatically generated loop invariant");
+        assert!(spec_ids.len() <= 1, "a loop has multiple specification ids");
+
 
         let mut encoded_specs = vec![];
-        let encoded_args: Vec<vir::Expr> = self.mir.args_iter()
-            .map(|local| self.mir_encoder.encode_local(local).into())
-            .collect();
-        for spec_id in &spec_ids {
-            let spec_set = self.encoder.spec().get(spec_id).unwrap();
-            match spec_set {
-                SpecificationSet::Loop(ref specs) => {
-                    for spec in specs.iter() {
-                        // TODO: Mmm... are these parameters correct?
-                        let encoded_spec = self.encoder.encode_assertion(
-                            &spec.assertion,
-                            self.mir,
-                            PRECONDITION_LABEL,
-                            &encoded_args,
-                            None,
-                            false,
-                            Some(loop_head)
-                        );
-                        encoded_specs.push(encoded_spec)
+        if !spec_ids.is_empty() {
+            let encoded_args: Vec<vir::Expr> = self.mir.args_iter()
+                .map(|local| self.mir_encoder.encode_local(local).into())
+                .collect();
+            for spec_id in &spec_ids {
+                let spec_set = self.encoder.spec().get(spec_id).unwrap();
+                match spec_set {
+                    SpecificationSet::Loop(ref specs) => {
+                        for spec in specs.iter() {
+                            // TODO: Mmm... are these parameters correct?
+                            let encoded_spec = self.encoder.encode_assertion(
+                                &spec.assertion,
+                                self.mir,
+                                PRECONDITION_LABEL,
+                                &encoded_args,
+                                None,
+                                false,
+                                Some(loop_head)
+                            );
+                            encoded_specs.push(encoded_spec)
+                        }
                     }
+                    ref x => unreachable!("{:?}", x),
                 }
-                ref x => unreachable!("{:?}", x),
             }
+            trace!("encoded_specs: {:?}", encoded_specs);
         }
-        trace!("encoded_specs: {:?}", encoded_specs);
 
         encoded_specs
     }
