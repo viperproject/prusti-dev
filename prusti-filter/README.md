@@ -8,16 +8,25 @@ Note: this crate does not verify code.
 Usage
 -----
 
-1.  Download all crates:
+1.  Download info about all crates:
 
-    ```
+    ```bash
     mkdir -p crates/index
     git clone https://github.com/rust-lang/crates.io-index.git crates/index
-    python3 script/download.py
+    python3 script/download-crate-info.py
     ```
 
-1. Build `prusti-filter` with `cargo build`. 
-2. Move to the folder containing the source code of a crate of interest.
-3. In that folder, run `cargo clean`.
-4. Always in that folder, execute the `script/cargo-build.rs` script of this `prusti-filter` crate.
-5. The script will list which functions/methods are supported by Prusti.
+2.  Download most popular 500 crates:
+
+    ```bash
+    python3 script/select-popular-crates.py ../../crates
+    bash crates/download.sh
+    ```
+
+3.  Compile them:
+
+    ```bash
+    bash crates/analyse.sh
+    ```
+
+4. The script will list which functions/methods are supported by Prusti.

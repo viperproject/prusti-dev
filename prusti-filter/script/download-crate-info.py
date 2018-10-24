@@ -1,31 +1,6 @@
 #!/usr/bin/python3
 
-"""Try to build all crates from crates.io.
-
-Install ``sccache``::
-
-    cd /data/code/
-    git clone https://github.com/mozilla/sccache.git
-    cd /data/code/sccache/
-    rustup override add ${RUST_VERSION}
-    cargo build --release --verbose
-    cargo install
-
-Preparation for experiment::
-
-    rm -rf /data/crates/info
-    mkdir /data/crates/info
-    sudo chown -R builder:nogroup /data/crates/
-    rm -rf /data/states/
-    sudo mkdir /data/states/
-    sudo chown -R builder:nogroup /data/states/
-
-Usage::
-
-    make setup
-    make release
-    make build_crates
-"""
+"""Download information about crates on crates.io."""
 
 import json
 import os
