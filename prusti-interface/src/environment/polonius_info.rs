@@ -226,6 +226,8 @@ pub struct ReborrowingDAGNode {
     pub zombity: ReborrowingZombity,
     /// Are the loans reborrowing this one zombies?
     pub incoming_zombies: bool,
+    /// Loans that are directly reborrowing this loan.
+    pub reborrowing_loans: Vec<facts::Loan>,
 }
 
 impl fmt::Debug for ReborrowingDAGNode {
@@ -262,6 +264,13 @@ impl fmt::Debug for ReborrowingDAGNode {
         if self.incoming_zombies {
             write!(f, ",in_zombie")?;
         }
+        if !self.reborrowing_loans.is_empty() {
+            write!(f, ",incoming=(")?;
+            for loan in &self.reborrowing_loans {
+                write!(f, "{:?},", loan)?;
+            }
+            write!(f, ")")?;
+        }
         write!(f, ")")?;
         Ok(())
     }
@@ -285,6 +294,11 @@ impl ReborrowingDAG {
 
     pub fn iter(&self) -> impl Iterator<Item=&ReborrowingDAGNode> {
         self.nodes.iter()
+    }
+
+    pub fn get_node(&self, loan: facts::Loan) -> &ReborrowingDAGNode {
+        let index = self.nodes.iter().position(|node| node.loan == loan).unwrap();
+        &self.nodes[index]
     }
 
 }
@@ -892,13 +906,37 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                   &mut permanent_mark, &mut temporary_mark);
         }
         sorted_loans.reverse();
-        let nodes: Vec<_> = sorted_loans.into_iter().map(|loan| {
+        let nodes: Vec<_> = sorted_loans.iter().enumerate().map(|(n, &loan)| {
+            let mut i = 0;
+            let mut reborrowing_loans = Vec::new();
+            while i < n {
+                let loan_i = sorted_loans[i];
+                if self.additional_facts.reborrows.contains(&(loan_i, loan)) {
+                    // If the i'th loan reborrows the loan.
+                    let mut j = i+1;
+                    while j < n {
+                        let loan_j = sorted_loans[j];
+                        if self.additional_facts.reborrows.contains(&(loan_j, loan)) {
+                            break;
+                        }
+                        j += 1;
+                    }
+                    if j == n {
+                        // And there is no other loan that would
+                        // reborrow the loan, then this means that i'th
+                        // loan is directly reborrowing the loan.
+                        reborrowing_loans.push(loan_i);
+                    }
+                }
+                i += 1;
+            }
             ReborrowingDAGNode {
                 loan: loan,
                 guard: self.construct_reborrowing_guard(loan, location),
                 kind: self.construct_reborrowing_kind(loan, representative_loan),
                 zombity: self.construct_reborrowing_zombity(loan, &loans, zombie_loans, location),
                 incoming_zombies: self.check_incoming_zombies(loan, &loans, zombie_loans, location),
+                reborrowing_loans: reborrowing_loans,
             }
         }).collect();
         ReborrowingDAG {
