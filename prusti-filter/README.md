@@ -44,3 +44,10 @@ Rosetta
     python3 script/check-rosetta.py ../../
     bash rosetta/analyse.sh
     ```
+
+2.  Collect/analyse results:
+
+    ```bash
+    python3 script/collect-results.py ../../rust-rosetta/tasks/
+    python3 script/analyse-results.py
+    ```
