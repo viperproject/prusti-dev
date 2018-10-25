@@ -48,14 +48,17 @@ def main(working_dir):
         write("rustup default nightly-2018-06-27\n")
         write("cargo build\n")
         write("\n")
+        write("rm -f '{}/Cargo.toml'\n", rosetta_repo_local)
         write("\n")
 
-        tasks_glob = os.path.join(rosetta_repo_local, 'tasks', '*')
-        for task in glob.glob(tasks_glob):
-            write("cd '{}'\n", task)
-            write("cargo clean\n")
-            write("bash '{}'\n", CARGO_BUILD_SCRIPT)
-            write("\n")
+        tasks_path = os.path.join(rosetta_repo_local, 'tasks')
+        for root, dirs, files in os.walk(tasks_path):
+            if 'Cargo.toml' in files:
+                write("# {}/Cargo.toml\n", root)
+                write("cd '{}'\n", root)
+                write("cargo clean\n")
+                write("bash '{}'\n", CARGO_BUILD_SCRIPT)
+                write("\n")
 
 
 if __name__ == '__main__':

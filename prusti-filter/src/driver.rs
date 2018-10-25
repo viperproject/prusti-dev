@@ -23,6 +23,7 @@ mod validators;
 use rustc_driver::driver::{CompileController, CompileState};
 use std::env;
 use std::fs;
+use std::io::Write;
 use std::process::Command;
 use self::crate_visitor::{CrateVisitor, CrateStatus};
 use validators::Validator;
@@ -103,7 +104,19 @@ fn main() {
             tcx.hir.krate().visit_all_item_likes(&mut cv.as_deep_visitor());
 
             let data = serde_json::to_string_pretty(&cv.crate_status).unwrap();
-            fs::write("../results.json", data).expect("Unable to write file");
+            //let path = fs::canonicalize("../results.json").unwrap();
+
+            // For rosetta without deleting root Cargo.toml:
+            //let mut file = fs::OpenOptions::new()
+                //.append(true)
+                //.create(true)
+                //.open("results.json")
+                //.unwrap();
+            //file.write_all(b"\n====================\n").unwrap();
+            //file.write_all(&data.into_bytes()).unwrap();
+
+            // For crates.io:
+            fs::write("results.json", data).expect("Unable to write file");
         };
 
         //controller.compilation_done.stop = Compilation::Stop;
