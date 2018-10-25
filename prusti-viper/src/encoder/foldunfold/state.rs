@@ -49,7 +49,7 @@ impl State {
             }
         }
         for place in self.acc.keys() {
-            if !place.get_place().is_base() && place.is_curr() {
+            if place.is_curr() && !place.get_place().is_base() && place.is_curr() {
                 if !self.contains_acc(&place.clone().map_place(|p| p.parent().unwrap().clone())) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
@@ -62,7 +62,7 @@ impl State {
         // Check predicates and moved paths
         for place in self.pred.keys() {
             for other_place in self.pred.keys() {
-                if place.get_place().has_proper_prefix(&other_place.get_place()) {
+                if place.is_curr() && other_place.is_curr() && place.get_place().has_proper_prefix(&other_place.get_place()) {
                     panic!(
                         "Consistency error: state has pred {}, but also pred {}",
                         place,
@@ -73,7 +73,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for pred_place in self.pred.keys() {
-                if acc_place.get_place().has_proper_prefix(&pred_place.get_place()) {
+                if acc_place.is_curr() && pred_place.is_curr() && acc_place.get_place().has_proper_prefix(&pred_place.get_place()) {
                     panic!(
                         "Consistency error: state has acc {}, but also pred {}",
                         acc_place,
@@ -84,7 +84,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for moved_place in &self.moved {
-                if acc_place.get_place().has_proper_prefix(moved_place) {
+                if acc_place.is_curr() && acc_place.get_place().has_proper_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has acc {}, but also moved path {}",
                         acc_place,
@@ -95,14 +95,14 @@ impl State {
         }
         for pred_place in self.pred.keys() {
             for moved_place in &self.moved {
-                if pred_place.get_place().has_prefix(moved_place) {
+                if pred_place.is_curr() && pred_place.get_place().has_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
                         moved_place
                     );
                 }
-                if moved_place.has_prefix(pred_place.get_place()) && pred_place.is_curr() {
+                if pred_place.is_curr() && moved_place.has_prefix(pred_place.get_place()) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,

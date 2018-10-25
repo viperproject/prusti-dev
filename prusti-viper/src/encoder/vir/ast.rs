@@ -109,6 +109,10 @@ impl LocalVar {
             _ => None
         }
     }
+
+    pub fn weak_eq(&self, other: &LocalVar) -> bool {
+        self.name == other.name && self.typ.weak_eq(&other.typ)
+    }
 }
 
 impl fmt::Display for LocalVar {
@@ -142,6 +146,10 @@ impl Field {
             Type::TypedRef(ref name) => Some(name.clone()),
             _ => None
         }
+    }
+
+    pub fn weak_eq(&self, other: &Field) -> bool {
+        self.name == other.name && self.typ.weak_eq(&other.typ)
     }
 }
 
@@ -329,11 +337,11 @@ impl Place {
     }
 
     pub fn has_proper_prefix(&self, other: &Place) -> bool {
-        self != other && self.has_prefix(other)
+        !self.weak_eq(other) && self.has_prefix(other)
     }
 
     pub fn has_prefix(&self, other: &Place) -> bool {
-        if self == other {
+        if self.weak_eq(other) {
             true
         } else {
             match self.parent() {
@@ -372,6 +380,24 @@ impl Place {
         }
     }
 
+    pub fn weak_eq(&self, other: &Place) -> bool {
+        match (self, other) {
+            (
+                Place::Base(ref self_var),
+                Place::Base(ref other_var)
+            ) => self_var.weak_eq(other_var),
+            (
+                Place::Field(box ref self_base, ref self_field),
+                Place::Field(box ref other_base, ref other_field)
+            ) => self_field.weak_eq(other_field) && self_base.weak_eq(other_base),
+            (
+                Place::AddrOf(box ref self_base, ref self_typ),
+                Place::AddrOf(box ref other_base, ref other_typ)
+            ) => self_typ.weak_eq(other_typ) && self_base.weak_eq(other_base),
+            _ => false
+        }
+    }
+
     pub fn replace_prefix(self, target: &Place, replacement: Place) -> Self {
         //assert_eq!(target.get_type(), replacement.get_type());
         assert!(
@@ -382,7 +408,7 @@ impl Place {
             target.get_type(),
             replacement.get_type()
         );
-        if &self == target {
+        if self.weak_eq(target) {
             replacement
         } else {
             match self {
@@ -471,6 +497,13 @@ pub enum AssignKind {
 }
 
 impl Stmt {
+    pub fn is_comment(&self) -> bool {
+        match self {
+            Stmt::Comment(_) => true,
+            _ => false
+        }
+    }
+
     pub fn comment<S: ToString>(comment: S) -> Self {
         Stmt::Comment(comment.to_string())
     }
