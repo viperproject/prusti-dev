@@ -12,11 +12,14 @@ RESULTS_PATH = os.path.join(CRATES_PATH, 'results.json')
 
 
 def collect(crate_download_folder):
+    crate_download_folder = os.path.abspath(crate_download_folder)
     all_data = []
-    for path in glob.glob(os.path.join(crate_download_folder, '*', 'results.json')):
-        with open(path) as fp:
-            data = json.load(fp)
-            all_data.append(data)
+    for root, dirs, files in os.walk(crate_download_folder):
+        if 'results.json' in files:
+            path = os.path.join(root, 'results.json')
+            with open(path) as fp:
+                data = json.load(fp)
+                all_data.append(data)
     with open(RESULTS_PATH, 'w') as fp:
         json.dump(all_data, fp, indent=2)
 
@@ -58,8 +61,8 @@ def analyse(crate_download_folder):
 
 
 def main(crate_download_folder):
-    # collect(crate_download_folder)
-    analyse(crate_download_folder)
+    collect(crate_download_folder)
+    # analyse(crate_download_folder)
 
 
 if __name__ == '__main__':
