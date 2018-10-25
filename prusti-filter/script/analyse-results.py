@@ -75,6 +75,16 @@ def ignore_reason(results, reason):
                 ]
 
 
+def drop_small_functions(results, min_size):
+    """Remove functions that are smaller than ``min_size`` from ``results``."""
+    for example in results:
+        functions = []
+        for function in example['functions']:
+            if function['procedure']['basic_block_count'] >= min_size:
+                functions.append(function)
+        example['functions'] = functions
+
+
 def show_support_status(results, number=10):
     supported_count = 0
     total_count = 0
@@ -106,7 +116,7 @@ def main():
     print("Number of examples:", len(results))
 
     show_support_status(results)
-    # show_problematic_reasons(results)
+    show_problematic_reasons(results)
 
     show_reason(results, 'mutable return type')
     show_reason(results, 'immutable return type')
@@ -120,7 +130,9 @@ def main():
     ignore_reason(results, '`slice` types are not supported')
     ignore_reason(results, 'shared references are partially supported')
 
-    show_support_status(results, 50)
+    drop_small_functions(results, 5)
+
+    show_support_status(results, 30)
 
 # TODO: filter out modulo division, division, bit-operators.
 # TODO: Filter out methods that contain less than 3 basic blocks. (Make

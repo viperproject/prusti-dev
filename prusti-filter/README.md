@@ -51,3 +51,30 @@ Rosetta
     python3 script/collect-results.py ../../rust-rosetta/tasks/
     python3 script/analyse-results.py
     ```
+
+Encodable examples:
+
++   https://rosettacode.org/wiki/Ackermann_function#Rust
++   https://rosettacode.org/wiki/Fibonacci_sequence#Rust
++   https://rosettacode.org/wiki/Mutual_recursion#Rust
++   https://rosettacode.org/wiki/Factorial#Rust
+
+Not interesting examples:
+
++   https://rosettacode.org/wiki/Determine_if_only_one_instance_is_running#Rust
+    – main functionality is to use a tcp socket.
++   anonymous_recursion – demonstrates nested functions.
+
+Patchable(?) examples:
+
++   tic_tac_toe – uses ``char``.
++   taxicab_numbers – uses many unsupported constructs, which should be
+    possible to change.
++   https://rosettacode.org/wiki/Langton%27s_ant – uses bit operations,
+    vectors of vectors.
+
+Not supported examples:
+
++   define_a_primitive_data_type – implements many standard traits.
+
+TODO: Checked up to 8'th position in min_size >= 5.
