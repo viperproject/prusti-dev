@@ -32,6 +32,8 @@ impl vir::Stmt {
                 state.remove_all_perms(
                     expr.get_permissions(predicates).iter()
                         .filter(|p| !(p.is_base() && p.is_acc()))
+                        // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
+                        .filter(|p| p.get_label() != Some("pre".to_string()))
                 );
             }
 
