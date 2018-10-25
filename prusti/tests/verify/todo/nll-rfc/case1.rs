@@ -2,6 +2,8 @@
 ///
 /// Adapted from
 /// [here](https://github.com/nikomatsakis/nll-rfc/blob/master/0000-nonlexical-lifetimes.md).
+///
+/// TODO: Add specifications.
 
 extern crate prusti_contracts;
 
@@ -47,7 +49,13 @@ impl VecWrapperI32 {
 }
 
 fn capitalize(vec: &mut VecWrapperI32) {
-    TODO
+    let mut i = 0;
+    let mut not_finished = i < vec.len();
+    while not_finished {
+        vec.store(i, vec.lookup(i));
+        i += 1;
+        not_finished = i < vec.len();
+    }
 }
 
 fn bar() {

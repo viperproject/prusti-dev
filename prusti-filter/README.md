@@ -29,11 +29,18 @@ Usage
     bash crates/analyse.sh
     ```
 
-4.  Collect results:
+4.  Collect/analyse results:
 
     ```bash
     python3 script/collect-results.py ../../crates
     ```
 
+Rosetta
+-------
 
-4. The script will list which functions/methods are supported by Prusti.
+1.  Check tasks:
+
+    ```bash
+    python3 script/check-rosetta.py ../../
+    bash rosetta/analyse.sh
+    ```

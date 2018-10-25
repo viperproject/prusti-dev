@@ -8,6 +8,7 @@ use rustc::ty::subst::Substs;
 use validators::SupportStatus;
 use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
+use prusti_interface::environment::Procedure;
 
 pub struct ProcedureValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
@@ -65,8 +66,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         self.check_fn_sig(sig.skip_binder());
 
         if self.tcx.hir.as_local_node_id(def_id).is_some() {
-            let mir = self.tcx.mir_validated(def_id).borrow();
-            self.check_mir(&mir);
+            let procedure = Procedure::new(self.tcx, def_id);
+            self.check_mir(&procedure);
         } else {
             partially!(self, "function calls to outer crates are partially supported")
         }
@@ -84,10 +85,17 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
 
         for input_ty in sig.inputs() {
-            self.check_ty(input_ty);
+            self.check_ty(input_ty, "input");
         }
 
-        self.check_ty(sig.output());
+        self.check_ty(sig.output(), "output");
+        match sig.output().sty {
+            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) =>
+                interesting!(self, "mutable return type"),
+            ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) =>
+                interesting!(self, "immutable return type"),
+            _ => {},
+        }
     }
 
     fn check_fn_kind(&mut self, fk: FnKind<'tcx>) {
@@ -132,11 +140,11 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
-    fn check_ty(&mut self, ty: ty::Ty<'tcx>) {
+    fn check_ty(&mut self, ty: ty::Ty<'tcx>, position: &str) {
         match ty.sty {
             ty::TypeVariants::TyBool => {} // OK
 
-            ty::TypeVariants::TyChar => unsupported!(self, "`char` types are not supported"),
+            ty::TypeVariants::TyChar => unsupportedp!(self, position, "`char` types are not supported"),
 
             ty::TypeVariants::TyInt(_) => {} // OK
 
@@ -160,18 +168,18 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TySlice(..) => unsupported!(self, "`slice` types are not supported"),
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => self.check_inner_ty(inner_ty),
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => self.check_inner_ty(inner_ty, position),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutImmutable, ty: inner_ty }) => {
                 partially!(self, "shared raw pointers are partially supported");
-                self.check_inner_ty(inner_ty);
+                self.check_inner_ty(inner_ty, position);
             },
 
-            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => self.check_inner_ty(inner_ty),
+            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => self.check_inner_ty(inner_ty, position),
 
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) => {
                 partially!(self, "shared references are partially supported");
-                self.check_inner_ty(inner_ty);
+                self.check_inner_ty(inner_ty, position);
             },
 
             ty::TypeVariants::TyFnDef(..) => unsupported!(self, "function types are not supported"),
@@ -190,7 +198,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyTuple(inner_tys) => {
                 for inner_ty in inner_tys {
-                    self.check_inner_ty(inner_ty);
+                    self.check_inner_ty(inner_ty, position);
                 }
             }
 
@@ -212,14 +220,14 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
         for field_def in adt_def.all_fields() {
             let field_ty = field_def.ty(self.tcx, substs);
-            self.check_inner_ty(field_ty);
+            self.check_inner_ty(field_ty, "adt");
         }
     }
 
-    fn check_inner_ty(&mut self, ty: ty::Ty<'tcx>) {
+    fn check_inner_ty(&mut self, ty: ty::Ty<'tcx>, position: &str) {
         skip_visited_inner_type_variant!(self, &ty.sty);
 
-        self.check_ty(ty);
+        self.check_ty(ty, position);
 
         match ty.sty {
             ty::TypeVariants::TyRef(..) => partially!(self, "references inside data structures are partially supported"),
@@ -228,8 +236,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
-    fn check_mir(&mut self, mir: &mir::Mir<'tcx>) {
-        self.check_ty(mir.return_ty());
+    fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
+        let mir = procedure.get_mir();
+        self.check_ty(mir.return_ty(), "mir_output");
         requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
         requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
 
@@ -239,11 +248,13 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
 
         for local_decl in &mir.local_decls {
-            self.check_ty(local_decl.ty);
+            self.check_ty(local_decl.ty, "mir_local");
         }
 
-        // TODO: check only reachable blocks
-        for basic_block_data in mir.basic_blocks() {
+        for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
+            if !procedure.is_reachable_block(index) {
+                continue;
+            }
             for stmt in &basic_block_data.statements {
                 self.check_mir_stmt(stmt);
             }
@@ -252,7 +263,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn check_mir_arg(&mut self, arg: &mir::LocalDecl<'tcx>) {
-        self.check_ty(arg.ty);
+        self.check_ty(arg.ty, "mir_arg");
         match arg.mutability {
             mir::Mutability::Mut => partially!(self, "mutable arguments are partially supported"),
 
@@ -367,7 +378,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         match projection.elem {
             mir::ProjectionElem::Deref => {} // OK
 
-            mir::ProjectionElem::Field(_, ty) => self.check_inner_ty(ty),
+            mir::ProjectionElem::Field(_, ty) => self.check_inner_ty(ty, "statement"),
 
             mir::ProjectionElem::Index(..) => unsupported!(self, "index operations are not supported"),
 
@@ -408,7 +419,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 self.check_operand(right_operand);
             }
 
-            mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty),
+            mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty, "assign"),
 
             mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, "`sizeof` operations are not supported"),
 
@@ -427,14 +438,14 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::Operand::Move(ref place) => self.check_place(place),
 
             mir::Operand::Constant(box mir::Constant { ty, .. }) => {
-                self.check_ty(ty);
+                self.check_ty(ty, "operand");
             }
         }
     }
 
     fn check_aggregate(&mut self, kind: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>) {
         match kind {
-            mir::AggregateKind::Array(ty) => self.check_ty(ty),
+            mir::AggregateKind::Array(ty) => self.check_ty(ty, "assign"),
 
             mir::AggregateKind::Tuple => {} // OK
 
@@ -443,7 +454,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     match kind.unpack() {
                         ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
 
-                        ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty),
+                        ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "assign"),
                     }
                 }
             }
