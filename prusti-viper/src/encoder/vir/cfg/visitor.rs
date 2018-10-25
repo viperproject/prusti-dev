@@ -30,7 +30,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
     fn initial_context(&mut self) -> BranchCtxt;
 
     /// Replace some statements, mutating the branch context
-    fn replace_stmt(&mut self, stmt: &Stmt, bctxt: &mut BranchCtxt) -> Vec<Stmt>;
+    fn replace_stmt(&mut self, stmt: &Stmt, is_last_before_return: bool, bctxt: &mut BranchCtxt) -> Vec<Stmt>;
 
     /// Inject some statements and replace a successor, mutating the branch context
     fn replace_successor(&mut self, succ: &Successor, bctxt: &mut BranchCtxt) -> (Vec<Stmt>, Successor);
@@ -140,9 +140,10 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
             initial_bctxt[curr_index] = Some(bctxt.clone());
 
             // REPLACE statement
-            for stmt in &curr_block.stmts {
+            for (stmt_index, stmt) in curr_block.stmts.iter().enumerate() {
                 self.current_cfg(&new_cfg);
-                let new_stmts = self.replace_stmt(stmt, &mut bctxt);
+                let last_stmt_before_return = stmt_index == curr_block.stmts.len() - 1 && curr_block.successor.is_return();
+                let new_stmts = self.replace_stmt(stmt, last_stmt_before_return, &mut bctxt);
                 trace!("Replace stmt '{}' with [{}]", stmt, new_stmts.iter().to_string());
                 for new_stmt in new_stmts {
                     new_cfg.add_stmt(curr_block_index, new_stmt);

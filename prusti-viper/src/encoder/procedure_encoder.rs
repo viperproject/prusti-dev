@@ -391,6 +391,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
                 let type_name = self.encoder.encode_type_predicate_use(ty);
+
+                // Require the deref of reference arguments to be folded (see issue #47)
+                if let mir::Place::Projection(box mir::Projection {
+                    base: mir::Place::Local(local),
+                    elem: mir::ProjectionElem::Deref
+                }) = lhs {
+                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
+                        let lhs_pred = self.mir_encoder.encode_place_predicate_permission(
+                            encoded_lhs.clone(),
+                            vir::Frac::new(1, 1000)
+                        ).unwrap();
+                        stmts.push(vir::Stmt::Obtain(lhs_pred));
+                    }
+                }
+                // Require the deref of reference arguments to be folded (see issue #47)
+                if let mir::Place::Local(local) = lhs {
+                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
+                        if self.mir_encoder.is_reference(ty) {
+                            let (deref_place, ..) = self.mir_encoder.encode_deref(
+                                encoded_lhs.clone(),
+                                ty
+                            );
+                            let deref_pred = self.mir_encoder.encode_place_predicate_permission(
+                                deref_place,
+                                vir::Frac::new(1, 1000)
+                            ).unwrap();
+                            stmts.push(vir::Stmt::Obtain(deref_pred));
+                        }
+                    }
+                }
+
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         stmts.extend(
@@ -1047,6 +1078,33 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 )
                             );
 
+                            /*
+                            // Hack to work around the missing loan for arguments moved to the function call
+                            for operand in args.iter() {
+                                if let Some(place) = self.mir_encoder.encode_operand_place(operand) {
+                                    debug!("Put permission {:?} in postcondition", place);
+                                    // Choose the label that corresponds to the creation of the loan
+                                    let (loans, _) = self.polonius_info.get_all_active_loans(location);
+                                    let source_loans: Vec<_> = loans.iter().filter(|loan| {
+                                        let loan_places = self.polonius_info.get_loan_places(loan).unwrap();
+                                        let (expiring, _, restored) = self.encode_loan_places(&loan_places);
+                                        trace!("Try {:?} == {:?} | {:?}", expiring, place, restored);
+                                        expiring.parent() == Some(&place)
+                                    }).collect();
+                                    if !source_loans.is_empty() {
+                                        assert_eq!(source_loans.len(), 1, "The argument depends on a condition");
+                                        let source_loan = &source_loans[0];
+                                        let loan_loc = self.polonius_info.get_loan_location(&source_loan);
+                                        let loan_label = &self.label_after_location[&loan_loc];
+                                        stmts.push(vir::Stmt::ExpireBorrow(
+                                            vir::LabelledPlace::curr(place.clone()),
+                                            vir::LabelledPlace::old(place.clone(), loan_label.to_string())
+                                        ));
+                                    }
+                                }
+                            }
+                            */
+
                         } else {
                             debug!("Encoding non-pure function call '{}'", func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
@@ -1326,7 +1384,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
 
         // Require the deref of reference arguments to be folded (see issue #47)
-        // FIXME: if the content of the referente has been replaced then this does not work
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment(format!("Fold predicates for &mut args")));
         for arg_index in self.mir.args_iter() {
             let arg_ty = self.mir.local_decls[arg_index].ty;
@@ -1334,7 +1391,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let encoded_arg = self.mir_encoder.encode_local(arg_index);
                 let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
                 let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
-                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::WeakObtain(deref_pred));
+                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Obtain(deref_pred));
             }
         }
 
