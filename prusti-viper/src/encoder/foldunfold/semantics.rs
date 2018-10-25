@@ -221,17 +221,27 @@ impl vir::Stmt {
                 state.remove_moved_matching(|p| p.has_prefix(rhs_place.get_place()));
 
                 // And we create permissions for the rhs
-                let new_acc_places = original_state.acc().iter()
+                let new_acc_places: Vec<_> = original_state.acc().iter()
                     .filter(|(p, _)| p.has_proper_prefix(lhs_place))
                     .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac))
-                    .filter(|(p, _)| !p.is_base());
-                state.insert_all_acc(new_acc_places);
+                    .filter(|(p, _)| !p.is_base())
+                    .collect();
 
-                let new_pred_places = original_state.pred().iter()
+                let new_pred_places: Vec<_> = original_state.pred().iter()
                     .filter(|(p, _)| p.has_prefix(lhs_place))
-                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac));
-                state.insert_all_pred(new_pred_places);
+                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac))
+                    .collect();
 
+                assert!(
+                    (lhs_place == lhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
+                    "Statement '{}' restored not permissions in state with:\n - acc {{{}}}\n - pred {{{}}}",
+                    self,
+                    original_state.display_acc(),
+                    original_state.display_pred()
+                );
+
+                state.insert_all_acc(new_acc_places.into_iter());
+                state.insert_all_pred(new_pred_places.into_iter());
             }
 
             &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {

@@ -73,7 +73,16 @@ impl CfgMethod {
             {
                 let full_stmt = stmt.to_string();
                 let splitted_stmt = sub_strings(&full_stmt, 120, 116);
-                lines.push(splitted_stmt.into_iter().map(|x| escape_html(x)).collect::<Vec<_>>().join(" \\ <br/>    "));
+                let stmt_html = splitted_stmt
+                    .into_iter()
+                    .map(|x| escape_html(x))
+                    .collect::<Vec<_>>()
+                    .join(" \\ <br/>    ");
+                if stmt.is_comment() {
+                    lines.push(format!("<font color=\"orange\">{},</font>", stmt_html));
+                } else {
+                    lines.push(stmt_html);
+                }
             }
         }
         lines.push("</td></tr>".to_string());

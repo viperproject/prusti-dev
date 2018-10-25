@@ -391,37 +391,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
                 let type_name = self.encoder.encode_type_predicate_use(ty);
-
-                // Require the deref of reference arguments to be folded (see issue #47)
-                if let mir::Place::Projection(box mir::Projection {
-                    base: mir::Place::Local(local),
-                    elem: mir::ProjectionElem::Deref
-                }) = lhs {
-                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
-                        let lhs_pred = self.mir_encoder.encode_place_predicate_permission(
-                            encoded_lhs.clone(),
-                            vir::Frac::new(1, 1000)
-                        ).unwrap();
-                        stmts.push(vir::Stmt::Obtain(lhs_pred));
-                    }
-                }
-                // Require the deref of reference arguments to be folded (see issue #47)
-                if let mir::Place::Local(local) = lhs {
-                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
-                        if self.mir_encoder.is_reference(ty) {
-                            let (deref_place, ..) = self.mir_encoder.encode_deref(
-                                encoded_lhs.clone(),
-                                ty
-                            );
-                            let deref_pred = self.mir_encoder.encode_place_predicate_permission(
-                                deref_place,
-                                vir::Frac::new(1, 1000)
-                            ).unwrap();
-                            stmts.push(vir::Stmt::Obtain(deref_pred));
-                        }
-                    }
-                }
-
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         stmts.extend(
@@ -660,7 +629,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ReborrowingKind::Assignment { ref loan } => {
                 let loan_location = self.polonius_info.get_loan_location(&loan);
                 let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
+                //trace!("loan_places '{:?}'", loan_places);
                 let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
+                //trace!("expiring '{:?}' restored '{:?}'", expiring, restored);
                 let lhs_place = if node.incoming_zombies {
                     let lhs_label = self.label_after_location.get(&loan_location).expect(
                         &format!(
@@ -686,7 +657,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 self.label_after_location
                             )
                         );
-                        vir::LabelledPlace::old(expiring.clone(), rhs_label.clone())
+                        vir::LabelledPlace::old(restored.clone(), rhs_label.clone())
                     }
                 };
 
@@ -1391,7 +1362,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let encoded_arg = self.mir_encoder.encode_local(arg_index);
                 let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
                 let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
-                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Obtain(deref_pred));
+                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::WeakObtain(deref_pred));
             }
         }
 
@@ -1723,21 +1694,65 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_assign_operand(&mut self, lhs: &vir::Place, operand: &mir::Operand<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("Encode assign operand {:?}", operand);
         match operand {
-            &mir::Operand::Move(ref place) => {
-                let (src, ty, _) = self.mir_encoder.encode_place(place);
-                // Move the values from `src` to `lhs`
+            &mir::Operand::Move(ref rhs_place) => {
+                let (encoded_rhs, ty, _) = self.mir_encoder.encode_place(rhs_place);
+                // Move the values from `encoded_rhs` to `lhs`
                 let mut stmts = vec![
-                    vir::Stmt::Assign(lhs.clone(), src.clone().into(), vir::AssignKind::Move)
+                    vir::Stmt::Assign(lhs.clone(), encoded_rhs.clone().into(), vir::AssignKind::Move)
                 ];
                 // Store a label for this state
                 let label = self.cfg_method.get_fresh_label_name();
                 debug!("Current loc {:?} has label {}", location, label);
                 self.label_after_location.insert(location, label.clone());
                 stmts.push(vir::Stmt::Label(label.clone()));
-                // Re-allocate the rhs
-                stmts.extend(
-                    self.encode_havoc_and_allocation(&src, ty)
-                );
+                /*
+                // Require the deref of reference arguments to be folded (see issue #47)
+                if let mir::Place::Projection(box mir::Projection {
+                    base: mir::Place::Local(local),
+                    elem: mir::ProjectionElem::Deref
+                }) = rhs_place {
+                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
+                        let rhs_pred = self.mir_encoder.encode_place_predicate_permission(
+                            encoded_rhs.clone(),
+                            vir::Frac::new(1, 1000)
+                        ).unwrap();
+                        stmts.push(vir::Stmt::Obtain(rhs_pred));
+                    }
+                }
+                // Require the deref of reference arguments to be folded (see issue #47)
+                if let mir::Place::Local(local) = rhs_place {
+                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
+                        if self.mir_encoder.is_reference(ty) {
+                            let (deref_place, ..) = self.mir_encoder.encode_deref(
+                                encoded_rhs.clone(),
+                                ty
+                            );
+                            let deref_pred = self.mir_encoder.encode_place_predicate_permission(
+                                deref_place,
+                                vir::Frac::new(1, 1000)
+                            ).unwrap();
+                            stmts.push(vir::Stmt::Obtain(deref_pred));
+                        }
+                    }
+                }
+                */
+                // Re-allocate the rhs, if it's not an argument
+                let havoc_rhs = if let mir::Place::Local(rhs_local) = rhs_place {
+                    if let mir::LocalKind::Arg = self.mir.local_kind(*rhs_local) {
+                        false
+                    } else {
+                        true
+                    }
+                } else {
+                    true
+                };
+                if havoc_rhs {
+                    stmts.extend(
+                        self.encode_havoc_and_allocation(&encoded_rhs, ty)
+                    );
+                } else {
+                    debug!("Do not havoc rhs of '{:?}'", operand);
+                }
                 stmts
             }
 
