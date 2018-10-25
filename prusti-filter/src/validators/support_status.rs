@@ -46,14 +46,20 @@ impl SupportKind {
 
 #[derive(Serialize, Deserialize)]
 pub struct SupportStatus {
-    restrictions: HashSet<SupportKind>
+    restrictions: HashSet<SupportKind>,
+    basic_block_count: Option<usize>,
 }
 
 impl SupportStatus {
     pub fn new() -> Self {
         SupportStatus {
-            restrictions: HashSet::new()
+            restrictions: HashSet::new(),
+            basic_block_count: None,
         }
+    }
+
+    pub fn set_bb_count(&mut self, count: usize) {
+        self.basic_block_count = Some(count);
     }
 
     pub fn partially(&mut self, reason: String) {

@@ -251,6 +251,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             self.check_ty(local_decl.ty, "mir_local");
         }
 
+        self.support.set_bb_count(mir.basic_blocks().len());
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(index) {
                 continue;
@@ -390,6 +391,17 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
+    fn check_op(&mut self, op: &mir::BinOp) {
+        use rustc::mir::BinOp::*;
+        match op {
+            Add | Sub | Mul => {}, // OK
+            Div | Rem => partially!(self, "division and remainder are problematic"),
+            BitXor | BitAnd | BitOr | Shl | Shr => unsupported!(self, "bit operations are not supported"),
+            Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
+            Offset => unsupported!(self, "offset operation is not supported"),
+        }
+    }
+
     fn check_rvalue(&mut self, rvalue: &mir::Rvalue<'tcx>) {
         match rvalue {
             mir::Rvalue::Use(ref operand) => self.check_operand(operand),
@@ -409,12 +421,14 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             mir::Rvalue::Cast(..) => unsupported!(self, "cast operations are not supported"),
 
-            mir::Rvalue::BinaryOp(_, ref left_operand, ref right_operand) => {
+            mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
+                self.check_op(op);
                 self.check_operand(left_operand);
                 self.check_operand(right_operand);
             }
 
-            mir::Rvalue::CheckedBinaryOp(_, ref left_operand, ref right_operand) => {
+            mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
+                self.check_op(op);
                 self.check_operand(left_operand);
                 self.check_operand(right_operand);
             }
