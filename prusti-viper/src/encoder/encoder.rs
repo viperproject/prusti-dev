@@ -98,7 +98,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         writer.flush().ok().unwrap();
     }
 
-    pub fn initialize(&mut self) {
+    fn initialize(&mut self) {
         self.collect_closure_instantiations();
     }
 
@@ -155,9 +155,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     fn collect_closure_instantiations(&mut self) {
         debug!("Collecting closure instantiations...");
         let tcx = self.env().tcx();
-        let crate_num = hir::def_id::LOCAL_CRATE;
         let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
-        for &mir_def_id in tcx.mir_keys(crate_num).iter() {
+        for &mir_def_id in self.encoding_queue.borrow().iter() {
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
             let mir = tcx.mir_validated(mir_def_id).borrow();
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
@@ -493,6 +492,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn process_encoding_queue(&mut self) {
+        self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");

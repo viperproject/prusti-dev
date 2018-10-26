@@ -375,14 +375,18 @@ impl<'tcx> SpecParser<'tcx> {
         let mut name = item.ident.to_string();
         match item.node {
             ast::ItemKind::Fn(ref decl, ref _header, ref generics, ref _body) => {
-                // Import contracts.
-                let mut statements = vec![self.build_prusti_contract_import(item.span)];
+                let mut statements = vec![];
 
                 // Add preconditions.
                 statements.extend(self.convert_to_statements(preconditions));
 
                 // Add postconditions.
                 statements.extend(self.convert_to_statements(postconditions));
+
+                // Import contracts, if needed
+                if !statements.is_empty() {
+                    statements.insert(0, self.build_prusti_contract_import(item.span));
+                }
 
                 // Add result to arguments
                 let unit_type = self.ast_builder.ty(
@@ -449,13 +453,18 @@ impl<'tcx> SpecParser<'tcx> {
         match impl_item.node {
             ast::ImplItemKind::Method(ref sig, ref _body) => {
                 // Import contracts.
-                let mut statements = vec![self.build_prusti_contract_import(impl_item.span)];
+                let mut statements = vec![];
 
                 // Add preconditions.
                 statements.extend(self.convert_to_statements(preconditions));
 
                 // Add postconditions.
                 statements.extend(self.convert_to_statements(postconditions));
+
+                // Import contracts, if needed
+                if !statements.is_empty() {
+                    statements.insert(0, self.build_prusti_contract_import(impl_item.span));
+                }
 
                 // Add result to arguments
                 let unit_type = self.ast_builder.ty(
@@ -519,13 +528,18 @@ impl<'tcx> SpecParser<'tcx> {
         match trait_item.node {
             ast::TraitItemKind::Method(ref sig, ref _body) => {
                 // Import contracts.
-                let mut statements = vec![self.build_prusti_contract_import(trait_item.span)];
+                let mut statements = vec![];
 
                 // Add preconditions.
                 statements.extend(self.convert_to_statements(preconditions));
 
                 // Add postconditions.
                 statements.extend(self.convert_to_statements(postconditions));
+
+                // Import contracts, if needed
+                if !statements.is_empty() {
+                    statements.insert(0, self.build_prusti_contract_import(trait_item.span));
+                }
 
                 // Add result to arguments
                 let unit_type = self.ast_builder.ty(
@@ -590,8 +604,10 @@ impl<'tcx> SpecParser<'tcx> {
         }
         let span = block.span;
         let mut statements = self.convert_to_statements(invariants);
-        statements.insert(0, self.build_prusti_contract_import(span));
-        statements.insert(1, self.build_loop_mark(spec_id));
+        if !statements.is_empty() {
+            statements.insert(0, self.build_prusti_contract_import(span));
+        }
+        statements.insert(0, self.build_loop_mark(spec_id));
         let builder = &self.ast_builder;
         let expr = builder.expr_if(
             span,
@@ -1247,6 +1263,17 @@ impl<'tcx> SpecParser<'tcx> {
 }
 
 impl<'tcx> Folder for SpecParser<'tcx> {
+    fn fold_item_kind(&mut self, item_kind: ast::ItemKind) -> ast::ItemKind {
+        trace!("[fold_item_kind] enter");
+        let result = match item_kind {
+            ast::ItemKind::Fn(..) |
+            ast::ItemKind::Impl(_, _, _, _, None, _, _) => fold::noop_fold_item_kind(item_kind, self),
+            _ => item_kind,
+        };
+        trace!("[fold_item_kind] exit");
+        result
+    }
+
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = match item.node {

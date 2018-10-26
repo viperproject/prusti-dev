@@ -61,4 +61,3 @@ pub mod ast_builder;
 pub mod parser;
 pub mod typeck;
 pub mod verifier;
-pub mod hir_visitor;

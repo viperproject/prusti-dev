@@ -20,11 +20,11 @@ pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
         true
     } else {
         match place {
-            mir::Place::Local(_) => false,
+            mir::Place::Local(_) |
+            mir::Place::Static(_) => false,
             mir::Place::Projection(box mir::Projection { base, .. }) => {
                 is_prefix(base, potential_prefix)
             }
-            _ => unimplemented!(),
         }
     }
 }

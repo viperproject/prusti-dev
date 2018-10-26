@@ -8,41 +8,67 @@ use rustc::ty::TyCtxt;
 use rustc::hir::def_id::DefId;
 use rustc::hir::itemlikevisit::ItemLikeVisitor;
 use constants::PRUSTI_SPEC_ATTR;
+use std::collections::HashSet;
+use std::iter::FromIterator;
+use config;
+use environment::EnvironmentImpl;
+use environment::Environment;
 
-
-pub struct CollectPrustiSpecVisitor<'a, 'tcx: 'a, 'gcx: 'tcx > {
-    tcx: TyCtxt<'a, 'gcx, 'tcx>,
-    result: &'a mut Vec<DefId>,
+pub struct CollectPrustiSpecVisitor<'r, 'a: 'r, 'tcx: 'a> {
+    env: &'r EnvironmentImpl<'r, 'a, 'tcx>,
+    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    result: &'r mut Vec<DefId>,
+    use_whitelist: bool,
+    whitelist: HashSet<String>,
 }
 
-impl<'a, 'tcx, 'gcx> CollectPrustiSpecVisitor<'a, 'tcx, 'gcx> {
-    pub fn new(tcx: TyCtxt<'a, 'gcx, 'tcx>, result: &'a mut Vec<DefId>) -> Self {
+impl<'r, 'a, 'tcx> CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
+    pub fn new(env: &'r EnvironmentImpl<'r, 'a, 'tcx>, result: &'r mut Vec<DefId>) -> Self {
         CollectPrustiSpecVisitor {
-            tcx,
-            result: result
+            env,
+            tcx: env.tcx(),
+            result,
+            use_whitelist: config::enable_whitelist(),
+            whitelist: HashSet::from_iter(config::verification_whitelist())
         }
     }
 }
 
-impl<'a, 'gcx, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'gcx, 'tcx> {
+impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
         if attr::contains_name(&item.attrs, PRUSTI_SPEC_ATTR) {
             let def_id = self.tcx.hir.local_def_id(item.id);
-            self.result.push(def_id);
+            let item_name = self.env.get_item_name(def_id);
+            if !self.use_whitelist || self.whitelist.contains(&item_name) {
+                self.result.push(def_id);
+            } else {
+                debug!("Skip verification of item '{}': not in the whitelist", item_name)
+            }
         }
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
+        // TODO: currently disabled
         if attr::contains_name(&trait_item.attrs, PRUSTI_SPEC_ATTR) {
             let def_id = self.tcx.hir.local_def_id(trait_item.id);
-            self.result.push(def_id);
+            let item_name = self.env.get_item_name(def_id);
+            if !self.use_whitelist || self.whitelist.contains(&item_name) {
+                self.result.push(def_id);
+            } else {
+                debug!("Skip verification of trait item '{}': not in the whitelist", item_name)
+            }
         }
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
         if attr::contains_name(&impl_item.attrs, PRUSTI_SPEC_ATTR) {
             let def_id = self.tcx.hir.local_def_id(impl_item.id);
-            self.result.push(def_id);
+            let item_name = self.env.get_item_name(def_id);
+            if !self.use_whitelist || self.whitelist.contains(&item_name) {
+                self.result.push(def_id);
+            } else {
+                debug!("Skip verification of impl item '{}': not in the whitelist", item_name)
+            }
         }
     }
 }

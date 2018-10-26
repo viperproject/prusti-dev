@@ -113,7 +113,7 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         let mut annotated_procedures: Vec<ProcedureDefId> = vec![];
         let tcx = self.tcx();
         {
-            let mut visitor = CollectPrustiSpecVisitor::new(tcx, &mut annotated_procedures);
+            let mut visitor = CollectPrustiSpecVisitor::new(self, &mut annotated_procedures);
             tcx.hir.krate().visit_all_item_likes(&mut visitor);
         }
         annotated_procedures
