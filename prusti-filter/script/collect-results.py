@@ -19,6 +19,7 @@ def collect(crate_download_folder):
             path = os.path.join(root, 'results.json')
             with open(path) as fp:
                 data = json.load(fp)
+                data['path'] = path
                 all_data.append(data)
     with open(RESULTS_PATH, 'w') as fp:
         json.dump(all_data, fp, indent=2)
