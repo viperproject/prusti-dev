@@ -59,12 +59,6 @@ Encodable examples:
 +   https://rosettacode.org/wiki/Mutual_recursion#Rust
 +   https://rosettacode.org/wiki/Factorial#Rust
 
-Not interesting examples:
-
-+   https://rosettacode.org/wiki/Determine_if_only_one_instance_is_running#Rust
-    – main functionality is to use a tcp socket.
-+   anonymous_recursion – demonstrates nested functions.
-
 Patchable(?) examples:
 
 +   tic_tac_toe – uses ``char``.
@@ -72,12 +66,48 @@ Patchable(?) examples:
     possible to change.
 +   https://rosettacode.org/wiki/Langton%27s_ant – uses bit operations,
     vectors of vectors.
++   four-bit-adder – uses slices of arrays.
+    https://rosettacode.org/wiki/Four_bit_adder
++   https://rosettacode.org/wiki/Sorting_algorithms/Heapsort – uses
+    slices, closures,
++   https://rosettacode.org/wiki/Sorting_algorithms/Selection_sort#Rust
+    – uses arrays and for loops.
++   https://rosettacode.org/wiki/Knuth_shuffle#Rust – uses random
+    numbers.
+
+Hard to patch examples:
 
 Not supported examples:
 
-+   define_a_primitive_data_type – implements many standard traits.
++   define_a_primitive_data_type – focusses on implementing many
+    **standard** traits.
++   modular-exponentiation – uses arbitrary precision number library and
+    non-linear arithmetic.
++   metered-concurrency – custom implementation of a counting semaphore.
 
-TODO: Checked up to 8'th position in min_size >= 5.
+Not interesting examples:
+
++   https://rosettacode.org/wiki/Determine_if_only_one_instance_is_running#Rust
+    – main functionality is to use a tcp socket.
++   anonymous_recursion – demonstrates nested functions.
++   https://rosettacode.org/wiki/Rock-paper-scissors#Rust – uses slices,
+    a random number generator, **IO is the central part**.
++   wireworld – uses chars, slices, **closures, IO is quite central**.
+    https://rosettacode.org/wiki/Wireworld
++   conways_game_of_life – uses chars, slices, **closures, IO is quite central**.
+    https://rosettacode.org/wiki/Conway%27s_Game_of_Life
++   https://rosettacode.org/wiki/Unbias_a_random_generator#Rust –
+    focuses on random number generation.
+
+Examples that use borrows:
+
++   bitmap, floyd_warshall_algorithm, 2048 – use to implement `index`
+    and `index_mut`.
++   9_billion_names_of_god_the_integer – non trivial getters that are
+    used in trivial ways.
++   menu – borrows self and returns a borrow of a string.
++   four_bit_adder – deref implementation.
++   strip_comments_from_a_string – reborrows a substring (uses closures)
 
 Verify supported functions
 --------------------------
