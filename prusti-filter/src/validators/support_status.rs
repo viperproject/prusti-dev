@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+/// The support status, with a short explanation that will be displayed to the user.
 pub enum SupportKind {
     PartiallySupported(String),
     Unsupported(String),

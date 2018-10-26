@@ -170,9 +170,9 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyStr => partially!(self, "`str` types are ignored"),
 
-            ty::TypeVariants::TyArray(inner_ty, _) => self.check_inner_ty(inner_ty),
+            ty::TypeVariants::TyArray(..) => unsupported!(self, "`array` types are not supported"),
 
-            ty::TypeVariants::TySlice(inner_ty) => self.check_inner_ty(inner_ty),
+            ty::TypeVariants::TySlice(..) => unsupported!(self, "`slice` types are not supported"),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: inner_ty, .. }) => self.check_inner_ty(inner_ty),
 

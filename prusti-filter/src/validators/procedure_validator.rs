@@ -164,7 +164,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyStr => partially!(self, "`str` types are ignored"),
 
-            ty::TypeVariants::TyArray(..) => unsupported!(self, "`slice` types are not supported"),
+            ty::TypeVariants::TyArray(..) => unsupported!(self, "`array` types are not supported"),
 
             ty::TypeVariants::TySlice(..) => unsupported!(self, "`slice` types are not supported"),
 
@@ -247,9 +247,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             self.check_mir_arg(arg);
         }
 
-        for local_decl in &mir.local_decls {
-            self.check_ty(local_decl.ty, "mir_local");
-        }
+        //for local_decl in &mir.local_decls {
+        //    self.check_ty(local_decl.ty, "mir_local");
+        //}
 
         self.support.set_bb_count(mir.basic_blocks().len());
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
@@ -396,7 +396,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         match op {
             Add | Sub | Mul => {}, // OK
             Div | Rem => partially!(self, "division and remainder are problematic"),
-            BitXor | BitAnd | BitOr | Shl | Shr => unsupported!(self, "bit operations are not supported"),
+            BitXor | BitAnd | BitOr => partially!(self, "bit operations are not supported"),
+            Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
             Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
             Offset => unsupported!(self, "offset operation is not supported"),
         }
