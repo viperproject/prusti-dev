@@ -32,6 +32,7 @@ pub use self::loops_utils::*;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use syntax::codemap::CodeMap;
 use utils::get_attr_value;
+use config;
 
 /// A facade to the Rust compiler.
 pub trait Environment<'a, 'tcx: 'a> {
@@ -113,7 +114,7 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         let mut annotated_procedures: Vec<ProcedureDefId> = vec![];
         let tcx = self.tcx();
         {
-            let mut visitor = CollectPrustiSpecVisitor::new(tcx, &mut annotated_procedures);
+            let mut visitor = CollectPrustiSpecVisitor::new(self, &mut annotated_procedures);
             tcx.hir.krate().visit_all_item_likes(&mut visitor);
         }
         annotated_procedures
@@ -151,7 +152,9 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     ///
     /// Mostly used for experiments and debugging.
     pub fn dump_borrowck_info(&self) {
-        dump_borrowck_info::dump_borrowck_info(self.tcx())
+        if config::dump_borrowck_info() {
+            dump_borrowck_info::dump_borrowck_info(self.tcx())
+        }
     }
 }
 

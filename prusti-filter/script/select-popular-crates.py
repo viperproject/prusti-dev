@@ -60,9 +60,9 @@ def select_crates(crate_download_folder, count):
             write("bash '{}'\n", CARGO_BUILD_SCRIPT)
             write("\n")
 
-def main(crate_download_folder):
-    select_crates(crate_download_folder, 500)
+def main(crate_download_folder, num_top_crates):
+    select_crates(crate_download_folder, num_top_crates)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], int(sys.argv[2]) if 2 < len(sys.argv) else 500)

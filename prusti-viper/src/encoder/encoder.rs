@@ -98,7 +98,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         writer.flush().ok().unwrap();
     }
 
-    pub fn initialize(&mut self) {
+    fn initialize(&mut self) {
         self.collect_closure_instantiations();
     }
 
@@ -155,9 +155,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     fn collect_closure_instantiations(&mut self) {
         debug!("Collecting closure instantiations...");
         let tcx = self.env().tcx();
-        let crate_num = hir::def_id::LOCAL_CRATE;
         let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
-        for &mir_def_id in tcx.mir_keys(crate_num).iter() {
+        for &mir_def_id in self.encoding_queue.borrow().iter() {
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
             let mir = tcx.mir_validated(mir_def_id).borrow();
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
@@ -401,6 +400,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyInt(ast::IntTy::Isize) => (scalar_value.to_bits(ty::layout::Size::from_bits(usize_bits as u64)).ok().unwrap() as i128).into(),
             ty::TypeVariants::TyUint(ast::UintTy::U8) => (scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap() as u8).into(),
             ty::TypeVariants::TyUint(ast::UintTy::U16) => (scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap() as u16).into(),
+            ty::TypeVariants::TyChar |
             ty::TypeVariants::TyUint(ast::UintTy::U32) => (scalar_value.to_bits(ty::layout::Size::from_bits(32)).ok().unwrap() as u32).into(),
             ty::TypeVariants::TyUint(ast::UintTy::U64) => (scalar_value.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap() as u64).into(),
             ty::TypeVariants::TyUint(ast::UintTy::U128) => (scalar_value.to_bits(ty::layout::Size::from_bits(128)).ok().unwrap() as u128).into(),
@@ -492,8 +492,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn process_encoding_queue(&mut self) {
+        self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
+            debug!("Encoding {:?}", proc_def_id);
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
             let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
             if is_pure_function {

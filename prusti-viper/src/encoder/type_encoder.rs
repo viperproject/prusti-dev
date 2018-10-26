@@ -36,7 +36,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyBool => vir::Type::Bool,
 
             ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => vir::Type::Int,
+            ty::TypeVariants::TyUint(_) |
+            ty::TypeVariants::TyChar => vir::Type::Int,
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
@@ -57,7 +58,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyBool => vir::Field::new("val_bool", vir::Type::Bool),
 
             ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => vir::Field::new("val_int", vir::Type::Int),
+            ty::TypeVariants::TyUint(_) |
+            ty::TypeVariants::TyChar => vir::Field::new("val_int", vir::Type::Int),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
@@ -89,12 +91,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     )
                 ],
 
-            ty::TypeVariants::TyUint(_) =>
+            ty::TypeVariants::TyUint(_) => {
+                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access(
+                    self.encoder.encode_value_field(self.ty)
+                ).into();
                 vec![
                     vir::Expr::FieldAccessPredicate(
-                        box vir::Place::from(self_local_var.clone()).access(
-                            self.encoder.encode_value_field(self.ty)
-                        ).into(),
+                        box val_field,
                         vir::Frac::one()
                     ),
                     vir::Expr::ge_cmp(
@@ -103,7 +106,29 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         ).into(),
                         0.into()
                     )
-                ],
+                ]
+            }
+
+            ty::TypeVariants::TyChar => {
+                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access(
+                    self.encoder.encode_value_field(self.ty)
+                ).into();
+                vec![
+                    vir::Expr::FieldAccessPredicate(
+                        box val_field.clone(),
+                        vir::Frac::one()
+                    ),
+                    vir::Expr::le_cmp(
+                        0.into(),
+                        val_field.clone(),
+                    ),
+                    vir::Expr::le_cmp(
+                        val_field.clone(),
+                        // char is always four bytes in size
+                        0xFFFFFFFFu32.into(),
+                    )
+                ]
+            }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
@@ -290,6 +315,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyInt(_) => "int".to_string(),
             ty::TypeVariants::TyUint(_) => "uint".to_string(),
+
+            ty::TypeVariants::TyChar => "char".to_string(),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) =>

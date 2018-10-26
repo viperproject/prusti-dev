@@ -85,10 +85,10 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
 
         for input_ty in sig.inputs() {
-            self.check_ty(input_ty, "input");
+            self.check_ty(input_ty, "argument type");
         }
 
-        self.check_ty(sig.output(), "output");
+        self.check_ty(sig.output(), "return type");
         match sig.output().sty {
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) =>
                 interesting!(self, "mutable return type"),
@@ -140,17 +140,17 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
-    fn check_ty(&mut self, ty: ty::Ty<'tcx>, position: &str) {
+    fn check_ty(&mut self, ty: ty::Ty<'tcx>, pos: &str) {
         match ty.sty {
             ty::TypeVariants::TyBool => {} // OK
 
-            ty::TypeVariants::TyChar => unsupportedp!(self, position, "`char` types are not supported"),
+            ty::TypeVariants::TyChar => {} // OK
 
             ty::TypeVariants::TyInt(_) => {} // OK
 
             ty::TypeVariants::TyUint(_) => {} // OK
 
-            ty::TypeVariants::TyFloat(..) => unsupported!(self, "floating-point types are not supported"),
+            ty::TypeVariants::TyFloat(..) => unsupported_pos!(self, pos, "floating-point types are not supported"),
 
             // Structures, enumerations and unions.
             //
@@ -160,57 +160,63 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             // definition and not a concrete use of it.
             ty::TypeVariants::TyAdt(adt_def, substs) => self.check_ty_adt(adt_def, substs),
 
-            ty::TypeVariants::TyForeign(..) => unsupported!(self, "foreign types are not supported"),
+            ty::TypeVariants::TyForeign(..) => unsupported_pos!(self, pos, "foreign types are not supported"),
 
-            ty::TypeVariants::TyStr => partially!(self, "`str` types are ignored"),
+            ty::TypeVariants::TyStr => partially_pos!(self, pos, "`str` types are ignored"),
 
-            ty::TypeVariants::TyArray(..) => unsupported!(self, "`slice` types are not supported"),
+            ty::TypeVariants::TyArray(inner_ty, ..) => {
+                self.check_inner_ty(inner_ty, pos);
+                unsupported_pos!(self, pos, "`array` types are not supported")
+            },
 
-            ty::TypeVariants::TySlice(..) => unsupported!(self, "`slice` types are not supported"),
+            ty::TypeVariants::TySlice(inner_ty, ..) => {
+                self.check_inner_ty(inner_ty, pos);
+                unsupported_pos!(self, pos, "`slice` types are not supported")
+            },
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => self.check_inner_ty(inner_ty, position),
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => self.check_inner_ty(inner_ty, pos),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutImmutable, ty: inner_ty }) => {
-                partially!(self, "shared raw pointers are partially supported");
-                self.check_inner_ty(inner_ty, position);
+                partially_pos!(self, pos, "shared raw pointers are partially supported");
+                self.check_inner_ty(inner_ty, pos);
             },
 
-            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => self.check_inner_ty(inner_ty, position),
+            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => self.check_inner_ty(inner_ty, pos),
 
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) => {
-                partially!(self, "shared references are partially supported");
-                self.check_inner_ty(inner_ty, position);
+                partially_pos!(self, pos, "shared references are partially supported");
+                self.check_inner_ty(inner_ty, pos);
             },
 
-            ty::TypeVariants::TyFnDef(..) => unsupported!(self, "function types are not supported"),
+            ty::TypeVariants::TyFnDef(..) => unsupported_pos!(self, pos, "function types are not supported"),
 
-            ty::TypeVariants::TyFnPtr(..) => unsupported!(self, "function pointer types are not supported"),
+            ty::TypeVariants::TyFnPtr(..) => unsupported_pos!(self, pos, "function pointer types are not supported"),
 
-            ty::TypeVariants::TyDynamic(..) => unsupported!(self, "trait types are not supported"),
+            ty::TypeVariants::TyDynamic(..) => unsupported_pos!(self, pos, "trait types are not supported"),
 
-            ty::TypeVariants::TyClosure(..) => unsupported!(self, "closures are not supported"),
+            ty::TypeVariants::TyClosure(..) => unsupported_pos!(self, pos, "closures are not supported"),
 
-            ty::TypeVariants::TyGenerator(..) => unsupported!(self, "generators are not supported"),
+            ty::TypeVariants::TyGenerator(..) => unsupported_pos!(self, pos, "generators are not supported"),
 
-            ty::TypeVariants::TyGeneratorWitness(..) => unsupported!(self, "types inside generators are not supported"),
+            ty::TypeVariants::TyGeneratorWitness(..) => unsupported_pos!(self, pos, "types inside generators are not supported"),
 
             ty::TypeVariants::TyNever => {}, // OK
 
             ty::TypeVariants::TyTuple(inner_tys) => {
                 for inner_ty in inner_tys {
-                    self.check_inner_ty(inner_ty, position);
+                    self.check_inner_ty(inner_ty, pos);
                 }
             }
 
-            ty::TypeVariants::TyProjection(..) => unsupported!(self, "associated types are not supported"),
+            ty::TypeVariants::TyProjection(..) => unsupported_pos!(self, pos, "associated types are not supported"),
 
-            ty::TypeVariants::TyAnon(..) => unsupported!(self, "anonymized types are not supported"),
+            ty::TypeVariants::TyAnon(..) => unsupported_pos!(self, pos, "anonymized types are not supported"),
 
-            ty::TypeVariants::TyParam(..) => unsupported!(self, "generic type parameters are not supported"),
+            ty::TypeVariants::TyParam(..) => unsupported_pos!(self, pos, "generic type parameters are not supported"),
 
-            ty::TypeVariants::TyInfer(..) => unsupported!(self, "uninferred types are not supported"),
+            ty::TypeVariants::TyInfer(..) => unsupported_pos!(self, pos, "uninferred types are not supported"),
 
-            ty::TypeVariants::TyError => unsupported!(self, "erroneous inferred types are not supported"),
+            ty::TypeVariants::TyError => unsupported_pos!(self, pos, "erroneous inferred types are not supported"),
         }
     }
 
@@ -224,13 +230,13 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
-    fn check_inner_ty(&mut self, ty: ty::Ty<'tcx>, position: &str) {
+    fn check_inner_ty(&mut self, ty: ty::Ty<'tcx>, pos: &str) {
         skip_visited_inner_type_variant!(self, &ty.sty);
 
-        self.check_ty(ty, position);
+        self.check_ty(ty, pos);
 
         match ty.sty {
-            ty::TypeVariants::TyRef(..) => partially!(self, "references inside data structures are partially supported"),
+            ty::TypeVariants::TyRef(..) => partially_pos!(self, pos, "references inside data structures are partially supported"),
 
             _ => {} // OK
         }
@@ -238,7 +244,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
     fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
         let mir = procedure.get_mir();
-        self.check_ty(mir.return_ty(), "mir_output");
+        self.check_ty(mir.return_ty(), "return type");
         requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
         requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
 
@@ -247,9 +253,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             self.check_mir_arg(arg);
         }
 
-        for local_decl in &mir.local_decls {
-            self.check_ty(local_decl.ty, "mir_local");
-        }
+        //for local_decl in &mir.local_decls {
+        //    self.check_ty(local_decl.ty, "local variable");
+        //}
 
         self.support.set_bb_count(mir.basic_blocks().len());
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
@@ -264,7 +270,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn check_mir_arg(&mut self, arg: &mir::LocalDecl<'tcx>) {
-        self.check_ty(arg.ty, "mir_arg");
+        self.check_ty(arg.ty, "argument type");
         match arg.mutability {
             mir::Mutability::Mut => partially!(self, "mutable arguments are partially supported"),
 
@@ -396,7 +402,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         match op {
             Add | Sub | Mul => {}, // OK
             Div | Rem => partially!(self, "division and remainder are problematic"),
-            BitXor | BitAnd | BitOr | Shl | Shr => unsupported!(self, "bit operations are not supported"),
+            BitXor | BitAnd | BitOr => partially!(self, "bit operations are not supported"),
+            Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
             Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
             Offset => unsupported!(self, "offset operation is not supported"),
         }
@@ -459,7 +466,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
     fn check_aggregate(&mut self, kind: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>) {
         match kind {
-            mir::AggregateKind::Array(ty) => self.check_ty(ty, "assign"),
+            mir::AggregateKind::Array(ty) => self.check_ty(ty, "assignment"),
 
             mir::AggregateKind::Tuple => {} // OK
 
@@ -468,7 +475,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     match kind.unpack() {
                         ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
 
-                        ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "assign"),
+                        ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "assignment"),
                     }
                 }
             }

@@ -8,6 +8,7 @@ use rustc::ty::subst::Substs;
 use validators::SupportStatus;
 use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
+use prusti_interface::environment::Procedure;
 
 pub struct PureFunctionValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
@@ -65,8 +66,8 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         self.check_fn_sig(sig.skip_binder());
 
         if self.tcx.hir.as_local_node_id(def_id).is_some() {
-            let mir = self.tcx.mir_validated(def_id).borrow();
-            self.check_mir(&mir);
+            let procedure = Procedure::new(self.tcx, def_id);
+            self.check_mir(&procedure);
         } else {
             partially!(self, "function calls to outer crates are partially supported")
         }
@@ -150,7 +151,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         match ty.sty {
             ty::TypeVariants::TyBool => {} // OK
 
-            ty::TypeVariants::TyChar => unsupported!(self, "`char` types are not supported"),
+            ty::TypeVariants::TyChar => {} // OK
 
             ty::TypeVariants::TyInt(_) => {} // OK
 
@@ -170,9 +171,15 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyStr => partially!(self, "`str` types are ignored"),
 
-            ty::TypeVariants::TyArray(inner_ty, _) => self.check_inner_ty(inner_ty),
+            ty::TypeVariants::TyArray(inner_ty, ..) => {
+                self.check_inner_ty(inner_ty);
+                unsupported!(self, "`array` types are not supported")
+            },
 
-            ty::TypeVariants::TySlice(inner_ty) => self.check_inner_ty(inner_ty),
+            ty::TypeVariants::TySlice(inner_ty, ..) => {
+                self.check_inner_ty(inner_ty);
+                unsupported!(self, "`slice` types are not supported")
+            },
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: inner_ty, .. }) => self.check_inner_ty(inner_ty),
 
@@ -232,18 +239,22 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
     }
 
-    fn check_mir(&mut self, mir: &mir::Mir<'tcx>) {
+    fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
+        let mir = procedure.get_mir();
         self.check_local_ty(mir.return_ty());
         requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
         requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
 
-        for local_decl in &mir.local_decls {
-            self.check_local_ty(local_decl.ty);
-        }
+        //for local_decl in &mir.local_decls {
+        //    self.check_local_ty(local_decl.ty);
+        //}
 
         // TODO: check absence of loops
         // TODO: check only blocks that may lead to a `Return` terminator
-        for basic_block_data in mir.basic_blocks() {
+        for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
+            if !procedure.is_reachable_block(index) {
+                continue;
+            }
             for stmt in &basic_block_data.statements {
                 self.check_mir_stmt(stmt);
             }
@@ -285,8 +296,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             mir::TerminatorKind::SwitchInt { ref discr, .. } => self.check_operand(discr),
 
             mir::TerminatorKind::Resume => {
-                // TODO: unsupported if reachable
-                partially!(self, "`resume` MIR statements are partially supported");
+                unsupported!(self, "reachable `resume` MIR statements are unsupported");
             },
 
             mir::TerminatorKind::Abort => {} // OK

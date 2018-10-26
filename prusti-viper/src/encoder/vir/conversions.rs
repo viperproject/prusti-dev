@@ -192,3 +192,15 @@ impl From<u128> for Const {
         Const::BigInt(val.to_string())
     }
 }
+
+impl<'a> From<&'a str> for Expr {
+    fn from(val: &'a str) -> Self {
+        Expr::Const(val.into())
+    }
+}
+
+impl<'a> From<&'a str> for Const {
+    fn from(val: &'a str) -> Self {
+        Const::BigInt(val.to_string())
+    }
+}

@@ -137,9 +137,9 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         Log::report("config", "prusti", config::dump());
 
         let validator = Validator::new(self.env.tcx());
-        self.encoder.initialize();
 
-        /*
+        info!("Received {} items to verify", task.procedures.len());
+
         for &proc_id in &task.procedures {
             // Do some checks
             let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
@@ -167,10 +167,9 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 } else {
                     format!("verification of procedure '{}' is not supported. Reasons: {}.", proc_name, reasons)
                 };
-                self.env.err(&message);
+                self.env.warn(&message);
             }
         }
-        */
 
         for &proc_id in &task.procedures {
             self.encoder.queue_encoding(proc_id)

@@ -109,3 +109,11 @@ Examples that use borrows:
 +   four_bit_adder – deref implementation.
 +   strip_comments_from_a_string – reborrows a substring (uses closures)
 
+Verify supported functions
+--------------------------
+
+1. Verify all the supported function in a given crate:
+
+   ```bash
+   bash scripts/verify-supported.sh path/to/the/crate
+   ```

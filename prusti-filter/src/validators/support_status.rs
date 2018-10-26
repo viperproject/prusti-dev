@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 #[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+/// The support status, with a short explanation that will be displayed to the user.
 pub enum SupportKind {
     PartiallySupported(String),
     Unsupported(String),
@@ -130,10 +131,10 @@ macro_rules! requires {
 }
 
 #[macro_export]
-macro_rules! unsupportedp {
+macro_rules! unsupported_pos {
     ($self:expr, $position:expr, $reason:expr) => {
         $self.support.unsupported(
-            format!("{} position={}", $reason, $position)
+            format!("{} ({})", $reason, $position)
         );
     };
 }
@@ -149,6 +150,15 @@ macro_rules! unsupported {
     ($self:expr, $reason:expr, $($args:expr),*) => {
         $self.support.unsupported(
             format!($reason, $($args:expr),*)
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! partially_pos {
+    ($self:expr, $position:expr, $reason:expr) => {
+        $self.support.partially(
+            format!("{} ({})", $reason, $position)
         );
     };
 }

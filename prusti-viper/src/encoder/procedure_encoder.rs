@@ -1849,7 +1849,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match self_ty.sty {
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) => {
+            ty::TypeVariants::TyUint(_) |
+            ty::TypeVariants::TyChar => {
                 let field = self.encoder.encode_value_field(self_ty);
                 vec![
                     // Copy value
@@ -1918,7 +1919,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
             ty::TypeVariants::TyRef(_, ty, _) => {
                 // Ensure that we are encoding a move, not a copy (enforced byt the Rust typesystem)
-                assert!(is_move);
+                // Hack: we encode *copy* of shared references as a *move*
+                //assert!(is_move);
                 let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                 vec![
                     // Move the reference to the boxed value
