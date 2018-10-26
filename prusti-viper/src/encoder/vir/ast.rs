@@ -942,7 +942,6 @@ impl fmt::Display for Trigger {
     }
 }
 
-
 pub trait ExprIterator {
     /// Conjoin a sequence of expressions into a single expression.
     /// Returns true if the sequence has no elements.
