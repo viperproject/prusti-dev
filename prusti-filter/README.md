@@ -78,3 +78,12 @@ Not supported examples:
 +   define_a_primitive_data_type – implements many standard traits.
 
 TODO: Checked up to 8'th position in min_size >= 5.
+
+Verify supported functions
+--------------------------
+
+1. Verify all the supported function in a given crate:
+
+   ```bash
+   bash scripts/verify-supported.sh path/to/the/crate
+   ```

@@ -33,7 +33,7 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 	echo "CHECK_PANICS = false"
 	echo "ENABLE_WHITELIST = true"
 	echo "WHITELIST = ["
-	echo "$supported_procedures" | sed 's/$/,/'
+	echo "$supported_procedures" | sed 's/$/,/' | sed '$ s/.$//'
 	echo "]"
 ) > "$CRATE_ROOT/Prusti.toml"
 

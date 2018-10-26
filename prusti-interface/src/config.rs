@@ -20,6 +20,7 @@ lazy_static! {
         settings.set_default("CHECK_UNREACHABLE_TERMINATORS", false).unwrap();
         settings.set_default("ENABLE_WHITELIST", false).unwrap();
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
+        settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -84,4 +85,9 @@ pub fn enable_whitelist() -> bool {
 /// Get the whitelist of procedures that should be verified
 pub fn verification_whitelist() -> Vec<String> {
     SETTINGS.read().unwrap().get::<Vec<String>>("WHITELIST").unwrap()
+}
+
+/// Should we dump borrow-checker info?
+pub fn dump_borrowck_info() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("DUMP_BORROWCK_INFO").unwrap()
 }

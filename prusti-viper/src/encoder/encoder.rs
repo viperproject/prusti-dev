@@ -495,6 +495,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
+            debug!("Encoding {:?}", proc_def_id);
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
             let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
             if is_pure_function {
