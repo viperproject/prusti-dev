@@ -82,8 +82,14 @@ TODO: Checked up to 8'th position in min_size >= 5.
 Verify supported functions
 --------------------------
 
-1. Verify all the supported function in a given crate:
+To verify all the supported procedures in a given crate:
 
-   ```bash
-   bash scripts/verify-supported.sh path/to/the/crate
-   ```
+```bash
+bash scripts/verify-supported.sh path/to/the/crate
+```
+
+Alternativelly, to run the previous script on all the crates previously downloaded:
+
+```bash
+bash scripts/verify-all-supported-crates.sh path/to/the/crate/download/dir
+```

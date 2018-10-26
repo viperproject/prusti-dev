@@ -12,18 +12,17 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 CRATE_ROOT="$(cd "${1:-.}" && pwd)"
 cd "$CRATE_ROOT"
 
-rustup override set nightly-2018-06-27
-
 if [[ ! -r "$CRATE_ROOT/Cargo.toml" ]]; then
 	error "Path '$CRATE_ROOT' does not look like the source of a crate"
 	exit 1
 fi
 
-info "Filter supported procedures"
-
-export RUSTC="$DIR/rustc.sh"
-cargo clean
-cargo build
+if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
+	info "Filter supported procedures"
+	export RUSTC="$DIR/rustc.sh"
+	cargo clean
+	cargo build
+fi
 
 supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/results.json")"
 
