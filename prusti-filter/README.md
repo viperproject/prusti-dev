@@ -52,9 +52,27 @@ Rosetta
     python3 script/analyse-results.py
     ```
 
-Examples we could try to fully verify:
+Examples we could try to verify with some functional spec:
 
++   ackermann-function https://rosettacode.org/wiki/Ackermann_function#Rust
+    **Properties:**
+    +   termination
++   https://rosettacode.org/wiki/fibonacci_sequence#rust
+    **Properties:**
+    +   termination
+    +   equivalence to a pure function
+    **Changes:**
+    +   Wrap types.
+    +   Change the shape of a loop.
 +   TODO
+
+Examples for which we could verify some functional properties, but is
+not worth (because already covered by other examples):
+
++   https://rosettacode.org/wiki/Mutual_recursion#Rust
++   https://rosettacode.org/wiki/Factorial#Rust
++   TODO
+
 
 Examples for which we could verify permissions:
 
@@ -65,13 +83,6 @@ bit-operators, floats, etc.) or features that SMT solvers cannot handle
 well (non-linear arithmetic):
 
 +   TODO
-
-Encodable examples:
-
-+   ackermann-function https://rosettacode.org/wiki/Ackermann_function#Rust
-+   https://rosettacode.org/wiki/Fibonacci_sequence#Rust
-+   https://rosettacode.org/wiki/Mutual_recursion#Rust
-+   https://rosettacode.org/wiki/Factorial#Rust
 
 Patchable(?) examples:
 
