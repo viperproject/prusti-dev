@@ -713,11 +713,17 @@ impl<'tcx> SpecParser<'tcx> {
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
 
-        // Early return if there is no specification
-        //if spec_set.is_empty() {
+        // Early return
+        // if spec_set.is_empty() {
         //    trace!("[rewrite_fn_item] exit");
-        //    return vec![item].inot();
+        //    return SmallVector::from_iter(vec![ptr::P(item)]);
         //}
+        if let ast::ItemKind::Fn(_, fn_header, ..) = item.node {
+            if is_unsafe(fn_header) {
+                trace!("[rewrite_fn_item] exit");
+                return SmallVector::from_iter(vec![ptr::P(item)]);
+            }
+        }
 
         // Register specification
         let id = self.register_specification(spec_set);
@@ -780,8 +786,14 @@ impl<'tcx> SpecParser<'tcx> {
         // Early return if there is no specification
         //if spec_set.is_empty() {
         //    trace!("[rewrite_impl_item_method] exit");
-        //    return vec![impl_item].inot();
+        //    return SmallVector::from_iter(vec![impl_item]);
         //}
+        if let ast::ImplItemKind::Method(ast::MethodSig { header, ..}, ..) = impl_item.node {
+            if is_unsafe(header) {
+                trace!("[rewrite_impl_item_method] exit");
+                return SmallVector::from_iter(vec![impl_item]);
+            }
+        }
 
         // Register specification
         let id = self.register_specification(spec_set);
@@ -844,8 +856,14 @@ impl<'tcx> SpecParser<'tcx> {
         // Early return if there is no specification
         //if spec_set.is_empty() {
         //    trace!("[rewrite_trait_item_method] exit");
-        //    return vec![trait_item].inot();
+        //    return SmallVector::from_iter(vec![trait_item]);
         //}
+        if let ast::TraitItemKind::Method(ast::MethodSig { header, ..}, ..) = trait_item.node {
+            if is_unsafe(header) {
+                trace!("[rewrite_trait_item_method] exit");
+                return SmallVector::from_iter(vec![trait_item]);
+            }
+        }
 
         // Register specification
         let id = self.register_specification(spec_set);
@@ -1434,4 +1452,11 @@ fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
     let lo = span.lo() + syntax::codemap::BytePos(offset);
     let hi = lo + syntax::codemap::BytePos(length);
     Span::new(lo, hi, span.ctxt())
+}
+
+fn is_unsafe(fn_header: ast::FnHeader) -> bool {
+    match fn_header.unsafety {
+        ast::Unsafety::Unsafe => true,
+        ast::Unsafety::Normal => false,
+    }
 }

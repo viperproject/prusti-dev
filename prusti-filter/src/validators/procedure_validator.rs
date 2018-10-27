@@ -220,7 +220,6 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
-
     fn check_ty_adt(&mut self, adt_def: &ty::AdtDef, substs: &Substs<'tcx>) {
         requires!(self, !adt_def.is_union(), "union types are not supported");
 
@@ -355,8 +354,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         self.check_place(place);
                     }
                     requires!(
-                        self,
-                        self.tcx.hir.as_local_node_id(def_id).is_some(),
+                        self, self.tcx.hir.as_local_node_id(def_id).is_some(),
                         "calling functions from an external crate is not supported"
                     );
                 } else {

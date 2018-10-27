@@ -334,8 +334,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                         self.check_place(place);
                     }
                     requires!(
-                        self,
-                        self.tcx.hir.as_local_node_id(def_id).is_some(),
+                        self, self.tcx.hir.as_local_node_id(def_id).is_some(),
                         "calling functions from an external crate is not supported"
                     );
                 } else {
