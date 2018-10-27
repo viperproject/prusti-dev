@@ -38,6 +38,7 @@
 #![feature(plugin_registrar)]
 #![feature(quote)]
 #![feature(box_syntax)]
+#![feature(box_patterns)]
 #![feature(rustc_private)]
 #![feature(macro_vis_matcher)]
 #![feature(try_from)]

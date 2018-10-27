@@ -395,8 +395,13 @@ impl<'tcx> SpecParser<'tcx> {
                     ast::TyKind::Tup(Vec::new())
                 );
                 let return_type = match decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => return_type,
-                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                    ast::FunctionRetTy::Ty(ret_ty) => {
+                        match ret_ty.node {
+                            ast::TyKind::Never => unit_type.clone(),
+                            _ => ret_ty,
+                        }
+                    }
+                    ast::FunctionRetTy::Default(_) => unit_type.clone(),
                 };
                 let mut inputs_with_result: Vec<ast::Arg> = decl.inputs.clone();
                 inputs_with_result.push(
@@ -473,8 +478,13 @@ impl<'tcx> SpecParser<'tcx> {
                     ast::TyKind::Tup(Vec::new())
                 );
                 let return_type = match sig.decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => return_type,
-                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                    ast::FunctionRetTy::Ty(ret_ty) => {
+                        match ret_ty.node {
+                            ast::TyKind::Never => unit_type.clone(),
+                            _ => ret_ty,
+                        }
+                    }
+                    ast::FunctionRetTy::Default(_) => unit_type.clone(),
                 };
                 let mut inputs_with_result: Vec<ast::Arg> = sig.decl.inputs.clone();
                 inputs_with_result.push(
@@ -548,8 +558,13 @@ impl<'tcx> SpecParser<'tcx> {
                     ast::TyKind::Tup(Vec::new())
                 );
                 let return_type = match sig.decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => return_type,
-                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                    ast::FunctionRetTy::Ty(ret_ty) => {
+                        match ret_ty.node {
+                            ast::TyKind::Never => unit_type.clone(),
+                            _ => ret_ty,
+                        }
+                    }
+                    ast::FunctionRetTy::Default(_) => unit_type.clone(),
                 };
                 let mut inputs_with_result: Vec<ast::Arg> = sig.decl.inputs.clone();
                 inputs_with_result.push(
