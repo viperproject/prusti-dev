@@ -259,7 +259,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
         self.support.set_bb_count(mir.basic_blocks().len());
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
-            if !procedure.is_reachable_block(index) {
+            if !procedure.is_reachable_block(index) || procedure.is_spec_block(index) {
                 continue;
             }
             for stmt in &basic_block_data.statements {

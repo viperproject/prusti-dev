@@ -252,7 +252,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         // TODO: check absence of loops
         // TODO: check only blocks that may lead to a `Return` terminator
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
-            if !procedure.is_reachable_block(index) {
+            if !procedure.is_reachable_block(index) || procedure.is_spec_block(index) {
                 continue;
             }
             for stmt in &basic_block_data.statements {

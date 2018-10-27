@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="$(basename -s '.sh' "$0")"
 
 # Get the folder in which all the crates has been downloaded
 CRATE_DOWNLOAD_DIR="$(cd "${1:-.}" && pwd)"
@@ -18,7 +18,7 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 fi
 
 for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
-	log_file="$CRATE_DOWNLOAD_DIR/$SCRIPT_NAME.log"
+	log_file="${crate}${SCRIPT_NAME}.log"
 	crate_source_dir="${crate}source"
 	(
 		echo "Verify '$crate' ($(date))"
