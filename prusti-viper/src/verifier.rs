@@ -138,7 +138,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
         let validator = Validator::new(self.env.tcx());
 
-        info!("Received {} items to verify", task.procedures.len());
+        info!("Received {} items to be verified", task.procedures.len());
 
         for &proc_id in &task.procedures {
             // Do some checks

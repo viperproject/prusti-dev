@@ -1266,9 +1266,11 @@ impl<'tcx> Folder for SpecParser<'tcx> {
     fn fold_item_kind(&mut self, item_kind: ast::ItemKind) -> ast::ItemKind {
         trace!("[fold_item_kind] enter");
         let result = match item_kind {
-            ast::ItemKind::Fn(..) |
-            ast::ItemKind::Impl(_, _, _, _, None, _, _) => fold::noop_fold_item_kind(item_kind, self),
-            _ => item_kind,
+            // TODO: Temporarly skip trait methods. We need to fix type-checking for them.
+            ast::ItemKind::Trait(..) |
+            ast::ItemKind::Impl(_, _, _, _, Some(_), _, _) => item_kind,
+            // Fold everything else
+            _ => fold::noop_fold_item_kind(item_kind, self),
         };
         trace!("[fold_item_kind] exit");
         result
