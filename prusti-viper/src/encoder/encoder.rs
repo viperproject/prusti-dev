@@ -156,18 +156,17 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         debug!("Collecting closure instantiations...");
         let tcx = self.env().tcx();
         let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
-        let mut def_ids_to_analyze = vec![];
-        def_ids_to_analyze.extend(
-            self.encoding_queue.borrow().iter().cloned()
-        );
         let crate_num = hir::def_id::LOCAL_CRATE;
-        def_ids_to_analyze.extend(
-            tcx.mir_keys(crate_num).iter().cloned().filter(
-                // Hack: here we should use a more reliable filter
-                |&def_id| self.env().get_item_name(def_id).ends_with("__spec")
-            )
-        );
-        for mir_def_id in def_ids_to_analyze.into_iter() {
+        for &mir_def_id in tcx.mir_keys(crate_num).iter() {
+            if !(
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_LOOP_SPEC_ID") ||
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_EXPR_ID") ||
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_FORALL_ID") ||
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_SPEC_ONLY") ||
+                self.env().has_attribute_name(mir_def_id, PRUSTI_SPEC_ATTR)
+            ) {
+                continue;
+            }
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
             let mir = tcx.mir_validated(mir_def_id).borrow();
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
