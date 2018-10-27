@@ -32,6 +32,7 @@ use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use std::mem;
 use prusti_interface::environment::Procedure;
 use std::io::Write;
+use rustc::mir::interpret::GlobalId;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -395,7 +396,23 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ConstVal::Value(ref value) => {
                 value.to_scalar().unwrap()
             },
-            x => unimplemented!("{:?}", x)
+            ConstVal::Unevaluated(def_id, substs) => {
+                let tcx = self.env().tcx();
+                let param_env = tcx.param_env(def_id);
+                let cid = GlobalId {
+                    instance: ty::Instance::new(def_id, substs),
+                    promoted: None
+                };
+                if let Ok(const_value) = tcx.const_eval(param_env.and(cid)) {
+                    if let ConstVal::Value(ref value) = const_value.val {
+                        value.to_scalar().unwrap()
+                    } else {
+                        unreachable!()
+                    }
+                } else {
+                    panic!("Constant evaluation of {:?} failed", value.val)
+                }
+            }
         };
 
         let usize_bits = mem::size_of::<usize>() * 8;
