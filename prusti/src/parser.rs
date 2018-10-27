@@ -699,7 +699,7 @@ impl<'tcx> SpecParser<'tcx> {
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
         let id = self.register_specification(spec_set);
-        let spec_item = self.generate_spec_item(&item, id, &preconditions, &postconditions);
+        let mut spec_item = self.generate_spec_item(&item, id, &preconditions, &postconditions);
         let node = item.node;
         item.node = self.fold_item_kind(node);
         let mut new_attrs: Vec<_> = item.attrs.iter().cloned().filter(
@@ -709,6 +709,9 @@ impl<'tcx> SpecParser<'tcx> {
                 !attr.check_name("requires") &&
                 !attr.check_name("ensures")
         ).collect();
+        spec_item.attrs.extend(
+            new_attrs.clone()
+        );
         new_attrs.push(
             self.ast_builder
                 .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
@@ -761,7 +764,7 @@ impl<'tcx> SpecParser<'tcx> {
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
         let id = self.register_specification(spec_set);
-        let spec_item = self.generate_spec_impl_item(&impl_item, id, &preconditions, &postconditions);
+        let mut spec_item = self.generate_spec_impl_item(&impl_item, id, &preconditions, &postconditions);
         let mut new_attrs: Vec<_> = impl_item.attrs.iter().cloned().filter(
             |attr| !attr.check_name("trusted") &&
                 !attr.check_name("pure") &&
@@ -769,6 +772,9 @@ impl<'tcx> SpecParser<'tcx> {
                 !attr.check_name("requires") &&
                 !attr.check_name("ensures")
         ).collect();
+        spec_item.attrs.extend(
+            new_attrs.clone()
+        );
         new_attrs.push(
             self.ast_builder
                 .attribute_name_value(impl_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
@@ -821,7 +827,7 @@ impl<'tcx> SpecParser<'tcx> {
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
         let id = self.register_specification(spec_set);
-        let spec_item = self.generate_spec_trait_item(&trait_item, id, &preconditions, &postconditions);
+        let mut spec_item = self.generate_spec_trait_item(&trait_item, id, &preconditions, &postconditions);
         let mut new_attrs: Vec<_> = trait_item.attrs.iter().cloned().filter(
             |attr| !attr.check_name("trusted") &&
                 !attr.check_name("pure") &&
@@ -829,6 +835,9 @@ impl<'tcx> SpecParser<'tcx> {
                 !attr.check_name("requires") &&
                 !attr.check_name("ensures")
         ).collect();
+        spec_item.attrs.extend(
+            new_attrs.clone()
+        );
         // Skip body-less trait methods
         match trait_item.node {
             ast::TraitItemKind::Method(_, Some(_)) => {
