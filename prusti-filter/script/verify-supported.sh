@@ -17,10 +17,17 @@ if [[ ! -r "$CRATE_ROOT/Cargo.toml" ]]; then
 	exit 1
 fi
 
+cargoclean() {
+	names="$(cargo metadata --format-version 1 | jq -r '.packages[].targets[] | select( .kind | map(. == "bin" or . == "lib") | any ) | select ( .src_path | contains(".cargo/registry") | . != true ) | .name')"
+	for name in $names; do
+		cargo clean -p "$name"
+	done
+}
+
 if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
 	info "Filter supported procedures"
 	export RUSTC="$DIR/rustc.sh"
-	cargo clean
+	cargoclean
 	cargo build
 fi
 
@@ -40,5 +47,5 @@ info "Start verification"
 
 export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
-cargo clean
+cargoclean
 cargo build --verbose
