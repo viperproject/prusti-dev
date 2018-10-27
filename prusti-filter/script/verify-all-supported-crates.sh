@@ -24,5 +24,5 @@ for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
 		echo "Verify '$crate' ($(date))"
 		timeout 1800 "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
 		echo "Prusti exit code: $?"
-	) | tee -a "$log_file" || true
+	) | tee "$log_file" || true
 done
