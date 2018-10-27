@@ -223,7 +223,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     );
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
-                        assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
+                        //assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let mut variant_perms: Vec<vir::Expr> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
