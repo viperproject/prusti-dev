@@ -144,7 +144,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             0
                         });
                         let tcx = self.encoder.env().tcx();
-                        //assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
                         let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                         let field_ty = field.ty(tcx, subst);

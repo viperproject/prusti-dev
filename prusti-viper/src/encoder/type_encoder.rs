@@ -209,21 +209,21 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         )
                     );
                     // 0 <= self.discriminant <= num_variants - 1
-                    perms.push(
-                        vir::Expr::and(
-                            vir::Expr::le_cmp(
-                                0.into(),
-                                discriminan_loc.clone().into()
-                            ),
-                            vir::Expr::le_cmp(
+                    let mut possible_discr_values = vec![];
+                    for (variant_index, _) in adt_def.variants.iter().enumerate() {
+                        let discr_value = adt_def.discriminant_for_variant(tcx, variant_index).val;
+                        possible_discr_values.push(
+                            vir::Expr::eq_cmp(
                                 discriminan_loc.clone().into(),
-                                (num_variants - 1).into()
+                                discr_value.into()
                             )
-                        )
+                        );
+                    }
+                    perms.push(
+                        possible_discr_values.into_iter().disjoin()
                     );
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
-                        //assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let mut variant_perms: Vec<vir::Expr> = vec![];
                         for field in &variant_def.fields {
                             debug!("Encoding field {:?}", field);
