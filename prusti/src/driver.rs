@@ -31,7 +31,7 @@ use syntax::ast;
 use syntax::feature_gate::AttributeType;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use driver_utils::run;
-
+use prusti_interface::config;
 
 struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -174,9 +174,12 @@ pub fn main() {
     args.push("-Zpolonius".to_owned());
     args.push("-Znll-facts".to_owned());
     args.push("-Zidentify-regions".to_owned());
-    args.push("-Zdump-mir=all".to_owned());
     args.push("-Zdump-mir-dir=log/mir/".to_owned());
-    args.push("-Zdump-mir-graphviz".to_owned());
+    args.push("-Zdump-mir=renumber".to_owned());
+    if config::dump_debug_info() {
+        args.push("-Zdump-mir=all".to_owned());
+        args.push("-Zdump-mir-graphviz".to_owned());
+    }
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
     trace!("[main] exit");

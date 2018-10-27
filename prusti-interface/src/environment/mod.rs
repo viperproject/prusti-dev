@@ -152,7 +152,7 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     ///
     /// Mostly used for experiments and debugging.
     pub fn dump_borrowck_info(&self) {
-        if config::dump_borrowck_info() {
+        if config::dump_debug_info() {
             dump_borrowck_info::dump_borrowck_info(self.tcx())
         }
     }

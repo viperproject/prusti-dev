@@ -47,6 +47,7 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 
 info "Start verification"
 
+rm -rf log/ nll-facts/
 export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
