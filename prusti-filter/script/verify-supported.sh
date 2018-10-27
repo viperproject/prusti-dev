@@ -31,6 +31,8 @@ if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
 	export RUST_BACKTRACE=1
 	cargoclean
 	cargo build
+	unset RUSTC
+	unset RUST_BACKTRACE
 fi
 
 supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/results.json")"
@@ -45,6 +47,15 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 	echo "]"
 ) > "$CRATE_ROOT/Prusti.toml"
 
+info "Try standard compilation"
+cargoclean
+cargo build
+exit_status="$?"
+if [[ "$exit_status" != "0" ]]; then
+	info "The crate does not compile. Skip verification."
+	exit 42
+fi
+
 info "Start verification"
 
 rm -rf log/ nll-facts/
@@ -52,4 +63,4 @@ export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
-cargo build --verbose
+cargo build
