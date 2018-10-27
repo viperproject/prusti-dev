@@ -563,6 +563,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     ref rhs => {
+                        // TODO: 'move _12 as *mut libc::timespec (Misc)' - crate `018_time`
                         unimplemented!("encoding of '{:?}'", rhs);
                     }
                 }

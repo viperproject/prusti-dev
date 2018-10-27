@@ -21,12 +21,14 @@ cargoclean() {
 	# Clean the artifacts of this project ("bin" or "lib"), but not those of the dependencies
 	names="$(cargo metadata --format-version 1 | jq -r '.packages[].targets[] | select( .kind | map(. == "bin" or . == "lib") | any ) | select ( .src_path | contains(".cargo/registry") | . != true ) | .name')"
 	for name in $names; do
-		cargo clean -p "$name"
+		cargo clean -p "$name" || cargo clean
 	done
 }
 
 info "Run standard compilation"
-cargo build
+(
+	cargo build
+)
 exit_status="$?"
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile. Skip verification."
