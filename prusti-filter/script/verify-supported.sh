@@ -25,6 +25,14 @@ cargoclean() {
 	done
 }
 
+info "Run standard compilation"
+cargo build
+exit_status="$?"
+if [[ "$exit_status" != "0" ]]; then
+	info "The crate does not compile. Skip verification."
+	exit 42
+fi
+
 if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
 	info "Filter supported procedures"
 	export RUSTC="$DIR/rustc.sh"
@@ -46,15 +54,6 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 	echo "$supported_procedures" | sed 's/$/,/' | sed '$ s/.$//'
 	echo "]"
 ) > "$CRATE_ROOT/Prusti.toml"
-
-#info "Try standard compilation"
-#cargoclean
-#cargo build
-#exit_status="$?"
-#if [[ "$exit_status" != "0" ]]; then
-#	info "The crate does not compile. Skip verification."
-#	exit 42
-#fi
 
 info "Start verification"
 
