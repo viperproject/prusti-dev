@@ -47,14 +47,14 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 	echo "]"
 ) > "$CRATE_ROOT/Prusti.toml"
 
-info "Try standard compilation"
-cargoclean
-cargo build
-exit_status="$?"
-if [[ "$exit_status" != "0" ]]; then
-	info "The crate does not compile. Skip verification."
-	exit 42
-fi
+#info "Try standard compilation"
+#cargoclean
+#cargo build
+#exit_status="$?"
+#if [[ "$exit_status" != "0" ]]; then
+#	info "The crate does not compile. Skip verification."
+#	exit 42
+#fi
 
 info "Start verification"
 
