@@ -724,7 +724,8 @@ impl<'tcx> SpecParser<'tcx> {
                     !attr.check_name("pure") &&
                     !attr.check_name("invariant") &&
                     !attr.check_name("requires") &&
-                    !attr.check_name("ensures")
+                    !attr.check_name("ensures") &&
+                    !attr.check_name(PRUSTI_SPEC_ATTR)
             )
         );
 
@@ -787,7 +788,8 @@ impl<'tcx> SpecParser<'tcx> {
                     !attr.check_name("pure") &&
                     !attr.check_name("invariant") &&
                     !attr.check_name("requires") &&
-                    !attr.check_name("ensures")
+                    !attr.check_name("ensures") &&
+                    !attr.check_name(PRUSTI_SPEC_ATTR)
             )
         );
 
@@ -857,7 +859,8 @@ impl<'tcx> SpecParser<'tcx> {
                     !attr.check_name("pure") &&
                     !attr.check_name("invariant") &&
                     !attr.check_name("requires") &&
-                    !attr.check_name("ensures")
+                    !attr.check_name("ensures") &&
+                    !attr.check_name(PRUSTI_SPEC_ATTR)
             )
         );
 
