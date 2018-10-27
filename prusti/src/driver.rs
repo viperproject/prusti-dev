@@ -132,6 +132,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let untyped_specifications = prusti::parser::rewrite_crate(state);
             put_specifications.set(Some(untyped_specifications));
 
+            info!("Parsing of annotations successful");
+
             trace!("[after_parse.callback] exit");
             old(state);
         });
@@ -142,6 +144,9 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let typed_specifications =
                 prusti::typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
+
+            info!("Type-checking of annotations successful");
+
             // Call the verifier
             if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {
                 prusti::verifier::verify(state, typed_specifications);
