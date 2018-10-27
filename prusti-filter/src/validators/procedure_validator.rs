@@ -339,7 +339,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
-                                    sty: ty::TyFnDef(_, ..),
+                                    sty: ty::TyFnDef(def_id, ..),
                                     ..
                                 },
                                 ..
@@ -354,6 +354,11 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     if let Some((ref place, _)) = destination {
                         self.check_place(place);
                     }
+                    requires!(
+                        self,
+                        self.tcx.hir.as_local_node_id(def_id).is_some(),
+                        "calling functions from an external crate is not supported"
+                    );
                 } else {
                     unsupported!(self, "non explicit function calls are not supported");
                 }
