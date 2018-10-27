@@ -659,10 +659,18 @@ impl<'tcx> SpecParser<'tcx> {
             }
             _ => unreachable!(),
         };
-        expr.attrs = vec![
+        let mut new_attrs: Vec<_> = expr.attrs.iter().cloned().filter(
+            |attr| !attr.check_name("trusted") &&
+                !attr.check_name("pure") &&
+                !attr.check_name("invariant") &&
+                !attr.check_name("requires") &&
+                !attr.check_name("ensures")
+        ).collect();
+        new_attrs.push(
             self.ast_builder
                 .attribute_name_value(expr.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        ].into();
+        );
+        expr.attrs = new_attrs.into();
 
         trace!("[rewrite_loop] exit");
         ptr::P(expr)
@@ -694,10 +702,18 @@ impl<'tcx> SpecParser<'tcx> {
         let spec_item = self.generate_spec_item(&item, id, &preconditions, &postconditions);
         let node = item.node;
         item.node = self.fold_item_kind(node);
-        item.attrs = vec![
+        let mut new_attrs: Vec<_> = item.attrs.iter().cloned().filter(
+            |attr| !attr.check_name("trusted") &&
+                !attr.check_name("pure") &&
+                !attr.check_name("invariant") &&
+                !attr.check_name("requires") &&
+                !attr.check_name("ensures")
+        ).collect();
+        new_attrs.push(
             self.ast_builder
                 .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        ];
+        );
+        item.attrs = new_attrs;
         if is_pure_function {
             item.attrs.push(
                 self.ast_builder.attribute_word(item.span, "pure")
@@ -746,10 +762,18 @@ impl<'tcx> SpecParser<'tcx> {
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
         let id = self.register_specification(spec_set);
         let spec_item = self.generate_spec_impl_item(&impl_item, id, &preconditions, &postconditions);
-        impl_item.attrs = vec![
+        let mut new_attrs: Vec<_> = impl_item.attrs.iter().cloned().filter(
+            |attr| !attr.check_name("trusted") &&
+                !attr.check_name("pure") &&
+                !attr.check_name("invariant") &&
+                !attr.check_name("requires") &&
+                !attr.check_name("ensures")
+        ).collect();
+        new_attrs.push(
             self.ast_builder
                 .attribute_name_value(impl_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        ];
+        );
+        impl_item.attrs = new_attrs;
         if is_pure_function {
             impl_item.attrs.push(
                 self.ast_builder.attribute_word(impl_item.span, "pure")
@@ -798,12 +822,17 @@ impl<'tcx> SpecParser<'tcx> {
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
         let id = self.register_specification(spec_set);
         let spec_item = self.generate_spec_trait_item(&trait_item, id, &preconditions, &postconditions);
-        trait_item.attrs = vec![];
-
+        let mut new_attrs: Vec<_> = trait_item.attrs.iter().cloned().filter(
+            |attr| !attr.check_name("trusted") &&
+                !attr.check_name("pure") &&
+                !attr.check_name("invariant") &&
+                !attr.check_name("requires") &&
+                !attr.check_name("ensures")
+        ).collect();
         // Skip body-less trait methods
         match trait_item.node {
             ast::TraitItemKind::Method(_, Some(_)) => {
-                trait_item.attrs.push(
+                new_attrs.push(
                     self.ast_builder
                         .attribute_name_value(trait_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
                 );
@@ -813,6 +842,7 @@ impl<'tcx> SpecParser<'tcx> {
 
             _ => unreachable!(),
         }
+        trait_item.attrs = new_attrs;
 
         if is_pure_function {
             trait_item.attrs.push(
