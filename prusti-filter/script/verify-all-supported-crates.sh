@@ -20,9 +20,20 @@ fi
 for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
 	log_file="${crate}${SCRIPT_NAME}.log"
 	crate_source_dir="${crate}source"
+	crate_name="$(basename "$crate")"
 	(
-		echo "Verify '$crate' ($(date))"
+		echo ""
+		echo "===== Verify crate '$crate_name' ($(date)) ====="
+		echo ""
+		SECONDS=0
 		timeout 1800 "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
-		echo "Prusti exit code: $?"
+		exit_status="$?"
+		duration="$SECONDS"
+		whitelist_items="$(grep '"' "$crate_source_dir/Prusti.toml" | wc -l)"
+		echo "Exit status: $exit_status"
+		echo "Duration: $duration seconds"
+		echo "Items in whitelist: $whitelist_items"
+		echo ""
+		echo "Summary for crate '$crate_name': $whitelist_items items, exit status $exit_status, $duration seconds"
 	) | tee "$log_file" || true
 done
