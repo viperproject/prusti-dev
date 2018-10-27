@@ -5,9 +5,9 @@ struct S {
 }
 
 impl From<i32> for S {
-    #[requires="true"]
-    #[ensures="false"]
-    fn from(f: i32) -> S { //~ ERROR
+    #[requires="f == 123"]
+    #[ensures="result.f == 123"]
+    fn from(f: i32) -> S {
         S { f }
     }
 }

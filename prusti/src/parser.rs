@@ -713,24 +713,24 @@ impl<'tcx> SpecParser<'tcx> {
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
 
-        // Early return
-        // if spec_set.is_empty() {
-        //    trace!("[rewrite_fn_item] exit");
-        //    return SmallVector::from_iter(vec![ptr::P(item)]);
-        //}
+        // Register specification
+        let id = self.register_specification(spec_set.clone());
+        item.attrs.push(
+            self.ast_builder
+                .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
+        );
+
+        // Early returns
+        if spec_set.is_empty() {
+            trace!("[rewrite_fn_item] exit");
+            return SmallVector::from_iter(vec![ptr::P(item)]);
+        }
         if let ast::ItemKind::Fn(_, fn_header, ..) = item.node {
             if is_unsafe(fn_header) {
                 trace!("[rewrite_fn_item] exit");
                 return SmallVector::from_iter(vec![ptr::P(item)]);
             }
         }
-
-        // Register specification
-        let id = self.register_specification(spec_set);
-        item.attrs.push(
-            self.ast_builder
-                .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        );
 
         // Dump modified item
         let new_item_str = syntax::print::pprust::item_to_string(&item);
@@ -783,24 +783,24 @@ impl<'tcx> SpecParser<'tcx> {
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
 
-        // Early return if there is no specification
-        //if spec_set.is_empty() {
-        //    trace!("[rewrite_impl_item_method] exit");
-        //    return SmallVector::from_iter(vec![impl_item]);
-        //}
+        // Register specification
+        let id = self.register_specification(spec_set.clone());
+        impl_item.attrs.push(
+            self.ast_builder
+                .attribute_name_value(impl_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
+        );
+
+        // Early returns
+        if spec_set.is_empty() {
+            trace!("[rewrite_impl_item_method] exit");
+            return SmallVector::from_iter(vec![impl_item]);
+        }
         if let ast::ImplItemKind::Method(ast::MethodSig { header, ..}, ..) = impl_item.node {
             if is_unsafe(header) {
                 trace!("[rewrite_impl_item_method] exit");
                 return SmallVector::from_iter(vec![impl_item]);
             }
         }
-
-        // Register specification
-        let id = self.register_specification(spec_set);
-        impl_item.attrs.push(
-            self.ast_builder
-                .attribute_name_value(impl_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        );
 
         // Dump modified item
         let new_item_str = syntax::print::pprust::impl_item_to_string(&impl_item);
@@ -853,20 +853,8 @@ impl<'tcx> SpecParser<'tcx> {
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
 
-        // Early return if there is no specification
-        //if spec_set.is_empty() {
-        //    trace!("[rewrite_trait_item_method] exit");
-        //    return SmallVector::from_iter(vec![trait_item]);
-        //}
-        if let ast::TraitItemKind::Method(ast::MethodSig { header, ..}, ..) = trait_item.node {
-            if is_unsafe(header) {
-                trace!("[rewrite_trait_item_method] exit");
-                return SmallVector::from_iter(vec![trait_item]);
-            }
-        }
-
         // Register specification
-        let id = self.register_specification(spec_set);
+        let id = self.register_specification(spec_set.clone());
         match trait_item.node {
             ast::TraitItemKind::Method(_, Some(_)) => {
                 trait_item.attrs.push(
@@ -877,6 +865,18 @@ impl<'tcx> SpecParser<'tcx> {
             // Skip body-less trait methods
             ast::TraitItemKind::Method(_, None) => {} // OK
             _ => unreachable!(),
+        }
+
+        // Early returns
+        if spec_set.is_empty() {
+            trace!("[rewrite_trait_item_method] exit");
+            return SmallVector::from_iter(vec![trait_item]);
+        }
+        if let ast::TraitItemKind::Method(ast::MethodSig { header, ..}, ..) = trait_item.node {
+            if is_unsafe(header) {
+                trace!("[rewrite_trait_item_method] exit");
+                return SmallVector::from_iter(vec![trait_item]);
+            }
         }
 
         // Dump modified item
