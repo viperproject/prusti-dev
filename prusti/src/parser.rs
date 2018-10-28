@@ -700,7 +700,7 @@ impl<'tcx> SpecParser<'tcx> {
         let specs = self.parse_specs(item.attrs.clone());
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(item.span, "invariant not allowed for procedure");
-            return SmallVector::new();
+            return SmallVector::one(ptr::P(item));
         }
         let preconditions: Vec<_> = specs
             .clone()
@@ -723,12 +723,12 @@ impl<'tcx> SpecParser<'tcx> {
         // Early returns
         if spec_set.is_empty() {
             trace!("[rewrite_fn_item] exit");
-            return SmallVector::from_iter(vec![ptr::P(item)]);
+            return SmallVector::one(ptr::P(item));
         }
         if let ast::ItemKind::Fn(_, fn_header, ..) = item.node {
             if is_unsafe(fn_header) {
                 trace!("[rewrite_fn_item] exit");
-                return SmallVector::from_iter(vec![ptr::P(item)]);
+                return SmallVector::one(ptr::P(item));
             }
         }
 
@@ -763,14 +763,14 @@ impl<'tcx> SpecParser<'tcx> {
         result
     }
 
-    fn rewrite_impl_item_method(&mut self, mut impl_item: ast::ImplItem) -> SmallVector<ast::ImplItem> {
+    fn rewrite_impl_item_method(&mut self, mut impl_item: ast::ImplItem) -> (SmallVector<ast::ImplItem>, SmallVector<ast::ImplItem>) {
         trace!("[rewrite_impl_item_method] enter");
 
         // Parse specification
         let specs = self.parse_specs(impl_item.attrs.clone());
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(impl_item.span, "invariant not allowed for procedure");
-            return SmallVector::new();
+            return (SmallVector::one(impl_item), SmallVector::new());
         }
         let preconditions: Vec<_> = specs
             .clone()
@@ -793,12 +793,12 @@ impl<'tcx> SpecParser<'tcx> {
         // Early returns
         if spec_set.is_empty() {
             trace!("[rewrite_impl_item_method] exit");
-            return SmallVector::from_iter(vec![impl_item]);
+            return (SmallVector::one(impl_item), SmallVector::new());
         }
         if let ast::ImplItemKind::Method(ast::MethodSig { header, ..}, ..) = impl_item.node {
             if is_unsafe(header) {
                 trace!("[rewrite_impl_item_method] exit");
-                return SmallVector::from_iter(vec![impl_item]);
+                return (SmallVector::one(impl_item), SmallVector::new());
             }
         }
 
@@ -827,10 +827,10 @@ impl<'tcx> SpecParser<'tcx> {
 
         // Return small vector
         trace!("[rewrite_impl_item_method] exit");
-        let mut result = SmallVector::new();
-        result.push(impl_item);
-        result.push(spec_item);
-        result
+        (
+            SmallVector::one(impl_item),
+            SmallVector::one(spec_item)
+        )
     }
 
     fn rewrite_trait_item_method(&mut self, mut trait_item: ast::TraitItem) -> SmallVector<ast::TraitItem> {
@@ -840,7 +840,7 @@ impl<'tcx> SpecParser<'tcx> {
         let specs = self.parse_specs(trait_item.attrs.clone());
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(trait_item.span, "invariant not allowed for procedure");
-            return SmallVector::new();
+            return SmallVector::one(trait_item);
         }
         let preconditions: Vec<_> = specs
             .clone()
@@ -870,12 +870,12 @@ impl<'tcx> SpecParser<'tcx> {
         // Early returns
         if spec_set.is_empty() {
             trace!("[rewrite_trait_item_method] exit");
-            return SmallVector::from_iter(vec![trait_item]);
+            return SmallVector::one(trait_item);
         }
         if let ast::TraitItemKind::Method(ast::MethodSig { header, ..}, ..) = trait_item.node {
             if is_unsafe(header) {
                 trace!("[rewrite_trait_item_method] exit");
-                return SmallVector::from_iter(vec![trait_item]);
+                return SmallVector::one(trait_item);
             }
         }
 
@@ -1334,55 +1334,104 @@ impl<'tcx> SpecParser<'tcx> {
 }
 
 impl<'tcx> Folder for SpecParser<'tcx> {
-    fn fold_item_kind(&mut self, item_kind: ast::ItemKind) -> ast::ItemKind {
-        trace!("[fold_item_kind] enter");
-        let result = match item_kind {
-            // TODO: Temporarly skip trait methods. We need to fix type-checking for them.
-            ast::ItemKind::Trait(..) |
-            ast::ItemKind::Impl(_, _, _, _, Some(_), _, _) => item_kind,
-            // Fold everything else
-            _ => fold::noop_fold_item_kind(item_kind, self),
-        };
-        trace!("[fold_item_kind] exit");
-        result
-    }
-
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = fold::noop_fold_item(item, self).into_iter().flat_map(
-            |new_item|
-                match new_item.node {
-                    ast::ItemKind::Fn(..) => self.rewrite_fn_item(new_item),
-                    _ => SmallVector::from_iter(vec![new_item]),
+            |item|
+                match item.node.clone() {
+                    // Top-level functions
+                    ast::ItemKind::Fn(..) => self.rewrite_fn_item(item),
+
+                    // Impl methods
+                    ast::ItemKind::Impl(unsafety, polarity, defaultness, generics, ifce, ty, impl_items) => {
+                        let mut new_code_items = vec![];
+                        let mut new_spec_items = vec![];
+
+                        for impl_item in impl_items.into_iter() {
+                            match impl_item.node {
+                                ast::ImplItemKind::Method(..) => {
+                                    let (code_items, spec_items) = self.rewrite_impl_item_method(impl_item);
+                                    new_code_items.extend(code_items);
+                                    new_spec_items.extend(spec_items);
+                                },
+                                _ => new_code_items.push(impl_item),
+                            }
+                        }
+
+                        let mut new_items = SmallVector::new();
+                        if !new_spec_items.is_empty() {
+                            new_items.push(
+                                ptr::P(
+                                    ast::Item {
+                                        node: ast::ItemKind::Impl(
+                                            unsafety,
+                                            polarity,
+                                            defaultness,
+                                            generics.clone(),
+                                            None,
+                                            ty.clone(),
+                                            new_spec_items,
+                                        ),
+                                        ..item.clone().into_inner()
+                                    }
+                                )
+                            )
+                        }
+                        new_items.push(
+                            ptr::P(
+                                ast::Item {
+                                    node: ast::ItemKind::Impl(
+                                        unsafety,
+                                        polarity,
+                                        defaultness,
+                                        generics,
+                                        ifce,
+                                        ty,
+                                        new_code_items,
+                                    ),
+                                    ..item.into_inner()
+                                }
+                            )
+                        );
+                        new_items
+                    },
+
+                    // Methods in trait definition
+                    ast::ItemKind::Trait(is_auto, unsafety, generics, bounds, trait_items) => {
+                        let mut new_trait_items = vec![];
+
+                        for trait_item in trait_items.into_iter() {
+                            match trait_item.node {
+                                ast::TraitItemKind::Method(..) => {
+                                    new_trait_items.extend(
+                                        self.rewrite_trait_item_method(trait_item)
+                                    );
+                                },
+                                _ => new_trait_items.push(trait_item),
+                            }
+                        }
+
+                        SmallVector::one(
+                            ptr::P(
+                                ast::Item {
+                                    node: ast::ItemKind::Trait(
+                                        is_auto,
+                                        unsafety,
+                                        generics,
+                                        bounds,
+                                        new_trait_items,
+                                    ),
+                                    ..item.into_inner()
+                                }
+                            )
+                        )
+                    },
+
+                    // Any other item
+                    _ => SmallVector::one(item),
                 }
         ).collect();
         trace!("[fold_item] exit");
-        result
-    }
-
-    fn fold_impl_item(&mut self, impl_item: ast::ImplItem) -> SmallVector<ast::ImplItem> {
-        trace!("[fold_impl_item] enter");
-        let result = fold::noop_fold_impl_item(impl_item, self).into_iter().flat_map(
-            |new_impl_item|
-                match new_impl_item.node {
-                    ast::ImplItemKind::Method(..) => self.rewrite_impl_item_method(new_impl_item),
-                    _ => SmallVector::from_iter(vec![new_impl_item]),
-                }
-        ).collect();
-        trace!("[fold_item] exit");
-        result
-    }
-
-    fn fold_trait_item(&mut self, trait_item: ast::TraitItem) -> SmallVector<ast::TraitItem> {
-        trace!("[fold_trait_item] enter");
-        let result = fold::noop_fold_trait_item(trait_item, self).into_iter().flat_map(
-            |new_trait_item|
-                match new_trait_item.node {
-                    ast::TraitItemKind::Method(..) => self.rewrite_trait_item_method(new_trait_item),
-                    _ => SmallVector::from_iter(vec![new_trait_item]),
-                }
-        ).collect();
-        trace!("[fold_trait_item] exit");
         result
     }
 
