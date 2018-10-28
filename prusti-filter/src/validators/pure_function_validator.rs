@@ -392,14 +392,16 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::Rvalue::Cast(..) => unsupported!(self, "cast operations are not supported"),
 
-            mir::Rvalue::BinaryOp(_, ref left_operand, ref right_operand) => {
+            mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
                 self.check_operand(left_operand);
                 self.check_operand(right_operand);
+                self.check_op(op);
             }
 
-            mir::Rvalue::CheckedBinaryOp(_, ref left_operand, ref right_operand) => {
+            mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
                 self.check_operand(left_operand);
                 self.check_operand(right_operand);
+                self.check_op(op);
             }
 
             mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty),
@@ -453,6 +455,18 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
         for operand in operands {
             self.check_operand(operand);
+        }
+    }
+
+    fn check_op(&mut self, op: &mir::BinOp) {
+        use rustc::mir::BinOp::*;
+        match op {
+            Add | Sub | Mul => {}, // OK
+            Div | Rem => {}, // OK
+            BitXor | BitAnd | BitOr => partially!(self, "bit operations are partially supported"),
+            Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
+            Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
+            Offset => unsupported!(self, "offset operation is not supported"),
         }
     }
 }

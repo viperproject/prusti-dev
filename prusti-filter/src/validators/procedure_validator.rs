@@ -405,8 +405,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         use rustc::mir::BinOp::*;
         match op {
             Add | Sub | Mul => {}, // OK
-            Div | Rem => partially!(self, "division and remainder are problematic"),
-            BitXor | BitAnd | BitOr => partially!(self, "bit operations are not supported"),
+            Div | Rem => {}, // OK
+            BitXor | BitAnd | BitOr => partially!(self, "bit operations are partially supported"),
             Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
             Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
             Offset => unsupported!(self, "offset operation is not supported"),
