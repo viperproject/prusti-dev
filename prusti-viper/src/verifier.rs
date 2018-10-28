@@ -181,17 +181,26 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         }
         self.encoder.process_encoding_queue();
 
-        info!("Translation to Viper successful");
+        info!("Encoding to Viper successful");
 
-        let ast = &self.ast_factory;
+        let program = {
+            let ast = &self.ast_factory;
 
-        let program = ast.program(
-            &self.encoder.get_used_viper_domains(),
-            &self.encoder.get_used_viper_fields().to_viper(ast),
-            &self.encoder.get_used_viper_functions().into_iter().map(|m| m.to_viper(ast)).collect::<Vec<_>>(),
-            &self.encoder.get_used_viper_predicates().to_viper(ast),
-            &self.encoder.get_used_viper_methods().into_iter().map(|m| m.to_viper(ast)).collect::<Vec<_>>()
-        );
+            let domains = self.encoder.get_used_viper_domains();
+            let fields = self.encoder.get_used_viper_fields().to_viper(ast);
+            let functions = self.encoder.get_used_viper_functions().into_iter()
+                .map(|m| m.to_viper(ast)).collect::<Vec<_>>();
+            let predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
+            let methods = self.encoder.get_used_viper_methods().into_iter()
+                .map(|m| m.to_viper(ast)).collect::<Vec<_>>();
+
+            info!(
+                "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
+                domains.len(), fields.len(), functions.len(), predicates.len(), methods.len()
+            );
+
+            ast.program(&domains, &fields, &functions, &predicates, &methods)
+        };
 
         // Dump Viper program
         let source_path = self.env.source_path();
