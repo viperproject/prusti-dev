@@ -25,14 +25,14 @@ cargoclean() {
 	done
 }
 
-export RUSTFLAGS="-Zborrowck=mir -Zpolonius"
-#export POLONIUS_ALGORITHM="Naive"
+export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
+export POLONIUS_ALGORITHM="Naive"
 
 info "Run standard compilation"
 exit_status="0"
 cargo clean
-# Timeout of 30 minutes
-timeout 1800 cargo build || exit_status="$?" && true
+# Timeout of 20 minutes
+timeout 1200 cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile. Skip verification."
 	exit 42
@@ -43,7 +43,8 @@ if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
 	export RUSTC="$DIR/rustc.sh"
 	export RUST_BACKTRACE=1
 	cargoclean
-	cargo build
+	# Timeout of 20 minutes
+	timeout 1200 cargo build
 	unset RUSTC
 	unset RUST_BACKTRACE
 fi
@@ -70,5 +71,5 @@ export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
-# Timeout of 30 minutes
-timeout 1800 cargo build -j 1
+# Timeout of 20 minutes
+timeout 1200 cargo build -j 1
