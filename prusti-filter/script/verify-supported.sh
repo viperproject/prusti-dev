@@ -25,11 +25,12 @@ cargoclean() {
 	done
 }
 
-export RUSTCFLAGS="-Zborrowck=mir -Zpolonius"
+export RUSTFLAGS="-Zborrowck=mir -Zpolonius"
+#export POLONIUS_ALGORITHM="Naive"
 
 info "Run standard compilation"
 exit_status="0"
-cargoclean
+cargo clean
 # Timeout of 30 minutes
 timeout 1800 cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
