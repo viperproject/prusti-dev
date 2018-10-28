@@ -394,7 +394,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = match value.val {
             ConstVal::Value(ref value) => {
-                value.to_scalar().unwrap()
+                value.to_scalar().expect(&format!("Unsupported const: {:?}", value))
             },
             ConstVal::Unevaluated(def_id, substs) => {
                 let tcx = self.env().tcx();

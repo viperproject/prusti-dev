@@ -11,6 +11,8 @@ use rustc::ty;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use rustc_data_structures::indexed_vec::Idx;
+use syntax::ast;
+use std;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -80,33 +82,78 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let self_local_var = vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
 
         let field_predicates = match self.ty.sty {
-            ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyInt(_) =>
-                vec![
-                    vir::Expr::FieldAccessPredicate(
-                        box vir::Place::from(self_local_var.clone()).access(
-                            self.encoder.encode_value_field(self.ty)
-                        ).into(),
-                        vir::Frac::one()
-                    )
-                ],
+            ty::TypeVariants::TyBool => vec![
+                vir::Expr::FieldAccessPredicate(
+                    box vir::Place::from(self_local_var.clone()).access(
+                        self.encoder.encode_value_field(self.ty)
+                    ).into(),
+                    vir::Frac::one()
+                )
+            ],
 
-            ty::TypeVariants::TyUint(_) => {
+            ty::TypeVariants::TyInt(int_ty) => {
                 let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access(
                     self.encoder.encode_value_field(self.ty)
                 ).into();
-                vec![
+
+                let mut body = vec![
                     vir::Expr::FieldAccessPredicate(
-                        box val_field,
+                        box val_field.clone(),
                         vir::Frac::one()
-                    ),
-                    vir::Expr::ge_cmp(
-                        vir::Place::from(self_local_var.clone()).access(
-                            self.encoder.encode_value_field(self.ty)
-                        ).into(),
-                        0.into()
                     )
-                ]
+                ];
+
+                // Lowerbound
+                match int_ty {
+                    ast::IntTy::I8 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i8::MIN.into())),
+                    ast::IntTy::I16 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i16::MIN.into())),
+                    ast::IntTy::I32 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i32::MIN.into())),
+                    ast::IntTy::I64 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i64::MIN.into())),
+                    ast::IntTy::I128 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i128::MIN.into())),
+                    ast::IntTy::Isize => body.push(vir::Expr::ge_cmp(val_field.clone(), std::isize::MIN.into())),
+                }
+
+                // Upperbound
+                match int_ty {
+                    ast::IntTy::I8 => body.push(vir::Expr::le_cmp(val_field, std::i8::MAX.into())),
+                    ast::IntTy::I16 => body.push(vir::Expr::le_cmp(val_field, std::i16::MAX.into())),
+                    ast::IntTy::I32 => body.push(vir::Expr::le_cmp(val_field, std::i32::MAX.into())),
+                    ast::IntTy::I64 => body.push(vir::Expr::le_cmp(val_field, std::i64::MAX.into())),
+                    ast::IntTy::I128 => body.push(vir::Expr::le_cmp(val_field, std::i128::MAX.into())),
+                    ast::IntTy::Isize => body.push(vir::Expr::le_cmp(val_field, std::isize::MAX.into())),
+                }
+
+                body
+            }
+
+            ty::TypeVariants::TyUint(uint_ty) => {
+                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access(
+                    self.encoder.encode_value_field(self.ty)
+                ).into();
+
+                let mut body = vec![
+                    vir::Expr::FieldAccessPredicate(
+                        box val_field.clone(),
+                        vir::Frac::one()
+                    )
+                ];
+
+                // Lowerbound
+                body.push(
+                    vir::Expr::ge_cmp(val_field.clone(), 0.into())
+                );
+
+                // Upperbound
+                match uint_ty {
+                    ast::UintTy::U8 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u8::MAX.into())),
+                    ast::UintTy::U16 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u16::MAX.into())),
+                    ast::UintTy::U32 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u32::MAX.into())),
+                    ast::UintTy::U64 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u64::MAX.into())),
+                    ast::UintTy::U128 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u128::MAX.into())),
+                    ast::UintTy::Usize => body.push(vir::Expr::le_cmp(val_field.clone(), std::usize::MAX.into())),
+                }
+
+                body
             }
 
             ty::TypeVariants::TyChar => {
@@ -313,8 +360,17 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         match self.ty.sty {
             ty::TypeVariants::TyBool => "bool".to_string(),
 
-            ty::TypeVariants::TyInt(_) => "int".to_string(),
-            ty::TypeVariants::TyUint(_) => "uint".to_string(),
+            ty::TypeVariants::TyInt(ast::IntTy::I8) => "i8".to_string(),
+            ty::TypeVariants::TyInt(ast::IntTy::I16) => "i16".to_string(),
+            ty::TypeVariants::TyInt(ast::IntTy::I32) => "i32".to_string(),
+            ty::TypeVariants::TyInt(ast::IntTy::I64) => "i64".to_string(),
+            ty::TypeVariants::TyInt(ast::IntTy::Isize) => "isize".to_string(),
+
+            ty::TypeVariants::TyUint(ast::UintTy::U8) => "u8".to_string(),
+            ty::TypeVariants::TyUint(ast::UintTy::U16) => "u16".to_string(),
+            ty::TypeVariants::TyUint(ast::UintTy::U32) => "u32".to_string(),
+            ty::TypeVariants::TyUint(ast::UintTy::U64) => "u64".to_string(),
+            ty::TypeVariants::TyUint(ast::UintTy::Usize) => "usize".to_string(),
 
             ty::TypeVariants::TyChar => "char".to_string(),
 

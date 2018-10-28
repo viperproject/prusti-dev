@@ -617,7 +617,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let encoded_right = self.mir_encoder.encode_operand_expr(right);
 
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
-                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right);
+                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right, ty);
 
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                         let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
