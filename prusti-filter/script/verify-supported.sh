@@ -26,10 +26,8 @@ cargoclean() {
 }
 
 info "Run standard compilation"
-(
-	cargo build
-)
-exit_status="$?"
+exit_status="0"
+cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile. Skip verification."
 	exit 42
@@ -59,9 +57,13 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 
 info "Start verification"
 
+# Save disk space
 rm -rf log/ nll-facts/
-export PRUSTI_FULL_COMPILATION=true
+# This is important! Without this, NLL facts are not recomputed and dumped to nll-facts.
+rm -rf target/*/incremental/
+# Optional: generate the final binaries
+#export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
-cargo build
+cargo build -j 1
