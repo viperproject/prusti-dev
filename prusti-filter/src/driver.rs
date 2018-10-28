@@ -21,6 +21,7 @@ mod crate_visitor;
 mod validators;
 
 use rustc_driver::driver::{CompileController, CompileState};
+use rustc_driver::Compilation;
 use std::env;
 use std::fs;
 use std::io::Write;
