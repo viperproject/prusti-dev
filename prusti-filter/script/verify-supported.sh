@@ -29,6 +29,7 @@ export RUSTCFLAGS="-Zborrowck=mir -Zpolonius"
 
 info "Run standard compilation"
 exit_status="0"
+cargoclean
 # Timeout of 30 minutes
 timeout 1800 cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
@@ -64,8 +65,7 @@ info "Start verification"
 rm -rf log/ nll-facts/
 # This is important! Without this, NLL facts are not recomputed and dumped to nll-facts.
 rm -rf target/*/incremental/
-# Optional: generate the final binaries
-#export PRUSTI_FULL_COMPILATION=true
+export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
