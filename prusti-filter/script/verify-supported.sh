@@ -66,4 +66,5 @@ rm -rf target/*/incremental/
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
-cargo build -j 1
+# Timeout of 10 minutes
+timeout 600 cargo build -j 1

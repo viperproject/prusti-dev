@@ -26,7 +26,8 @@ for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
 		echo "===== Verify crate '$crate_name' ($(date)) ====="
 		echo ""
 		SECONDS=0
-		timeout 1800 "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
+		# Timeout of 1 hour
+		timeout 3600 "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
 		exit_status="$?"
 		duration="$SECONDS"
 		whitelist_items="$(grep '"' "$crate_source_dir/Prusti.toml" | wc -l)"
