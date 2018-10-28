@@ -25,9 +25,12 @@ cargoclean() {
 	done
 }
 
+export RUSTCFLAGS="-Zborrowck=mir -Zpolonius"
+
 info "Run standard compilation"
 exit_status="0"
-cargo build || exit_status="$?" && true
+# Timeout of 30 minutes
+timeout 1800 cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile. Skip verification."
 	exit 42
@@ -66,5 +69,5 @@ rm -rf target/*/incremental/
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
-# Timeout of 10 minutes
-timeout 600 cargo build -j 1
+# Timeout of 30 minutes
+timeout 1800 cargo build -j 1

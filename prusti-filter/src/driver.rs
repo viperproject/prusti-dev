@@ -83,8 +83,9 @@ fn main() {
                 .collect()
         };
 
-        // Arguments required by Prusti (Rustc produces different MIR)
+        // Arguments required by Prusti (Rustc may produce different MIR)
         args.push("-Zborrowck=mir".to_owned());
+        args.push("-Zpolonius".to_owned());
 
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
