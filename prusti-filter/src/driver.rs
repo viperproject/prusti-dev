@@ -83,9 +83,8 @@ fn main() {
                 .collect()
         };
 
-        // Args required by prusti
+        // Arguments required by Prusti (Rustc produces different MIR)
         args.push("-Zborrowck=mir".to_owned());
-        args.push("-Ztwo-phase-borrows".to_owned());
 
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
