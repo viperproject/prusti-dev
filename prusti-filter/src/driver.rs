@@ -34,11 +34,6 @@ use rustc::hir::intravisit::Visitor;
 fn main() {
     env_logger::init();
 
-    let mut args: Vec<String> = std::env::args().collect();
-    args.push("-Zborrowck=mir".to_owned());
-    args.push("-Ztwo-phase-borrows".to_owned());
-    args.push("-Zidentify-regions".to_owned());
-
     let exit_status = rustc_driver::run(move || {
         // Mostly copied from clippy
 
@@ -59,7 +54,9 @@ fn main() {
                     .and_then(|out| String::from_utf8(out.stdout).ok())
                     .map(|s| s.trim().to_owned())
             })
-            .expect("need to specify SYSROOT env var during clippy compilation, or use rustup or multirust");
+            .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
+
+        debug!("Using sys_root='{}'", sys_root);
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this/
@@ -75,7 +72,7 @@ fn main() {
         // this conditional check for the --sysroot flag is there so users can call
         // `clippy_driver` directly
         // without having to pass --sysroot or anything
-        let args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") {
+        let mut args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") {
             orig_args.clone()
         } else {
             orig_args
@@ -85,6 +82,10 @@ fn main() {
                 .chain(Some(sys_root))
                 .collect()
         };
+
+        // Args required by prusti
+        args.push("-Zborrowck=mir".to_owned());
+        args.push("-Ztwo-phase-borrows".to_owned());
 
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
