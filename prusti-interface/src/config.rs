@@ -14,6 +14,7 @@ lazy_static! {
         // 1. Default values
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
+        settings.set_default("CHECK_BINARY_OPERATIONS", false).unwrap();
         settings.set_default("DEBUG_FOLDUNFOLD", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
@@ -96,4 +97,9 @@ pub fn dump_debug_info() -> bool {
 /// In which folder should we sore log/dumps?
 pub fn log_dir() -> String {
     SETTINGS.read().unwrap().get::<String>("LOG_DIR").unwrap()
+}
+
+/// Check binary operations for overflows
+pub fn check_binary_operations() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("CHECK_BINARY_OPERATIONS").unwrap()
 }

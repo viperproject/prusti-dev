@@ -13,6 +13,7 @@ use std::hash::{Hash, Hasher};
 use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
 use std;
+use prusti_interface::config;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -103,24 +104,26 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     )
                 ];
 
-                // Lowerbound
-                match int_ty {
-                    ast::IntTy::I8 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i8::MIN.into())),
-                    ast::IntTy::I16 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i16::MIN.into())),
-                    ast::IntTy::I32 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i32::MIN.into())),
-                    ast::IntTy::I64 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i64::MIN.into())),
-                    ast::IntTy::I128 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i128::MIN.into())),
-                    ast::IntTy::Isize => body.push(vir::Expr::ge_cmp(val_field.clone(), std::isize::MIN.into())),
-                }
+                if config::check_binary_operations() {
+                    // Lowerbound
+                    match int_ty {
+                        ast::IntTy::I8 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i8::MIN.into())),
+                        ast::IntTy::I16 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i16::MIN.into())),
+                        ast::IntTy::I32 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i32::MIN.into())),
+                        ast::IntTy::I64 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i64::MIN.into())),
+                        ast::IntTy::I128 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i128::MIN.into())),
+                        ast::IntTy::Isize => body.push(vir::Expr::ge_cmp(val_field.clone(), std::isize::MIN.into())),
+                    }
 
-                // Upperbound
-                match int_ty {
-                    ast::IntTy::I8 => body.push(vir::Expr::le_cmp(val_field, std::i8::MAX.into())),
-                    ast::IntTy::I16 => body.push(vir::Expr::le_cmp(val_field, std::i16::MAX.into())),
-                    ast::IntTy::I32 => body.push(vir::Expr::le_cmp(val_field, std::i32::MAX.into())),
-                    ast::IntTy::I64 => body.push(vir::Expr::le_cmp(val_field, std::i64::MAX.into())),
-                    ast::IntTy::I128 => body.push(vir::Expr::le_cmp(val_field, std::i128::MAX.into())),
-                    ast::IntTy::Isize => body.push(vir::Expr::le_cmp(val_field, std::isize::MAX.into())),
+                    // Upperbound
+                    match int_ty {
+                        ast::IntTy::I8 => body.push(vir::Expr::le_cmp(val_field, std::i8::MAX.into())),
+                        ast::IntTy::I16 => body.push(vir::Expr::le_cmp(val_field, std::i16::MAX.into())),
+                        ast::IntTy::I32 => body.push(vir::Expr::le_cmp(val_field, std::i32::MAX.into())),
+                        ast::IntTy::I64 => body.push(vir::Expr::le_cmp(val_field, std::i64::MAX.into())),
+                        ast::IntTy::I128 => body.push(vir::Expr::le_cmp(val_field, std::i128::MAX.into())),
+                        ast::IntTy::Isize => body.push(vir::Expr::le_cmp(val_field, std::isize::MAX.into())),
+                    }
                 }
 
                 body
@@ -138,19 +141,21 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     )
                 ];
 
-                // Lowerbound
-                body.push(
-                    vir::Expr::ge_cmp(val_field.clone(), 0.into())
-                );
+                if config::check_binary_operations() {
+                    // Lowerbound
+                    body.push(
+                        vir::Expr::ge_cmp(val_field.clone(), 0.into())
+                    );
 
-                // Upperbound
-                match uint_ty {
-                    ast::UintTy::U8 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u8::MAX.into())),
-                    ast::UintTy::U16 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u16::MAX.into())),
-                    ast::UintTy::U32 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u32::MAX.into())),
-                    ast::UintTy::U64 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u64::MAX.into())),
-                    ast::UintTy::U128 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u128::MAX.into())),
-                    ast::UintTy::Usize => body.push(vir::Expr::le_cmp(val_field.clone(), std::usize::MAX.into())),
+                    // Upperbound
+                    match uint_ty {
+                        ast::UintTy::U8 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u8::MAX.into())),
+                        ast::UintTy::U16 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u16::MAX.into())),
+                        ast::UintTy::U32 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u32::MAX.into())),
+                        ast::UintTy::U64 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u64::MAX.into())),
+                        ast::UintTy::U128 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u128::MAX.into())),
+                        ast::UintTy::Usize => body.push(vir::Expr::le_cmp(val_field.clone(), std::usize::MAX.into())),
+                    }
                 }
 
                 body

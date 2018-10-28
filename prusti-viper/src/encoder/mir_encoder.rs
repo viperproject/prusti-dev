@@ -10,6 +10,7 @@ use syntax::ast;
 use std;
 use rustc::ty;
 use rustc::hir::def_id::DefId;
+use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use std::collections::HashMap;
 use prusti_interface::environment::Environment;
@@ -353,7 +354,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     /// Returns `true` is an overflow happened
     pub fn encode_bin_op_check(&self, op: mir::BinOp, left: vir::Expr, right: vir::Expr, ty: ty::Ty<'tcx>) -> vir::Expr {
-        if !op.is_checkable() {
+        if !op.is_checkable() || !config::check_binary_operations() {
             false.into()
         } else {
             let result = self.encode_bin_op_expr(op, left.clone(), right.clone(), ty);
