@@ -119,7 +119,8 @@ fn main() {
             fs::write("results.json", data).expect("Unable to write file");
         };
 
-        //controller.compilation_done.stop = Compilation::Stop;
+        // Stop compilation to save time. Do not produce binaries.
+        controller.compilation_done.stop = Compilation::Stop;
 
         rustc_driver::run_compiler(&args, Box::new(controller), None, None)
     });
