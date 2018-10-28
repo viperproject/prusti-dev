@@ -34,6 +34,11 @@ use rustc::hir::intravisit::Visitor;
 fn main() {
     env_logger::init();
 
+    let mut args: Vec<String> = std::env::args().collect();
+    args.push("-Zborrowck=mir".to_owned());
+    args.push("-Ztwo-phase-borrows".to_owned());
+    args.push("-Zidentify-regions".to_owned());
+
     let exit_status = rustc_driver::run(move || {
         // Mostly copied from clippy
 
