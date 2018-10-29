@@ -23,7 +23,7 @@ for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
 	crate_name="$(basename "$crate")"
 	(
 		echo ""
-		echo "===== Verify crate '$crate_name' ($(date)) ====="
+		echo "===== Verify crate '$crate_name' ($(date '+%Y-%m-%d %H:%M:%S')) ====="
 		echo ""
 		SECONDS=0
 		# Timeout of 1 hour
@@ -35,6 +35,6 @@ for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
 		echo "Duration: $duration seconds"
 		echo "Items in whitelist: $whitelist_items"
 		echo ""
-		echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items items, $duration seconds ($(date))"
+		echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items items, $duration seconds ($(date '+%Y-%m-%d %H:%M:%S'))"
 	) | tee "$log_file" || true
 done
