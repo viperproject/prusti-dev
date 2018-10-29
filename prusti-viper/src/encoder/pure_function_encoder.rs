@@ -613,11 +613,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     }
 
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
+                        let operand_ty = if let ty::TypeVariants::TyTuple(ref types) = ty.sty {
+                            types[0].clone()
+                        } else {
+                            unreachable!()
+                        };
+
                         let encoded_left = self.mir_encoder.encode_operand_expr(left);
                         let encoded_right = self.mir_encoder.encode_operand_expr(right);
 
-                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
-                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right);
+                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), operand_ty);
+                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
 
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                         let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);

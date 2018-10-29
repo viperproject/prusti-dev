@@ -122,17 +122,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             cfg_blocks.insert(bbi, cfg_block);
         }
 
-        // Set the first CFG block
-        self.cfg_method.set_successor(
-            start_cfg_block,
-            Successor::Goto(cfg_blocks[&self.procedure.get_first_cfg_block()])
-        );
-
         let return_cfg_block = self.cfg_method.add_block("return", vec![], vec![
             vir::Stmt::comment(format!("========== return ==========")),
             vir::Stmt::comment("Target of any 'return' statement."),
         ]);
         self.cfg_method.set_successor(return_cfg_block, Successor::Return);
+
+        // Set the first CFG block
+        self.cfg_method.set_successor(
+            start_cfg_block,
+            Successor::Goto(
+                *cfg_blocks
+                    .get(&self.procedure.get_first_cfg_block())
+                    .unwrap_or(&return_cfg_block)
+            )
+        );
 
         // Encode preconditions
         self.encode_preconditions(start_cfg_block, &mut procedure_contract);
@@ -184,6 +188,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Encode statements of the block, if this is not a "spec" block
             if !self.procedure.is_spec_block(bbi) {
+                let is_panic_block = self.procedure.is_panic_block(bbi);
                 for (stmt_index, stmt) in statements.iter().enumerate() {
                     trace!("Encode statement {:?}:{}", bbi, stmt_index);
                     self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
@@ -196,8 +201,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             self.cfg_method.add_stmt(cfg_block, stmt);
                         }
                     }
-                    for stmt in self.encode_statement(stmt, location).drain(..) {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    if !is_panic_block {
+                        for stmt in self.encode_statement(stmt, location).drain(..) {
+                            self.cfg_method.add_stmt(cfg_block, stmt);
+                        }
                     }
                     for stmt in self.encode_expiring_borrows_at(location).drain(..) {
                         self.cfg_method.add_stmt(cfg_block, stmt);
@@ -423,10 +430,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
+                        let operand_ty = if let ty::TypeVariants::TyTuple(ref types) = ty.sty {
+                            types[0].clone()
+                        } else {
+                            unreachable!()
+                        };
                         let encoded_left = self.mir_encoder.encode_operand_expr(left);
                         let encoded_right = self.mir_encoder.encode_operand_expr(right);
-                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), ty);
-                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right);
+                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), operand_ty);
+                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                         let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
                         let value_field_value = self.encoder.encode_value_field(field_types[0]);
@@ -563,6 +575,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     ref rhs => {
+                        // TODO: 'move _12 as *mut libc::timespec (Misc)' - crate `018_time`
                         unimplemented!("encoding of '{:?}'", rhs);
                     }
                 }
@@ -1156,10 +1169,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Assert(replace_fake_args(pre_func_spec), pos.clone()));
                             stmts.push(vir::Stmt::Exhale(replace_fake_args(pre_type_spec), pos));
 
-                            let is_trusted = self.encoder.env()
-                                .has_attribute_name(def_id, "trusted");
-
-                            if is_trusted {
+                            if self.encoder.is_trusted(def_id) {
                                 debug!("Encoding a trusted method call: {}", func_proc_name);
                                 stmts.extend(
                                     self.encode_havoc(&encoded_target.into(), self.locals.get_type(target))
@@ -1626,7 +1636,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             0
                         });
                         let tcx = self.encoder.env().tcx();
-                        assert!(variant_index as u128 == adt_def.discriminant_for_variant(tcx, variant_index).val);
                         let field = &adt_def.variants[variant_index].fields[field.index()];
                         let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                         let field_ty = field.ty(tcx, subst);
@@ -1982,11 +1991,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::AggregateKind::Adt(adt_def, variant_index, subst, _) => {
                 let num_variants = adt_def.variants.len();
                 if num_variants > 1 {
+                    let tcx = self.encoder.env().tcx();
                     let discr_field = self.encoder.encode_discriminant_field();
+                    let discr_value = adt_def.discriminant_for_variant(tcx, variant_index).val;
                     stmts.push(
                         vir::Stmt::Assign(
                             dst.clone().access(discr_field).into(),
-                            variant_index.into(),
+                            discr_value.into(),
                             vir::AssignKind::Copy
                         )
                     );

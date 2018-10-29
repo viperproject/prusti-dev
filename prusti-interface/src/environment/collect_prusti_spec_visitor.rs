@@ -48,7 +48,6 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
-        // TODO: currently disabled
         if attr::contains_name(&trait_item.attrs, PRUSTI_SPEC_ATTR) {
             let def_id = self.tcx.hir.local_def_id(trait_item.id);
             let item_name = self.env.get_item_name(def_id);

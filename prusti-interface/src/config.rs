@@ -14,13 +14,15 @@ lazy_static! {
         // 1. Default values
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
+        settings.set_default("CHECK_BINARY_OPERATIONS", false).unwrap();
         settings.set_default("DEBUG_FOLDUNFOLD", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
         settings.set_default("CHECK_UNREACHABLE_TERMINATORS", false).unwrap();
         settings.set_default("ENABLE_WHITELIST", false).unwrap();
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
-        settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
+        settings.set_default("LOG_DIR", "./log/").unwrap();
+        settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -87,7 +89,17 @@ pub fn verification_whitelist() -> Vec<String> {
     SETTINGS.read().unwrap().get::<Vec<String>>("WHITELIST").unwrap()
 }
 
-/// Should we dump borrow-checker info?
-pub fn dump_borrowck_info() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("DUMP_BORROWCK_INFO").unwrap()
+/// Should we dump debug files?
+pub fn dump_debug_info() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("DUMP_DEBUG_INFO").unwrap()
+}
+
+/// In which folder should we sore log/dumps?
+pub fn log_dir() -> String {
+    SETTINGS.read().unwrap().get::<String>("LOG_DIR").unwrap()
+}
+
+/// Check binary operations for overflows
+pub fn check_binary_operations() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("CHECK_BINARY_OPERATIONS").unwrap()
 }

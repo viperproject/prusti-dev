@@ -79,7 +79,7 @@ impl CfgMethod {
                     .collect::<Vec<_>>()
                     .join(" \\ <br/>    ");
                 if stmt.is_comment() {
-                    lines.push(format!("<font color=\"orange\">{},</font>", stmt_html));
+                    lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
                 } else {
                     lines.push(stmt_html);
                 }

@@ -6,12 +6,13 @@ use std::env;
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
+use config;
 
 pub struct Log;
 
 impl Log {
     fn log_dir() -> Option<PathBuf> {
-        let log_dir: PathBuf = env::var("LOG_DIR").ok().unwrap_or("./log/".to_string()).into();
+        let log_dir: PathBuf = config::log_dir().into();
         fs::create_dir_all(&log_dir).ok()?;
         if log_dir.is_dir() {
             Some(log_dir)

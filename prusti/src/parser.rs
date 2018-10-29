@@ -147,6 +147,7 @@ use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use syntax_pos::DUMMY_SP;
 use prusti_interface::report::Log;
 use std::io::Write;
+use std::iter::FromIterator;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -394,8 +395,13 @@ impl<'tcx> SpecParser<'tcx> {
                     ast::TyKind::Tup(Vec::new())
                 );
                 let return_type = match decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => return_type,
-                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                    ast::FunctionRetTy::Ty(ret_ty) => {
+                        match ret_ty.node {
+                            ast::TyKind::Never => unit_type.clone(),
+                            _ => ret_ty,
+                        }
+                    }
+                    ast::FunctionRetTy::Default(_) => unit_type.clone(),
                 };
                 let mut inputs_with_result: Vec<ast::Arg> = decl.inputs.clone();
                 inputs_with_result.push(
@@ -472,8 +478,13 @@ impl<'tcx> SpecParser<'tcx> {
                     ast::TyKind::Tup(Vec::new())
                 );
                 let return_type = match sig.decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => return_type,
-                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                    ast::FunctionRetTy::Ty(ret_ty) => {
+                        match ret_ty.node {
+                            ast::TyKind::Never => unit_type.clone(),
+                            _ => ret_ty,
+                        }
+                    }
+                    ast::FunctionRetTy::Default(_) => unit_type.clone(),
                 };
                 let mut inputs_with_result: Vec<ast::Arg> = sig.decl.inputs.clone();
                 inputs_with_result.push(
@@ -547,8 +558,13 @@ impl<'tcx> SpecParser<'tcx> {
                     ast::TyKind::Tup(Vec::new())
                 );
                 let return_type = match sig.decl.output.clone() {
-                    ast::FunctionRetTy::Ty(return_type) => return_type,
-                    ast::FunctionRetTy::Default(_) => unit_type.clone()
+                    ast::FunctionRetTy::Ty(ret_ty) => {
+                        match ret_ty.node {
+                            ast::TyKind::Never => unit_type.clone(),
+                            _ => ret_ty,
+                        }
+                    }
+                    ast::FunctionRetTy::Default(_) => unit_type.clone(),
                 };
                 let mut inputs_with_result: Vec<ast::Arg> = sig.decl.inputs.clone();
                 inputs_with_result.push(
@@ -659,10 +675,18 @@ impl<'tcx> SpecParser<'tcx> {
             }
             _ => unreachable!(),
         };
-        expr.attrs = vec![
+        let mut new_attrs: Vec<_> = expr.attrs.iter().cloned().filter(
+            |attr| !attr.check_name("trusted") &&
+                !attr.check_name("pure") &&
+                !attr.check_name("invariant") &&
+                !attr.check_name("requires") &&
+                !attr.check_name("ensures")
+        ).collect();
+        new_attrs.push(
             self.ast_builder
                 .attribute_name_value(expr.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        ].into();
+        );
+        expr.attrs = new_attrs.into();
 
         trace!("[rewrite_loop] exit");
         ptr::P(expr)
@@ -671,14 +695,12 @@ impl<'tcx> SpecParser<'tcx> {
     fn rewrite_fn_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[rewrite_fn_item] enter");
         let mut item = item.into_inner();
-        let attrs = item.attrs;
-        item.attrs = vec![];
-        let is_pure_function = attr::contains_name(&attrs, "pure");
-        let is_trusted = attr::contains_name(&attrs, "trusted");
-        let specs = self.parse_specs(attrs);
+
+        // Parse specification
+        let specs = self.parse_specs(item.attrs.clone());
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(item.span, "invariant not allowed for procedure");
-            return SmallVector::new();
+            return SmallVector::one(ptr::P(item));
         }
         let preconditions: Vec<_> = specs
             .clone()
@@ -690,32 +712,50 @@ impl<'tcx> SpecParser<'tcx> {
             .filter(|spec| spec.typ == SpecType::Postcondition)
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
-        let id = self.register_specification(spec_set);
-        let spec_item = self.generate_spec_item(&item, id, &preconditions, &postconditions);
-        let node = item.node;
-        item.node = self.fold_item_kind(node);
-        item.attrs = vec![
+
+        // Register specification
+        let id = self.register_specification(spec_set.clone());
+        item.attrs.push(
             self.ast_builder
                 .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        ];
-        if is_pure_function {
-            item.attrs.push(
-                self.ast_builder.attribute_word(item.span, "pure")
-            );
+        );
+
+        // Early returns
+        if spec_set.is_empty() {
+            trace!("[rewrite_fn_item] exit");
+            return SmallVector::one(ptr::P(item));
         }
-        if is_trusted {
-            item.attrs.push(
-                self.ast_builder.attribute_word(item.span, "trusted")
-            );
+        if let ast::ItemKind::Fn(_, fn_header, ..) = item.node {
+            if is_unsafe(fn_header) {
+                trace!("[rewrite_fn_item] exit");
+                return SmallVector::one(ptr::P(item));
+            }
         }
 
+        // Dump modified item
         let new_item_str = syntax::print::pprust::item_to_string(&item);
-        let spec_item_str = syntax::print::pprust::item_to_string(&spec_item);
         debug!("new_item:\n{}", new_item_str);
         self.log_modified_program(new_item_str);
+
+        // Create spec item
+        let mut spec_item = self.generate_spec_item(&item, id, &preconditions, &postconditions);
+        spec_item.attrs.extend(
+            item.attrs.iter().cloned().filter(
+                |attr| !attr.check_name("trusted") &&
+                    !attr.check_name("pure") &&
+                    !attr.check_name("invariant") &&
+                    !attr.check_name("requires") &&
+                    !attr.check_name("ensures") &&
+                    !attr.check_name(PRUSTI_SPEC_ATTR)
+            )
+        );
+
+        // Dump spec item
+        let spec_item_str = syntax::print::pprust::item_to_string(&spec_item);
         debug!("spec_item:\n{}", spec_item_str);
         self.log_modified_program(spec_item_str);
 
+        // Return small vector
         trace!("[rewrite_fn_item] exit");
         let mut result = SmallVector::new();
         result.push(ptr::P(item));
@@ -723,16 +763,14 @@ impl<'tcx> SpecParser<'tcx> {
         result
     }
 
-    fn rewrite_impl_item_method(&mut self, mut impl_item: ast::ImplItem) -> SmallVector<ast::ImplItem> {
+    fn rewrite_impl_item_method(&mut self, mut impl_item: ast::ImplItem) -> (SmallVector<ast::ImplItem>, SmallVector<ast::ImplItem>) {
         trace!("[rewrite_impl_item_method] enter");
-        let attrs = impl_item.attrs;
-        impl_item.attrs = vec![];
-        let is_pure_function = attr::contains_name(&attrs, "pure");
-        let is_trusted = attr::contains_name(&attrs, "trusted");
-        let specs = self.parse_specs(attrs);
+
+        // Parse specification
+        let specs = self.parse_specs(impl_item.attrs.clone());
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(impl_item.span, "invariant not allowed for procedure");
-            return SmallVector::new();
+            return (SmallVector::one(impl_item), SmallVector::new());
         }
         let preconditions: Vec<_> = specs
             .clone()
@@ -744,47 +782,65 @@ impl<'tcx> SpecParser<'tcx> {
             .filter(|spec| spec.typ == SpecType::Postcondition)
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
-        let id = self.register_specification(spec_set);
-        let spec_item = self.generate_spec_impl_item(&impl_item, id, &preconditions, &postconditions);
-        impl_item.attrs = vec![
+
+        // Register specification
+        let id = self.register_specification(spec_set.clone());
+        impl_item.attrs.push(
             self.ast_builder
                 .attribute_name_value(impl_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
-        ];
-        if is_pure_function {
-            impl_item.attrs.push(
-                self.ast_builder.attribute_word(impl_item.span, "pure")
-            );
+        );
+
+        // Early returns
+        if spec_set.is_empty() {
+            trace!("[rewrite_impl_item_method] exit");
+            return (SmallVector::one(impl_item), SmallVector::new());
         }
-        if is_trusted {
-            impl_item.attrs.push(
-                self.ast_builder.attribute_word(impl_item.span, "trusted")
-            );
+        if let ast::ImplItemKind::Method(ast::MethodSig { header, ..}, ..) = impl_item.node {
+            if is_unsafe(header) {
+                trace!("[rewrite_impl_item_method] exit");
+                return (SmallVector::one(impl_item), SmallVector::new());
+            }
         }
 
+        // Dump modified item
         let new_item_str = syntax::print::pprust::impl_item_to_string(&impl_item);
-        let spec_item_str = syntax::print::pprust::impl_item_to_string(&spec_item);
         debug!("new_item:\n{}", new_item_str);
         self.log_modified_program(new_item_str);
+
+        // Create spec item
+        let mut spec_item = self.generate_spec_impl_item(&impl_item, id, &preconditions, &postconditions);
+        spec_item.attrs.extend(
+            impl_item.attrs.iter().cloned().filter(
+                |attr| !attr.check_name("trusted") &&
+                    !attr.check_name("pure") &&
+                    !attr.check_name("invariant") &&
+                    !attr.check_name("requires") &&
+                    !attr.check_name("ensures") &&
+                    !attr.check_name(PRUSTI_SPEC_ATTR)
+            )
+        );
+
+        // Dump spec item
+        let spec_item_str = syntax::print::pprust::impl_item_to_string(&spec_item);
         debug!("spec_item:\n{}", spec_item_str);
         self.log_modified_program(spec_item_str);
 
+        // Return small vector
         trace!("[rewrite_impl_item_method] exit");
-        let mut result = SmallVector::new();
-        result.push(impl_item);
-        result.push(spec_item);
-        result
+        (
+            SmallVector::one(impl_item),
+            SmallVector::one(spec_item)
+        )
     }
 
     fn rewrite_trait_item_method(&mut self, mut trait_item: ast::TraitItem) -> SmallVector<ast::TraitItem> {
         trace!("[rewrite_trait_item_method] enter");
-        let attrs = trait_item.attrs;
-        trait_item.attrs = vec![];
-        let is_pure_function = attr::contains_name(&attrs, "pure");
-        let is_trusted = attr::contains_name(&attrs, "trusted");
-        let specs = self.parse_specs(attrs);
+
+        // Parse specification
+        let specs = self.parse_specs(trait_item.attrs.clone());
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(trait_item.span, "invariant not allowed for procedure");
-            return SmallVector::new();
+            return SmallVector::one(trait_item);
         }
         let preconditions: Vec<_> = specs
             .clone()
@@ -796,11 +852,9 @@ impl<'tcx> SpecParser<'tcx> {
             .filter(|spec| spec.typ == SpecType::Postcondition)
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
-        let id = self.register_specification(spec_set);
-        let spec_item = self.generate_spec_trait_item(&trait_item, id, &preconditions, &postconditions);
-        trait_item.attrs = vec![];
 
-        // Skip body-less trait methods
+        // Register specification
+        let id = self.register_specification(spec_set.clone());
         match trait_item.node {
             ast::TraitItemKind::Method(_, Some(_)) => {
                 trait_item.attrs.push(
@@ -808,30 +862,47 @@ impl<'tcx> SpecParser<'tcx> {
                         .attribute_name_value(trait_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
                 );
             }
-
+            // Skip body-less trait methods
             ast::TraitItemKind::Method(_, None) => {} // OK
-
             _ => unreachable!(),
         }
 
-        if is_pure_function {
-            trait_item.attrs.push(
-                self.ast_builder.attribute_word(trait_item.span, "pure")
-            );
+        // Early returns
+        if spec_set.is_empty() {
+            trace!("[rewrite_trait_item_method] exit");
+            return SmallVector::one(trait_item);
         }
-        if is_trusted {
-            trait_item.attrs.push(
-                self.ast_builder.attribute_word(trait_item.span, "trusted")
-            );
+        if let ast::TraitItemKind::Method(ast::MethodSig { header, ..}, ..) = trait_item.node {
+            if is_unsafe(header) {
+                trace!("[rewrite_trait_item_method] exit");
+                return SmallVector::one(trait_item);
+            }
         }
 
+        // Dump modified item
         let new_item_str = syntax::print::pprust::trait_item_to_string(&trait_item);
-        let spec_item_str = syntax::print::pprust::trait_item_to_string(&spec_item);
         debug!("new_item:\n{}", new_item_str);
         self.log_modified_program(new_item_str);
+
+        // Create spec item
+        let mut spec_item = self.generate_spec_trait_item(&trait_item, id, &preconditions, &postconditions);
+        spec_item.attrs.extend(
+            trait_item.attrs.iter().cloned().filter(
+                |attr| !attr.check_name("trusted") &&
+                    !attr.check_name("pure") &&
+                    !attr.check_name("invariant") &&
+                    !attr.check_name("requires") &&
+                    !attr.check_name("ensures") &&
+                    !attr.check_name(PRUSTI_SPEC_ATTR)
+            )
+        );
+
+        // Dump spec item
+        let spec_item_str = syntax::print::pprust::trait_item_to_string(&spec_item);
         debug!("spec_item:\n{}", spec_item_str);
         self.log_modified_program(spec_item_str);
 
+        // Return small vector
         trace!("[rewrite_trait_item_method] exit");
         let mut result = SmallVector::new();
         result.push(trait_item);
@@ -1263,44 +1334,104 @@ impl<'tcx> SpecParser<'tcx> {
 }
 
 impl<'tcx> Folder for SpecParser<'tcx> {
-    fn fold_item_kind(&mut self, item_kind: ast::ItemKind) -> ast::ItemKind {
-        trace!("[fold_item_kind] enter");
-        let result = match item_kind {
-            ast::ItemKind::Fn(..) |
-            ast::ItemKind::Impl(_, _, _, _, None, _, _) => fold::noop_fold_item_kind(item_kind, self),
-            _ => item_kind,
-        };
-        trace!("[fold_item_kind] exit");
-        result
-    }
-
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
-        let result = match item.node {
-            ast::ItemKind::Fn(..) => self.rewrite_fn_item(item),
-            _ => fold::noop_fold_item(item, self),
-        };
-        trace!("[fold_item] exit");
-        result
-    }
+        let result = fold::noop_fold_item(item, self).into_iter().flat_map(
+            |item|
+                match item.node.clone() {
+                    // Top-level functions
+                    ast::ItemKind::Fn(..) => self.rewrite_fn_item(item),
 
-    fn fold_impl_item(&mut self, impl_item: ast::ImplItem) -> SmallVector<ast::ImplItem> {
-        trace!("[fold_impl_item] enter");
-        let result = match impl_item.node {
-            ast::ImplItemKind::Method(..) => self.rewrite_impl_item_method(impl_item),
-            _ => fold::noop_fold_impl_item(impl_item, self),
-        };
-        trace!("[fold_item] exit");
-        result
-    }
+                    // Impl methods
+                    ast::ItemKind::Impl(unsafety, polarity, defaultness, generics, ifce, ty, impl_items) => {
+                        let mut new_code_items = vec![];
+                        let mut new_spec_items = vec![];
 
-    fn fold_trait_item(&mut self, trait_item: ast::TraitItem) -> SmallVector<ast::TraitItem> {
-        trace!("[fold_trait_item] enter");
-        let result = match trait_item.node {
-            ast::TraitItemKind::Method(..) => self.rewrite_trait_item_method(trait_item),
-            _ => fold::noop_fold_trait_item(trait_item, self),
-        };
-        trace!("[fold_trait_item] exit");
+                        for impl_item in impl_items.into_iter() {
+                            match impl_item.node {
+                                ast::ImplItemKind::Method(..) => {
+                                    let (code_items, spec_items) = self.rewrite_impl_item_method(impl_item);
+                                    new_code_items.extend(code_items);
+                                    new_spec_items.extend(spec_items);
+                                },
+                                _ => new_code_items.push(impl_item),
+                            }
+                        }
+
+                        let mut new_items = SmallVector::new();
+                        if !new_spec_items.is_empty() {
+                            new_items.push(
+                                ptr::P(
+                                    ast::Item {
+                                        node: ast::ItemKind::Impl(
+                                            unsafety,
+                                            polarity,
+                                            defaultness,
+                                            generics.clone(),
+                                            None,
+                                            ty.clone(),
+                                            new_spec_items,
+                                        ),
+                                        ..item.clone().into_inner()
+                                    }
+                                )
+                            )
+                        }
+                        new_items.push(
+                            ptr::P(
+                                ast::Item {
+                                    node: ast::ItemKind::Impl(
+                                        unsafety,
+                                        polarity,
+                                        defaultness,
+                                        generics,
+                                        ifce,
+                                        ty,
+                                        new_code_items,
+                                    ),
+                                    ..item.into_inner()
+                                }
+                            )
+                        );
+                        new_items
+                    },
+
+                    // Methods in trait definition
+                    ast::ItemKind::Trait(is_auto, unsafety, generics, bounds, trait_items) => {
+                        let mut new_trait_items = vec![];
+
+                        for trait_item in trait_items.into_iter() {
+                            match trait_item.node {
+                                ast::TraitItemKind::Method(..) => {
+                                    new_trait_items.extend(
+                                        self.rewrite_trait_item_method(trait_item)
+                                    );
+                                },
+                                _ => new_trait_items.push(trait_item),
+                            }
+                        }
+
+                        SmallVector::one(
+                            ptr::P(
+                                ast::Item {
+                                    node: ast::ItemKind::Trait(
+                                        is_auto,
+                                        unsafety,
+                                        generics,
+                                        bounds,
+                                        new_trait_items,
+                                    ),
+                                    ..item.into_inner()
+                                }
+                            )
+                        )
+                    },
+
+                    // Any other item
+                    _ => SmallVector::one(item),
+                }
+        ).collect();
+        trace!("[fold_item] exit");
         result
     }
 
@@ -1370,4 +1501,11 @@ fn shift_resize_span(span: Span, offset: u32, length: u32) -> Span {
     let lo = span.lo() + syntax::codemap::BytePos(offset);
     let hi = lo + syntax::codemap::BytePos(length);
     Span::new(lo, hi, span.ctxt())
+}
+
+fn is_unsafe(fn_header: ast::FnHeader) -> bool {
+    match fn_header.unsafety {
+        ast::Unsafety::Unsafe => true,
+        ast::Unsafety::Normal => false,
+    }
 }

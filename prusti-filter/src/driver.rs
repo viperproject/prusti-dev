@@ -21,6 +21,7 @@ mod crate_visitor;
 mod validators;
 
 use rustc_driver::driver::{CompileController, CompileState};
+use rustc_driver::Compilation;
 use std::env;
 use std::fs;
 use std::io::Write;
@@ -53,7 +54,9 @@ fn main() {
                     .and_then(|out| String::from_utf8(out.stdout).ok())
                     .map(|s| s.trim().to_owned())
             })
-            .expect("need to specify SYSROOT env var during clippy compilation, or use rustup or multirust");
+            .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
+
+        debug!("Using sys_root='{}'", sys_root);
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this/
@@ -69,7 +72,7 @@ fn main() {
         // this conditional check for the --sysroot flag is there so users can call
         // `clippy_driver` directly
         // without having to pass --sysroot or anything
-        let args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") {
+        let mut args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") {
             orig_args.clone()
         } else {
             orig_args
@@ -79,6 +82,10 @@ fn main() {
                 .chain(Some(sys_root))
                 .collect()
         };
+
+        // Arguments required by Prusti (Rustc may produce different MIR)
+        args.push("-Zborrowck=mir".to_owned());
+        args.push("-Zpolonius".to_owned());
 
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
@@ -119,7 +126,8 @@ fn main() {
             fs::write("results.json", data).expect("Unable to write file");
         };
 
-        //controller.compilation_done.stop = Compilation::Stop;
+        // Stop compilation to save time. Do not produce binaries.
+        controller.compilation_done.stop = Compilation::Stop;
 
         rustc_driver::run_compiler(&args, Box::new(controller), None, None)
     });

@@ -111,8 +111,8 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
         let mut counter = 0; // For debugging.
         while let Some(work_item) = self.queue.pop() {
             assert!(
-                counter <= 1000,
-                "Definitely initialized analysis does not converge."
+                counter <= 1000000,
+                "Definitely initialized analysis (initialization) does not converge."
             );
             match work_item {
                 WorkItem::ApplyStatementEffects(location) => {

@@ -31,7 +31,7 @@ use syntax::ast;
 use syntax::feature_gate::AttributeType;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use driver_utils::run;
-
+use prusti_interface::config;
 
 struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -132,6 +132,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let untyped_specifications = prusti::parser::rewrite_crate(state);
             put_specifications.set(Some(untyped_specifications));
 
+            info!("Parsing of annotations successful");
+
             trace!("[after_parse.callback] exit");
             old(state);
         });
@@ -142,6 +144,9 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let typed_specifications =
                 prusti::typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
+
+            info!("Type-checking of annotations successful");
+
             // Call the verifier
             if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {
                 prusti::verifier::verify(state, typed_specifications);
@@ -165,13 +170,15 @@ pub fn main() {
     set_var("POLONIUS_ALGORITHM", "Naive");
     let mut args: Vec<String> = std::env::args().collect();
     args.push("-Zborrowck=mir".to_owned());
-    args.push("-Ztwo-phase-borrows".to_owned());
     args.push("-Zpolonius".to_owned());
     args.push("-Znll-facts".to_owned());
     args.push("-Zidentify-regions".to_owned());
-    args.push("-Zdump-mir=all".to_owned());
     args.push("-Zdump-mir-dir=log/mir/".to_owned());
-    args.push("-Zdump-mir-graphviz".to_owned());
+    args.push("-Zdump-mir=renumber".to_owned());
+    if config::dump_debug_info() {
+        args.push("-Zdump-mir=all".to_owned());
+        args.push("-Zdump-mir-graphviz".to_owned());
+    }
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
     trace!("[main] exit");

@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use rustc::mir;
-use rustc::ty::{Ty, TyCtxt};
+use rustc::ty::{self, Ty, TyCtxt};
 use std::collections::HashSet;
 use std::collections::HashMap;
 use rustc::mir::Mir;
@@ -119,6 +119,33 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             false
         } else {
             self.reachable_basic_blocks.contains(&bbi)
+        }
+    }
+
+    pub fn is_panic_block(&self, bbi: BasicBlockIndex) -> bool {
+        if let TerminatorKind::Call {
+            ref args,
+            ref destination,
+            func: mir::Operand::Constant(
+                box mir::Constant {
+                    literal: mir::Literal::Value {
+                        value: ty::Const {
+                            ty: &ty::TyS {
+                                sty: ty::TyFnDef(def_id, ..),
+                                ..
+                            },
+                            ..
+                        }
+                    },
+                    ..
+                }
+            ),
+            ..
+        } = self.mir[bbi].terminator.as_ref().unwrap().kind {
+            let func_proc_name = self.tcx.item_path_str(def_id);
+            &func_proc_name == "std::rt::begin_panic"
+        } else {
+            false
         }
     }
 }

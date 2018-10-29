@@ -220,6 +220,15 @@ pub enum SpecificationSet<ET, AT> {
     Loop(Vec<Specification<ET, AT>>),
 }
 
+impl<ET, AT> SpecificationSet<ET, AT> {
+    pub fn is_empty(&self) -> bool {
+        match self {
+            SpecificationSet::Procedure(ref pres, ref posts) => pres.is_empty() && posts.is_empty(),
+            SpecificationSet::Loop(ref invs) => invs.is_empty(),
+        }
+    }
+}
+
 /// A specification that has no types associated with it.
 pub type UntypedSpecification = Specification<ptr::P<ast::Expr>, ast::Arg>;
 /// A set of untyped specifications associated with a single element.

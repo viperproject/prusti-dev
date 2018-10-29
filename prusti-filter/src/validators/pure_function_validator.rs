@@ -252,7 +252,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         // TODO: check absence of loops
         // TODO: check only blocks that may lead to a `Return` terminator
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
-            if !procedure.is_reachable_block(index) {
+            if !procedure.is_reachable_block(index) || procedure.is_spec_block(index) {
                 continue;
             }
             for stmt in &basic_block_data.statements {
@@ -318,7 +318,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                         literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
-                                    sty: ty::TyFnDef(_, ..),
+                                    sty: ty::TyFnDef(def_id, ..),
                                     ..
                                 },
                                 ..
@@ -333,6 +333,10 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                     if let Some((ref place, _)) = destination {
                         self.check_place(place);
                     }
+                    requires!(
+                        self, self.tcx.hir.as_local_node_id(def_id).is_some(),
+                        "calling functions from an external crate is not supported"
+                    );
                 } else {
                     unsupported!(self, "non explicit function calls are not supported");
                 }
@@ -388,14 +392,16 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::Rvalue::Cast(..) => unsupported!(self, "cast operations are not supported"),
 
-            mir::Rvalue::BinaryOp(_, ref left_operand, ref right_operand) => {
+            mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
                 self.check_operand(left_operand);
                 self.check_operand(right_operand);
+                self.check_op(op);
             }
 
-            mir::Rvalue::CheckedBinaryOp(_, ref left_operand, ref right_operand) => {
+            mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
                 self.check_operand(left_operand);
                 self.check_operand(right_operand);
+                self.check_op(op);
             }
 
             mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty),
@@ -449,6 +455,18 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
         for operand in operands {
             self.check_operand(operand);
+        }
+    }
+
+    fn check_op(&mut self, op: &mir::BinOp) {
+        use rustc::mir::BinOp::*;
+        match op {
+            Add | Sub | Mul => {}, // OK
+            Div | Rem => {}, // OK
+            BitXor | BitAnd | BitOr => partially!(self, "bit operations are partially supported"),
+            Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
+            Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
+            Offset => unsupported!(self, "offset operation is not supported"),
         }
     }
 }

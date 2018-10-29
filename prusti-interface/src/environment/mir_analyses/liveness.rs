@@ -120,7 +120,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         while let Some(work_item) = self.queue.pop() {
             assert!(
                 counter <= 1000000,
-                "Definitely initialized analysis does not converge."
+                "Definitely initialized analysis (liveness) does not converge."
             );
             match work_item {
                 WorkItem::ApplyStatementEffects(location) => {

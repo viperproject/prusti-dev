@@ -32,6 +32,9 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyUint(ty) => {
                 self.visit_uint(ty);
             },
+            TyChar => {
+                self.visit_char();
+            },
             TyAdt(adt_def, substs) => {
                 self.visit_adt(adt_def, substs);
             },
@@ -64,6 +67,9 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
     }
 
     fn visit_uint(&mut self, _ty: UintTy) {
+    }
+
+    fn visit_char(&mut self) {
     }
 
     fn visit_adt(&mut self, adt_def: &'tcx AdtDef, substs: &'tcx Substs<'tcx>) {

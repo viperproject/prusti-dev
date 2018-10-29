@@ -14,6 +14,7 @@ use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
 use encoder::type_encoder::TypeEncoder;
 use encoder::vir;
+use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::EnvironmentImpl;
@@ -25,6 +26,7 @@ use rustc::mir;
 use rustc::ty;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
+use std::collections::HashSet;
 use syntax::ast;
 use viper;
 use prusti_interface::specifications::{SpecID, TypedSpecificationMap, SpecificationSet, TypedAssertion, Specification, SpecType, Assertion};
@@ -32,6 +34,8 @@ use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use std::mem;
 use prusti_interface::environment::Procedure;
 use std::io::Write;
+use rustc::mir::interpret::GlobalId;
+use std::iter::FromIterator;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -51,6 +55,8 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoding_queue: RefCell<Vec<ProcedureDefId>>,
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
+    use_whitelist: bool,
+    whitelist: HashSet<String>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -80,7 +86,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
-            vir_program_before_viper_writer
+            vir_program_before_viper_writer,
+            use_whitelist: config::enable_whitelist(),
+            whitelist: HashSet::from_iter(config::verification_whitelist()),
         }
     }
 
@@ -156,7 +164,17 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         debug!("Collecting closure instantiations...");
         let tcx = self.env().tcx();
         let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
-        for &mir_def_id in self.encoding_queue.borrow().iter() {
+        let crate_num = hir::def_id::LOCAL_CRATE;
+        for &mir_def_id in tcx.mir_keys(crate_num).iter() {
+            if !(
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_LOOP_SPEC_ID") ||
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_EXPR_ID") ||
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_FORALL_ID") ||
+                self.env().has_attribute_name(mir_def_id, "__PRUSTI_SPEC_ONLY") ||
+                self.env().has_attribute_name(mir_def_id, PRUSTI_SPEC_ATTR)
+            ) {
+                continue;
+            }
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
             let mir = tcx.mir_validated(mir_def_id).borrow();
             for (bb_index, bb_data) in mir.basic_blocks().iter_enumerated() {
@@ -383,9 +401,25 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = match value.val {
             ConstVal::Value(ref value) => {
-                value.to_scalar().unwrap()
+                value.to_scalar().expect(&format!("Unsupported const: {:?}", value))
             },
-            x => unimplemented!("{:?}", x)
+            ConstVal::Unevaluated(def_id, substs) => {
+                let tcx = self.env().tcx();
+                let param_env = tcx.param_env(def_id);
+                let cid = GlobalId {
+                    instance: ty::Instance::new(def_id, substs),
+                    promoted: None
+                };
+                if let Ok(const_value) = tcx.const_eval(param_env.and(cid)) {
+                    if let ConstVal::Value(ref value) = const_value.val {
+                        value.to_scalar().expect(&format!("Unsupported const: {:?}", value))
+                    } else {
+                        unreachable!()
+                    }
+                } else {
+                    panic!("Constant evaluation of {:?} failed", value.val)
+                }
+            }
         };
 
         let usize_bits = mem::size_of::<usize>() * 8;
@@ -457,8 +491,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let procedure_name = self.env().tcx().item_path_str(proc_def_id);
             let procedure = self.env.get_procedure(proc_def_id);
             let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
-            let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
-            let function = if is_trusted {
+            let function = if self.is_trusted(proc_def_id) {
                 pure_function_encoder.encode_bodyless_function()
             } else {
                 pure_function_encoder.encode_function()
@@ -497,16 +530,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
             debug!("Encoding {:?}", proc_def_id);
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
-            let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
             if is_pure_function {
                 self.encode_pure_function_def(proc_def_id);
             } else {
-                if is_trusted {
+                if self.is_trusted(proc_def_id) {
                     debug!("Trusted procedure will not be encoded or verified: {:?}", proc_def_id);
                 } else {
                     self.encode_procedure(proc_def_id);
                 }
             }
         }
+    }
+
+    pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
+        self.env().has_attribute_name(def_id, "trusted") || (
+            self.use_whitelist && !self.whitelist.contains(&self.env().get_item_name(def_id))
+        )
     }
 }
