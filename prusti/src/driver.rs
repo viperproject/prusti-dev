@@ -179,12 +179,14 @@ pub fn main() {
         args.push("-Zdump-mir=all".to_owned());
         args.push("-Zdump-mir-graphviz".to_owned());
     }
+    /*
     if !config::contracts_lib().is_empty() {
         args.push("--extern".to_owned());
         args.push(format!("prusti_contracts={}", config::contracts_lib()));
     } else {
         warn!("Configuration variable CONTRACTS_LIB is empty");
     }
+    */
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
     trace!("[main] exit");
