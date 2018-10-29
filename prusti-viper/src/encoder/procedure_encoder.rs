@@ -188,6 +188,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Encode statements of the block, if this is not a "spec" block
             if !self.procedure.is_spec_block(bbi) {
+                let is_panic_block = self.procedure.is_panic_block(bbi);
                 for (stmt_index, stmt) in statements.iter().enumerate() {
                     trace!("Encode statement {:?}:{}", bbi, stmt_index);
                     self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
@@ -200,8 +201,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             self.cfg_method.add_stmt(cfg_block, stmt);
                         }
                     }
-                    for stmt in self.encode_statement(stmt, location).drain(..) {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    if !is_panic_block {
+                        for stmt in self.encode_statement(stmt, location).drain(..) {
+                            self.cfg_method.add_stmt(cfg_block, stmt);
+                        }
                     }
                     for stmt in self.encode_expiring_borrows_at(location).drain(..) {
                         self.cfg_method.add_stmt(cfg_block, stmt);

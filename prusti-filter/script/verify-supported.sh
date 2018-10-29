@@ -25,10 +25,10 @@ cargoclean() {
 	done
 }
 
+info "Run standard compilation"
+# Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
 export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
-
-info "Run standard compilation"
 exit_status="0"
 cargo clean
 # Timeout of 20 minutes
