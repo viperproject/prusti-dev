@@ -64,72 +64,77 @@ Examples we could try to verify with some functional spec:
     **Changes:**
     +   Wrap types.
     +   Change the shape of a loop.
-+   TODO
++   https://rosettacode.org/wiki/Binary_search#Rust binary-search
+    **Changes:**
+    +   Wrap types.
+    +   Remove the ``return`` statement from the loop out.
+    **Properties:**
+    +   termination
+    +   the vector indeed contains the searched element at the returned index.
++   heapsort https://rosettacode.org/wiki/Sorting_algorithms/Heapsort – uses
+    slices, closures,
+    **Changes:**
+    +   Wrap types.
+    **Properties:**
+    +   termination
+    +   the resulting array is sorted
 
 Examples for which we could verify some functional properties, but is
 not worth (because already covered by other examples):
 
 +   https://rosettacode.org/wiki/Mutual_recursion#Rust
 +   https://rosettacode.org/wiki/Factorial#Rust
-+   TODO
-
++   https://rosettacode.org/wiki/Sorting_algorithms/Selection_sort#Rust
+    – uses arrays and for loops.
++   sorting-algorithms/gnome-sort – uses vectors.
++   quicksort
+    https://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Rust –
+    uses slices.
++   function-definition
+    https://rosettacode.org/wiki/Function_definition#Rust – multiply two
+    numbers.
 
 Examples for which we could verify permissions:
 
-+   TODO
-
-Examples that use too many unsupported features (iterators, closures,
-bit-operators, floats, etc.) or features that SMT solvers cannot handle
-well (non-linear arithmetic):
-
-+   TODO
-
-Patchable(?) examples:
-
-+   https://rosettacode.org/wiki/Binary_search#Rust binary-search – uses
-    slices.
-+   tic_tac_toe – uses ``char``.
++   tic_tac_toe
+    **Changes:**
+    +   Wrap types.
+    +   Remove IO code.
 +   taxicab_numbers – uses many unsupported constructs, which should be
     possible to change.
-+   langtons-ant https://rosettacode.org/wiki/Langton%27s_ant – uses bit
-    operations, vectors of vectors.
++   langtons-ant https://rosettacode.org/wiki/Langton%27s_ant#Rust –
+    uses bit operations, vectors of vectors.
 +   four-bit-adder – uses slices of arrays.
     https://rosettacode.org/wiki/Four_bit_adder
-+   heapsort https://rosettacode.org/wiki/Sorting_algorithms/Heapsort – uses
-    slices, closures,
-+   https://rosettacode.org/wiki/Sorting_algorithms/Selection_sort#Rust
-    – uses arrays and for loops.
 +   https://rosettacode.org/wiki/Knuth_shuffle#Rust – uses random
     numbers.
 +   100-doors https://rosettacode.org/wiki/100_doors#Rust – uses arrays.
 +   knuth-shuffle https://rosettacode.org/wiki/Knuth_shuffle – focus to
     shuffle an array.
-+   gnome-sort – uses vectors.
 +   knights-tour https://rosettacode.org/wiki/Knight%27s_tour#Rust –
     uses vectors.
-+   rot-13 https://rosettacode.org/wiki/Rot-13#Rust – uses strings,
-    vectors, and iterators.
-+   quicksort
-    https://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Rust –
-    uses slices.
 +   dijkstras-algorithm
     https://rosettacode.org/wiki/Dijkstra%27s_algorithm#Rust – uses a
     vector and a binary heap.
 +   forest-fire
     https://rosettacode.org/wiki/Forest_fire#Rust – uses vectors and
     iterators, but no closures.
++   https://rosettacode.org/wiki/Determine_if_only_one_instance_is_running#Rust
+    – main functionality is to use a tcp socket.
 
-Hard to patch examples:
+Examples that use too many unsupported features (uses floats / uses bit
+operations / uses Strings / closures / focuses on implementing traits /
+focuses on IO / uses concurrency) or features that SMT solvers cannot
+handle well (non-linear arithmetic):
 
 +   24-game https://rosettacode.org/wiki/24_game#Rust – uses vectors,
-    chars, strings, but only one closure.
+    chars, strings, but only one closure. **potentially patchable**
 +   https://rosettacode.org/wiki/24_game/Solve#Rust – uses slices,
-    strings, but only one closure.
+    strings, but only one closure. **potentially patchable**
 +   bitmap https://rosettacode.org/wiki/Bitmap/Write_a_PPM_file – uses
-    vectors and non-linear arithmetic.
-
-Not supported examples:
-
+    vectors and non-linear arithmetic. **potentially patchable**
++   rot-13 https://rosettacode.org/wiki/Rot-13#Rust – uses strings,
+    vectors, and iterators.
 +   define_a_primitive_data_type – focusses on implementing many
     **standard** traits.
 +   rational https://rosettacode.org/wiki/Arithmetic/Rational#Rust –
@@ -163,11 +168,6 @@ Not supported examples:
 +   sha-1 – uses bit operations.
 +   the-isaac-cipher – uses bit operations.
 +   s-expressions – extensive use of string manipulations and closures.
-
-Not interesting examples:
-
-+   https://rosettacode.org/wiki/Determine_if_only_one_instance_is_running#Rust
-    – main functionality is to use a tcp socket.
 +   anonymous_recursion – demonstrates nested functions.
 +   rock_paper_scissors
     https://rosettacode.org/wiki/Rock-paper-scissors#Rust – uses slices,
@@ -178,9 +178,6 @@ Not interesting examples:
     https://rosettacode.org/wiki/Conway%27s_Game_of_Life
 +   https://rosettacode.org/wiki/Unbias_a_random_generator#Rust –
     focuses on random number generation.
-+   function-definition
-    https://rosettacode.org/wiki/Function_definition#Rust – multiply two
-    numbers.
 +   visualize-a-tree https://rosettacode.org/wiki/Visualize_a_tree#Rust
     – IO is the central part.
 
