@@ -32,7 +32,7 @@ export POLONIUS_ALGORITHM="Naive"
 exit_status="0"
 cargo clean
 # Timeout of 20 minutes
-timeout 1200 -t 10 cargo build || exit_status="$?" && true
+timeout 1200 -k 10 cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile. Skip verification."
 	exit 42
@@ -44,7 +44,7 @@ if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
 	export RUST_BACKTRACE=1
 	cargoclean
 	# Timeout of 20 minutes
-	timeout 1200 -t 10  cargo build
+	timeout 1200 -k 10  cargo build
 	unset RUSTC
 	unset RUST_BACKTRACE
 fi
@@ -72,4 +72,4 @@ export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
 # Timeout of 20 minutes
-timeout 1200 -t 10  cargo build -j 1
+timeout 1200 -k 10  cargo build -j 1
