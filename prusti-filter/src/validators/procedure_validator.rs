@@ -481,6 +481,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn check_operand(&mut self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>) {
+        trace!("check_operand {:?}", operand);
+
         match operand {
             mir::Operand::Copy(ref place) => self.check_place(mir, place),
 
@@ -494,6 +496,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn check_literal(&mut self, literal: &mir::Literal<'tcx>) {
+        trace!("check_literal {:?}", literal);
+
         match literal {
             mir::Literal::Value { value } => {
                 match value.val {
@@ -511,11 +515,11 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                 requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
                             } else {
                                 // This should be unreachable
-                                unsupported!(self, "some unevaluated literals are not supported")
+                                unsupported!(self, "erroneous unevaluated literals are not supported")
                             }
                         } else {
                             // This should be unreachable
-                            unsupported!(self, "some unevaluated literals are not supported")
+                            unsupported!(self, "erroneous unevaluated literals are not supported")
                         }
                     }
                 };
@@ -536,6 +540,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn check_aggregate(&mut self, mir: &mir::Mir<'tcx>, kind: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>) {
+        trace!("check_aggregate {:?}, {:?}", kind, operands);
+
         match kind {
             mir::AggregateKind::Array(ty) => {
                 unsupported!(self, "arrays are not supported");

@@ -14,6 +14,7 @@ use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
 use encoder::type_encoder::TypeEncoder;
 use encoder::vir;
+use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::environment::EnvironmentImpl;
@@ -25,6 +26,7 @@ use rustc::mir;
 use rustc::ty;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
+use std::collections::HashSet;
 use syntax::ast;
 use viper;
 use prusti_interface::specifications::{SpecID, TypedSpecificationMap, SpecificationSet, TypedAssertion, Specification, SpecType, Assertion};
@@ -33,6 +35,7 @@ use std::mem;
 use prusti_interface::environment::Procedure;
 use std::io::Write;
 use rustc::mir::interpret::GlobalId;
+use std::iter::FromIterator;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -52,6 +55,8 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoding_queue: RefCell<Vec<ProcedureDefId>>,
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
+    use_whitelist: bool,
+    whitelist: HashSet<String>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -81,7 +86,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
-            vir_program_before_viper_writer
+            vir_program_before_viper_writer,
+            use_whitelist: config::enable_whitelist(),
+            whitelist: HashSet::from_iter(config::verification_whitelist()),
         }
     }
 
@@ -484,8 +491,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let procedure_name = self.env().tcx().item_path_str(proc_def_id);
             let procedure = self.env.get_procedure(proc_def_id);
             let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
-            let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
-            let function = if is_trusted {
+            let function = if self.is_trusted(proc_def_id) {
                 pure_function_encoder.encode_bodyless_function()
             } else {
                 pure_function_encoder.encode_function()
@@ -524,16 +530,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
             debug!("Encoding {:?}", proc_def_id);
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
-            let is_trusted = self.env.has_attribute_name(proc_def_id, "trusted");
             if is_pure_function {
                 self.encode_pure_function_def(proc_def_id);
             } else {
-                if is_trusted {
+                if self.is_trusted(proc_def_id) {
                     debug!("Trusted procedure will not be encoded or verified: {:?}", proc_def_id);
                 } else {
                     self.encode_procedure(proc_def_id);
                 }
             }
         }
+    }
+
+    pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
+        self.env().has_attribute_name(def_id, "trusted") || (
+            self.use_whitelist && !self.whitelist.contains(&self.env().get_item_name(def_id))
+        )
     }
 }

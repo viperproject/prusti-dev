@@ -1169,10 +1169,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Assert(replace_fake_args(pre_func_spec), pos.clone()));
                             stmts.push(vir::Stmt::Exhale(replace_fake_args(pre_type_spec), pos));
 
-                            let is_trusted = self.encoder.env()
-                                .has_attribute_name(def_id, "trusted");
-
-                            if is_trusted {
+                            if self.encoder.is_trusted(def_id) {
                                 debug!("Encoding a trusted method call: {}", func_proc_name);
                                 stmts.extend(
                                     self.encode_havoc(&encoded_target.into(), self.locals.get_type(target))
