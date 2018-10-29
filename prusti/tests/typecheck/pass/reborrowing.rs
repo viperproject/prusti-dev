@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 //#![feature(nll)]
 

@@ -4,8 +4,6 @@
 #![feature(never_type)]
 #![allow(unconditional_recursion)]
 
-extern crate prusti_contracts;
-
 use std::borrow::BorrowMut;
 
 struct List {
@@ -48,6 +46,5 @@ fn prepend_list(x: u32, tail: List, check: bool) -> List {
     }
     result
 }
-
 
 fn main() {}

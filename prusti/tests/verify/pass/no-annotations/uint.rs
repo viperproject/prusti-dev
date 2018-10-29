@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 fn test_u8_ge_zero(x: u8) {
     assert!(x >= 0);

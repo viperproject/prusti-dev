@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 /// This is a trusted procedure, so no error should be reported
 #[trusted]

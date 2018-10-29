@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 // ignore-test We need plugin namespaces for attributes, like "prusti::requires"
 

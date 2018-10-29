@@ -2,8 +2,6 @@
 //
 // TODO: Casts: i as usize
 
-extern crate prusti_contracts;
-
 pub struct VecWrapperU32{
     v: Vec<u32>
 }
@@ -40,7 +38,6 @@ impl VecWrapperU32 {
         self.v[index] = value;
     }
 }
-
 
 #[trusted]
 fn to_usize(number: isize) -> usize {

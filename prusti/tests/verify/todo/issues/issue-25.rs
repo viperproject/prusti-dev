@@ -1,7 +1,5 @@
 /// Issue #25 "Exhaling postconditions with `old(..)`"
 
-extern crate prusti_contracts;
-
 struct T {
     f: i32,
 }

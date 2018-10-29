@@ -4,8 +4,6 @@
 
 // From: https://github.com/xcaptain/rust-algorithms/blob/master/algorithms/src/search/binary_search.rs
 
-extern crate prusti_contracts;
-
 // Prusti Vec wrapper
 pub struct VecWrapperusize{
     v: Vec<usize>

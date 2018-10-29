@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 #[derive(Clone)]
 struct IntPair { a: i32, b: (i32, i32) }
 

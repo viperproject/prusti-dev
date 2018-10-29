@@ -1,7 +1,5 @@
 /// Issue #47 "Exhaling permission of reassigned `&mut T` argument"
 
-extern crate prusti_contracts;
-
 struct S {
     f: i32
 }

@@ -1,8 +1,6 @@
 #![feature(nll)]
 #![feature(box_patterns, box_syntax)]
 
-extern crate prusti_contracts;
-
 struct Point {
     x: u32,
     y: u32,

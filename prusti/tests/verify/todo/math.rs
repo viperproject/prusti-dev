@@ -21,8 +21,6 @@
 
 //! Number-theoretic utilities for contest problems.
 
-extern crate prusti_contracts;
-
 #[trusted]
 #[ensures="result == if old(x) < 0 { -old(x) } else { old(x) }"]
 fn abs(x: i64) -> i64 {

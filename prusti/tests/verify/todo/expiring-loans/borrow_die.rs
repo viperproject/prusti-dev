@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 struct G {
     value: u32,
@@ -62,7 +61,6 @@ fn test4(y: &mut F, z: &mut F) {
     use_both(f, g);
     let f2 = &mut x.f;
 }
-
 
 fn test1(x: &mut F) {
     let y = x;

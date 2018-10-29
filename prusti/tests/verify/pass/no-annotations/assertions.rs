@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 fn id(x: i32) -> i32 {
     x
 }

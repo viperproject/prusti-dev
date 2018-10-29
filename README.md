@@ -150,8 +150,6 @@ Select "Nightly channel".
 
 Write with the following program:
 ```rust
-extern crate prusti_contracts;
-
 fn main() {
     unreachable!();
 }

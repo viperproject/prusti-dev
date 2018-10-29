@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 #[requires="n >= 0"]
 #[ensures="result == old(n) * (1 + old(n) * old(k))"]

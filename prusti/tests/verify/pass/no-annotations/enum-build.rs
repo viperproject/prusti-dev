@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 enum Enum {
     One(i32),
     Two(i32),

@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 fn test3() {
     let x = 5;
     if false {

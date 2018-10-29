@@ -2,8 +2,6 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
-
 use std::borrow::BorrowMut;
 
 struct List {
@@ -37,7 +35,6 @@ fn len(head: &List) -> usize {
 #[ensures="if len(&result) > 0 { old(lookup(&list, 0)) == lookup(&result, 0) } else { true }"]
 fn identity(list: List) -> List { list }
 
-
 #[ensures="len(&result) == 1"]
 #[ensures="lookup(&result, 0) == old(x)"]
 fn build_list_1(x: u32) -> List {
@@ -67,6 +64,5 @@ fn prepend_list(x: u32, tail: List) -> List {
         next: Some(Box::new(tail)),
     }
 }
-
 
 fn main() {}

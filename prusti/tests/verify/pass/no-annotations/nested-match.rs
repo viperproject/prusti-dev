@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 enum Num {
     Integer(i32),
     Rational(i32, i32),

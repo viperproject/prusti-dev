@@ -4,8 +4,6 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
-extern crate prusti_contracts;
-
 struct InfiniteList1 {
     next: Box<InfiniteList1>
 }

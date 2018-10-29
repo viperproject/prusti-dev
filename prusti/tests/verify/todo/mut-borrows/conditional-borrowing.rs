@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 fn use_node(x: &mut u32) {}
 
 fn conditiona_borrowing(y: u32, z: u32) {

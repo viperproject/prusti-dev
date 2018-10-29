@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 macro_rules! my_assert {
     ( $( $args:expr ),* ) => {

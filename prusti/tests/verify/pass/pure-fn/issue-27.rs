@@ -4,8 +4,6 @@
 
 /// See issue #27
 
-extern crate prusti_contracts;
-
 use std::borrow::BorrowMut;
 
 struct List {
@@ -22,6 +20,5 @@ fn len(head: &List) -> usize {
 
 #[ensures="len(&result) > 0"]
 fn identity(list: List) -> List { list }
-
 
 fn main() {}

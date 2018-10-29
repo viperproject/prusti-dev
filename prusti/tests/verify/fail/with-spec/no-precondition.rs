@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 #[ensures="match result { 123 => false, _ => true}"]
 fn foo(x: i64, y: bool) -> i64 { //~ ERROR postcondition might not hold

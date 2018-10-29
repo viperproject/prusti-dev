@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 #[derive(Copy, Clone)]
 enum MyOption {
     Some((i32, i64)),

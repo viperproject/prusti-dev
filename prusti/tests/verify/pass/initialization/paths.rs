@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 struct T1 {
     f: u32,
     g: u32,

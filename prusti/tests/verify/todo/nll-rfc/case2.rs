@@ -5,8 +5,6 @@
 ///
 /// TODO: Add specifications.
 
-extern crate prusti_contracts;
-
 use std::collections::HashMap;
 
 pub struct HashMapWrapperI32 {

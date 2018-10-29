@@ -1,7 +1,5 @@
 /// Issue #61: "Precondition of pure function `lookup` does not hold"
 
-extern crate prusti_contracts;
-
 pub struct VecWrapperI32{
     v: Vec<i32>
 }

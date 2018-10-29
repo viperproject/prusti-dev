@@ -1,7 +1,5 @@
 //! Example: functions that takes a mutable reference
 
-extern crate prusti_contracts;
-
 struct A;
 struct B(A, A);
 struct C(B, B);

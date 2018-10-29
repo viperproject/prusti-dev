@@ -1,7 +1,5 @@
 /// Tests that parser handles spans correctly.
 
-extern crate prusti_contracts;
-
 #[requires="(true)"]
 pub fn test1a(x: i32) {}
 

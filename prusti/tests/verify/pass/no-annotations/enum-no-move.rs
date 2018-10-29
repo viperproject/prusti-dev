@@ -1,7 +1,5 @@
 #![feature(nll)]
 
-extern crate prusti_contracts;
-
 // This struct can not be copied or cloned
 struct T;
 

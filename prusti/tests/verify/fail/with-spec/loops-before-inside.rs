@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 fn test_invariant_on_entry() -> i32 { //~ ERROR loop invariant might not hold on entry
     let mut x = 0;

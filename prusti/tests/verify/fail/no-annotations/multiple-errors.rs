@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 fn foo() {
     assert!(false);  //~ ERROR assert!(..) statement might not hold

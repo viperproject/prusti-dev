@@ -1,7 +1,5 @@
 //! Example: test match expressions
 
-extern crate prusti_contracts;
-
 struct T {
     f: i32,
 }

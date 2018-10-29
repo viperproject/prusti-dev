@@ -1,7 +1,5 @@
 //! Example: old expression on an argument that is consumed by the function
 
-extern crate prusti_contracts;
-
 struct IntBox {
     value: i32
 }

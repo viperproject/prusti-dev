@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 
 fn foo(x: i32, y: i32, guard: bool) {
     let mut z = x + y;
