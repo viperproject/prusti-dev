@@ -9,6 +9,8 @@ use validators::SupportStatus;
 use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
 use prusti_interface::environment::Procedure;
+use rustc::mir::interpret::GlobalId;
+use rustc::middle::const_val::ConstVal;
 
 pub struct ProcedureValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
@@ -484,10 +486,52 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             mir::Operand::Move(ref place) => self.check_place(mir, place),
 
-            mir::Operand::Constant(box mir::Constant { ty, .. }) => {
-                // TODO: check promoted literal case
+            mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
+                self.check_literal(literal);
                 self.check_ty(ty, "operand");
             }
+        }
+    }
+
+    fn check_literal(&mut self, literal: &mir::Literal<'tcx>) {
+        match literal {
+            mir::Literal::Value { value } => {
+                match value.val {
+                    ConstVal::Value(ref value) => {
+                        requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
+                    },
+                    ConstVal::Unevaluated(def_id, substs) => {
+                        let param_env = self.tcx.param_env(def_id);
+                        let cid = GlobalId {
+                            instance: ty::Instance::new(def_id, substs),
+                            promoted: None
+                        };
+                        if let Ok(const_value) = self.tcx.const_eval(param_env.and(cid)) {
+                            if let ConstVal::Value(ref value) = const_value.val {
+                                requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
+                            } else {
+                                // This should be unreachable
+                                unsupported!(self, "some unevaluated literals are not supported")
+                            }
+                        } else {
+                            // This should be unreachable
+                            unsupported!(self, "some unevaluated literals are not supported")
+                        }
+                    }
+                };
+
+                self.check_ty(value.ty, "constant literal");
+
+                match value.ty.sty {
+                    ty::TypeVariants::TyBool |
+                    ty::TypeVariants::TyInt(_) |
+                    ty::TypeVariants::TyUint(_) |
+                    ty::TypeVariants::TyChar => {} // OK
+
+                    _ => unsupported!(self, "only literals of type boolean, integer or char are supported")
+                };
+            }
+            mir::Literal::Promoted { .. } => partially!(self, "promoted constant literals are partially supported")
         }
     }
 

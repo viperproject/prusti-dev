@@ -405,7 +405,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 };
                 if let Ok(const_value) = tcx.const_eval(param_env.and(cid)) {
                     if let ConstVal::Value(ref value) = const_value.val {
-                        value.to_scalar().unwrap()
+                        value.to_scalar().expect(&format!("Unsupported const: {:?}", value))
                     } else {
                         unreachable!()
                     }
