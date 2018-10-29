@@ -921,7 +921,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             } => {
                 let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
                 match func_proc_name {
-                    "std::rt::begin_panic" => {
+                    "std::rt::begin_panic" |
+                    "std::panicking::begin_panic" => {
                         // This is called when a Rust assertion fails
                         // args[0]: message
                         // args[1]: position of failing assertions

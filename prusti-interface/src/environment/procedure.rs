@@ -143,7 +143,8 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             ..
         } = self.mir[bbi].terminator.as_ref().unwrap().kind {
             let func_proc_name = self.tcx.absolute_item_path_str(def_id);
-            &func_proc_name == "std::rt::begin_panic"
+            &func_proc_name == "std::panicking::begin_panic" ||
+                &func_proc_name == "std::rt::begin_panic"
         } else {
             false
         }
