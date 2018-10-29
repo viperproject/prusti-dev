@@ -35,6 +35,6 @@ for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
 		echo "Duration: $duration seconds"
 		echo "Items in whitelist: $whitelist_items"
 		echo ""
-		echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items items, $duration seconds"
+		echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items items, $duration seconds ($(date))"
 	) | tee "$log_file" || true
 done
