@@ -1336,6 +1336,10 @@ impl<'tcx> SpecParser<'tcx> {
 impl<'tcx> Folder for SpecParser<'tcx> {
     fn fold_crate(&mut self, c: ast::Crate) -> ast::Crate {
         let mut krate = fold::noop_fold_crate(c, self);
+        // Avoid compiler error "unstable feature"
+        krate.attrs.push(
+            self.ast_builder.attribute_allow(krate.span, "unstable_features"),
+        );
         // Avoid compiler error "attributes on expressions are experimental. (see issue #15701)"
         krate.attrs.push(
             self.ast_builder.attribute_feature(krate.span, "stmt_expr_attributes"),

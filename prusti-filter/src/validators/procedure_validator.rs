@@ -319,7 +319,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::TerminatorKind::SwitchInt { ref discr, .. } => self.check_operand(mir, discr),
 
             mir::TerminatorKind::Resume => {
-                // TODO: unsupported if reachable
+                // This should be unreachable
                 partially!(self, "`resume` MIR statements are partially supported");
             },
 
