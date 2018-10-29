@@ -1334,6 +1334,15 @@ impl<'tcx> SpecParser<'tcx> {
 }
 
 impl<'tcx> Folder for SpecParser<'tcx> {
+    fn fold_crate(&mut self, c: ast::Crate) -> ast::Crate {
+        let mut krate = fold::noop_fold_crate(c, self);
+        // Avoid compiler error "attributes on expressions are experimental. (see issue #15701)"
+        krate.attrs.push(
+            self.ast_builder.attribute_feature(krate.span, "stmt_expr_attributes"),
+        );
+        krate
+    }
+
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = fold::noop_fold_item(item, self).into_iter().flat_map(

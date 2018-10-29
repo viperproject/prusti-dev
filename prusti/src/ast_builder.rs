@@ -94,6 +94,17 @@ impl<'a> MinimalAstBuilder<'a> {
         )
     }
 
+    pub fn attribute_feature(&self, span: Span, value: &str) -> ast::Attribute {
+        self.attribute(
+            span,
+            self.meta_list(
+                span,
+                self.name_of("feature"),
+                vec![self.meta_list_item_word(span, self.name_of(value))],
+            ),
+        )
+    }
+
     pub fn attribute_word(&self, span: Span, word: &str) -> ast::Attribute {
         self.attribute(
             span,
