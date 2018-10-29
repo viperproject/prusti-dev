@@ -42,6 +42,7 @@ bench:
 	$(SET_ENV_VARS) cargo bench --all
 
 run:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \

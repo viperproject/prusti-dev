@@ -63,6 +63,7 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 
 # Sometimes a dependecy is compiled somewhere else. So, make sure that the whitelist is always enabled.
 export PRUSTI_ENABLE_WHITELIST=true
+export PRUSTI_CHECK_PANICS=false
 
 info "Start verification"
 
