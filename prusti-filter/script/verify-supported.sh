@@ -61,6 +61,9 @@ info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)
 	echo "]"
 ) > "$CRATE_ROOT/Prusti.toml"
 
+# Sometimes a dependecy is compiled somewhere else. So, make sure that the whitelist is always enabled.
+export PRUSTI_ENABLE_WHITELIST=true
+
 info "Start verification"
 
 # Save disk space

@@ -160,7 +160,7 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
 
 impl<'r, 'a, 'tcx> Environment<'a, 'tcx> for EnvironmentImpl<'r, 'a, 'tcx> {
     fn get_item_name(&self, def_id: DefId) -> String {
-        self.tcx().item_path_str(def_id)
+        self.tcx().absolute_item_path_str(def_id)
     }
 
     /// Get a Procedure.

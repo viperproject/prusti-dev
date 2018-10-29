@@ -351,7 +351,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         ..
                     }
                 ) = func {
-                    let proc_name: &str = &self.tcx.item_path_str(def_id);
+                    let proc_name: &str = &self.tcx.absolute_item_path_str(def_id);
                     match proc_name {
                         "std::rt::begin_panic" => {} // OK
 

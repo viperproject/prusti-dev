@@ -488,7 +488,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
 
         if !self.pure_functions.borrow().contains_key(&proc_def_id) {
-            let procedure_name = self.env().tcx().item_path_str(proc_def_id);
+            let procedure_name = self.env().tcx().absolute_item_path_str(proc_def_id);
             let procedure = self.env.get_procedure(proc_def_id);
             let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
             let function = if self.is_trusted(proc_def_id) {
@@ -543,8 +543,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
-        self.env().has_attribute_name(def_id, "trusted") || (
+        trace!("is_trusted {:?}", def_id);
+        let result = self.env().has_attribute_name(def_id, "trusted") || (
             self.use_whitelist && !self.whitelist.contains(&self.env().get_item_name(def_id))
-        )
+        );
+        trace!("is_trusted {:?} = {}", def_id, result);
+        result
     }
 }
