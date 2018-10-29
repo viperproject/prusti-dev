@@ -103,6 +103,7 @@ fn main() {
                     crate_name: String::from(crate_name),
                     functions: Vec::new(),
                 },
+                source_map: cs.session.parse_sess.code_map
             };
 
             // **Deep visit**: Want to scan for specific kinds of HIR nodes within

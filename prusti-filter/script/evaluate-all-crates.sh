@@ -17,31 +17,14 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	exit 1
 fi
 
-for crate in "$CRATE_DOWNLOAD_DIR"/*/; do
-	log_file="${crate}${SCRIPT_NAME}.log"
-	crate_source_dir="${crate}source"
-	crate_name="$(basename "$crate")"
-	(
-		echo ""
-		echo "===== Verify crate '$crate_name' ($(date '+%Y-%m-%d %H:%M:%S')) ====="
-		echo ""
-		SECONDS=0
-		# Timeout of 1 hour
-		timeout 3600 "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
-		exit_status="$?"
-		duration="$SECONDS"
-		whitelist_items="$(grep '"' "$crate_source_dir/Prusti.toml" | wc -l)"
-		echo "Exit status: $exit_status"
-		echo "Duration: $duration seconds"
-		echo "Items in whitelist: $whitelist_items"
-		echo ""
-		echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items items, $duration seconds ($(date '+%Y-%m-%d %H:%M:%S'))"
-	) | tee "$log_file" || true
+for crate_dir in "$CRATE_DOWNLOAD_DIR"/*; do
+	# Timeout of 1 hour (+5 min)
+	timeout -k 300 3600 "$DIR/evaluate-crate.sh" "$crate_dir" || true
 done
 
 # Print nice summary of summaries
 
-summaries="$(grep -h "Summary" "$CRATE_DOWNLOAD_DIR"/*/verify-all-supported-crates.log)"
+summaries="$(grep -h "Summary" "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log)"
 prusti_ok="$(echo "$summaries" | grep "exit status 0")"
 prusti_error="$(echo "$summaries" | grep -v "exit status 42" | grep -v "exit status 0")"
 compilation_error="$(echo "$summaries" | grep "exit status 42")"

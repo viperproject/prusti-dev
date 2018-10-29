@@ -5,6 +5,14 @@ set -euo pipefail
 info() { echo -e "[-] ${*}"; }
 error() { echo -e "[!] ${*}"; }
 
+cargoclean() {
+	# Clean the artifacts of this project ("bin" or "lib"), but not those of the dependencies
+	names="$(cargo metadata --format-version 1 | jq -r '.packages[].targets[] | select( .kind | map(. == "bin" or . == "lib") | any ) | select ( .src_path | contains(".cargo/registry") | . != true ) | .name')"
+	for name in $names; do
+		cargo clean -p "$name" || cargo clean
+	done
+}
+
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
@@ -17,15 +25,8 @@ if [[ ! -r "$CRATE_ROOT/Cargo.toml" ]]; then
 	exit 1
 fi
 
-cargoclean() {
-	# Clean the artifacts of this project ("bin" or "lib"), but not those of the dependencies
-	names="$(cargo metadata --format-version 1 | jq -r '.packages[].targets[] | select( .kind | map(. == "bin" or . == "lib") | any ) | select ( .src_path | contains(".cargo/registry") | . != true ) | .name')"
-	for name in $names; do
-		cargo clean -p "$name" || cargo clean
-	done
-}
-
 info "Run standard compilation"
+
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
 export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
@@ -38,16 +39,17 @@ if [[ "$exit_status" != "0" ]]; then
 	exit 42
 fi
 
-if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
-	info "Filter supported procedures"
-	export RUSTC="$DIR/rustc.sh"
-	export RUST_BACKTRACE=1
-	cargoclean
-	# Timeout of 20 minutes
-	timeout -k 10 1200 cargo build
-	unset RUSTC
-	unset RUST_BACKTRACE
-fi
+info "Filter supported procedures"
+
+#if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
+export RUSTC="$DIR/rustc.sh"
+export RUST_BACKTRACE=1
+cargoclean
+# Timeout of 20 minutes
+timeout -k 10 1200 cargo build
+unset RUSTC
+unset RUST_BACKTRACE
+# fi
 
 supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/results.json")"
 

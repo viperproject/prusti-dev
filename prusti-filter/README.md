@@ -200,11 +200,17 @@ Verify supported functions
 To verify all the supported procedures in a given crate:
 
 ```bash
-bash scripts/verify-supported.sh path/to/the/crate
+bash scripts/verify-supported.sh path/to/crates-download-dir/crate-name/source
+```
+
+If you also want to store the log:
+
+```bash
+bash scripts/evaluate-crate.sh path/to/crates-download-dir/123_crate-name
 ```
 
 Alternativelly, to run the previous script on all the crates previously downloaded:
 
 ```bash
-bash scripts/verify-all-supported-crates.sh path/to/the/crate/download/dir
+bash scripts/evaluate-all-crates.sh path/to/crates-download-dir
 ```
