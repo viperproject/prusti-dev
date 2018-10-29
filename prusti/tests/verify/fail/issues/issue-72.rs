@@ -1,6 +1,7 @@
 #![allow(unused_comparisons)]
 
 /// Issue #72: "Function precondition failure is missing identifier for position (causes panic)"
+extern crate prusti_contracts;
 
 pub struct VecWrapperI32{
     v: Vec<i32>

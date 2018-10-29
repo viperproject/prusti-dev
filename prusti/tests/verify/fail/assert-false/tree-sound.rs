@@ -1,6 +1,8 @@
 #![feature(nll)]
 #![feature(box_patterns)]
 
+extern crate prusti_contracts;
+
 struct Tree {
     val: i32,
     left: Option<Box<Tree>>,

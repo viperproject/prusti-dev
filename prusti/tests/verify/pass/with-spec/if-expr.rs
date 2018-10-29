@@ -1,5 +1,7 @@
 //! Example: test if expressions
 
+extern crate prusti_contracts;
+
 fn rand() -> bool { true }
 
 #[requires="x == 42"]

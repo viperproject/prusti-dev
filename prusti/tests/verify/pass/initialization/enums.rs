@@ -3,6 +3,8 @@
 #[allow(dead_code)]
 #[allow(unused_variables)]
 
+extern crate prusti_contracts;
+
 struct T0 (u32);
 
 struct T1 {

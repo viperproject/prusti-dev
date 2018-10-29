@@ -1,5 +1,7 @@
 //! Example: test match expressions
 
+extern crate prusti_contracts;
+
 #[requires="x == -42"]
 #[ensures="match result { Some(..) => true, _ => false }"]
 fn test_match_expr(x: i32) -> Option<i32> {

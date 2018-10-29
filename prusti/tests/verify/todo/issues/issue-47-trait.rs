@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 struct S {
     f: i32

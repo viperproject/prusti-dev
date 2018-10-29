@@ -2,6 +2,8 @@
 
 #![feature(nll)]
 
+extern crate prusti_contracts;
+
 struct T {
     val: i32
 }

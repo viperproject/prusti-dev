@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 #[pure]
 fn magic(n: i32) -> i32 {

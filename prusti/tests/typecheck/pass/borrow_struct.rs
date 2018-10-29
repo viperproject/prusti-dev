@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 /*
 struct F<'a> {

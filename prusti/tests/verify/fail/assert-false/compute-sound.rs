@@ -1,5 +1,7 @@
 #![feature(nll)]
 
+extern crate prusti_contracts;
+
 #[derive(Clone, Copy)]
 struct IntBox {
     val: i32

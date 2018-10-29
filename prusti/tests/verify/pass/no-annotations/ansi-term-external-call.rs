@@ -1,5 +1,7 @@
 //! Source: `045_ansi_term` crate
 
+extern crate prusti_contracts;
+
 /// A style is a collection of properties that can format a string
 /// using ANSI escape codes.
 #[derive(PartialEq, Clone, Copy)]

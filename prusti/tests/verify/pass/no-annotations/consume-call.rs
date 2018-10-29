@@ -1,5 +1,7 @@
 //! Example: drop a field of a struct
 
+extern crate prusti_contracts;
+
 struct A;
 struct B {
     a1: A,

@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 pub struct VecWrapperI32{
     v: Vec<i32>

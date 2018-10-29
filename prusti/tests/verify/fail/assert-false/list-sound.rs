@@ -2,6 +2,8 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
+extern crate prusti_contracts;
+
 enum List {
     Nil,
     Const {

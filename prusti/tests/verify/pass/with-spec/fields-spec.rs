@@ -1,5 +1,7 @@
 //! Example: test encoding of fields in specifications
 
+extern crate prusti_contracts;
+
 struct S {
     a: i32,
     b: i32

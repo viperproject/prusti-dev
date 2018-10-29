@@ -1,5 +1,7 @@
 //! Example: paths with enums
 
+extern crate prusti_contracts;
+
 struct A;
 enum B {
     B1 { a1: A, a2: A },

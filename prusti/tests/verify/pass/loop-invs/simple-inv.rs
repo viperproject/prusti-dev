@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 fn main() {
     let mut i = 1000;

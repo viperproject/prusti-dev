@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 #[requires="0 < n"]
 #[ensures="result > 0"]

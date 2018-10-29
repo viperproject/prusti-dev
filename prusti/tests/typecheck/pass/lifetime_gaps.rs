@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 fn use_ref(_r: &mut i32) {}
 

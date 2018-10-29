@@ -4,6 +4,8 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
+extern crate prusti_contracts;
+
 enum Either {
     Left(i32),
     Right(i32)

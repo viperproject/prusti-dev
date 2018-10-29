@@ -1,5 +1,7 @@
 //! Example: structures with fields encoded with different Viper types
 
+extern crate prusti_contracts;
+
 struct A {
     val: i32
 }

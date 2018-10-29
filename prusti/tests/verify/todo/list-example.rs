@@ -2,6 +2,8 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
+extern crate prusti_contracts;
+
 struct List {
     value: u32,
     next: Option<Box<List>>,

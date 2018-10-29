@@ -76,7 +76,7 @@ ENTRYPOINT ["/root/entrypoint.sh"]
 ENV USER=root
 RUN cd / && \
     cargo new playground && \
-    sed -i 's/println.*$/assert!(true)/' /playground/src/main.rs
+    sed -i '1s/^/extern crate prusti_contracts;\n/;s/println.*$/assert!(true)/' /playground/src/main.rs
 WORKDIR /playground
 
 RUN cargo build && \

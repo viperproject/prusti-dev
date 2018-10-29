@@ -1,5 +1,7 @@
 /// Issue #46 "Field access of an old expressions"
 
+extern crate prusti_contracts;
+
 struct S {
     f: i32
 }

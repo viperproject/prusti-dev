@@ -1,5 +1,7 @@
 #![feature(never_type)]
 
+extern crate prusti_contracts;
+
 fn diverging() -> ! {
     diverging()
 }

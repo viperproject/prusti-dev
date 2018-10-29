@@ -1,5 +1,7 @@
 //! Example: test simple specifications without old expressions
 
+extern crate prusti_contracts;
+
 #[requires="x == 42"]
 #[ensures="result == 42"]
 fn test_unsigned_int(x: u32) -> u32 {

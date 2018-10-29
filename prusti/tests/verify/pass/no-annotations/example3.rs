@@ -1,5 +1,7 @@
 #![feature(nll)]
 
+extern crate prusti_contracts;
+
 enum IntOption {
     Some(i32),
     None

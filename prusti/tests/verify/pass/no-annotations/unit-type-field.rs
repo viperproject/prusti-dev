@@ -1,3 +1,4 @@
+extern crate prusti_contracts;
 
 #[derive(Clone,Copy)]
 struct UnitBox {

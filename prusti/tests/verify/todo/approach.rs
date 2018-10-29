@@ -1,4 +1,5 @@
 #![feature(box_syntax, box_patterns)]
+extern crate prusti_contracts;
 
 struct Point {
   x: u32,

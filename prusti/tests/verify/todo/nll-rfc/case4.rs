@@ -5,6 +5,8 @@
 ///
 /// TODO: Add specifications.
 
+extern crate prusti_contracts;
+
 struct List {
     value: i32,
     next: Option<Box<List>>,

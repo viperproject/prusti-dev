@@ -4,6 +4,8 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 
+extern crate prusti_contracts;
+
 fn main() {
     let x = 123;
     let y = Some(x);

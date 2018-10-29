@@ -1340,13 +1340,6 @@ impl<'tcx> Folder for SpecParser<'tcx> {
         krate.attrs.push(
             self.ast_builder.attribute_feature(krate.span, "stmt_expr_attributes"),
         );
-        // Automatically add "extern crate prusti_constracts"
-        krate.module.items.push(
-            self.ast_builder.item_extern_crate(
-                krate.span,
-                self.ast_builder.ident_of("prusti_contracts")
-            )
-        );
         krate
     }
 
