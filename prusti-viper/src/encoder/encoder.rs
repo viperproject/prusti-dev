@@ -469,13 +469,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
+        // Rule: the rhs must always have an even number of "$" and "_"
         self.env.get_item_name(def_id)
-            .replace("::", "$")
-            .replace("<", "$_")
-            .replace(">", "_$")
-            .replace("(", "$__")
-            .replace(")", "__$")
-            .replace(" ", "_")
+            .replace("_", "__")
+            .replace("::", "$$")
+            .replace("<", "$beginang$").replace(">", "$endang$")
+            .replace("(", "$beginpar$").replace(")", "$endpar$")
+            .replace(",", "$comma$")
+            .replace(" ", "_space_")
     }
 
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {
