@@ -2,6 +2,9 @@
 
 set -uo pipefail
 
+info() { echo -e "[-] ${*}"; }
+error() { echo -e "[!] ${*}"; }
+
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 SCRIPT_NAME="$(basename -s '.sh' "$0")"
@@ -17,20 +20,18 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	exit 1
 fi
 
-# Force exit on Ctrl-c
-function ctrl_c() {
-        echo "Force exit"
-        exit 1
-}
-trap ctrl_c INT
+# Run evaluations in parallel
 
-for crate_dir in "$CRATE_DOWNLOAD_DIR"/*; do
-	# Timeout of 1 hour (+5 min)
-	timeout -k 300 3600 "$DIR/evaluate-crate.sh" "$crate_dir"
-	sleep 1
-done
+num_cores="$(grep -c ^processor /proc/cpuinfo)"
+parallel_jobs="$(( 1 > (num_cores / 8) ? 1 : (num_cores / 8) ))"
+info "Number of cores: $num_cores"
+info "Parallel evaluations: $parallel_jobs"
 
-# Print nice summary of summaries
+ls -d "$CRATE_DOWNLOAD_DIR"/* | \
+	xargs -I CMD --max-procs=$parallel_jobs -n 1 \
+	timeout -k 300 3600 "$DIR/evaluate-crate.sh" CMD
+
+# Print summary of summaries
 
 summaries="$(grep -h "Summary" "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log)"
 prusti_ok="$(echo "$summaries" | grep "exit status 0")"
