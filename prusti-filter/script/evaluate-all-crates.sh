@@ -22,20 +22,19 @@ fi
 
 # Force exit on Ctrl-c
 function ctrl_c() {
-	info "Force exit"
+	info "Force exit. Kill all subprocesses..."
+	pkill -s 9 -P $$
 	exit 2
 }
 trap ctrl_c INT
 
 # Run evaluations in parallel
 
-num_cores="$(grep -c ^processor /proc/cpuinfo)"
-parallel_jobs="$(( 1 > (num_cores / 8) ? 1 : (num_cores / 8) ))"
-info "Number of cores: $num_cores"
-info "Parallel evaluations: $parallel_jobs"
+MAX_PARALLEL_EVALUATIONS="${MAX_PARALLEL_EVALUATIONS:-1}"
+info "Use MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS"
 
 ls -d "$CRATE_DOWNLOAD_DIR"/* | \
-	xargs -I CMD --max-procs=$parallel_jobs -n 1 \
+	xargs -I CMD --max-procs="$MAX_PARALLEL_EVALUATIONS" --max-args=1 \
 	timeout -k 300 3600 "$DIR/evaluate-crate.sh" CMD
 
 # Print summary of summaries
