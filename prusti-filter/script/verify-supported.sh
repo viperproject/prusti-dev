@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eo pipefail
 
 info() { echo -e "[-] ${*}"; }
 error() { echo -e "[!] ${*}"; }
@@ -32,8 +32,8 @@ export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
 exit_status="0"
 cargo clean
-# Timeout of 20 minutes
-timeout -k 10 1200 cargo build || exit_status="$?" && true
+# Timeout in seconds
+timeout -k 10 900 cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile. Skip verification."
 	exit 42
@@ -41,17 +41,17 @@ fi
 
 info "Filter supported procedures"
 
-#if [[ ! -r "$CRATE_ROOT/results.json" ]]; then
-export RUSTC="$DIR/rustc.sh"
-export RUST_BACKTRACE=1
-cargoclean
-# Timeout of 20 minutes
-timeout -k 10 1200 cargo build
-unset RUSTC
-unset RUST_BACKTRACE
-# fi
+if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]]; then
+	export RUSTC="$DIR/rustc.sh"
+	export RUST_BACKTRACE=1
+	cargoclean
+	# Timeout in seconds
+	timeout -k 10 900 cargo build -j 1
+	unset RUSTC
+	unset RUST_BACKTRACE
+fi
 
-supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/results.json")"
+supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json")"
 
 info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)"
 
@@ -77,5 +77,5 @@ export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
-# Timeout of 20 minutes
-timeout -k 10 1200 cargo build -j 1
+# Timeout in seconds
+timeout -k 10 900 cargo build -j 1

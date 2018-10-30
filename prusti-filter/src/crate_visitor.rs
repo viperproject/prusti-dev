@@ -1,14 +1,11 @@
 use syntax::ast::NodeId;
 use rustc::hir;
-use syntax::print::pprust;
 use rustc::hir::intravisit::{NestedVisitorMap, Visitor};
 use rustc::hir::intravisit::*;
-use syntax::codemap::Span;
+use syntax::codemap::{Span, CodeMap};
 use rustc::ty::TyCtxt;
 use validators::Validator;
 use validators::SupportStatus;
-use std::rc::Rc;
-use syntax::source_map::SourceMap;
 use prusti_interface::environment::{ProcedureLoops, Procedure};
 
 pub struct CrateVisitor<'tcx: 'a, 'a>
@@ -17,7 +14,7 @@ pub struct CrateVisitor<'tcx: 'a, 'a>
     pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
     pub validator: Validator<'a, 'tcx>,
     pub crate_status: CrateStatus,
-    pub source_map: Rc<SourceMap>,
+    pub source_map: &'tcx CodeMap,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -55,8 +52,8 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
         let num_loop_heads = loop_info.count_loop_heads();
         let max_loop_nesting = loop_info.max_loop_nesting();
 
-        let lines_of_code = s.end().line - s.start().line + 1;
-        let source_code = self.source_map.span_to_string(s);
+        let source_code = self.source_map.span_to_snippet(s).unwrap();
+        let lines_of_code = source_code.lines().count();
         let show_source_code = procedure_support_status.is_supported() || pure_function_support_status.is_supported();
 
         let function_status = FunctionStatus {

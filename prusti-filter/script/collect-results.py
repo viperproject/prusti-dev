@@ -8,15 +8,15 @@ import sys
 
 ROOT = os.path.abspath('.')
 CRATES_PATH = os.path.join(ROOT, 'crates')
-RESULTS_PATH = os.path.join(CRATES_PATH, 'results.json')
+RESULTS_PATH = os.path.join(CRATES_PATH, 'prusti-filter-results.json')
 
 
 def collect(crate_download_folder):
     crate_download_folder = os.path.abspath(crate_download_folder)
     all_data = []
     for root, dirs, files in os.walk(crate_download_folder):
-        if 'results.json' in files:
-            path = os.path.join(root, 'results.json')
+        if 'prusti-filter-results.json' in files:
+            path = os.path.join(root, 'prusti-filter-results.json')
             with open(path) as fp:
                 data = json.load(fp)
                 data['path'] = path
@@ -46,7 +46,7 @@ def supported_functions_in_crate(data):
 def analyse(crate_download_folder):
     supported_functions = 0
     supported_crates = []
-    for path in glob.glob(os.path.join(crate_download_folder, '*', 'results.json')):
+    for path in glob.glob(os.path.join(crate_download_folder, '*', 'prusti-filter-results.json')):
         with open(path) as fp:
             data = json.load(fp)
             supported_functions += count_supported_functions(data)

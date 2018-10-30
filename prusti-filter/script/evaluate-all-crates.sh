@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -uo pipefail
 
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
@@ -17,9 +17,17 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	exit 1
 fi
 
+# Force exit on Ctrl-c
+function ctrl_c() {
+        echo "Force exit"
+        exit 1
+}
+trap ctrl_c INT
+
 for crate_dir in "$CRATE_DOWNLOAD_DIR"/*; do
 	# Timeout of 1 hour (+5 min)
-	timeout -k 300 3600 "$DIR/evaluate-crate.sh" "$crate_dir" || true
+	timeout -k 300 3600 "$DIR/evaluate-crate.sh" "$crate_dir"
+	sleep 1
 done
 
 # Print nice summary of summaries
@@ -34,13 +42,7 @@ prusti_ok_num="$(echo "$prusti_ok" | wc -l)"
 prusti_error_num="$(echo "$prusti_error" | wc -l)"
 compilation_error_num="$(echo "$compilation_error" | wc -l)"
 
-# Note: these are only items in whitelists, not *verified* items
-summaries_items="$(echo "$(echo "$summaries" | cut -d ' ' -f 8 | tr "\n" '+')" 0 | bc)"
-prusti_ok_items="$(echo "$(echo "$prusti_ok" | cut -d ' ' -f 8 | tr "\n" '+')" 0 | bc)"
-prusti_error_items="$(echo "$(echo "$prusti_error" | cut -d ' ' -f 8 | tr "\n" '+')" 0 | bc)"
-compilation_error_items="$(echo "$(echo "$compilation_error" | cut -d ' ' -f 8 | tr "\n" '+')" 0 | bc)"
-
-echo "Collected $summaries_num summaries, for a total of $summaries_items items (in whitelists)"
-echo " - Prusti ok: $prusti_ok_num crates, $prusti_ok_items items (in whitelists)"
-echo " - Prusti error: $prusti_error_num crates, $prusti_error_items items (in whitelists)"
-echo " - Invalid: $compilation_error_num crates, $compilation_error_items items (in whitelists)"
+echo "Collected $summaries_num summaries"
+echo " - Prusti ok: $prusti_ok_num crates"
+echo " - Prusti error: $prusti_error_num crates"
+echo " - Invalid: $compilation_error_num crates"

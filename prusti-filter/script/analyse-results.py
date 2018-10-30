@@ -5,7 +5,7 @@ import os
 
 ROOT = os.path.abspath('.')
 ROSETTA_PATH = os.path.join(ROOT, 'rosetta')
-RESULTS_PATH = os.path.join(ROSETTA_PATH, 'results.json')
+RESULTS_PATH = os.path.join(ROSETTA_PATH, 'prusti-filter-results.json')
 
 
 def count_supported_functions(data):
