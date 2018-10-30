@@ -36,13 +36,15 @@ impl<'r, 'a, 'tcx> CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
 
 impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
-        let def_id = self.tcx.hir.local_def_id(item.id);
-        let item_name = self.env.get_item_name(def_id);
-        if !self.use_whitelist || self.whitelist.contains(&item_name) {
-            trace!("Add {} to result", item_name);
-            self.result.push(def_id);
-        } else {
-            debug!("Skip verification of item '{}': not in the whitelist", item_name)
+        if let hir::Item_::ItemFn(..) = item.node {
+            let def_id = self.tcx.hir.local_def_id(item.id);
+            let item_name = self.env.get_item_name(def_id);
+            if !self.use_whitelist || self.whitelist.contains(&item_name) {
+                trace!("Add {} to result", item_name);
+                self.result.push(def_id);
+            } else {
+                debug!("Skip verification of item '{}': not in the whitelist", item_name)
+            }
         }
     }
 
