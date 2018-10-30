@@ -36,6 +36,12 @@ impl<'r, 'a, 'tcx> CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
 
 impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
+        if attr::contains_name(&item.attrs, "__PRUSTI_LOOP_SPEC_ID") ||
+            attr::contains_name(&item.attrs, "__PRUSTI_EXPR_ID") ||
+            attr::contains_name(&item.attrs, "__PRUSTI_FORALL_ID") ||
+            attr::contains_name(&item.attrs, "__PRUSTI_SPEC_ONLY") {
+            return;
+        }
         if let hir::Item_::ItemFn(..) = item.node {
             let def_id = self.tcx.hir.local_def_id(item.id);
             let item_name = self.env.get_item_name(def_id);
