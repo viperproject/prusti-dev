@@ -43,7 +43,6 @@ impl SupportKind {
 pub struct SupportStatus {
     restrictions: HashSet<SupportKind>,
     interestings: HashSet<String>,
-    basic_block_count: Option<usize>,
 }
 
 impl SupportStatus {
@@ -51,12 +50,7 @@ impl SupportStatus {
         SupportStatus {
             restrictions: HashSet::new(),
             interestings: HashSet::new(),
-            basic_block_count: None,
         }
-    }
-
-    pub fn set_bb_count(&mut self, count: usize) {
-        self.basic_block_count = Some(count);
     }
 
     pub fn partially(&mut self, reason: String) {

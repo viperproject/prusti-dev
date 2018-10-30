@@ -8,7 +8,7 @@ use rustc::ty::subst::Substs;
 use validators::SupportStatus;
 use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
-use prusti_interface::environment::Procedure;
+use prusti_interface::environment::{ProcedureLoops, Procedure};
 use rustc::mir::interpret::GlobalId;
 use rustc::middle::const_val::ConstVal;
 
@@ -250,7 +250,11 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         //    self.check_local_ty(local_decl.ty);
         //}
 
-        // TODO: check absence of loops
+        requires!(
+            self, ProcedureLoops::new(mir).count_loop_heads() == 0,
+            "loops are not allowed in pure functions"
+        );
+
         // TODO: check only blocks that may lead to a `Return` terminator
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(index) || procedure.is_spec_block(index) {

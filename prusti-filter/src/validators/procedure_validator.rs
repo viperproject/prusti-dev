@@ -258,7 +258,6 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         //    self.check_ty(local_decl.ty, "local variable");
         //}
 
-        self.support.set_bb_count(mir.basic_blocks().len());
         for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
                 continue;
