@@ -71,7 +71,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             let procedure = Procedure::new(self.tcx, def_id);
             self.check_mir(&procedure);
         } else {
-            partially!(self, "function calls to outer crates are partially supported")
+            unsupported!(self, "function calls to outer crates are unsupported")
         }
     }
 
