@@ -231,8 +231,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let fun_spec = match opt_fun_spec {
             Some(fun_spec) => fun_spec.clone(),
             None => {
-                warn!("Procedure {:?} has no specification", proc_def_id);
-                // TODO: use false as precondition as default?
+                debug!("Procedure {:?} has no specification", proc_def_id);
                 SpecificationSet::Procedure(vec![], vec![])
             }
         };
@@ -474,6 +473,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             .replace("::", "$")
             .replace("<", "$_")
             .replace(">", "_$")
+            .replace("(", "$__")
+            .replace(")", "__$")
             .replace(" ", "_")
     }
 

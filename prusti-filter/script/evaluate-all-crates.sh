@@ -21,9 +21,16 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 fi
 
 # Force exit on Ctrl-c
+function list_descendants() {
+	local children=$(ps -o pid= --ppid "$1")
+	for pid in $children; do
+		list_descendants "$pid"
+	done
+	echo "$children"
+}
 function ctrl_c() {
 	info "Force exit. Kill all subprocesses..."
-	pkill -s 9 -P $$
+	pkill -P $$
 	exit 2
 }
 trap ctrl_c INT
@@ -31,7 +38,7 @@ trap ctrl_c INT
 # Run evaluations in parallel
 
 MAX_PARALLEL_EVALUATIONS="${MAX_PARALLEL_EVALUATIONS:-1}"
-info "Use MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS"
+info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS"
 
 ls -d "$CRATE_DOWNLOAD_DIR"/* | \
 	xargs -I CMD --max-procs="$MAX_PARALLEL_EVALUATIONS" --max-args=1 \
