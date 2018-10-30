@@ -42,14 +42,14 @@ impl<'tcx: 'a, 'a> CrateVisitor<'tcx, 'a> {
 
 impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
     fn visit_fn(&mut self, fk: FnKind<'tcx>, fd: &'tcx hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) {
-        let node_path = self.tcx.node_path_str(id);
+        let def_id = self.tcx.hir.local_def_id(id);
+        let procedure = Procedure::new(self.tcx, def_id);
+        let node_path = procedure.get_name();
         debug!("Checking {}", node_path);
 
         let procedure_support_status = self.validator.procedure_support_status(fk, fd, b, s, id);
         let pure_function_support_status = self.validator.pure_function_support_status(fk, fd, b, s, id);
 
-        let def_id = self.tcx.hir.local_def_id(id);
-        let procedure = Procedure::new(self.tcx, def_id);
         let num_basic_blocks = procedure.get_all_cfg_blocks().len();
         let num_encoded_basic_blocks = procedure.get_reachable_nonspec_cfg_blocks().len();
         let loop_info = ProcedureLoops::new(procedure.get_mir());
