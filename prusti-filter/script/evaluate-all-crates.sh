@@ -20,6 +20,13 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	exit 1
 fi
 
+# Force exit on Ctrl-c
+function ctrl_c() {
+	info "Force exit"
+	exit 2
+}
+trap ctrl_c INT
+
 # Run evaluations in parallel
 
 num_cores="$(grep -c ^processor /proc/cpuinfo)"
