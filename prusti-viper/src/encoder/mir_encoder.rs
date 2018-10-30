@@ -294,10 +294,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn get_operand_ty(&mut self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
         debug!("Get operand ty {:?}", operand);
         match operand {
-            &mir::Operand::Move(ref place) => {
-                let (_, ty, _) = self.encode_place(place);
-                ty
-            }
+            &mir::Operand::Move(ref place) |
             &mir::Operand::Copy(ref place) => {
                 let (_, ty, _) = self.encode_place(place);
                 ty

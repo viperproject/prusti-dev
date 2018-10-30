@@ -484,8 +484,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         trace!("check_operand {:?}", operand);
 
         match operand {
-            mir::Operand::Copy(ref place) => self.check_place(mir, place),
-
+            mir::Operand::Copy(ref place) |
             mir::Operand::Move(ref place) => self.check_place(mir, place),
 
             mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {

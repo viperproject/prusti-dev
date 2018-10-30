@@ -109,6 +109,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         let mut cfg_blocks: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
+        //let mut cfg_edges: HashMap<BasicBlockIndex, CfgBlockIndex> = unimplemented!(                                        )
 
         // Initialize CFG blocks
         let start_cfg_block = self.cfg_method.add_block("start", vec![], vec![
@@ -1704,6 +1705,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_assign_operand(&mut self, lhs: &vir::Place, operand: &mir::Operand<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("Encode assign operand {:?}", operand);
         match operand {
+            /*
             &mir::Operand::Move(ref rhs_place) => {
                 let (encoded_rhs, ty, _) = self.mir_encoder.encode_place(rhs_place);
                 // Move the values from `encoded_rhs` to `lhs`
@@ -1764,6 +1766,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     debug!("Do not havoc rhs of '{:?}'", operand);
                 }
                 stmts
+            }
+            */
+
+            &mir::Operand::Move(ref place) => {
+                let (src, ty, _) = self.mir_encoder.encode_place(place);
+                // Copy the values from `src` to `lhs`
+                self.encode_copy(src, lhs.clone(), ty, true, location)
             }
 
             &mir::Operand::Copy(ref place) => {
@@ -1844,7 +1853,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encodes the copy of a structure, reading from a source `src` and using `dst` as target.
-    /// The copy is neither shallow or deep:
+    /// The copy is neither shallow nor deep:
     /// - if a field encodes a Rust reference, the reference is copied (shallow copy);
     /// - if a field does not encode a Rust reference, but is a Viper reference, a recursive call
     ///   copies the content of the field (deep copy).
@@ -1943,6 +1952,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+                // Box type
                 // Ensure that we are encoding a move, not a copy (enforced byt the Rust typesystem)
                 assert!(is_move);
                 let field_ty = self_ty.boxed_ty();

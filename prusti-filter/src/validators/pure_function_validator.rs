@@ -458,10 +458,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
     fn check_operand(&mut self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>) {
         match operand {
-            mir::Operand::Copy(ref place) => {
-                self.check_place(mir, place)
-            }
-
+            mir::Operand::Copy(ref place) |
             mir::Operand::Move(ref place) => {
                 self.check_place(mir, place)
             }

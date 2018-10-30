@@ -473,8 +473,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.env.get_item_name(def_id)
             .replace("_", "__")
             .replace("::", "$$")
-            .replace("<", "$beginang$").replace(">", "$endang$")
-            .replace("(", "$beginpar$").replace(")", "$endpar$")
+            .replace("<", "$openang$").replace(">", "$closeang$")
+            .replace("(", "$openpar$").replace(")", "$closepar$")
             .replace(",", "$comma$")
             .replace(" ", "_space_")
     }
