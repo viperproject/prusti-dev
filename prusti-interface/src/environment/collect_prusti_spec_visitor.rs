@@ -55,6 +55,9 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
+        if attr::contains_name(&trait_item.attrs, "__PRUSTI_SPEC_ONLY") {
+            return;
+        }
         let def_id = self.tcx.hir.local_def_id(trait_item.id);
         let item_name = self.env.get_item_name(def_id);
         if !self.use_whitelist || self.whitelist.contains(&item_name) {
@@ -66,6 +69,9 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
+        if attr::contains_name(&impl_item.attrs, "__PRUSTI_SPEC_ONLY") {
+            return;
+        }
         let def_id = self.tcx.hir.local_def_id(impl_item.id);
         let item_name = self.env.get_item_name(def_id);
         if !self.use_whitelist || self.whitelist.contains(&item_name) {

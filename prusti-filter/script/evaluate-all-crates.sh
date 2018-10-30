@@ -20,6 +20,8 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	exit 1
 fi
 
+info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
+
 # Force exit on Ctrl-c
 function list_descendants() {
 	local children=$(ps -o pid= --ppid "$1")
