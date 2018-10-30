@@ -5,7 +5,6 @@ use std::collections::HashSet;
 pub enum SupportKind {
     PartiallySupported(String),
     Unsupported(String),
-    Interesting(String),
 }
 
 impl SupportKind {
@@ -15,10 +14,6 @@ impl SupportKind {
 
     pub fn unsupported(reason: String) -> Self {
         SupportKind::Unsupported(reason)
-    }
-
-    pub fn interesting(reason: String) -> Self {
-        SupportKind::Interesting(reason)
     }
 
     pub fn is_partially_supported(&self) -> bool {
@@ -38,8 +33,7 @@ impl SupportKind {
     pub fn reason(&self) -> &str {
         match self {
             SupportKind::Unsupported(ref reason) |
-            SupportKind::PartiallySupported(ref reason) |
-            SupportKind::Interesting(ref reason) => reason,
+            SupportKind::PartiallySupported(ref reason) => reason,
         }
     }
 }
@@ -48,6 +42,7 @@ impl SupportKind {
 #[derive(Serialize, Deserialize)]
 pub struct SupportStatus {
     restrictions: HashSet<SupportKind>,
+    interestings: HashSet<String>,
     basic_block_count: Option<usize>,
 }
 
@@ -55,6 +50,7 @@ impl SupportStatus {
     pub fn new() -> Self {
         SupportStatus {
             restrictions: HashSet::new(),
+            interestings: HashSet::new(),
             basic_block_count: None,
         }
     }
@@ -78,9 +74,7 @@ impl SupportStatus {
 
     #[allow(dead_code)]
     pub fn interesting(&mut self, reason: String) {
-        self.restrictions.insert(
-            SupportKind::interesting(reason)
-        );
+        self.interestings.insert(reason);
     }
 
     pub fn is_supported(&self) -> bool {
