@@ -98,6 +98,11 @@ pub enum ReborrowingKind {
         /// The actual loan that expired.
         loan: facts::Loan,
     },
+    /// Corresponds to the case when the reference was moved into function call.
+    ArgumentMove {
+        /// The actual loan that expired.
+        loan: facts::Loan,
+    },
     Call {
         /// The actual loan that expired.
         loan: facts::Loan,
@@ -138,6 +143,9 @@ impl fmt::Debug for ReborrowingNode {
         match self.kind {
             ReborrowingKind::Assignment { ref loan } => {
                 write!(f, "{:?}", loan)?;
+            }
+            ReborrowingKind::ArgumentMove { ref loan } => {
+                write!(f, "Move({:?})", loan)?;
             }
             ReborrowingKind::Call { ref loan, ref variable, ref region } => {
                 write!(f, "Call({:?}, {:?}:{:?})", loan, variable, region)?;
@@ -240,6 +248,9 @@ impl fmt::Debug for ReborrowingDAGNode {
             ReborrowingKind::Assignment { .. } => {
                 write!(f, "{:?}", self.loan)?;
             }
+            ReborrowingKind::ArgumentMove { ref loan } => {
+                write!(f, "Move({:?})", loan)?;
+            }
             ReborrowingKind::Call { ref variable, ref region, .. } => {
                 write!(f, "Call({:?}, {:?}:{:?})", self.loan, variable, region)?;
             }
@@ -328,8 +339,10 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) loops: loops::ProcedureLoops,
     pub(crate) initialization: DefinitelyInitializedAnalysisResult<'tcx>,
     pub(crate) liveness: LivenessAnalysisResult,
-    /// Fake loans that were created due to fake moves.
+    /// Fake loans that were created due to variable moves.
     pub(crate) reference_moves: Vec<facts::Loan>,
+    /// Fake loans that were created due to arguments moved into calls.
+    pub(crate) argument_moves: Vec<facts::Loan>,
 
     /// Facts without back edges.
     pub(crate) borrowck_in_facts_no_back: facts::AllInputFacts,
@@ -337,17 +350,19 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) additional_facts_no_back: AdditionalFacts,
 }
 
-/// Returns moves that were turned into fake reborrows.
+/// Returns moves and argument moves that were turned into fake reborrows.
 fn add_fake_facts<'a, 'tcx:'a>(
     all_facts: &mut facts::AllInputFacts,
     interner: &facts::Interner,
     mir: &'a mir::Mir<'tcx>,
     variable_regions: &HashMap<mir::Local, facts::Region>,
     call_magic_wands: &mut HashMap<facts::Loan, mir::Local>
-) -> Vec<facts::Loan> {
+) -> (Vec<facts::Loan>, Vec<facts::Loan>) {
     // The code that adds a creation of a new borrow for each
     // move of a borrow.
+
     let mut reference_moves = Vec::new();
+    let mut argument_moves = Vec::new();
 
     // Find the last loan index.
     let mut last_loan_id = 0;
@@ -397,6 +412,14 @@ fn add_fake_facts<'a, 'tcx:'a>(
                         x => unimplemented!("{:?}", x)
                     }
                 }
+                for &(region1, _region2) in &regions {
+                    let new_loan = facts::Loan::from(last_loan_id);
+                    borrow_region.push((*region1, new_loan, *point));
+                    argument_moves.push(new_loan);
+                    debug!("Adding call arg: {:?} {:?} {:?} {}",
+                           region1, _region2, location, last_loan_id);
+                    last_loan_id += 1;
+                }
             } else if is_assignment(&mir, location) {
                 let (_region1, region2) = regions.pop().unwrap();
                 let new_loan = facts::Loan::from(last_loan_id);
@@ -407,7 +430,7 @@ fn add_fake_facts<'a, 'tcx:'a>(
             }
         }
     }
-    reference_moves
+    (reference_moves, argument_moves)
 }
 
 /// Remove back edges to make MIR uncyclic so that we can compute reborrowing dags at the end of
@@ -456,7 +479,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
         let mut all_facts = facts_loader.facts;
         let loop_info = loops::ProcedureLoops::new(&mir);
-        let reference_moves = add_fake_facts(
+        let (reference_moves, argument_moves) = add_fake_facts(
             &mut all_facts, &facts_loader.interner, &mir,
             &variable_regions, &mut call_magic_wands);
 
@@ -496,6 +519,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             additional_facts_no_back: additional_facts_without_back_edges,
             loops: loop_info,
             reference_moves: reference_moves,
+            argument_moves: argument_moves,
             initialization: initialization,
             liveness: liveness,
         };
@@ -1010,6 +1034,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 variable: *local,
                 region: region,
             }
+        } else if self.argument_moves.contains(&loan) {
+            ReborrowingKind::ArgumentMove {
+                loan: loan,
+            }
         } else if Some(loan) == representative_loan {
             for magic_wands in self.loop_magic_wands.values() {
                 for magic_wand in magic_wands.iter() {
@@ -1035,6 +1063,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         // Is the loan is a move of a reference, then this source is moved out and,
         // therefore, a zombie.
         let is_reference_move = self.reference_moves.contains(&loan);
+        let is_argument_move = self.argument_moves.contains(&loan);
 
         debug!("loan={:?} is_reference_move={:?}", loan, is_reference_move);
         if zombie_loans.contains(&loan) || is_reference_move {
@@ -1055,7 +1084,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             })
             .map(|incoming_loan| {
                 zombie_loans.contains(incoming_loan) ||
-                self.reference_moves.contains(incoming_loan)
+                self.reference_moves.contains(incoming_loan) ||
+                self.argument_moves.contains(incoming_loan)
             })
             .collect();
 
