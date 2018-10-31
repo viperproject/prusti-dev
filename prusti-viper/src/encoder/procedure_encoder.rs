@@ -20,7 +20,7 @@ use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
-use prusti_interface::environment::polonius_info::{ReborrowingZombity, ReborrowingGuard, ReborrowingDAGNode, ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
+use prusti_interface::environment::polonius_info::{ReborrowingZombity, ReborrowingGuard, ReborrowingDAG, ReborrowingDAGNode, ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
 use prusti_interface::environment::borrowck::{facts};
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;
@@ -153,6 +153,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             )
         );
 
+        // Encode a flag that becomes true the first time the block is executed
+        for bbi in self.procedure.get_reachable_cfg_blocks() {
+            let executed_flag_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
+            self.cfg_method.add_stmt(
+                start_cfg_block,
+                vir::Stmt::Assign(vir::Place::Base(executed_flag_var.clone()), false.into(), vir::AssignKind::Copy)
+            );
+            self.cfg_block_has_been_executed.insert(bbi, executed_flag_var);
+        }
+
         // Encode preconditions
         self.encode_preconditions(start_cfg_block, &mut procedure_contract);
 
@@ -166,16 +176,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let cfg_block = *cfg_blocks.get(&bbi).unwrap();
 
             // Store a flag that becomes true the first time the block is executed
-            let executed_flag_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
-            self.cfg_method.add_stmt(
-                start_cfg_block,
-                vir::Stmt::Assign(vir::Place::Base(executed_flag_var.clone()), false.into(), vir::AssignKind::Copy)
-            );
+            let executed_flag_var = self.cfg_block_has_been_executed[&bbi].clone();
             self.cfg_method.add_stmt(
                 cfg_block,
-                vir::Stmt::Assign(vir::Place::Base(executed_flag_var.clone()), true.into(), vir::AssignKind::Copy)
+                vir::Stmt::Assign(vir::Place::Base(executed_flag_var), true.into(), vir::AssignKind::Copy)
             );
-            self.cfg_block_has_been_executed.insert(bbi, executed_flag_var);
 
             // Inhale the loop invariant if this is a loop head
             if self.loop_encoder.is_loop_head(bbi) {
@@ -326,6 +331,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
 
+        /*
         // Keep a copy of the value of the variable (fixes issue #20)
         let formal_args: Vec<_> = self.locals
             .iter()
@@ -353,7 +359,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             );
             self.cfg_method.add_stmt(start_cfg_block, init_old);
         }
+        */
 
+        /*
         // Fix evaluation of arguments in old states (see issue #20)
         for local in self.mir.local_decls.indices() {
             let local_var = self.mir_encoder.encode_local(local);
@@ -376,6 +384,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             );
         }
+        */
 
         self.check_vir();
 
@@ -646,7 +655,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_expiration_of_reborrowing_dag_node(&mut self, node: &ReborrowingDAGNode) -> Vec<vir::Stmt> {
+    fn encode_expiration_of_reborrowing_dag_node(&mut self, dag: &ReborrowingDAG, node: &ReborrowingDAGNode) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_reborrowing_dag_node '{:?}'", node);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
@@ -655,6 +664,53 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let loan_location = self.polonius_info.get_loan_location(&loan);
                 let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
                 let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
+                // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
+                if node.incoming_zombies {
+                    let lhs_label = self.label_after_location.get(&loan_location).expect(
+                        &format!(
+                            "No label has been saved for location {:?} ({:?})",
+                            loan_location,
+                            self.label_after_location
+                        )
+                    );
+                    assert!(!node.reborrowing_loans.is_empty());
+                    for &in_loan in node.reborrowing_loans.iter() {
+                        let in_location = self.polonius_info.get_loan_location(&in_loan);
+                        let in_node = dag.get_node(in_loan);
+                        let in_label = self.label_after_location.get(&in_location).expect(
+                            &format!(
+                                "No label has been saved for location {:?} ({:?})",
+                                in_location,
+                                self.label_after_location
+                            )
+                        );
+                        match in_node.guard {
+                            ReborrowingGuard::NoGuard => {
+                                stmts.push(
+                                    vir::Stmt::ExpireBorrow(
+                                        vir::LabelledPlace::old(expiring.clone(), in_label.clone()),
+                                        vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
+                                    )
+                                )
+                            },
+                            ReborrowingGuard::MirBlock(ref bbi) => {
+                                let executed_flag_var = self.cfg_block_has_been_executed[bbi].clone();
+                                stmts.push(
+                                    vir::Stmt::ExpireBorrowsIf(
+                                        vir::Place::Base(executed_flag_var).into(),
+                                        vec![
+                                            vir::Stmt::ExpireBorrow(
+                                                vir::LabelledPlace::old(expiring.clone(), in_label.clone()),
+                                                vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
+                                            )
+                                        ],
+                                        vec![]
+                                    )
+                                )
+                            },
+                        }
+                    }
+                }
                 let lhs_place = if node.incoming_zombies {
                     let lhs_label = self.label_after_location.get(&loan_location).expect(
                         &format!(
@@ -756,7 +812,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let reborrowing_dag = self.polonius_info.construct_reborrowing_dag(&loans, &zombie_loans, location);
         for node in reborrowing_dag.iter() {
             stmts.extend(
-                self.encode_expiration_of_reborrowing_dag_node(node)
+                self.encode_expiration_of_reborrowing_dag_node(&reborrowing_dag, node)
             )
         }
 
@@ -1800,8 +1856,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             &mir::Operand::Move(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
+                let mut stmts = vec![];
+
                 // Copy the values from `src` to `lhs`
-                self.encode_copy(src, lhs.clone(), ty, true, location)
+                stmts.extend(
+                    self.encode_copy(src, lhs.clone(), ty, true, location)
+                );
+
+                // Store a label for this state
+                let label = self.cfg_method.get_fresh_label_name();
+                debug!("Current loc {:?} has label {}", location, label);
+                self.label_after_location.insert(location, label.clone());
+                stmts.push(vir::Stmt::Label(label.clone()));
+
+                stmts
             }
 
             &mir::Operand::Copy(ref place) => {

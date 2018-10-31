@@ -91,12 +91,55 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
 
         self.check_ty(sig.output(), "return type");
-        match sig.output().sty {
-            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) =>
-                interesting!(self, "mutable return type"),
-            ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) =>
-                interesting!(self, "immutable return type"),
-            _ => {},
+        self.check_return_ty(sig.output());
+    }
+
+    /// Just used to look for "interesting" info
+    fn check_return_ty(&mut self, ty: ty::Ty<'tcx>) {
+        match ty.sty {
+            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => {
+                interesting!(self, "mutable reference in return type");
+                self.check_return_ty(inner_ty);
+            }
+
+            ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) => {
+                interesting!(self, "immutable reference in return type");
+                self.check_return_ty(inner_ty);
+            }
+
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => {
+                interesting!(self, "mutable raw pointer in return type");
+                self.check_return_ty(inner_ty);
+            }
+
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutImmutable, ty: inner_ty }) => {
+                interesting!(self, "immutable raw pointer in return type");
+                self.check_return_ty(inner_ty);
+            },
+
+            // Structures, enumerations and unions.
+            ty::TypeVariants::TyAdt(adt_def, substs) => {
+                for field_def in adt_def.all_fields() {
+                    let field_ty = field_def.ty(self.tcx, substs);
+                    self.check_return_ty(field_ty);
+                }
+            },
+
+            ty::TypeVariants::TyArray(inner_ty, ..) => {
+                self.check_return_ty(inner_ty);
+            },
+
+            ty::TypeVariants::TySlice(inner_ty, ..) => {
+                self.check_return_ty(inner_ty);
+            },
+
+            ty::TypeVariants::TyTuple(inner_tys) => {
+                for inner_ty in inner_tys {
+                    self.check_return_ty(inner_ty);
+                }
+            }
+
+            _ => {} // Nothing
         }
     }
 
@@ -251,6 +294,11 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
         for arg_index in mir.args_iter() {
             let arg = &mir.local_decls[arg_index];
+            match arg.mutability {
+                mir::Mutability::Mut => partially!(self, "mutable arguments are partially supported"),
+
+                mir::Mutability::Not => {} // OK
+            }
             self.check_mir_arg(arg);
         }
 

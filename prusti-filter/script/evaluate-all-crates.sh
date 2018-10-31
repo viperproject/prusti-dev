@@ -20,6 +20,7 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	exit 1
 fi
 
+export FORCE_PRUSTI_FILTER="${FORCE_PRUSTI_FILTER:-false}"
 info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
 
 # Force exit on Ctrl-c

@@ -34,6 +34,7 @@ pub struct FunctionStatus {
     pub num_encoded_basic_blocks: usize,
     pub num_loop_heads: usize,
     pub max_loop_nesting: usize,
+    pub from_macro_expansion: bool,
     pub source_code: Option<String>,
 }
 
@@ -56,6 +57,7 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
         let num_loop_heads = loop_info.count_loop_heads();
         let max_loop_nesting = loop_info.max_loop_nesting();
 
+        let from_macro_expansion = s.parent().is_some();
         let source_code = self.source_map.span_to_snippet(s).unwrap();
         let lines_of_code = source_code.lines().count();
         let show_source_code = procedure_support_status.is_supported() || pure_function_support_status.is_supported();
@@ -70,6 +72,7 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
             num_encoded_basic_blocks,
             num_loop_heads,
             max_loop_nesting,
+            from_macro_expansion,
             source_code: if show_source_code { Some(source_code) } else { None }
         };
         self.crate_status.functions.push(function_status);
