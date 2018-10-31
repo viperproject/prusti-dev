@@ -6,7 +6,7 @@ struct T {
 
 fn rand() -> bool { true }
 
-#[ensures="old(x.f) == result"]
+#[ensures="x.f == result"]
 fn extract(x: &mut T) -> i32 {
     // `x` is moved to `y`
     let y = x;
@@ -15,6 +15,7 @@ fn extract(x: &mut T) -> i32 {
         // unfold `y`
         y.f
     } else {
+        y.f = 123;
         // `y` is moved to `z`
         let z = y;
         123
@@ -22,6 +23,4 @@ fn extract(x: &mut T) -> i32 {
     // In Viper, `x` may be an alias of `z` or `y` (which has been unfolded)
 }
 
-fn main() {
-
-}
+fn main() {}
