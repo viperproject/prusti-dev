@@ -654,9 +654,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ReborrowingKind::Assignment { ref loan } => {
                 let loan_location = self.polonius_info.get_loan_location(&loan);
                 let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
-                //trace!("loan_places '{:?}'", loan_places);
                 let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
-                //trace!("expiring '{:?}' restored '{:?}'", expiring, restored);
                 let lhs_place = if node.incoming_zombies {
                     let lhs_label = self.label_after_location.get(&loan_location).expect(
                         &format!(
@@ -779,7 +777,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("encode_expiring_borrows_beteewn '{:?}' '{:?}'", begin_loc, end_loc);
         let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, end_loc)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc)
     }
 
     fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
