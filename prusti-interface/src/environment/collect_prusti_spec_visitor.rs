@@ -58,6 +58,10 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
         if attr::contains_name(&trait_item.attrs, "__PRUSTI_SPEC_ONLY") {
             return;
         }
+        // Skip body-less trait methods
+        if let hir::TraitItemKind::Method(_, hir::TraitMethod::Required(_)) = trait_item.node {
+            return;
+        }
         let def_id = self.tcx.hir.local_def_id(trait_item.id);
         let item_name = self.env.get_item_name(def_id);
         if !self.use_whitelist || self.whitelist.contains(&item_name) {
