@@ -57,6 +57,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             intravisit::FnKind::ItemFn(name, ..) => name,
             _ => return,
         };
+        if name.to_string().ends_with("__spec") {
+            // We ignore spec functions.
+            return;
+        }
 
         trace!("[visit_fn] enter name={:?}", name);
 
@@ -1042,6 +1046,8 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             })
             .cloned()
             .collect();
+        debug!("all_dying_loans={:?} dying_zombie_loans={:?} location={:?}",
+               all_dying_loans, dying_zombie_loans, location);
         all_dying_loans.extend(dying_zombie_loans.iter().cloned());
         let dag = self.polonius_info.construct_reborrowing_dag(
             &all_dying_loans, &dying_zombie_loans, location);
