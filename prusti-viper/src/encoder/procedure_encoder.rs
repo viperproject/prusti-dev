@@ -795,6 +795,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 */
             }
 
+            ReborrowingKind::ArgumentMove { .. } => {
+                unimplemented!("TODO: handle references moved into function calls");
+            }
+
             ReborrowingKind::Call { .. } => {
                 unimplemented!("TODO: handle magic wand(s) obtained from function calls");
             }
