@@ -109,7 +109,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         let mut cfg_blocks: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
-        //let mut cfg_edges: HashMap<BasicBlockIndex, CfgBlockIndex> = unimplemented!(                                        )
+        let mut cfg_edges: HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>> = HashMap::new();
 
         // Initialize CFG blocks
         let start_cfg_block = self.cfg_method.add_block("start", vec![], vec![
@@ -121,6 +121,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::Stmt::comment(format!("========== {:?} ==========", bbi))
             ]);
             cfg_blocks.insert(bbi, cfg_block);
+        }
+
+        for bbi in self.procedure.get_reachable_cfg_blocks() {
+            let mut cfg_successors: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
+            for bbi_successor in self.procedure.successors(bbi) {
+                let cfg_edge = self.cfg_method.add_block(&format!("{:?}_{:?}", bbi, bbi_successor), vec![], vec![
+                    vir::Stmt::comment(format!("========== {:?} --> {:?} ==========", bbi, bbi_successor))
+                ]);
+                self.cfg_method.set_successor(cfg_edge, Successor::Goto(cfg_blocks[&bbi_successor]));
+                cfg_successors.insert(bbi_successor, cfg_edge);
+            }
+            cfg_edges.insert(bbi, cfg_successors);
         }
 
         let return_cfg_block = self.cfg_method.add_block("return", vec![], vec![
@@ -172,18 +184,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             // Add an `EndFrame` statement if the incoming edge is an *out* edge from a loop
-            let predecessors = self.procedure.predecessors(bbi);
-            let predecessor_count = predecessors.len();
-            for &predecessor in predecessors.iter() {
+            for predecessor in self.procedure.predecessors(bbi) {
                 let is_edge_out_loop = self.loop_encoder.get_loop_depth(predecessor) > self.loop_encoder.get_loop_depth(bbi);
                 if is_edge_out_loop {
-                    assert!(predecessor_count == 1); // FIXME: this is a bug. See issue #58
+                    let cfg_edge_block = cfg_edges[&predecessor][&bbi];
                     let loop_head = self.loop_encoder.get_loop_head(predecessor).unwrap();
                     let stmts = self.encode_loop_invariant_obtain(loop_head);
                     for stmt in stmts.into_iter() {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
+                        self.cfg_method.add_stmt(cfg_edge_block, stmt);
                     }
-                    self.cfg_method.add_stmt(cfg_block, vir::Stmt::EndFrame);
+                    self.cfg_method.add_stmt(cfg_edge_block, vir::Stmt::EndFrame);
                 }
             }
 
@@ -197,11 +207,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         block: bbi,
                         statement_index: stmt_index
                     };
-                    if location.statement_index == 0 {
-                        for stmt in self.encode_expiring_borrows_before(location).drain(..) {
-                            self.cfg_method.add_stmt(cfg_block, stmt);
-                        }
-                    }
                     if !is_panic_block {
                         for stmt in self.encode_statement(stmt, location).drain(..) {
                             self.cfg_method.add_stmt(cfg_block, stmt);
@@ -237,23 +242,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     block: bbi,
                     statement_index: bb_data.statements.len()
                 };
-                if location.statement_index == 0 {
-                    for stmt in self.encode_expiring_borrows_before(location).drain(..) {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
-                    }
-                }
                 let (stmts, successor) = self.encode_terminator(
                     term,
                     location,
-                    &cfg_blocks,
+                    cfg_edges.get(&bbi).expect(&format!("CFG block {:?} has no entry in 'cfg_edges'", bbi)),
                     return_cfg_block,
                 );
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
                 }
                 if successor != vir::Successor::Return {
-                    for stmt in self.encode_expiring_borrows_at(location).drain(..) {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    for successor in self.procedure.successors(bbi) {
+                        let succ_location = mir::Location {
+                            block: successor,
+                            statement_index: 0
+                        };
+                        let cfg_edge_block = cfg_edges[&bbi][&successor];
+                        for stmt in self.encode_expiring_borrows_between(location, succ_location).drain(..) {
+                            self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                        }
                     }
                 }
                 self.cfg_method.set_successor(cfg_block, successor);
@@ -261,18 +268,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Exhale the loop invariant if the successor is a loop head
             // Add an `BeginFrame` statement if the outgoing edge is an *in* edge
-            let successor_count = bb_data.terminator().successors().count();
-            for &successor in bb_data.terminator().successors() {
+            for successor in self.procedure.successors(bbi) {
                 if self.loop_encoder.is_loop_head(successor) {
-                    assert!(successor_count == 1); // FIXME: this is a bug. See issue #58
+                    let cfg_edge_block = cfg_edges[&bbi][&successor];
                     let after_loop_iteration = self.loop_encoder.get_loop_head(bbi) == Some(successor);
                     let stmts = self.encode_loop_invariant_exhale(successor, after_loop_iteration);
                     for stmt in stmts.into_iter() {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
+                        self.cfg_method.add_stmt(cfg_edge_block, stmt);
                     }
                     let is_edge_in_loop = self.loop_encoder.get_loop_depth(successor) > self.loop_encoder.get_loop_depth(bbi);
                     if is_edge_in_loop {
-                        self.cfg_method.add_stmt(cfg_block, vir::Stmt::BeginFrame);
+                        self.cfg_method.add_stmt(cfg_edge_block, vir::Stmt::BeginFrame);
                     }
                 }
             }
@@ -746,6 +752,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
+    fn encode_expiring_borrows_between(&mut self, begin_loc: mir::Location, end_loc: mir::Location) -> Vec<vir::Stmt> {
+        debug!("encode_expiring_borrows_beteewn '{:?}' '{:?}'", begin_loc, end_loc);
+        let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_between(begin_loc, end_loc);
+        // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, end_loc)
+    }
+
     fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_before '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_before(location);
@@ -887,7 +900,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::Goto(*target_cfg_block))
             }
 
-            TerminatorKind::FalseUnwind { real_target, .. } => {
+            TerminatorKind::FalseUnwind { ref real_target, .. } => {
                 let target_cfg_block = cfg_blocks.get(&real_target).unwrap();
                 (stmts, Successor::Goto(*target_cfg_block))
             }

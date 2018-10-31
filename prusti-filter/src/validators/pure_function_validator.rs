@@ -354,10 +354,27 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                             if let Some((ref place, _)) = destination {
                                 self.check_place(mir, place);
                             }
-                            requires!(
-                                self, self.tcx.hir.as_local_node_id(def_id).is_some(),
-                                "calling functions from an external crate is not supported"
-                            );
+                            match self.tcx.hir.as_local_node_id(def_id) {
+                                None => {
+                                    unsupported!(
+                                        self,
+                                        "calling functions from an external crate is not supported"
+                                    );
+                                }
+                                Some(node_id) => match self.tcx.hir.get(node_id) {
+                                    hir::map::NodeVariant(_) => {} // OK
+                                    hir::map::NodeStructCtor(_) => {} // OK
+                                    _ => match self.tcx.hir.maybe_body_owned_by(node_id) {
+                                        Some(_) => {} // OK
+                                        None => {
+                                            unsupported!(
+                                                self,
+                                                "calling body-less functions is not supported"
+                                            );
+                                        },
+                                    },
+                                },
+                            }
                             // TODO: check that the contract of the called function is supported
                         },
                     }

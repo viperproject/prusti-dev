@@ -149,6 +149,10 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             false
         }
     }
+
+    pub fn successors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+        get_normal_targets(self.mir[bbi].terminator.as_ref().unwrap())
+    }
 }
 
 fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
