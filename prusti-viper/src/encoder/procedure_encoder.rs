@@ -613,14 +613,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .iter()
             .flat_map(|p| self.polonius_info.get_loan_places(p))
             .filter(|loan_places| {
-                let (_, _, encoded_source) = self.encode_loan_places(loan_places);
+                let (_, encoded_source) = self.encode_loan_places(loan_places);
                 place.has_prefix(&encoded_source)
             })
             .collect();
         assert!(relevant_active_loan_places.len() <= 1);
         if !relevant_active_loan_places.is_empty() {
             let loan_places = &relevant_active_loan_places[0];
-            let (encoded_dest, _, encoded_source) = self.encode_loan_places(loan_places);
+            let (encoded_dest, encoded_source) = self.encode_loan_places(loan_places);
             // Recursive translation
             self.translate_maybe_borrowed_place(
                 loan_places.location,
@@ -632,7 +632,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Place, ty::Ty<'tcx>, vir::Place) {
+    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Place, vir::Place) {
         debug!("encode_loan_rvalue '{:?}'", loan_places);
         let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest);
         match loan_places.source {
@@ -641,14 +641,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let ref_field = self.encoder.encode_value_field(expiring_ty);
                 let expiring = expiring_base.clone().access(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, expiring_ty, restored)
+                (expiring, restored)
             }
 
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                let expiring = expiring_base;
+                let (restored_base, _, _) = self.mir_encoder.encode_place(&rhs_place);
+                let ref_field = self.encoder.encode_value_field(expiring_ty);
+                let expiring = expiring_base.clone().access(ref_field.clone());
+                let restored = restored_base.clone().access(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, expiring_ty, restored)
+                (expiring, restored)
             }
 
             ref x => unreachable!("Borrow restores rvalue {:?}", x)
@@ -658,12 +660,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_expiration_of_reborrowing_dag_node(&mut self, dag: &ReborrowingDAG, node: &ReborrowingDAGNode) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_reborrowing_dag_node '{:?}'", node);
         let mut stmts: Vec<vir::Stmt> = vec![];
+        let node_is_leaf = node.reborrowed_loans.is_empty();
 
         match node.kind {
             ReborrowingKind::Assignment { ref loan } => {
                 let loan_location = self.polonius_info.get_loan_location(&loan);
                 let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
-                let (expiring, expiring_ty, restored) = self.encode_loan_places(&loan_places);
+                let (expiring, restored) = self.encode_loan_places(&loan_places);
                 // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
                 if node.incoming_zombies {
                     let lhs_label = self.label_after_location.get(&loan_location).expect(
@@ -724,11 +727,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::LabelledPlace::curr(expiring.clone())
                 };
                 let rhs_place = match node.zombity {
-                    ReborrowingZombity::Real => {
-                        vir::LabelledPlace::curr(restored)
-                    }
-
-                    ReborrowingZombity::Zombie(rhs_location) => {
+                    ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
                         let rhs_label = self.label_after_location.get(&rhs_location).expect(
                             &format!(
                                 "No label has been saved for location {:?} ({:?})",
@@ -737,6 +736,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             )
                         );
                         vir::LabelledPlace::old(restored.clone(), rhs_label.clone())
+                    }
+
+                    _ => {
+                        vir::LabelledPlace::curr(restored)
                     }
                 };
 
