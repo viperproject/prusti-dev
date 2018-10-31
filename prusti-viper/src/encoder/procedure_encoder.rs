@@ -507,7 +507,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                                 // Allocate `box_content`
                                 stmts.extend(
-                                    self.encode_havoc_and_allocation(&box_content, op_ty)
+                                    self.encode_havoc_and_allocation(&box_content)
                                 );
 
                                 // Leave `box_content` uninitialized
@@ -689,18 +689,34 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 match node.guard {
                     ReborrowingGuard::NoGuard => {
                         stmts.push(
-                            vir::Stmt::ExpireBorrow(lhs_place, rhs_place)
+                            vir::Stmt::ExpireBorrow(lhs_place.clone(), rhs_place)
                         );
+                        if lhs_place.is_curr() {
+                            // We reallocate when we expire because we want to have disjointed
+                            // permissions for the lhs and rhs when a borrow expires inside a loop
+                            stmts.extend(
+                                self.encode_havoc_and_allocation(lhs_place.get_place())
+                            );
+                        }
                     }
 
                     ReborrowingGuard::MirBlock(ref guard_bbi) => {
-                        let executed_flag_var = &self.cfg_block_has_been_executed[guard_bbi];
+                        let executed_flag_var = self.cfg_block_has_been_executed[guard_bbi].clone();
+                        let mut expire_stmts = vec![];
+                        expire_stmts.push(
+                            vir::Stmt::ExpireBorrow(lhs_place.clone(), rhs_place)
+                        );
+                        if lhs_place.is_curr() {
+                            // We reallocate when we expire because we want to have disjointed
+                            // permissions for the lhs and rhs when a borrow expires inside a loop
+                            expire_stmts.extend(
+                                self.encode_havoc_and_allocation(lhs_place.get_place())
+                            );
+                        }
                         stmts.push(
                             vir::Stmt::ExpireBorrowsIf(
-                                vir::Place::Base(executed_flag_var.clone()).into(),
-                                vec![
-                                    vir::Stmt::ExpireBorrow(lhs_place, rhs_place)
-                                ],
+                                vir::Place::Base(executed_flag_var).into(),
+                                expire_stmts,
                                 vec![]
                             )
                         );
@@ -715,7 +731,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     // encodes *allocation*, not definedness
                     if !node.incoming_zombies {
                         stmts.extend(
-                            self.encode_havoc_and_allocation(&expiring, expiring_ty)
+                            self.encode_havoc_and_allocation(&expiring)
                         );
                     }
                 }
@@ -1015,7 +1031,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         // Allocate `box_content`
                         stmts.extend(
-                            self.encode_havoc_and_allocation(&box_content, boxed_ty)
+                            self.encode_havoc_and_allocation(&box_content)
                         );
 
                         // Initialize `box_content`
@@ -1067,7 +1083,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 None => unreachable!()
                             };
                             stmts.extend(
-                                self.encode_havoc_content(&target_place, target_ty)
+                                self.encode_havoc_content(&target_place)
                             );
 
                             // Initialize the lhs
@@ -1193,7 +1209,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
                                 stmts.push(
-                                    self.encode_exhale(target_place, self.locals.get_type(fake_target_local))
+                                    self.encode_exhale(target_place)
                                 );
                             }
 
@@ -1389,7 +1405,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let encoded_arg = self.mir_encoder.encode_local(arg_index);
                 let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
                 let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
-                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::WeakObtain(deref_pred));
+                self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Obtain(deref_pred));
             }
         }
 
@@ -1775,7 +1791,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 };
                 if havoc_rhs {
                     stmts.extend(
-                        self.encode_havoc_and_allocation(&encoded_rhs, ty)
+                        self.encode_havoc_and_allocation(&encoded_rhs)
                     );
                 } else {
                     debug!("Do not havoc rhs of '{:?}'", operand);
@@ -1834,7 +1850,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     #[deprecated(note="please use `encode_havoc_content` instead")]
-    fn encode_havoc(&mut self, dst: &vir::Place, ty: ty::Ty<'tcx>) -> Vec<vir::Stmt> {
+    fn encode_havoc(&mut self, dst: &vir::Place) -> Vec<vir::Stmt> {
         debug!("Encode havoc {:?}", dst);
         // TODO: Can we encode the havoc with an exhale + inhale?
         let havoc_ref_method_name = self.encoder.encode_builtin_method_use(BuiltinMethodKind::HavocRef);
@@ -1843,7 +1859,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::Stmt::MethodCall(havoc_ref_method_name, vec![], vec![dst_local_var.clone()]),
             ]
         } else {
-            let tmp_var = self.get_auxiliar_local_var("havoc", self.encoder.encode_type(ty));
+            let tmp_var = self.get_auxiliar_local_var("havoc", dst.get_type().clone());
             vec![
                 vir::Stmt::MethodCall(havoc_ref_method_name, vec![], vec![tmp_var.clone()]),
                 vir::Stmt::Assign(dst.clone().into(), tmp_var.into(), vir::AssignKind::Move),
@@ -1853,13 +1869,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Havoc and assume permission on fields
     #[deprecated(note="please use `encode_havoc_content` instead")]
-    fn encode_havoc_and_allocation(&mut self, dst: &vir::Place, ty: ty::Ty<'tcx>) -> Vec<vir::Stmt> {
-        debug!("Encode havoc and allocation {:?}, {:?}", dst, ty);
+    fn encode_havoc_and_allocation(&mut self, dst: &vir::Place) -> Vec<vir::Stmt> {
+        debug!("Encode havoc and allocation {:?}", dst);
 
         let mut stmts = vec![];
         // Havoc `dst`
         stmts.extend(
-            self.encode_havoc(dst, ty)
+            self.encode_havoc(dst)
         );
         // Allocate `dst`
         stmts.push(
@@ -1872,8 +1888,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Havoc the content (Viper fields) of a place.
     /// The place itself (Viper reference) does not change.
-    fn encode_havoc_content(&mut self, dst: &vir::Place, ty: ty::Ty<'tcx>) -> Vec<vir::Stmt> {
-        debug!("Encode havoc content {:?}, {:?}", dst, ty);
+    fn encode_havoc_content(&mut self, dst: &vir::Place) -> Vec<vir::Stmt> {
+        debug!("Encode havoc content {:?}", dst);
         let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap();
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
@@ -1886,8 +1902,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ]
     }
 
-    fn encode_exhale(&mut self, dst: &vir::Place, ty: ty::Ty<'tcx>) -> vir::Stmt {
-        debug!("Encode exhale {:?}, {:?}", dst, ty);
+    fn encode_exhale(&mut self, dst: &vir::Place) -> vir::Stmt {
+        debug!("Encode exhale {:?}", dst);
         let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap();
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
@@ -2029,7 +2045,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut stmts: Vec<vir::Stmt> = vec![];
         // TODO: do we really need to allocate?
         // stmts.extend(
-        //    self.encode_havoc_and_allocation(dst, ty)
+        //    self.encode_havoc_and_allocation(dst)
         // );
         // Initialize values
         match aggregate {

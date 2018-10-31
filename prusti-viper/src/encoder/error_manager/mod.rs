@@ -184,13 +184,13 @@ impl<'tcx> ErrorManager<'tcx> {
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => CompilerError::new(
                 "P0013",
-                format!("loop invariant might not hold after one loop iteration."),
+                format!("loop invariant might not hold at the end of a loop iteration."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => CompilerError::new(
                 "P0014",
-                format!("loop invariant might not hold after one loop iteration."),
+                format!("loop invariant might not hold at the end of a loop iteration."),
                 MultiSpan::from_span(*error_span)
             ),
 
