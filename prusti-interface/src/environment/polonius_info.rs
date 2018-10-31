@@ -228,6 +228,8 @@ pub struct ReborrowingDAGNode {
     pub incoming_zombies: bool,
     /// Loans that are directly reborrowing this loan.
     pub reborrowing_loans: Vec<facts::Loan>,
+    /// Loans that are directly reborrowed by this loan.
+    pub reborrowed_loans: Vec<facts::Loan>,
 }
 
 impl fmt::Debug for ReborrowingDAGNode {
@@ -267,6 +269,13 @@ impl fmt::Debug for ReborrowingDAGNode {
         if !self.reborrowing_loans.is_empty() {
             write!(f, ",incoming=(")?;
             for loan in &self.reborrowing_loans {
+                write!(f, "{:?},", loan)?;
+            }
+            write!(f, ")")?;
+        }
+        if !self.reborrowed_loans.is_empty() {
+            write!(f, ",outgoing=(")?;
+            for loan in &self.reborrowed_loans {
                 write!(f, "{:?},", loan)?;
             }
             write!(f, ")")?;
@@ -939,6 +948,29 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 }
                 i += 1;
             }
+            let mut reborrowed_loans = Vec::new();
+            let mut i = sorted_loans.len()-1;
+            while i > n {
+                let loan_i = sorted_loans[i];
+                if self.additional_facts.reborrows.contains(&(loan, loan_i)) {
+                    // If the i'th loan is reborrowed by the loan.
+                    let mut j = i-1;
+                    while j > n {
+                        let loan_j = sorted_loans[j];
+                        if self.additional_facts.reborrows.contains(&(loan, loan_j)) {
+                            break;
+                        }
+                        j -= 1;
+                    }
+                    if j == n {
+                        // And there is no other loan that would
+                        // reborrow the loan, then this means that i'th
+                        // loan is directly reborrowed by the loan.
+                        reborrowed_loans.push(loan_i);
+                    }
+                }
+                i -= 1;
+            }
             ReborrowingDAGNode {
                 loan: loan,
                 guard: self.construct_reborrowing_guard(loan, location),
@@ -946,6 +978,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 zombity: self.construct_reborrowing_zombity(loan, &loans, zombie_loans, location),
                 incoming_zombies: self.check_incoming_zombies(loan, &loans, zombie_loans, location),
                 reborrowing_loans: reborrowing_loans,
+                reborrowed_loans: reborrowed_loans,
             }
         }).collect();
         ReborrowingDAG {
