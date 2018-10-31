@@ -8,7 +8,9 @@ use rustc::ty::subst::Substs;
 use validators::SupportStatus;
 use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
-use prusti_interface::environment::Procedure;
+use prusti_interface::environment::{ProcedureLoops, Procedure};
+use rustc::mir::interpret::GlobalId;
+use rustc::middle::const_val::ConstVal;
 
 pub struct PureFunctionValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
@@ -69,7 +71,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             let procedure = Procedure::new(self.tcx, def_id);
             self.check_mir(&procedure);
         } else {
-            partially!(self, "function calls to outer crates are partially supported")
+            unsupported!(self, "function calls to outer crates are unsupported")
         }
     }
 
@@ -217,7 +219,6 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
     }
 
-
     fn check_ty_adt(&mut self, adt_def: &ty::AdtDef, substs: &Substs<'tcx>) {
         requires!(self, !adt_def.is_union(), "union types are not supported");
 
@@ -249,29 +250,33 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         //    self.check_local_ty(local_decl.ty);
         //}
 
-        // TODO: check absence of loops
+        requires!(
+            self, ProcedureLoops::new(mir).count_loop_heads() == 0,
+            "loops are not allowed in pure functions"
+        );
+
         // TODO: check only blocks that may lead to a `Return` terminator
         for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(index) || procedure.is_spec_block(index) {
                 continue;
             }
             for stmt in &basic_block_data.statements {
-                self.check_mir_stmt(stmt);
+                self.check_mir_stmt(mir, stmt);
             }
-            self.check_mir_terminator(basic_block_data.terminator.as_ref().unwrap());
+            self.check_mir_terminator(mir, basic_block_data.terminator.as_ref().unwrap());
         }
     }
 
-    fn check_mir_stmt(&mut self, stmt: &mir::Statement<'tcx>) {
+    fn check_mir_stmt(&mut self, mir: &mir::Mir<'tcx>, stmt: &mir::Statement<'tcx>) {
         match stmt.kind {
             mir::StatementKind::Assign(ref place, ref rvalue) => {
-                self.check_place(place);
-                self.check_rvalue(rvalue);
+                self.check_place(mir, place);
+                self.check_rvalue(mir, rvalue);
             },
 
-            mir::StatementKind::ReadForMatch(_) => {} // OK
+            mir::StatementKind::ReadForMatch(ref place) => self.check_place(mir, place),
 
-            mir::StatementKind::SetDiscriminant { ref place, .. } => self.check_place(place),
+            mir::StatementKind::SetDiscriminant { ref place, .. } => self.check_place(mir, place),
 
             mir::StatementKind::StorageLive(_) => {} // OK
 
@@ -289,14 +294,15 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
     }
 
-    fn check_mir_terminator(&mut self, term: &mir::Terminator<'tcx>) {
+    fn check_mir_terminator(&mut self, mir: &mir::Mir<'tcx>, term: &mir::Terminator<'tcx>) {
         match term.kind {
             mir::TerminatorKind::Goto {..} => {} // OK
 
-            mir::TerminatorKind::SwitchInt { ref discr, .. } => self.check_operand(discr),
+            mir::TerminatorKind::SwitchInt { ref discr, .. } => self.check_operand(mir, discr),
 
             mir::TerminatorKind::Resume => {
-                unsupported!(self, "reachable `resume` MIR statements are unsupported");
+                // This should be unreachable
+                partially!(self, "`resume` MIR statements are partially supported");
             },
 
             mir::TerminatorKind::Abort => {} // OK
@@ -305,11 +311,11 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::TerminatorKind::Unreachable => {} // OK
 
-            mir::TerminatorKind::Drop { ref location, .. } => self.check_place(location),
+            mir::TerminatorKind::Drop { ref location, .. } => self.check_place(mir, location),
 
             mir::TerminatorKind::DropAndReplace { ref location, ref value, .. } => {
-                self.check_place(location);
-                self.check_operand(value);
+                self.check_place(mir, location);
+                self.check_operand(mir, value);
             }
 
             mir::TerminatorKind::Call { ref func, ref args, ref destination, .. } => {
@@ -327,22 +333,57 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                         ..
                     }
                 ) = func {
-                    for arg in args {
-                        self.check_operand(arg);
+                    let proc_name: &str = &self.tcx.absolute_item_path_str(def_id);
+                    match proc_name {
+                        "std::rt::begin_panic" |
+                        "std::panicking::begin_panic" => {} // OK
+
+                        "<std::boxed::Box<T>>::new" => {
+                            for arg in args {
+                                self.check_operand(mir, arg);
+                            }
+                            if let Some((ref place, _)) = destination {
+                                self.check_place(mir, place);
+                            }
+                        }
+
+                        _ => {
+                            for arg in args {
+                                self.check_operand(mir, arg);
+                            }
+                            if let Some((ref place, _)) = destination {
+                                self.check_place(mir, place);
+                            }
+                            match self.tcx.hir.as_local_node_id(def_id) {
+                                None => {
+                                    unsupported!(
+                                        self,
+                                        "calling functions from an external crate is not supported"
+                                    );
+                                }
+                                Some(node_id) => match self.tcx.hir.get(node_id) {
+                                    hir::map::NodeVariant(_) => {} // OK
+                                    hir::map::NodeStructCtor(_) => {} // OK
+                                    _ => match self.tcx.hir.maybe_body_owned_by(node_id) {
+                                        Some(_) => {} // OK
+                                        None => {
+                                            unsupported!(
+                                                self,
+                                                "calling body-less functions is not supported"
+                                            );
+                                        },
+                                    },
+                                },
+                            }
+                            // TODO: check that the contract of the called function is supported
+                        },
                     }
-                    if let Some((ref place, _)) = destination {
-                        self.check_place(place);
-                    }
-                    requires!(
-                        self, self.tcx.hir.as_local_node_id(def_id).is_some(),
-                        "calling functions from an external crate is not supported"
-                    );
                 } else {
                     unsupported!(self, "non explicit function calls are not supported");
                 }
             }
 
-            mir::TerminatorKind::Assert { ref cond, .. } => self.check_operand(cond),
+            mir::TerminatorKind::Assert { ref cond, .. } => self.check_operand(mir, cond),
 
             mir::TerminatorKind::Yield {..} => unsupported!(self, "`yield` MIR statement is not supported"),
 
@@ -354,17 +395,21 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
     }
 
-    fn check_place(&mut self, place: &mir::Place<'tcx>) {
+    fn check_place(&mut self, mir: &mir::Mir<'tcx>, place: &mir::Place<'tcx>) {
         match place {
-            mir::Place::Local(_) => {} // OK
+            mir::Place::Local(ref local) => {
+                let local_ty = &mir.local_decls[*local].ty;
+                self.check_local_ty(local_ty);
+            }
 
             mir::Place::Static(..) => unsupported!(self, "static variables are not supported"),
 
-            mir::Place::Projection(box ref projection) => self.check_projection(projection),
+            mir::Place::Projection(box ref projection) => self.check_projection(mir, projection),
         }
     }
 
-    fn check_projection(&mut self, projection: &mir::PlaceProjection<'tcx>) {
+    fn check_projection(&mut self, mir: &mir::Mir<'tcx>, projection: &mir::PlaceProjection<'tcx>) {
+        self.check_place(mir, &projection.base);
         match projection.elem {
             mir::ProjectionElem::Deref => {} // OK
 
@@ -376,85 +421,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::ProjectionElem::Subslice {..} => unsupported!(self, "indices generated by slice patterns are not supported"),
 
-            mir::ProjectionElem::Downcast(_, _) => {} // OK
-        }
-    }
-
-    fn check_rvalue(&mut self, rvalue: &mir::Rvalue<'tcx>) {
-        match rvalue {
-            mir::Rvalue::Use(ref operand) => self.check_operand(operand),
-
-            mir::Rvalue::Repeat(..) => unsupported!(self, "`repeat` operations are not supported"),
-
-            mir::Rvalue::Ref(_, _, ref place) => self.check_place(place),
-
-            mir::Rvalue::Len(ref place) => self.check_place(place),
-
-            mir::Rvalue::Cast(..) => unsupported!(self, "cast operations are not supported"),
-
-            mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
-                self.check_operand(left_operand);
-                self.check_operand(right_operand);
-                self.check_op(op);
-            }
-
-            mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
-                self.check_operand(left_operand);
-                self.check_operand(right_operand);
-                self.check_op(op);
-            }
-
-            mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty),
-
-            mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, "`sizeof` operations are not supported"),
-
-            mir::Rvalue::UnaryOp(_, ref operand) => self.check_operand(operand),
-
-            mir::Rvalue::Discriminant(ref place) => self.check_place(place),
-
-            mir::Rvalue::Aggregate(box ref kind, ref operands) => self.check_aggregate(kind, operands),
-        }
-    }
-
-    fn check_operand(&mut self, operand: &mir::Operand<'tcx>) {
-        match operand {
-            mir::Operand::Copy(ref place) => {
-                self.check_place(place)
-            }
-
-            mir::Operand::Move(ref place) => {
-                self.check_place(place)
-            }
-
-            mir::Operand::Constant(box mir::Constant { ty, .. }) => {
-                self.check_local_ty(ty);
-            }
-        }
-    }
-
-    fn check_aggregate(&mut self, kind: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>) {
-        match kind {
-            mir::AggregateKind::Array(ty) => self.check_local_ty(ty),
-
-            mir::AggregateKind::Tuple => {} // OK
-
-            mir::AggregateKind::Adt(_, _, substs, _) => {
-                for kind in substs.iter() {
-                    match kind.unpack() {
-                        ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
-
-                        ty::subst::UnpackedKind::Type(ty) => self.check_local_ty(ty),
-                    }
-                }
-            }
-
-            mir::AggregateKind::Closure(..) => unsupported!(self, "closures are not supported"),
-
-            mir::AggregateKind::Generator(..) => unsupported!(self, "generators are not supported"),
-        }
-
-        for operand in operands {
-            self.check_operand(operand);
+            mir::ProjectionElem::Downcast(adt_def, _) => requires!(self, !adt_def.is_union(), "union types are not supported"),
         }
     }
 
@@ -467,6 +434,131 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
             Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
             Offset => unsupported!(self, "offset operation is not supported"),
+        }
+    }
+
+    fn check_rvalue(&mut self, mir: &mir::Mir<'tcx>, rvalue: &mir::Rvalue<'tcx>) {
+        match rvalue {
+            mir::Rvalue::Use(ref operand) => self.check_operand(mir, operand),
+
+            mir::Rvalue::Repeat(..) => unsupported!(self, "`repeat` operations are not supported"),
+
+            mir::Rvalue::Ref(_, _, ref place) => self.check_place(mir, place),
+
+            mir::Rvalue::Len(ref place) => self.check_place(mir, place),
+
+            mir::Rvalue::Cast(..) => unsupported!(self, "cast operations are not supported"),
+
+            mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
+                self.check_operand(mir, left_operand);
+                self.check_operand(mir, right_operand);
+                self.check_op(op);
+            }
+
+            mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
+                self.check_operand(mir, left_operand);
+                self.check_operand(mir, right_operand);
+                self.check_op(op);
+            }
+
+            mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty),
+
+            mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, "`sizeof` operations are not supported"),
+
+            mir::Rvalue::UnaryOp(_, ref operand) => self.check_operand(mir, operand),
+
+            mir::Rvalue::Discriminant(ref place) => self.check_place(mir, place),
+
+            mir::Rvalue::Aggregate(box ref kind, ref operands) => self.check_aggregate(mir, kind, operands),
+        }
+    }
+
+    fn check_operand(&mut self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>) {
+        match operand {
+            mir::Operand::Copy(ref place) |
+            mir::Operand::Move(ref place) => {
+                self.check_place(mir, place)
+            }
+
+            mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
+                self.check_literal(literal);
+                self.check_local_ty(ty);
+            }
+        }
+    }
+
+    fn check_literal(&mut self, literal: &mir::Literal<'tcx>) {
+        trace!("check_literal {:?}", literal);
+
+        match literal {
+            mir::Literal::Value { value } => {
+                match value.val {
+                    ConstVal::Value(ref value) => {
+                        requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
+                    },
+                    ConstVal::Unevaluated(def_id, substs) => {
+                        let param_env = self.tcx.param_env(def_id);
+                        let cid = GlobalId {
+                            instance: ty::Instance::new(def_id, substs),
+                            promoted: None
+                        };
+                        if let Ok(const_value) = self.tcx.const_eval(param_env.and(cid)) {
+                            if let ConstVal::Value(ref value) = const_value.val {
+                                requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
+                            } else {
+                                // This should be unreachable
+                                unsupported!(self, "erroneous unevaluated literals are not supported")
+                            }
+                        } else {
+                            // This should be unreachable
+                            unsupported!(self, "erroneous unevaluated literals are not supported")
+                        }
+                    }
+                };
+
+                self.check_local_ty(value.ty);
+
+                match value.ty.sty {
+                    ty::TypeVariants::TyBool |
+                    ty::TypeVariants::TyInt(_) |
+                    ty::TypeVariants::TyUint(_) |
+                    ty::TypeVariants::TyChar => {} // OK
+
+                    _ => unsupported!(self, "only literals of type boolean, integer or char are supported")
+                };
+            }
+            mir::Literal::Promoted { .. } => partially!(self, "promoted constant literals are partially supported")
+        }
+    }
+
+    fn check_aggregate(&mut self, mir: &mir::Mir<'tcx>, kind: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>) {
+        trace!("check_aggregate {:?}, {:?}", kind, operands);
+
+        match kind {
+            mir::AggregateKind::Array(ty) => {
+                unsupported!(self, "arrays are not supported");
+                self.check_inner_ty(ty)
+            },
+
+            mir::AggregateKind::Tuple => {} // OK
+
+            mir::AggregateKind::Adt(_, _, substs, _) => {
+                for kind in substs.iter() {
+                    match kind.unpack() {
+                        ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
+
+                        ty::subst::UnpackedKind::Type(ty) => self.check_inner_ty(ty),
+                    }
+                }
+            }
+
+            mir::AggregateKind::Closure(..) => unsupported!(self, "closures are not supported"),
+
+            mir::AggregateKind::Generator(..) => unsupported!(self, "generators are not supported"),
+        }
+
+        for operand in operands {
+            self.check_operand(mir, operand);
         }
     }
 }

@@ -23,6 +23,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
+        settings.set_default("CONTRACTS_LIB", "").unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -102,4 +103,9 @@ pub fn log_dir() -> String {
 /// Check binary operations for overflows
 pub fn check_binary_operations() -> bool {
     SETTINGS.read().unwrap().get::<bool>("CHECK_BINARY_OPERATIONS").unwrap()
+}
+
+/// Location of 'libprusti_contracts*.rlib'
+pub fn contracts_lib() -> String {
+    SETTINGS.read().unwrap().get::<String>("CONTRACTS_LIB").unwrap()
 }

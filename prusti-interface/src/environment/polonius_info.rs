@@ -632,9 +632,17 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
     pub fn get_all_loans_dying_at(&self, location: mir::Location
-                                  ) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
+    ) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
         let mut loans = self.get_loans_dying_at(location, false);
         let zombie_loans = self.get_loans_dying_at(location, true);
+        loans.extend(zombie_loans.iter().cloned());
+        (loans, zombie_loans)
+    }
+
+    /// Get loans including the zombies ``(all_loans, zombie_loans)``.
+    pub fn get_all_loans_dying_between(&self, initial_loc: mir::Location, final_loc: mir::Location) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
+        let mut loans = self.get_loans_dying_between(initial_loc, final_loc, false);
+        let zombie_loans = self.get_loans_dying_between(initial_loc, final_loc, true);
         loans.extend(zombie_loans.iter().cloned());
         (loans, zombie_loans)
     }
@@ -667,6 +675,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     pub fn get_loans_dying_between(
             &self, initial_loc: mir::Location, final_loc: mir::Location,
             zombie: bool) -> Vec<facts::Loan> {
+        trace!("get_loans_dying_between {:?}, {:?}, {}", initial_loc, final_loc, zombie);
         let borrow_live_at = self.get_borrow_live_at(zombie);
         debug_assert!(self.get_successors(initial_loc).contains(&final_loc));
         self.get_active_loans(initial_loc, zombie)

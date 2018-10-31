@@ -71,7 +71,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             let procedure = Procedure::new(self.tcx, def_id);
             self.check_mir(&procedure);
         } else {
-            partially!(self, "function calls to outer crates are partially supported")
+            unsupported!(self, "function calls to outer crates are unsupported")
         }
     }
 
@@ -258,7 +258,6 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         //    self.check_ty(local_decl.ty, "local variable");
         //}
 
-        self.support.set_bb_count(mir.basic_blocks().len());
         for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
                 continue;
@@ -319,7 +318,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::TerminatorKind::SwitchInt { ref discr, .. } => self.check_operand(mir, discr),
 
             mir::TerminatorKind::Resume => {
-                // TODO: unsupported if reachable
+                // This should be unreachable
                 partially!(self, "`resume` MIR statements are partially supported");
             },
 
@@ -351,9 +350,10 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         ..
                     }
                 ) = func {
-                    let proc_name: &str = &self.tcx.item_path_str(def_id);
+                    let proc_name: &str = &self.tcx.absolute_item_path_str(def_id);
                     match proc_name {
-                        "std::rt::begin_panic" => {} // OK
+                        "std::rt::begin_panic" |
+                        "std::panicking::begin_panic" => {} // OK
 
                         "<std::boxed::Box<T>>::new" => {
                             for arg in args {
@@ -371,10 +371,27 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                             if let Some((ref place, _)) = destination {
                                 self.check_place(mir, place);
                             }
-                            requires!(
-                                self, self.tcx.hir.as_local_node_id(def_id).is_some(),
-                                "calling functions from an external crate is not supported"
-                            );
+                            match self.tcx.hir.as_local_node_id(def_id) {
+                                None => {
+                                    unsupported!(
+                                        self,
+                                        "calling functions from an external crate is not supported"
+                                    );
+                                }
+                                Some(node_id) => match self.tcx.hir.get(node_id) {
+                                    hir::map::NodeVariant(_) => {} // OK
+                                    hir::map::NodeStructCtor(_) => {} // OK
+                                    _ => match self.tcx.hir.maybe_body_owned_by(node_id) {
+                                        Some(_) => {} // OK
+                                        None => {
+                                            unsupported!(
+                                                self,
+                                                "calling body-less functions is not supported"
+                                            );
+                                        },
+                                    },
+                                },
+                            }
                             // TODO: check that the contract of the called function is supported
                         },
                     }
@@ -484,8 +501,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         trace!("check_operand {:?}", operand);
 
         match operand {
-            mir::Operand::Copy(ref place) => self.check_place(mir, place),
-
+            mir::Operand::Copy(ref place) |
             mir::Operand::Move(ref place) => self.check_place(mir, place),
 
             mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {

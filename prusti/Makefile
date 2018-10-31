@@ -16,16 +16,18 @@ PRUSTI_DRIVER=../target/debug/prusti-driver
 SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
 
 run:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) \
-    RUST_LOG=${LOG_LEVEL} \
+	RUST_LOG=${LOG_LEVEL} \
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
 		${RUN_FILE}
 
 run-profile:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) \
-    RUST_LOG=${LOG_LEVEL} \
+	RUST_LOG=${LOG_LEVEL} \
 	valgrind --tool=callgrind \
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
@@ -34,8 +36,9 @@ run-profile:
 	@echo "Now run 'kcachegrind callgrind.out.*'"
 
 run-flamegraph:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) \
-    RUST_LOG=${LOG_LEVEL} \
+	RUST_LOG=${LOG_LEVEL} \
 	perf record -g -F 99 \
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
@@ -44,8 +47,9 @@ run-flamegraph:
 	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
 generate_ui_stderr:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
 	-$(SET_ENV_VARS) \
-    ${PRUSTI_DRIVER} \
+	${PRUSTI_DRIVER} \
 		--sysroot ${COMPILER_PATH}/lib/ \
 		-L ../target/debug/ \
 		-L ${COMPILER_PATH}/lib/ \

@@ -176,7 +176,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
 pub struct ProcedureLoops {
     /// A list of basic blocks that are loop heads.
     pub loop_heads: Vec<BasicBlockIndex>,
-    /// The depth of each loop head, starting from one.
+    /// The depth of each loop head, starting from one for a simple single loop.
     pub loop_head_depths: HashMap<BasicBlockIndex, usize>,
     /// A map from loop heads to the corresponding bodies.
     pub loop_bodies: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
@@ -237,6 +237,14 @@ impl ProcedureLoops {
             back_edges: back_edges,
             dominators: dominators,
         }
+    }
+
+    pub fn count_loop_heads(&self) -> usize {
+        self.loop_heads.len()
+    }
+
+    pub fn max_loop_nesting(&self) -> usize {
+        self.loop_head_depths.values().max().cloned().unwrap_or(0)
     }
 
     pub fn is_loop_head(&self, bbi: BasicBlockIndex) -> bool {

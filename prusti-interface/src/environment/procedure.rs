@@ -81,7 +81,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Get the name of the procedure
     pub fn get_name(&self) -> String {
-        self.tcx.item_path_str(self.proc_def_id)
+        self.tcx.absolute_item_path_str(self.proc_def_id)
     }
 
     /// Get the first CFG block
@@ -142,11 +142,16 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             ),
             ..
         } = self.mir[bbi].terminator.as_ref().unwrap().kind {
-            let func_proc_name = self.tcx.item_path_str(def_id);
-            &func_proc_name == "std::rt::begin_panic"
+            let func_proc_name = self.tcx.absolute_item_path_str(def_id);
+            &func_proc_name == "std::panicking::begin_panic" ||
+                &func_proc_name == "std::rt::begin_panic"
         } else {
             false
         }
+    }
+
+    pub fn successors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+        get_normal_targets(self.mir[bbi].terminator.as_ref().unwrap())
     }
 }
 

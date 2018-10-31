@@ -238,3 +238,19 @@ pub trait SuccessorFolder {
         Successor::GotoIf(self.fold_expr(condition), self.fold_target(then_target), self.fold_target(else_target))
     }
 }
+
+impl CfgMethod {
+    pub fn walk_statements<F>(&self, walker: F) where F: Fn(&Stmt) {
+        for block in self.basic_blocks.iter() {
+            for stmt in block.stmts.iter() {
+                walker(stmt);
+            }
+        }
+    }
+
+    pub fn walk_successors<F>(&self, walker: F) where F: Fn(&Successor) {
+        for block in self.basic_blocks.iter() {
+            walker(&block.successor);
+        }
+    }
+}
