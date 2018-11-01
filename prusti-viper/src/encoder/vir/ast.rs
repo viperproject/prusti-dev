@@ -477,7 +477,7 @@ pub enum Stmt {
     /// algorithms threats this statement (and statements in the branches) in a very special way.
     ExpireBorrowsIf(Expr, Vec<Stmt>, Vec<Stmt>),
     /// A statement that informs the fold/unfold that we finished restoring a DAG of expiring loans
-    StopExpiringBorrows,
+    StopExpiringLoans,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -629,7 +629,7 @@ impl fmt::Display for Stmt {
                 writeln!(f, "}}")
             }
 
-            Stmt::StopExpiringBorrows => write!(f, "stop expiring borrows"),
+            Stmt::StopExpiringLoans => write!(f, "stop expiring borrows"),
         }
     }
 }
@@ -654,7 +654,7 @@ pub trait StmtFolder {
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::TransferPerm(a, b) => self.fold_transfer_perm(a, b),
             Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
-            Stmt::StopExpiringBorrows => self.fold_stop_expiring_borrows(),
+            Stmt::StopExpiringLoans => self.fold_stop_expiring_borrows(),
         }
     }
 
@@ -727,7 +727,7 @@ pub trait StmtFolder {
     }
 
     fn fold_stop_expiring_borrows(&mut self) -> Stmt {
-        Stmt::StopExpiringBorrows
+        Stmt::StopExpiringLoans
     }
 }
 

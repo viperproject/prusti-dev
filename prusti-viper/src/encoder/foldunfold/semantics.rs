@@ -247,7 +247,7 @@ impl vir::Stmt {
                 unimplemented!("TODO")
             }
 
-            &vir::Stmt::StopExpiringBorrows => {
+            &vir::Stmt::StopExpiringLoans => {
                 state.remove_dropped();
             }
         }
