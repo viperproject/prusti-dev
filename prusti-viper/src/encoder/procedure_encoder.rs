@@ -665,6 +665,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match node.kind {
             ReborrowingKind::Assignment { ref loan } => {
                 let loan_location = self.polonius_info.get_loan_location(&loan);
+                let loan_in_loop = self.loop_encoder.get_loop_depth(loan_location.block) > 0;
                 let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
                 let (expiring, restored) = self.encode_loan_places(&loan_places);
                 // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
@@ -763,7 +764,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         expire_stmts.push(
                             vir::Stmt::TransferPerm(lhs_place.clone(), rhs_place)
                         );
-                        if lhs_place.is_curr() {
+                        if lhs_place.is_curr() && loan_in_loop {
                             // We reallocate when we expire because we want to have disjointed
                             // permissions for the lhs and rhs when a borrow expires inside a loop
                             expire_stmts.extend(
@@ -779,20 +780,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         );
                     }
                 }
-
-                /*
-                // Apply the following (expensive) encoding only if we are in a loop
-                if self.loop_encoder.get_loop_depth(loan_location.block) > 0 {
-                    // When we restore a loan in a loop body, we want to have the permission
-                    // on the borrowed thing because it may be go in the loop invariant that
-                    // encodes *allocation*, not definedness
-                    if !node.incoming_zombies {
-                        stmts.extend(
-                            self.encode_havoc_and_allocation(&expiring)
-                        );
-                    }
-                }
-                */
             }
 
             ReborrowingKind::ArgumentMove { .. } => {
@@ -1161,8 +1148,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 )
                             );
 
-                            // TODO Transfer the permissions for the arguments used in the call
+                            // Store a label for permissions got back from the call
+                            let label = self.cfg_method.get_fresh_label_name();
+                            debug!("Pure function call location {:?} has label {}", location, label);
+                            self.label_after_location.insert(location, label.clone());
+                            stmts.push(vir::Stmt::Label(label.clone()));
 
+                            // Transfer the permissions for the arguments used in the call
+                            for operand in args.iter() {
+                                let operand_ty = self.mir_encoder.encode_operand_ty(operand);
+                                let operand_place = self.mir_encoder.encode_operand_place(operand);
+                                match (operand_place, operand_ty.sty) {
+                                    (Some(place), ty::TypeVariants::TyRawPtr(ty::TypeAndMut { .. })) |
+                                    (Some(place), ty::TypeVariants::TyRef(..)) => {
+                                        let ref_field = self.encoder.encode_ref_field("val_ref", operand_ty);
+                                        let ref_place = place.access(ref_field);
+                                        stmts.push(vir::Stmt::TransferPerm(
+                                            vir::LabelledPlace::curr(ref_place.clone()),
+                                            vir::LabelledPlace::old(ref_place.clone(), label.to_string())
+                                        ));
+                                    }
+                                }
+                            }
 
                             /*
                             // Hack to work around the missing loan for arguments moved to the function call
@@ -1250,17 +1257,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let procedure_contract = self.encoder
                                 .get_procedure_contract_for_call(def_id, &fake_vars, fake_target_local);
 
-                            let label = self.cfg_method.get_fresh_label_name();
-                            assert_eq!(stmts.len(), 0);
-                            if location.statement_index > 0 {
-                                let prev_loc = mir::Location {
-                                    statement_index: location.statement_index - 1,
-                                    ..location.clone()
-                                };
-                                debug!("Previous loc {:?} has label {}", prev_loc, label);
-                                self.label_after_location.insert(prev_loc, label.clone());
-                            }
-                            stmts.push(vir::Stmt::Label(label.clone()));
+                            // Store a label for the pre state
+                            let pre_label = self.cfg_method.get_fresh_label_name();
+                            stmts.push(vir::Stmt::Label(pre_label.clone()));
 
                             let (pre_type_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
                             let pos = self.encoder.error_manager().register(
@@ -1277,9 +1276,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 );
                             }
 
-                            let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &label, real_target.is_none());
+                            let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &pre_label, real_target.is_none());
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_type_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
+
+                            // Store a label for permissions got back from the call
+                            let post_label = self.cfg_method.get_fresh_label_name();
+                            debug!("Procedure call location {:?} has label {}", location, post_label);
+                            self.label_after_location.insert(location, label.clone());
+                            stmts.push(vir::Stmt::Label(post_label.clone()));
+
+                            // TODO Transfer the permissions for the arguments used in the call
 
                             stmts.extend(stmts_after);
                         }
@@ -1411,12 +1418,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - one for the type encoding
     /// - one for the functional specification.
     fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
-                                 label: &str, diverging: bool) -> (vir::Expr, vir::Expr) {
+                                 pre_label: &str, diverging: bool) -> (vir::Expr, vir::Expr) {
         let mut type_spec = Vec::new();
+
+        // Encode the permissions got back for the arguments of type reference
         for place in contract.returned_refs.iter() {
             debug!("Put permission {:?} in postcondition", place);
-            type_spec.push(self.encode_place_permission(place, Some(label)));
+            type_spec.push(self.encode_place_permission(place, Some(pre_label)));
         }
+
+        // Encode magic wands
         for borrow_info in contract.borrow_infos.iter() {
             debug!("{:?}", borrow_info);
             let lhs = borrow_info.blocking_paths
@@ -1428,10 +1439,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .conjoin();
             let rhs = borrow_info.blocked_paths
                 .iter()
-                .map(|place| self.encode_place_permission(place, Some(label)))
+                .map(|place| self.encode_place_permission(place, Some(pre_label)))
                 .conjoin();
             type_spec.push(vir::Expr::MagicWand(box lhs, box rhs));
         }
+
+        // Encode permissions for return type
         if !diverging {
             type_spec.push(self.encode_local_variable_permission(contract.returned_value));
         }
@@ -1443,7 +1456,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         let mut func_spec = Vec::new();
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, label, &encoded_args, Some(&encoded_return), false, None));
+            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, pre_label, &encoded_args, Some(&encoded_return), false, None));
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
