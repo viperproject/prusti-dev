@@ -15,6 +15,7 @@ use rustc::middle::const_val::ConstVal;
 pub struct ProcedureValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
     support: SupportStatus,
+    visited_return_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>,
     visited_inner_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>,
     visited_fn: HashSet<DefId>,
 }
@@ -25,6 +26,16 @@ macro_rules! skip_visited_fn {
             return;
         } else {
             $self.visited_fn.insert($def_id);
+        }
+    };
+}
+
+macro_rules! skip_visited_return_type_variant {
+    ($self:expr, $tv:expr) => {
+        if $self.visited_return_type_variants.contains(&$tv) {
+            return;
+        } else {
+            $self.visited_return_type_variants.insert($tv);
         }
     };
 }
@@ -44,6 +55,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         ProcedureValidator {
             tcx,
             support: SupportStatus::new(),
+            visited_return_type_variants: HashSet::new(),
             visited_inner_type_variants: HashSet::new(),
             visited_fn: HashSet::new(),
         }
@@ -96,6 +108,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
     /// Just used to look for "interesting" info
     fn check_return_ty(&mut self, ty: ty::Ty<'tcx>) {
+        skip_visited_return_type_variant!(self, &ty.sty);
+
         match ty.sty {
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => {
                 interesting!(self, "mutable reference in return type");

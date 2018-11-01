@@ -676,7 +676,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             self.label_after_location
                         )
                     );
-                    assert!(!node.reborrowing_loans.is_empty());
+                    //assert!(!node.reborrowing_loans.is_empty());
                     for &in_loan in node.reborrowing_loans.iter() {
                         let in_location = self.polonius_info.get_loan_location(&in_loan);
                         let in_node = dag.get_node(in_loan);
