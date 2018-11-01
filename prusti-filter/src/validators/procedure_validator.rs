@@ -441,32 +441,34 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                             if let Some((ref place, _)) = destination {
                                 self.check_place(mir, place);
                             }
-                            match self.tcx.hir.as_local_node_id(def_id) {
+                            let can_build_mir = match self.tcx.hir.as_local_node_id(def_id) {
                                 None => {
                                     unsupported!(
                                         self,
                                         "calling functions from an external crate is not supported"
                                     );
+                                    false
                                 }
                                 Some(node_id) => match self.tcx.hir.get(node_id) {
-                                    hir::map::NodeVariant(_) |
-                                    hir::map::NodeStructCtor(_) => {
-                                        // Check that the contract of the called function is supported
-                                        let procedure = Procedure::new(self.tcx, def_id);
-                                        self.check_mir_signature(&procedure);
-                                    }
+                                    hir::map::NodeVariant(_) => { true } // OK
+                                    hir::map::NodeStructCtor(_) => { true } // OK
                                     _ => match self.tcx.hir.maybe_body_owned_by(node_id) {
-                                        Some(_) => {} // OK
+                                        Some(_) => { true } // OK
                                         None => {
                                             unsupported!(
                                                 self,
                                                 "calling body-less functions is not supported"
                                             );
+                                            false
                                         },
                                     },
                                 },
+                            };
+                            if can_build_mir {
+                                // Check that the contract of the called function is supported
+                                let procedure = Procedure::new(self.tcx, def_id);
+                                self.check_mir_signature(&procedure);
                             }
-
                         },
                     }
                 } else {
