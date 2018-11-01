@@ -342,14 +342,14 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             let subset_map = &self.polonius_info.borrowck_out_facts.subset;
             if let Some(ref subset) = subset_map.get(&point).as_ref() {
                 for (source_region, regions) in subset.iter() {
-                    if let Some(local) = self.find_variable(*source_region) {
+                    if let Some(local) = self.polonius_info.find_variable(*source_region) {
                         write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
                                      loan, local, loan, source_region);
                     }
                     for target_region in regions.iter() {
                         write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
                                      loan, source_region, loan, target_region);
-                        if let Some(local) = self.find_variable(*target_region) {
+                        if let Some(local) = self.polonius_info.find_variable(*target_region) {
                             write_graph!(self, "{:?}_{:?} -> {:?}_{:?}",
                                          loan, local, loan, target_region);
                         }
@@ -642,7 +642,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                         for region in used_regions {
                             write_graph!(self, "{:?}_{:?}_{:?} [shape=box label=\"{:?}\n(region)\"]",
                                          bb, loan, region, region);
-                            if let Some(local) = self.find_variable(*region) {
+                            if let Some(local) = self.polonius_info.find_variable(*region) {
                                 write_graph!(self, "{:?}_{:?}_{:?} [label=\"{:?}\n(var)\"]",
                                              bb, loan, local, local);
                                 write_graph!(self, "{:?}_{:?}_{:?} -> {:?}_{:?}_{:?}",
@@ -659,7 +659,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 if *point == start_point {
                     // TODO: the unwrap_or is a temporary workaround
                     // See issue prusti-internal/issues/14
-                    let variable = self.find_variable(*region).unwrap_or(mir::Local::new(1000));
+                    let variable = self.polonius_info
+                        .find_variable(*region)
+                        .unwrap_or(mir::Local::new(1000));
                     self.print_blocked(variable, start_location);
                 }
             }
@@ -714,7 +716,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .filter(|(_, point)| *point == start_point)
             .cloned()
             // TODO: Understand why we cannot unwrap here:
-            .map(|(region, _)| (region, self.find_variable(region)))
+            .map(|(region, _)| (region, self.polonius_info.find_variable(region)))
             .collect();
         write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
         let regions: Vec<_> = self.polonius_info.borrowck_in_facts
@@ -723,7 +725,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             .filter(|(_, point)| *point == mid_point)
             .cloned()
             // TODO: Understand why we cannot unwrap here:
-            .map(|(region, _)| (region, self.find_variable(region)))
+            .map(|(region, _)| (region, self.polonius_info.find_variable(region)))
             .collect();
         write_graph!(self, "<td>{}</td>", to_sorted_string!(regions));
 
@@ -870,7 +872,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                 }
             }
             for region in used_regions {
-                if let Some(local) = self.find_variable(region) {
+                if let Some(local) = self.polonius_info.find_variable(region) {
                     write_graph!(self, "{:?}_{:?} [shape=box label=\"{:?}:{:?}\"]",
                                  point, region, local, region);
                 } else {
@@ -900,7 +902,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                         if blocked_region == region {
                             continue;
                         }
-                        if let Some(blocked) = self.find_variable(*blocked_region) {
+                        if let Some(blocked) = self.polonius_info.find_variable(*blocked_region) {
                             write_graph!(self, "{:?}_{:?}_{:?} -> {:?}_{:?}_{:?}",
                                          bb, blocker, region,
                                          bb, blocked, blocked_region);
@@ -911,18 +913,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             write_graph!(self, "}}");
         }
         Ok(())
-    }
-
-    /// Find a variable that has the given region in its type.
-    fn find_variable(&self, region: facts::Region) -> Option<mir::Local> {
-        let mut local = None;
-        for (key, value) in self.polonius_info.variable_regions.iter() {
-            if *value == region {
-                assert!(local.is_none());
-                local = Some(*key);
-            }
-        }
-        local
     }
 }
 
@@ -1081,7 +1071,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                         if blocked_region == region {
                             continue;
                         }
-                        if let Some(local) = self.find_variable(*blocked_region) {
+                        if let Some(local) = self.polonius_info.find_variable(*blocked_region) {
                             blocked_variables.push(format!("{:?}:{:?}", local, blocked_region));
                         }
                     }

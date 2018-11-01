@@ -808,6 +808,37 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         roots
     }
 
+    /// Find a variable that has the given region in its type.
+    pub fn find_variable(&self, region: facts::Region) -> Option<mir::Local> {
+        let mut local = None;
+        for (key, value) in self.variable_regions.iter() {
+            if *value == region {
+                assert!(local.is_none());
+                local = Some(*key);
+            }
+        }
+        local
+    }
+
+    /// Find variable that was moved into the function.
+    pub fn get_moved_variable(&self, kind: &ReborrowingKind) -> mir::Local {
+        match kind {
+            ReborrowingKind::ArgumentMove { ref loan } => {
+                let index = self.borrowck_in_facts
+                    .borrow_region
+                    .iter()
+                    .position(|(_, l, _)| l == loan)
+                    .unwrap();
+                let (region, _, _) = self.borrowck_in_facts.borrow_region[index];
+                let variable = self.find_variable(region).unwrap();
+                variable
+            },
+            _ => {
+                panic!("This function can be called only with ReborrowingKind::ArgumentMove.")
+            }
+        }
+    }
+
     /// ``loans`` – all loans, including the zombie loans.
     pub fn construct_reborrowing_dag(&self, loans: &[facts::Loan],
                                      zombie_loans: &[facts::Loan],

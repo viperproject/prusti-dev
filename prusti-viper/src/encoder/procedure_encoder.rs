@@ -795,8 +795,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 */
             }
 
-            ReborrowingKind::ArgumentMove { .. } => {
-                unimplemented!("TODO: handle references moved into function calls");
+            ref kind @ ReborrowingKind::ArgumentMove { .. } => {
+                let variable = self.polonius_info.get_moved_variable(kind);
+                unimplemented!("TODO: handle references moved into function calls var={:?}",
+                               variable);
             }
 
             ReborrowingKind::Call { .. } => {
