@@ -74,7 +74,8 @@ impl<'a> BranchCtxt<'a> {
 
         debug!("We unfolded {:?}", pred_place);
 
-        trace!("Pred state after unfold: {{{}}}", self.state.display_debug_pred());
+        trace!("Acc state after unfold: {{{}}}", self.state.display_acc());
+        trace!("Pred state after unfold: {{{}}}", self.state.display_pred());
 
         Action::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ], frac)
     }
@@ -217,8 +218,8 @@ impl<'a> BranchCtxt<'a> {
 
         let mut actions: Vec<Action> = vec![];
 
-        trace!("Acc state before: {{{}}}", self.state.display_debug_acc());
-        trace!("Pred state before: {{{}}}", self.state.display_debug_pred());
+        trace!("Acc state before: {{{}}}", self.state.display_acc());
+        trace!("Pred state before: {{{}}}", self.state.display_pred());
 
         // 1. Check if the requirement is satisfied
         if self.state.contains_perm(req) {
@@ -329,16 +330,20 @@ impl<'a> BranchCtxt<'a> {
         } else {
             // We have no predicate to obtain the access permission `req`
             unreachable!(
-                "There is no predicate to obtain {}. Predicates: {{{}}}",
+                "There is no access permission to obtain {} ({:?}). Access permissions: {{{}}} ({{{}}})",
                 req,
-                self.state.display_pred()
+                req,
+                self.state.display_acc(),
+                self.state.display_debug_acc()
             );
         };
 
         unreachable!(
-            "It is not possible to obtain {}. Predicates: {{{}}}",
+            "It is not possible to obtain {} ({:?}). Predicates: {{{}}} ({{{}}})",
             req,
-            self.state.display_pred()
+            req,
+            self.state.display_pred(),
+            self.state.display_debug_pred()
         );
     }
 

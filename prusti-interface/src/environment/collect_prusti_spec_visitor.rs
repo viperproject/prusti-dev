@@ -39,8 +39,9 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
         if attr::contains_name(&item.attrs, "__PRUSTI_LOOP_SPEC_ID") ||
             attr::contains_name(&item.attrs, "__PRUSTI_EXPR_ID") ||
             attr::contains_name(&item.attrs, "__PRUSTI_FORALL_ID") ||
-            attr::contains_name(&item.attrs, "__PRUSTI_SPEC_ONLY") {
-            return;
+            attr::contains_name(&item.attrs, "__PRUSTI_SPEC_ONLY") ||
+            attr::contains_name(&item.attrs, "trusted") {
+                return;
         }
         if let hir::Item_::ItemFn(..) = item.node {
             let def_id = self.tcx.hir.local_def_id(item.id);
@@ -55,7 +56,8 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
-        if attr::contains_name(&trait_item.attrs, "__PRUSTI_SPEC_ONLY") {
+        if attr::contains_name(&trait_item.attrs, "__PRUSTI_SPEC_ONLY") ||
+            attr::contains_name(&trait_item.attrs, "trusted") {
             return;
         }
         // Skip body-less trait methods
@@ -73,7 +75,8 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
-        if attr::contains_name(&impl_item.attrs, "__PRUSTI_SPEC_ONLY") {
+        if attr::contains_name(&impl_item.attrs, "__PRUSTI_SPEC_ONLY") ||
+            attr::contains_name(&impl_item.attrs, "trusted") {
             return;
         }
         let def_id = self.tcx.hir.local_def_id(impl_item.id);

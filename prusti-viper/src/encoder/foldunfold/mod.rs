@@ -124,7 +124,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
     /// Replace some statements, mutating the branch context
     fn replace_stmt(&mut self, stmt: &vir::Stmt, is_last_before_return: bool, bctxt: &mut BranchCtxt<'p>) -> Vec<vir::Stmt> {
-        debug!("replace_stmt: {}", stmt);
+        debug!("replace_stmt: ----->>>>> {} <<<<<-----", stmt);
         if let vir::Stmt::Label(ref label) = stmt {
             let mut labelled_bctxt = bctxt.clone();
             let labelled_state = labelled_bctxt.mut_state();

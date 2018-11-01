@@ -657,6 +657,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
+    fn encode_transfer_permissions(&mut self, lhs: vir::LabelledPlace, rhs: vir::LabelledPlace, location: mir::Location) -> Vec<vir::Stmt> {
+        let mut stmts = vec![];
+        let loan_in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
+
+        stmts.push(
+            vir::Stmt::TransferPerm(lhs.clone(), rhs)
+        );
+
+        // We reallocate when we expire because we want to have disjointed
+        // permissions for the lhs and rhs when a borrow expires inside a loop
+        if lhs.is_curr() && loan_in_loop {
+            stmts.extend(
+                self.encode_havoc_and_allocation(lhs.get_place())
+            );
+        }
+
+        stmts
+    }
+
     fn encode_expiration_of_reborrowing_dag_node(&mut self, dag: &ReborrowingDAG, node: &ReborrowingDAGNode) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_reborrowing_dag_node '{:?}'", node);
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -665,13 +684,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match node.kind {
             ReborrowingKind::Assignment { ref loan } => {
                 let loan_location = self.polonius_info.get_loan_location(&loan);
-                let loan_in_loop = self.loop_encoder.get_loop_depth(loan_location.block) > 0;
                 let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
                 let (expiring, restored) = self.encode_loan_places(&loan_places);
-                /*
+
                 // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
                 if node.incoming_zombies {
-                    let lhs_label = self.label_after_location.get(&loan_location).expect(
+                    let lhs_label = self.label_after_location.get(&loan_location).cloned().expect(
                         &format!(
                             "No label has been saved for location {:?} ({:?})",
                             loan_location,
@@ -681,7 +699,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     for &in_loan in node.reborrowing_loans.iter() {
                         let in_location = self.polonius_info.get_loan_location(&in_loan);
                         let in_node = dag.get_node(in_loan);
-                        let in_label = self.label_after_location.get(&in_location).expect(
+                        let in_label = self.label_after_location.get(&in_location).cloned().expect(
                             &format!(
                                 "No label has been saved for location {:?} ({:?})",
                                 in_location,
@@ -690,10 +708,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         );
                         match in_node.guard {
                             ReborrowingGuard::NoGuard => {
-                                stmts.push(
-                                    vir::Stmt::TransferPerm(
-                                        vir::LabelledPlace::old(expiring.clone(), in_label.clone()),
-                                        vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
+                                stmts.extend(
+                                    self.encode_transfer_permissions(
+                                        vir::LabelledPlace::old(expiring.clone(), in_label),
+                                        vir::LabelledPlace::old(expiring.clone(), lhs_label.clone()),
+                                        loan_location
                                     )
                                 )
                             },
@@ -702,12 +721,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 stmts.push(
                                     vir::Stmt::ExpireBorrowsIf(
                                         vir::Place::Base(executed_flag_var).into(),
-                                        vec![
-                                            vir::Stmt::TransferPerm(
-                                                vir::LabelledPlace::old(expiring.clone(), in_label.clone()),
-                                                vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
-                                            )
-                                        ],
+                                        self.encode_transfer_permissions(
+                                            vir::LabelledPlace::old(expiring.clone(), in_label),
+                                            vir::LabelledPlace::old(expiring.clone(), lhs_label.clone()),
+                                            loan_location
+                                        ),
                                         vec![]
                                     )
                                 )
@@ -715,7 +733,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
                 }
-                */
+
                 let lhs_place = if node.incoming_zombies {
                     let lhs_label = self.label_after_location.get(&loan_location).expect(
                         &format!(
@@ -745,25 +763,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 };
 
-                if lhs_place.is_curr() && loan_in_loop {
-                    // We reallocate when we expire because we want to have disjointed
-                    // permissions for the lhs and rhs when a borrow expires inside a loop
-                    stmts.extend(
-                        self.encode_havoc_and_allocation(lhs_place.get_place())
-                    );
-                }
-
                 match node.guard {
                     ReborrowingGuard::NoGuard => {
-                        stmts.push(
-                            vir::Stmt::TransferPerm(lhs_place.clone(), rhs_place)
+                        stmts.extend(
+                            self.encode_transfer_permissions(
+                                lhs_place.clone(),
+                                rhs_place,
+                                loan_location
+                            )
                         );
                     }
 
                     ReborrowingGuard::MirBlock(ref guard_bbi) => {
                         let executed_flag_var = self.cfg_block_has_been_executed[guard_bbi].clone();
-                        stmts.push(
-                            vir::Stmt::TransferPerm(lhs_place.clone(), rhs_place)
+                        stmts.extend(
+                            self.encode_transfer_permissions(
+                                lhs_place.clone(),
+                                rhs_place,
+                                loan_location
+                            )
                         );
                         let old_stmts = stmts.clone();
                         stmts = vec![
@@ -778,6 +796,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ReborrowingKind::ArgumentMove { ref loan } => {
+                /*
                 let local = self.polonius_info.get_moved_variable(&node.kind);
                 trace!("Handle references moved into function calls var={:?}", local);
 
@@ -822,9 +841,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         self.encode_havoc_and_allocation(lhs_place.get_place())
                     );
                 }
-                stmts.push(
-                    vir::Stmt::TransferPerm(lhs_place, rhs_place)
+                stmts.extend(
+                    self.encode_transfer_permissions(
+                        lhs_place.clone(),
+                        rhs_place,
+                        loan_location
+                    )
                 );
+                */
             }
 
             ReborrowingKind::Call { .. } => {
@@ -857,10 +881,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         if stmts.len() > 0 {
-            stmts.insert(
-                0,
-                vir::Stmt::comment("Expire dying loans")
-            );
             stmts.push(
                 vir::Stmt::StopExpiringLoans
             );
@@ -1205,14 +1225,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 let operand_ty = self.mir_encoder.get_operand_ty(operand);
                                 let operand_place = self.mir_encoder.encode_operand_place(operand);
                                 match (operand_place, &operand_ty.sty) {
-                                    (Some(place), ty::TypeVariants::TyRawPtr(ty::TypeAndMut { .. })) |
-                                    (Some(place), ty::TypeVariants::TyRef(..)) => {
-                                        let ref_field = self.encoder.encode_ref_field("val_ref", operand_ty);
-                                        let ref_place = place.access(ref_field);
-                                        stmts.push(vir::Stmt::TransferPerm(
-                                            vir::LabelledPlace::curr(ref_place.clone()),
-                                            vir::LabelledPlace::old(ref_place.clone(), label.to_string())
-                                        ));
+                                    (Some(ref place), ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: ref inner_ty, .. })) |
+                                    (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
+                                        let ref_field = self.encoder.encode_ref_field("val_ref", inner_ty);
+                                        let ref_place = place.clone().access(ref_field);
+                                        stmts.extend(
+                                            self.encode_transfer_permissions(
+                                                vir::LabelledPlace::curr(ref_place.clone()),
+                                                vir::LabelledPlace::old(ref_place.clone(), label.to_string()),
+                                                location
+                                            )
+                                        );
                                     }
                                     _ => {} // Nothing
                                 }
@@ -1338,14 +1361,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 let operand_ty = self.mir_encoder.get_operand_ty(operand);
                                 let operand_place = self.mir_encoder.encode_operand_place(operand);
                                 match (operand_place, &operand_ty.sty) {
-                                    (Some(place), ty::TypeVariants::TyRawPtr(ty::TypeAndMut { .. })) |
-                                    (Some(place), ty::TypeVariants::TyRef(..)) => {
-                                        let ref_field = self.encoder.encode_ref_field("val_ref", operand_ty);
-                                        let ref_place = place.access(ref_field);
-                                        stmts.push(vir::Stmt::TransferPerm(
-                                            vir::LabelledPlace::old(ref_place.clone(), pre_label.to_string()),
-                                            vir::LabelledPlace::old(ref_place.clone(), post_label.to_string())
-                                        ));
+                                    (Some(ref place), ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: ref inner_ty, .. })) |
+                                    (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
+                                        let ref_field = self.encoder.encode_ref_field("val_ref", inner_ty);
+                                        let ref_place = place.clone().access(ref_field);
+                                        stmts.extend(
+                                            self.encode_transfer_permissions(
+                                                vir::LabelledPlace::old(ref_place.clone(), pre_label.to_string()),
+                                                vir::LabelledPlace::old(ref_place.clone(), post_label.to_string()),
+                                                location
+                                            )
+                                        );
                                     }
                                     _ => {} // Nothing
                                 }

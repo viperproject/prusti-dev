@@ -40,8 +40,8 @@ impl vir::Stmt {
             &vir::Stmt::MethodCall(_, _, ref targets) => {
                 // We know that in Prusti method's preconditions and postconditions are empty
                 state.remove_moved_matching(|p| targets.contains(p.base()));
-                state.remove_pred_matching_place(|p| targets.contains(p.base()));
-                state.remove_acc_matching_place(|p| !p.is_base() && targets.contains(p.base()));
+                state.remove_pred_matching(|p| p.is_curr() && targets.contains(p.get_place().base()));
+                state.remove_acc_matching(|p| p.is_curr() && !p.is_base() && targets.contains(p.get_place().base()));
             }
 
             &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
@@ -95,16 +95,16 @@ impl vir::Stmt {
                         let rhs_labelled_place = vir::LabelledPlace::curr(rhs_place.clone());
 
                         // In Prusti, we lose permission on the rhs
-                        state.remove_pred_matching_place( |p| p.has_prefix(&rhs_place));
-                        state.remove_acc_matching_place( |p| p.has_proper_prefix(&rhs_place) && !p.is_base());
+                        state.remove_pred_matching( |p| p.has_prefix(&rhs_labelled_place));
+                        state.remove_acc_matching( |p| p.has_proper_prefix(&rhs_labelled_place) && !p.is_base());
 
                         // We also lose permission on the lhs
-                        state.remove_pred_matching_place( |p| p.has_prefix(&lhs_place));
-                        state.remove_acc_matching_place( |p| p.has_prefix(&lhs_place) && !p.is_base());
+                        state.remove_pred_matching( |p| p.has_prefix(&lhs_labelled_place));
+                        state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_labelled_place) && !p.is_base());
 
                         // And we create permissions for the lhs
                         let new_acc_places = original_state.acc().iter()
-                            .filter(|(p, _)| p.has_prefix(&rhs_labelled_place))
+                            .filter(|(p, _)| p.has_proper_prefix(&rhs_labelled_place))
                             .map(|(p, frac)| (p.clone().replace_prefix(&rhs_labelled_place, lhs_labelled_place.clone()), *frac))
                             .filter(|(p, _)| !p.is_base());
                         state.insert_all_acc(new_acc_places);
@@ -178,9 +178,10 @@ impl vir::Stmt {
                 state.insert_all_perms(places_in_pred.into_iter());
             }
 
-
             &vir::Stmt::Havoc => {
-                state.remove_matching_place(|p| !p.is_base());
+                state.remove_acc_matching(|p| p.is_curr() && !p.get_place().is_base());
+                state.remove_pred_matching(|p| p.is_curr() && !p.get_place().is_base());
+                state.remove_moved_matching(|p| !p.is_base());
             }
 
             &vir::Stmt::BeginFrame => {

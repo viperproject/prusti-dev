@@ -268,7 +268,7 @@ impl fmt::Display for LabelledPlace {
 impl fmt::Debug for LabelledPlace {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.label {
-            None => write!(f, "{}", self.place),
+            None => write!(f, "{:?}", self.place),
             Some(ref label) => write!(f, "old[{}]({:?})", label, self.place),
         }
     }
