@@ -304,6 +304,27 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     }
 
     fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
+        self.check_mir_signature(procedure);
+
+        //for local_decl in &mir.local_decls {
+        //    self.check_ty(local_decl.ty, "local variable");
+        //}
+
+        let mir = procedure.get_mir();
+        for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
+            if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
+                continue;
+            }
+            if !procedure.is_panic_block(bbi) {
+                for stmt in &basic_block_data.statements {
+                    self.check_mir_stmt(mir, stmt);
+                }
+            }
+            self.check_mir_terminator(mir, basic_block_data.terminator.as_ref().unwrap());
+        }
+    }
+
+    fn check_mir_signature(&mut self, procedure: &Procedure<'a, 'tcx>) {
         let mir = procedure.get_mir();
         self.check_ty(mir.return_ty(), "return type");
         requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
@@ -317,22 +338,6 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 mir::Mutability::Not => {} // OK
             }
             self.check_mir_arg(arg);
-        }
-
-        //for local_decl in &mir.local_decls {
-        //    self.check_ty(local_decl.ty, "local variable");
-        //}
-
-        for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
-            if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
-                continue;
-            }
-            if !procedure.is_panic_block(bbi) {
-                for stmt in &basic_block_data.statements {
-                    self.check_mir_stmt(mir, stmt);
-                }
-            }
-            self.check_mir_terminator(mir, basic_block_data.terminator.as_ref().unwrap());
         }
     }
 
@@ -457,7 +462,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                     },
                                 },
                             }
-                            // TODO: check that the contract of the called function is supported
+                            // Check that the contract of the called function is supported
+                            let procedure = Procedure::new(self.tcx, def_id);
+                            self.check_mir_signature(&procedure);
                         },
                     }
                 } else {
