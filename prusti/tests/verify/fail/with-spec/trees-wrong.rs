@@ -41,8 +41,8 @@ impl VecWrapperU32 {
     }
 }
 
+
 #[trusted]
-#[pure]
 fn to_usize(number: isize) -> usize {
     number as usize
 }
@@ -55,7 +55,6 @@ fn max(a: u32, b: u32) -> u32 {
     }
 }
 
-#[requires="to_usize(i) < fruits.len()"]
 fn do_solve1(i: isize, fruits: &mut VecWrapperU32) -> u32 {
     if i <= -1 {
         0

@@ -121,13 +121,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 self.check_return_ty(inner_ty);
             }
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => {
-                interesting!(self, "mutable raw pointer in return type");
-                self.check_return_ty(inner_ty);
-            }
-
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutImmutable, ty: inner_ty }) => {
-                interesting!(self, "immutable raw pointer in return type");
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: inner_ty, .. }) => {
                 self.check_return_ty(inner_ty);
             },
 
