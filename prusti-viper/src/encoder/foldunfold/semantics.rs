@@ -191,7 +191,7 @@ impl vir::Stmt {
                 state.end_frame()
             }
 
-            &vir::Stmt::ExpireBorrow(ref lhs_place, ref rhs_place) => {
+            &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place) => {
                 let original_state = state.clone();
 
                 /*assert!(

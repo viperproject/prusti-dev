@@ -132,7 +132,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::ExpireBorrow(ref expiring, ref restored) => {
+            &Stmt::TransferPerm(ref expiring, ref restored) => {
                 // Skip
                 ast.comment(&self.to_string())
             }

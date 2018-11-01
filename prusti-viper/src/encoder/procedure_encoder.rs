@@ -690,7 +690,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         match in_node.guard {
                             ReborrowingGuard::NoGuard => {
                                 stmts.push(
-                                    vir::Stmt::ExpireBorrow(
+                                    vir::Stmt::TransferPerm(
                                         vir::LabelledPlace::old(expiring.clone(), in_label.clone()),
                                         vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
                                     )
@@ -702,7 +702,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     vir::Stmt::ExpireBorrowsIf(
                                         vir::Place::Base(executed_flag_var).into(),
                                         vec![
-                                            vir::Stmt::ExpireBorrow(
+                                            vir::Stmt::TransferPerm(
                                                 vir::LabelledPlace::old(expiring.clone(), in_label.clone()),
                                                 vir::LabelledPlace::old(expiring.clone(), lhs_label.clone())
                                             )
@@ -746,7 +746,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 match node.guard {
                     ReborrowingGuard::NoGuard => {
                         stmts.push(
-                            vir::Stmt::ExpireBorrow(lhs_place.clone(), rhs_place)
+                            vir::Stmt::TransferPerm(lhs_place.clone(), rhs_place)
                         );
                         if lhs_place.is_curr() {
                             // We reallocate when we expire because we want to have disjointed
@@ -761,7 +761,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let executed_flag_var = self.cfg_block_has_been_executed[guard_bbi].clone();
                         let mut expire_stmts = vec![];
                         expire_stmts.push(
-                            vir::Stmt::ExpireBorrow(lhs_place.clone(), rhs_place)
+                            vir::Stmt::TransferPerm(lhs_place.clone(), rhs_place)
                         );
                         if lhs_place.is_curr() {
                             // We reallocate when we expire because we want to have disjointed
@@ -1179,7 +1179,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         let source_loan = &source_loans[0];
                                         let loan_loc = self.polonius_info.get_loan_location(&source_loan);
                                         let loan_label = &self.label_after_location[&loan_loc];
-                                        stmts.push(vir::Stmt::ExpireBorrow(
+                                        stmts.push(vir::Stmt::TransferPerm(
                                             vir::LabelledPlace::curr(place.clone()),
                                             vir::LabelledPlace::old(place.clone(), loan_label.to_string())
                                         ));

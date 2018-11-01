@@ -29,6 +29,9 @@ impl Viper {
         let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap()
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
+            // TODO: make this dependent on a configuration flag, or make Viper work fine with
+            // both backends in path.
+            .filter(|x| !x.contains("carbon"))
             .collect();
 
         debug!("Java classpath: {}", jar_paths.clone().join(":"));

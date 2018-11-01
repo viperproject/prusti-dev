@@ -469,12 +469,9 @@ pub enum Stmt {
     /// Mark a CFG point in which all the permissions of a corresponding `BeginFraming` are framed in
     /// They will be used by the fold/unfold algorithm
     EndFrame,
-    /// Mark a CFG point in which a borrow ends and a corresponding location is restored.
-    /// They will be used by the fold/unfold algorithm.
-    /// Arguments: the expiring location, then the restored location.
-    /// That is, the lhs and rhs of the assignment that created the borrow.
-    /// Permissions will move from the expiring to the restored location.
-    ExpireBorrow(LabelledPlace, LabelledPlace),
+    /// Move permissions from a place to another.
+    /// This is used to restore permissions in the fold/unfold state when a loan expires.
+    TransferPerm(LabelledPlace, LabelledPlace),
     /// An `if` statement: the guard, the 'then' branch, the 'else' branch
     /// Note: this is only used to restore permissions of expiring loans, so the fold/unfold
     /// algorithms threats this statement (and statements in the branches) in a very special way.
@@ -612,7 +609,7 @@ impl fmt::Display for Stmt {
 
             Stmt::EndFrame => write!(f, "end frame"),
 
-            Stmt::ExpireBorrow(ref lhs, ref rhs) => write!(f, "expire borrow {} --> {}", lhs, rhs),
+            Stmt::TransferPerm(ref lhs, ref rhs) => write!(f, "transfer perm {} --> {}", lhs, rhs),
 
             Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
                 write!(f, "expire borrows if {} {{", guard)?;
@@ -655,7 +652,7 @@ pub trait StmtFolder {
             Stmt::Havoc => self.fold_havoc(),
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
-            Stmt::ExpireBorrow(a, b) => self.fold_expire_borrow(a, b),
+            Stmt::TransferPerm(a, b) => self.fold_transfer_perm(a, b),
             Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
             Stmt::StopExpiringBorrows => self.fold_stop_expiring_borrows(),
         }
@@ -721,8 +718,8 @@ pub trait StmtFolder {
         Stmt::EndFrame
     }
 
-    fn fold_expire_borrow(&mut self, a: LabelledPlace, b: LabelledPlace) -> Stmt {
-        Stmt::ExpireBorrow(a, b)
+    fn fold_transfer_perm(&mut self, a: LabelledPlace, b: LabelledPlace) -> Stmt {
+        Stmt::TransferPerm(a, b)
     }
 
     fn fold_expire_borrows_if(&mut self, g: Expr, t: Vec<Stmt>, e: Vec<Stmt>) -> Stmt {

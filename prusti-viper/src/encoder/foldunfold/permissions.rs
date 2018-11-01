@@ -107,7 +107,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
-            &vir::Stmt::ExpireBorrow(_, _) |
+            &vir::Stmt::TransferPerm(_, _) |
             &vir::Stmt::StopExpiringBorrows => HashSet::new(),
 
             &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
@@ -145,7 +145,7 @@ impl vir::Stmt {
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
-            &vir::Stmt::ExpireBorrow(_, _) |
+            &vir::Stmt::TransferPerm(_, _) |
             &vir::Stmt::ExpireBorrowsIf(_, _, _) |
             &vir::Stmt::StopExpiringBorrows => HashSet::new(),
 
