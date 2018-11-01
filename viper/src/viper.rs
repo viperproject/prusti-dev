@@ -39,8 +39,7 @@ impl Viper {
         let jvm_args = InitArgsBuilder::new()
             .version(JNIVersion::V8)
             .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
-            .option("-Xdebug")
-            .option("-Xmx2048m")
+            .option("-Xmx4096m")
             .option("-Xss512m") // stack size
             //.option("-verbose:gc")
             //.option("-Xcheck:jni")

@@ -47,14 +47,10 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyRawPtr(ty_and_mutbl) => {
                 self.visit_raw_ptr(ty_and_mutbl.ty, ty_and_mutbl.mutbl);
             },
-            TyNever => {
-                warn!("TODO: unhandled never type");
-            },
             ref x => {
-                unimplemented!("{:?}", x);
+                debug!("Unhandled type '{:?}'", x);
             }
         }
-
     }
 
     fn visit_flags(&mut self, _flags: TypeFlags) {
