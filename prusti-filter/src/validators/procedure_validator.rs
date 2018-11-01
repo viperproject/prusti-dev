@@ -449,8 +449,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                     );
                                 }
                                 Some(node_id) => match self.tcx.hir.get(node_id) {
-                                    hir::map::NodeVariant(_) => {} // OK
-                                    hir::map::NodeStructCtor(_) => {} // OK
+                                    hir::map::NodeVariant(_) |
+                                    hir::map::NodeStructCtor(_) => {
+                                        // Check that the contract of the called function is supported
+                                        let procedure = Procedure::new(self.tcx, def_id);
+                                        self.check_mir_signature(&procedure);
+                                    }
                                     _ => match self.tcx.hir.maybe_body_owned_by(node_id) {
                                         Some(_) => {} // OK
                                         None => {
@@ -462,9 +466,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                     },
                                 },
                             }
-                            // Check that the contract of the called function is supported
-                            let procedure = Procedure::new(self.tcx, def_id);
-                            self.check_mir_signature(&procedure);
+
                         },
                     }
                 } else {
