@@ -7,12 +7,13 @@ struct T {
 }
 
 #[ensures="old(x.f) == result"]
-fn extract(x: &mut T) -> i32 {
+fn extract(x: &mut T) -> i32 { //~ ERROR
     // move x
     let y = x;
     let mut z = T { f: 42 };
     let k = &mut z;
-    k.f // y.f
+    k.f
+    //y.f
 }
 
 fn main() {
