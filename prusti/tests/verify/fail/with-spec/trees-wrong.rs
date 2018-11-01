@@ -1,6 +1,8 @@
-// Problem 3 (Trees) from Program Verification 2018 Project 3.
-//
-// TODO: Casts: i as usize
+/// Problem 3 (Trees) from Program Verification 2018 Project 3.
+///
+/// TODO: Casts: i as usize
+
+#![allow(unused_comparisons)]
 
 extern crate prusti_contracts;
 

@@ -537,6 +537,11 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                         requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
                     },
                     ConstVal::Unevaluated(def_id, substs) => {
+                        // On crate `078_crossbeam` the `const_eval` call fails with
+                        // "can't type-check body of DefId(0/0:18 ~ lock_api[964c]::mutex[0]::RawMutex[0]::INIT[0])"
+                        // at "const INIT: Self;"
+                        partially!(self, "unevaluated constant are partially supported");
+                        /*
                         let param_env = self.tcx.param_env(def_id);
                         let cid = GlobalId {
                             instance: ty::Instance::new(def_id, substs),
@@ -553,6 +558,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                             // This should be unreachable
                             unsupported!(self, "erroneous unevaluated literals are not supported")
                         }
+                        */
                     }
                 };
 
