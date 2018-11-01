@@ -87,7 +87,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
 
         for input_ty in sig.inputs() {
-            self.check_local_ty(input_ty);
+            self.check_input_ty(input_ty);
         }
 
         self.check_return_ty(sig.output());
@@ -135,21 +135,47 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
     }
 
-    fn check_return_ty(&mut self, ty: ty::Ty<'tcx>) {
+    fn check_input_ty(&mut self, ty: ty::Ty<'tcx>) {
         match ty.sty {
             ty::TypeVariants::TyBool => {} // OK
+
+            ty::TypeVariants::TyChar => {} // OK
 
             ty::TypeVariants::TyInt(_) => {} // OK
 
             ty::TypeVariants::TyUint(_) => {} // OK
 
-            _ => unsupported!(self, "pure functions can only return integer or boolean values"),
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: inner_ty, .. }) => {
+                self.check_inner_ty(inner_ty)
+            },
+
+            ty::TypeVariants::TyRef(_, inner_ty, _) => {
+                self.check_inner_ty(inner_ty)
+            },
+
+            _ => unsupported!(self, "pure functions can only have arguments of type integer, boolean, char or reference"),
         }
 
-        self.check_local_ty(ty);
+        self.check_ty(ty);
     }
 
-    fn check_local_ty(&mut self, ty: ty::Ty<'tcx>) {
+    fn check_return_ty(&mut self, ty: ty::Ty<'tcx>) {
+        match ty.sty {
+            ty::TypeVariants::TyBool => {} // OK
+
+            ty::TypeVariants::TyChar => {} // OK
+
+            ty::TypeVariants::TyInt(_) => {} // OK
+
+            ty::TypeVariants::TyUint(_) => {} // OK
+
+            _ => unsupported!(self, "pure functions can only return integer, boolean or char values"),
+        }
+
+        self.check_ty(ty);
+    }
+
+    fn check_ty(&mut self, ty: ty::Ty<'tcx>) {
         match ty.sty {
             ty::TypeVariants::TyBool => {} // OK
 
@@ -231,7 +257,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
     fn check_inner_ty(&mut self, ty: ty::Ty<'tcx>) {
         skip_visited_inner_type_variant!(self, &ty.sty);
 
-        self.check_local_ty(ty);
+        self.check_ty(ty);
 
         match ty.sty {
             ty::TypeVariants::TyRef(..) => partially!(self, "references inside data structures are partially supported"),
@@ -242,12 +268,17 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
     fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
         let mir = procedure.get_mir();
-        self.check_local_ty(mir.return_ty());
+        self.check_return_ty(mir.return_ty());
         requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
         requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
 
+        for arg_index in mir.args_iter() {
+            let arg = &mir.local_decls[arg_index];
+            self.check_input_ty(arg.ty);
+        }
+
         //for local_decl in &mir.local_decls {
-        //    self.check_local_ty(local_decl.ty);
+        //    self.check_ty(local_decl.ty);
         //}
 
         requires!(
@@ -399,7 +430,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         match place {
             mir::Place::Local(ref local) => {
                 let local_ty = &mir.local_decls[*local].ty;
-                self.check_local_ty(local_ty);
+                self.check_ty(local_ty);
             }
 
             mir::Place::Static(..) => unsupported!(self, "static variables are not supported"),
@@ -482,7 +513,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
                 self.check_literal(literal);
-                self.check_local_ty(ty);
+                self.check_ty(ty);
             }
         }
     }
@@ -516,7 +547,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                     }
                 };
 
-                self.check_local_ty(value.ty);
+                self.check_ty(value.ty);
 
                 match value.ty.sty {
                     ty::TypeVariants::TyBool |

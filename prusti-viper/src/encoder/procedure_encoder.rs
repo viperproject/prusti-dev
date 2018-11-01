@@ -1161,6 +1161,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 )
                             );
 
+                            // TODO Transfer the permissions for the arguments used in the call
+
+
                             /*
                             // Hack to work around the missing loan for arguments moved to the function call
                             for operand in args.iter() {
