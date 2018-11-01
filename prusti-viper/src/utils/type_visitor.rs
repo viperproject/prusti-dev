@@ -47,8 +47,11 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyRawPtr(ty_and_mutbl) => {
                 self.visit_raw_ptr(ty_and_mutbl.ty, ty_and_mutbl.mutbl);
             },
+            TyNever => {
+                self.visit_never();
+            },
             ref x => {
-                debug!("Unhandled type '{:?}'", x);
+                unimplemented!("{:?}", x);
             }
         }
     }
@@ -66,6 +69,9 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
     }
 
     fn visit_char(&mut self) {
+    }
+
+    fn visit_never(&mut self) {
     }
 
     fn visit_adt(&mut self, adt_def: &'tcx AdtDef, substs: &'tcx Substs<'tcx>) {

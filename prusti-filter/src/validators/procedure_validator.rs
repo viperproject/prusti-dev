@@ -211,7 +211,16 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             // That is, even after substitution it is possible that there are type
             // variables. This happens when the `TyAdt` corresponds to an ADT
             // definition and not a concrete use of it.
-            ty::TypeVariants::TyAdt(adt_def, substs) => self.check_ty_adt(adt_def, substs),
+            ty::TypeVariants::TyAdt(adt_def, substs) => {
+                self.check_ty_adt(adt_def, substs);
+                for kind in substs.iter() {
+                    match kind.unpack() {
+                        ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
+
+                        ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "adt"),
+                    }
+                }
+            },
 
             ty::TypeVariants::TyForeign(..) => unsupported_pos!(self, pos, "foreign types are not supported"),
 
