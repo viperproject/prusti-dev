@@ -389,7 +389,7 @@ fn add_fake_facts<'a, 'tcx:'a>(
     for (point, mut regions) in outlives_at_point {
         if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
             let location = interner.get_point(*point).location.clone();
-            if regions.len() > 1 {
+            if is_call(&mir, location) {
                 let call_destination = get_call_destination(&mir, location);
                 if let Some(place) = call_destination {
                     debug!("Adding for call destination:");
