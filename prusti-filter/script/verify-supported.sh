@@ -28,7 +28,7 @@ fi
 info "Run standard compilation"
 
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
-export RUSTFLAGS="-g -Zborrowck=mir -Zpolonius -Znll-facts"
+export RUSTFLAGS="-C debuginfo=2 -Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
 exit_status="0"
 cargo clean
