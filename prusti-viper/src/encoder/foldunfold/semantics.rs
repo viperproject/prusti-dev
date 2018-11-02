@@ -8,6 +8,15 @@ use encoder::vir;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
+    state.remove_all_perms(
+        expr.get_permissions(predicates).iter()
+            .filter(|p| !(p.is_base() && p.is_acc()))
+            // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
+            .filter(|p| p.get_label() != Some("pre".to_string()))
+    );
+}
+
 impl vir::Stmt {
     pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
         debug!("apply_on_state '{}'", self);
@@ -29,12 +38,7 @@ impl vir::Stmt {
             }
 
             &vir::Stmt::Exhale(ref expr, _) => {
-                state.remove_all_perms(
-                    expr.get_permissions(predicates).iter()
-                        .filter(|p| !(p.is_base() && p.is_acc()))
-                        // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
-                        .filter(|p| p.get_label() != Some("pre".to_string()))
-                );
+                exhale_expr(expr, state, predicates);
             }
 
             &vir::Stmt::MethodCall(_, _, ref targets) => {
@@ -250,6 +254,11 @@ impl vir::Stmt {
 
             &vir::Stmt::StopExpiringLoans => {
                 state.remove_dropped();
+            }
+
+            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref stmts) => {
+                // TODO: this is incomplete!
+                exhale_expr(rhs, state, predicates);
             }
         }
     }

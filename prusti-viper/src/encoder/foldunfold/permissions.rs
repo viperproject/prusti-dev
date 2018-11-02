@@ -123,7 +123,11 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     );
                 }
                 permissions
-            },
+            }
+
+            &vir::Stmt::PackageMagicWand(ref lhs, ref _rhs, ref _stmts) => {
+                lhs.get_required_permissions(predicates)
+            }
         }
     }
 }
@@ -147,7 +151,8 @@ impl vir::Stmt {
             &vir::Stmt::EndFrame |
             &vir::Stmt::TransferPerm(_, _) |
             &vir::Stmt::ExpireBorrowsIf(_, _, _) |
-            &vir::Stmt::StopExpiringLoans => HashSet::new(),
+            &vir::Stmt::StopExpiringLoans |
+            &vir::Stmt::PackageMagicWand(_, _, _) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }

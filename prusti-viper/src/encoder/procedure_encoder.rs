@@ -1161,7 +1161,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             debug!("Encoding pure function call '{}'", function_name);
                             assert!(destination.is_some());
 
-                            let mut arg_exprs = Vec::new();
+                            let mut arg_exprs = vec![];
                             for operand in args.iter() {
                                 let arg_expr = self.mir_encoder.encode_operand_expr(operand);
                                 arg_exprs.push(arg_expr);
@@ -1272,7 +1272,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             debug!("Encoding non-pure function call '{}'", func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
                             let mut fake_exprs: HashMap<vir::Place, vir::Expr> = HashMap::new();
-                            let mut fake_vars = Vec::new();
+                            let mut fake_vars = vec![];
 
                             for operand in args.iter() {
                                 let arg_ty = self.mir_encoder.get_operand_ty(operand);
@@ -1508,7 +1508,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - one for the functional specification.
     fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
                                  pre_label: &str, diverging: bool) -> (vir::Expr, vir::Expr) {
-        let mut type_spec = Vec::new();
+        let mut type_spec = vec![];
 
         // Encode the permissions got back for the arguments of type reference
         for place in contract.returned_refs.iter() {
@@ -1518,7 +1518,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Encode magic wands
         for borrow_info in contract.borrow_infos.iter() {
-            debug!("{:?}", borrow_info);
+            debug!("borrow_info {:?}", borrow_info);
             let lhs = borrow_info.blocking_paths
                 .iter()
                 .map(|place| {
@@ -1543,7 +1543,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
-        let mut func_spec = Vec::new();
+        let mut func_spec = vec![];
         for item in contract.functional_postcondition() {
             func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, pre_label, &encoded_args, Some(&encoded_return), false, None));
         }
@@ -1551,11 +1551,48 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
     }
 
+    /// Encode the package statement of magic wands at the end of the method
+    // TODO: do we really need `pre_label`?
+    fn encode_package_end_of_method(&self, contract: &ProcedureContract<'tcx>,
+                                    pre_label: &str) -> Vec<vir::Stmt> {
+        let mut stmts = vec![];
+
+        // Package magic wand(s)
+        for borrow_info in contract.borrow_infos.iter() {
+            debug!("borrow_info {:?}", borrow_info);
+            let lhs = borrow_info.blocking_paths
+                .iter()
+                .map(|place| {
+                    debug!("{:?}", place);
+                    self.encode_place_permission(place, None)
+                })
+                .conjoin();
+            let rhs = borrow_info.blocked_paths
+                .iter()
+                .map(|place| self.encode_place_permission(place, Some(pre_label)))
+                .conjoin();
+
+            // The fold-unfold algorithm will fill the body of the package statement
+            stmts.push(vir::Stmt::PackageMagicWand(lhs, rhs, vec![]));
+        }
+
+        stmts
+    }
+
     /// Encode postcondition exhale on the definition side.
     fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
                              contract: &ProcedureContract<'tcx>) {
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Postconditions:"));
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
+
+        // Package magic wands
+        let mut package_stmts = self.encode_package_end_of_method(contract, PRECONDITION_LABEL);
+        for package_stmt in package_stmts.drain(..) {
+            self.cfg_method.add_stmt(return_cfg_block, package_stmt);
+        }
+
         let (type_spec, func_spec) = self.encode_postcondition_expr(contract, PRECONDITION_LABEL, false);
+
+        // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,
@@ -1563,8 +1600,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
 
-        // Require the deref of reference arguments to be folded (see issue #47)
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment(format!("Fold predicates for &mut args")));
+        // Make the deref of reference arguments to be folded (see issue #47)
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Fold predicates for &mut args"));
         for arg_index in self.mir.args_iter() {
             let arg_ty = self.mir.local_decls[arg_index].ty;
             if self.mir_encoder.is_reference(arg_ty) {
@@ -1575,6 +1612,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
 
+        // Exhale permissions of postcondition
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos));
     }
 
@@ -1991,7 +2029,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
-                let mut stmts = Vec::new();
+                let mut stmts = vec![];
                 // Initialize the constant
                 match literal {
                     mir::Literal::Value { value } => {

@@ -4,7 +4,7 @@ set -uo pipefail
 
 space() { echo ""; }
 title() { space; echo -e "${*}"; space; }
-numberinfo() { echo -ne "[-] ${*}: "; }
+inlineinfo() { echo -ne "[-] ${*}: "; }
 info() { echo -e "[-] ${*}"; }
 error() { echo -e "[!] ${*}"; }
 
@@ -21,53 +21,59 @@ fi
 
 title "=== Evaluation ==="
 
-numberinfo "Crates for which the evaluation is in progress"
+inlineinfo "Start of evaluation"
+egrep -ho "\(2018-[^)]+\)" */*.log | sort | head -n 1
+
+inlineinfo "End of evaluation"
+egrep -ho "\(2018-[^)]+\)" */*.log | sort | tail -n 1
+
+inlineinfo "Crates for which the evaluation is in progress"
 for f in "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log; do grep "Summary" $f >/dev/null || echo $f; done | wc -l
 
-numberinfo "Crates for which standard compilation failed or timed out"
+inlineinfo "Crates for which standard compilation failed or timed out"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 42" | wc -l
 
-numberinfo "Crates for which standard compilation succeeded"
+inlineinfo "Crates for which standard compilation succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | wc -l
 
-numberinfo "Crates for which standard compilation succeeded, but the filtering failed"
+inlineinfo "Crates for which standard compilation succeeded, but the filtering failed"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep "(of  in the whitelist)" | wc -l
 
-numberinfo "Crates for which standard compilation and the filtering succeeded"
+inlineinfo "Crates for which standard compilation and the filtering succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "(of  in the whitelist)" | wc -l
 
-numberinfo "Verifiable items from crates for which standard compilation and the filtering succeeded"
+inlineinfo "Verifiable items from crates for which standard compilation and the filtering succeeded"
 echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
-numberinfo "Crates for which Prusti succeeded"
+inlineinfo "Crates for which Prusti succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | wc -l
 
-numberinfo "Verifiable items from crates for which Prusti succeeded"
+inlineinfo "Verifiable items from crates for which Prusti succeeded"
 echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
-numberinfo "Verified items from crates for which Prusti succeeded"
+inlineinfo "Verified items from crates for which Prusti succeeded"
 echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.* \(.*\) verified items.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
-numberinfo "Crates for which Prusti timed out"
+inlineinfo "Crates for which Prusti timed out"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124" | wc -l
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124"
 
-numberinfo "Verifiable items from crates for which Prusti timed out"
+inlineinfo "Verifiable items from crates for which Prusti timed out"
 echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124" | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
-numberinfo "Crates for which Prusti failed"
+inlineinfo "Crates for which Prusti failed"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124" | wc -l
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124"
 
-numberinfo "Verifiable items from crates for which Prusti failed"
+inlineinfo "Verifiable items from crates for which Prusti failed"
 echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0"  | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
 title "=== Filtering ==="
 
-numberinfo "Approximate number of functions from all the crates"
+inlineinfo "Approximate number of functions from all the crates"
 egrep '^[[:space:]]*fn[[:space:]]+(.*[^;]$|.*{)' -r "$CRATE_DOWNLOAD_DIR"/*/source/src/ | wc -l
 
-numberinfo "Number of functions from all the crates"
+inlineinfo "Number of functions from all the crates"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .node_path' | wc -l
 
 info "Functions from all the crates: distribution by lines of code"
@@ -77,12 +83,12 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 
 space
 
-numberinfo "Number of functions from all the crates that have a reference in the return type"
+inlineinfo "Number of functions from all the crates that have a reference in the return type"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | length > 0) | .node_path' | wc -l
 
 space
 
-numberinfo "Number of functions from all the crates, excluded macro expansions"
+inlineinfo "Number of functions from all the crates, excluded macro expansions"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .node_path' | wc -l
 
 info "Functions from all the crates (excluded macro expansions): distribution by lines of code"
@@ -92,13 +98,13 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 
 space
 
-numberinfo "Number of supported functions from all the crates"
+inlineinfo "Number of supported functions from all the crates"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' | wc -l
 
-numberinfo "Number of supported functions with loops"
+inlineinfo "Number of supported functions with loops"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.num_loop_heads > 0) | .node_path' | wc -l
 
-numberinfo "Number of supported functions that have a reference in the return type"
+inlineinfo "Number of supported functions that have a reference in the return type"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | length > 0) | .node_path' | wc -l
 
 info "Supported functions: distribution by lines of code"
@@ -118,7 +124,7 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 
 space
 
-numberinfo "Number of supported functions from all the crates (excluded macro expansions)"
+inlineinfo "Number of supported functions from all the crates (excluded macro expansions)"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | select(.procedure.restrictions | length == 0) | .node_path' | wc -l
 
 info "Supported functions (excluded macro expansions): distribution by lines of code"
