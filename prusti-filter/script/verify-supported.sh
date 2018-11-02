@@ -42,6 +42,7 @@ fi
 info "Filter supported procedures"
 
 if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILTER" == "true" ]] ; then
+	rm -f "$CRATE_ROOT/prusti-filter-results.json"
 	export RUSTC="$DIR/rustc.sh"
 	export RUST_BACKTRACE=1
 	cargoclean

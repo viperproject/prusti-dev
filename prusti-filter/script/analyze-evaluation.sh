@@ -30,16 +30,37 @@ cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit statu
 numberinfo "Crates for which standard compilation succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | wc -l
 
+numberinfo "Crates for which standard compilation succeeded, but the filtering failed"
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep "(of  in the whitelist)" | wc -l
+
+numberinfo "Crates for which standard compilation and the filtering succeeded"
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "(of  in the whitelist)" | wc -l
+
+numberinfo "Verifiable items from crates for which standard compilation and the filtering succeeded"
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+
 numberinfo "Crates for which Prusti succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | wc -l
+
+numberinfo "Verifiable items from crates for which Prusti succeeded"
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+
+numberinfo "Verified items from crates for which Prusti succeeded"
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.* \(.*\) verified items.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
 numberinfo "Crates for which Prusti timed out"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124" | wc -l
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124"
 
+numberinfo "Verifiable items from crates for which Prusti timed out"
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124" | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+
 numberinfo "Crates for which Prusti failed"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124" | wc -l
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124"
+
+numberinfo "Verifiable items from crates for which Prusti failed"
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0"  | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
 title "=== Filtering ==="
 
