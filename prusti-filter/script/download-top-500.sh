@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Get the folder in which to download all the crates
-CRATE_DOWNLOAD_DIR="$(cd "${1:-.}" && pwd)"
-
-if [[ ! -d "$CRATE_DOWNLOAD_DIR" ]]; then
-	echo "It looks like CRATE_DOWNLOAD_DIR does not exist: '$CRATE_DOWNLOAD_DIR'"
+if [[ ! -d "$1" ]]; then
+	echo "It looks like CRATE_DOWNLOAD_DIR (the first argument) does not exist: '$1'"
 	exit 1
 fi
 
+# Get the folder in which to download all the crates
+CRATE_DOWNLOAD_DIR="$(cd "${1:-.}" && pwd)"
+
 if [[ ! -z "$(ls -A "$CRATE_DOWNLOAD_DIR")" ]]; then
-	echo "It looks like CRATE_DOWNLOAD_DIR is non empty: '$CRATE_DOWNLOAD_DIR'"
+	echo "It looks like CRATE_DOWNLOAD_DIR (the first argument) is not empty: '$CRATE_DOWNLOAD_DIR'"
 	exit 1
 fi
 
