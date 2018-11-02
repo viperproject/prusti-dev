@@ -1420,26 +1420,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 };
                 let target_cfg_block = *cfg_blocks.get(&target).unwrap();
 
-                if self.check_panics {
-                    // Prepare a block that encodes the branch of the failure
-                    let failure_label = self.cfg_method.get_fresh_label_name();
-                    let failure_block = self.cfg_method.add_block(&failure_label, vec![], vec![
-                        vir::Stmt::comment(format!("========== {} ==========", &failure_label)),
-                        vir::Stmt::comment(format!("A Rust assertion failed: {}", msg.description())),
+                // Prepare a block that encodes the branch of the failure
+                let failure_label = self.cfg_method.get_fresh_label_name();
+                let failure_block = self.cfg_method.add_block(&failure_label, vec![], vec![
+                    vir::Stmt::comment(format!("========== {} ==========", &failure_label)),
+                    vir::Stmt::comment(format!("A Rust assertion failed: {}", msg.description())),
+                    if self.check_panics {
                         vir::Stmt::Assert(
                             false.into(),
                             self.encoder.error_manager().register(
                                 term.source_info.span,
                                 ErrorCtxt::AssertTerminator(msg.description().to_string())
                             ),
-                        ),
-                    ]);
-                    self.cfg_method.set_successor(failure_block, Successor::Return);
+                        )
+                    } else {
+                        vir::Stmt::comment("This assertion will not be checked")
+                    }
+                ]);
+                self.cfg_method.set_successor(failure_block, Successor::Return);
 
-                    (stmts, Successor::GotoSwitch(vec![(viper_guard, target_cfg_block)], failure_block))
-                } else {
-                    (stmts, Successor::Goto(target_cfg_block))
-                }
+                (stmts, Successor::GotoSwitch(vec![(viper_guard, target_cfg_block)], failure_block))
             }
 
             TerminatorKind::Resume |
