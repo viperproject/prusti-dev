@@ -33,11 +33,18 @@ cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit st
 numberinfo "Crates for which Prusti succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | wc -l
 
+numberinfo "Crates for which Prusti timed out"
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 124" | wc -l
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 124"
+
 numberinfo "Crates for which Prusti failed"
-cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | wc -l
-cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0"
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124" | wc -l
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124"
 
 title "=== Filtering ==="
+
+numberinfo "Approximate number of functions from all the crates"
+egrep '^[[:space:]]*fn[[:space:]]+(.*[^;]$|.*{)' -r "$CRATE_DOWNLOAD_DIR"/*/source/src/ | wc -l
 
 numberinfo "Number of functions from all the crates"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .node_path' | wc -l
@@ -54,7 +61,7 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 
 space
 
-numberinfo "Number of functions from all the crates, (excluded macro expansions)"
+numberinfo "Number of functions from all the crates, excluded macro expansions"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .node_path' | wc -l
 
 info "Functions from all the crates (excluded macro expansions): distribution by lines of code"
