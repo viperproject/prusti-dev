@@ -1533,8 +1533,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             type_spec.push(vir::Expr::MagicWand(box lhs, box rhs));
         }
 
+
+        let there_are_magic_wands = !contract.borrow_infos.is_empty();
+
         // Encode permissions for return type
-        if !diverging {
+        if !diverging && !there_are_magic_wands {
             type_spec.push(self.encode_local_variable_permission(contract.returned_value));
         }
 

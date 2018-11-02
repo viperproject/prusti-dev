@@ -22,10 +22,10 @@ fi
 title "=== Evaluation ==="
 
 inlineinfo "Start of evaluation"
-egrep -ho "\(2018-[^)]+\)" */*.log | sort | head -n 1
+egrep -ho "\(2018-[^)]+\)" "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | sort | head -n 1
 
 inlineinfo "End of evaluation"
-egrep -ho "\(2018-[^)]+\)" */*.log | sort | tail -n 1
+egrep -ho "\(2018-[^)]+\)" "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | sort | tail -n 1
 
 inlineinfo "Crates for which the evaluation is in progress"
 for f in "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log; do grep "Summary" $f >/dev/null || echo $f; done | wc -l
