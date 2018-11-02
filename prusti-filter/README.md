@@ -8,7 +8,7 @@ Note: this crate does not verify code.
 Usage
 -----
 
-(from the `prusti-dev` folder)
+(from the `prusti-filter` folder)
 
 1.  Download info about all crates:
 
@@ -198,39 +198,30 @@ Verify supported functions from top 500 crates
 
 (from the `prusti-dev` folder)
 
-1.  Download info about all crates:
+1.  Download most popular 500 crates:
 
     ```bash
-    mkdir -p crates/index
-    git clone https://github.com/rust-lang/crates.io-index.git crates/index
-    python3 script/download-crate-info.py
+    prusti-filter/script/download-top-500.sh ../crates
     ```
 
-2.  Download most popular 500 crates:
-
-    ```bash
-    python3 script/select-popular-crates.py ../../crates
-    bash crates/download.sh
-    ```
-
-3. Compile and run the evaluation on all the crates
+2. Compile and run the evaluation on all the crates
 
 	```bash
-	script/evaluate-all-crates.sh ../../crates
+	prusti-filter/script/evaluate-all-crates.sh ../crates
 	```
 
-4. A report will be automatically displayed at the end, and stored at `../../crates/evaluation-report-[date]-[time].log`
+3. A report will be automatically displayed at the end, and stored at `../crates/evaluation-report-[date]-[time].log`
 
 ### Optional steps:
 
 -  To compile and run the evaluation on a single crate
 
 	```bash
-	script/evaluate-crate.sh ../../crates/name_of_the_crate/
+	prusti-filter/script/evaluate-crate.sh ../crates/name_of_the_crate/
     ```
 
 -  To generate the evaluation report manually:
 
 	```bash
-	script/analyze-evaluation.sh ../../crates
+	prusti-filter/script/analyze-evaluation.sh ../crates
 	```
