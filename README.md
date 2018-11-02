@@ -41,7 +41,7 @@ Build for local development
 - Install Java 8 or a later version.
 
     ```bash
-    sudo apt-get install default-jre
+    sudo apt-get install default-jdk
     ```
 
 - Install Rustup
@@ -101,6 +101,11 @@ Build for local development
 
 - To see examples of programs with annotation, look into the `prusti/tests/verify/pass` folder.
 
+- Install commands for the evaluation:
+
+	```bash
+	sudo apt-get install jq
+	```
 
 Demo with `rust-playground`
 ---------------------------

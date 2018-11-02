@@ -8,6 +8,8 @@ Note: this crate does not verify code.
 Usage
 -----
 
+(from the `prusti-dev` folder)
+
 1.  Download info about all crates:
 
     ```bash
@@ -191,23 +193,44 @@ Examples that use borrows:
 +   four_bit_adder – deref implementation.
 +   strip_comments_from_a_string – reborrows a substring (uses closures)
 
-Verify supported functions
---------------------------
+Verify supported functions from top 500 crates
+----------------------------------------------
 
-To verify all the supported procedures in a given crate:
+(from the `prusti-dev` folder)
 
-```bash
-bash scripts/verify-supported.sh path/to/crates-download-dir/crate-name/source
-```
+1.  Download info about all crates:
 
-If you also want to store the log:
+    ```bash
+    mkdir -p crates/index
+    git clone https://github.com/rust-lang/crates.io-index.git crates/index
+    python3 script/download-crate-info.py
+    ```
 
-```bash
-bash scripts/evaluate-crate.sh path/to/crates-download-dir/123_crate-name
-```
+2.  Download most popular 500 crates:
 
-Alternativelly, to run the previous script on all the crates previously downloaded:
+    ```bash
+    python3 script/select-popular-crates.py ../../crates
+    bash crates/download.sh
+    ```
 
-```bash
-bash scripts/evaluate-all-crates.sh path/to/crates-download-dir
-```
+3. Compile and run the evaluation on all the crates
+
+	```bash
+	script/evaluate-all-crates.sh ../../crates
+	```
+
+4. A report will be automatically displayed at the end, and stored at `../../crates/evaluation-report-[date]-[time].log`
+
+### Optional steps:
+
+-  To compile and run the evaluation on a single crate
+
+	```bash
+	script/evaluate-crate.sh ../../crates/name_of_the_crate/
+    ```
+
+-  To generate the evaluation report manually:
+
+	```bash
+	script/analyze-evaluation.sh ../../crates
+	```
