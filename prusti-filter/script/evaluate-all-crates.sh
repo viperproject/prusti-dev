@@ -43,23 +43,10 @@ trap ctrl_c INT
 MAX_PARALLEL_EVALUATIONS="${MAX_PARALLEL_EVALUATIONS:-1}"
 info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS"
 
-ls -d "$CRATE_DOWNLOAD_DIR"/* | \
+ls -d "$CRATE_DOWNLOAD_DIR"/*/ | \
 	xargs -I CMD --max-procs="$MAX_PARALLEL_EVALUATIONS" --max-args=1 \
 	timeout -k 300 3600 "$DIR/evaluate-crate.sh" CMD
 
-# Print summary of summaries
-
-summaries="$(grep -h "Summary" "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log)"
-prusti_ok="$(echo "$summaries" | grep "exit status 0")"
-prusti_error="$(echo "$summaries" | grep -v "exit status 42" | grep -v "exit status 0")"
-compilation_error="$(echo "$summaries" | grep "exit status 42")"
-
-summaries_num="$(echo "$summaries" | wc -l)"
-prusti_ok_num="$(echo "$prusti_ok" | wc -l)"
-prusti_error_num="$(echo "$prusti_error" | wc -l)"
-compilation_error_num="$(echo "$compilation_error" | wc -l)"
-
-echo "Collected $summaries_num summaries"
-echo " - Prusti ok: $prusti_ok_num crates"
-echo " - Prusti error: $prusti_error_num crates"
-echo " - Invalid: $compilation_error_num crates"
+# Analyze evaluation
+evaluation_report_file="$CRATE_DOWNLOAD_DIR/evaluation-report-$(date '+%Y-%m-%d-%H%M%S').log"
+"$DIR/analyze-evaluation.sh" "$CRATE_DOWNLOAD_DIR" | tee "$evaluation_report_file"
