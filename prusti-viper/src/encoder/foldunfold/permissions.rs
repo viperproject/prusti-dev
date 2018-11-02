@@ -237,7 +237,10 @@ impl RequiredPermissionsGetter for vir::Expr {
                 Some(LabelledPerm::curr(Acc(place.clone(), epsilon))).into_iter().collect()
             },
 
-            vir::Expr::MagicWand(_, _) => unimplemented!("Fold/unfold does not support magic wands (yet)"),
+            vir::Expr::MagicWand(ref lhs, ref _rhs) => {
+                // TODO: this is incomplete!
+                lhs.get_required_permissions(predicates)
+            }
 
             vir::Expr::FuncApp(ref name, ref args, ..) => {
                 // If the argument is a place to a reference, ask for the full permission on it
@@ -379,7 +382,10 @@ impl vir::Expr {
                 Some(perm).into_iter().collect()
             }
 
-            vir::Expr::MagicWand(_, _) => unimplemented!(),
+            vir::Expr::MagicWand(ref lhs, ref _rhs) => {
+                // TODO: this is incomplete!
+                lhs.get_permissions(predicates)
+            }
         }
     }
 }
