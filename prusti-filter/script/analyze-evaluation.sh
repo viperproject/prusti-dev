@@ -50,7 +50,7 @@ numberinfo "Number of functions from all the crates"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .node_path' | wc -l
 
 info "Functions from all the crates: distribution by lines of code"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .lines_of_code' | sort | uniq -c | sort -k 2 -n | head -n 12
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .lines_of_code' | sort | uniq -c | sort -k 2 -n | head -n 15
 echo "..."
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .lines_of_code' | sort | uniq -c | sort -k 2 -n | tail -n 3
 
@@ -65,7 +65,7 @@ numberinfo "Number of functions from all the crates, excluded macro expansions"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .node_path' | wc -l
 
 info "Functions from all the crates (excluded macro expansions): distribution by lines of code"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .lines_of_code' | sort | uniq -c | sort -k 2 -n | head -n 12
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .lines_of_code' | sort | uniq -c | sort -k 2 -n | head -n 15
 echo "..."
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .lines_of_code' | sort | uniq -c | sort -k 2 -n | tail -n 3
 
