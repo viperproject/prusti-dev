@@ -25,6 +25,13 @@ if [[ ! -r "$CRATE_ROOT/Cargo.toml" ]]; then
 	exit 1
 fi
 
+
+EVALUATION_TIMEOUT="${EVALUATION_TIMEOUT:-900}"
+info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
+
+FORCE_PRUSTI_FILTER="${FORCE_PRUSTI_FILTER:-false}"
+info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
+
 info "Run standard compilation"
 
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
@@ -33,7 +40,7 @@ export POLONIUS_ALGORITHM="Naive"
 exit_status="0"
 cargo clean
 # Timeout in seconds
-timeout -k 10 900 cargo build || exit_status="$?" && true
+timeout -k 10 $EVALUATION_TIMEOUT cargo build || exit_status="$?" && true
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile. Skip verification."
 	exit 42
@@ -45,11 +52,16 @@ if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILT
 	rm -f "$CRATE_ROOT/prusti-filter-results.json"
 	export RUSTC="$DIR/rustc.sh"
 	export RUST_BACKTRACE=1
+	exit_status="0"
 	cargoclean
 	# Timeout in seconds
-	timeout -k 10 900 cargo build -j 1
+	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?" && true
 	unset RUSTC
 	unset RUST_BACKTRACE
+	if [[ "$exit_status" != "0" ]]; then
+		info "The automatic filtering of verifiable functions failed."
+		exit 43
+	fi
 fi
 
 supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json")"
@@ -79,4 +91,4 @@ export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
 # Timeout in seconds
-timeout -k 10 900 cargo build -j 1
+timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1

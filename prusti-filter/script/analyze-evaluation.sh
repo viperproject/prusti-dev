@@ -37,36 +37,43 @@ inlineinfo "Crates for which standard compilation succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | wc -l
 
 inlineinfo "Crates for which standard compilation succeeded, but the filtering failed"
-cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep "(of  in the whitelist)" | wc -l
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 43" | wc -l
 
 inlineinfo "Crates for which standard compilation and the filtering succeeded"
-cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "(of  in the whitelist)" | wc -l
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 43" | wc -l
 
 inlineinfo "Verifiable items from crates for which standard compilation and the filtering succeeded"
-echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 43" | sed 's/^.*of \([0-9]*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
 inlineinfo "Crates for which Prusti succeeded"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | wc -l
 
 inlineinfo "Verifiable items from crates for which Prusti succeeded"
-echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.*of \([0-9]*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
 inlineinfo "Verified items from crates for which Prusti succeeded"
-echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.* \(.*\) verified items.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 0" | sed 's/^.* \([0-9]*\) verified items.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
 inlineinfo "Crates for which Prusti timed out"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124" | wc -l
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124"
 
 inlineinfo "Verifiable items from crates for which Prusti timed out"
-echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124" | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124" | sed 's/^.*of \([0-9]*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
 
 inlineinfo "Crates for which Prusti failed"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124" | wc -l
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124"
 
 inlineinfo "Verifiable items from crates for which Prusti failed"
-echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0"  | sed 's/^.*of \(.*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+echo "$(cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0"  | sed 's/^.*of \([0-9]*\) in the whitelist.*$/\1/;s/^$/0/' | tr "\n" '+')" 0 | bc
+
+#title "=== Legend of exit status ==="
+#echo "   42: Standard compilation failed or timed out"
+#echo "   43: Automatic filtering failed or timed out"
+#echo "    0: Prusti succeeded"
+#echo "  124: Prusti timed out"
+#echo " else: Prusti failed (bug)"
 
 title "=== Filtering ==="
 
