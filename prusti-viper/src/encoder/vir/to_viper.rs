@@ -112,9 +112,8 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             ),
             &Stmt::Obtain(ref expr) => {
-                // This could be encoded as a skip statement
-                let fake_position = ast.identifier_position(0, 0, "obtain");
-                ast.assert(expr.to_viper(ast), fake_position)
+                // Skip
+                ast.comment(&self.to_string())
             }
             &Stmt::WeakObtain(ref expr) => {
                 // Skip

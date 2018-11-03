@@ -260,8 +260,7 @@ impl vir::Stmt {
                 state.remove_dropped();
             }
 
-            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref then_stmts) => {
-                debug_assert_eq!(package_stmts, then_stmts);
+            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref _then_stmts) => {
                 // TODO: we need to join this resulting state with the state that did not execute
                 // the body of the package
                 for stmt in package_stmts {

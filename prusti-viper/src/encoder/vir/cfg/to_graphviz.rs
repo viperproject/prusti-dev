@@ -71,13 +71,18 @@ impl CfgMethod {
             }
             first_row = false;
             {
-                let full_stmt = stmt.to_string();
-                let splitted_stmt = sub_strings(&full_stmt, 120, 116);
-                let stmt_html = splitted_stmt
-                    .into_iter()
-                    .map(|x| escape_html(x))
-                    .collect::<Vec<_>>()
-                    .join(" \\ <br/>    ");
+                let stmt_string = stmt.to_string();
+                let mut splitted_stmt_lines = vec![];
+                for stmt_line in stmt_string.lines() {
+                    splitted_stmt_lines.push(
+                        sub_strings(stmt_line, 120, 116)
+                            .into_iter()
+                            .map(|x| escape_html(x))
+                            .collect::<Vec<_>>()
+                            .join(" \\ <br/>    ")
+                    );
+                }
+                let stmt_html = splitted_stmt_lines.join("<br/>");
                 if stmt.is_comment() {
                     lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
                 } else {

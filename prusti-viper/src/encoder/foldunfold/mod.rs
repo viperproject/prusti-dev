@@ -253,37 +253,73 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
 
             vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref old_package_stmts, ref old_then_stmts) => {
-                debug_assert!(old_package_stmts.is_empty());
                 debug_assert!(old_then_stmts.is_empty());
                 let mut package_bctxt = bctxt.clone();
                 let mut package_stmts = vec![];
-                let perms: Vec<_> = rhs
-                    .get_required_permissions(package_bctxt.predicates())
-                    .into_iter()
-                    .filter(|p| p.is_curr())
-                    .collect();
-                if !perms.is_empty() {
-                    /*
-                    if self.debug_foldunfold {
-                        package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
-                        package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
+                for stmt in old_package_stmts {
+                    let perms: Vec<_> = stmt
+                        .get_required_permissions(package_bctxt.predicates())
+                        .into_iter()
+                        .filter(|p| p.is_curr())
+                        .collect();
+
+                    if !perms.is_empty() {
+                        /*
+                        if self.debug_foldunfold {
+                            package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
+                            package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
+                        }
+                        */
+
+                        package_stmts.extend(
+                            package_bctxt
+                                .obtain_permissions(perms)
+                                .iter()
+                                .map(|a| a.to_stmt())
+                        );
+
+                        /*
+                        if self.check_foldunfold_state && !is_last_before_return {
+                            package_stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+                            package_stmts.push(vir::Stmt::Assert(package_bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check fold/unfold state".to_string())));
+                        }
+                        */
                     }
-                    */
+                    package_bctxt.apply_stmt(stmt);
+                    package_stmts.push(stmt.clone());
+                }
+                {
+                    let perms: Vec<_> = rhs
+                        .get_required_permissions(package_bctxt.predicates())
+                        .into_iter()
+                        .filter(|p| p.is_curr())
+                        .collect();
 
-                    package_stmts.extend(
-                        package_bctxt
-                            .obtain_permissions(perms)
-                            .iter()
-                            .map(|a| a.to_stmt())
-                    );
+                    if !perms.is_empty() {
+                        /*
+                        if self.debug_foldunfold {
+                            package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
+                            package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
+                        }
+                        */
 
-                    if self.check_foldunfold_state && !is_last_before_return {
-                        package_stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                        package_stmts.push(vir::Stmt::Assert(package_bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check fold/unfold state".to_string())));
+                        package_stmts.extend(
+                            package_bctxt
+                                .obtain_permissions(perms)
+                                .iter()
+                                .map(|a| a.to_stmt())
+                        );
+
+                        /*
+                        if self.check_foldunfold_state && !is_last_before_return {
+                            package_stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+                            package_stmts.push(vir::Stmt::Assert(package_bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check fold/unfold state".to_string())));
+                        }
+                        */
                     }
                 }
                 vec![
-                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts.clone(), package_stmts)
+                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts, vec![])
                 ]
             }
 

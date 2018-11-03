@@ -48,6 +48,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     auxiliar_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     check_panics: bool,
+    check_fold_unfold_state: bool,
     polonius_info: PoloniusInfo<'p, 'tcx>,
     label_after_location: HashMap<mir::Location, String>,
     /// Contains the boolean local variables that became `true` the first time the block is executed
@@ -86,6 +87,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             auxiliar_local_vars: HashMap::new(),
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             check_panics: config::check_panics(),
+            check_fold_unfold_state: config::check_foldunfold_state(),
             polonius_info: PoloniusInfo::new(tcx, def_id, mir),
             label_after_location: HashMap::new(),
             cfg_block_has_been_executed: HashMap::new(),
@@ -254,6 +256,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     location,
                     cfg_edges.get(&bbi).expect(&format!("CFG block {:?} has no entry in 'cfg_edges'", bbi)),
                     return_cfg_block,
+                    &mut procedure_contract
                 );
                 for stmt in stmts.into_iter() {
                     self.cfg_method.add_stmt(cfg_block, stmt);
@@ -662,14 +665,54 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loan_in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
 
         stmts.push(
-            vir::Stmt::TransferPerm(lhs.clone(), rhs)
+            vir::Stmt::TransferPerm(lhs.clone(), rhs.clone())
         );
+
+        if self.check_fold_unfold_state {
+            let pos = self.encoder.error_manager().register(
+                self.mir.source_info(location).span,
+                ErrorCtxt::Unexpected
+            );
+            stmts.push(
+                vir::Stmt::Assert(
+                    vir::Expr::eq_cmp(
+                        lhs.clone().into(),
+                        rhs.into()
+                    ),
+                    pos
+                )
+            );
+        }
 
         // We reallocate when we expire because we want to have disjointed
         // permissions for the lhs and rhs when a borrow expires inside a loop
         if lhs.is_curr() && loan_in_loop {
             stmts.extend(
                 self.encode_havoc_and_allocation(lhs.get_place())
+            );
+        }
+
+        stmts
+    }
+
+    fn encode_obtain(&mut self, expr: vir::Expr) -> Vec<vir::Stmt> {
+        let mut stmts = vec![];
+
+        stmts.push(
+            vir::Stmt::Obtain(expr.clone())
+        );
+
+        if self.check_fold_unfold_state {
+            let pos = self.encoder.error_manager().register(
+                // TODO: use a better span
+                self.mir.span,
+                ErrorCtxt::Unexpected
+            );
+            stmts.push(
+                vir::Stmt::Assert(
+                    expr,
+                    pos
+                )
             );
         }
 
@@ -908,14 +951,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location)
     }
 
-    fn encode_terminator(&mut self, term: &mir::Terminator<'tcx>, location: mir::Location,
+    fn encode_terminator(&mut self,
+                         term: &mir::Terminator<'tcx>,
+                         location: mir::Location,
                          cfg_blocks: &HashMap<BasicBlockIndex, CfgBlockIndex>,
-                         return_cfg_block: CfgBlockIndex) -> (Vec<vir::Stmt>, Successor) {
+                         return_cfg_block: CfgBlockIndex,
+                         contract: &ProcedureContract<'tcx>) -> (Vec<vir::Stmt>, Successor) {
         debug!("Encode terminator '{:?}', span: {:?}", term.kind, term.source_info.span);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         match term.kind {
             TerminatorKind::Return => {
+                // Package magic wands, if there is any
+                stmts.extend(
+                    self.encode_package_end_of_method(contract, PRECONDITION_LABEL, location)
+                );
+
                 (stmts, Successor::Goto(return_cfg_block))
             }
 
@@ -1564,8 +1615,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode the package statement of magic wands at the end of the method
     // TODO: do we really need `pre_label`?
-    fn encode_package_end_of_method(&self, contract: &ProcedureContract<'tcx>,
-                                    pre_label: &str) -> Vec<vir::Stmt> {
+    fn encode_package_end_of_method(&mut self, contract: &ProcedureContract<'tcx>,
+                                    pre_label: &str, location: mir::Location) -> Vec<vir::Stmt> {
         let mut stmts = vec![];
 
         // Package magic wand(s)
@@ -1581,13 +1632,40 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     )
                 })
                 .conjoin();
+
             let rhs = borrow_info.blocked_paths
                 .iter()
                 .map(|place| self.encode_pred_permission(place, Some(pre_label)))
                 .conjoin();
 
+            let blocker = mir::RETURN_PLACE;
+            // TODO: Check if it really is always start and not the mid point.
+            let start_point = self.polonius_info.get_point(location, facts::PointType::Start);
+
+            let mut package_stmts = if let Some(region) = self.polonius_info.variable_regions.get(&blocker) {
+                let (all_loans, zombie_loans) = self.polonius_info.get_all_loans_kept_alive_by(
+                    start_point, *region);
+                self.encode_expiration_of_loans(all_loans, &zombie_loans, location)
+            } else {
+                unreachable!(); // Really?
+            };
+
+            // Make the deref of reference arguments to be folded (see issue #47)
+            package_stmts.push(vir::Stmt::comment("Fold predicates for &mut args"));
+            for arg_index in self.mir.args_iter() {
+                let arg_ty = self.mir.local_decls[arg_index].ty;
+                if self.mir_encoder.is_reference(arg_ty) {
+                    let encoded_arg = self.mir_encoder.encode_local(arg_index);
+                    let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
+                    let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
+                    package_stmts.extend(
+                        self.encode_obtain(deref_pred)
+                    );
+                }
+            }
+
             // The fold-unfold algorithm will fill the body of the package statement
-            stmts.push(vir::Stmt::PackageMagicWand(lhs, rhs, vec![], vec![]));
+            stmts.push(vir::Stmt::PackageMagicWand(lhs, rhs, package_stmts, vec![]));
         }
 
         stmts
@@ -1597,12 +1675,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
-
-        // Package magic wands
-        let mut package_stmts = self.encode_package_end_of_method(contract, PRECONDITION_LABEL);
-        for package_stmt in package_stmts.drain(..) {
-            self.cfg_method.add_stmt(return_cfg_block, package_stmt);
-        }
 
         let (type_spec, func_spec) = self.encode_postcondition_expr(contract, PRECONDITION_LABEL, false);
 
@@ -1625,7 +1697,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let encoded_arg = self.mir_encoder.encode_local(arg_index);
                     let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
                     let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
-                    self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Obtain(deref_pred));
+                    for stmt in self.encode_obtain(deref_pred).drain(..) {
+                        self.cfg_method.add_stmt(return_cfg_block, stmt);
+                    }
                 }
             }
         }
@@ -1981,7 +2055,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             encoded_rhs.clone(),
                             vir::Frac::new(1, 1000)
                         ).unwrap();
-                        stmts.push(vir::Stmt::Obtain(rhs_pred));
+                        stmts.extend(self.encode_obtain(rhs_pred));
                     }
                 }
                 // Require the deref of reference arguments to be folded (see issue #47)
@@ -1996,7 +2070,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 deref_place,
                                 vir::Frac::new(1, 1000)
                             ).unwrap();
-                            stmts.push(vir::Stmt::Obtain(deref_pred));
+                            stmts.extend(self.encode_obtain(deref_pred));
                         }
                     }
                 }

@@ -636,7 +636,9 @@ impl fmt::Display for Stmt {
             Stmt::StopExpiringLoans => write!(f, "stop expiring borrows"),
 
             Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref then_stmts) => {
-                write!(f, "package {} --* {} {{", lhs, rhs)?;
+                writeln!(f, "package {}", lhs)?;
+                writeln!(f, "    --* {}", rhs)?;
+                write!(f, "{{")?;
                 if !package_stmts.is_empty() {
                     write!(f, "\n")?;
                 }

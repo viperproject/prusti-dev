@@ -331,7 +331,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     /// Position at which a specific loan was created.
     pub(crate) loan_position: HashMap<facts::Loan, mir::Location>,
     pub(crate) call_magic_wands: HashMap<facts::Loan, mir::Local>,
-    pub(crate) variable_regions: HashMap<mir::Local, facts::Region>,
+    pub variable_regions: HashMap<mir::Local, facts::Region>,
     pub(crate) additional_facts: AdditionalFacts,
     /// Loop head → Vector of magic wands in that loop.
     pub(crate) loop_magic_wands: HashMap<mir::BasicBlock, Vec<LoopMagicWand>>,
@@ -562,7 +562,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         trace!("[exit] compute_loop_magic_wands");
     }
 
-    fn get_point(&self, location: mir::Location, point_type: facts::PointType) -> facts::PointIndex {
+    pub fn get_point(&self, location: mir::Location, point_type: facts::PointType) -> facts::PointIndex {
         let point = facts::Point {
             location: location,
             typ: point_type,
