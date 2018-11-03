@@ -38,11 +38,15 @@ info "Run standard compilation"
 export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
 exit_status="0"
-cargo clean
-# Timeout in seconds
-timeout -k 10 $EVALUATION_TIMEOUT cargo build || exit_status="$?" && true
+cargo clean || exit_status="$?"
 if [[ "$exit_status" != "0" ]]; then
-	info "The crate does not compile. Skip verification."
+	info "The crate does not compile (cargo clean). Skip verification."
+	exit 42
+fi
+# Timeout in seconds
+timeout -k 10 $EVALUATION_TIMEOUT cargo build || exit_status="$?"
+if [[ "$exit_status" != "0" ]]; then
+	info "The crate does not compile (cargo build). Skip verification."
 	exit 42
 fi
 

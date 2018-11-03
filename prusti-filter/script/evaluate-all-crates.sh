@@ -45,5 +45,6 @@ ls -d "$CRATE_DOWNLOAD_DIR"/*/ | \
 	timeout -k 300 3600 "$DIR/evaluate-crate.sh" CMD
 
 # Analyze evaluation
+info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS" | tee "$evaluation_report_file"
 evaluation_report_file="$CRATE_DOWNLOAD_DIR/evaluation-report-$(date '+%Y-%m-%d-%H%M%S').log"
-"$DIR/analyze-evaluation.sh" "$CRATE_DOWNLOAD_DIR" | tee "$evaluation_report_file"
+"$DIR/analyze-evaluation.sh" "$CRATE_DOWNLOAD_DIR" | tee -a "$evaluation_report_file"
