@@ -1487,18 +1487,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode permissions that are implicitly carried by the given place.
     /// `state_label` – the label of the state in which the place should
     /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_place_permission(&self, place: &Place<'tcx>, state_label: Option<&str>, ) -> vir::Expr {
-        let (mut encoded_place, place_ty, _) = self.encode_generic_place(place);
-        let predicate_name = self.encoder.encode_type_predicate_use(place_ty);
-        vir::Expr::PredicateAccessPredicate(
-            predicate_name,
-            vec![
-                if let Some(label) = state_label {
-                    self.mir_encoder.encode_old_place(encoded_place, label)
-                } else {
-                    encoded_place.into()
-                }
-            ],
+    fn encode_pred_permission(&self, place: &Place<'tcx>, state_label: Option<&str>, ) -> vir::Expr {
+        let (mut encoded_place, _, _) = self.encode_generic_place(place);
+        vir::Expr::pred_permission(
+            vir::LabelledPlace::new(encoded_place, state_label.map(|x| x.to_string())),
+            vir::Frac::one(),
+        ).unwrap()
+    }
+
+    /// Encode permissions that are implicitly carried by the given place.
+    /// `state_label` – the label of the state in which the place should
+    /// be evaluated (the place expression is wrapped in the labelled old).
+    fn encode_acc_permission(&self, place: &Place<'tcx>) -> vir::Expr {
+        let (encoded_place, _, _) = self.encode_generic_place(place);
+        vir::Expr::acc_permission(
+            encoded_place,
             vir::Frac::one(),
         )
     }
@@ -1513,7 +1516,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode the permissions got back for the arguments of type reference
         for place in contract.returned_refs.iter() {
             debug!("Put permission {:?} in postcondition", place);
-            type_spec.push(self.encode_place_permission(place, Some(pre_label)));
+            type_spec.push(self.encode_pred_permission(place, Some(pre_label)));
         }
 
         // Encode magic wands
@@ -1522,13 +1525,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let lhs = borrow_info.blocking_paths
                 .iter()
                 .map(|place| {
-                    debug!("{:?}", place);
-                    self.encode_place_permission(place, None)
+                    debug!("place {:?}", place);
+                    vir::Expr::and(
+                        self.encode_acc_permission(place),
+                        self.encode_pred_permission(place, None)
+                    )
                 })
                 .conjoin();
             let rhs = borrow_info.blocked_paths
                 .iter()
-                .map(|place| self.encode_place_permission(place, Some(pre_label)))
+                .map(|place| {
+                    self.encode_pred_permission(place, Some(pre_label))
+                })
                 .conjoin();
             type_spec.push(vir::Expr::MagicWand(box lhs, box rhs));
         }
@@ -1566,13 +1574,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let lhs = borrow_info.blocking_paths
                 .iter()
                 .map(|place| {
-                    debug!("{:?}", place);
-                    self.encode_place_permission(place, None)
+                    debug!("place {:?}", place);
+                    vir::Expr::and(
+                        self.encode_acc_permission(place),
+                        self.encode_pred_permission(place, None)
+                    )
                 })
                 .conjoin();
             let rhs = borrow_info.blocked_paths
                 .iter()
-                .map(|place| self.encode_place_permission(place, Some(pre_label)))
+                .map(|place| self.encode_pred_permission(place, Some(pre_label)))
                 .conjoin();
 
             // The fold-unfold algorithm will fill the body of the package statement

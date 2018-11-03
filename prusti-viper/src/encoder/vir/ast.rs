@@ -746,7 +746,11 @@ pub trait StmtFolder {
     }
 
     fn fold_package_magic_wand(&mut self, l: Expr, r: Expr, s: Vec<Stmt>) -> Stmt {
-        Stmt::PackageMagicWand(l, r, s)
+        Stmt::PackageMagicWand(
+            self.fold_expr(l),
+            self.fold_expr(r),
+            s.into_iter().map(|x| self.fold(x)).collect()
+        )
     }
 }
 
