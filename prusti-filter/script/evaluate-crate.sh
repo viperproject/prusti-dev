@@ -39,7 +39,7 @@ SECONDS=0
 exit_status="$?"
 end_date="$(date '+%Y-%m-%d %H:%M:%S')"
 duration="$SECONDS"
-whitelist_items="$(grep '"' "$crate_source_dir/Prusti.toml" | wc -l)"
+whitelist_items="$(grep '"' "$crate_source_dir/Prusti.toml" | wc -l || echo "0")"
 verified_items="$(egrep 'Received [0-9]+ items to be verified' "$log_file" | tail -n 1 | cut -d ' ' -f 6 | sed 's/^$/0/')"
 
 (
