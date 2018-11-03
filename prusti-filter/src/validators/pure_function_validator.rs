@@ -257,9 +257,14 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
     fn check_ty_adt(&mut self, adt_def: &ty::AdtDef, substs: &Substs<'tcx>) {
         requires!(self, !adt_def.is_union(), "union types are not supported");
 
-        for field_def in adt_def.all_fields() {
-            let field_ty = field_def.ty(self.tcx, substs);
-            self.check_inner_ty(field_ty)
+        if adt_def.is_box() {
+            let boxed_ty = substs.type_at(0);
+            self.check_inner_ty(boxed_ty);
+        } else {
+            for field_def in adt_def.all_fields() {
+                let field_ty = field_def.ty(self.tcx, substs);
+                self.check_inner_ty(field_ty);
+            }
         }
     }
 
