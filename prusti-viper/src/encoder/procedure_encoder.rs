@@ -1587,7 +1587,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .conjoin();
 
             // The fold-unfold algorithm will fill the body of the package statement
-            stmts.push(vir::Stmt::PackageMagicWand(lhs, rhs, vec![]));
+            stmts.push(vir::Stmt::PackageMagicWand(lhs, rhs, vec![], vec![]));
         }
 
         stmts

@@ -153,16 +153,26 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::PackageMagicWand(ref lhs, ref rhs, ref stmts) => {
-                ast.package(
-                    ast.magic_wand(
-                        lhs.to_viper(ast),
-                        rhs.to_viper(ast),
-                    ),
-                    ast.seqn(
-                        &stmts.to_viper(ast),
-                        &[],
+            &Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref then_stmts) => {
+                let mut encoded_stmts = vec![];
+                encoded_stmts.push(
+                    ast.package(
+                        ast.magic_wand(
+                            lhs.to_viper(ast),
+                            rhs.to_viper(ast),
+                        ),
+                        ast.seqn(
+                            &package_stmts.to_viper(ast),
+                            &[],
+                        )
                     )
+                );
+                encoded_stmts.extend(
+                    then_stmts.to_viper(ast)
+                );
+                ast.seqn(
+                    &encoded_stmts,
+                    &[],
                 )
             }
         }

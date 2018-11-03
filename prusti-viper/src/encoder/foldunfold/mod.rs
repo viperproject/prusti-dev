@@ -208,52 +208,102 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
         }
 
-        let new_stmt= if let vir::Stmt::ExpireBorrowsIf(ref guard, ref then_branch, ref else_branch) = stmt {
-            // 3.a. Do the special join for restoring permissions of expiring loans
-            let mut then_bctxt = bctxt.clone();
-            let mut else_bctxt = bctxt.clone();
-            let mut new_then_stmts = vec![];
-            let mut new_else_stmts = vec![];
-            for then_stmt in then_branch.iter() {
+        // 3. Replace special statements
+        let new_stmts= match stmt {
+            vir::Stmt::ExpireBorrowsIf(ref guard, ref then_branch, ref else_branch) => {
+                // Do the special join for restoring permissions of expiring loans
+                let mut then_bctxt = bctxt.clone();
+                let mut else_bctxt = bctxt.clone();
+                let mut new_then_stmts = vec![];
+                let mut new_else_stmts = vec![];
+                for then_stmt in then_branch.iter() {
+                    new_then_stmts.extend(
+                        self.replace_stmt(then_stmt, false, &mut then_bctxt)
+                    );
+                }
+                for else_stmt in else_branch.iter() {
+                    new_else_stmts.extend(
+                        self.replace_stmt(else_stmt, false, &mut else_bctxt)
+                    );
+                }
+                let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
+                *bctxt = then_bctxt;
                 new_then_stmts.extend(
-                    self.replace_stmt(then_stmt, false, &mut then_bctxt)
+                    then_actions.iter().map(|a| a.to_stmt())
                 );
-            }
-            for else_stmt in else_branch.iter() {
                 new_else_stmts.extend(
-                    self.replace_stmt(else_stmt, false, &mut else_bctxt)
+                    else_actions.iter().map(|a| a.to_stmt())
                 );
-            }
-            let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
-            *bctxt = then_bctxt;
-            new_then_stmts.extend(
-                then_actions.iter().map(|a| a.to_stmt())
-            );
-            new_else_stmts.extend(
-                else_actions.iter().map(|a| a.to_stmt())
-            );
-            // Restore dropped permissions
-            for action in then_actions.iter() {
-                if let Action::Drop(ref perm) = action {
-                    bctxt.mut_state().insert_perm(perm.clone());
-                    bctxt.mut_state().insert_dropped(perm.clone());
+                // Restore dropped permissions
+                for action in then_actions.iter() {
+                    if let Action::Drop(ref perm) = action {
+                        bctxt.mut_state().insert_perm(perm.clone());
+                        bctxt.mut_state().insert_dropped(perm.clone());
+                    }
                 }
-            }
-            for action in else_actions.iter() {
-                if let Action::Drop(ref perm) = action {
-                    bctxt.mut_state().insert_perm(perm.clone());
-                    bctxt.mut_state().insert_dropped(perm.clone());
+                for action in else_actions.iter() {
+                    if let Action::Drop(ref perm) = action {
+                        bctxt.mut_state().insert_perm(perm.clone());
+                        bctxt.mut_state().insert_dropped(perm.clone());
+                    }
                 }
+                vec![
+                    vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
+                ]
             }
-            vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
-        } else {
-            // 3.b. Add "folding/unfolding in" expressions in statement. This handles *old* requirements.
-            stmt.clone().map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
+
+            vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref old_package_stmts, ref old_then_stmts) => {
+                debug_assert!(old_package_stmts.is_empty());
+                debug_assert!(old_then_stmts.is_empty());
+                let mut package_bctxt = bctxt.clone();
+                let mut package_stmts = vec![];
+                let perms: Vec<_> = rhs
+                    .get_required_permissions(package_bctxt.predicates())
+                    .into_iter()
+                    .filter(|p| p.is_curr())
+                    .collect();
+                if !perms.is_empty() {
+                    /*
+                    if self.debug_foldunfold {
+                        package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
+                        package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
+                    }
+                    */
+
+                    package_stmts.extend(
+                        package_bctxt
+                            .obtain_permissions(perms)
+                            .iter()
+                            .map(|a| a.to_stmt())
+                    );
+
+                    if self.check_foldunfold_state && !is_last_before_return {
+                        package_stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+                        package_stmts.push(vir::Stmt::Assert(package_bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check fold/unfold state".to_string())));
+                    }
+                }
+                vec![
+                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts.clone(), package_stmts)
+                ]
+            }
+
+            stmt => vec![ stmt.clone() ]
         };
 
-        // 4. Apply effect of statement on state
-        bctxt.apply_stmt(&new_stmt);
-        stmts.push(new_stmt);
+        // 4. Add "folding/unfolding in" expressions in statement. This handles *old* requirements.
+        let old_stmts = new_stmts;
+        let mut new_stmts = vec![];
+        for stmt in old_stmts.into_iter() {
+            new_stmts.push(
+                stmt.map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
+            );
+        }
+
+        // 5. Apply effect of statement on state
+        for new_stmt in new_stmts {
+            bctxt.apply_stmt(&new_stmt);
+            stmts.push(new_stmt);
+        }
 
         stmts
     }

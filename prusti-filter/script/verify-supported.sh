@@ -38,6 +38,11 @@ info "Run standard compilation"
 export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
 exit_status="0"
+cargo metadata --format-version 1 > /dev/null || exit_status="$?"
+if [[ "$exit_status" != "0" ]]; then
+	info "The crate does not compile (cargo metadata). Skip verification."
+	exit 42
+fi
 cargo clean || exit_status="$?"
 if [[ "$exit_status" != "0" ]]; then
 	info "The crate does not compile (cargo clean). Skip verification."

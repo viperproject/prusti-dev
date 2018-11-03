@@ -125,7 +125,8 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 permissions
             }
 
-            &vir::Stmt::PackageMagicWand(ref lhs, ref _rhs, ref _stmts) => {
+            &vir::Stmt::PackageMagicWand(ref lhs, ref _rhs, ref _package_stmts, ref _then_stmts) => {
+                // We model the magic wand as "assert lhs; stmts; exhale rhs"
                 lhs.get_required_permissions(predicates)
             }
         }
@@ -152,7 +153,7 @@ impl vir::Stmt {
             &vir::Stmt::TransferPerm(_, _) |
             &vir::Stmt::ExpireBorrowsIf(_, _, _) |
             &vir::Stmt::StopExpiringLoans |
-            &vir::Stmt::PackageMagicWand(_, _, _) => HashSet::new(),
+            &vir::Stmt::PackageMagicWand(_, _, _, _) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }
@@ -238,8 +239,8 @@ impl RequiredPermissionsGetter for vir::Expr {
             },
 
             vir::Expr::MagicWand(ref lhs, ref _rhs) => {
-                // TODO: this is incomplete!
-                lhs.get_required_permissions(predicates)
+                // Not exactly Viper's semantics
+                HashSet::new()
             }
 
             vir::Expr::FuncApp(ref name, ref args, ..) => {
@@ -383,8 +384,8 @@ impl vir::Expr {
             }
 
             vir::Expr::MagicWand(ref lhs, ref _rhs) => {
-                // TODO: this is incomplete!
-                lhs.get_permissions(predicates)
+                // We don't track magic wands precisely
+                HashSet::new()
             }
         }
     }

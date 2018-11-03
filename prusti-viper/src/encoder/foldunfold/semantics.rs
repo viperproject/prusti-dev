@@ -8,6 +8,13 @@ use encoder::vir;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
+    state.insert_all_perms(
+        expr.get_permissions(predicates).into_iter()
+            .filter(|p| !(p.is_base() && p.is_acc()))
+    );
+}
+
 fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
     state.remove_all_perms(
         expr.get_permissions(predicates).iter()
@@ -31,10 +38,7 @@ impl vir::Stmt {
             &vir::Stmt::WeakObtain(_) => {}
 
             &vir::Stmt::Inhale(ref expr) => {
-                state.insert_all_perms(
-                    expr.get_permissions(predicates).into_iter()
-                        .filter(|p| !(p.is_base() && p.is_acc()))
-                );
+                inhale_expr(expr, state, predicates);
             }
 
             &vir::Stmt::Exhale(ref expr, _) => {
@@ -256,8 +260,13 @@ impl vir::Stmt {
                 state.remove_dropped();
             }
 
-            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref stmts) => {
-                // TODO: this is incomplete!
+            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref then_stmts) => {
+                debug_assert_eq!(package_stmts, then_stmts);
+                // TODO: we need to join this resulting state with the state that did not execute
+                // the body of the package
+                for stmt in package_stmts {
+                    stmt.apply_on_state(state, predicates);
+                }
                 exhale_expr(rhs, state, predicates);
             }
         }
