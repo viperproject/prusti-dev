@@ -29,7 +29,7 @@ egrep -ho "\(2018-[^)]+\)" "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | sort | t
 
 inlineinfo "Crates for which the evaluation is in progress"
 for f in "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log; do grep "Summary" $f >/dev/null || echo $f; done | wc -l
-for f in "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log; do grep "Summary" $f >/dev/null || echo " - $f"; done
+for f in "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log; do grep "Summary" $f >/dev/null || echo " - $(basename "$(dirname "$f")")"; done
 
 inlineinfo "Crates for which standard compilation failed or timed out"
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 42" | wc -l
