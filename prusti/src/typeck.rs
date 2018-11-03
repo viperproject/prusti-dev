@@ -14,8 +14,8 @@ use rustc_driver::driver;
 use syntax::ast;
 use std::collections::HashMap;
 use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars,
-                     Specification, SpecificationSet, Trigger, TypedAssertion, TypedSpecification,
-                     TypedSpecificationMap, TypedTriggerSet, UntypedAssertion,
+                     PledgeReference, Specification, SpecificationSet, Trigger, TypedAssertion,
+                     TypedSpecification, TypedSpecificationMap, TypedTriggerSet, UntypedAssertion,
                      UntypedSpecification, UntypedSpecificationMap, UntypedTriggerSet};
 use syntax_pos::Span;
 use prusti_interface::utils::get_attr_value;
@@ -94,6 +94,13 @@ fn type_assertion(
                         vars: typed_forallargs[&vars.id].clone(),
                     },
                     type_trigger_set(trigger_set, typed_expressions),
+                    type_assertion(assertion, typed_expressions, typed_forallargs),
+                ),
+                AssertionKind::Pledge(reference, assertion) => AssertionKind::Pledge(
+                    PledgeReference {
+                        id: reference.id,
+                        reference: typed_expressions[&reference.id].clone(),
+                    },
                     type_assertion(assertion, typed_expressions, typed_forallargs),
                 ),
             }
