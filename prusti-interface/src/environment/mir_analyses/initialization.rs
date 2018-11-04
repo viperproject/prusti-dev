@@ -220,8 +220,8 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
     fn merge_effects(&mut self, bb: mir::BasicBlock) {
         trace!("[enter] merge_effects bb={:?}", bb);
         let place_set = {
-            let mut sets = self.mir.predecessors_for(bb);
-            let mut sets = sets.iter();
+            let sets = self.mir.predecessors_for(bb);
+            let sets = sets.iter();
             let mut sets = sets.map(|&predecessor| self.get_place_set_after_block(predecessor));
             if let Some(first) = sets.next() {
                 match self.join_operation {

@@ -290,7 +290,7 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
 
         // Visit the following blocks
         for succ_bb in terminator.successors() {
-            if (!incoming_states.contains_key(succ_bb)) {
+            if !incoming_states.contains_key(succ_bb) {
                 trace!(
                     "Terminator of block {:?} did not initialize initial state of block {:?}",
                     curr_bb,

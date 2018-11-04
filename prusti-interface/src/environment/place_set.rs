@@ -7,7 +7,6 @@ use rustc::mir;
 use std::collections::HashSet;
 use std::mem;
 use rustc::ty::TyCtxt;
-use rustc_data_structures::indexed_vec::Idx;
 
 /// A set of MIR places.
 ///
@@ -148,8 +147,8 @@ impl<'tcx> PlaceSet<'tcx> {
     }
     /// This function fixes the invariant.
     pub fn deduplicate(&mut self) {
-        let mut old_places = mem::replace(&mut self.places, HashSet::new());
-        let mut places: Vec<_> = old_places.into_iter().collect();
+        let old_places = mem::replace(&mut self.places, HashSet::new());
+        let places: Vec<_> = old_places.into_iter().collect();
         let mut to_remove = HashSet::new();
         for (i, place) in places.iter().enumerate() {
             for (j, other) in places.iter().enumerate() {

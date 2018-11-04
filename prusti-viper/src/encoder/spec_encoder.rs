@@ -511,7 +511,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             // Outer is the new curr
             curr_namespace = outer_namespace;
-            curr_node_id = outer_node_id;
             curr_def_id = outer_def_id;
         }
 

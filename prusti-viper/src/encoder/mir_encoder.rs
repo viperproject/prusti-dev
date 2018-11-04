@@ -318,7 +318,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let val_place = self.eval_place(&place);
                 val_place.get_type().clone()
             }
-            x => unimplemented!("{:?}", x)
         }
     }
 

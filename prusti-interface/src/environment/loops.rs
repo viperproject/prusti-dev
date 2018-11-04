@@ -51,7 +51,7 @@ trait PredecessorsFirstVisitor<'tcx>: Visitor<'tcx> {
             self.visit_basic_block_data(current, basic_block_data);
             analysed_blocks.insert(current);
             for &successor in basic_block_data.terminator().successors() {
-                let mut all_predecessors_analysed = mir
+                let all_predecessors_analysed = mir
                     .predecessors_for(successor)
                     .iter()
                     .all(|predecessor| {
@@ -339,7 +339,7 @@ impl ProcedureLoops {
         debug!("accesses_pairs = {:?}", accesses_pairs);
         // Paths to whose leaves we need write permissions.
         let mut write_leaves: Vec<mir::Place> = Vec::new();
-        for (i, (place, kind)) in accesses_pairs.iter().enumerate() {
+        for (place, kind) in accesses_pairs.iter() {
             if kind.is_write_access() {
                 let has_prefix = accesses_pairs
                     .iter()
@@ -356,11 +356,11 @@ impl ProcedureLoops {
         debug!("write_leaves = {:?}", write_leaves);
         // Paths to whose leaves we need read permissions.
         let mut read_leaves: Vec<mir::Place> = Vec::new();
-        for (i, (place, kind)) in accesses_pairs.iter().enumerate() {
+        for (place, kind) in accesses_pairs.iter() {
             if !kind.is_write_access() {
                 let has_prefix = accesses_pairs
                     .iter()
-                    .any(|(potential_prefix, kind)|
+                    .any(|(potential_prefix, _kind)|
                         place != potential_prefix &&
                             utils::is_prefix(place, potential_prefix)
                     );

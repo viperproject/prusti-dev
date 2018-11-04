@@ -177,7 +177,7 @@ impl<'tcx> PermissionTree<'tcx> {
                is_target_write: bool) -> Self {
         let place = utils::VecPlace::new(place);
         let mut place_iter = place.iter().rev();
-        let mut node_permission_kind = if is_target_write {
+        let node_permission_kind = if is_target_write {
             PermissionKind::WriteSubtree
         } else {
             PermissionKind::ReadSubtree
@@ -221,7 +221,7 @@ impl<'tcx> PermissionTree<'tcx> {
         while component_count > 1 {
             let component = place_iter.next().unwrap();
             component_count -= 1;
-            let mut current_node = current_parent_node.get_or_create_child(
+            let current_node = current_parent_node.get_or_create_child(
                 component.get_mir_place(), PermissionKind::ReadNode);
             if is_target_write {
                 current_node.set_permission_kind(PermissionKind::WriteNode);

@@ -5,7 +5,6 @@
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
-use rustc_data_structures::indexed_vec::Idx;
 use rustc_hash::FxHashMap;
 use std::collections::{HashMap, HashSet, BTreeMap, BTreeSet};
 use std::iter::FromIterator;
@@ -345,8 +344,6 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) argument_moves: Vec<facts::Loan>,
 
     /// Facts without back edges.
-    pub(crate) borrowck_in_facts_no_back: facts::AllInputFacts,
-    pub(crate) borrowck_out_facts_no_back: facts::AllOutputFacts,
     pub(crate) additional_facts_no_back: AdditionalFacts,
 }
 
@@ -514,8 +511,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             variable_regions: variable_regions,
             additional_facts: additional_facts,
             loop_magic_wands: HashMap::new(),
-            borrowck_in_facts_no_back: all_facts_without_back_edges,
-            borrowck_out_facts_no_back: output_without_back_edges,
             additional_facts_no_back: additional_facts_without_back_edges,
             loops: loop_info,
             reference_moves: reference_moves,
@@ -536,7 +531,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             let (write_leaves, _read_leaves) = self.loops.compute_read_and_write_leaves(
                 loop_head, self.mir, Some(&definitely_initalised_paths));
             debug!("write_leaves = {:?}", write_leaves);
-            let mut reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
+            let reborrows: Vec<(mir::Local, facts::Region)> = write_leaves
                 .iter()
                 .flat_map(|place| {
                     // Only locals – we do not support references in fields.
@@ -709,7 +704,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             &self, initial_loc: mir::Location, final_loc: mir::Location,
             zombie: bool) -> Vec<facts::Loan> {
         trace!("get_loans_dying_between {:?}, {:?}, {}", initial_loc, final_loc, zombie);
-        let borrow_live_at = self.get_borrow_live_at(zombie);
         debug_assert!(self.get_successors(initial_loc).contains(&final_loc));
         self.get_active_loans(initial_loc, zombie)
             .into_iter()
@@ -897,7 +891,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             let loan_loops = self.get_loan_loops(&loans);
             assert!(loan_loops.iter().all(|(_, head)| { *head == loop_head }));
         } else {
-            let mut loan_loops = self.get_loan_loops(&loans);
+            let loan_loops = self.get_loan_loops(&loans);
             if !loan_loops.is_empty() {
                 for (loan, loop_head) in loan_loops.iter() {
                     debug!("loan={:?} loop_head={:?}", loan, loop_head);
@@ -1088,13 +1082,12 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     fn construct_reborrowing_zombity(&self, loan: facts::Loan,
-                                     loans: &[facts::Loan],
+                                     _loans: &[facts::Loan],
                                      zombie_loans: &[facts::Loan],
-                                     location: mir::Location) -> ReborrowingZombity {
+                                     _location: mir::Location) -> ReborrowingZombity {
         // Is the loan is a move of a reference, then this source is moved out and,
         // therefore, a zombie.
         let is_reference_move = self.reference_moves.contains(&loan);
-        let is_argument_move = self.argument_moves.contains(&loan);
 
         debug!("loan={:?} is_reference_move={:?}", loan, is_reference_move);
         if zombie_loans.contains(&loan) || is_reference_move {
@@ -1172,7 +1165,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             trees.push(tree);
         }
 
-        let mut forest = ReborrowingForest {
+        let forest = ReborrowingForest {
             trees: trees,
         };
         forest
@@ -1227,17 +1220,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock, local: mir::Local) {
         let region = self.variable_regions[&local];
-        let location = mir::Location {
-            block: loop_head,
-            statement_index: 0,
-        };
         let magic_wand = LoopMagicWand {
             loop_id: loop_head,
             variable: local,
             region: region,
             root_loan: self.compute_root_loan(loop_head, local),
         };
-        let mut entry = self.loop_magic_wands.entry(loop_head).or_insert(Vec::new());
+        let entry = self.loop_magic_wands.entry(loop_head).or_insert(Vec::new());
         entry.push(magic_wand);
     }
 
