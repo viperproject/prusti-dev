@@ -133,12 +133,11 @@ use syntax::codemap::Span;
 use syntax::ext::build::AstBuilder;
 use syntax::fold::{self, Folder};
 use syntax::util::small_vector::SmallVector;
-use syntax::attr;
 use syntax_pos::FileName;
 use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
                      SpecType, SpecificationSet, Trigger, TriggerSet, UntypedAssertion,
                      UntypedExpression, UntypedSpecification, UntypedSpecificationMap,
-                     UntypedSpecificationSet, UntypedTriggerSet};
+                     UntypedSpecificationSet, UntypedTriggerSet, PledgeReference};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -147,7 +146,6 @@ use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use syntax_pos::DUMMY_SP;
 use prusti_interface::report::Log;
 use std::io::Write;
-use std::iter::FromIterator;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -328,6 +326,9 @@ impl<'tcx> SpecParser<'tcx> {
 
                 let statement = builder.stmt_semi(ptr::P(lambda_fn));
                 statements.push(statement);
+            }
+            AssertionKind::Pledge(ref _reference, ref _body) => {
+                unimplemented!();
             }
         };
         trace!("[populate_statements] exit");
@@ -975,7 +976,8 @@ impl<'tcx> SpecParser<'tcx> {
                 None
             }
             Err(AssertionParsingError::ParsingRustExpressionFailed)
-            | Err(AssertionParsingError::FailedForallMatch) => None,
+            | Err(AssertionParsingError::FailedForallMatch)
+            | Err(AssertionParsingError::FailedAfterExpiryMatch) => None,
         }
     }
 
@@ -1132,6 +1134,45 @@ impl<'tcx> SpecParser<'tcx> {
         self.parse_expression(span, expr_string)
     }
 
+    fn parse_after_expiry(
+        &mut self,
+        span: Span,
+        spec_string: &str,
+    ) -> Result<UntypedAssertion, AssertionParsingError> {
+        let re = Regex::new(
+            r"(?x)
+            ^\s*after_expiry\s*
+            (<(?P<reference>[a-zA-Z0-9_]+)>)?
+            \s*\((?P<body>.*)\)\s*$
+        ",
+        ).unwrap();
+        if let Some(caps) = re.captures(spec_string) {
+            let reference = match caps.name("reference") {
+                Some(m) => self.parse_forall_expr(span, m)?,
+                None => self.parse_expression(span, String::from("result"))?,
+            };
+            let body = self.parse_assertion_simple(
+                span, caps.name("body").unwrap().as_str().to_string())?;
+            debug!(
+                "after_expiry: reference={:?} body={:?}",
+                reference, body
+            );
+            let assertion = UntypedAssertion {
+                kind: box AssertionKind::Pledge(
+                    PledgeReference {
+                        id: self.get_new_expression_id(),
+                        reference: reference,
+                    },
+                    body,
+                ),
+            };
+            Ok(assertion)
+        } else {
+            self.report_error(span, "failed to parse after_expiry expression");
+            Err(AssertionParsingError::FailedAfterExpiryMatch)
+        }
+    }
+
     fn parse_forall(
         &mut self,
         span: Span,
@@ -1208,6 +1249,11 @@ impl<'tcx> SpecParser<'tcx> {
                 let new_span = shift_span(span, caps[1].len() as u32);
                 return self.parse_assertion_simple(new_span, String::from(&caps[2]));
             }
+        }
+
+        // Parse after_expiry.
+        if spec_string.contains("after_expiry") {
+            return self.parse_after_expiry(span, &spec_string);
         }
 
         // Parse forall.
@@ -1481,6 +1527,8 @@ pub enum AssertionParsingError {
     ParsingRustExpressionFailed,
     /// Reported when matching forall expression fails.
     FailedForallMatch,
+    /// Reported when matching after_expiry expression fails.
+    FailedAfterExpiryMatch,
 }
 
 fn substring(string: &str, start: usize, end: usize) -> String {

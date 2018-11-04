@@ -342,6 +342,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     self.encode_assertion(body)
                 )
             }
+            box AssertionKind::Pledge(ref reference, ref body) => {
+                unimplemented!();
+            }
         }
     }
 

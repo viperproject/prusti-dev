@@ -186,6 +186,15 @@ pub struct ForAllVars<AT> {
 }
 
 #[derive(Debug, Clone)]
+/// The reference used in a pledge.
+pub struct PledgeReference<ET> {
+    /// Unique id for this reference.
+    pub id: ExpressionId,
+    /// The actual reference.
+    pub reference: ET,
+}
+
+#[derive(Debug, Clone)]
 /// An assertion kind used in the specification.
 pub enum AssertionKind<ET, AT> {
     /// A single Rust expression.
@@ -198,6 +207,11 @@ pub enum AssertionKind<ET, AT> {
     ForAll(
         ForAllVars<AT>,
         TriggerSet<ET>,
+        Assertion<ET, AT>,
+    ),
+    /// Pledge after_expiry<reference>(body)
+    Pledge(
+        PledgeReference<ET>,
         Assertion<ET, AT>,
     ),
 }
