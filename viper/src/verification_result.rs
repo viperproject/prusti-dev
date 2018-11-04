@@ -8,7 +8,7 @@ pub enum VerificationResult {
     Failure(Vec<VerificationError>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct VerificationError {
     pub full_id: String,
     pub pos_id: String,

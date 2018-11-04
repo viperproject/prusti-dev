@@ -73,17 +73,27 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
         let mut verifier_args = vec![];
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
-                "--printMethodCFGs",
                 "--tempDirectory", "./log/viper_tmp",
-                "--logLevel", "INFO",
-                //"--printTranslatedProgram",
+                "--logLevel", "WARN",
             ]);
         } else {
             verifier_args.extend(vec![
                 "--disableAllocEncoding",
-                //"--print", "./log/boogie_program/program.bpl",
                 "--boogieOpt", "/logPrefix ./log/viper_tmp"
             ]);
+        }
+        if config::dump_debug_info() {
+            if let VerificationBackend::Silicon = backend {
+                verifier_args.extend(vec![
+                    "--printMethodCFGs",
+                    "--logLevel", "INFO",
+                    //"--printTranslatedProgram",
+                ]);
+            } else {
+                verifier_args.extend::<Vec<&str>>(vec![
+                    //"--print", "./log/boogie_program/program.bpl",
+                ]);
+            }
         }
         Verifier::new(
             self.verification_ctx.new_ast_utils(),
@@ -202,10 +212,12 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             ast.program(&domains, &fields, &functions, &predicates, &methods)
         };
 
-        // Dump Viper program
-        let source_path = self.env.source_path();
-        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
+        if config::dump_debug_info() {
+            // Dump Viper program
+            let source_path = self.env.source_path();
+            let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+            Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
+        }
 
         info!("Construction of JVM objects successful");
 

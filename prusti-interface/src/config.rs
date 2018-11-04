@@ -23,6 +23,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
+        settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
@@ -93,6 +94,11 @@ pub fn verification_whitelist() -> Vec<String> {
 /// Should we dump debug files?
 pub fn dump_debug_info() -> bool {
     SETTINGS.read().unwrap().get::<bool>("DUMP_DEBUG_INFO").unwrap()
+}
+
+/// Should we dump borrowck info?
+pub fn dump_borrowck_info() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("DUMP_BORROWCK_INFO").unwrap()
 }
 
 /// In which folder should we sore log/dumps?
