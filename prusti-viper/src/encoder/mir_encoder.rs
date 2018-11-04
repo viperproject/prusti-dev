@@ -24,6 +24,7 @@ use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::error_manager::ErrorCtxt;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
+pub static WAND_LHS_LABEL: &'static str = "lhs";
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
 #[derive(Clone)]

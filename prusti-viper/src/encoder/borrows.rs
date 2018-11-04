@@ -11,7 +11,10 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::fmt;
 use utils::type_visitor::{self, TypeVisitor};
-use prusti_interface::specifications::{SpecificationSet, TypedSpecification, TypedSpecificationSet};
+use prusti_interface::specifications::{
+    SpecificationSet, TypedSpecification, TypedSpecificationSet,
+    TypedExpression, TypedAssertion, AssertionKind,
+};
 
 
 #[derive(Clone, Debug)]
@@ -104,6 +107,30 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         } else {
             unreachable!()
         }
+    }
+
+    pub fn pledges(&self) -> Vec<(Option<TypedExpression>, TypedAssertion)> {
+        let mut pledges = Vec::new();
+        fn check_assertion(assertion: &TypedAssertion,
+                           pledges: &mut Vec<(Option<TypedExpression>, TypedAssertion)>) {
+            match assertion.kind.as_ref() {
+                AssertionKind::Expr(_) |
+                AssertionKind::Implies(_, _) |
+                AssertionKind::ForAll(_, _, _) => {},
+                AssertionKind::And(ref assertions) => {
+                    for assertion in assertions {
+                        check_assertion(assertion, pledges);
+                    }
+                },
+                AssertionKind::Pledge(ref reference, ref body) => {
+                    pledges.push((reference.clone(), body.clone()));
+                },
+            };
+        }
+        for item in self.functional_postcondition() {
+            check_assertion(&item.assertion, &mut pledges);
+        }
+        pledges
     }
 }
 

@@ -137,7 +137,7 @@ use syntax_pos::FileName;
 use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
                      SpecType, SpecificationSet, Trigger, TriggerSet, UntypedAssertion,
                      UntypedExpression, UntypedSpecification, UntypedSpecificationMap,
-                     UntypedSpecificationSet, UntypedTriggerSet, PledgeReference};
+                     UntypedSpecificationSet, UntypedTriggerSet};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
@@ -174,7 +174,7 @@ pub struct SpecParser<'tcx> {
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
     untyped_specifications: UntypedSpecificationMap,
-    rust_program_before_typechecking_writer: Box<Write>
+    rust_program_before_typechecking_writer: Box<Write>,
 }
 
 impl<'tcx> SpecParser<'tcx> {
@@ -186,7 +186,7 @@ impl<'tcx> SpecParser<'tcx> {
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),
             untyped_specifications: HashMap::new(),
-            rust_program_before_typechecking_writer: Log::writer("rust_program_before_typechecking", source_filename).ok().unwrap()
+            rust_program_before_typechecking_writer: Log::writer("rust_program_before_typechecking", source_filename).ok().unwrap(),
         }
     }
 
@@ -327,8 +327,12 @@ impl<'tcx> SpecParser<'tcx> {
                 let statement = builder.stmt_semi(ptr::P(lambda_fn));
                 statements.push(statement);
             }
-            AssertionKind::Pledge(ref _reference, ref _body) => {
-                unimplemented!();
+            AssertionKind::Pledge(ref reference, ref assertion) => {
+                if let Some(ref reference) = reference {
+                    let statement = self.build_typeck_call(reference, None);
+                    statements.push(statement);
+                }
+                self.populate_statements(assertion, statements);
             }
         };
         trace!("[populate_statements] exit");
@@ -1139,17 +1143,35 @@ impl<'tcx> SpecParser<'tcx> {
         span: Span,
         spec_string: &str,
     ) -> Result<UntypedAssertion, AssertionParsingError> {
-        let re = Regex::new(
-            r"(?x)
-            ^\s*after_expiry\s*
-            (<(?P<reference>[a-zA-Z0-9_]+)>)?
-            \s*\((?P<body>.*)\)\s*$
-        ",
-        ).unwrap();
+        let is_postcondition = true;
+        let re = if is_postcondition {
+            Regex::new(
+                r"(?x)
+                ^\s*after_expiry\s*
+                \s*\((?P<body>.*)\)\s*$
+            ").unwrap()
+        } else {
+            Regex::new(
+                r"(?x)
+                ^\s*after_expiry\s*
+                (<(?P<reference>[a-zA-Z0-9_]+)>)?
+                \s*\((?P<body>.*)\)\s*$
+            ").unwrap()
+        };
         if let Some(caps) = re.captures(spec_string) {
-            let reference = match caps.name("reference") {
-                Some(m) => self.parse_forall_expr(span, m)?,
-                None => self.parse_expression(span, String::from("result"))?,
+            let reference = if !is_postcondition {
+                let reference_match = match caps.name("reference") {
+                    Some(m) => self.parse_forall_expr(span, m)?,
+                    None => self.parse_expression(span, String::from("result"))?,
+                };
+                let reference_use = self.ast_builder.expr_addr_of(span, reference_match);
+                let reference_expr = Expression {
+                    id: self.get_new_expression_id(),
+                    expr: reference_use,
+                };
+                Some(reference_expr)
+            } else {
+                None
             };
             let body = self.parse_assertion_simple(
                 span, caps.name("body").unwrap().as_str().to_string())?;
@@ -1159,10 +1181,7 @@ impl<'tcx> SpecParser<'tcx> {
             );
             let assertion = UntypedAssertion {
                 kind: box AssertionKind::Pledge(
-                    PledgeReference {
-                        id: self.get_new_expression_id(),
-                        reference: reference,
-                    },
+                    reference,
                     body,
                 ),
             };

@@ -10,6 +10,7 @@ use encoder::error_manager::PanicCause;
 use encoder::foldunfold;
 use encoder::loop_encoder::LoopEncoder;
 use encoder::places::{Local, LocalVariableManager, Place};
+use encoder::spec_encoder::SpecEncoder;
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::vir::{Zero, One};
 use encoder::vir::ExprIterator;
@@ -1557,6 +1558,58 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )
     }
 
+    /// Encode the magic wand used in the postcondition with its
+    /// functional specification. Returns (lhs, rhs).
+    fn encode_postcondition_magic_wand(&self, contract: &ProcedureContract<'tcx>,
+                                       pre_label: &str) -> Option<(vir::Expr, vir::Expr)> {
+
+        // Encode args and return.
+        let encoded_args: Vec<vir::Expr> = contract.args.iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect();
+        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
+
+        // Encode magic wands
+        let borrow_infos = &contract.borrow_infos;
+        if !borrow_infos.is_empty() {
+            assert_eq!(borrow_infos.len(), 1,
+                       "We can have at most one magic wand in the postcondition.");
+            let borrow_info = &borrow_infos[0];
+            let mut pledges = contract.pledges();
+            assert!(pledges.len() <= 1,
+                    "There can be at most one pledge in the function postcondition.");
+            debug!("borrow_info {:?}", borrow_info);
+            let lhs = borrow_info.blocking_paths
+                .iter()
+                .map(|place| {
+                    debug!("place {:?}", place);
+                    vir::Expr::and(
+                        self.encode_acc_permission(place),
+                        self.encode_pred_permission(place, None)
+                    )
+                })
+                .conjoin();
+            let mut rhs: Vec<_> = borrow_info.blocked_paths
+                .iter()
+                .map(|place| {
+                    self.encode_pred_permission(place, Some(pre_label))
+                })
+                .collect();
+            if let Some((reference, body)) = pledges.pop() {
+                debug!("pledge reference={:?} body={:?}", reference, body);
+                assert!(reference.is_none(), "The reference should be none in postcondition.");
+                let assertion = self.encoder.encode_assertion(
+                    &body, &self.mir, pre_label, &encoded_args,
+                    Some(&encoded_return), false, None);
+                rhs.push(assertion);
+            }
+            let rhs = rhs.into_iter().conjoin();
+            Some((lhs, rhs))
+        } else {
+            None
+        }
+    }
+
     /// Encode the postcondition with two expressions:
     /// - one for the type encoding
     /// - one for the functional specification.
@@ -1570,28 +1623,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             type_spec.push(self.encode_pred_permission(place, Some(pre_label)));
         }
 
-        // Encode magic wands
-        for borrow_info in contract.borrow_infos.iter() {
-            debug!("borrow_info {:?}", borrow_info);
-            let lhs = borrow_info.blocking_paths
-                .iter()
-                .map(|place| {
-                    debug!("place {:?}", place);
-                    vir::Expr::and(
-                        self.encode_acc_permission(place),
-                        self.encode_pred_permission(place, None)
-                    )
-                })
-                .conjoin();
-            let rhs = borrow_info.blocked_paths
-                .iter()
-                .map(|place| {
-                    self.encode_pred_permission(place, Some(pre_label))
-                })
-                .conjoin();
+        // Encode args and return.
+        let encoded_args: Vec<vir::Expr> = contract.args.iter()
+            .map(|local| self.encode_prusti_local(*local).into())
+            .collect();
+        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
+
+        if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(contract, pre_label) {
             type_spec.push(vir::Expr::MagicWand(box lhs, box rhs));
         }
-
 
         let there_are_magic_wands = !contract.borrow_infos.is_empty();
 
@@ -1601,10 +1641,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Encode functional specification
-        let encoded_args: Vec<vir::Expr> = contract.args.iter()
-            .map(|local| self.encode_prusti_local(*local).into())
-            .collect();
-        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
         let mut func_spec = vec![];
         for item in contract.functional_postcondition() {
             func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, pre_label, &encoded_args, Some(&encoded_return), false, None));
@@ -1617,27 +1653,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     // TODO: do we really need `pre_label`?
     fn encode_package_end_of_method(&mut self, contract: &ProcedureContract<'tcx>,
                                     pre_label: &str, location: mir::Location) -> Vec<vir::Stmt> {
-        let mut stmts = vec![];
+        let mut stmts = Vec::new();
 
         // Package magic wand(s)
-        for borrow_info in contract.borrow_infos.iter() {
-            debug!("borrow_info {:?}", borrow_info);
-            let lhs = borrow_info.blocking_paths
-                .iter()
-                .map(|place| {
-                    debug!("place {:?}", place);
-                    vir::Expr::and(
-                        self.encode_acc_permission(place),
-                        self.encode_pred_permission(place, None)
-                    )
-                })
-                .conjoin();
-
-            let rhs = borrow_info.blocked_paths
-                .iter()
-                .map(|place| self.encode_pred_permission(place, Some(pre_label)))
-                .conjoin();
-
+        if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(contract, pre_label) {
             let blocker = mir::RETURN_PLACE;
             // TODO: Check if it really is always start and not the mid point.
             let start_point = self.polonius_info.get_point(location, facts::PointType::Start);

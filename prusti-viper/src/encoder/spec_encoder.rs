@@ -342,8 +342,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     self.encode_assertion(body)
                 )
             }
-            box AssertionKind::Pledge(ref reference, ref body) => {
-                unimplemented!();
+            box AssertionKind::Pledge(ref _reference, ref _body) => {
+                // Pledges are moved inside magic wands, so here we have only true.
+                vir::Expr::Const(vir::Const::Bool(true))
             }
         }
     }

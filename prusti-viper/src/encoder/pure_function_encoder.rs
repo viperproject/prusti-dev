@@ -8,7 +8,7 @@ use encoder::mir_interpreter::{ForwardMirInterpreter, run_forward_interpretation
 use encoder::mir_interpreter::{BackwardMirInterpreter, run_backward_interpretation, MultiExprBackwardInterpreterState};
 use encoder::mir_encoder::MirEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::mir_encoder::PRECONDITION_LABEL;
+use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
 use encoder::vir;
 use encoder::vir::{Zero, One};
 use rustc::hir;
@@ -414,6 +414,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                             trace!("Encoding old expression {:?}", args[0]);
                             assert!(args.len() == 1);
                             let encoded_rhs = self.mir_encoder.encode_old_expr(encoded_args[0].clone(), PRECONDITION_LABEL);
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(&lhs_value, encoded_rhs);
+                            state
+                        }
+
+                        "prusti_contracts::internal::before_expiry" => {
+                            trace!("Encoding before_expiry expression {:?}", args[0]);
+                            assert!(args.len() == 1);
+                            let encoded_rhs = self.mir_encoder.encode_old_expr(encoded_args[0].clone(), WAND_LHS_LABEL);
                             let mut state = states[&target_block].clone();
                             state.substitute_value(&lhs_value, encoded_rhs);
                             state
