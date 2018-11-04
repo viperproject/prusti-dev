@@ -6,6 +6,7 @@ use encoder::Encoder;
 use encoder::vir;
 use encoder::vir::ExprIterator;
 use encoder::vir::{Zero, One};
+use encoder::utils::range_extract;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
 use std::collections::hash_map::DefaultHasher;
@@ -261,18 +262,35 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         )
                     );
                     // 0 <= self.discriminant <= num_variants - 1
-                    let mut possible_discr_values = vec![];
+                    let mut discr_values = vec![];
                     for (variant_index, _) in adt_def.variants.iter().enumerate() {
-                        let discr_value = adt_def.discriminant_for_variant(tcx, variant_index).val;
-                        possible_discr_values.push(
-                            vir::Expr::eq_cmp(
-                                discriminan_loc.clone().into(),
-                                discr_value.into()
-                            )
+                        discr_values.push(
+                            adt_def.discriminant_for_variant(tcx, variant_index).val
                         );
                     }
+                    let mut discr_exprs = range_extract(discr_values).into_iter().map(
+                        |(from, to)| {
+                            if from == to {
+                                vir::Expr::eq_cmp(
+                                    discriminan_loc.clone().into(),
+                                    from.into()
+                                )
+                            } else {
+                                vir::Expr::and(
+                                    vir::Expr::le_cmp(
+                                        from.into(),
+                                        discriminan_loc.clone().into()
+                                    ),
+                                    vir::Expr::le_cmp(
+                                        discriminan_loc.clone().into(),
+                                        to.into()
+                                    )
+                                )
+                            }
+                        }
+                    );
                     perms.push(
-                        possible_discr_values.into_iter().disjoin()
+                        discr_exprs.disjoin()
                     );
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
