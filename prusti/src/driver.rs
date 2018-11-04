@@ -187,6 +187,8 @@ pub fn main() {
         warn!("Configuration variable CONTRACTS_LIB is empty");
     }
     */
+    let args_string = args.join(" ");
+    debug!("rustc command: {:?}", args_string);
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
     trace!("[main] exit");

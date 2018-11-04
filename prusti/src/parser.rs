@@ -158,9 +158,23 @@ pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMa
     };
     let source_filename = source_path.file_name().unwrap().to_str().unwrap();
     let mut parser = SpecParser::new(state.session, &source_filename);
-    state.krate = Some(parser.fold_crate(krate));
+    let krate = parser.fold_crate(krate);
+    log_crate(&krate, &source_filename);
+    state.krate = Some(krate);
     trace!("[rewrite_crate] exit");
     parser.untyped_specifications
+}
+
+/// Log the rewritten crate for debugging.
+fn log_crate(krate: &ast::Crate, source_filename: &str) {
+    let mut writer = Log::writer(
+        "rust_crate_before_typechecking_writer",
+        source_filename).ok().unwrap();
+    let krate_str = syntax::print::pprust::to_string(
+        |s| s.print_mod(&krate.module, &krate.attrs));
+    writer.write_all("#![feature(custom_attribute)]\n".as_bytes()).unwrap();
+    writer.write_all(krate_str.to_string().as_bytes()).unwrap();
+    writer.flush().ok().unwrap();
 }
 
 /// A data structure that extracts preconditions, postconditions,
