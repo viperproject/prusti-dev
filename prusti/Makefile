@@ -8,7 +8,8 @@ RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
 STDERR_FILE=$(RUN_FILE:.rs=.stderr)
 JAVA_HOME ?= $(shell readlink -f /usr/lib/jvm/default-java)
 JAVA_LIBJVM_DIR=$(shell dirname "$(shell find "$(shell readlink -f ${JAVA_HOME})" -name "libjvm.so")")
-RUST_VERSION=nightly-2018-06-27-x86_64-unknown-linux-gnu
+RUSTUP_TOOLCHAIN = $(shell cat ../rust-toolchain)
+RUST_VERSION=${RUSTUP_TOOLCHAIN}-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/debug:../target/debug/deps
 PRUSTI_DRIVER=../target/debug/prusti-driver

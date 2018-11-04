@@ -56,23 +56,17 @@ Build for local development
     rustup toolchain install nightly-2018-06-27
     ```
 
+- Install the dependencies required by some Rust libraries
+
+	```bash
+	sudo apt-get install build-essential pkg-config gcc libssl-dev
+	```
+
 - Download this Prusti repository and move to the `prusti-dev` folder
 
 	```bash
 	git clone "<url-of-prusti-repository>"
 	cd prusti-dev
-	```
-
-- Set the Rust compiler version
-
-    ```bash
-    rustup override set nightly-2018-06-27
-    ```
-
-- Install the dependencies required by some Rust libraries
-
-	```bash
-	sudo apt-get install build-essential pkg-config gcc libssl-dev
 	```
 
 - You can now compile Prusti

@@ -13,8 +13,6 @@ SCRIPT_NAME="$(basename -s '.sh' "$0")"
 CRATE_DOWNLOAD_DIR="$(cd "${1:-.}" && pwd)"
 cd "$CRATE_DOWNLOAD_DIR"
 
-rustup override set nightly-2018-06-27
-
 if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	echo "It looks like CRATE_DOWNLOAD_DIR is wrong: '$CRATE_DOWNLOAD_DIR'"
 	exit 1
