@@ -4,7 +4,7 @@
 
 //! Prusti Interface is an interface between Prusti and Prusti-Viper.
 
-#![warn(missing_docs)]
+#![allow(missing_docs)]
 #![feature(nll)]
 #![feature(rustc_private)]
 #![feature(box_syntax)]
