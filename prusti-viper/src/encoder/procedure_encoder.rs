@@ -1125,7 +1125,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ),
                 ..
             } => {
-                let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
+                let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+
                 match func_proc_name {
                     "std::rt::begin_panic" |
                     "std::panicking::begin_panic" => {
