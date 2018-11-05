@@ -116,7 +116,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Initialize CFG blocks
         let start_cfg_block = self.cfg_method.add_block("start", vec![], vec![
-            vir::Stmt::comment(format!("========== start =========="))
+            vir::Stmt::comment("========== start =========="),
+            vir::Stmt::comment(format!("Unique path: {:?}", self.procedure.get_name())),
+            vir::Stmt::comment(format!("Path: {:?}", self.procedure.get_readable_path())),
+            vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
         ]);
 
         for bbi in self.procedure.get_reachable_cfg_blocks() {
