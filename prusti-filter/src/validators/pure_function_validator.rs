@@ -470,7 +470,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
     }
 
-    fn check_op(&mut self, op: &mir::BinOp) {
+    fn check_binary_op(&mut self, op: &mir::BinOp) {
         use rustc::mir::BinOp::*;
         match op {
             Add | Sub | Mul => {}, // OK
@@ -479,6 +479,14 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
             Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
             Offset => unsupported!(self, "offset operation is not supported"),
+        }
+    }
+
+    fn check_unary_op(&mut self, op: &mir::UnOp) {
+        use rustc::mir::UnOp::*;
+        match op {
+            Neg => {}, // OK
+            Not => partially!(self, "bit operations are partially supported"),
         }
     }
 
@@ -497,20 +505,23 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
                 self.check_operand(mir, left_operand);
                 self.check_operand(mir, right_operand);
-                self.check_op(op);
+                self.check_binary_op(op);
             }
 
             mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
                 self.check_operand(mir, left_operand);
                 self.check_operand(mir, right_operand);
-                self.check_op(op);
+                self.check_binary_op(op);
             }
 
             mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty),
 
             mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, "`sizeof` operations are not supported"),
 
-            mir::Rvalue::UnaryOp(_, ref operand) => self.check_operand(mir, operand),
+            mir::Rvalue::UnaryOp(ref op, ref operand) => {
+                self.check_unary_op(op);
+                self.check_operand(mir, operand)
+            },
 
             mir::Rvalue::Discriminant(ref place) => self.check_place(mir, place),
 
