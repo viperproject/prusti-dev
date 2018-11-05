@@ -71,7 +71,7 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     initial_bctxt: BranchCtxt<'p>,
     bctxt_at_label: HashMap<String, BranchCtxt<'p>>,
-    debug_foldunfold: bool,
+    dump_debug_info: bool,
     check_foldunfold_state: bool,
     cfg: &'p vir::CfgMethod,
 }
@@ -82,7 +82,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             encoder,
             initial_bctxt,
             bctxt_at_label: HashMap::new(),
-            debug_foldunfold: config::debug_foldunfold(),
+            dump_debug_info: config::dump_debug_info(),
             check_foldunfold_state: config::check_foldunfold_state(),
             cfg,
         }
@@ -96,7 +96,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     /// Dump the current CFG, for debugging purposes
     fn current_cfg(&self, new_cfg: &vir::CfgMethod) {
-        if self.debug_foldunfold {
+        if self.dump_debug_info {
             let source_path = self.encoder.env().source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
             let method_name = new_cfg.name();
@@ -161,7 +161,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
         if !obtainable_preferred_perms.is_empty() {
             /*
-            if self.debug_foldunfold {
+            if self.dump_debug_info {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -189,7 +189,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
         if !perms.is_empty() {
             /*
-            if self.debug_foldunfold {
+            if self.dump_debug_info {
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                 stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
             }
@@ -265,7 +265,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
                     if !perms.is_empty() {
                         /*
-                        if self.debug_foldunfold {
+                        if self.dump_debug_info {
                             package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                             package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
                         }
@@ -297,7 +297,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
                     if !perms.is_empty() {
                         /*
-                        if self.debug_foldunfold {
+                        if self.dump_debug_info {
                             package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
                             package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
                         }
@@ -362,7 +362,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         /*
-        if !grouped_perms.is_empty() && self.debug_foldunfold {
+        if !grouped_perms.is_empty() && self.dump_debug_info {
             stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
             stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
         }
