@@ -493,6 +493,30 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
+    fn get_place_ty(&self, mir: &mir::Mir<'tcx>, place: &mir::Place<'tcx>) -> ty::Ty<'tcx> {
+        match place {
+            mir::Place::Local(ref local) => mir.local_decls[*local].ty,
+
+            mir::Place::Static( box mir::Static { ty, .. }) => ty,
+
+            mir::Place::Projection(box mir::Projection { ref base, ref elem }) => {
+                let base_ty = self.get_place_ty(mir, base);
+                mir::tcx::PlaceTy::from_ty(base_ty).projection_ty(self.tcx, elem).to_ty(self.tcx)
+            }
+        }
+    }
+
+    fn get_operand_ty(&self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
+        trace!("get_operand_ty {:?}", operand);
+
+        match operand {
+            mir::Operand::Copy(ref place) |
+            mir::Operand::Move(ref place) => self.get_place_ty(mir, place),
+
+            mir::Operand::Constant(box mir::Constant { ty, .. }) => ty
+        }
+    }
+
     fn check_place(&mut self, mir: &mir::Mir<'tcx>, place: &mir::Place<'tcx>) {
         match place {
             mir::Place::Local(ref local) => {
@@ -523,23 +547,33 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         }
     }
 
-    fn check_binary_op(&mut self, op: &mir::BinOp) {
+    fn check_binary_op(&mut self, op: &mir::BinOp, left_ty: ty::Ty<'tcx>, right_ty: ty::Ty<'tcx>) {
         use rustc::mir::BinOp::*;
         match op {
             Add | Sub | Mul => {}, // OK
             Div | Rem => {}, // OK
-            BitXor | BitAnd | BitOr => partially!(self, "bit operations are partially supported"),
+            BitXor | BitAnd | BitOr => {
+                match (&left_ty.sty, &right_ty.sty) {
+                    (ty::TypeVariants::TyBool, ty::TypeVariants::TyBool) => {} // OK
+                    _ => unsupported!(self, "bit operations are only supported for boolean types")
+                }
+            },
             Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
             Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
             Offset => unsupported!(self, "offset operation is not supported"),
         }
     }
 
-    fn check_unary_op(&mut self, op: &mir::UnOp) {
+    fn check_unary_op(&mut self, op: &mir::UnOp, ty: ty::Ty<'tcx>) {
         use rustc::mir::UnOp::*;
         match op {
             Neg => {}, // OK
-            Not => partially!(self, "bit negation is partially supported"),
+            Not => {
+                match &ty.sty {
+                    ty::TypeVariants::TyBool => {} // OK
+                    _ => unsupported!(self, "'!' negation is only supported for boolean types"),
+                }
+            },
         }
     }
 
@@ -563,25 +597,30 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::Rvalue::Cast(..) => unsupported!(self, "cast operations are not supported"),
 
             mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
-                self.check_binary_op(op);
+                let left_ty = self.get_operand_ty(mir, left_operand);
+                let right_ty = self.get_operand_ty(mir, right_operand);
+                self.check_binary_op(op, left_ty, right_ty);
                 self.check_operand(mir, left_operand);
                 self.check_operand(mir, right_operand);
             }
 
             mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
-                self.check_binary_op(op);
+                let left_ty = self.get_operand_ty(mir, left_operand);
+                let right_ty = self.get_operand_ty(mir, right_operand);
+                self.check_binary_op(op, left_ty, right_ty);
                 self.check_operand(mir, left_operand);
                 self.check_operand(mir, right_operand);
             }
 
+            mir::Rvalue::UnaryOp(ref op, ref operand) => {
+                let ty = self.get_operand_ty(mir, operand);
+                self.check_unary_op(op, ty);
+                self.check_operand(mir, operand)
+            },
+
             mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty, "assignment of box"),
 
             mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, "`sizeof` operations are not supported"),
-
-            mir::Rvalue::UnaryOp(ref op, ref operand) => {
-                self.check_unary_op(op);
-                self.check_operand(mir, operand)
-            },
 
             mir::Rvalue::Discriminant(ref place) => self.check_place(mir, place),
 
