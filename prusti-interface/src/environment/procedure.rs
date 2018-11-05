@@ -81,10 +81,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Get the name of the procedure
     pub fn get_name(&self) -> String {
-        let def_path = self.tcx.hir.def_path(self.proc_def_id);
-        let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
-        crate_name.push_str(&def_path.to_string_no_crate());
-        crate_name
+        self.tcx.absolute_item_path_str(self.proc_def_id)
     }
 
     /// Get the first CFG block
