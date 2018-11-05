@@ -12,6 +12,7 @@ use rustc::mir::Terminator;
 use rustc::mir::BasicBlock;
 use rustc::mir::TerminatorKind;
 use data::ProcedureDefId;
+use syntax::codemap::Span;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -79,12 +80,22 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         &self.mir
     }
 
-    /// Get the name of the procedure
+    /// Get the unique path
     pub fn get_name(&self) -> String {
-        let def_path = self.tcx.hir.def_path(self.proc_def_id);
+        let def_path = self.tcx.def_path(self.proc_def_id);
         let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
         crate_name.push_str(&def_path.to_string_no_crate());
         crate_name
+    }
+
+    /// Get a readable, not unique, path
+    pub fn get_readable_path(&self) -> String {
+        self.tcx.absolute_item_path_str(self.proc_def_id)
+    }
+
+    /// Get the name of the procedure
+    pub fn get_span(&self) -> Span {
+        self.mir.span
     }
 
     /// Get the first CFG block
