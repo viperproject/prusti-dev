@@ -491,7 +491,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
 
         if !self.pure_functions.borrow().contains_key(&proc_def_id) {
-            let procedure_name = self.env().tcx().absolute_item_path_str(proc_def_id);
+            let procedure_name = self.env().get_item_name(proc_def_id);
             let procedure = self.env.get_procedure(proc_def_id);
             let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
             let function = if self.is_trusted(proc_def_id) {
