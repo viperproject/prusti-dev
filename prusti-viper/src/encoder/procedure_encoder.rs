@@ -38,7 +38,7 @@ use syntax::codemap::Span;
 use prusti_interface::specifications::*;
 use syntax::ast;
 use encoder::mir_encoder::MirEncoder;
-use encoder::mir_encoder::PRECONDITION_LABEL;
+use encoder::mir_encoder::{PRECONDITION_LABEL, POSTCONDITION_LABEL};
 use prusti_interface::utils::get_attr_value;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
@@ -966,9 +966,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         match term.kind {
             TerminatorKind::Return => {
+
+                stmts.push(vir::Stmt::Label(POSTCONDITION_LABEL.to_string()));
                 // Package magic wands, if there is any
                 stmts.extend(
-                    self.encode_package_end_of_method(contract, PRECONDITION_LABEL, location)
+                    self.encode_package_end_of_method(
+                        contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, location)
                 );
 
                 (stmts, Successor::Goto(return_cfg_block))
@@ -1401,7 +1404,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 );
                             }
 
-                            let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(&procedure_contract, &pre_label, real_target.is_none());
+                            // Store a label for the post state
+                            let post_label = self.cfg_method.get_fresh_label_name();
+                            stmts.push(vir::Stmt::Label(post_label.clone()));
+
+                            let (post_type_spec, post_func_spec) = self.encode_postcondition_expr(
+                                &procedure_contract, &pre_label, &post_label, real_target.is_none());
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_type_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
 
@@ -1563,8 +1571,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode the magic wand used in the postcondition with its
     /// functional specification. Returns (lhs, rhs).
-    fn encode_postcondition_magic_wand(&self, contract: &ProcedureContract<'tcx>,
-                                       pre_label: &str) -> Option<(vir::Expr, vir::Expr)> {
+    fn encode_postcondition_magic_wand(
+        &self,
+        contract: &ProcedureContract<'tcx>,
+        pre_label: &str,
+        post_label: &str,
+    ) -> Option<(vir::Expr, vir::Expr)> {
 
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract.args.iter()
@@ -1586,10 +1598,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .iter()
                 .map(|place| {
                     debug!("place {:?}", place);
-                    vir::Expr::and(
-                        self.encode_acc_permission(place),
-                        self.encode_pred_permission(place, None)
-                    )
+                    self.encode_pred_permission(place, Some(post_label))
                 })
                 .conjoin();
             let mut rhs: Vec<_> = borrow_info.blocked_paths
@@ -1616,8 +1625,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode the postcondition with two expressions:
     /// - one for the type encoding
     /// - one for the functional specification.
-    fn encode_postcondition_expr(&self, contract: &ProcedureContract<'tcx>,
-                                 pre_label: &str, diverging: bool) -> (vir::Expr, vir::Expr) {
+    fn encode_postcondition_expr(
+        &self,
+        contract: &ProcedureContract<'tcx>,
+        pre_label: &str,
+        post_label: &str,
+        diverging: bool
+    ) -> (vir::Expr, vir::Expr) {
         let mut type_spec = vec![];
 
         // Encode the permissions got back for the arguments of type reference
@@ -1632,7 +1646,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .collect();
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
 
-        if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(contract, pre_label) {
+        if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(contract, pre_label, post_label) {
             type_spec.push(vir::Expr::MagicWand(box lhs, box rhs));
         }
 
@@ -1653,13 +1667,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the package statement of magic wands at the end of the method
-    // TODO: do we really need `pre_label`?
-    fn encode_package_end_of_method(&mut self, contract: &ProcedureContract<'tcx>,
-                                    pre_label: &str, location: mir::Location) -> Vec<vir::Stmt> {
+    fn encode_package_end_of_method(
+        &mut self,
+        contract: &ProcedureContract<'tcx>,
+        pre_label: &str,
+        post_label: &str,
+        location: mir::Location
+    ) -> Vec<vir::Stmt> {
         let mut stmts = Vec::new();
 
         // Package magic wand(s)
-        if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(contract, pre_label) {
+        if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(contract, pre_label, post_label) {
             let blocker = mir::RETURN_PLACE;
             // TODO: Check if it really is always start and not the mid point.
             let start_point = self.polonius_info.get_point(location, facts::PointType::Start);
@@ -1678,8 +1696,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let arg_ty = self.mir.local_decls[arg_index].ty;
                 if self.mir_encoder.is_reference(arg_ty) {
                     let encoded_arg = self.mir_encoder.encode_local(arg_index);
-                    let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
-                    let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
+                    let (deref_place, ..) = self.mir_encoder.encode_deref(
+                        encoded_arg.into(), arg_ty);
+                    let old_deref_place = vir::LabelledPlace::old(
+                        deref_place.clone(), pre_label.to_string());
+                    let deref_pred = vir::Expr::pred_permission(
+                        old_deref_place, vir::Frac::one()).unwrap();
                     package_stmts.extend(
                         self.encode_obtain(deref_pred)
                     );
@@ -1698,7 +1720,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
-        let (type_spec, func_spec) = self.encode_postcondition_expr(contract, PRECONDITION_LABEL, false);
+        let (type_spec, func_spec) = self.encode_postcondition_expr(
+            contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, false);
 
         // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
