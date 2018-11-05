@@ -119,7 +119,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Initialize CFG blocks
         let start_cfg_block = self.cfg_method.add_block("start", vec![], vec![
-            vir::Stmt::comment(format!("========== start =========="))
+            vir::Stmt::comment("========== start =========="),
+            vir::Stmt::comment(format!("Unique path: {:?}", self.procedure.get_name())),
+            vir::Stmt::comment(format!("Path: {:?}", self.procedure.get_readable_path())),
+            vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
         ]);
 
         for bbi in self.procedure.get_reachable_cfg_blocks() {
@@ -1128,7 +1131,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ),
                 ..
             } => {
-                let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
+                let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+
                 match func_proc_name {
                     "std::rt::begin_panic" |
                     "std::panicking::begin_panic" => {

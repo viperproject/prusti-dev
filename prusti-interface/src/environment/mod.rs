@@ -160,7 +160,10 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
 
 impl<'r, 'a, 'tcx> Environment<'a, 'tcx> for EnvironmentImpl<'r, 'a, 'tcx> {
     fn get_item_name(&self, def_id: DefId) -> String {
-        self.tcx().absolute_item_path_str(def_id)
+        let def_path = self.tcx().def_path(def_id);
+        let mut crate_name = self.tcx().crate_name(def_path.krate).to_string();
+        crate_name.push_str(&def_path.to_string_no_crate());
+        crate_name
     }
 
     /// Get a Procedure.

@@ -15,7 +15,6 @@ lazy_static! {
         settings.set_default("VIPER_BACKEND", "Silicon").unwrap();
         settings.set_default("CHECK_FOLDUNFOLD_STATE", false).unwrap();
         settings.set_default("CHECK_BINARY_OPERATIONS", false).unwrap();
-        settings.set_default("DEBUG_FOLDUNFOLD", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
         settings.set_default("CHECK_UNREACHABLE_TERMINATORS", false).unwrap();
@@ -53,11 +52,6 @@ pub fn dump() -> String {
 /// Generate additional, *slow*, checks for the foldunfold algorithm
 pub fn check_foldunfold_state() -> bool {
     SETTINGS.read().unwrap().get::<bool>("CHECK_FOLDUNFOLD_STATE").unwrap()
-}
-
-/// Generate additional, *slow*, debug dumps for the foldunfold algorithm
-pub fn debug_foldunfold() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("DEBUG_FOLDUNFOLD").unwrap()
 }
 
 /// The Viper backend that should be used for the verification

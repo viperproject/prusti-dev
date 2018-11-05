@@ -401,7 +401,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 ..
             } => {
                 if destination.is_some() {
-                    let func_proc_name: &str = &self.encoder.env().get_item_name(def_id);
+                    let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
                     let lhs_value = encoded_lhs.clone().access(self.encoder.encode_value_field(ty));

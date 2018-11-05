@@ -212,12 +212,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             ast.program(&domains, &fields, &functions, &predicates, &methods)
         };
 
-        if config::dump_debug_info() {
-            // Dump Viper program
-            let source_path = self.env.source_path();
-            let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-            Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
-        }
+        // Dump Viper program
+        let source_path = self.env.source_path();
+        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+        Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
 
         info!("Construction of JVM objects successful");
 
