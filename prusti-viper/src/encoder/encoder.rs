@@ -468,8 +468,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
-        // Rule: the rhs must always have an even number of "$" and "_"
-        self.env.get_item_name(def_id)
+        // Rule: the rhs must always have an even number of "$"
+        self.env.get_item_def_path(def_id)
             .replace("::", "$$")
             .replace("<", "$openang$").replace(">", "$closeang$")
             .replace("(", "$openrou$").replace(")", "$closerou$")
