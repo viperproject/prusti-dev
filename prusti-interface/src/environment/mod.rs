@@ -33,6 +33,7 @@ use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use syntax::codemap::CodeMap;
 use utils::get_attr_value;
 use config;
+use syntax::codemap::Span;
 
 /// A facade to the Rust compiler.
 pub trait Environment<'a, 'tcx: 'a> {
@@ -155,6 +156,20 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         if config::dump_borrowck_info() {
             dump_borrowck_info::dump_borrowck_info(self.tcx())
         }
+    }
+
+    /// Get an absolute `def_path`. Note: not preserved across compilations!
+    pub fn get_item_def_path(&self, def_id: DefId) -> String {
+        let def_path = self.tcx().def_path(def_id);
+        let mut crate_name = self.tcx().crate_name(def_path.krate).to_string();
+        crate_name.push_str(&def_path.to_string_no_crate());
+        crate_name
+    }
+
+    /// Get the span of a definition
+    /// Note: panics on non-local `def_id`
+    pub fn get_item_span(&self, def_id: DefId) -> Span {
+        self.tcx().hir.span_if_local(def_id).unwrap()
     }
 }
 

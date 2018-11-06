@@ -152,7 +152,9 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
         for &proc_id in &task.procedures {
             let proc_name = self.env.get_item_name(proc_id);
-            info!(" - {}", proc_name);
+            let proc_def_path = self.env.get_item_def_path(proc_id);
+            let proc_span = self.env.get_item_span(proc_id);
+            info!(" - {} ({}) at {:?}", proc_name, proc_def_path, proc_span);
         }
 
         for &proc_id in &task.procedures {
