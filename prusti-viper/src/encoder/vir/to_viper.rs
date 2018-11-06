@@ -177,6 +177,14 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     &[],
                 )
             }
+            &Stmt::ApplyMagicWand(ref lhs, ref rhs) => {
+                ast.apply(
+                    ast.magic_wand(
+                        lhs.to_viper(ast),
+                        rhs.to_viper(ast),
+                    ),
+                )
+            }
         }
     }
 }

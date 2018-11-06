@@ -485,6 +485,9 @@ pub enum Stmt {
     /// Arguments: the lhs of the magic wand, the rhs, then the package statements, then some
     /// statements that will be encoded just after the package statement.
     PackageMagicWand(Expr, Expr, Vec<Stmt>, Vec<Stmt>),
+    /// Apply a Magic Wand.
+    /// Arguments: the lhs of the magic wand and the rhs.
+    ApplyMagicWand(Expr, Expr),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -657,6 +660,10 @@ impl fmt::Display for Stmt {
                 }
                 write!(f, "}}")
             }
+
+            Stmt::ApplyMagicWand(ref lhs, ref rhs) => {
+                writeln!(f, "apply {} --* {}", lhs, rhs)
+            }
         }
     }
 }
@@ -683,6 +690,7 @@ pub trait StmtFolder {
             Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
             Stmt::StopExpiringLoans => self.fold_stop_expiring_borrows(),
             Stmt::PackageMagicWand(l, r, s,t) => self.fold_package_magic_wand(l, r, s, t),
+            Stmt::ApplyMagicWand(l, r) => self.fold_apply_magic_wand(l, r),
         }
     }
 
@@ -764,6 +772,13 @@ pub trait StmtFolder {
             self.fold_expr(r),
             s.into_iter().map(|x| self.fold(x)).collect(),
             t.into_iter().map(|x| self.fold(x)).collect()
+        )
+    }
+
+    fn fold_apply_magic_wand(&mut self, l: Expr, r: Expr) -> Stmt {
+        Stmt::ApplyMagicWand(
+            self.fold_expr(l),
+            self.fold_expr(r),
         )
     }
 }
