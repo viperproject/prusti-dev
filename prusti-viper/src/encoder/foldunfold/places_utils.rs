@@ -13,7 +13,7 @@ use std::hash::Hash;
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { a, b.c.d, b.c.e, d.e.f }
-pub fn filter_with_prefix_in_other(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_with_prefix_in_other(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -35,7 +35,7 @@ pub fn filter_with_prefix_in_other(left: &HashSet<vir::Place>, right: &HashSet<v
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { a, b.c }
-pub fn filter_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_prefixes_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -54,7 +54,7 @@ pub fn filter_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { b.c }
-pub fn filter_proper_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_proper_prefixes_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -73,7 +73,7 @@ pub fn filter_proper_prefixes_of(left: &HashSet<vir::Place>, right: &HashSet<vir
 ///   { a, b.c.d, b.c.e, d.e,h },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, b.c.d, b.c.e }
-pub fn filter_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -92,7 +92,7 @@ pub fn filter_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Pla
 ///   { a, b.c.d, b.c.e, d.e,h },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { b.c.d, b.c.e }
-pub fn filter_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_proper_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -112,7 +112,7 @@ pub fn filter_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<v
 ///   { a, b.c.d, b.c.e, d.e },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, b.c.d }
-pub fn filter_not_proper_prefix_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_not_proper_prefix_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -136,7 +136,7 @@ pub fn filter_not_proper_prefix_of(left: &HashSet<vir::Place>, right: &HashSet<v
 ///   { a, b.c.d, b.c.e, d.e },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, d.e }
-pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -160,7 +160,7 @@ pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Place>, right: &HashS
 ///   { a, b.c, d.e.g, d.g }
 ///   { a, b.c.d, b.c.e, d.e.f },
 /// ) = { a, b.c, d }
-pub fn common_ancestors(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn common_ancestors(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut intermediate = HashSet::new();
     for left_item in left.iter() {
         for candidate_ancestor in left_item.all_prefixes().into_iter().rev() {
@@ -194,7 +194,7 @@ pub fn common_ancestors(left: &HashSet<vir::Place>, right: &HashSet<vir::Place>)
 /// ancestors(
 ///   { a, b.c, b.c.e, d.e.f },
 /// ) = { a, b.c, d.e.f }
-pub fn ancestors(initial: &HashSet<vir::Place>) -> HashSet<vir::Place> {
+pub fn ancestors(initial: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     // Filter paths that are an extension of some other path
     // This way, we avoid having both `d` and `d.g`

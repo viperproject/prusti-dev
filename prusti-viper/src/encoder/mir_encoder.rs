@@ -17,7 +17,6 @@ use rustc_data_structures::indexed_vec::Idx;
 use encoder::borrows::ProcedureContract;
 use encoder::places;
 use encoder::vir::ExprIterator;
-use encoder::vir::utils::ExprSubPlaceSubstitutor;
 use encoder::places::LocalVariableManager;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::error_manager::ErrorCtxt;
@@ -93,7 +92,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     /// - `vir::Expr`: the expression of the projection;
     /// - `ty::Ty<'tcx>`: the type of the expression;
     /// - `Option<usize>`: optionally, the variant of the enum.
-    pub fn encode_place(&self, place: &mir::Place<'tcx>) -> (vir::Place, ty::Ty<'tcx>, Option<usize>) {
+    pub fn encode_place(&self, place: &mir::Place<'tcx>) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
         trace!("Encode place {:?}", place);
         match place {
             &mir::Place::Local(local) => (
@@ -110,11 +109,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     /// Returns
-    /// - `vir::Place`: the place of the projection;
+    /// - `vir::Expr`: the place of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
     fn encode_projection(&self, place_projection: &mir::PlaceProjection<'tcx>)
-                         -> (vir::Place, ty::Ty<'tcx>, Option<usize>) {
+                         -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
         trace!("Encode projection {:?}", place_projection);
         let (encoded_base, base_ty, opt_variant_index) =
             self.encode_place(&place_projection.base);
@@ -135,7 +134,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()];
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        let encoded_projection = encoded_base.access_curr(encoded_field);
+                        let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
 
@@ -152,7 +151,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                         let field_ty = field.ty(tcx, subst);
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        let encoded_projection = encoded_base.access_curr(encoded_field);
+                        let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
 
@@ -162,11 +161,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
                         let field_ty = closure_subst.upvar_tys(def_id, tcx).nth(field.index()).unwrap();
 
-                        let mut encoded_projection: vir::Place = tcx.with_freevars(node_id, |freevars| {
+                        let mut encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
                             let freevar = &freevars[field.index()];
                             let field_name = format!("closure_{}", field.index());
                             let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                            let res = encoded_base.access_curr(encoded_field);
+                            let res = encoded_base.field(encoded_field);
                             let var_name = tcx.hir.name(freevar.var_id()).to_string();
                             trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
                             res
@@ -220,7 +219,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_deref(&self, encoded_base: vir::Place, base_ty: ty::Ty<'tcx>) -> (vir::Place, ty::Ty<'tcx>, Option<usize>) {
+    pub fn encode_deref(&self, encoded_base: vir::Expr, base_ty: ty::Ty<'tcx>) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
         trace!("encode_deref {} {}", encoded_base, base_ty);
         assert!(self.can_be_dereferenced(base_ty), "Type {:?} can not be dereferenced", base_ty);
         match base_ty.sty {
@@ -230,10 +229,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     encoded_base.get_parent().unwrap().clone()
                 } else {
                     match encoded_base {
-                        vir::Place::AddrOf(box base_base_place, ty) => base_base_place,
+                        vir::Expr::AddrOf(box base_base_place, ty) => base_base_place,
                         _ => {
                             let ref_field = self.encoder.encode_ref_field("val_ref", ty);
-                            encoded_base.access_curr(ref_field)
+                            encoded_base.field(ref_field)
                         }
                     }
                 };
@@ -245,7 +244,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 } else {
                     let field_ty = base_ty.boxed_ty();
                     let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
-                    encoded_base.access_curr(ref_field)
+                    encoded_base.field(ref_field)
                 };
                 (access, base_ty.boxed_ty(), None)
             }
@@ -253,10 +252,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Place {
+    pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Expr {
         let (encoded_place, place_ty, _) = self.encode_place(place);
         let value_field = self.encoder.encode_value_field(place_ty);
-        encoded_place.access_curr(value_field)
+        encoded_place.field(value_field)
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand
@@ -425,7 +424,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_operand_place(&self, operand: &mir::Operand<'tcx>) -> Option<vir::Place> {
+    pub fn encode_operand_place(&self, operand: &mir::Operand<'tcx>) -> Option<vir::Expr> {
         debug!("Encode operand place {:?}", operand);
         match operand {
             &mir::Operand::Move(ref place) |
@@ -440,7 +439,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_place_predicate_permission(&self, place: vir::Place, frac: vir::Frac) -> Option<vir::Expr> {
+    pub fn encode_place_predicate_permission(&self, place: vir::Expr, frac: vir::Frac) -> Option<vir::Expr> {
         place.typed_ref_name().map(|predicate_name|
             vir::Expr::PredicateAccessPredicate(
                 predicate_name,
@@ -450,7 +449,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         )
     }
 
-    pub fn encode_old_place(&self, mut place: vir::Place, label: &str) -> vir::Expr {
+    pub fn encode_old_place(&self, mut place: vir::Expr, label: &str) -> vir::Expr {
         debug!("encode_old_place {}, {}", place, label);
         vir::Expr::labelled_old(label, place.into())
     }
@@ -460,10 +459,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::Expr::labelled_old(label, expr)
     }
 
-    pub fn encode_place_predicate_body(&self, place: vir::Place) -> vir::Expr {
+    pub fn encode_place_predicate_body(&self, place: vir::Expr) -> vir::Expr {
         let predicate_name = place.typed_ref_name().unwrap();
         let predicate = self.encoder.get_type_predicate_by_name(&predicate_name).unwrap();
-        let pred_self_place: vir::Place = predicate.args[0].clone().into();
-        predicate.body.unwrap().replace(&pred_self_place, &place)
+        let pred_self_place = &predicate.args[0];
+        predicate.body.unwrap().replace_place(&pred_self_place.into(), &place)
     }
 }

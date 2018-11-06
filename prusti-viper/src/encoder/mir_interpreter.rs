@@ -340,33 +340,33 @@ impl MultiExprBackwardInterpreterState {
         self.exprs
     }
 
-    pub fn substitute_place(&mut self, sub_target: &vir::Place, replacement: vir::Place) {
+    pub fn substitute_place(&mut self, sub_target: &vir::Expr, replacement: vir::Expr) {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
 
         // If `replacement` is a reference, simplify also its dereferentiations
-        if let vir::Place::AddrOf(box ref base_replacement, ref dereferenced_type) = replacement {
+        if let vir::Expr::AddrOf(box ref base_replacement, ref dereferenced_type) = replacement {
             trace!("Substitution of a reference. Simplify its dereferentiations.");
             let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
-            let deref_target = sub_target.clone().access_curr(deref_field.clone());
+            let deref_target = sub_target.clone().field(deref_field.clone());
             self.substitute_place(&deref_target, base_replacement.clone());
         }
 
         for expr in &mut self.exprs {
-            *expr = vir::utils::ExprSubPlaceSubstitutor::substitute(expr.clone(), sub_target, replacement.clone());
+            *expr = expr.clone().replace_place(&sub_target, &replacement);
         }
     }
 
-    pub fn substitute_value(&mut self, exact_target: &vir::Place, replacement: vir::Expr) {
+    pub fn substitute_value(&mut self, exact_target: &vir::Expr, replacement: vir::Expr) {
         trace!("substitute_value {:?} --> {:?}", exact_target, replacement);
         for expr in &mut self.exprs {
-            *expr = vir::utils::ExprExactPlaceSubstitutor::substitute(expr.clone(), exact_target, replacement.clone());
+            *expr = expr.clone().replace_place(exact_target, &replacement);
         }
     }
 
-    pub fn use_place(&self, sub_target: &vir::Place) -> bool {
+    pub fn use_place(&self, sub_target: &vir::Expr) -> bool {
         trace!("use_place {:?}", sub_target);
         self.exprs.iter().any(
-            |expr| vir::utils::ExprPlaceFinder::find(expr, sub_target)
+            |expr| expr.find(sub_target)
         )
     }
 }

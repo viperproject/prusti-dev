@@ -4,21 +4,15 @@
 
 use encoder::vir::ast::*;
 
-impl From<LocalVar> for Place {
-    fn from(local_var: LocalVar) -> Self {
-        Place::Base(local_var)
-    }
-}
-
 impl From<LocalVar> for Expr {
     fn from(local_var: LocalVar) -> Self {
-        Expr::Place(local_var.into())
+        Expr::Local(local_var)
     }
 }
 
-impl From<Place> for Expr {
-    fn from(place: Place) -> Self {
-        Expr::Place(place)
+impl<'a> From<&'a LocalVar> for Expr {
+    fn from(local_var: &'a LocalVar) -> Self {
+        Expr::Local(local_var.clone())
     }
 }
 

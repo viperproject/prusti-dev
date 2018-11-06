@@ -14,11 +14,11 @@ use std::iter::FromIterator;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct State {
     /// paths on which we (may) have a full access permission
-    acc: HashMap<vir::Place, Frac>,
+    acc: HashMap<vir::Expr, Frac>,
     /// paths on which we (may) have a full predicate permission
-    pred: HashMap<vir::Place, Frac>,
+    pred: HashMap<vir::Expr, Frac>,
     /// paths that have been "moved out" (for sure)
-    moved: HashSet<vir::Place>,
+    moved: HashSet<vir::Expr>,
     /// Permissions currently framed
     framing_stack: Vec<PermSet>,
     /// Permissions that should be removed from the state
@@ -27,7 +27,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(acc: HashMap<vir::Place, Frac>, pred: HashMap<vir::Place, Frac>, moved: HashSet<vir::Place>) -> Self {
+    pub fn new(acc: HashMap<vir::Expr, Frac>, pred: HashMap<vir::Expr, Frac>, moved: HashSet<vir::Expr>) -> Self {
         State {
             acc,
             pred,
@@ -49,7 +49,7 @@ impl State {
             }
         }
         for place in self.acc.keys() {
-            if place.is_curr() && !place.is_base() && place.is_curr() {
+            if place.is_curr() && !place.is_local() && place.is_curr() {
                 if !self.contains_acc(place.clone().get_parent().unwrap()) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
@@ -132,7 +132,7 @@ impl State {
                 .map(|(p, frac)| {
                     let base_var = p.get_base();
                     let new_base_var = replace(base_var);
-                    let new_place = p.clone().replace_prefix(&vir::Place::Base(base_var.clone()), new_base_var.into());
+                    let new_place = p.clone().replace_place(&vir::Expr::local(base_var.clone()), &new_base_var.into());
                     (new_place, frac)
                 });
             coll.clear();
@@ -146,7 +146,7 @@ impl State {
                 |place| {
                     let base_var = place.get_base();
                     let new_base_var = replace(base_var);
-                    place.clone().replace_prefix(&vir::Place::Base(base_var.clone()), new_base_var.into())
+                    place.clone().replace_place(&vir::Expr::local(base_var.clone()), &new_base_var.into())
                 }
             );
             coll.clear();
@@ -156,7 +156,7 @@ impl State {
         }
     }
 
-    pub fn replace_places<F>(&mut self, replace: F) where F: Fn(vir::Place) -> vir::Place {
+    pub fn replace_places<F>(&mut self, replace: F) where F: Fn(vir::Expr) -> vir::Expr {
         for coll in vec![&mut self.acc, &mut self.pred] {
             let new_values = coll.clone().into_iter()
                 .map(|(p, frac)| {
@@ -169,15 +169,15 @@ impl State {
         }
     }
 
-    pub fn acc(&self) -> &HashMap<vir::Place, Frac> {
+    pub fn acc(&self) -> &HashMap<vir::Expr, Frac> {
         &self.acc
     }
 
-    pub fn acc_places(&self) -> HashSet<vir::Place> {
+    pub fn acc_places(&self) -> HashSet<vir::Expr> {
         self.acc.keys().cloned().collect()
     }
 
-    pub fn acc_leafes(&self) -> HashSet<vir::Place> {
+    pub fn acc_leafes(&self) -> HashSet<vir::Expr> {
         let mut acc_leafes = HashSet::new();
         for place in self.acc.keys() {
             if !self.is_proper_prefix_of_some_acc(place) {
@@ -187,15 +187,15 @@ impl State {
         acc_leafes
     }
 
-    pub fn pred(&self) -> &HashMap<vir::Place, Frac> {
+    pub fn pred(&self) -> &HashMap<vir::Expr, Frac> {
         &self.pred
     }
 
-    pub fn pred_places(&self) -> HashSet<vir::Place> {
+    pub fn pred_places(&self) -> HashSet<vir::Expr> {
         self.pred.keys().cloned().collect()
     }
 
-    pub fn moved(&self) -> &HashSet<vir::Place> {
+    pub fn moved(&self) -> &HashSet<vir::Expr> {
         &self.moved
     }
 
@@ -203,27 +203,27 @@ impl State {
         &self.framing_stack
     }
 
-    pub fn set_acc(&mut self, acc: HashMap<vir::Place, Frac>) {
+    pub fn set_acc(&mut self, acc: HashMap<vir::Expr, Frac>) {
         self.acc = acc
     }
 
-    pub fn set_pred(&mut self, pred: HashMap<vir::Place, Frac>) {
+    pub fn set_pred(&mut self, pred: HashMap<vir::Expr, Frac>) {
         self.pred = pred
     }
 
-    pub fn set_moved(&mut self, moved: HashSet<vir::Place>) {
+    pub fn set_moved(&mut self, moved: HashSet<vir::Expr>) {
         self.moved = moved
     }
 
-    pub fn contains_acc(&self, place: &vir::Place) -> bool {
+    pub fn contains_acc(&self, place: &vir::Expr) -> bool {
         self.acc.contains_key(&place)
     }
 
-    pub fn contains_pred(&self, place: &vir::Place) -> bool {
+    pub fn contains_pred(&self, place: &vir::Expr) -> bool {
         self.pred.contains_key(&place)
     }
 
-    pub fn contains_moved(&self, place: &vir::Place) -> bool {
+    pub fn contains_moved(&self, place: &vir::Expr) -> bool {
         self.moved.contains(&place)
     }
 
@@ -239,7 +239,7 @@ impl State {
         items.all(|x| self.contains_perm(x))
     }
 
-    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
+    pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Expr) -> bool {
         for place in self.acc.keys() {
             if place.has_proper_prefix(prefix) {
                 return true;
@@ -248,7 +248,7 @@ impl State {
         false
     }
 
-    pub fn is_proper_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {
+    pub fn is_proper_prefix_of_some_pred(&self, prefix: &vir::Expr) -> bool {
         for place in self.pred.keys() {
             if place.has_proper_prefix(prefix) {
                 return true;
@@ -257,7 +257,7 @@ impl State {
         false
     }
 
-    pub fn is_proper_prefix_of_some_moved(&self, prefix: &vir::Place) -> bool {
+    pub fn is_proper_prefix_of_some_moved(&self, prefix: &vir::Expr) -> bool {
         for place in &self.moved {
             if place.has_prefix(prefix) {
                 return true;
@@ -266,7 +266,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_acc(&self, prefix: &vir::Place) -> bool {
+    pub fn is_prefix_of_some_acc(&self, prefix: &vir::Expr) -> bool {
         for place in self.acc.keys() {
             if place.has_prefix(prefix) {
                 return true;
@@ -275,7 +275,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_pred(&self, prefix: &vir::Place) -> bool {
+    pub fn is_prefix_of_some_pred(&self, prefix: &vir::Expr) -> bool {
         for place in self.pred.keys() {
             if place.has_prefix(prefix) {
                 return true;
@@ -284,7 +284,7 @@ impl State {
         false
     }
 
-    pub fn is_prefix_of_some_moved(&self, prefix: &vir::Place) -> bool {
+    pub fn is_prefix_of_some_moved(&self, prefix: &vir::Expr) -> bool {
         for place in &self.moved {
             if place.has_prefix(prefix) {
                 return true;
@@ -293,7 +293,7 @@ impl State {
         false
     }
 
-    pub fn intersect_acc(&mut self, acc_set: &HashSet<vir::Place>) {
+    pub fn intersect_acc(&mut self, acc_set: &HashSet<vir::Expr>) {
         let mut new_acc = HashMap::new();
         for (place, frac) in self.acc.drain() {
             if acc_set.contains(&place) {
@@ -303,7 +303,7 @@ impl State {
         self.acc = new_acc;
     }
 
-    pub fn intersect_pred(&mut self, pred_set: &HashSet<vir::Place>) {
+    pub fn intersect_pred(&mut self, pred_set: &HashSet<vir::Expr>) {
         let mut new_pred = HashMap::new();
         for (place, frac) in self.pred.drain() {
             if pred_set.contains(&place) {
@@ -313,7 +313,7 @@ impl State {
         self.pred = new_pred;
     }
 
-    pub fn intersect_moved(&mut self, other_moved: &HashSet<vir::Place>) {
+    pub fn intersect_moved(&mut self, other_moved: &HashSet<vir::Expr>) {
         self.moved = HashSet::from_iter(self.moved.intersection(other_moved).cloned());
     }
 
@@ -322,7 +322,7 @@ impl State {
     }
 
     pub fn remove_matching_place<P>(&mut self, pred: P)
-        where P: Fn(&vir::Place) -> bool
+        where P: Fn(&vir::Expr) -> bool
     {
         self.remove_acc_matching(|x| pred(x));
         self.remove_pred_matching(|x| pred(x));
@@ -330,19 +330,19 @@ impl State {
     }
 
     pub fn remove_acc_matching<P>(&mut self, pred: P)
-        where P: Fn(&vir::Place) -> bool
+        where P: Fn(&vir::Expr) -> bool
     {
         self.acc.retain(|e, _| !pred(e));
     }
 
     pub fn remove_pred_matching<P>(&mut self, pred: P)
-        where P: Fn(&vir::Place) -> bool
+        where P: Fn(&vir::Expr) -> bool
     {
         self.pred.retain(|e, _| !pred(e));
     }
 
     pub fn remove_moved_matching<P>(&mut self, pred: P)
-        where P: Fn(&vir::Place) -> bool
+        where P: Fn(&vir::Expr) -> bool
     {
         self.moved.retain(|e| !pred(e));
     }
@@ -371,7 +371,7 @@ impl State {
         self.moved.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
     }
 
-    pub fn insert_acc(&mut self, place: vir::Place, frac: Frac) {
+    pub fn insert_acc(&mut self, place: vir::Expr, frac: Frac) {
         trace!("insert_acc {}, {}", place, frac);
         if self.acc.contains_key(&place) {
             let new_frac = self.acc[&place] + frac;
@@ -382,13 +382,13 @@ impl State {
         }
     }
 
-    pub fn insert_all_acc<I>(&mut self, items: I) where I: Iterator<Item = (vir::Place, Frac)> {
+    pub fn insert_all_acc<I>(&mut self, items: I) where I: Iterator<Item = (vir::Expr, Frac)> {
         for (place, frac) in items {
             self.insert_acc(place, frac);
         }
     }
 
-    pub fn insert_pred(&mut self, place: vir::Place, frac: Frac) {
+    pub fn insert_pred(&mut self, place: vir::Expr, frac: Frac) {
         trace!("insert_pred {}, {}", place, frac);
         if self.pred.contains_key(&place) {
             let new_frac = self.pred[&place] + frac;
@@ -399,18 +399,18 @@ impl State {
         }
     }
 
-    pub fn insert_all_pred<I>(&mut self, items: I) where I: Iterator<Item = (vir::Place, Frac)> {
+    pub fn insert_all_pred<I>(&mut self, items: I) where I: Iterator<Item = (vir::Expr, Frac)> {
         for (place, frac) in items {
             self.insert_pred(place, frac);
         }
     }
 
-    pub fn insert_moved(&mut self, place: vir::Place) {
+    pub fn insert_moved(&mut self, place: vir::Expr) {
         //assert!(!self.pred.contains(&place), "Place {} is already in state (pred), so it can not be added.", place);
         self.moved.insert(place);
     }
 
-    pub fn insert_all_moved<I>(&mut self, items: I) where I: Iterator<Item = vir::Place> {
+    pub fn insert_all_moved<I>(&mut self, items: I) where I: Iterator<Item = vir::Expr> {
         for item in items {
             self.insert_moved(item);
         }
@@ -445,17 +445,17 @@ impl State {
         }
     }
 
-    pub fn remove_acc_place(&mut self, place: &vir::Place) -> Frac {
+    pub fn remove_acc_place(&mut self, place: &vir::Expr) -> Frac {
         assert!(self.acc.contains_key(place), "Place {} is not in state (acc), so it can not be removed.", place);
         self.acc.remove(place).unwrap()
     }
 
-    pub fn remove_pred_place(&mut self, place: &vir::Place) -> Frac {
+    pub fn remove_pred_place(&mut self, place: &vir::Expr) -> Frac {
         assert!(self.pred.contains_key(place), "Place {} is not in state (pred), so it can not be removed.", place);
         self.pred.remove(place).unwrap()
     }
 
-    pub fn remove_acc(&mut self, place: &vir::Place, frac: Frac) {
+    pub fn remove_acc(&mut self, place: &vir::Expr, frac: Frac) {
         assert!(self.acc.contains_key(place), "Place {} is not in state (acc), so it can not be removed.", place);
         assert!(self.acc[place] >= frac, "Trying to exhale {} access permission, while there is only {}", frac, self.acc[place]);
         if self.acc[place] == frac {
@@ -465,7 +465,7 @@ impl State {
         }
     }
 
-    pub fn remove_pred(&mut self, place: &vir::Place, frac: Frac) {
+    pub fn remove_pred(&mut self, place: &vir::Expr, frac: Frac) {
         trace!("remove_pred {}, {}", place, frac);
         assert!(self.pred.contains_key(place), "Place {} is not in state (pred), so it can not be removed.", place);
         assert!(self.pred[place] >= frac, "Trying to exhale {} predicate permission, while there is only {}", frac, self.pred[place]);
@@ -476,7 +476,7 @@ impl State {
         }
     }
 
-    pub fn remove_moved(&mut self, place: &vir::Place) {
+    pub fn remove_moved(&mut self, place: &vir::Expr) {
         assert!(self.moved.contains(place), "Place {} is not in state (moved), so it can not be removed.", place);
         self.moved.remove(place);
     }
@@ -497,7 +497,7 @@ impl State {
     pub fn as_vir_expr(&self) -> vir::Expr {
         let mut exprs: Vec<vir::Expr> = vec![];
         for (place, frac) in self.acc.iter() {
-            if !place.is_base() && place.is_curr() {
+            if !place.is_local() && place.is_curr() {
                 if !self.is_dropped(&Perm::acc(place.clone(), *frac)) {
                     exprs.push(
                         vir::Expr::acc_permission(place.clone(), *frac)
@@ -520,7 +520,7 @@ impl State {
         trace!("Before: {} frames are on the stack", self.framing_stack.len());
         let mut framed_perms = PermSet::empty();
         for (place, frac) in self.acc.clone().into_iter() {
-            if !place.is_base() {
+            if !place.is_local() {
                 self.acc.remove(&place);
                 framed_perms.add(Perm::Acc(place.clone(), frac));
             }

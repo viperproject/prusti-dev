@@ -196,7 +196,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::LocalVar::new(var_name, encoded_type)
     }
 
-    fn encode_hir_path(&self, base_expr: &hir::Expr) -> vir::Place {
+    fn encode_hir_path(&self, base_expr: &hir::Expr) -> vir::Expr {
         trace!("encode_hir_path: {:?}", base_expr.node);
         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
         match base_expr.node {
@@ -204,17 +204,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
                 let field = self.encode_hir_field(base_expr);
-                place.access_curr(field)
+                place.field(field)
             }
 
             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ref expr) => {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
                 match place {
-                    vir::Place::AddrOf(box base, typ) => base,
+                    vir::Expr::AddrOf(box base, typ) => base,
                     _ => {
                         let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
-                        place.access_curr(vir::Field::new("val_ref", vir::Type::TypedRef(type_name))).into()
+                        place.field(vir::Field::new("val_ref", vir::Type::TypedRef(type_name))).into()
                     }
                 }
             }
@@ -226,7 +226,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             hir::Expr_::ExprMatch(..) => unreachable!("A path is expected, but found {:?}", base_expr),
 
             hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref var_path)) => {
-                vir::Place::Base(self.encode_hir_variable(var_path))
+                vir::Expr::Local(self.encode_hir_variable(var_path))
             }
 
             ref x => unimplemented!("{:?}", x),
@@ -240,10 +240,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         if place.get_type().is_ref() {
             match base_ty.sty {
-                ty::TypeVariants::TyBool => place.access_curr(vir::Field::new("val_bool", vir::Type::Bool)).into(),
+                ty::TypeVariants::TyBool => place.field(vir::Field::new("val_bool", vir::Type::Bool)).into(),
 
                 ty::TypeVariants::TyInt(..) |
-                ty::TypeVariants::TyUint(..) => place.access_curr(vir::Field::new("val_int", vir::Type::Int)).into(),
+                ty::TypeVariants::TyUint(..) => place.field(vir::Field::new("val_int", vir::Type::Int)).into(),
 
                 ty::TypeVariants::TyTuple(..) |
                 ty::TypeVariants::TyAdt(..) => place.into(),
@@ -433,7 +433,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 |(index, &captured_ty)| {
                     let field_name = format!("closure_{}", index);
                     let encoded_field = self.encoder.encode_ref_field(&field_name, captured_ty);
-                    deref_closure_var.clone().access_curr(encoded_field)
+                    deref_closure_var.clone().field(encoded_field)
                 }
             ).collect();
             let outer_captured_places: Vec<_> = captured_operands.iter().map(
@@ -451,9 +451,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     outer_place.get_type()
                 );
                 assert_eq!(inner_place.get_type(), outer_place.get_type());
-                encoded_expr = encoded_expr.substitute_place_with_place(
+                encoded_expr = encoded_expr.replace_place(
                     inner_place,
-                    outer_place.clone()
+                    outer_place
                 );
             }
 
@@ -487,16 +487,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let value_field = self.encoder.encode_value_field(local_arg.ty);
                         let value_type = self.encoder.encode_value_type(local_arg.ty);
                         let proper_var = vir::LocalVar::new(var_name.to_string(), value_type);
-                        let encoded_arg_value = vir::Place::Base(encoded_arg).access_curr(value_field);
+                        let encoded_arg_value = vir::Expr::Local(encoded_arg).field(value_field);
                         trace!(
                             "Place {}: {} is renamed to {} because a quantifier introduced it",
                             encoded_arg_value,
                             encoded_arg_value.get_type(),
                             proper_var
                         );
-                        encoded_expr = encoded_expr.substitute_place_with_place(
+                        encoded_expr = encoded_expr.replace_place(
                             &encoded_arg_value,
-                            proper_var.into()
+                            &proper_var.into()
                         );
                     }
                 }
@@ -532,13 +532,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         for (local, target_arg) in curr_mir.args_iter().zip(self.target_args) {
             let local_ty = curr_mir.local_decls[local].ty;
             let spec_local = curr_mir_encoder.encode_local(local);
-            let spec_local_place: vir::Place = if self.targets_are_values {
+            let spec_local_place: vir::Expr = if self.targets_are_values {
                 let value_field = self.encoder.encode_value_field(local_ty);
-                vir::Place::Base(spec_local).access_curr(value_field)
+                vir::Expr::Local(spec_local).field(value_field)
             } else {
                 spec_local.into()
             };
-            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_local_place, target_arg.clone());
+            encoded_expr = encoded_expr.replace_place(&spec_local_place, target_arg);
         }
         if let Some(target_return) = self.target_return {
             let fake_return_local = curr_mir.args_iter().last().unwrap();
@@ -554,8 +554,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         ty::TypeVariants::TyRawPtr(..) |
                         ty::TypeVariants::TyRef(..) => {
                             let value_field = self.encoder.encode_value_field(curr_mir.return_ty());
-                            let spec_fake_return_value = vir::Place::Base(spec_fake_return.clone()).access_curr(value_field);
-                            encoded_expr = encoded_expr.substitute_place_with_expr(&spec_fake_return_value, target_return_value.clone());
+                            let spec_fake_return_value = vir::Expr::Local(spec_fake_return.clone()).field(value_field);
+                            encoded_expr = encoded_expr.replace_place(&spec_fake_return_value, target_return_value);
                         }
                         _ => {}
                     }
@@ -563,18 +563,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 None => {}
             }*/
 
-            let spec_fake_return_place: vir::Place = if self.targets_are_values {
+            let spec_fake_return_place: vir::Expr = if self.targets_are_values {
                 let value_field = self.encoder.encode_value_field(fake_return_ty);
-                vir::Place::Base(spec_fake_return).access_curr(value_field)
+                vir::Expr::Local(spec_fake_return).field(value_field)
             } else {
                 spec_fake_return.clone().into()
             };
 
             debug!("spec_fake_return_place: {}", spec_fake_return_place);
             debug!("target_return: {}", target_return);
-            encoded_expr = encoded_expr.substitute_place_with_expr(
+            encoded_expr = encoded_expr.replace_place(
                 &spec_fake_return_place,
-                target_return.clone()
+                target_return
             );
         }
 

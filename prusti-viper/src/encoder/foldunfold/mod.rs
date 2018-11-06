@@ -246,8 +246,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 ]
             }
 
-            vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref old_package_stmts, ref old_then_stmts) => {
-                debug_assert!(old_then_stmts.is_empty());
+            vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref old_package_stmts) => {
                 let mut package_bctxt = bctxt.clone();
                 let mut package_stmts = vec![];
                 for stmt in old_package_stmts {
@@ -313,7 +312,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                     }
                 }
                 vec![
-                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts, vec![])
+                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts)
                 ]
             }
 
@@ -474,10 +473,10 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         old_bctxt.mut_state().replace_places(
             |place| place.map_labels(
                 |opt_label| {
-                    if opt_label == Some(label.clone()) {
+                    if opt_label == label.clone() {
                         None
                     } else {
-                        opt_label
+                        Some(opt_label)
                     }
                 }
             )

@@ -27,7 +27,7 @@ impl<'a> BranchCtxt<'a> {
     pub fn new(local_vars: Vec<vir::LocalVar>, predicates: &'a HashMap<String, vir::Predicate>) -> Self {
         BranchCtxt {
             state: State::new(
-                HashMap::from_iter(local_vars.into_iter().map(|v| (vir::Place::Base(v), Frac::one()))),
+                HashMap::from_iter(local_vars.into_iter().map(|v| (vir::Expr::local(v), Frac::one()))),
                 HashMap::new(),
                 HashSet::new()
             ),
@@ -48,7 +48,7 @@ impl<'a> BranchCtxt<'a> {
     }
 
     /// Simulate an unfold
-    fn unfold(&mut self, pred_place: &vir::Place, frac: Frac) -> Action {
+    fn unfold(&mut self, pred_place: &vir::Expr, frac: Frac) -> Action {
         debug!("We want to unfold {:?}", pred_place);
         assert!(self.state.contains_acc(pred_place));
         assert!(self.state.contains_pred(pred_place));
@@ -56,12 +56,12 @@ impl<'a> BranchCtxt<'a> {
         let predicate_name = pred_place.typed_ref_name().unwrap();
         let predicate = self.predicates.get(&predicate_name).unwrap();
 
-        let pred_self_place: vir::Place = predicate.args[0].clone().into();
+        let pred_self_place: vir::Expr = predicate.args[0].clone().into();
         let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
             .map(
                 |perm| {
                     perm.map_place( |p|
-                        p.replace_prefix(&pred_self_place, pred_place.clone())
+                        p.replace_place(&pred_self_place, pred_place)
                     ) * frac
                 }
             ).collect();
@@ -226,7 +226,7 @@ impl<'a> BranchCtxt<'a> {
             debug!("Requirement {} is satisfied", req);
             return actions;
         }
-        if req.is_acc() && req.is_base() {
+        if req.is_acc() && req.is_local() {
             // access permissions on local variables are always satisfied
             debug!("Requirement {} is satisfied", req);
             return actions;
@@ -236,7 +236,7 @@ impl<'a> BranchCtxt<'a> {
 
         /*
         // 2. Obtain by restoring a borrowed path with a magic wand
-        let existing_prefix_borrowed_opt: Option<vir::Place> = self.state.borrowed().iter()
+        let existing_prefix_borrowed_opt: Option<vir::Expr> = self.state.borrowed().iter()
             .find(|p| req.has_prefix(p))
             .cloned();
         if let Some(existing_borrowed_to_restore) = existing_prefix_borrowed_opt {
@@ -253,7 +253,7 @@ impl<'a> BranchCtxt<'a> {
 
         // 3. Obtain with an unfold
         // Find a predicate on a proper prefix of req
-        let existing_prefix_pred_opt: Option<vir::Place> = self.state.pred_places().iter()
+        let existing_prefix_pred_opt: Option<vir::Expr> = self.state.pred_places().iter()
             .find(|p| req.has_proper_prefix(p))
             .cloned();
         if let Some(existing_pred_to_unfold) = existing_prefix_pred_opt {
@@ -276,12 +276,12 @@ impl<'a> BranchCtxt<'a> {
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
-            let pred_self_place: vir::Place = predicate.args[0].clone().into();
+            let pred_self_place: vir::Expr = predicate.args[0].clone().into();
             let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                 .map(
                     |perm| {
                         perm.map_place( |p|
-                            p.replace_prefix(&pred_self_place, req.get_place().clone())
+                            p.replace_place(&pred_self_place, req.get_place())
                         )
                     }
                 ).collect();

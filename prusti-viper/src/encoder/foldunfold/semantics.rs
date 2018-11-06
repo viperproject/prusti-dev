@@ -14,14 +14,14 @@ use std::collections::HashSet;
 fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
     state.insert_all_perms(
         expr.get_permissions(predicates).into_iter()
-            .filter(|p| !(p.is_base() && p.is_acc()))
+            .filter(|p| !(p.is_local() && p.is_acc()))
     );
 }
 
 fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
     state.remove_all_perms(
         expr.get_permissions(predicates).iter()
-            .filter(|p| !(p.is_base() && p.is_acc()))
+            .filter(|p| !(p.is_local() && p.is_acc()))
             // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
             .filter(|p| p.get_label() != Some(&"pre".to_string()))
     );
@@ -52,40 +52,35 @@ impl vir::Stmt {
                 // We know that in Prusti method's preconditions and postconditions are empty
                 state.remove_moved_matching(|p| targets.contains(p.get_base()));
                 state.remove_pred_matching(|p| p.is_curr() && targets.contains(p.get_base()));
-                state.remove_acc_matching(|p| p.is_curr() && !p.is_base() && targets.contains(p.get_base()));
+                state.remove_acc_matching(|p| p.is_curr() && !p.is_local() && targets.contains(p.get_base()));
             }
 
             &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
+                debug_assert!(lhs_place.is_place());
                 let original_state = state.clone();
 
                 // Mark the `rhs` as moved or borrowed
                 match kind {
                     vir::AssignKind::Move => {
-                        if let &vir::Expr::Place(ref rhs_place) = rhs {
-                            assert!(rhs_place.get_type().is_ref());
+                        debug_assert!(rhs.is_place());
+                        assert!(rhs.get_type().is_ref());
 
-                            // Check that the rhs contains no moved paths
-                            assert!(!state.is_prefix_of_some_moved(&rhs_place));
-                            for prefix in rhs_place.all_proper_prefixes() {
-                                assert!(!state.contains_pred(prefix));
-                            }
-
-                            state.insert_moved(rhs_place.clone());
-                        } else {
-                            unreachable!()
+                        // Check that the rhs contains no moved paths
+                        assert!(!state.is_prefix_of_some_moved(&rhs));
+                        for prefix in rhs.all_proper_prefixes() {
+                            assert!(!state.contains_pred(prefix));
                         }
+
+                        state.insert_moved(rhs.clone());
                     }
                     vir::AssignKind::MutableBorrow => {
-                        if let &vir::Expr::Place(ref rhs_place) = rhs {
-                            assert!(rhs_place.get_type().is_ref());
+                        debug_assert!(rhs.is_place());
+                        assert!(rhs.get_type().is_ref());
 
-                            // Check that the rhs contains no moved paths
-                            assert!(!state.is_prefix_of_some_moved(&rhs_place));
-                            for prefix in rhs_place.all_proper_prefixes() {
-                                assert!(!state.contains_pred(prefix));
-                            }
-                        } else {
-                            unreachable!()
+                        // Check that the rhs contains no moved paths
+                        assert!(!state.is_prefix_of_some_moved(&rhs));
+                        for prefix in rhs.all_proper_prefixes() {
+                            assert!(!state.contains_pred(prefix));
                         }
                     }
                     _ => {}
@@ -97,41 +92,39 @@ impl vir::Stmt {
                 state.remove_acc_matching(|p| p.has_proper_prefix(&lhs_place));
 
                 // In case of move or borrowing, move permissions from the `rhs` to the `lhs`
-                match rhs {
-                    &vir::Expr::Place(ref rhs_place) if rhs_place.get_type().is_ref() => {
-                        // This is a move assignemnt or the creation of a mutable borrow
-                        assert!(match kind { vir::AssignKind::Copy => false, _ => true }, "Unexpected assignment kind: {:?}", kind);
+                if rhs.is_place() && rhs.get_type().is_ref() {
+                    // This is a move assignemnt or the creation of a mutable borrow
+                    assert!(match kind { vir::AssignKind::Copy => false, _ => true }, "Unexpected assignment kind: {:?}", kind);
 
-                        // In Prusti, we lose permission on the rhs
-                        state.remove_pred_matching( |p| p.has_prefix(&rhs_place));
-                        state.remove_acc_matching( |p| p.has_proper_prefix(&rhs_place) && !p.is_base());
+                    // In Prusti, we lose permission on the rhs
+                    state.remove_pred_matching( |p| p.has_prefix(&rhs));
+                    state.remove_acc_matching( |p| p.has_proper_prefix(&rhs) && !p.is_local());
 
-                        // We also lose permission on the lhs
-                        state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
-                        state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place) && !p.is_base());
+                    // We also lose permission on the lhs
+                    state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
+                    state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place) && !p.is_local());
 
-                        // And we create permissions for the lhs
-                        let new_acc_places = original_state.acc().iter()
-                            .filter(|(p, _)| p.has_proper_prefix(&rhs_place))
-                            .map(|(p, frac)| (p.clone().replace_prefix(&rhs_place, lhs_place.clone()), *frac))
-                            .filter(|(p, _)| !p.is_base());
-                        state.insert_all_acc(new_acc_places);
+                    // And we create permissions for the lhs
+                    let new_acc_places = original_state.acc().iter()
+                        .filter(|(p, _)| p.has_proper_prefix(&rhs))
+                        .map(|(p, frac)| (p.clone().replace_place(&rhs, lhs_place), *frac))
+                        .filter(|(p, _)| !p.is_local());
+                    state.insert_all_acc(new_acc_places);
 
-                        let new_pred_places = original_state.pred().iter()
-                            .filter(|(p, _)| p.has_prefix(&rhs_place))
-                            .map(|(p, frac)| (p.clone().replace_prefix(&rhs_place, lhs_place.clone()), *frac));
-                        state.insert_all_pred(new_pred_places);
-                    }
-                    _ => {
-                        // This is not move assignemnt or the creation of a mutable borrow
-                        assert!(match kind { vir::AssignKind::Copy => true, _ => false }, "Unexpected assignment kind: {:?}", kind);
-                    }
+                    let new_pred_places = original_state.pred().iter()
+                        .filter(|(p, _)| p.has_prefix(&rhs))
+                        .map(|(p, frac)| (p.clone().replace_place(&rhs, lhs_place), *frac));
+                    state.insert_all_pred(new_pred_places);
+                } else {
+                    // This is not move assignemnt or the creation of a mutable borrow
+                    assert!(match kind { vir::AssignKind::Copy => true, _ => false }, "Unexpected assignment kind: {:?}", kind);
                 }
             }
 
             &vir::Stmt::Fold(ref pred_name, ref args, frac) => {
                 assert_eq!(args.len(), 1);
-                let place = &args[0].clone().as_place().unwrap();
+                let place = &args[0];
+                debug_assert!(place.is_place());
                 assert!(!state.contains_pred(place));
                 assert!(!state.is_prefix_of_some_moved(place));
 
@@ -139,12 +132,12 @@ impl vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Place = predicate.args[0].clone().into();
+                let pred_self_place: vir::Expr = predicate.args[0].clone().into();
                 let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                     .map(
                         |perm| {
                             perm.map_place( |p|
-                                p.replace_prefix(&pred_self_place, place.clone())
+                                p.replace_place(&pred_self_place, place)
                             ) * frac
                         }
                     ).collect();
@@ -161,7 +154,8 @@ impl vir::Stmt {
 
             &vir::Stmt::Unfold(ref pred_name, ref args, frac) => {
                 assert_eq!(args.len(), 1);
-                let place = &args[0].clone().as_place().unwrap();
+                let place = &args[0];
+                debug_assert!(place.is_place());
                 assert!(state.contains_pred(place));
                 assert!(!state.is_prefix_of_some_moved(place));
 
@@ -169,10 +163,10 @@ impl vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Place = predicate.args[0].clone().into();
+                let pred_self_place: vir::Expr = predicate.args[0].clone().into();
                 let places_in_pred: Vec<_> = predicate.get_permissions().into_iter()
                     .map( |aop| aop.map_place( |p|
-                        p.replace_prefix(&pred_self_place, place.clone())
+                        p.replace_place(&pred_self_place, place)
                     )).collect();
 
                 for contained_place in &places_in_pred {
@@ -185,9 +179,9 @@ impl vir::Stmt {
             }
 
             &vir::Stmt::Havoc => {
-                state.remove_acc_matching(|p| p.is_curr() && !p.is_base());
-                state.remove_pred_matching(|p| p.is_curr() && !p.is_base());
-                state.remove_moved_matching(|p| !p.is_base());
+                state.remove_acc_matching(|p| p.is_curr() && !p.is_local());
+                state.remove_pred_matching(|p| p.is_curr() && !p.is_local());
+                state.remove_moved_matching(|p| !p.is_local());
             }
 
             &vir::Stmt::BeginFrame => {
@@ -219,9 +213,9 @@ impl vir::Stmt {
 
                 // In Prusti, lose permission from the lhs and rhs
                 state.remove_pred_matching(|p| p.has_prefix(&lhs_place));
-                state.remove_acc_matching(|p| p.has_proper_prefix(&lhs_place) && !p.is_base());
+                state.remove_acc_matching(|p| p.has_proper_prefix(&lhs_place) && !p.is_local());
                 state.remove_pred_matching(|p| p.has_prefix(&rhs_place));
-                state.remove_acc_matching(|p| p.has_proper_prefix(&rhs_place) && !p.is_base());
+                state.remove_acc_matching(|p| p.has_proper_prefix(&rhs_place) && !p.is_local());
 
                 // The rhs is no longer moved
                 state.remove_moved_matching(|p| p.has_prefix(rhs_place));
@@ -229,13 +223,13 @@ impl vir::Stmt {
                 // And we create permissions for the rhs
                 let new_acc_places: Vec<_> = original_state.acc().iter()
                     .filter(|(p, _)| p.has_proper_prefix(lhs_place))
-                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac))
-                    .filter(|(p, _)| !p.is_base())
+                    .map(|(p, frac)| (p.clone().replace_place(&lhs_place, rhs_place), *frac))
+                    .filter(|(p, _)| !p.is_local())
                     .collect();
 
                 let new_pred_places: Vec<_> = original_state.pred().iter()
                     .filter(|(p, _)| p.has_prefix(lhs_place))
-                    .map(|(p, frac)| (p.clone().replace_prefix(&lhs_place, rhs_place.clone()), *frac))
+                    .map(|(p, frac)| (p.clone().replace_place(&lhs_place, rhs_place), *frac))
                     .collect();
 
                 assert!(
@@ -258,7 +252,7 @@ impl vir::Stmt {
                 state.remove_dropped();
             }
 
-            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref _then_stmts) => {
+            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts) => {
                 // TODO: we need to join this resulting state with the state that did not execute
                 // the body of the package
                 for stmt in package_stmts {

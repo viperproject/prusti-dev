@@ -51,28 +51,6 @@ impl<'v> ToViper<'v, viper::Field<'v>> for Field {
     }
 }
 
-impl<'v> ToViper<'v, viper::Expr<'v>> for Place {
-    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        match self {
-            Place::Base(local_var) => local_var.to_viper(ast),
-            Place::Field(base, field, opt_label) => match opt_label {
-                None => ast.field_access(
-                    base.to_viper(ast),
-                    field.to_viper(ast),
-                ),
-                Some(label) => ast.labelled_old(
-                    ast.field_access(
-                        base.to_viper(ast),
-                        field.to_viper(ast),
-                    ),
-                    label
-                ),
-            },
-            Place::AddrOf(..) => unreachable!(),
-        }
-    }
-}
-
 impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         match self {
@@ -164,26 +142,16 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref then_stmts) => {
-                let mut encoded_stmts = vec![];
-                encoded_stmts.push(
-                    ast.package(
-                        ast.magic_wand(
-                            lhs.to_viper(ast),
-                            rhs.to_viper(ast),
-                        ),
-                        ast.seqn(
-                            &package_stmts.to_viper(ast),
-                            &[],
-                        )
+            &Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts) => {
+                ast.package(
+                    ast.magic_wand(
+                        lhs.to_viper(ast),
+                        rhs.to_viper(ast),
+                    ),
+                    ast.seqn(
+                        &package_stmts.to_viper(ast),
+                        &[],
                     )
-                );
-                encoded_stmts.extend(
-                    then_stmts.to_viper(ast)
-                );
-                ast.seqn(
-                    &encoded_stmts,
-                    &[],
                 )
             }
             &Stmt::ApplyMagicWand(ref lhs, ref rhs) => {
@@ -201,8 +169,13 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
 impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let expr = match self {
+            &Expr::Local(ref local_var) => local_var.to_viper(ast),
+            &Expr::Field(ref base, ref field) => ast.field_access(
+                base.to_viper(ast),
+                field.to_viper(ast),
+            ),
+            &Expr::AddrOf(..) => unreachable!(),
             &Expr::Const(ref val) => val.to_viper(ast),
-            &Expr::Place(ref place) => place.to_viper(ast),
             &Expr::LabelledOld(ref old_label, ref expr) => ast.labelled_old(
                 expr.to_viper(ast),
                 old_label,

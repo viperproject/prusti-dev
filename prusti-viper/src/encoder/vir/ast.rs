@@ -168,277 +168,6 @@ impl fmt::Debug for Field {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub enum Place {
-    /// A local var
-    Base(LocalVar),
-    /// A field access, with an optional label that indicates the state in which it's evaluated
-    Field(Box<Place>, Field, Option<String>),
-    /// The inverse of a `val_ref` field access in the current state
-    AddrOf(Box<Place>, Type),
-}
-
-impl Place {
-    pub fn base(local_var: LocalVar) -> Self {
-        Place::Base(local_var)
-    }
-
-    pub fn access(self, field: Field, opt_label: Option<String>) -> Self {
-        Place::Field(box self, field, opt_label)
-    }
-
-    pub fn access_curr(self, field: Field) -> Self {
-        Place::Field(box self, field, None)
-    }
-
-    pub fn access_old(self, field: Field, label: String) -> Self {
-        Place::Field(box self, field, Some(label))
-    }
-
-    pub fn addr_of(self) -> Self {
-        let type_name = self.get_type().name();
-        Place::AddrOf(box self, Type::TypedRef(type_name))
-    }
-
-    pub fn is_base(&self) -> bool {
-        match self {
-            &Place::Base(..) => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_field(&self) -> bool {
-        match self {
-            &Place::Field(..) => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_addr_of(&self) -> bool {
-        match self {
-            &Place::AddrOf(..) => true,
-            _ => false,
-        }
-    }
-
-    /// Puts the place into an `old[label](..)` expression
-    pub fn old<S: ToString>(self, label: S) -> Self {
-        match self {
-            Place::Base(..) => self,
-            Place::AddrOf(..) => panic!(),
-            Place::Field(_, _, Some(_)) => self,
-            Place::Field(place, ty, None) => Place::Field(place, ty, Some(label.to_string()))
-        }
-    }
-
-    /// Puts the place into an `old[label](..)` expression, if the label is not `None`
-    pub fn maybe_old<S: ToString>(self, label: Option<S>) -> Self {
-        match label {
-            None => self,
-            Some(label) => self.old(label),
-        }
-    }
-
-    pub fn contains_addr_of(&self) -> bool {
-        match self {
-            &Place::Base(_) => false,
-            &Place::Field(ref place, _, _) => place.contains_addr_of(),
-            &Place::AddrOf(..) => true,
-        }
-    }
-
-    pub fn contains_old_label(&self) -> bool {
-        match self {
-            &Place::Base(_) => false,
-            &Place::Field(ref place, _, Some(_)) => true,
-            &Place::Field(ref place, _, None) |
-            &Place::AddrOf(ref place, _) => place.contains_old_label(),
-        }
-    }
-
-    pub fn is_curr(&self) -> bool {
-        !self.contains_old_label()
-    }
-
-    pub fn has_old(&self) -> bool {
-        self.contains_old_label()
-    }
-
-    pub fn is_field_curr(&self) -> bool {
-        match self {
-            &Place::Field(_, _, None) => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_field_old(&self) -> bool {
-        match self {
-            &Place::Field(_, _, Some(_)) => true,
-            _ => false,
-        }
-    }
-
-    pub fn get_parent(&self) -> Option<&Place> {
-        match self {
-            &Place::Base(_) => None,
-            &Place::Field(ref place, _, _) => Some(place),
-            &Place::AddrOf(ref place, _) => Some(place),
-        }
-    }
-
-    pub fn get_base(&self) -> &LocalVar {
-        match self {
-            &Place::Base(ref var) => var,
-            &Place::Field(ref place, _, _) => place.get_base(),
-            &Place::AddrOf(ref place, _) => place.get_base(),
-        }
-    }
-
-    pub fn get_field(&self) -> Option<&Field> {
-        match self {
-            &Place::Field(_, ref field, _) => Some(field),
-            _ => None,
-        }
-    }
-
-    pub fn get_label(&self) -> Option<&String> {
-        match self {
-            &Place::Field(_, _, ref field) => field.as_ref(),
-            _ => None,
-        }
-    }
-
-    pub fn has_proper_prefix(&self, other: &Place) -> bool {
-        !self.weak_eq(other) && self.has_prefix(other)
-    }
-
-    pub fn has_prefix(&self, other: &Place) -> bool {
-        if self.weak_eq(other) {
-            true
-        } else {
-            match self.get_parent() {
-                Some(parent) => parent.has_prefix(other),
-                None => false
-            }
-        }
-    }
-
-    pub fn all_proper_prefixes(&self) -> Vec<&Place> {
-        match self.get_parent() {
-            Some(parent) => parent.all_prefixes(),
-            None => vec![]
-        }
-    }
-
-    // Returns all prefixes, from the shortest to the longest
-    pub fn all_prefixes(&self) -> Vec<&Place> {
-        let mut res = self.all_proper_prefixes();
-        res.push(self);
-        res
-    }
-
-    pub fn get_type(&self) -> &Type {
-        match self {
-            &Place::Base(LocalVar { ref typ, .. }) |
-            &Place::Field(_, Field { ref typ, .. }, _) |
-            &Place::AddrOf(_, ref typ) => &typ
-        }
-    }
-
-    pub fn typed_ref_name(&self) -> Option<String> {
-        match self.get_type() {
-            &Type::TypedRef(ref name) => Some(name.clone()),
-            _ => None
-        }
-    }
-
-    /// Place equality after type elision
-    pub fn weak_eq(&self, other: &Place) -> bool {
-        match (self, other) {
-            (
-                Place::Base(ref self_var),
-                Place::Base(ref other_var)
-            ) => self_var.weak_eq(other_var),
-            (
-                Place::Field(box ref self_base, ref self_field, ref self_label),
-                Place::Field(box ref other_base, ref other_field, ref other_label)
-            ) => self_label == other_label && self_field.weak_eq(other_field) && self_base.weak_eq(other_base),
-            (
-                Place::AddrOf(box ref self_base, ref self_typ),
-                Place::AddrOf(box ref other_base, ref other_typ)
-            ) => self_typ.weak_eq(other_typ) && self_base.weak_eq(other_base),
-            _ => false
-        }
-    }
-
-    pub fn map_labels<F>(self, f: F) -> Self
-        where F: Fn(Option<String>) -> Option<String>
-    {
-        match self {
-            Place::Base(_) => self,
-            Place::Field(box base, field, opt_label) => {
-                let new_opt_label = f(opt_label);
-                Place::Field(
-                    box base.map_labels(f),
-                    field,
-                    new_opt_label
-                )
-            },
-            Place::AddrOf(box base, typ) => Place::AddrOf(
-                box base.map_labels(f),
-                typ
-            ),
-        }
-    }
-
-    pub fn replace_prefix(self, target: &Place, replacement: Place) -> Self {
-        //assert_eq!(target.get_type(), replacement.get_type());
-        assert!(
-            target.get_type().weak_eq(&replacement.get_type()),
-            "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
-            target,
-            replacement,
-            target.get_type(),
-            replacement.get_type()
-        );
-        if self.weak_eq(target) {
-            replacement
-        } else {
-            match self {
-                Place::Field(box base, field, label) => Place::Field(box base.replace_prefix(target, replacement), field, label),
-                Place::AddrOf(box base, typ) => Place::AddrOf(box base.replace_prefix(target, replacement), typ),
-                x => x,
-            }
-        }
-    }
-}
-
-impl fmt::Display for Place {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Place::Base(ref var) => write!(f, "{}", var),
-            &Place::Field(ref place, ref field, ref opt_label) => match opt_label {
-                None => write!(f, "{}.{}", place, field),
-                Some(ref label) => write!(f, "old[{}]({}.{})", label, place, field),
-            },
-            &Place::AddrOf(ref place, _) => write!(f, "&({})", place),
-        }
-    }
-}
-
-impl fmt::Debug for Place {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Place::Base(ref var) => write!(f, "{:?}", var),
-            &Place::Field(ref place, ref field, ref opt_label) => match opt_label {
-                None => write!(f, "({:?}).{:?}", place, field),
-                Some(ref label) => write!(f, "old[{}](({:?}).{:?})", label, place, field),
-            },
-            &Place::AddrOf(ref place, ref typ) => write!(f, "&({:?}): {}", place, typ),
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Stmt {
     Comment(String),
@@ -448,7 +177,7 @@ pub enum Stmt {
     Assert(Expr, Position),
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
-    Assign(Place, Expr, AssignKind),
+    Assign(Expr, Expr, AssignKind),
     Fold(String, Vec<Expr>, Frac),
     Unfold(String, Vec<Expr>, Frac),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
@@ -470,7 +199,7 @@ pub enum Stmt {
     EndFrame,
     /// Move permissions from a place to another.
     /// This is used to restore permissions in the fold/unfold state when a loan expires.
-    TransferPerm(Place, Place),
+    TransferPerm(Expr, Expr),
     /// An `if` statement: the guard, the 'then' branch, the 'else' branch
     /// Note: this is only used to restore permissions of expiring loans, so the fold/unfold
     /// algorithms threats this statement (and statements in the branches) in a very special way.
@@ -480,7 +209,7 @@ pub enum Stmt {
     /// Package a Magic Wand
     /// Arguments: the lhs of the magic wand, the rhs, then the package statements, then some
     /// statements that will be encoded just after the package statement.
-    PackageMagicWand(Expr, Expr, Vec<Stmt>, Vec<Stmt>),
+    PackageMagicWand(Expr, Expr, Vec<Stmt>),
     /// Apply a Magic Wand.
     /// Arguments: the lhs of the magic wand and the rhs.
     ApplyMagicWand(Expr, Expr),
@@ -511,28 +240,28 @@ impl Stmt {
         Stmt::Comment(comment.to_string())
     }
 
-    pub fn obtain_acc(place: Place) -> Self {
-        assert!(!place.is_base());
+    pub fn obtain_acc(place: Expr) -> Self {
+        assert!(!place.is_local());
         Stmt::Obtain(
             Expr::FieldAccessPredicate(
-                box place.into(),
+                box place,
                 Frac::one(),
             )
         )
     }
 
-    pub fn obtain_pred(place: Place) -> Self {
+    pub fn obtain_pred(place: Expr) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Obtain(
             Expr::PredicateAccessPredicate(
                 predicate_name,
-                vec![place.into()],
+                vec![ place ],
                 Frac::one(),
             )
         )
     }
 
-    pub fn fold_pred(place: Place, frac: Frac) -> Self {
+    pub fn fold_pred(place: Expr, frac: Frac) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Fold(
             predicate_name,
@@ -543,13 +272,11 @@ impl Stmt {
         )
     }
 
-    pub fn unfold_pred(place: Place, frac: Frac) -> Self {
+    pub fn unfold_pred(place: Expr, frac: Frac) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Unfold(
             predicate_name,
-            vec![
-                place.into()
-            ],
+            vec![ place ],
             frac
         )
     }
@@ -637,7 +364,7 @@ impl fmt::Display for Stmt {
 
             Stmt::StopExpiringLoans => write!(f, "stop expiring borrows"),
 
-            Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref then_stmts) => {
+            Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts) => {
                 writeln!(f, "package {}", lhs)?;
                 writeln!(f, "    --* {}", rhs)?;
                 write!(f, "{{")?;
@@ -645,13 +372,6 @@ impl fmt::Display for Stmt {
                     write!(f, "\n")?;
                 }
                 for stmt in package_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "    \n"))?;
-                }
-                write!(f, "}} then {{")?;
-                if !then_stmts.is_empty() {
-                    write!(f, "\n")?;
-                }
-                for stmt in then_stmts.iter() {
                     writeln!(f, "    {}", stmt.to_string().replace("\n", "    \n"))?;
                 }
                 write!(f, "}}")
@@ -685,7 +405,7 @@ pub trait StmtFolder {
             Stmt::TransferPerm(a, b) => self.fold_transfer_perm(a, b),
             Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
             Stmt::StopExpiringLoans => self.fold_stop_expiring_borrows(),
-            Stmt::PackageMagicWand(l, r, s,t) => self.fold_package_magic_wand(l, r, s, t),
+            Stmt::PackageMagicWand(l, r, s) => self.fold_package_magic_wand(l, r, s),
             Stmt::ApplyMagicWand(l, r) => self.fold_apply_magic_wand(l, r),
         }
     }
@@ -718,8 +438,8 @@ pub trait StmtFolder {
         Stmt::MethodCall(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), vv)
     }
 
-    fn fold_assign(&mut self, p: Place, e: Expr, k: AssignKind) -> Stmt {
-        Stmt::Assign(p, self.fold_expr(e), k)
+    fn fold_assign(&mut self, p: Expr, e: Expr, k: AssignKind) -> Stmt {
+        Stmt::Assign(self.fold_expr(p), self.fold_expr(e), k)
     }
 
     fn fold_fold(&mut self, s: String, ve: Vec<Expr>, frac: Frac) -> Stmt {
@@ -750,24 +470,27 @@ pub trait StmtFolder {
         Stmt::EndFrame
     }
 
-    fn fold_transfer_perm(&mut self, a: Place, b: Place) -> Stmt {
-        Stmt::TransferPerm(a, b)
+    fn fold_transfer_perm(&mut self, a: Expr, b: Expr) -> Stmt {
+        Stmt::TransferPerm(self.fold_expr(a), self.fold_expr(b))
     }
 
     fn fold_expire_borrows_if(&mut self, g: Expr, t: Vec<Stmt>, e: Vec<Stmt>) -> Stmt {
-        Stmt::ExpireBorrowsIf(g, t, e)
+        Stmt::ExpireBorrowsIf(
+            self.fold_expr(g),
+            t.into_iter().map(|x| self.fold(x)).collect(),
+            e.into_iter().map(|x| self.fold(x)).collect()
+        )
     }
 
     fn fold_stop_expiring_borrows(&mut self) -> Stmt {
         Stmt::StopExpiringLoans
     }
 
-    fn fold_package_magic_wand(&mut self, l: Expr, r: Expr, s: Vec<Stmt>, t: Vec<Stmt>) -> Stmt {
+    fn fold_package_magic_wand(&mut self, l: Expr, r: Expr, s: Vec<Stmt>) -> Stmt {
         Stmt::PackageMagicWand(
             self.fold_expr(l),
             self.fold_expr(r),
-            s.into_iter().map(|x| self.fold(x)).collect(),
-            t.into_iter().map(|x| self.fold(x)).collect()
+            s.into_iter().map(|x| self.fold(x)).collect()
         )
     }
 
@@ -782,9 +505,14 @@ pub trait StmtFolder {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expr {
-    Const(Const),
-    Place(Place),
+    /// A local var
+    Local(LocalVar),
+    /// A field access
+    Field(Box<Expr>, Field),
+    /// The inverse of a `val_ref` field access
+    AddrOf(Box<Expr>, Type),
     LabelledOld(String, Box<Expr>),
+    Const(Const),
     MagicWand(Box<Expr>, Box<Expr>),
     /// PredicateAccessPredicate: predicate_name, args, frac
     PredicateAccessPredicate(String, Vec<Expr>, Frac),
@@ -801,33 +529,26 @@ pub enum Expr {
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
 }
 
-pub trait ExprFolder {
+pub trait ExprFolder : Sized {
     fn fold(&mut self, e: Expr) -> Expr {
-        match e {
-            Expr::Const(x) => self.fold_const(x),
-            Expr::Place(x) => self.fold_place(x),
-            Expr::LabelledOld(x, y) => self.fold_labelled_old(x, y),
-            Expr::MagicWand(x, y) => self.fold_magic_wand(x, y),
-            Expr::PredicateAccessPredicate(x, y, z) => self.fold_predicate_access_predicate(x, y, z),
-            Expr::FieldAccessPredicate(x, y) => self.fold_field_access_predicate(x, y),
-            Expr::UnaryOp(x, y) => self.fold_unary_op(x, y),
-            Expr::BinOp(x, y, z) => self.fold_bin_op(x, y, z),
-            Expr::Unfolding(x, y, z, frac) => self.fold_unfolding(x, y, z, frac),
-            Expr::Cond(x, y, z) => self.fold_cond(x, y, z),
-            Expr::ForAll(x, y, z) => self.fold_forall(x, y, z),
-            Expr::FuncApp(x, y, z, k, p) => self.fold_func_app(x, y, z, k, p),
-        }
+        default_fold_expr(self, e)
     }
 
     fn fold_boxed(&mut self, e: Box<Expr>) -> Box<Expr> {
         box self.fold(*e)
     }
 
+    fn fold_local(&mut self, v: LocalVar) -> Expr {
+        Expr::Local(v)
+    }
+    fn fold_field(&mut self, e: Box<Expr>, f: Field) -> Expr {
+        Expr::Field(self.fold_boxed(e), f)
+    }
+    fn fold_addr_of(&mut self, e: Box<Expr>, t: Type) -> Expr {
+        Expr::AddrOf(self.fold_boxed(e), t)
+    }
     fn fold_const(&mut self, x: Const) -> Expr {
         Expr::Const(x)
-    }
-    fn fold_place(&mut self, x: Place) -> Expr {
-        Expr::Place(x)
     }
     fn fold_labelled_old(&mut self, x: String, y: Box<Expr>) -> Expr {
         Expr::LabelledOld(x, self.fold_boxed(y))
@@ -861,26 +582,38 @@ pub trait ExprFolder {
     }
 }
 
-pub trait ExprWalker {
+pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
+    match e {
+        Expr::Local(v) => this.fold_local(v),
+        Expr::Field(e, f) => this.fold_field(e, f),
+        Expr::AddrOf(e, t) => this.fold_addr_of(e, t),
+        Expr::Const(x) => this.fold_const(x),
+        Expr::LabelledOld(x, y) => this.fold_labelled_old(x, y),
+        Expr::MagicWand(x, y) => this.fold_magic_wand(x, y),
+        Expr::PredicateAccessPredicate(x, y, z) => this.fold_predicate_access_predicate(x, y, z),
+        Expr::FieldAccessPredicate(x, y) => this.fold_field_access_predicate(x, y),
+        Expr::UnaryOp(x, y) => this.fold_unary_op(x, y),
+        Expr::BinOp(x, y, z) => this.fold_bin_op(x, y, z),
+        Expr::Unfolding(x, y, z, frac) => this.fold_unfolding(x, y, z, frac),
+        Expr::Cond(x, y, z) => this.fold_cond(x, y, z),
+        Expr::ForAll(x, y, z) => this.fold_forall(x, y, z),
+        Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
+    }
+}
+
+pub trait ExprWalker : Sized {
     fn walk(&mut self, e: &Expr) {
-        match *e {
-            Expr::Const(ref x) => self.walk_const(x),
-            Expr::Place(ref x) => self.walk_place(x),
-            Expr::LabelledOld(ref x, ref y) => self.walk_labelled_old(x, y),
-            Expr::MagicWand(ref x, ref y) => self.walk_magic_wand(x, y),
-            Expr::PredicateAccessPredicate(ref x, ref y, z) => self.walk_predicate_access_predicate(x, y, z),
-            Expr::FieldAccessPredicate(ref x, y) => self.walk_field_access_predicate(x, y),
-            Expr::UnaryOp(x, ref y) => self.walk_unary_op(x, y),
-            Expr::BinOp(x, ref y, ref z) => self.walk_bin_op(x, y, z),
-            Expr::Unfolding(ref x, ref y, ref z, frac) => self.walk_unfolding(x, y, z, frac),
-            Expr::Cond(ref x, ref y, ref z) => self.walk_cond(x, y, z),
-            Expr::ForAll(ref x, ref y, ref z) => self.walk_forall(x, y, z),
-            Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => self.walk_func_app(x, y, z, k, p),
-        }
+        default_walk_expr(self, e);
     }
 
+    fn walk_local(&mut self, x: &LocalVar) {}
+    fn walk_field(&mut self, e: &Expr, f: &Field) {
+        self.walk(e);
+    }
+    fn walk_addr_of(&mut self, e: &Expr, t: &Type) {
+        self.walk(e);
+    }
     fn walk_const(&mut self, x: &Const) {}
-    fn walk_place(&mut self, x: &Place) {}
     fn walk_old(&mut self, x: &Expr) {
         self.walk(x);
     }
@@ -927,14 +660,35 @@ pub trait ExprWalker {
     }
 }
 
+pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
+    match *e {
+        Expr::Local(ref v) => this.walk_local(v),
+        Expr::Field(ref e, ref f) => this.walk_field(e, f),
+        Expr::AddrOf(ref e, ref t) => this.walk_addr_of(e, t),
+        Expr::Const(ref x) => this.walk_const(x),
+        Expr::LabelledOld(ref x, ref y) => this.walk_labelled_old(x, y),
+        Expr::MagicWand(ref x, ref y) => this.walk_magic_wand(x, y),
+        Expr::PredicateAccessPredicate(ref x, ref y, z) => this.walk_predicate_access_predicate(x, y, z),
+        Expr::FieldAccessPredicate(ref x, y) => this.walk_field_access_predicate(x, y),
+        Expr::UnaryOp(x, ref y) => this.walk_unary_op(x, y),
+        Expr::BinOp(x, ref y, ref z) => this.walk_bin_op(x, y, z),
+        Expr::Unfolding(ref x, ref y, ref z, frac) => this.walk_unfolding(x, y, z, frac),
+        Expr::Cond(ref x, ref y, ref z) => this.walk_cond(x, y, z),
+        Expr::ForAll(ref x, ref y, ref z) => this.walk_forall(x, y, z),
+        Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Trigger(Vec<Expr>);
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Expr::Local(ref v) => write!(f, "{}", v),
+            Expr::Field(ref base, ref field) => write!(f, "{}.{}", base, field),
+            Expr::AddrOf(ref base, _) => write!(f, "&({})", base),
             Expr::Const(ref value) => write!(f, "{}", value),
-            Expr::Place(ref place) => write!(f, "{}", place),
             Expr::BinOp(op, ref left, ref right) => write!(f, "({}) {} ({})", left, op, right),
             Expr::UnaryOp(op, ref expr) => write!(f, "{}({})", op, expr),
             Expr::PredicateAccessPredicate(ref pred_name, ref args, perm) => write!(
@@ -1059,19 +813,19 @@ impl fmt::Display for UnaryOpKind {
 }
 
 impl Expr {
-    pub fn pred_permission(place: Place, frac: Frac) -> Option<Self> {
+    pub fn pred_permission(place: Expr, frac: Frac) -> Option<Self> {
         place.typed_ref_name().map( |pred_name|
             Expr::PredicateAccessPredicate(
                 pred_name,
-                vec![ place.into() ],
+                vec![ place ],
                 frac,
             )
         )
     }
 
-    pub fn acc_permission<P: Into<Expr>>(place: P, frac: Frac) -> Self {
+    pub fn acc_permission(place: Expr, frac: Frac) -> Self {
         Expr::FieldAccessPredicate(
-            box place.into(),
+            box place,
             frac
         )
     }
@@ -1172,17 +926,10 @@ impl Expr {
         Expr::Cond(box guard, box left, box right)
     }
 
-    pub fn as_place(&self) -> Option<Place> {
-        match self {
-            Expr::Place(ref place) => Some(place.clone()),
-            _ => None,
-        }
-    }
-
-    pub fn unfolding(place: Place, expr: Expr, frac: Frac) -> Self {
+    pub fn unfolding(place: Expr, expr: Expr, frac: Frac) -> Self {
         Expr::Unfolding(
             place.typed_ref_name().unwrap(),
-            vec![ place.into() ],
+            vec![ place ],
             box expr,
             frac
         )
@@ -1198,48 +945,302 @@ impl Expr {
         )
     }
 
-    pub fn replace(self, target: &Place, replacement: &Place) -> Self {
-        let replace = |x: Box<Expr>| { box (*x).replace(target, replacement) };
+    pub fn find(&self, sub_target: &Expr) -> bool {
+        pub struct ExprPlaceFinder<'a> {
+            sub_target: &'a Expr,
+            found: bool
+        }
+        impl<'a> ExprWalker for ExprPlaceFinder<'a> {
+            fn walk(&mut self, expr: &Expr) {
+                if expr.is_place() {
+                    if expr.has_prefix(self.sub_target) {
+                        self.found = true;
+                    }
+                } else {
+                    default_walk_expr(self, expr)
+                }
+            }
+        }
+
+        let mut finder = ExprPlaceFinder {
+            sub_target,
+            found: false,
+        };
+        finder.walk(self);
+        finder.found
+    }
+
+    // Methods from Place
+
+    pub fn local(local: LocalVar) -> Self {
+        Expr::Local(local)
+    }
+
+    pub fn field(self, field: Field) -> Self {
+        Expr::Field(box self, field)
+    }
+
+    pub fn addr_of(self) -> Self {
+        let type_name = self.get_type().name();
+        Expr::AddrOf(box self, Type::TypedRef(type_name))
+    }
+
+    pub fn is_place(&self) -> bool {
         match self {
-            Expr::Const(value) => Expr::Const(value),
-            Expr::Place(place) => Expr::Place(place.replace_prefix(target, replacement.clone())),
-            Expr::BinOp(op, left, right) => Expr::BinOp(op, replace(left), replace(right)),
-            Expr::UnaryOp(op, expr) => Expr::UnaryOp(op, replace(expr)),
-            Expr::PredicateAccessPredicate(name, args, perm) => Expr::PredicateAccessPredicate(
-                name,
-                args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>(),
-                perm
-            ),
-            Expr::FieldAccessPredicate(expr, perm) => Expr::FieldAccessPredicate(replace(expr), perm),
-            Expr::LabelledOld(label, expr) => Expr::LabelledOld(label, replace(expr)),
-            Expr::MagicWand(left, right) => Expr::MagicWand(replace(left), replace(right)),
-            Expr::Unfolding(pred_name, args, expr, frac) => Expr::Unfolding(
-                pred_name,
-                args.into_iter().map(|x| x.replace(target, replacement)).collect::<Vec<Expr>>(),
-                replace(expr),
-                frac
-            ),
-            Expr::Cond(guard, left, right) => Expr::Cond(replace(guard), replace(left), replace(right)),
-            Expr::ForAll(vars, triggers, body) => {
-                if vars.contains(target.get_base()) {
+            &Expr::Local(_) => true,
+            &Expr::Field(ref base, _) |
+            &Expr::AddrOf(ref base, _) |
+            &Expr::LabelledOld(_, ref base) => base.is_place(),
+            _ => false
+        }
+    }
+
+    /// Only defined for places
+    pub fn get_parent(&self) -> Option<&Expr> {
+        debug_assert!(self.is_place());
+        match self {
+            &Expr::Local(_) => None,
+            &Expr::Field(box ref base, _) |
+            &Expr::AddrOf(box ref base, _) => Some(base),
+            &Expr::LabelledOld(_, box ref base) => base.get_parent(),
+            ref x => panic!("{}", x),
+        }
+    }
+
+    pub fn map_parent<F>(self, f: F) -> Expr where F: Fn(Expr) -> Expr {
+        match self {
+            Expr::Field(box base, field) => Expr::Field(box f(base), field),
+            Expr::AddrOf(box base, ty) => Expr::AddrOf(box f(base), ty),
+            Expr::LabelledOld(label, box base) => Expr::LabelledOld(label, box f(base)),
+            _ => self,
+        }
+    }
+
+    pub fn is_local(&self) -> bool {
+        match self {
+            &Expr::Local(..) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_field(&self) -> bool {
+        match self {
+            &Expr::Field(..) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_addr_of(&self) -> bool {
+        match self {
+            &Expr::AddrOf(..) => true,
+            _ => false,
+        }
+    }
+
+    /// Puts the an `old[label](..)` around the expression
+    pub fn old<S: fmt::Display + ToString>(self, label: S) -> Self {
+        match self {
+            Expr::LabelledOld(..) => {
+                debug!(
+                    "Trying to put an old expression 'old[{}](..)' around {}, which already has a label",
+                    label,
+                    self
+                );
+                self
+            },
+            _ => Expr::LabelledOld(label.to_string(), box self)
+        }
+    }
+
+    /// Puts the place into an `old[label](..)` expression, if the label is not `None`
+    pub fn maybe_old<S: fmt::Display + ToString>(self, label: Option<S>) -> Self {
+        match label {
+            None => self,
+            Some(label) => self.old(label),
+        }
+    }
+
+    pub fn contains_old_label(&self) -> bool {
+        struct OldLabelFinder {
+            found: bool
+        }
+        impl ExprWalker for OldLabelFinder {
+            fn walk_labelled_old(&mut self, x: &str, y: &Expr) {
+                self.found = true;
+            }
+        }
+        let mut walker = OldLabelFinder{
+            found: false
+        };
+        walker.walk(self);
+        walker.found
+    }
+
+    pub fn has_old(&self) -> bool {
+        self.contains_old_label()
+    }
+
+    pub fn is_old(&self) -> bool {
+        self.get_label().is_some()
+    }
+
+    pub fn is_curr(&self) -> bool {
+        !self.is_old()
+    }
+
+    /// Only defined for places
+    pub fn get_base(&self) -> &LocalVar {
+        debug_assert!(self.is_place());
+        match self {
+            &Expr::Local(ref var) => var,
+            _ => self.get_parent().unwrap().get_base(),
+        }
+    }
+
+    pub fn get_label(&self) -> Option<&String> {
+        match self {
+            &Expr::LabelledOld(ref label, _) => Some(label),
+            _ => None,
+        }
+    }
+
+    /// Place equality after type elision
+    pub fn weak_eq(&self, other: &Expr) -> bool {
+        debug_assert!(self.is_place());
+        debug_assert!(other.is_place());
+        match (self, other) {
+            (
+                Expr::Local(ref self_var),
+                Expr::Local(ref other_var)
+            ) => self_var.weak_eq(other_var),
+            (
+                Expr::Field(box ref self_base, ref self_field),
+                Expr::Field(box ref other_base, ref other_field)
+            ) => self_field.weak_eq(other_field) && self_base.weak_eq(other_base),
+            (
+                Expr::AddrOf(box ref self_base, ref self_typ),
+                Expr::AddrOf(box ref other_base, ref other_typ)
+            ) => self_typ.weak_eq(other_typ) && self_base.weak_eq(other_base),
+            (
+                Expr::LabelledOld(ref self_label, box ref self_base),
+                Expr::LabelledOld(ref other_label, box ref other_base)
+            ) => self_label == other_label && self_base.weak_eq(other_base),
+            _ => false
+        }
+    }
+
+    pub fn has_proper_prefix(&self, other: &Expr) -> bool {
+        debug_assert!(self.is_place());
+        debug_assert!(other.is_place());
+        !self.weak_eq(other) && self.has_prefix(other)
+    }
+
+    pub fn has_prefix(&self, other: &Expr) -> bool {
+        debug_assert!(self.is_place());
+        debug_assert!(other.is_place());
+        if self.weak_eq(other) {
+            true
+        } else {
+            match self.get_parent() {
+                Some(parent) => parent.has_prefix(other),
+                None => false
+            }
+        }
+    }
+
+    pub fn all_proper_prefixes(&self) -> Vec<&Expr> {
+        debug_assert!(self.is_place());
+        match self.get_parent() {
+            Some(parent) => parent.all_prefixes(),
+            None => vec![]
+        }
+    }
+
+    // Returns all prefixes, from the shortest to the longest
+    pub fn all_prefixes(&self) -> Vec<&Expr> {
+        debug_assert!(self.is_place());
+        let mut res = self.all_proper_prefixes();
+        res.push(self);
+        res
+    }
+
+    pub fn get_type(&self) -> &Type {
+        debug_assert!(self.is_place());
+        match self {
+            &Expr::Local(LocalVar { ref typ, .. }) |
+            &Expr::Field(_, Field { ref typ, .. }) |
+            &Expr::AddrOf(_, ref typ) => &typ,
+            &Expr::LabelledOld(_, box ref base) => base.get_type(),
+            _ => panic!()
+        }
+    }
+
+    pub fn typed_ref_name(&self) -> Option<String> {
+        match self.get_type() {
+            &Type::TypedRef(ref name) => Some(name.clone()),
+            _ => None
+        }
+    }
+
+    pub fn map_labels<F>(self, f: F) -> Self where F: Fn(String) -> Option<String> {
+        struct OldLabelReplacer<T: Fn(String) -> Option<String>> {
+            f: T
+        };
+        impl<T: Fn(String) -> Option<String>> ExprFolder for OldLabelReplacer<T> {
+            fn fold_labelled_old(&mut self, label: String, base: Box<Expr>) -> Expr {
+                match (self.f)(label) {
+                    Some(new_label) => Expr::LabelledOld(new_label, self.fold_boxed(base)),
+                    None => *base
+                }
+            }
+        }
+        OldLabelReplacer{
+            f
+        }.fold(self)
+    }
+
+    pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
+        debug_assert!(target.is_place());
+        debug_assert!(replacement.is_place());
+        //assert_eq!(target.get_type(), replacement.get_type());
+        assert!(
+            target.get_type().weak_eq(&replacement.get_type()),
+            "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
+            target,
+            replacement,
+            target.get_type(),
+            replacement.get_type()
+        );
+        struct PlaceReplacer<'a>{
+            target: &'a Expr,
+            replacement: &'a Expr
+        };
+        impl<'a> ExprFolder for PlaceReplacer<'a> {
+            fn fold(&mut self, e: Expr) -> Expr {
+                if e.is_place() && e.weak_eq(self.target) {
+                    self.replacement.clone()
+                } else {
+                    default_fold_expr(self, e)
+                }
+            }
+
+            fn fold_forall(&mut self, vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Box<Expr>) -> Expr {
+                if vars.contains(self.target.get_base()) {
                     // Do nothing
                     Expr::ForAll(vars, triggers, body)
                 } else {
                     Expr::ForAll(
                         vars,
-                        triggers.into_iter().map(|x| x.replace(target, replacement)).collect(),
-                        replace(body)
+                        triggers.into_iter().map(|x| x.replace_place(self.target, self.replacement)).collect(),
+                        self.fold_boxed(body)
                     )
                 }
-            },
-            Expr::FuncApp(name, args, formal_args, return_type, pos) => Expr::FuncApp(
-                name,
-                args.into_iter().map(|arg| arg.replace(target, replacement)).collect(),
-                formal_args,
-                return_type,
-                pos
-            ),
+            }
         }
+        PlaceReplacer {
+            target,
+            replacement
+        }.fold(self)
     }
 }
 
@@ -1252,9 +1253,9 @@ impl Trigger {
         &self.0
     }
 
-    pub fn replace(self, target: &Place, replacement: &Place) -> Self {
+    pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
         Trigger(
-            self.0.into_iter().map(|x| x.replace(target, replacement)).collect()
+            self.0.into_iter().map(|x| x.replace_place(target, replacement)).collect()
         )
     }
 }

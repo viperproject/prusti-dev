@@ -5,6 +5,7 @@
 use encoder::vir;
 use encoder::vir::Frac;
 use std::fmt;
+use std::fmt::Display;
 use std::iter::FlatMap;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -14,16 +15,16 @@ use std::ops::Mul;
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Perm {
-    Acc(vir::Place, Frac),
-    Pred(vir::Place, Frac)
+    Acc(vir::Expr, Frac),
+    Pred(vir::Expr, Frac)
 }
 
 impl Perm {
-    pub fn acc(place: vir::Place, frac: Frac) -> Self {
+    pub fn acc(place: vir::Expr, frac: Frac) -> Self {
         Perm::Acc(place, frac)
     }
 
-    pub fn pred(place: vir::Place, frac: Frac) -> Self {
+    pub fn pred(place: vir::Expr, frac: Frac) -> Self {
         Perm::Pred(place, frac)
     }
 
@@ -45,19 +46,12 @@ impl Perm {
         self.get_place().is_curr()
     }
 
-    pub fn is_base(&self) -> bool {
-        self.get_place().is_base()
+    pub fn is_local(&self) -> bool {
+        self.get_place().is_local()
     }
 
     pub fn has_old(&self) -> bool {
         self.get_place().has_old()
-    }
-
-    pub fn get_pred(&self) -> Option<&vir::Place> {
-        match self {
-            Perm::Pred(ref place, _) => Some(place),
-            _ => None,
-        }
     }
 
     pub fn typed_ref_name(&self) -> Option<String> {
@@ -79,21 +73,21 @@ impl Perm {
         }
     }
 
-    pub fn get_place(&self) -> &vir::Place {
+    pub fn get_place(&self) -> &vir::Expr {
         match self {
             &Perm::Acc(ref place, _) |
             &Perm::Pred(ref place, _) => place,
         }
     }
 
-    pub fn place_as_mut_ref(&mut self) -> &mut vir::Place {
+    pub fn place_as_mut_ref(&mut self) -> &mut vir::Expr {
         match self {
             &mut Perm::Acc(ref mut place, _) |
             &mut Perm::Pred(ref mut place, _) => place,
         }
     }
 
-    pub fn unwrap_place(self) -> vir::Place {
+    pub fn unwrap_place(self) -> vir::Expr {
         match self {
             Perm::Acc(place, _) |
             Perm::Pred(place, _) => place,
@@ -101,7 +95,7 @@ impl Perm {
     }
 
     pub fn map_place<F>(self, f: F) -> Self
-        where F: Fn(vir::Place) -> vir::Place
+        where F: Fn(vir::Expr) -> vir::Expr
     {
         match self {
             Perm::Acc(place, fr) => Perm::Acc(f(place), fr),
@@ -109,7 +103,7 @@ impl Perm {
         }
     }
 
-    pub fn old<S: ToString + Clone>(self, label: S) -> Self {
+    pub fn old<S: ToString + Clone + Display>(self, label: S) -> Self {
         self.map_place(|p| p.old(label.clone()))
     }
 
@@ -120,11 +114,11 @@ impl Perm {
         }
     }
 
-    pub fn has_proper_prefix(&self, other: &vir::Place) -> bool {
+    pub fn has_proper_prefix(&self, other: &vir::Expr) -> bool {
         self.get_place().has_proper_prefix(other)
     }
 
-    pub fn has_prefix(&self, other: &vir::Place) -> bool {
+    pub fn has_prefix(&self, other: &vir::Expr) -> bool {
         self.get_place().has_prefix(other)
     }
 }
@@ -170,8 +164,8 @@ impl fmt::Debug for Perm {
 /// A set of permissions
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PermSet {
-    acc_perms: HashMap<vir::Place, Frac>,
-    pred_perms: HashMap<vir::Place, Frac>,
+    acc_perms: HashMap<vir::Expr, Frac>,
+    pred_perms: HashMap<vir::Expr, Frac>,
 }
 
 impl PermSet {
@@ -272,7 +266,7 @@ impl<T> PermIterator for T where T: Iterator<Item = Perm> {
     }
 }
 
-pub fn place_frac_difference(mut left: HashMap<vir::Place, Frac>, mut right: HashMap<vir::Place, Frac>) -> HashMap<vir::Place, Frac> {
+pub fn place_frac_difference(mut left: HashMap<vir::Expr, Frac>, mut right: HashMap<vir::Expr, Frac>) -> HashMap<vir::Expr, Frac> {
     for (place, right_frac) in right.drain() {
         match left.get(&place) {
             Some(left_frac) => {
