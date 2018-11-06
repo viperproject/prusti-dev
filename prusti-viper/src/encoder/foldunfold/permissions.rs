@@ -13,7 +13,7 @@ use encoder::vir::{Zero, One};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
-use super::places_utils::{union, union3, difference, intersection};
+use super::places_utils::{union, union3, intersection};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined
@@ -49,9 +49,9 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::Inhale(ref expr) => {
                 // footprint = used - inhaled
-                difference(
-                    &expr.get_required_permissions(predicates),
-                    &expr.get_permissions(predicates)
+                perm_difference(
+                    expr.get_required_permissions(predicates),
+                    expr.get_permissions(predicates)
                 )
             },
 
@@ -191,7 +191,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
                 // Simulate temporary unfolding of `place`
                 let expr_req_places = expr.get_required_permissions(predicates);
-                let mut req_places: HashSet<_> = difference(&expr_req_places, &places_in_pred);
+                let mut req_places: HashSet<_> = perm_difference(expr_req_places, places_in_pred);
                 req_places.insert(Pred(arg_place.clone(), Frac::one()));
                 req_places.into_iter().map(|p| p * frac).collect()
             }
@@ -235,7 +235,10 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .iter()
                     .map(|var| Acc(vir::Place::Base(var.clone()), Frac::one()))
                     .collect();
-                body.get_required_permissions(predicates).difference(&vars_places).cloned().collect()
+                perm_difference(
+                    body.get_required_permissions(predicates),
+                    vars_places
+                )
             }
 
             vir::Expr::Place(place) => {
@@ -304,7 +307,7 @@ impl vir::Expr {
                 let expr_access_places = expr.get_permissions(predicates);
 
                 // inhaled = inhaled in body - unfolding
-                difference(&expr_access_places, &places_in_pred)
+                perm_difference(expr_access_places, places_in_pred)
             }
 
             vir::Expr::UnaryOp(_, ref expr) => expr.get_permissions(predicates),
@@ -330,7 +333,7 @@ impl vir::Expr {
                     .iter()
                     .map(|var| Acc(vir::Place::Base(var.clone()), Frac::one()))
                     .collect();
-                difference(&body.get_permissions(predicates), &vars_places)
+                perm_difference(body.get_permissions(predicates), vars_places)
             }
 
             vir::Expr::PredicateAccessPredicate(_, ref args, frac) => {

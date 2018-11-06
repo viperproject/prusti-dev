@@ -375,7 +375,7 @@ impl State {
         trace!("insert_acc {}, {}", place, frac);
         if self.acc.contains_key(&place) {
             let new_frac = self.acc[&place] + frac;
-            assert!(new_frac <= Frac::one(), "insert_acc: {} <= 1", new_frac);
+            assert!(new_frac <= Frac::one(), "Trying to inhale {} access permission, while there is already {}", new_frac, self.acc[&place]);
             self.acc.insert(place, new_frac);
         } else {
             self.acc.insert(place, frac);
@@ -392,7 +392,7 @@ impl State {
         trace!("insert_pred {}, {}", place, frac);
         if self.pred.contains_key(&place) {
             let new_frac = self.pred[&place] + frac;
-            assert!(new_frac <= Frac::one(), "{} <= 1", new_frac);
+            assert!(new_frac <= Frac::one(), "Trying to inhale {} predicate permission, while there is already {}", new_frac, self.pred[&place]);
             self.pred.insert(place, new_frac);
         } else {
             self.pred.insert(place, frac);
@@ -457,7 +457,7 @@ impl State {
 
     pub fn remove_acc(&mut self, place: &vir::Place, frac: Frac) {
         assert!(self.acc.contains_key(place), "Place {} is not in state (acc), so it can not be removed.", place);
-        assert!(self.acc[place] >= frac);
+        assert!(self.acc[place] >= frac, "Trying to exhale {} access permission, while there is only {}", frac, self.acc[place]);
         if self.acc[place] == frac {
             self.acc.remove(place);
         } else {
@@ -468,7 +468,7 @@ impl State {
     pub fn remove_pred(&mut self, place: &vir::Place, frac: Frac) {
         trace!("remove_pred {}, {}", place, frac);
         assert!(self.pred.contains_key(place), "Place {} is not in state (pred), so it can not be removed.", place);
-        assert!(self.pred[place] >= frac, "{} >= {}", frac, self.pred[place]);
+        assert!(self.pred[place] >= frac, "Trying to exhale {} predicate permission, while there is only {}", frac, self.pred[place]);
         if self.pred[place] == frac {
             self.pred.remove(place);
         } else {
