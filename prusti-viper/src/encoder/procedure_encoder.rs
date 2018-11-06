@@ -424,6 +424,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir::StatementKind::StorageLive(_) |
             mir::StatementKind::EndRegion(_) |
             mir::StatementKind::ReadForMatch(_) |
+            mir::StatementKind::UserAssertTy(_, _) |
             mir::StatementKind::Nop => stmts,
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
