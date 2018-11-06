@@ -20,6 +20,11 @@ if [[ ! -r "$CRATE_ROOT/source/Cargo.toml" ]]; then
 	exit 1
 fi
 
+EVALUATION_TIMEOUT="${EVALUATION_TIMEOUT:-900}"
+OVERALL_EVALUATION_TIMEOUT="$(( EVALUATION_TIMEOUT * 4 ))"
+info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
+info "Using OVERALL_EVALUATION_TIMEOUT=$OVERALL_EVALUATION_TIMEOUT seconds"
+
 log_file="${CRATE_ROOT}/${SCRIPT_NAME}.log"
 report_file="${CRATE_ROOT}/report.json"
 crate_source_dir="${CRATE_ROOT}/source"
@@ -32,8 +37,8 @@ SECONDS=0
 	echo ""
 	echo "===== Verify crate '$crate_name' ($start_date) ====="
 	echo ""
-	# Timeout of 1 hour (+5 min)
-	timeout -k 300 3600 "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
+	# Timeout is OVERALL_EVALUATION_TIMEOUT seconds (+5 min)
+	timeout -k 300 $OVERALL_EVALUATION_TIMEOUT "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
 ) 2>&1 | tee "$log_file"
 
 exit_status="$?"
