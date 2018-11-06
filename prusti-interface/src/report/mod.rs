@@ -37,14 +37,14 @@ impl Log {
     }
 
     pub fn report<S1: ToString, S2: ToString>(namespace: &str, name: S1, data: S2) {
-        let mut writer = Self::writer(namespace, name).ok().unwrap();
-        writer.write_all(data.to_string().as_bytes()).ok().unwrap();
-        writer.flush().ok().unwrap();
+        let mut writer = Self::writer(namespace, name).map_err(|e| panic!("{}", e)).ok().unwrap();
+        writer.write_all(data.to_string().as_bytes()).map_err(|e| panic!("{}", e)).ok().unwrap();
+        writer.flush().map_err(|e| panic!("{}", e)).ok().unwrap();
     }
 
     pub fn report_with_writer<S: ToString, F: FnOnce(&mut Box<Write>)>(namespace: &str, name: S, func: F) {
-        let mut writer = Self::writer(namespace, name).ok().unwrap();
+        let mut writer = Self::writer(namespace, name).map_err(|e| panic!("{}", e)).ok().unwrap();
         func(&mut writer);
-        writer.flush().ok().unwrap();
+        writer.flush().map_err(|e| panic!("{}", e)).ok().unwrap();
     }
 }
