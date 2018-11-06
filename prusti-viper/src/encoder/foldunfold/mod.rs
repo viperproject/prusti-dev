@@ -128,13 +128,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         if let vir::Stmt::Label(ref label) = stmt {
             let mut labelled_bctxt = bctxt.clone();
             let labelled_state = labelled_bctxt.mut_state();
-            labelled_state.replace_labels(|opt_label| {
-                if opt_label == None {
-                    Some(label.clone())
-                } else {
-                    opt_label
-                }
-            });
+            labelled_state.replace_places(|place| place.old(&label));
             /*if label == "pre" {
                 labelled_bctxt
                     .mut_state()
@@ -477,13 +471,17 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         let mut old_bctxt = self.bctxt_at_label.get(&label).unwrap().clone();
 
         // Replace old[label] with curr
-        old_bctxt.mut_state().replace_labels(|opt_label| {
-            if opt_label == Some(label.clone()) {
-                None
-            } else {
-                opt_label
-            }
-        });
+        old_bctxt.mut_state().replace_places(
+            |place| place.map_labels(
+                |opt_label| {
+                    if opt_label == Some(label.clone()) {
+                        None
+                    } else {
+                        opt_label
+                    }
+                }
+            )
+        );
 
         /*if label == "pre" {
             // Rename the local variables from `_1, ..` to `_old_1, ..` (see issue #20)

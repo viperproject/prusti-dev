@@ -15,7 +15,7 @@ use encoder::foldunfold::perm::*;
 pub enum Action {
     Fold(String, Vec<vir::Expr>, Frac),
     Unfold(String, Vec<vir::Expr>, Frac),
-    Drop(LabelledPerm),
+    Drop(Perm),
 }
 
 impl Action {

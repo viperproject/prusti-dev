@@ -86,7 +86,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let field_predicates = match self.ty.sty {
             ty::TypeVariants::TyBool => vec![
                 vir::Expr::FieldAccessPredicate(
-                    box vir::Place::from(self_local_var.clone()).access(
+                    box vir::Place::from(self_local_var.clone()).access_curr(
                         self.encoder.encode_value_field(self.ty)
                     ).into(),
                     vir::Frac::one()
@@ -94,7 +94,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ],
 
             ty::TypeVariants::TyInt(int_ty) => {
-                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access(
+                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access_curr(
                     self.encoder.encode_value_field(self.ty)
                 ).into();
 
@@ -131,7 +131,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyUint(uint_ty) => {
-                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access(
+                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access_curr(
                     self.encoder.encode_value_field(self.ty)
                 ).into();
 
@@ -163,7 +163,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             ty::TypeVariants::TyChar => {
-                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access(
+                let val_field: vir::Expr = vir::Place::from(self_local_var.clone()).access_curr(
                     self.encoder.encode_value_field(self.ty)
                 ).into();
                 vec![
@@ -187,7 +187,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRef(_, ref ty, _) => {
                 let predicate_name = self.encoder.encode_type_predicate_use(ty);
                 let elem_field = self.encoder.encode_ref_field("val_ref", ty);
-                let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
+                let elem_loc = vir::Place::from(self_local_var.clone()).access_curr(elem_field);
                 vec![
                     vir::Expr::FieldAccessPredicate(
                         box elem_loc.clone().into(),
@@ -206,7 +206,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let field_name = format!("tuple_{}", field_num);
                     let elem_field = self.encoder.encode_ref_field(&field_name, ty);
                     let predicate_name = self.encoder.encode_type_predicate_use(ty);
-                    let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
+                    let elem_loc = vir::Place::from(self_local_var.clone()).access_curr(elem_field);
                     vec![
                         vir::Expr::FieldAccessPredicate(
                             box elem_loc.clone().into(),
@@ -235,7 +235,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let field_ty = field.ty(tcx, subst);
                         let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                         let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                        let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
+                        let elem_loc = vir::Place::from(self_local_var.clone()).access_curr(elem_field);
                         perms.push(
                             vir::Expr::FieldAccessPredicate(
                                 box elem_loc.clone().into(),
@@ -253,7 +253,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 } else {
                     debug!("ADT {:?} has {} variants", adt_def, num_variants);
                     let discriminant_field = self.encoder.encode_discriminant_field();
-                    let discriminan_loc = vir::Place::from(self_local_var.clone()).access(discriminant_field);
+                    let discriminan_loc = vir::Place::from(self_local_var.clone()).access_curr(discriminant_field);
                     // acc(self.discriminant)
                     perms.push(
                         vir::Expr::FieldAccessPredicate(
@@ -301,7 +301,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             let field_ty = field.ty(tcx, subst);
                             let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                            let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
+                            let elem_loc = vir::Place::from(self_local_var.clone()).access_curr(elem_field);
                             variant_perms.push(
                                 vir::Expr::FieldAccessPredicate(
                                     box elem_loc.clone().into(),
@@ -336,7 +336,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let field_ty = self.ty.boxed_ty();
                 let elem_field = self.encoder.encode_ref_field("val_ref", field_ty);
                 let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                let elem_loc = vir::Place::from(self_local_var.clone()).access(elem_field);
+                let elem_loc = vir::Place::from(self_local_var.clone()).access_curr(elem_field);
                 perms.push(
                     vir::Expr::FieldAccessPredicate(
                         box elem_loc.clone().into(),

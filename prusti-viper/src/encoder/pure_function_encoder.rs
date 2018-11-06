@@ -70,7 +70,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             let target_place: vir::Place = vir::Place::Base(
                 self.interpreter.mir_encoder()
                     .encode_local(arg)
-            ).access(value_field);
+            ).access_curr(value_field);
             let new_place: vir::Place = self.encode_local(arg).into();
             state.substitute_place(&target_place, new_place);
         }
@@ -297,7 +297,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 let return_type = self.encoder.encode_type(self.mir.return_ty());
                 let return_var = vir::LocalVar::new(format!("{}_0", self.namespace), return_type);
                 let field = self.encoder.encode_value_field(self.mir.return_ty());
-                MultiExprBackwardInterpreterState::new_single(vir::Place::Base(return_var.into()).access(field).into())
+                MultiExprBackwardInterpreterState::new_single(vir::Place::Base(return_var.into()).access_curr(field).into())
             }
 
             TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
@@ -403,7 +403,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
-                    let lhs_value = encoded_lhs.clone().access(self.encoder.encode_value_field(ty));
+                    let lhs_value = encoded_lhs.clone().access_curr(self.encoder.encode_value_field(ty));
                     let encoded_args: Vec<vir::Expr> = args.iter()
                         .map(|arg| self.mir_encoder.encode_operand_expr(arg))
                         .collect();
@@ -524,7 +524,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     ty::TypeVariants::TyUint(..) |
                     ty::TypeVariants::TyRawPtr(..) |
                     ty::TypeVariants::TyRef(..) => {
-                        Some(encoded_lhs.clone().access(self.encoder.encode_value_field(ty)))
+                        Some(encoded_lhs.clone().access_curr(self.encoder.encode_value_field(ty)))
                     }
                     _ => None
                 };
@@ -556,7 +556,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                     let field_name = format!("tuple_{}", field_num);
                                     let field_ty = field_types[field_num];
                                     let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                                    let field_place = encoded_lhs.clone().access(encoded_field);
+                                    let field_place = encoded_lhs.clone().access_curr(encoded_field);
 
                                     match self.mir_encoder.encode_operand_place(operand) {
                                         Some(encoded_rhs) => {
@@ -567,7 +567,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                             // Substitute a place of a value with an expression
                                             let rhs_expr = self.mir_encoder.encode_operand_expr(operand);
                                             let value_field = self.encoder.encode_value_field(field_ty);
-                                            state.substitute_value(&field_place.access(value_field), rhs_expr);
+                                            state.substitute_value(&field_place.access_curr(value_field), rhs_expr);
                                         },
                                     }
                                 }
@@ -578,7 +578,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                 if num_variants > 1 {
                                     let discr_field = self.encoder.encode_discriminant_field();
                                     state.substitute_value(
-                                        &encoded_lhs.clone().access(discr_field),
+                                        &encoded_lhs.clone().access_curr(discr_field),
                                         variant_index.into()
                                     );
                                 }
@@ -590,7 +590,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                     let field_ty = field.ty(tcx, subst);
                                     let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
 
-                                    let field_place = encoded_lhs.clone().access(encoded_field);
+                                    let field_place = encoded_lhs.clone().access_curr(encoded_field);
                                     match self.mir_encoder.encode_operand_place(operand) {
                                         Some(encoded_rhs) => {
                                             // Substitute a place
@@ -600,7 +600,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                             // Substitute a place of a value with an expression
                                             let rhs_expr = self.mir_encoder.encode_operand_expr(operand);
                                             let value_field = self.encoder.encode_value_field(field_ty);
-                                            state.substitute_value(&field_place.access(value_field), rhs_expr);
+                                            state.substitute_value(&field_place.access_curr(value_field), rhs_expr);
                                         },
                                     }
                                 }
@@ -639,11 +639,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let check_field_value = self.encoder.encode_value_field(field_types[1]);
 
                         let lhs_value = encoded_lhs.clone()
-                            .access(value_field)
-                            .access(value_field_value);
+                            .access_curr(value_field)
+                            .access_curr(value_field_value);
                         let lhs_check = encoded_lhs.clone()
-                            .access(check_field)
-                            .access(check_field_value);
+                            .access_curr(check_field)
+                            .access_curr(check_field_value);
 
                         // Substitute a place of a value with an expression
                         state.substitute_value(&lhs_value, encoded_value);
@@ -672,7 +672,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                     0.into()
                                 } else {
                                     let discr_field = self.encoder.encode_discriminant_field();
-                                    encoded_src.access(discr_field).into()
+                                    encoded_src.access_curr(discr_field).into()
                                 };
 
                                 // Substitute a place of a value with an expression
@@ -689,7 +689,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         let encoded_place = self.mir_encoder.encode_place(place).0;
                         let encoded_ref = match encoded_place {
-                            vir::Place::Field(box ref base, vir::Field { ref name, .. }) if name == "val_ref" => {
+                            vir::Place::Field(box ref base, vir::Field { ref name, .. }, None) if name == "val_ref" => {
+                                // Simplify "address of reference"
                                 base.clone()
                             }
                             other_place => other_place.addr_of()

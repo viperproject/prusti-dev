@@ -347,7 +347,7 @@ impl MultiExprBackwardInterpreterState {
         if let vir::Place::AddrOf(box ref base_replacement, ref dereferenced_type) = replacement {
             trace!("Substitution of a reference. Simplify its dereferentiations.");
             let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
-            let deref_target = sub_target.clone().access(deref_field.clone());
+            let deref_target = sub_target.clone().access_curr(deref_field.clone());
             self.substitute_place(&deref_target, base_replacement.clone());
         }
 

@@ -169,124 +169,30 @@ impl fmt::Debug for Field {
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct LabelledPlace {
-    place: Place,
-    label: Option<String>
-}
-
-impl LabelledPlace {
-    pub fn new(place: Place, label: Option<String>) -> Self {
-        LabelledPlace {
-            place,
-            label
-        }
-    }
-
-    pub fn curr(place: Place) -> Self {
-        Self::new(place, None)
-    }
-
-    pub fn old(place: Place, label: String) -> Self {
-        Self::new(place, Some(label))
-    }
-
-    pub fn get_place(&self) -> &Place {
-        &self.place
-    }
-
-    pub fn get_label(&self) -> Option<&String> {
-        self.label.as_ref()
-    }
-
-    pub fn is_curr(&self) -> bool {
-        self.label.is_none()
-    }
-
-    pub fn is_old(&self) -> bool {
-        self.label.is_some()
-    }
-
-    pub fn is_base(&self) -> bool {
-        self.get_place().is_base()
-    }
-
-    pub fn get_type(&self) -> &Type {
-        self.get_place().get_type()
-    }
-
-    // Returns all prefixes, from the shortest to the longest
-    pub fn all_prefixes(&self) -> Vec<LabelledPlace> {
-        self.get_place().all_prefixes().into_iter().map(
-            |p| LabelledPlace { place: p.clone(), ..self.clone() }
-        ).collect()
-    }
-
-    pub fn map_place<F>(self, f: F) -> Self
-        where F: Fn(Place) -> Place
-    {
-        LabelledPlace {
-            place: f(self.place),
-            ..self
-        }
-    }
-
-    pub fn map_label<F>(self, f: F) -> Self
-        where F: Fn(Option<String>) -> Option<String>
-    {
-        LabelledPlace {
-            label: f(self.label),
-            ..self
-        }
-    }
-
-    pub fn has_proper_prefix(&self, other: &LabelledPlace) -> bool {
-        self.get_label() == other.get_label() && self.get_place().has_proper_prefix(other.get_place())
-    }
-
-    pub fn has_prefix(&self, other: &LabelledPlace) -> bool {
-        self.get_label() == other.get_label() && self.get_place().has_prefix(other.get_place())
-    }
-
-    pub fn replace_prefix(&self, target: &LabelledPlace, replacement: LabelledPlace) -> Self {
-        if target.get_label() == self.get_label() {
-            LabelledPlace {
-                place: self.place.clone().replace_prefix(target.get_place(), replacement.get_place().clone()),
-                label: replacement.get_label().cloned(),
-            }
-        } else {
-            self.clone()
-        }
-    }
-}
-
-impl fmt::Display for LabelledPlace {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.label {
-            None => write!(f, "{}", self.place),
-            Some(ref label) => write!(f, "old[{}]({})", label, self.place),
-        }
-    }
-}
-
-impl fmt::Debug for LabelledPlace {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.label {
-            None => write!(f, "{:?}", self.place),
-            Some(ref label) => write!(f, "old[{}]({:?})", label, self.place),
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Place {
+    /// A local var
     Base(LocalVar),
-    Field(Box<Place>, Field),
+    /// A field access, with an optional label that indicates the state in which it's evaluated
+    Field(Box<Place>, Field, Option<String>),
+    /// The inverse of a `val_ref` field access in the current state
     AddrOf(Box<Place>, Type),
 }
 
 impl Place {
-    pub fn access(self, field: Field) -> Self {
-        Place::Field(box self, field)
+    pub fn base(local_var: LocalVar) -> Self {
+        Place::Base(local_var)
+    }
+
+    pub fn access(self, field: Field, opt_label: Option<String>) -> Self {
+        Place::Field(box self, field, opt_label)
+    }
+
+    pub fn access_curr(self, field: Field) -> Self {
+        Place::Field(box self, field, None)
+    }
+
+    pub fn access_old(self, field: Field, label: String) -> Self {
+        Place::Field(box self, field, Some(label))
     }
 
     pub fn addr_of(self) -> Self {
@@ -294,41 +200,17 @@ impl Place {
         Place::AddrOf(box self, Type::TypedRef(type_name))
     }
 
-    pub fn uses_addr_of(&self) -> bool {
-        match self {
-            &Place::Base(_) => false,
-            &Place::Field(ref place, _) => place.uses_addr_of(),
-            &Place::AddrOf(..) => true,
-        }
-    }
-
-    pub fn parent(&self) -> Option<&Place> {
-        match self {
-            &Place::Base(_) => None,
-            &Place::Field(ref place, _) => Some(place),
-            &Place::AddrOf(ref place, _) => Some(place),
-        }
-    }
-
-    pub fn base(&self) -> &LocalVar {
-        match self {
-            &Place::Base(ref var) => var,
-            &Place::Field(ref place, _) => place.base(),
-            &Place::AddrOf(ref place, _) => place.base(),
-        }
-    }
-
     pub fn is_base(&self) -> bool {
         match self {
-            &Place::Base(_) => true,
+            &Place::Base(..) => true,
             _ => false,
         }
     }
 
-    pub fn get_field(&self) -> Option<&Field> {
+    pub fn is_field(&self) -> bool {
         match self {
-            &Place::Field(_, ref field) => Some(field),
-            _ => None,
+            &Place::Field(..) => true,
+            _ => false,
         }
     }
 
@@ -336,6 +218,93 @@ impl Place {
         match self {
             &Place::AddrOf(..) => true,
             _ => false,
+        }
+    }
+
+    /// Puts the place into an `old[label](..)` expression
+    pub fn old<S: ToString>(self, label: S) -> Self {
+        match self {
+            Place::Base(..) => self,
+            Place::AddrOf(..) => panic!(),
+            Place::Field(_, _, Some(_)) => self,
+            Place::Field(place, ty, None) => Place::Field(place, ty, Some(label.to_string()))
+        }
+    }
+
+    /// Puts the place into an `old[label](..)` expression, if the label is not `None`
+    pub fn maybe_old<S: ToString>(self, label: Option<S>) -> Self {
+        match label {
+            None => self,
+            Some(label) => self.old(label),
+        }
+    }
+
+    pub fn contains_addr_of(&self) -> bool {
+        match self {
+            &Place::Base(_) => false,
+            &Place::Field(ref place, _, _) => place.contains_addr_of(),
+            &Place::AddrOf(..) => true,
+        }
+    }
+
+    pub fn contains_old_label(&self) -> bool {
+        match self {
+            &Place::Base(_) => false,
+            &Place::Field(ref place, _, Some(_)) => true,
+            &Place::Field(ref place, _, None) |
+            &Place::AddrOf(ref place, _) => place.contains_old_label(),
+        }
+    }
+
+    pub fn is_curr(&self) -> bool {
+        !self.contains_old_label()
+    }
+
+    pub fn has_old(&self) -> bool {
+        self.contains_old_label()
+    }
+
+    pub fn is_field_curr(&self) -> bool {
+        match self {
+            &Place::Field(_, _, None) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_field_old(&self) -> bool {
+        match self {
+            &Place::Field(_, _, Some(_)) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_parent(&self) -> Option<&Place> {
+        match self {
+            &Place::Base(_) => None,
+            &Place::Field(ref place, _, _) => Some(place),
+            &Place::AddrOf(ref place, _) => Some(place),
+        }
+    }
+
+    pub fn get_base(&self) -> &LocalVar {
+        match self {
+            &Place::Base(ref var) => var,
+            &Place::Field(ref place, _, _) => place.get_base(),
+            &Place::AddrOf(ref place, _) => place.get_base(),
+        }
+    }
+
+    pub fn get_field(&self) -> Option<&Field> {
+        match self {
+            &Place::Field(_, ref field, _) => Some(field),
+            _ => None,
+        }
+    }
+
+    pub fn get_label(&self) -> Option<&String> {
+        match self {
+            &Place::Field(_, _, ref field) => field.as_ref(),
+            _ => None,
         }
     }
 
@@ -347,7 +316,7 @@ impl Place {
         if self.weak_eq(other) {
             true
         } else {
-            match self.parent() {
+            match self.get_parent() {
                 Some(parent) => parent.has_prefix(other),
                 None => false
             }
@@ -355,7 +324,7 @@ impl Place {
     }
 
     pub fn all_proper_prefixes(&self) -> Vec<&Place> {
-        match self.parent() {
+        match self.get_parent() {
             Some(parent) => parent.all_prefixes(),
             None => vec![]
         }
@@ -371,7 +340,7 @@ impl Place {
     pub fn get_type(&self) -> &Type {
         match self {
             &Place::Base(LocalVar { ref typ, .. }) |
-            &Place::Field(_, Field { ref typ, .. }) |
+            &Place::Field(_, Field { ref typ, .. }, _) |
             &Place::AddrOf(_, ref typ) => &typ
         }
     }
@@ -383,6 +352,7 @@ impl Place {
         }
     }
 
+    /// Place equality after type elision
     pub fn weak_eq(&self, other: &Place) -> bool {
         match (self, other) {
             (
@@ -390,14 +360,34 @@ impl Place {
                 Place::Base(ref other_var)
             ) => self_var.weak_eq(other_var),
             (
-                Place::Field(box ref self_base, ref self_field),
-                Place::Field(box ref other_base, ref other_field)
-            ) => self_field.weak_eq(other_field) && self_base.weak_eq(other_base),
+                Place::Field(box ref self_base, ref self_field, ref self_label),
+                Place::Field(box ref other_base, ref other_field, ref other_label)
+            ) => self_label == other_label && self_field.weak_eq(other_field) && self_base.weak_eq(other_base),
             (
                 Place::AddrOf(box ref self_base, ref self_typ),
                 Place::AddrOf(box ref other_base, ref other_typ)
             ) => self_typ.weak_eq(other_typ) && self_base.weak_eq(other_base),
             _ => false
+        }
+    }
+
+    pub fn map_labels<F>(self, f: F) -> Self
+        where F: Fn(Option<String>) -> Option<String>
+    {
+        match self {
+            Place::Base(_) => self,
+            Place::Field(box base, field, opt_label) => {
+                let new_opt_label = f(opt_label);
+                Place::Field(
+                    box base.map_labels(f),
+                    field,
+                    new_opt_label
+                )
+            },
+            Place::AddrOf(box base, typ) => Place::AddrOf(
+                box base.map_labels(f),
+                typ
+            ),
         }
     }
 
@@ -415,7 +405,7 @@ impl Place {
             replacement
         } else {
             match self {
-                Place::Field(box base, field) => Place::Field(box base.replace_prefix(target, replacement), field),
+                Place::Field(box base, field, label) => Place::Field(box base.replace_prefix(target, replacement), field, label),
                 Place::AddrOf(box base, typ) => Place::AddrOf(box base.replace_prefix(target, replacement), typ),
                 x => x,
             }
@@ -427,7 +417,10 @@ impl fmt::Display for Place {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Place::Base(ref var) => write!(f, "{}", var),
-            &Place::Field(ref place, ref field) => write!(f, "{}.{}", place, field),
+            &Place::Field(ref place, ref field, ref opt_label) => match opt_label {
+                None => write!(f, "{}.{}", place, field),
+                Some(ref label) => write!(f, "old[{}]({}.{})", label, place, field),
+            },
             &Place::AddrOf(ref place, _) => write!(f, "&({})", place),
         }
     }
@@ -437,7 +430,10 @@ impl fmt::Debug for Place {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Place::Base(ref var) => write!(f, "{:?}", var),
-            &Place::Field(ref place, ref field) => write!(f, "({:?}).{:?}", place, field),
+            &Place::Field(ref place, ref field, ref opt_label) => match opt_label {
+                None => write!(f, "({:?}).{:?}", place, field),
+                Some(ref label) => write!(f, "old[{}](({:?}).{:?})", label, place, field),
+            },
             &Place::AddrOf(ref place, ref typ) => write!(f, "&({:?}): {}", place, typ),
         }
     }
@@ -474,7 +470,7 @@ pub enum Stmt {
     EndFrame,
     /// Move permissions from a place to another.
     /// This is used to restore permissions in the fold/unfold state when a loan expires.
-    TransferPerm(LabelledPlace, LabelledPlace),
+    TransferPerm(Place, Place),
     /// An `if` statement: the guard, the 'then' branch, the 'else' branch
     /// Note: this is only used to restore permissions of expiring loans, so the fold/unfold
     /// algorithms threats this statement (and statements in the branches) in a very special way.
@@ -754,7 +750,7 @@ pub trait StmtFolder {
         Stmt::EndFrame
     }
 
-    fn fold_transfer_perm(&mut self, a: LabelledPlace, b: LabelledPlace) -> Stmt {
+    fn fold_transfer_perm(&mut self, a: Place, b: Place) -> Stmt {
         Stmt::TransferPerm(a, b)
     }
 
@@ -1063,8 +1059,8 @@ impl fmt::Display for UnaryOpKind {
 }
 
 impl Expr {
-    pub fn pred_permission(place: LabelledPlace, frac: Frac) -> Option<Self> {
-        place.get_place().typed_ref_name().map( |pred_name|
+    pub fn pred_permission(place: Place, frac: Frac) -> Option<Self> {
+        place.typed_ref_name().map( |pred_name|
             Expr::PredicateAccessPredicate(
                 pred_name,
                 vec![ place.into() ],
@@ -1225,7 +1221,7 @@ impl Expr {
             ),
             Expr::Cond(guard, left, right) => Expr::Cond(replace(guard), replace(left), replace(right)),
             Expr::ForAll(vars, triggers, body) => {
-                if vars.contains(target.base()) {
+                if vars.contains(target.get_base()) {
                     // Do nothing
                     Expr::ForAll(vars, triggers, body)
                 } else {

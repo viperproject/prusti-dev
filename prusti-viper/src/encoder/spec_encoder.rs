@@ -204,7 +204,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
                 let field = self.encode_hir_field(base_expr);
-                place.access(field)
+                place.access_curr(field)
             }
 
             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ref expr) => {
@@ -214,7 +214,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     vir::Place::AddrOf(box base, typ) => base,
                     _ => {
                         let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
-                        place.access(vir::Field::new("val_ref", vir::Type::TypedRef(type_name))).into()
+                        place.access_curr(vir::Field::new("val_ref", vir::Type::TypedRef(type_name))).into()
                     }
                 }
             }
@@ -240,10 +240,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         if place.get_type().is_ref() {
             match base_ty.sty {
-                ty::TypeVariants::TyBool => place.access(vir::Field::new("val_bool", vir::Type::Bool)).into(),
+                ty::TypeVariants::TyBool => place.access_curr(vir::Field::new("val_bool", vir::Type::Bool)).into(),
 
                 ty::TypeVariants::TyInt(..) |
-                ty::TypeVariants::TyUint(..) => place.access(vir::Field::new("val_int", vir::Type::Int)).into(),
+                ty::TypeVariants::TyUint(..) => place.access_curr(vir::Field::new("val_int", vir::Type::Int)).into(),
 
                 ty::TypeVariants::TyTuple(..) |
                 ty::TypeVariants::TyAdt(..) => place.into(),
@@ -433,7 +433,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 |(index, &captured_ty)| {
                     let field_name = format!("closure_{}", index);
                     let encoded_field = self.encoder.encode_ref_field(&field_name, captured_ty);
-                    deref_closure_var.clone().access(encoded_field)
+                    deref_closure_var.clone().access_curr(encoded_field)
                 }
             ).collect();
             let outer_captured_places: Vec<_> = captured_operands.iter().map(
@@ -487,7 +487,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let value_field = self.encoder.encode_value_field(local_arg.ty);
                         let value_type = self.encoder.encode_value_type(local_arg.ty);
                         let proper_var = vir::LocalVar::new(var_name.to_string(), value_type);
-                        let encoded_arg_value = vir::Place::Base(encoded_arg).access(value_field);
+                        let encoded_arg_value = vir::Place::Base(encoded_arg).access_curr(value_field);
                         trace!(
                             "Place {}: {} is renamed to {} because a quantifier introduced it",
                             encoded_arg_value,
@@ -534,7 +534,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let spec_local = curr_mir_encoder.encode_local(local);
             let spec_local_place: vir::Place = if self.targets_are_values {
                 let value_field = self.encoder.encode_value_field(local_ty);
-                vir::Place::Base(spec_local).access(value_field)
+                vir::Place::Base(spec_local).access_curr(value_field)
             } else {
                 spec_local.into()
             };
@@ -554,7 +554,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         ty::TypeVariants::TyRawPtr(..) |
                         ty::TypeVariants::TyRef(..) => {
                             let value_field = self.encoder.encode_value_field(curr_mir.return_ty());
-                            let spec_fake_return_value = vir::Place::Base(spec_fake_return.clone()).access(value_field);
+                            let spec_fake_return_value = vir::Place::Base(spec_fake_return.clone()).access_curr(value_field);
                             encoded_expr = encoded_expr.substitute_place_with_expr(&spec_fake_return_value, target_return_value.clone());
                         }
                         _ => {}
@@ -565,7 +565,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             let spec_fake_return_place: vir::Place = if self.targets_are_values {
                 let value_field = self.encoder.encode_value_field(fake_return_ty);
-                vir::Place::Base(spec_fake_return).access(value_field)
+                vir::Place::Base(spec_fake_return).access_curr(value_field)
             } else {
                 spec_fake_return.clone().into()
             };

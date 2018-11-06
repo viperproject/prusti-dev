@@ -135,7 +135,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()];
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        let encoded_projection = encoded_base.access(encoded_field);
+                        let encoded_projection = encoded_base.access_curr(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
 
@@ -152,7 +152,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
                         let field_ty = field.ty(tcx, subst);
                         let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        let encoded_projection = encoded_base.access(encoded_field);
+                        let encoded_projection = encoded_base.access_curr(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
 
@@ -166,7 +166,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             let freevar = &freevars[field.index()];
                             let field_name = format!("closure_{}", field.index());
                             let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                            let res = encoded_base.access(encoded_field);
+                            let res = encoded_base.access_curr(encoded_field);
                             let var_name = tcx.hir.name(freevar.var_id()).to_string();
                             trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
                             res
@@ -227,13 +227,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
             ty::TypeVariants::TyRef(_, ty, _) => {
                 let access = if encoded_base.is_addr_of() {
-                    encoded_base.parent().unwrap().clone()
+                    encoded_base.get_parent().unwrap().clone()
                 } else {
                     match encoded_base {
                         vir::Place::AddrOf(box base_base_place, ty) => base_base_place,
                         _ => {
                             let ref_field = self.encoder.encode_ref_field("val_ref", ty);
-                            encoded_base.access(ref_field)
+                            encoded_base.access_curr(ref_field)
                         }
                     }
                 };
@@ -241,14 +241,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
-                    encoded_base.parent().unwrap().clone()
+                    encoded_base.get_parent().unwrap().clone()
                 } else {
                     let field_ty = base_ty.boxed_ty();
                     let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
-                    vir::Place::Field(
-                        box encoded_base,
-                        ref_field,
-                    )
+                    encoded_base.access_curr(ref_field)
                 };
                 (access, base_ty.boxed_ty(), None)
             }
@@ -259,7 +256,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn eval_place(&self, place: &mir::Place<'tcx>) -> vir::Place {
         let (encoded_place, place_ty, _) = self.encode_place(place);
         let value_field = self.encoder.encode_value_field(place_ty);
-        encoded_place.access(value_field)
+        encoded_place.access_curr(value_field)
     }
 
     /// Returns an `vir::Expr` that corresponds to the value of the operand

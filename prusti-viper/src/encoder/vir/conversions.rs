@@ -22,15 +22,6 @@ impl From<Place> for Expr {
     }
 }
 
-impl From<LabelledPlace> for Expr {
-    fn from(place: LabelledPlace) -> Self {
-        match place.get_label() {
-            Some(label) => Expr::labelled_old(label, Expr::Place(place.get_place().clone())),
-            None => Expr::Place(place.get_place().clone())
-        }
-    }
-}
-
 impl From<Const> for Expr {
     fn from(cons: Const) -> Self {
         Expr::Const(cons)

@@ -55,10 +55,19 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Place {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self {
             Place::Base(local_var) => local_var.to_viper(ast),
-            Place::Field(base, field) => ast.field_access(
-                base.to_viper(ast),
-                field.to_viper(ast),
-            ),
+            Place::Field(base, field, opt_label) => match opt_label {
+                None => ast.field_access(
+                    base.to_viper(ast),
+                    field.to_viper(ast),
+                ),
+                Some(label) => ast.labelled_old(
+                    ast.field_access(
+                        base.to_viper(ast),
+                        field.to_viper(ast),
+                    ),
+                    label
+                ),
+            },
             Place::AddrOf(..) => unreachable!(),
         }
     }
