@@ -34,13 +34,12 @@ function ctrl_c() {
 trap ctrl_c INT
 
 # Run evaluations in parallel
-
 MAX_PARALLEL_EVALUATIONS="${MAX_PARALLEL_EVALUATIONS:-1}"
 info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS"
 
 ls -d "$CRATE_DOWNLOAD_DIR"/*/ | \
 	xargs -I CMD --max-procs="$MAX_PARALLEL_EVALUATIONS" --max-args=1 \
-	timeout -k 300 3600 "$DIR/evaluate-crate.sh" CMD
+	"$DIR/evaluate-crate.sh" CMD
 
 # Analyze evaluation
 info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS" | tee "$evaluation_report_file"
