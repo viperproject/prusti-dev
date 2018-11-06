@@ -180,6 +180,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             .into_iter()
             .filter(|p| p.is_curr())
             .collect();
+        debug!("required permissions: {:?}", perms);
 
         if !perms.is_empty() {
             /*
@@ -323,9 +324,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         let old_stmts = new_stmts;
         let mut new_stmts = vec![];
         for stmt in old_stmts.into_iter() {
-            new_stmts.push(
-                stmt.map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
-            );
+            if let vir::Stmt::TransferPerm(_, _) = stmt {
+                new_stmts.push(stmt);
+            } else {
+                new_stmts.push(
+                    stmt.map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
+                );
+            }
         }
 
         // 5. Apply effect of statement on state

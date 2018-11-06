@@ -309,7 +309,7 @@ impl vir::Expr {
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
                     .map(
                         |aop| {
-                            aop.map_place( |p|
+                            aop.map_place(|p|
                                 p.replace_place(&pred_self_place, place)
                             ) * frac
                         }
@@ -320,6 +320,7 @@ impl vir::Expr {
 
                 // inhaled = inhaled in body - unfolding
                 perm_difference(expr_access_places, places_in_pred)
+
             }
 
             vir::Expr::UnaryOp(_, ref expr) => expr.get_permissions(predicates),
@@ -350,15 +351,20 @@ impl vir::Expr {
 
             vir::Expr::PredicateAccessPredicate(_, ref args, frac) => {
                 assert_eq!(args.len(), 1);
-                let place = &args[0];
-                debug_assert!(place.is_place());
+                let arg = &args[0];
 
-                let perm = match place.get_label() {
-                    None => Perm::Pred(place.clone(), *frac),
-                    Some(label) => Perm::Pred(place.clone().old(label), *frac)
+                let opt_perm = if arg.is_place() {
+                    Some(
+                        match arg.get_label() {
+                            None => Perm::Pred(arg.clone(), *frac),
+                            Some(label) => Perm::Pred(arg.clone().old(label), *frac)
+                        }
+                    )
+                } else {
+                    None
                 };
 
-                Some(perm).into_iter().collect()
+                opt_perm.into_iter().collect()
             }
 
             vir::Expr::FieldAccessPredicate(box ref place, frac) => {

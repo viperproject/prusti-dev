@@ -85,6 +85,11 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         crate_name
     }
 
+    /// Get a short name of the procedure
+    pub fn get_short_name(&self) -> String {
+        self.tcx.item_path_str(self.proc_def_id)
+    }
+
     /// Get a readable path of the procedure
     pub fn get_name(&self) -> String {
         self.tcx.absolute_item_path_str(self.proc_def_id)

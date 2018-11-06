@@ -1189,7 +1189,7 @@ impl Expr {
         impl<T: Fn(String) -> Option<String>> ExprFolder for OldLabelReplacer<T> {
             fn fold_labelled_old(&mut self, label: String, base: Box<Expr>) -> Expr {
                 match (self.f)(label) {
-                    Some(new_label) => Expr::LabelledOld(new_label, self.fold_boxed(base)),
+                    Some(new_label) => Expr::LabelledOld(new_label, base),
                     None => *base
                 }
             }
