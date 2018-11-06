@@ -1201,16 +1201,17 @@ impl Expr {
 
     pub fn replace_place(self, target: &Expr, replacement: &Expr) -> Self {
         debug_assert!(target.is_place());
-        debug_assert!(replacement.is_place());
         //assert_eq!(target.get_type(), replacement.get_type());
-        assert!(
-            target.get_type().weak_eq(&replacement.get_type()),
-            "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
-            target,
-            replacement,
-            target.get_type(),
-            replacement.get_type()
-        );
+        if replacement.is_place() {
+            assert!(
+                target.get_type().weak_eq(&replacement.get_type()),
+                "Cannot substitute '{}' with '{}', because they have incompatible types '{}' and '{}'",
+                target,
+                replacement,
+                target.get_type(),
+                replacement.get_type()
+            );
+        }
         struct PlaceReplacer<'a>{
             target: &'a Expr,
             replacement: &'a Expr
