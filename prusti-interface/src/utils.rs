@@ -66,9 +66,6 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
             }
         },
         mir::tcx::PlaceTy::Downcast { .. } => {}
-        base_ty => {
-            unimplemented!("base_ty={:?}", base_ty);
-        }
     }
     places
 }

@@ -17,9 +17,6 @@ use syntax::codemap::Span;
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
 
-/// A Basic Block Data
-pub type BasicBlockData<'tcx> = mir::BasicBlockData<'tcx>;
-
 /// A facade that provides information about the Rust procedure.
 pub struct Procedure<'a, 'tcx: 'a> {
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
@@ -138,8 +135,8 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     pub fn is_panic_block(&self, bbi: BasicBlockIndex) -> bool {
         if let TerminatorKind::Call {
-            ref args,
-            ref destination,
+            args: ref _args,
+            destination: ref _destination,
             func: mir::Operand::Constant(
                 box mir::Constant {
                     literal: mir::Literal::Value {

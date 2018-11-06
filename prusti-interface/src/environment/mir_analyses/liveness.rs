@@ -188,8 +188,8 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
     fn merge_effects(&mut self, bb: mir::BasicBlock) {
         trace!("[enter] merge_effects bb={:?}", bb);
         let set = {
-            let mut sets = self.mir.predecessors_for(bb);
-            let mut sets = sets.iter();
+            let sets = self.mir.predecessors_for(bb);
+            let sets = sets.iter();
             let mut sets = sets.map(|&predecessor| self.get_set_after_block(predecessor));
             if let Some(first) = sets.next() {
                 sets.fold(first, |acc, set| AssignmentSet::union(&acc, &set))
@@ -216,17 +216,6 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
                 };
                 self.queue.push(WorkItem::ApplyStatementEffects(location));
             }
-        }
-    }
-    /// Return the place set before the given statement.
-    /// TODO: Refactor to avoid code duplication.
-    fn get_assignment_set_before_statement(&self,
-                                           mut location: mir::Location) -> AssignmentSet {
-        if location.statement_index == 0 {
-            self.result.before_block[&location.block].clone()
-        } else {
-            location.statement_index -= 1;
-            self.result.after_statement[&location].clone()
         }
     }
     /// Replace all assignments to `place` as definitely initialized.

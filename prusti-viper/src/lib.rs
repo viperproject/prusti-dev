@@ -2,6 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// TODO: Remove these allows:
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(unused_doc_comments)]
+#![allow(dead_code)]
+
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(nll)]

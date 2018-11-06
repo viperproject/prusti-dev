@@ -110,7 +110,7 @@ impl<'tcx> LocalVariableManager<'tcx> {
 }
 
 /// This place is a generalisation of mir::Place.
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub enum Place<'tcx> {
     /// A place that is a MIR place.
     NormalPlace(mir::Place<'tcx>),

@@ -7,7 +7,6 @@ use syntax::attr;
 use rustc::ty::TyCtxt;
 use rustc::hir::def_id::DefId;
 use rustc::hir::itemlikevisit::ItemLikeVisitor;
-use constants::PRUSTI_SPEC_ATTR;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use config;

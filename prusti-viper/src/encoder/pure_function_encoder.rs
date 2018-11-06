@@ -493,7 +493,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 )
             }
 
-            TerminatorKind::Resume |
             TerminatorKind::Yield { .. } |
             TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
         }

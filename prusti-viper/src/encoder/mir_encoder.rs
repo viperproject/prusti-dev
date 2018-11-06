@@ -23,6 +23,7 @@ use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::error_manager::ErrorCtxt;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
+pub static POSTCONDITION_LABEL: &'static str = "post";
 pub static WAND_LHS_LABEL: &'static str = "lhs";
 
 /// Common code used for `ProcedureEncoder` and `PureFunctionEncoder`
@@ -317,7 +318,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let val_place = self.eval_place(&place);
                 val_place.get_type().clone()
             }
-            x => unimplemented!("{:?}", x)
         }
     }
 

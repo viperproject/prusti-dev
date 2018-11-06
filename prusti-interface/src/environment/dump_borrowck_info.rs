@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 use super::borrowck::facts;
 use super::loops;
 use super::loops_utils::*;
@@ -102,36 +103,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
             liveness: liveness,
             polonius_info: PoloniusInfo::new(self.tcx, def_id, &mir),
         };
-        mir_info_printer.print_info();
+        mir_info_printer.print_info().unwrap();
 
         trace!("[visit_fn] exit");
     }
-}
-
-
-impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
-
-    /// Extract the call terminator at the location. Otherwise return None.
-    fn get_call_destination(&self, mir: &mir::Mir<'tcx>,
-                            location: mir::Location) -> Option<mir::Place<'tcx>> {
-        let mir::BasicBlockData { ref statements, ref terminator, .. } = mir[location.block];
-        if statements.len() != location.statement_index {
-            return None;
-        }
-        match terminator.as_ref().unwrap().kind {
-            mir::TerminatorKind::Call { ref destination, .. } => {
-                if let Some((ref place, _)) = destination {
-                    Some(place.clone())
-                } else {
-                    None
-                }
-            }
-            ref x => {
-                panic!("Expected call, got {:?} at {:?}", x, location);
-            }
-        }
-    }
-
 }
 
 
@@ -210,19 +185,19 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
         write_graph!(self, "digraph G {{\n");
         for bb in self.mir.basic_blocks().indices() {
-            self.visit_basic_block(bb);
+            self.visit_basic_block(bb)?;
         }
-        self.print_temp_variables();
+        self.print_temp_variables()?;
         self.print_blocked(mir::RETURN_PLACE, mir::Location {
             block: mir::BasicBlock::new(0),
             statement_index: 0,
-        });
+        })?;
         self.print_subset_at_start(mir::Location {
             block: mir::BasicBlock::new(0),
             statement_index: 0,
-        });
-        self.print_borrow_regions();
-        self.print_restricts();
+        })?;
+        self.print_borrow_regions()?;
+        self.print_restricts()?;
         write_graph!(self, "}}\n");
         Ok(())
     }
@@ -381,7 +356,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             self.write_magic_wands(false, mir::Location {
                 block: mir::BasicBlock::new(0),
                 statement_index: 0,
-            });
+            })?;
         }
 
         // Is this a loop head?
@@ -442,9 +417,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     statement_index: 0,
                 };
                 let point = self.get_point(location, facts::PointType::Start);
-                let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
-                let restricts = restricts_map.get(&point);
-                let restricts = restricts.as_ref().unwrap();
 
                 for magic_wand in magic_wands.iter() {
                     let (all_loans, zombie_loans) = self.polonius_info.get_all_loans_kept_alive_by(
@@ -555,7 +527,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         }
         write_graph!(self, "<td>{}</td>", term_str);
         write_graph!(self, "<td></td>");
-        self.write_mid_point_blas(location);
+        self.write_mid_point_blas(location)?;
         write_graph!(self, "<td colspan=\"4\"></td>");
         write_graph!(self, "<td>{}</td>",
                      self.get_definitely_initialized_after_statement(location));
@@ -564,7 +536,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "</tr>");
         if let Some(ref term) = &terminator {
             if let mir::TerminatorKind::Return = term.kind {
-                self.write_magic_wands(true, location);
+                self.write_magic_wands(true, location)?;
             }
         }
         write_graph!(self, "</table>> ];");
@@ -662,11 +634,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     let variable = self.polonius_info
                         .find_variable(*region)
                         .unwrap_or(mir::Local::new(1000));
-                    self.print_blocked(variable, start_location);
+                    self.print_blocked(variable, start_location)?;
                 }
             }
 
-            self.print_subsets(start_location);
+            self.print_subsets(start_location)?;
         }
 
         Ok(())
@@ -689,7 +661,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         } else {
             write_graph!(self, "<td></td>");
         }
-        self.write_mid_point_blas(location);
+        self.write_mid_point_blas(location)?;
 
         // Borrow regions (loan start points).
         let borrow_regions: Vec<_> = self.polonius_info.borrowck_in_facts
@@ -919,7 +891,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 /// Debug printing.
 impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
-    fn dump_to_file(
+    fn _dump_to_file(
         &self,
         file: &str,
         requires: &FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>) {
@@ -930,7 +902,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         file.push_str(&self.def_path.to_filename_friendly_no_crate());
         file.push_str(".csv");
 
-        let path = PathBuf::from(&file);
         let mut writer = WriterBuilder::new()
              .from_path(file)
              .unwrap();
@@ -954,26 +925,6 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
 /// Loan end analysis.
 impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
-
-    /// Get locations that are reachable from this location in one step.
-    fn get_successors(&self, location: mir::Location) -> Vec<mir::Location> {
-        let statements_len = self.mir[location.block].statements.len();
-        if location.statement_index < statements_len {
-            vec![mir::Location {
-                statement_index: location.statement_index + 1,
-                .. location
-            }]
-        } else {
-            let mut successors = Vec::new();
-            for successor in self.mir[location.block].terminator.as_ref().unwrap().successors() {
-                successors.push(mir::Location {
-                    block: *successor,
-                    statement_index: 0,
-                });
-            }
-            successors
-        }
-    }
 
     /// Print the HTML cell with loans at given location.
     fn write_mid_point_blas(&self, location: mir::Location) -> Result<(),io::Error> {
