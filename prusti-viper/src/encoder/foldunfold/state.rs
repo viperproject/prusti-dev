@@ -40,7 +40,7 @@ impl State {
     pub fn check_consistency(&self) {
         // Check access permissions
         for place in self.pred.keys() {
-            if place.is_curr() && !self.contains_acc(place) {
+            if !place.has_old() && !self.contains_acc(place) {
                 panic!(
                     "Consistency error: state has pred {}, but not acc {}",
                     place,
@@ -49,7 +49,7 @@ impl State {
             }
         }
         for place in self.acc.keys() {
-            if place.is_curr() && !place.is_local() && place.is_curr() {
+            if !place.has_old() && !place.is_local() && !place.has_old() {
                 if !self.contains_acc(place.clone().get_parent().unwrap()) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
@@ -62,7 +62,7 @@ impl State {
         // Check predicates and moved paths
         for place in self.pred.keys() {
             for other_place in self.pred.keys() {
-                if place.is_curr() && other_place.is_curr() && place.has_proper_prefix(&other_place) {
+                if !place.has_old() && !other_place.has_old() && place.has_proper_prefix(&other_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also pred {}",
                         place,
@@ -73,7 +73,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for pred_place in self.pred.keys() {
-                if acc_place.is_curr() && pred_place.is_curr() && acc_place.has_proper_prefix(&pred_place) {
+                if !acc_place.has_old() && !pred_place.has_old() && acc_place.has_proper_prefix(&pred_place) {
                     panic!(
                         "Consistency error: state has acc {}, but also pred {}",
                         acc_place,
@@ -84,7 +84,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for moved_place in &self.moved {
-                if acc_place.is_curr() && acc_place.has_proper_prefix(moved_place) {
+                if !acc_place.has_old() && acc_place.has_proper_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has acc {}, but also moved path {}",
                         acc_place,
@@ -95,14 +95,14 @@ impl State {
         }
         for pred_place in self.pred.keys() {
             for moved_place in &self.moved {
-                if pred_place.is_curr() && pred_place.has_prefix(moved_place) {
+                if !pred_place.has_old() && pred_place.has_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
                         moved_place
                     );
                 }
-                if pred_place.is_curr() && moved_place.has_prefix(pred_place) {
+                if !pred_place.has_old() && moved_place.has_prefix(pred_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
