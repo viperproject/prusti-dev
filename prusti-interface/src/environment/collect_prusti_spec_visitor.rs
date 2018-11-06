@@ -12,7 +12,6 @@ use std::collections::HashSet;
 use std::iter::FromIterator;
 use config;
 use environment::EnvironmentImpl;
-use environment::Environment;
 
 pub struct CollectPrustiSpecVisitor<'r, 'a: 'r, 'tcx: 'a> {
     env: &'r EnvironmentImpl<'r, 'a, 'tcx>,
@@ -45,12 +44,12 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
         }
         if let hir::Item_::ItemFn(..) = item.node {
             let def_id = self.tcx.hir.local_def_id(item.id);
-            let item_name = self.env.get_item_name(def_id);
-            if !self.use_whitelist || self.whitelist.contains(&item_name) {
-                trace!("Add {} to result", item_name);
+            let item_def_path = self.env.get_item_def_path(def_id);
+            if !self.use_whitelist || self.whitelist.contains(&item_def_path) {
+                trace!("Add {} to result", item_def_path);
                 self.result.push(def_id);
             } else {
-                debug!("Skip verification of item '{}': not in the whitelist", item_name)
+                debug!("Skip verification of item '{}': not in the whitelist", item_def_path)
             }
         }
     }
@@ -65,12 +64,12 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
             return;
         }
         let def_id = self.tcx.hir.local_def_id(trait_item.id);
-        let item_name = self.env.get_item_name(def_id);
-        if !self.use_whitelist || self.whitelist.contains(&item_name) {
-            trace!("Add {} to result", item_name);
+        let item_def_path = self.env.get_item_def_path(def_id);
+        if !self.use_whitelist || self.whitelist.contains(&item_def_path) {
+            trace!("Add {} to result", item_def_path);
             self.result.push(def_id);
         } else {
-            debug!("Skip verification of trait item '{}': not in the whitelist", item_name)
+            debug!("Skip verification of trait item '{}': not in the whitelist", item_def_path)
         }
     }
 
@@ -80,12 +79,12 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
             return;
         }
         let def_id = self.tcx.hir.local_def_id(impl_item.id);
-        let item_name = self.env.get_item_name(def_id);
-        if !self.use_whitelist || self.whitelist.contains(&item_name) {
-            trace!("Add {} to result", item_name);
+        let item_def_path = self.env.get_item_def_path(def_id);
+        if !self.use_whitelist || self.whitelist.contains(&item_def_path) {
+            trace!("Add {} to result", item_def_path);
             self.result.push(def_id);
         } else {
-            debug!("Skip verification of impl item '{}': not in the whitelist", item_name)
+            debug!("Skip verification of impl item '{}': not in the whitelist", item_def_path)
         }
     }
 }

@@ -13,7 +13,6 @@ use rustc::hir::def_id::DefId;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use std::collections::HashMap;
-use prusti_interface::environment::Environment;
 use rustc_data_structures::indexed_vec::Idx;
 use encoder::borrows::ProcedureContract;
 use encoder::places;

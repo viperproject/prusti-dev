@@ -80,7 +80,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         &self.mir
     }
 
-    /// Get an absolute `def_path`. Note: not preserved across compilations!
+    /// Get an absolute path to this procedure
     pub fn get_def_path(&self) -> String {
         let def_path = self.tcx.def_path(self.proc_def_id);
         let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
@@ -88,7 +88,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         crate_name
     }
 
-    /// Get the absolute path of the procedure
+    /// Get a readable path of the procedure
     pub fn get_name(&self) -> String {
         self.tcx.absolute_item_path_str(self.proc_def_id)
     }

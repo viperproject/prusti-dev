@@ -17,7 +17,6 @@ use rustc::ty;
 use rustc::hir::def_id::DefId;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use prusti_interface::environment::Environment;
 use syntax::ast;
 use prusti_interface::report::Log;
 use encoder::borrows::ProcedureContract;

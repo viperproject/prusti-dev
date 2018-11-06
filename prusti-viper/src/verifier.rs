@@ -15,7 +15,6 @@ use prusti_interface::report::Log;
 use viper::{self, Viper, VerificationBackend};
 use prusti_interface::specifications::{TypedSpecificationMap};
 use prusti_filter::validators::{Validator, SupportStatus};
-use prusti_interface::environment::Environment;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -154,7 +153,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             let proc_name = self.env.get_item_name(proc_id);
             let proc_def_path = self.env.get_item_def_path(proc_id);
             let proc_span = self.env.get_item_span(proc_id);
-            info!(" - {} ({}) at {:?}", proc_name, proc_def_path, proc_span);
+            info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
         }
 
         for &proc_id in &task.procedures {

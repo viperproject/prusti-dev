@@ -13,7 +13,6 @@ use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::vir::ExprIterator;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
-use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::report::Log;
 use rustc::middle::const_val::ConstVal;

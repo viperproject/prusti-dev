@@ -35,15 +35,6 @@ use utils::get_attr_value;
 use config;
 use syntax::codemap::Span;
 
-/// A facade to the Rust compiler.
-pub trait Environment<'a, 'tcx: 'a> {
-    /// Get the name of an item
-    fn get_item_name(&self, proc_def_id: DefId) -> String;
-
-    /// Get a Procedure.
-    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx>;
-}
-
 /// Facade to the Rust compiler.
 pub struct EnvironmentImpl<'r, 'a: 'r, 'tcx: 'a> {
     state: &'r mut driver::CompileState<'a, 'tcx>,
@@ -171,15 +162,13 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     pub fn get_item_span(&self, def_id: DefId) -> Span {
         self.tcx().hir.span_if_local(def_id).unwrap()
     }
-}
 
-impl<'r, 'a, 'tcx> Environment<'a, 'tcx> for EnvironmentImpl<'r, 'a, 'tcx> {
-    fn get_item_name(&self, def_id: DefId) -> String {
+    pub fn get_item_name(&self, def_id: DefId) -> String {
         self.tcx().absolute_item_path_str(def_id)
     }
 
     /// Get a Procedure.
-    fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
+    pub fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
     }
 }

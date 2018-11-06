@@ -45,7 +45,7 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
     fn visit_fn(&mut self, fk: FnKind<'tcx>, fd: &'tcx hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) {
         let def_id = self.tcx.hir.local_def_id(id);
         let procedure = Procedure::new(self.tcx, def_id);
-        let node_path = procedure.get_name();
+        let node_path = procedure.get_def_path();
         debug!("Checking {}", node_path);
 
         let procedure_support_status = self.validator.procedure_support_status(fk, fd, b, s, id);

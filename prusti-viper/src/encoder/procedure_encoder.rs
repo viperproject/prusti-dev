@@ -17,7 +17,6 @@ use encoder::vir::ExprIterator;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
-use prusti_interface::environment::Environment;
 use prusti_interface::environment::Procedure;
 use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
@@ -117,7 +116,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Initialize CFG blocks
         let start_cfg_block = self.cfg_method.add_block("start", vec![], vec![
             vir::Stmt::comment("========== start =========="),
-            vir::Stmt::comment(format!("Absolute path: {:?}", self.procedure.get_name())),
+            vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),
             vir::Stmt::comment(format!("Def path: {:?}", self.procedure.get_def_path())),
             vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
         ]);
@@ -672,6 +671,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vir::Stmt::TransferPerm(lhs.clone(), rhs.clone())
         );
 
+        /*
+        // This test is unreliable
         if self.check_fold_unfold_state {
             let pos = self.encoder.error_manager().register(
                 self.mir.source_info(location).span,
@@ -687,6 +688,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             );
         }
+        */
 
         // We reallocate when we expire because we want to have disjointed
         // permissions for the lhs and rhs when a borrow expires inside a loop

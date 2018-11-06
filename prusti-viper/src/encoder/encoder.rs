@@ -16,7 +16,6 @@ use encoder::type_encoder::TypeEncoder;
 use encoder::vir;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::Environment;
 use prusti_interface::environment::EnvironmentImpl;
 use prusti_interface::report::Log;
 use rustc::hir::def_id::DefId;
@@ -477,6 +476,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             .replace("[", "$opensqu$").replace("]", "$closesqu$")
             .replace("{", "$opencur$").replace("}", "$closecur$")
             .replace(",", "$comma$")
+            .replace(";", "$semic$")
             .replace(" ", "$space$")
     }
 
@@ -547,7 +547,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
         trace!("is_trusted {:?}", def_id);
         let result = self.env().has_attribute_name(def_id, "trusted") || (
-            self.use_whitelist && !self.whitelist.contains(&self.env().get_item_name(def_id))
+            self.use_whitelist && !self.whitelist.contains(&self.env().get_item_def_path(def_id))
         );
         trace!("is_trusted {:?} = {}", def_id, result);
         result
