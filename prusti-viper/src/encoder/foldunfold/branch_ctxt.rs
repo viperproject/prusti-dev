@@ -50,8 +50,8 @@ impl<'a> BranchCtxt<'a> {
     /// Simulate an unfold
     fn unfold(&mut self, pred_place: &vir::Expr, frac: Frac) -> Action {
         debug!("We want to unfold {}", pred_place);
-        assert!(self.state.contains_acc(pred_place));
-        assert!(self.state.contains_pred(pred_place));
+        assert!(self.state.contains_acc(pred_place), "State: {}", self.state);
+        assert!(self.state.contains_pred(pred_place), "State: {}", self.state);
 
         let predicate_name = pred_place.typed_ref_name().unwrap();
         let predicate = self.predicates.get(&predicate_name).unwrap();

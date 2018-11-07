@@ -142,6 +142,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 let labelled_state = labelled_bctxt.mut_state();
                 labelled_state.remove_all();
                 vir::Stmt::Inhale(lhs.clone()).apply_on_state(labelled_state, bctxt.predicates());
+                if let vir::Expr::PredicateAccessPredicate(ref name, ref args, frac) = lhs {
+                    labelled_state.insert_acc(args[0].clone(), *frac);
+                }
                 labelled_state.replace_places(|place| place.old(&label));
                 self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
             }
@@ -291,36 +294,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                     }
                     package_bctxt.apply_stmt(stmt);
                     package_stmts.push(stmt.clone());
-                }
-                {
-                    let perms: Vec<_> = rhs
-                        .get_required_permissions(package_bctxt.predicates())
-                        .into_iter()
-                        .filter(|p| p.is_curr())
-                        .collect();
-
-                    if !perms.is_empty() {
-                        /*
-                        if self.dump_debug_info {
-                            package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
-                            package_stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
-                        }
-                        */
-
-                        package_stmts.extend(
-                            package_bctxt
-                                .obtain_permissions(perms)
-                                .iter()
-                                .map(|a| a.to_stmt())
-                        );
-
-                        /*
-                        if self.check_foldunfold_state && !is_last_before_return {
-                            package_stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                            package_stmts.push(vir::Stmt::Assert(package_bctxt.state().as_vir_expr(), vir::Position::new(0, 0, "check fold/unfold state".to_string())));
-                        }
-                        */
-                    }
                 }
                 vec![
                     vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts, position.clone())
