@@ -34,7 +34,7 @@ pub struct LoanPlaces<'tcx> {
 /// borrows one variable while the other one is consumed. As a result,
 /// we can restore the permissions only to the variable which we know
 /// was borrowed by `x`.
-/// ```rust,no_run
+/// ```rust,ignore
 /// #![feature(nll)]
 ///
 /// struct F { f: u32 }

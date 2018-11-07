@@ -10,7 +10,7 @@
 //! Currently, we support procedure preconditions and postconditions and
 //! loop invariants. An example specification would look like this:
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! #[requires="0 < n && n < 10"]
 //! #[ensures="result > 0"]
 //! fn fib(mut n: i32) -> i32 {
@@ -74,7 +74,7 @@
 //!         there is no way to call a type checker on an AST manually.
 //!         The example above would be rewritten as follows:
 //!
-//!         ```rust,no_run
+//!         ```rust,ignore
 //!         #[__PRUSTI_SPEC = "101"]
 //!         fn fib(mut n: i32) -> i32 {
 //!             let mut i = 1;
