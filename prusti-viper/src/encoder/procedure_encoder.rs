@@ -1303,6 +1303,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 pos
                             );
 
+                            let label = self.cfg_method.get_fresh_label_name();
+                            stmts.push(vir::Stmt::Label(label.clone()));
+
                             // Havoc the content of the lhs
                             let (target_place, target_ty, _) = match destination.as_ref() {
                                 Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
@@ -1327,10 +1330,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             );
 
                             // Store a label for permissions got back from the call
-                            let label = self.cfg_method.get_fresh_label_name();
                             debug!("Pure function call location {:?} has label {}", location, label);
                             self.label_after_location.insert(location, label.clone());
-                            stmts.push(vir::Stmt::Label(label.clone()));
 
                             // Transfer the permissions for the arguments used in the call
                             for operand in args.iter() {
@@ -1458,6 +1459,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 );
                             }
 
+                            // Store a label for permissions got back from the call
+                            debug!("Procedure call location {:?} has label {}", location, pre_label);
+                            self.label_after_location.insert(location, pre_label.clone());
+
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
@@ -1471,55 +1476,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Label(post_label.clone()));
                             for magic_wand in magic_wands {
                                 stmts.push(vir::Stmt::Inhale(magic_wand));
-                            }
-
-                            // Store a label for permissions got back from the call
-                            let post_label = self.cfg_method.get_fresh_label_name();
-                            debug!("Procedure call location {:?} has label {}", location, post_label);
-                            self.label_after_location.insert(location, post_label.clone());
-                            stmts.push(vir::Stmt::Label(post_label.clone()));
-
-                            // Transfer the permissions for the arguments used in the call
-                            for operand in args.iter() {
-                                let operand_ty = self.mir_encoder.get_operand_ty(operand);
-                                let operand_place = self.mir_encoder.encode_operand_place(operand);
-                                match (operand_place, &operand_ty.sty) {
-                                    (Some(ref place), ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                                        ty: ref inner_ty, .. })) |
-                                    (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
-                                        let ref_field = self.encoder.encode_ref_field("val_ref", inner_ty);
-                                        let ref_place = place.clone().field(ref_field);
-                                        let transfer_statement = self.encode_transfer_permissions(
-                                            ref_place.clone().old(&pre_label),
-                                            ref_place.clone().old(&post_label),
-                                            location
-                                        );
-                                        let borrow_infos = &procedure_contract.borrow_infos;
-                                        let place_is_blocked = if !borrow_infos.is_empty() {
-                                            assert_eq!(borrow_infos.len(), 1,
-                                                       "We can have at most one magic wand in the postcondition.");
-                                            let borrow_info = &borrow_infos[0];
-                                            borrow_info
-                                                .blocked_paths
-                                                .iter()
-                                                .any(|path| {
-                                                    let (encoded_place, ..) = self.encode_generic_place(path);
-                                                    let encoded_place = replace_fake_exprs(encoded_place);
-                                                    encoded_place == ref_place
-                                                })
-                                        } else {
-                                            false
-                                        };
-                                        if place_is_blocked {
-                                            let entry = self.magic_wand_apply_post.entry(location);
-                                            let post_stmts = entry.or_insert(Vec::new());
-                                            post_stmts.extend(transfer_statement);
-                                        } else {
-                                            stmts.extend(transfer_statement);
-                                        }
-                                    }
-                                    _ => {} // Nothing
-                                }
                             }
 
                             stmts.extend(stmts_after);
