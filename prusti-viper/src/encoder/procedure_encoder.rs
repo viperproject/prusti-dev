@@ -684,8 +684,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vir::Stmt::TransferPerm(lhs.clone(), rhs.clone())
         );
 
-        /*
-        // This test is unreliable
         if self.check_fold_unfold_state {
             let pos = self.encoder.error_manager().register(
                 self.mir.source_info(location).span,
@@ -701,7 +699,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             );
         }
-        */
 
         // We reallocate when we expire because we want to have disjointed
         // permissions for the lhs and rhs when a borrow expires inside a loop

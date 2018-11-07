@@ -151,7 +151,8 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     ast.seqn(
                         &package_stmts.to_viper(ast),
                         &[],
-                    )
+                    ),
+                    unim
                 )
             }
             &Stmt::ApplyMagicWand(ref lhs, ref rhs) => {

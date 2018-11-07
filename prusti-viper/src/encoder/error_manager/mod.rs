@@ -48,6 +48,8 @@ pub enum ErrorCtxt {
     Unexpected,
     /// A pure function call
     PureFunctionCall,
+    /// Package a magic wand for the postcondition, at the end of a method
+    PackageMagicWandForPostcondition,
 }
 
 /// The Rust error that will be reported from the compiler
@@ -197,6 +199,12 @@ impl<'tcx> ErrorManager<'tcx> {
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => CompilerError::new(
                 "P0015",
                 format!("precondition of pure function call might not hold."),
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => CompilerError::new(
+                "P0016",
+                format!("pledge in the postcondition might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 
