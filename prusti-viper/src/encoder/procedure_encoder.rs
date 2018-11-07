@@ -987,7 +987,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         match term.kind {
             TerminatorKind::Return => {
 
-                stmts.push(vir::Stmt::Label(POSTCONDITION_LABEL.to_string()));
                 // Package magic wands, if there is any
                 stmts.extend(
                     self.encode_package_end_of_method(
@@ -1729,6 +1728,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             } else {
                 unreachable!(); // Really?
             };
+
+            // We need to make sure that the lhs of the magic wand is
+            // fully folded before the label.
+            let current_lhs = lhs
+                .clone()
+                .map_labels(|label| {
+                    if label == post_label {
+                        None
+                    } else {
+                        Some(label)
+                    }
+                });
+            stmts.extend(self.encode_obtain(current_lhs));
+
+            // lhs must be phrased in terms of post state.
+            let post_label = post_label.to_string();
+            stmts.push(vir::Stmt::Label(post_label.clone()));
 
             // Make the deref of reference arguments to be folded (see issue #47)
             package_stmts.push(vir::Stmt::comment("Fold predicates for &mut args"));
