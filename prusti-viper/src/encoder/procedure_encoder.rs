@@ -399,21 +399,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         */
 
         self.check_vir();
-
         let method_name = self.cfg_method.name();
+        let source_path = self.encoder.env().source_path();
+        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
 
         self.encoder.log_vir_program_before_foldunfold(self.cfg_method.to_string());
 
         // Dump initial CFG
-        let source_path = self.encoder.env().source_path();
-        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        Log::report_with_writer("graphviz_method_before_foldunfold", format!("{}.{}.dot", source_filename, method_name), |writer| self.cfg_method.to_graphviz(writer));
+        if config::dump_debug_info() {
+            Log::report_with_writer("graphviz_method_before_foldunfold", format!("{}.{}.dot", source_filename, method_name), |writer| self.cfg_method.to_graphviz(writer));
+        }
 
         // Add fold/unfold
         let final_method = foldunfold::add_fold_unfold(self.encoder, self.cfg_method);
 
         // Dump final CFG
-        Log::report_with_writer("graphviz_method_before_viper", format!("{}.{}.dot", source_filename, method_name), |writer| final_method.to_graphviz(writer));
+        if config::dump_debug_info() {
+            Log::report_with_writer("graphviz_method_before_viper", format!("{}.{}.dot", source_filename, method_name), |writer| final_method.to_graphviz(writer));
+        }
 
         final_method
     }

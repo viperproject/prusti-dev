@@ -187,7 +187,8 @@ pub fn register_attributes(state: &mut driver::CompileState) {
 fn log_crate(krate: &ast::Crate, source_filename: &str) {
     let mut writer = Log::writer(
         "rust_crate_before_typechecking_writer",
-        source_filename).ok().unwrap();
+        source_filename
+    ).ok().unwrap();
     let krate_str = syntax::print::pprust::to_string(
         |s| s.print_mod(&krate.module, &krate.attrs));
     writer.write_all("#![feature(custom_attribute)]\n".as_bytes()).unwrap();
