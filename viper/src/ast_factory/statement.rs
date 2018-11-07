@@ -137,14 +137,15 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Stmt, ast::Unfold, acc.to_jobject())
     }
 
-    pub fn package(&self, wand: Expr, proof_script: Stmt) -> Stmt<'a> {
-        build_ast_node!(
-            self,
-            Stmt,
-            ast::Package,
+    pub fn package(&self, wand: Expr, proof_script: Stmt, pos: Position) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Package::with(self.env).new(
             wand.to_jobject(),
-            proof_script.to_jobject()
-        )
+            proof_script.to_jobject(),
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
     }
 
     pub fn apply(&self, wand: Expr) -> Stmt<'a> {
