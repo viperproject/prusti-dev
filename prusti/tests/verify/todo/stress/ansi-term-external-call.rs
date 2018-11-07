@@ -93,7 +93,7 @@ impl Default for Style {
     /// Returns a style with *no* properties set. Formatting text using this
     /// style returns the exact same text.
     ///
-    /// ```
+    /// ```rust,no_run
     /// use ansi_term::Style;
     /// assert_eq!(None,  Style::default().foreground);
     /// assert_eq!(None,  Style::default().background);
