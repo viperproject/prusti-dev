@@ -180,7 +180,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             .into_iter()
             .filter(|p| p.is_curr())
             .collect();
-        debug!("required permissions: {:?}", perms);
+        debug!("required permissions: {{\n{}\n}}", perms.iter().map(|x| format!("  {:?}", x)).collect::<Vec<_>>().join(",\n"));
 
         if !perms.is_empty() {
             /*

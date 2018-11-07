@@ -30,9 +30,9 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
 impl vir::Stmt {
     pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
         debug!("apply_on_state '{}'", self);
-        trace!("State acc before {{{}}}", state.display_acc());
-        trace!("State pred before {{{}}}", state.display_pred());
-        trace!("State moved before {{{}}}", state.display_moved());
+        trace!("State acc before {{\n{}\n}}", state.display_acc());
+        trace!("State pred before {{\n{}\n}}", state.display_pred());
+        trace!("State moved before {{\n{}\n}}", state.display_moved());
         match self {
             &vir::Stmt::Comment(_) |
             &vir::Stmt::Label(_) |
@@ -50,9 +50,9 @@ impl vir::Stmt {
 
             &vir::Stmt::MethodCall(_, _, ref targets) => {
                 // We know that in Prusti method's preconditions and postconditions are empty
-                state.remove_moved_matching(|p| targets.contains(p.get_base()));
-                state.remove_pred_matching(|p| p.is_curr() && targets.contains(p.get_base()));
-                state.remove_acc_matching(|p| p.is_curr() && !p.is_local() && targets.contains(p.get_base()));
+                state.remove_moved_matching(|p| targets.contains(&p.get_base()));
+                state.remove_pred_matching(|p| p.is_curr() && targets.contains(&p.get_base()));
+                state.remove_acc_matching(|p| p.is_curr() && !p.is_local() && targets.contains(&p.get_base()));
             }
 
             &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
@@ -68,7 +68,7 @@ impl vir::Stmt {
                         // Check that the rhs contains no moved paths
                         assert!(!state.is_prefix_of_some_moved(&rhs));
                         for prefix in rhs.all_proper_prefixes() {
-                            assert!(!state.contains_pred(prefix));
+                            assert!(!state.contains_pred(&prefix));
                         }
 
                         state.insert_moved(rhs.clone());
@@ -80,7 +80,7 @@ impl vir::Stmt {
                         // Check that the rhs contains no moved paths
                         assert!(!state.is_prefix_of_some_moved(&rhs));
                         for prefix in rhs.all_proper_prefixes() {
-                            assert!(!state.contains_pred(prefix));
+                            assert!(!state.contains_pred(&prefix));
                         }
                     }
                     _ => {}
@@ -234,7 +234,7 @@ impl vir::Stmt {
 
                 assert!(
                     (lhs_place == lhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
-                    "Statement '{}' restored not permissions in state with:\n - acc {{{}}}\n - pred {{{}}}",
+                    "Statement '{}' restored not permissions in state with acc {{\n{}\n}}\nand pred {{\n{}\n}}",
                     self,
                     original_state.display_acc(),
                     original_state.display_pred()

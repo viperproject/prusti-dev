@@ -996,13 +996,13 @@ impl Expr {
     }
 
     /// Only defined for places
-    pub fn get_parent(&self) -> Option<&Expr> {
+    pub fn get_parent(&self) -> Option<Expr> {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(_) => None,
             &Expr::Field(box ref base, _) |
-            &Expr::AddrOf(box ref base, _) => Some(base),
-            &Expr::LabelledOld(_, box ref base) => base.get_parent(),
+            &Expr::AddrOf(box ref base, _) => Some(base.clone()),
+            &Expr::LabelledOld(ref label, box ref base) => base.get_parent().map(|p| p.old(label)),
             ref x => panic!("{}", x),
         }
     }
@@ -1040,6 +1040,14 @@ impl Expr {
     /// Puts the an `old[label](..)` around the expression
     pub fn old<S: fmt::Display + ToString>(self, label: S) -> Self {
         match self {
+            Expr::Local(..) => {
+                debug!(
+                    "Trying to put an old expression 'old[{}](..)' around {}, which is a local variable",
+                    label,
+                    self
+                );
+                self
+            },
             Expr::LabelledOld(..) => {
                 debug!(
                     "Trying to put an old expression 'old[{}](..)' around {}, which already has a label",
@@ -1089,10 +1097,10 @@ impl Expr {
     }
 
     /// Only defined for places
-    pub fn get_base(&self) -> &LocalVar {
+    pub fn get_base(&self) -> LocalVar {
         debug_assert!(self.is_place());
         match self {
-            &Expr::Local(ref var) => var,
+            &Expr::Local(ref var) => var.clone(),
             _ => self.get_parent().unwrap().get_base(),
         }
     }
@@ -1148,7 +1156,7 @@ impl Expr {
         }
     }
 
-    pub fn all_proper_prefixes(&self) -> Vec<&Expr> {
+    pub fn all_proper_prefixes(&self) -> Vec<Expr> {
         debug_assert!(self.is_place());
         match self.get_parent() {
             Some(parent) => parent.all_prefixes(),
@@ -1157,10 +1165,10 @@ impl Expr {
     }
 
     // Returns all prefixes, from the shortest to the longest
-    pub fn all_prefixes(&self) -> Vec<&Expr> {
+    pub fn all_prefixes(&self) -> Vec<Expr> {
         debug_assert!(self.is_place());
         let mut res = self.all_proper_prefixes();
-        res.push(self);
+        res.push(self.clone());
         res
     }
 
@@ -1226,7 +1234,7 @@ impl Expr {
             }
 
             fn fold_forall(&mut self, vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Box<Expr>) -> Expr {
-                if vars.contains(self.target.get_base()) {
+                if vars.contains(&self.target.get_base()) {
                     // Do nothing
                     Expr::ForAll(vars, triggers, body)
                 } else {

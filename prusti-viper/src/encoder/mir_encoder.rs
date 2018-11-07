@@ -226,7 +226,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
             ty::TypeVariants::TyRef(_, ty, _) => {
                 let access = if encoded_base.is_addr_of() {
-                    encoded_base.get_parent().unwrap().clone()
+                    encoded_base.get_parent().unwrap()
                 } else {
                     match encoded_base {
                         vir::Expr::AddrOf(box base_base_place, ty) => base_base_place,
@@ -240,7 +240,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
-                    encoded_base.get_parent().unwrap().clone()
+                    encoded_base.get_parent().unwrap()
                 } else {
                     let field_ty = base_ty.boxed_ty();
                     let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);

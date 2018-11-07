@@ -201,8 +201,7 @@ impl RequiredPermissionsGetter for vir::Expr {
             }
 
             vir::Expr::LabelledOld(ref label, expr) => {
-                let perms = expr.get_required_permissions(predicates);
-                perms.into_iter().map(|p| p.old(label)).collect()
+                HashSet::new()
             }
 
             vir::Expr::PredicateAccessPredicate(_, args, _) => {

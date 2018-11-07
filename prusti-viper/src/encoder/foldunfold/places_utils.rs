@@ -173,9 +173,9 @@ pub fn common_ancestors(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -
     let mut res = HashSet::new();
     // Filter paths that are an extension of some other path
     // This way, we avoid having both `d` and `d.g`
-    for &a in intermediate.iter() {
+    for a in intermediate.iter() {
         let mut keep_a = true;
-        for &b in intermediate.iter() {
+        for b in intermediate.iter() {
             if a.has_prefix(b) {
                 keep_a = false;
                 break;

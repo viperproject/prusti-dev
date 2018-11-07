@@ -49,7 +49,7 @@ impl<'a> BranchCtxt<'a> {
 
     /// Simulate an unfold
     fn unfold(&mut self, pred_place: &vir::Expr, frac: Frac) -> Action {
-        debug!("We want to unfold {:?}", pred_place);
+        debug!("We want to unfold {}", pred_place);
         assert!(self.state.contains_acc(pred_place));
         assert!(self.state.contains_pred(pred_place));
 
@@ -66,16 +66,16 @@ impl<'a> BranchCtxt<'a> {
                 }
             ).collect();
 
-        trace!("Pred state before unfold: {{{}}}", self.state.display_debug_pred());
+        trace!("Pred state before unfold: {{\n{}\n}}", self.state.display_pred());
 
         // Simulate unfolding of `pred_place`
         self.state.remove_pred(&pred_place, frac);
         self.state.insert_all_perms(places_in_pred.into_iter());
 
-        debug!("We unfolded {:?}", pred_place);
+        debug!("We unfolded {}", pred_place);
 
-        trace!("Acc state after unfold: {{{}}}", self.state.display_acc());
-        trace!("Pred state after unfold: {{{}}}", self.state.display_pred());
+        trace!("Acc state after unfold: {{\n{}\n}}", self.state.display_acc());
+        trace!("Pred state after unfold: {{\n{}\n}}", self.state.display_pred());
 
         Action::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ], frac)
     }
@@ -217,8 +217,8 @@ impl<'a> BranchCtxt<'a> {
 
         let mut actions: Vec<Action> = vec![];
 
-        trace!("Acc state before: {{{}}}", self.state.display_acc());
-        trace!("Pred state before: {{{}}}", self.state.display_pred());
+        trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
+        trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
         // 1. Check if the requirement is satisfied
         if self.state.contains_perm(req) {
@@ -240,10 +240,10 @@ impl<'a> BranchCtxt<'a> {
             .find(|p| req.has_prefix(p))
             .cloned();
         if let Some(existing_borrowed_to_restore) = existing_prefix_borrowed_opt {
-            debug!("We want to restore {:?}", existing_borrowed_to_restore);
+            debug!("We want to restore {}", existing_borrowed_to_restore);
             let action = unimplemented!();
             actions.push(action);
-            debug!("We restored {:?}", existing_borrowed_to_restore);
+            debug!("We restored {}", existing_borrowed_to_restore);
 
             // Check if we are done
             actions.extend(self.obtain(req));
@@ -306,7 +306,7 @@ impl<'a> BranchCtxt<'a> {
 
                 // We want to fold using the maximum possible fraction
                 let frac = places_in_pred.iter().map(|p| self.state.get_available_frac(p)).min().unwrap_or(Frac::one());
-                debug!("We want to fold {:?} with permission {} (we need at least {})", req, frac, req.get_frac());
+                debug!("We want to fold {} with permission {} (we need at least {})", req, frac, req.get_frac());
                 assert!(frac >= req.get_frac());
 
                 let scaled_places_in_pred: Vec<_> = places_in_pred.into_iter().map(|p| p * frac).collect();
@@ -323,7 +323,7 @@ impl<'a> BranchCtxt<'a> {
                 self.state.insert_pred(req.get_place().clone(), frac);
 
                 // Done. Continue checking the remaining requirements
-                debug!("We folded {:?}", req);
+                debug!("We folded {}", req);
                 return actions;
             }
         } else {
@@ -370,15 +370,15 @@ Debug predicates: {{
     pub fn apply_stmt(&mut self, stmt: &vir::Stmt) {
         debug!("apply_stmt: {}", stmt);
 
-        trace!("Acc state before: {{{}}}", self.state.display_acc());
-        trace!("Pred state before: {{{}}}", self.state.display_pred());
+        trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
+        trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
         self.state.check_consistency();
 
         stmt.apply_on_state(&mut self.state, self.predicates);
 
-        trace!("Acc state after: {{{}}}", self.state.display_acc());
-        trace!("Pred state after: {{{}}}", self.state.display_pred());
+        trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
+        trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
 
         self.state.check_consistency();
     }
@@ -386,15 +386,15 @@ Debug predicates: {{
     pub fn obtain_permissions(&mut self, permissions: Vec<Perm>) -> Vec<Action> {
         debug!("obtain_permissions: {}", permissions.iter().to_string());
 
-        trace!("Acc state before: {{{}}}", self.state.display_acc());
-        trace!("Pred state before: {{{}}}", self.state.display_pred());
+        trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
+        trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
         self.state.check_consistency();
 
         let actions = self.obtain_all(permissions);
 
-        trace!("Acc state after: {{{}}}", self.state.display_acc());
-        trace!("Pred state after: {{{}}}", self.state.display_pred());
+        trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
+        trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
 
         self.state.check_consistency();
 

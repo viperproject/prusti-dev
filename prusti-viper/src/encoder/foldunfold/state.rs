@@ -50,7 +50,7 @@ impl State {
         }
         for place in self.acc.keys() {
             if !place.has_old() && !place.is_local() && !place.has_old() {
-                if !self.contains_acc(place.clone().get_parent().unwrap()) {
+                if !self.contains_acc(&place.clone().get_parent().unwrap()) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
                         place,
@@ -131,7 +131,7 @@ impl State {
             let new_values = coll.clone().into_iter()
                 .map(|(p, frac)| {
                     let base_var = p.get_base();
-                    let new_base_var = replace(base_var);
+                    let new_base_var = replace(&base_var);
                     let new_place = p.clone().replace_place(&vir::Expr::local(base_var.clone()), &new_base_var.into());
                     (new_place, frac)
                 });
@@ -145,7 +145,7 @@ impl State {
             let new_values = coll.clone().into_iter().map(
                 |place| {
                     let base_var = place.get_base();
-                    let new_base_var = replace(base_var);
+                    let new_base_var = replace(&base_var);
                     place.clone().replace_place(&vir::Expr::local(base_var.clone()), &new_base_var.into())
                 }
             );
@@ -348,35 +348,51 @@ impl State {
     }
 
     pub fn display_acc(&self) -> String {
-        let mut info = self.acc.iter().map(|(p, f)| format!("{}: {}", p, f)).collect::<Vec<String>>();
+        let mut info = self.acc.iter()
+            .map(|(p, f)| format!("  {}: {}", p, f))
+            .collect::<Vec<String>>();
         info.sort();
         info.join(",\n")
     }
 
     pub fn display_pred(&self) -> String {
-        let mut info = self.pred.iter().map(|(p, f)| format!("{}: {}", p, f)).collect::<Vec<String>>();
+        let mut info = self.pred.iter()
+            .map(|(p, f)| format!("  {}: {}", p, f))
+            .collect::<Vec<String>>();
         info.sort();
         info.join(",\n")
     }
 
     pub fn display_moved(&self) -> String {
-        self.moved.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+        let mut info = self.moved.iter()
+            .map(|x| format!("  {}", x))
+            .collect::<Vec<String>>();
+        info.sort();
+        info.join(",\n")
     }
 
     pub fn display_debug_acc(&self) -> String {
-        let mut info = self.acc.iter().map(|(place, frac)| format!("({:?}, {})", place, frac)).collect::<Vec<String>>();
+        let mut info = self.acc.iter()
+            .map(|(place, frac)| format!("  ({:?}, {})", place, frac))
+            .collect::<Vec<String>>();
         info.sort();
         info.join(",\n")
     }
 
     pub fn display_debug_pred(&self) -> String {
-        let mut info = self.pred.iter().map(|(place, frac)| format!("({:?}, {})", place, frac)).collect::<Vec<String>>();
+        let mut info = self.pred.iter()
+            .map(|(place, frac)| format!("  ({:?}, {})", place, frac))
+            .collect::<Vec<String>>();
         info.sort();
         info.join(",\n")
     }
 
     pub fn display_debug_moved(&self) -> String {
-        self.moved.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+        let mut info = self.moved.iter()
+            .map(|x| format!("  {:?}", x))
+            .collect::<Vec<String>>();
+        info.sort();
+        info.join(",\n")
     }
 
     pub fn insert_acc(&mut self, place: vir::Expr, frac: Frac) {
