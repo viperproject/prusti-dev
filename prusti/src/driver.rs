@@ -28,7 +28,6 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::cell::Cell;
 use syntax::ast;
-use syntax::feature_gate::AttributeType;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use driver_utils::run;
 use prusti_interface::config;
@@ -95,50 +94,24 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         let mut control = self.default.build_controller(sess, matches);
         //control.make_glob_map = ???
         //control.keep_ast = true;
+
         let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
         let specifications = Rc::new(Cell::new(None));
         let put_specifications = Rc::clone(&specifications);
         let get_specifications = Rc::clone(&specifications);
-        control.after_parse.callback = Box::new(move |state| {
+        control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            {
-                let registry = state.registry.as_mut().unwrap();
-                registry.register_attribute(String::from("trusted"), AttributeType::Whitelisted);
-                registry.register_attribute(String::from("pure"), AttributeType::Whitelisted);
-                registry.register_attribute(String::from("invariant"), AttributeType::Whitelisted);
-                registry.register_attribute(String::from("requires"), AttributeType::Whitelisted);
-                registry.register_attribute(String::from("ensures"), AttributeType::Whitelisted);
-                registry.register_attribute(
-                    PRUSTI_SPEC_ATTR.to_string(),
-                    AttributeType::Whitelisted
-                );
-                registry.register_attribute(
-                    String::from("__PRUSTI_SPEC_ONLY"),
-                    AttributeType::Whitelisted,
-                );
-                registry.register_attribute(
-                    String::from("__PRUSTI_LOOP_SPEC_ID"),
-                    AttributeType::Whitelisted,
-                );
-                registry.register_attribute(
-                    String::from("__PRUSTI_EXPR_ID"),
-                    AttributeType::Whitelisted,
-                );
-                registry.register_attribute(
-                    String::from("__PRUSTI_FORALL_ID"),
-                    AttributeType::Whitelisted,
-                );
-            }
-            let untyped_specifications = prusti::parser::rewrite_crate(state);
+            prusti_interface::parser::register_attributes(state);
+            let untyped_specifications = prusti_interface::parser::rewrite_crate(state);
             put_specifications.set(Some(untyped_specifications));
 
             info!("Parsing of annotations successful");
-
             trace!("[after_parse.callback] exit");
             old(state);
-        });
+        };
+
         let old = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
-        control.after_analysis.callback = Box::new(move |state| {
+        control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
             let untyped_specifications = get_specifications.replace(None).unwrap();
             let typed_specifications =
@@ -155,7 +128,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             }
             trace!("[after_analysis.callback] exit");
             old(state);
-        });
+        };
+
         if Ok(String::from("true")) != var("PRUSTI_FULL_COMPILATION") {
             debug!("The program will not be compiled.");
             control.after_analysis.stop = Compilation::Stop;

@@ -28,6 +28,7 @@ use std::process::Command;
 use self::crate_visitor::{CrateVisitor, CrateStatus};
 use validators::Validator;
 use rustc::hir::intravisit::Visitor;
+use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 
 
 fn main() {
@@ -89,12 +90,21 @@ fn main() {
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
 
-        controller.after_analysis.callback = box |cs: &mut CompileState| {
+        let old = std::mem::replace(&mut controller.after_parse.callback, box |_| {});
+        controller.after_parse.callback = box move |state| {
+            prusti_interface::parser::register_attributes(state);
+            let _ = prusti_interface::parser::rewrite_crate(state);
+            info!("Parsing of annotations successful");
+            old(state);
+        };
+
+        let old = std::mem::replace(&mut controller.after_analysis.callback, box |_| {});
+        controller.after_analysis.callback = box move |state: &mut CompileState| {
             //let crate_name_env = env::var("CARGO_PKG_NAME").unwrap_or_default();
             //let crate_version_env = env::var("CARGO_PKG_VERSION").unwrap_or_default();
-            let crate_name = cs.crate_name.unwrap();
-            let tcx = cs.tcx.expect("no valid tcx");
-            let mut cv = CrateVisitor {
+            let crate_name = state.crate_name.unwrap();
+            let tcx = state.tcx.expect("no valid tcx");
+            let mut crate_visitor = CrateVisitor {
                 crate_name: crate_name,
                 tcx,
                 validator: Validator::new(tcx),
@@ -102,15 +112,15 @@ fn main() {
                     crate_name: String::from(crate_name),
                     functions: Vec::new(),
                 },
-                source_map: cs.session.parse_sess.codemap()
+                source_map: state.session.parse_sess.codemap()
             };
 
             // **Deep visit**: Want to scan for specific kinds of HIR nodes within
             // an item, but don't care about how item-like things are nested
             // within one another.
-            tcx.hir.krate().visit_all_item_likes(&mut cv.as_deep_visitor());
+            tcx.hir.krate().visit_all_item_likes(&mut crate_visitor.as_deep_visitor());
 
-            let data = serde_json::to_string_pretty(&cv.crate_status).unwrap();
+            let data = serde_json::to_string_pretty(&crate_visitor.crate_status).unwrap();
             //let path = fs::canonicalize("../prusti-filter-results.json").unwrap();
 
             // For rosetta without deleting root Cargo.toml:
@@ -122,12 +132,15 @@ fn main() {
             //file.write_all(b"\n====================\n").unwrap();
             //file.write_all(&data.into_bytes()).unwrap();
 
-            // For crates.io:
+            // Write result
             fs::write("prusti-filter-results.json", data).expect("Unable to write file");
+
+            info!("Filtering successful");
+            old(state);
         };
 
-        // Stop compilation to save time. Do not produce binaries.
-        controller.compilation_done.stop = Compilation::Stop;
+        // Do *not* stop compilation, because we might were compiling just dependencies
+        // controller.compilation_done.stop = Compilation::Stop;
 
         rustc_driver::run_compiler(&args, Box::new(controller), None, None)
     });
