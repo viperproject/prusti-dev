@@ -338,7 +338,14 @@ impl<'a> BranchCtxt<'a> {
         };
 
         unreachable!(
-            "It is not possible to obtain {} ({:?}). Predicates: {{{}}} ({{{}}})",
+r"It is not possible to obtain {} ({:?}).
+Predicates: {{
+{}
+}}
+
+Debug predicates: {{
+{}
+}}",
             req,
             req,
             self.state.display_pred(),
