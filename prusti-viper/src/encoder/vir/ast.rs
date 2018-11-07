@@ -990,7 +990,8 @@ impl Expr {
             &Expr::Local(_) => true,
             &Expr::Field(ref base, _) |
             &Expr::AddrOf(ref base, _) |
-            &Expr::LabelledOld(_, ref base) => base.is_place(),
+            &Expr::LabelledOld(_, ref base) |
+            &Expr::Unfolding(_, _, ref base, _) => base.is_place(),
             _ => false
         }
     }
@@ -1003,6 +1004,18 @@ impl Expr {
             &Expr::Field(box ref base, _) |
             &Expr::AddrOf(box ref base, _) => Some(base.clone()),
             &Expr::LabelledOld(ref label, box ref base) => base.get_parent().map(|p| p.old(label)),
+            &Expr::Unfolding(ref name, ref args, box ref base, frac) => {
+                base.get_parent().map(
+                    |parent| {
+                        Expr::Unfolding(
+                            name.clone(),
+                            args.clone(),
+                            box parent,
+                            frac
+                        )
+                    }
+                )
+            },
             ref x => panic!("{}", x),
         }
     }
@@ -1012,6 +1025,7 @@ impl Expr {
             Expr::Field(box base, field) => Expr::Field(box f(base), field),
             Expr::AddrOf(box base, ty) => Expr::AddrOf(box f(base), ty),
             Expr::LabelledOld(label, box base) => Expr::LabelledOld(label, box f(base)),
+            Expr::Unfolding(name, args, box base, frac) => Expr::Unfolding(name, args, box f(base), frac),
             _ => self,
         }
     }
@@ -1133,6 +1147,11 @@ impl Expr {
                 Expr::LabelledOld(ref self_label, box ref self_base),
                 Expr::LabelledOld(ref other_label, box ref other_base)
             ) => self_label == other_label && self_base.weak_eq(other_base),
+            (
+                Expr::Unfolding(ref self_name, ref self_args, box ref self_base, self_frac),
+                Expr::Unfolding(ref other_name, ref other_args, box ref other_base, other_frac)
+            ) => self_name == other_name && self_frac == other_frac &&
+                self_args[0].weak_eq(&other_args[0]) && self_base.weak_eq(other_base),
             _ => false
         }
     }
@@ -1178,7 +1197,8 @@ impl Expr {
             &Expr::Local(LocalVar { ref typ, .. }) |
             &Expr::Field(_, Field { ref typ, .. }) |
             &Expr::AddrOf(_, ref typ) => &typ,
-            &Expr::LabelledOld(_, box ref base) => base.get_type(),
+            &Expr::LabelledOld(_, box ref base) |
+            &Expr::Unfolding(_, _, box ref base, _) => base.get_type(),
             _ => panic!()
         }
     }

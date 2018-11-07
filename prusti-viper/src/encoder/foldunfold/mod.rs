@@ -324,30 +324,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         let old_stmts = new_stmts;
         let mut new_stmts = vec![];
         for stmt in old_stmts.into_iter() {
-            match stmt {
-                vir::Stmt::TransferPerm(_, _) => new_stmts.push(stmt),
-                vir::Stmt::PackageMagicWand(lhs, rhs, stmts) => new_stmts.push(
-                    vir::Stmt::PackageMagicWand(
-                        self.replace_expr(&lhs, bctxt),
-                        self.replace_expr(&rhs, bctxt),
-                        stmts.into_iter().map(|package_stmt| {
-                            match package_stmt {
-                                vir::Stmt::TransferPerm(_, _) => package_stmt,
-                                _ => {
-                                    package_stmt.map_expr(
-                                        |expr: vir::Expr| self.replace_expr(&expr, bctxt)
-                                    )
-                                }
-                            }
-                        }).collect()
-                    )
-                ),
-                _ => {
-                    new_stmts.push(
-                        stmt.map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
-                    )
-                }
-            }
+            new_stmts.push(
+                stmt.map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
+            );
         }
 
         // 5. Apply effect of statement on state
