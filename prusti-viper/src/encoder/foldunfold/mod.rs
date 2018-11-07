@@ -125,18 +125,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
     /// Replace some statements, mutating the branch context
     fn replace_stmt(&mut self, stmt: &vir::Stmt, is_last_before_return: bool, bctxt: &mut BranchCtxt<'p>) -> Vec<vir::Stmt> {
         debug!("replace_stmt: ----->>>>> {} <<<<<-----", stmt);
-        if let vir::Stmt::Label(ref label) = stmt {
-            let mut labelled_bctxt = bctxt.clone();
-            let labelled_state = labelled_bctxt.mut_state();
-            labelled_state.replace_places(|place| place.old(&label));
-            /*if label == "pre" {
-                labelled_bctxt
-                    .mut_state()
-                    .replace_local_vars(
-                        |x| vir::LocalVar::new(format!("_old{}", x.name), x.typ.clone())
-                    );
-            }*/
-            self.bctxt_at_label.insert(label.clone(), labelled_bctxt);
+
+        // Store state for old expressions
+        match stmt {
+            vir::Stmt::Label(ref label) => {
+                let mut labelled_bctxt = bctxt.clone();
+                let labelled_state = labelled_bctxt.mut_state();
+                labelled_state.replace_places(|place| place.old(label));
+                self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
+            }
+
+            vir::Stmt::PackageMagicWand(ref lhs, ..) |
+            vir::Stmt::ApplyMagicWand(ref lhs, ..) => {
+                let label = "lhs".to_string();
+                let mut labelled_bctxt = bctxt.clone();
+                let labelled_state = labelled_bctxt.mut_state();
+                labelled_state.remove_all();
+                vir::Stmt::Inhale(lhs.clone()).apply_on_state(labelled_state, bctxt.predicates());
+                labelled_state.replace_places(|place| place.old(&label));
+                self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
+            }
+
+            _ => {} // Nothing
         }
 
         let mut stmts: Vec<vir::Stmt> = vec![];
@@ -334,6 +344,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             bctxt.apply_stmt(&new_stmt);
             stmts.push(new_stmt);
         }
+
+        // Delete lhs state
+        self.bctxt_at_label.remove("lhs");
 
         stmts
     }
