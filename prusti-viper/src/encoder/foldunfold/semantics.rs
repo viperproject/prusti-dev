@@ -257,7 +257,7 @@ impl vir::Stmt {
                 state.remove_dropped();
             }
 
-            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts) => {
+            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref _position) => {
                 // TODO: we need to join this resulting state with the state that did not execute
                 // the body of the package
                 for stmt in package_stmts {

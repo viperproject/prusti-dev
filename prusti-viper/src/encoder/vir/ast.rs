@@ -209,7 +209,7 @@ pub enum Stmt {
     /// Package a Magic Wand
     /// Arguments: the lhs of the magic wand, the rhs, then the package statements, then some
     /// statements that will be encoded just after the package statement.
-    PackageMagicWand(Expr, Expr, Vec<Stmt>),
+    PackageMagicWand(Expr, Expr, Vec<Stmt>, Position),
     /// Apply a Magic Wand.
     /// Arguments: the lhs of the magic wand and the rhs.
     ApplyMagicWand(Expr, Expr),
@@ -364,7 +364,7 @@ impl fmt::Display for Stmt {
 
             Stmt::StopExpiringLoans => write!(f, "stop expiring borrows"),
 
-            Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts) => {
+            Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, _position) => {
                 writeln!(f, "package {}", lhs)?;
                 writeln!(f, "    --* {}", rhs)?;
                 write!(f, "{{")?;
@@ -405,7 +405,7 @@ pub trait StmtFolder {
             Stmt::TransferPerm(a, b) => self.fold_transfer_perm(a, b),
             Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
             Stmt::StopExpiringLoans => self.fold_stop_expiring_borrows(),
-            Stmt::PackageMagicWand(l, r, s) => self.fold_package_magic_wand(l, r, s),
+            Stmt::PackageMagicWand(l, r, s, p) => self.fold_package_magic_wand(l, r, s, p),
             Stmt::ApplyMagicWand(l, r) => self.fold_apply_magic_wand(l, r),
         }
     }
@@ -486,11 +486,12 @@ pub trait StmtFolder {
         Stmt::StopExpiringLoans
     }
 
-    fn fold_package_magic_wand(&mut self, l: Expr, r: Expr, s: Vec<Stmt>) -> Stmt {
+    fn fold_package_magic_wand(&mut self, l: Expr, r: Expr, s: Vec<Stmt>, p: Position) -> Stmt {
         Stmt::PackageMagicWand(
             self.fold_expr(l),
             self.fold_expr(r),
-            s.into_iter().map(|x| self.fold(x)).collect()
+            s.into_iter().map(|x| self.fold(x)).collect(),
+            p
         )
     }
 

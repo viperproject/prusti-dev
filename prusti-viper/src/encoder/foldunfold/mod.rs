@@ -247,7 +247,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 ]
             }
 
-            vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref old_package_stmts) => {
+            vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref old_package_stmts, position) => {
                 let mut package_bctxt = bctxt.clone();
                 let mut package_stmts = vec![];
                 for stmt in old_package_stmts {
@@ -313,7 +313,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                     }
                 }
                 vec![
-                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts)
+                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts, position.clone())
                 ]
             }
 
