@@ -1424,7 +1424,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
-                            stmts.push(vir::Stmt::Label(post_label.clone()));
 
                             let (post_type_spec, post_func_spec, magic_wands) = self.encode_postcondition_expr(
                                 &procedure_contract, &pre_label, &post_label,
