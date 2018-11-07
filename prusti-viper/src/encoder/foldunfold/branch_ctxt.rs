@@ -329,11 +329,24 @@ impl<'a> BranchCtxt<'a> {
         } else {
             // We have no predicate to obtain the access permission `req`
             unreachable!(
-                "There is no access permission to obtain {} ({:?}). Access permissions: {{{}}} ({{{}}})",
+r"There is no access permission to obtain {} ({:?}).
+Access permissions: {{
+{}
+}}
+
+Debug access permissions: {{
+{}
+}}
+
+Predicates: {{
+{}
+}}
+",
                 req,
                 req,
                 self.state.display_acc(),
-                self.state.display_debug_acc()
+                self.state.display_debug_acc(),
+                self.state.display_pred()
             );
         };
 

@@ -348,7 +348,9 @@ impl State {
     }
 
     pub fn display_acc(&self) -> String {
-        self.acc.iter().map(|(p, f)| format!("{}: {}", p, f)).collect::<Vec<String>>().join(", ")
+        let mut info = self.acc.iter().map(|(p, f)| format!("{}: {}", p, f)).collect::<Vec<String>>();
+        info.sort();
+        info.join(",\n")
     }
 
     pub fn display_pred(&self) -> String {
@@ -362,7 +364,9 @@ impl State {
     }
 
     pub fn display_debug_acc(&self) -> String {
-        self.acc.iter().map(|(place, frac)| format!("({:?}, {})", place, frac)).collect::<Vec<String>>().join(", ")
+        let mut info = self.acc.iter().map(|(place, frac)| format!("({:?}, {})", place, frac)).collect::<Vec<String>>();
+        info.sort();
+        info.join(",\n")
     }
 
     pub fn display_debug_pred(&self) -> String {
