@@ -9,6 +9,7 @@ use encoder::vir::{Zero, One};
 use encoder::vir::ExprIterator;
 use std::collections::HashSet;
 use std::collections::HashMap;
+use std::fmt;
 use std::iter::FromIterator;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -574,5 +575,18 @@ impl State {
             Perm::Acc(..) => self.acc.get(perm.get_place()).cloned().unwrap_or(Frac::zero()),
             Perm::Pred(..) => self.pred.get(perm.get_place()).cloned().unwrap_or(Frac::zero()),
         }
+    }
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "State {{")?;
+        write!(f, "acc: {{")?;
+        write!(f, "{}", self.display_acc())?;
+        write!(f, "}}")?;
+        write!(f, "pred: {{")?;
+        write!(f, "{}", self.display_pred())?;
+        write!(f, "}}")?;
+        write!(f, "}}")
     }
 }
