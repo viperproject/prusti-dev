@@ -134,7 +134,7 @@ use syntax::ext::build::AstBuilder;
 use syntax::fold::{self, Folder};
 use syntax::util::small_vector::SmallVector;
 use syntax_pos::FileName;
-use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
+use specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
                      SpecType, SpecificationSet, Trigger, TriggerSet, UntypedAssertion,
                      UntypedExpression, UntypedSpecification, UntypedSpecificationMap,
                      UntypedSpecificationSet, UntypedTriggerSet};
@@ -142,10 +142,11 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::mem;
 use syntax::codemap::respan;
-use prusti_interface::constants::PRUSTI_SPEC_ATTR;
+use constants::PRUSTI_SPEC_ATTR;
 use syntax_pos::DUMMY_SP;
-use prusti_interface::report::Log;
+use report::Log;
 use std::io::Write;
+use syntax::feature_gate::AttributeType;
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -165,11 +166,29 @@ pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMa
     parser.untyped_specifications
 }
 
+/// Register attributes in whitelist
+pub fn register_attributes(state: &mut driver::CompileState) {
+    trace!("[register_attributes] enter");
+    let registry = state.registry.as_mut().unwrap();
+    registry.register_attribute(String::from("trusted"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("pure"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("invariant"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("requires"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("ensures"), AttributeType::Whitelisted);
+    registry.register_attribute(PRUSTI_SPEC_ATTR.to_string(), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("__PRUSTI_SPEC_ONLY"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("__PRUSTI_LOOP_SPEC_ID"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("__PRUSTI_EXPR_ID"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("__PRUSTI_FORALL_ID"), AttributeType::Whitelisted);
+    trace!("[register_attributes] exit");
+}
+
 /// Log the rewritten crate for debugging.
 fn log_crate(krate: &ast::Crate, source_filename: &str) {
     let mut writer = Log::writer(
         "rust_crate_before_typechecking_writer",
-        source_filename).ok().unwrap();
+        source_filename
+    ).ok().unwrap();
     let krate_str = syntax::print::pprust::to_string(
         |s| s.print_mod(&krate.module, &krate.attrs));
     writer.write_all("#![feature(custom_attribute)]\n".as_bytes()).unwrap();
