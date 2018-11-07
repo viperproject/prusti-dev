@@ -242,6 +242,11 @@ impl vir::Stmt {
 
                 state.insert_all_acc(new_acc_places.into_iter());
                 state.insert_all_pred(new_pred_places.into_iter());
+                // FIXME: Hack
+                if !state.contains_acc(rhs_place) {
+                    debug!("Adding acc({}) to the state.", rhs_place);
+                    state.insert_acc(rhs_place.clone(), state.acc()[lhs_place]);
+                }
             }
 
             &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
