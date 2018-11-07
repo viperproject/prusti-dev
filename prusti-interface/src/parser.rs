@@ -30,11 +30,11 @@
 //! The current version of the tool support the following assertion
 //! syntax:
 //!
-//!     ```bnf
-//!     assertion := assertion && assertion
-//!                | expression ==> assertion
-//!                | (forall variable_name :: {expression} expression ==> expression)
-//!     ```
+//! ```bnf
+//! assertion := assertion && assertion
+//!            | expression ==> assertion
+//!            | (forall variable_name :: {expression} expression ==> expression)
+//! ```
 //!
 //! Here `expression` is a Rust expression that contains only elements
 //! that are considered expressions in Viper, plus `match` expressions.
