@@ -1651,9 +1651,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             if let Some((reference, body)) = pledges.pop() {
                 debug!("pledge reference={:?} body={:?}", reference, body);
                 assert!(reference.is_none(), "The reference should be none in postcondition.");
-                let assertion = self.encoder.encode_assertion(
+                let mut assertion = self.encoder.encode_assertion(
                     &body, &self.mir, pre_label, &encoded_args,
                     Some(&encoded_return), false, None);
+                for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
+                    let ty = self.locals.get_type(arg);
+                    let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
+                    let original_expr = encoded_deref;
+                    let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
+                    assertion = assertion.replace_place(&original_expr, &old_expr);
+                }
                 rhs.push(assertion);
             }
             let rhs = rhs.into_iter().conjoin();
@@ -1772,9 +1779,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         encoded_arg.into(), arg_ty);
                     let old_deref_place = deref_place.clone().old(&pre_label);
                     let deref_pred = vir::Expr::pred_permission(
-                        old_deref_place, vir::Frac::one()).unwrap();
+                        old_deref_place.clone(), vir::Frac::one()).unwrap();
                     package_stmts.extend(
-                        self.encode_obtain(deref_pred)
+                        self.encode_transfer_permissions(deref_place, old_deref_place, location)
                     );
                 }
             }
