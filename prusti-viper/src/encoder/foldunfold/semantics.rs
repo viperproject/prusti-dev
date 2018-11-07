@@ -8,6 +8,7 @@
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
+use encoder::vir::{Frac, One};
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -245,7 +246,10 @@ impl vir::Stmt {
                 // FIXME: Hack
                 if !state.contains_acc(rhs_place) {
                     debug!("Adding acc({}) to the state.", rhs_place);
-                    state.insert_acc(rhs_place.clone(), state.acc()[lhs_place]);
+                    state.insert_acc(
+                        rhs_place.clone(),
+                        state.acc().get(lhs_place).cloned().unwrap_or(Frac::one())
+                    );
                 }
             }
 
