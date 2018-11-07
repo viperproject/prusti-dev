@@ -236,7 +236,10 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 unsupported_pos!(self, pos, "`slice` types are not supported")
             },
 
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => self.check_inner_ty(inner_ty, pos),
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => {
+                partially_pos!(self, pos, "raw pointers are partially supported");
+                self.check_inner_ty(inner_ty, pos);
+            },
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutImmutable, ty: inner_ty }) => {
                 partially_pos!(self, pos, "shared raw pointers are partially supported");
@@ -302,7 +305,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         self.check_ty(ty, pos);
 
         match ty.sty {
-            ty::TypeVariants::TyRef(..) => partially_pos!(self, pos, "references inside data structures are partially supported"),
+            ty::TypeVariants::TyRef(..) => unsupported_pos!(self, pos, "references inside data structures are not supported"),
+            ty::TypeVariants::TyRawPtr(..) => unsupported_pos!(self, pos, "raw pointers inside data structures are not supported"),
 
             _ => {} // OK
         }
