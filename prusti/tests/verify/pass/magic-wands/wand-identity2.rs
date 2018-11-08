@@ -14,7 +14,6 @@ fn identity(x: &mut T) -> &mut T {
     x
 }
 
-/*
 fn identity_use() {
     let mut t = T { val: 5 };
     let y = &mut t;
@@ -22,6 +21,5 @@ fn identity_use() {
     z.val = 6;
     assert!(t.val == 6);
 }
-*/
 
 fn main() {}
