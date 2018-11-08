@@ -497,7 +497,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         rhs_state.insert_all_perms(
             rhs.get_permissions(self.curr_bctxt.predicates())
                 .into_iter()
-                .filter(|p| p.is_pred() && p.is_curr())
+                .filter(|p| p.is_pred())
         );
 
         // Store states
@@ -560,12 +560,13 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         if self.wait_old_expr {
             vir::default_fold_expr(self, expr)
         } else {
-            let inner_expr = expr;
-            let perms: Vec<_> = inner_expr
+            let perms: Vec<_> = expr
                 .get_required_permissions(self.curr_bctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_curr())
                 .collect();
+
+            debug!("get_required_permissions for {}: {:?}", expr, perms);
 
             // Add appropriate unfolding around this old expression
             self.curr_bctxt
@@ -573,7 +574,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .rev()
                 .fold(
-                    inner_expr,
+                    vir::default_fold_expr(self, expr),
                     |expr, action| action.to_expr(expr)
                 )
         }
