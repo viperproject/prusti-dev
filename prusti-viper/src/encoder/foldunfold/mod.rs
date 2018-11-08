@@ -458,21 +458,25 @@ impl<'b, 'a: 'b> ExprReplacer<'b, 'a>{
 
 impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     fn fold_unfolding(&mut self, name: String, args: Vec<vir::Expr>, expr: Box<vir::Expr>, frac: vir::Frac) -> vir::Expr {
-        // Compute inner state
-        let mut inner_bctxt = self.curr_bctxt.clone();
-        let inner_state = inner_bctxt.mut_state();
-        vir::Stmt::Unfold(name.clone(), args.clone(), frac).apply_on_state(inner_state, self.curr_bctxt.predicates());
+        if self.wait_old_expr {
+            vir::Expr::Unfolding(name, args, self.fold_boxed(expr), frac)
+        } else {
+            // Compute inner state
+            let mut inner_bctxt = self.curr_bctxt.clone();
+            let inner_state = inner_bctxt.mut_state();
+            vir::Stmt::Unfold(name.clone(), args.clone(), frac).apply_on_state(inner_state, self.curr_bctxt.predicates());
 
-        // Store states
-        let mut tmp_curr_bctxt = inner_bctxt;
-        std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
+            // Store states
+            let mut tmp_curr_bctxt = inner_bctxt;
+            std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
-        let inner_expr = self.fold_boxed(expr);
+            let inner_expr = self.fold_boxed(expr);
 
-        // Restore states
-        std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
+            // Restore states
+            std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
-        vir::Expr::Unfolding(name, args, inner_expr, frac)
+            vir::Expr::Unfolding(name, args, inner_expr, frac)
+        }
     }
 
     fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>) -> vir::Expr {
