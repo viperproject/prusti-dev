@@ -28,7 +28,6 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::cell::Cell;
 use syntax::ast;
-use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use driver_utils::run;
 use prusti_interface::config;
 

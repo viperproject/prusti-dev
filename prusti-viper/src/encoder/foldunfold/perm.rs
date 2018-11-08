@@ -42,6 +42,10 @@ impl Perm {
         }
     }
 
+    pub fn is_old(&self) -> bool {
+        self.get_place().is_old()
+    }
+
     pub fn is_curr(&self) -> bool {
         self.get_place().is_curr()
     }

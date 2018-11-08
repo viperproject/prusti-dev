@@ -263,7 +263,7 @@ impl vir::Stmt {
                 state.remove_dropped();
             }
 
-            &vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref _position) => {
+            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs), ref package_stmts, ref _position) => {
                 // TODO: we need to join this resulting state with the state that did not execute
                 // the body of the package
                 for stmt in package_stmts {
@@ -273,10 +273,12 @@ impl vir::Stmt {
                 inhale_expr(lhs, state, predicates);
             }
 
-            &vir::Stmt::ApplyMagicWand(ref lhs, ref rhs) => {
+            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs)) => {
                 exhale_expr(lhs, state, predicates);
                 inhale_expr(rhs, state, predicates);
             }
+
+            ref x => unimplemented!("{}", x),
         }
     }
 }

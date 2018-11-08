@@ -947,7 +947,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 // Emit the apply statement.
-                let statement = vir::Stmt::ApplyMagicWand(lhs, rhs);
+                let statement = vir::Stmt::apply_magic_wand(lhs, rhs);
                 debug!("{:?} at {:?}", statement, loan_location);
                 stmts.push(statement);
 
@@ -1798,7 +1798,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.mir.span,
                 ErrorCtxt::PackageMagicWandForPostcondition
             );
-            stmts.push(vir::Stmt::PackageMagicWand(lhs, rhs, package_stmts, pos));
+            stmts.push(vir::Stmt::package_magic_wand(lhs, rhs, package_stmts, pos));
 
             // We need to transfer all permissions from old[post](lhs) to lhs.
             let borrow_infos = &contract.borrow_infos;

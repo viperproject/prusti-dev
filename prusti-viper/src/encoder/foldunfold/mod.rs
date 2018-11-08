@@ -15,6 +15,7 @@ use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
 use prusti_interface::config;
 use prusti_interface::report::Log;
+use std;
 
 mod perm;
 mod permissions;
@@ -88,8 +89,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn replace_expr(&self, expr: &vir::Expr, curr_bctxt: &BranchCtxt) -> vir::Expr {
-        ExprReplacer::new(curr_bctxt, &self.bctxt_at_label).fold(expr.clone())
+    fn replace_expr(&self, expr: &vir::Expr, curr_bctxt: &BranchCtxt<'p>) -> vir::Expr {
+        ExprReplacer::new(curr_bctxt.clone(), &self.bctxt_at_label).fold(expr.clone())
     }
 }
 
@@ -135,8 +136,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
             }
 
-            vir::Stmt::PackageMagicWand(ref lhs, ..) |
-            vir::Stmt::ApplyMagicWand(ref lhs, ..) => {
+            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _), ..) |
+            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _)) => {
                 // TODO: This should be done also for magic wand expressions inside inhale/exhale.
                 let label = "lhs".to_string();
                 let mut labelled_bctxt = bctxt.clone();
@@ -261,7 +262,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 ]
             }
 
-            vir::Stmt::PackageMagicWand(ref lhs, ref rhs, ref old_package_stmts, position) => {
+            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, box ref rhs), ref old_package_stmts, position) => {
                 let mut package_bctxt = bctxt.clone();
                 let mut package_stmts = vec![];
                 for stmt in old_package_stmts {
@@ -297,7 +298,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                     package_stmts.push(stmt.clone());
                 }
                 vec![
-                    vir::Stmt::PackageMagicWand(lhs.clone(), rhs.clone(), package_stmts, position.clone())
+                    vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts, position.clone())
                 ]
             }
 
@@ -309,7 +310,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         let mut new_stmts = vec![];
         for stmt in old_stmts.into_iter() {
             new_stmts.push(
-                stmt.map_expr(|expr: vir::Expr| self.replace_expr(&expr, bctxt))
+                stmt.map_expr(|e| self.replace_expr(&e, bctxt))
             );
         }
 
@@ -438,24 +439,68 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 }
 
 struct ExprReplacer<'b, 'a: 'b> {
-    curr_bctxt: &'b BranchCtxt<'a>,
+    curr_bctxt: BranchCtxt<'a>,
     bctxt_at_label: &'b HashMap<String, BranchCtxt<'a>>,
+    lhs_bctxt: Option<BranchCtxt<'a>>,
 }
 
 impl<'b, 'a: 'b> ExprReplacer<'b, 'a>{
-    pub fn new(curr_bctxt: &'b BranchCtxt<'a>, bctxt_at_label: &'b HashMap<String, BranchCtxt<'a>>) -> Self {
+    pub fn new(curr_bctxt: BranchCtxt<'a>, bctxt_at_label: &'b HashMap<String, BranchCtxt<'a>>) -> Self {
         ExprReplacer {
             curr_bctxt,
-            bctxt_at_label
+            bctxt_at_label,
+            lhs_bctxt: None
         }
     }
 }
 
 impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
+    fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>) -> vir::Expr {
+        // Compute lhs state
+        let mut lhs_bctxt = self.curr_bctxt.clone();
+        let lhs_state = lhs_bctxt.mut_state();
+        lhs_state.remove_all();
+        vir::Stmt::Inhale(*lhs.clone()).apply_on_state(lhs_state, self.curr_bctxt.predicates());
+        if let box vir::Expr::PredicateAccessPredicate(ref name, ref args, frac) = lhs {
+            lhs_state.insert_acc(args[0].clone(), frac);
+        }
+        lhs_state.replace_places(|place| place.old("lhs"));
+
+        // Compute rhs state
+        let mut rhs_bctxt = self.curr_bctxt.clone();
+        let rhs_state = rhs_bctxt.mut_state();
+        rhs_state.remove_all();
+        rhs_state.insert_all_perms(
+            rhs.get_permissions(self.curr_bctxt.predicates())
+                .into_iter()
+                .filter(|p| !(p.is_local() && p.is_acc()))
+                .filter(|p| (p.is_local() || p.is_old()) && p.is_pred())
+        );
+
+        // Store states
+        let mut old_curr_bctxt = rhs_bctxt;
+        std::mem::swap(&mut self.curr_bctxt, &mut old_curr_bctxt);
+        self.lhs_bctxt = Some(lhs_bctxt);
+
+        // Rewrite rhs
+        let new_rhs = self.fold_boxed(rhs);
+
+        // Restore states
+        self.lhs_bctxt = None;
+        std::mem::swap(&mut self.curr_bctxt, &mut old_curr_bctxt);
+
+        // Rewrite lhs and build magic wand
+        vir::Expr::MagicWand(self.fold_boxed(lhs), new_rhs)
+    }
+
     fn fold_labelled_old(&mut self, label: String, expr: Box<vir::Expr>) -> vir::Expr {
         debug!("fold_labelled_old {}: {}", label, expr);
 
-        let mut old_bctxt = self.bctxt_at_label.get(&label).unwrap().clone();
+        let mut old_bctxt = if label == "lhs" && self.lhs_bctxt.is_some() {
+            self.lhs_bctxt.as_ref().unwrap().clone()
+        } else {
+            self.bctxt_at_label.get(&label).unwrap().clone()
+        };
 
         // Replace old[label] with curr
         old_bctxt.mut_state().replace_places(

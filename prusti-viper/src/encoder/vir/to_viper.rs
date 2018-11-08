@@ -142,13 +142,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::PackageMagicWand(ref lhs, ref rhs, ref package_stmts, ref pos) => {
+            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref pos) => {
                 let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
                 ast.package(
-                    ast.magic_wand(
-                        lhs.to_viper(ast),
-                        rhs.to_viper(ast),
-                    ),
+                    wand.to_viper(ast),
                     ast.seqn(
                         &package_stmts.to_viper(ast),
                         &[],
@@ -156,12 +153,9 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     position
                 )
             }
-            &Stmt::ApplyMagicWand(ref lhs, ref rhs) => {
+            &Stmt::ApplyMagicWand(ref wand) => {
                 ast.apply(
-                    ast.magic_wand(
-                        lhs.to_viper(ast),
-                        rhs.to_viper(ast),
-                    ),
+                    wand.to_viper(ast),
                 )
             }
         }
