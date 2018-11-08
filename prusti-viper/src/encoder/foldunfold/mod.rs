@@ -458,7 +458,9 @@ impl<'b, 'a: 'b> ExprReplacer<'b, 'a>{
 
 impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     fn fold_unfolding(&mut self, name: String, args: Vec<vir::Expr>, expr: Box<vir::Expr>, frac: vir::Frac) -> vir::Expr {
-        if self.wait_old_expr {
+        debug!("[enter] fold_unfolding {}, {}, {}, {}", name, args[0], expr, frac);
+
+        let res = if self.wait_old_expr {
             vir::Expr::Unfolding(name, args, self.fold_boxed(expr), frac)
         } else {
             // Compute inner state
@@ -476,10 +478,15 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
             vir::Expr::Unfolding(name, args, inner_expr, frac)
-        }
+        };
+
+        debug!("[exit] fold_unfolding = {}", res);
+        res
     }
 
     fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>) -> vir::Expr {
+        debug!("[enter] fold_magic_wand {}, {}", lhs, rhs);
+
         // Compute lhs state
         let mut lhs_bctxt = self.curr_bctxt.clone();
         let lhs_state = lhs_bctxt.mut_state();
@@ -513,11 +520,14 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
         // Rewrite lhs and build magic wand
-        vir::Expr::MagicWand(self.fold_boxed(lhs), new_rhs)
+        let res = vir::Expr::MagicWand(self.fold_boxed(lhs), new_rhs);
+
+        debug!("[enter] fold_magic_wand = {}", res);
+        res
     }
 
     fn fold_labelled_old(&mut self, label: String, expr: Box<vir::Expr>) -> vir::Expr {
-        debug!("fold_labelled_old {}: {}", label, expr);
+        debug!("[enter] fold_labelled_old {}: {}", label, expr);
 
         let mut tmp_curr_bctxt = if label == "lhs" && self.lhs_bctxt.is_some() {
             self.lhs_bctxt.as_ref().unwrap().clone()
@@ -551,23 +561,31 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         self.wait_old_expr = old_wait_old_expr;
 
         // Rebuild expression
-        vir::Expr::LabelledOld(label, inner_expr)
+        let res = vir::Expr::LabelledOld(label, inner_expr);
+
+        debug!("[exit] fold_labelled_old = {}", res);
+        res
     }
 
     fn fold(&mut self, expr: vir::Expr) -> vir::Expr {
-        debug!("fold {}", expr);
+        debug!("[enter] fold {}", expr);
 
-        if self.wait_old_expr || !expr.is_pure() {
+        let res = if self.wait_old_expr || !expr.is_pure() {
             vir::default_fold_expr(self, expr)
         } else {
             // Try to add unfolding
-            let perms: Vec<_> = expr
+            let inner_expr = vir::default_fold_expr(self, expr);
+            let perms: Vec<_> = inner_expr
                 .get_required_permissions(self.curr_bctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_curr())
                 .collect();
 
-            debug!("get_required_permissions for {}: {:?}", expr, perms);
+            debug!(
+                "get_required_permissions for {}: {{\n  {}\n}}",
+                inner_expr,
+                perms.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(",\n  ")
+            );
 
             // Add appropriate unfolding around this old expression
             self.curr_bctxt
@@ -575,9 +593,12 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                 .into_iter()
                 .rev()
                 .fold(
-                    vir::default_fold_expr(self, expr),
+                    inner_expr,
                     |expr, action| action.to_expr(expr)
                 )
-        }
+        };
+
+        debug!("[exit] fold = {}", res);
+        res
     }
 }

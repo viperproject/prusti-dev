@@ -715,14 +715,14 @@ impl fmt::Display for Expr {
             Expr::MagicWand(ref left, ref right) => write!(f, "({}) --* ({})", left, right),
             Expr::Unfolding(ref pred_name, ref args, ref expr, frac) => if *frac == Frac::one() {
                 write!(
-                    f, "unfolding {}({}) in ({})",
+                    f, "(unfolding {}({}) in {})",
                     pred_name,
                     args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
                     expr
                 )
             } else {
                 write!(
-                    f, "unfolding acc({}({}), {}) in ({})",
+                    f, "(unfolding acc({}({}), {}) in {})",
                     pred_name,
                     args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
                     frac,
