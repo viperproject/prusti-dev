@@ -37,8 +37,7 @@ pub struct ExprOldExprSubstitutor<F> where F: Fn(&str, vir::Expr) -> vir::Expr {
 
 impl<F> vir::ExprFolder for ExprOldExprSubstitutor<F> where F: Fn(&str, vir::Expr) -> vir::Expr {
     fn fold_labelled_old(&mut self, x: String, y: Box<vir::Expr>) -> vir::Expr {
-        let new_expr = (self.substitutor)(&x, *y);
-        vir::Expr::LabelledOld(x, box new_expr)
+        (self.substitutor)(&x, *y)
     }
 }
 
@@ -58,7 +57,7 @@ pub struct ExprLabelSubstitutor<F> where F: Fn(String) -> String {
 
 impl<F> vir::ExprFolder for ExprLabelSubstitutor<F> where F: Fn(String) -> String {
     fn fold_labelled_old(&mut self, x: String, y: Box<vir::Expr>) -> vir::Expr {
-        vir::Expr::LabelledOld(x, y)
+        vir::Expr::LabelledOld((self.substitutor)(x), y)
     }
 }
 

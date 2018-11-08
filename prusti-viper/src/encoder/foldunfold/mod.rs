@@ -43,6 +43,7 @@ pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<St
     let perms: Vec<_> = body
         .get_required_permissions(&predicates)
         .into_iter()
+        .filter(|p| p.is_curr())
         .collect();
 
     // Add appropriate unfolding around this expression
@@ -96,15 +97,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     fn replace_old_expr(&self, expr: &vir::Expr, curr_bctxt: &BranchCtxt<'p>) -> vir::Expr {
         expr.clone().map_old_expr(
             |label, inner_expr| {
-                let inner_bctxt = &self.bctxt_at_label[label];
-                self.replace_expr(&inner_expr, inner_bctxt).old(label)
+                let mut inner_bctxt = self.bctxt_at_label.get(label).unwrap().clone();
+                // Replace old[label] with curr
+                inner_bctxt.mut_state().replace_places(
+                    |place| place.map_labels(
+                        |opt_label| {
+                            if opt_label == label.clone() {
+                                None
+                            } else {
+                                Some(opt_label)
+                            }
+                        }
+                    )
+                );
+                self.replace_expr(&inner_expr, &inner_bctxt).old(label)
             }
         )
     }
 
     /// Insert "unfolding in" in old expressions
     fn rewrite_stmt_with_unfoldings_in_old(&self, stmt: vir::Stmt, bctxt: &BranchCtxt<'p>) -> vir::Stmt {
-        stmt.map_expr(|e| self.replace_old_expr(&e, bctxt))
+        trace!("[enter] rewrite_stmt_with_unfoldings_in_old: {}", stmt);
+        let result = stmt.map_expr(|e| self.replace_old_expr(&e, bctxt));
+        trace!("[exit] rewrite_stmt_with_unfoldings_in_old = {}", result);
+        result
     }
 
     /// Insert "unfolding in" expressions
@@ -347,16 +363,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        /*
-        if !grouped_perms.is_empty() && self.dump_debug_info {
-            stmts.push(vir::Stmt::comment(format!("[foldunfold] Access permissions: {{{}}}", bctxt.state().display_acc())));
-            stmts.push(vir::Stmt::comment(format!("[foldunfold] Predicate permissions: {{{}}}", bctxt.state().display_pred())));
-        }
-        */
-
         let mut some_perms_required = false;
         for (label, perms) in grouped_perms.into_iter() {
             debug!("Obtain at label {:?} permissions {:?}", label, perms);
+            // Hack: skip old permissions
+            if label.is_some() {
+                continue;
+            }
             if !perms.is_empty() {
                 some_perms_required = true;
                 let mut opt_old_bctxt = label.map(
@@ -537,6 +550,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         let perms: Vec<_> = expr
             .get_required_permissions(self.curr_bctxt.predicates())
             .into_iter()
+            .filter(|p| p.is_curr())
             .collect();
 
         // Add appropriate unfolding around this old expression

@@ -191,15 +191,19 @@ impl RequiredPermissionsGetter for vir::Expr {
 
                 let pred_self_place: vir::Expr = predicate.args[0].clone().into();
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
-                    .map( |aop| aop.map_place( |p|
-                        p.replace_place(&pred_self_place, place)
-                    )).collect();
+                    .map(
+                        |aop| {
+                            aop.map_place(|p|
+                                p.replace_place(&pred_self_place, place)
+                            ) * frac
+                        }
+                    ).collect();
 
                 // Simulate temporary unfolding of `place`
                 let expr_req_places = expr.get_required_permissions(predicates);
                 let mut req_places: HashSet<_> = perm_difference(expr_req_places, places_in_pred);
-                req_places.insert(Pred(place.clone(), Frac::one()));
-                req_places.into_iter().map(|p| p * frac).collect()
+                req_places.insert(Pred(place.clone(), *frac));
+                req_places.into_iter().collect()
             }
 
             vir::Expr::LabelledOld(ref label, expr) => {

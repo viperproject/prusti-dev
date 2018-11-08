@@ -341,10 +341,6 @@ Access permissions: {{
 {}
 }}
 
-Debug access permissions: {{
-{}
-}}
-
 Predicates: {{
 {}
 }}
@@ -352,24 +348,24 @@ Predicates: {{
                 req,
                 req,
                 self.state.display_acc(),
-                self.state.display_debug_acc(),
                 self.state.display_pred()
             );
         };
 
         unreachable!(
 r"It is not possible to obtain {} ({:?}).
-Predicates: {{
+Access permissions: {{
 {}
 }}
 
-Debug predicates: {{
+Predicates: {{
 {}
-}}",
+}}
+",
             req,
             req,
-            self.state.display_pred(),
-            self.state.display_debug_pred()
+            self.state.display_acc(),
+            self.state.display_pred()
         );
     }
 
