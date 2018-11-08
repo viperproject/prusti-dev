@@ -400,7 +400,7 @@ impl State {
         trace!("insert_acc {}, {}", place, frac);
         if self.acc.contains_key(&place) {
             let new_frac = self.acc[&place] + frac;
-            assert!(new_frac <= Frac::one(), "Trying to inhale {} access permission, while there is already {}", new_frac, self.acc[&place]);
+            assert!(new_frac <= Frac::one(), "Trying to inhale {} access permission, while there is already {}", frac, self.acc[&place]);
             self.acc.insert(place, new_frac);
         } else {
             self.acc.insert(place, frac);
@@ -417,7 +417,7 @@ impl State {
         trace!("insert_pred {}, {}", place, frac);
         if self.pred.contains_key(&place) {
             let new_frac = self.pred[&place] + frac;
-            assert!(new_frac <= Frac::one(), "Trying to inhale {} predicate permission, while there is already {}", new_frac, self.pred[&place]);
+            assert!(new_frac <= Frac::one(), "Trying to inhale {} predicate permission, while there is already {}", frac, self.pred[&place]);
             self.pred.insert(place, new_frac);
         } else {
             self.pred.insert(place, frac);

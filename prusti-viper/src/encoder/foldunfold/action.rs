@@ -33,7 +33,7 @@ impl Action {
         match self {
             Action::Fold(ref pred, ref args, frac) => {
                 // Currently unsupported in Viper
-                unimplemented!()
+                unimplemented!("action {}", self)
             }
 
             Action::Unfold(ref pred, ref args, frac) => {
@@ -41,8 +41,7 @@ impl Action {
             }
 
             Action::Drop(_) => {
-                // Currently unsupported in Viper
-                unimplemented!()
+                inner_expr
             }
         }
     }

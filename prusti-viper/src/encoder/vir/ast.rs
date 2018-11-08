@@ -182,7 +182,6 @@ pub enum Stmt {
     Unfold(String, Vec<Expr>, Frac),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
-    #[deprecated]
     Obtain(Expr),
     /// WeakObtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
@@ -1021,12 +1020,22 @@ impl Expr {
             &Expr::Unfolding(ref name, ref args, box ref base, frac) => {
                 base.get_parent().map(
                     |parent| {
-                        Expr::Unfolding(
-                            name.clone(),
-                            args.clone(),
-                            box parent,
-                            frac
-                        )
+                        match parent {
+                            // Simplify
+                            Expr::Local(..) |
+                            Expr::LabelledOld(..) => parent,
+
+                            // Keep unfolding expression
+                            _ => {
+                                Expr::Unfolding(
+                                    name.clone(),
+                                    args.clone(),
+                                    box parent,
+                                    frac
+                                )
+                            }
+                        }
+
                     }
                 )
             },
@@ -1122,6 +1131,14 @@ impl Expr {
 
     pub fn is_curr(&self) -> bool {
         !self.is_old()
+    }
+
+    pub fn get_place(&self) -> Option<&Expr> {
+        match self {
+            Expr::PredicateAccessPredicate(_, ref args, _) => Some(&args[0]),
+            Expr::FieldAccessPredicate(box ref arg, _) => Some(arg),
+            _ => None,
+        }
     }
 
     /// Only defined for places
