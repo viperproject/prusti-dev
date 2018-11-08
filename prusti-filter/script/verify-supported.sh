@@ -32,6 +32,9 @@ info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
 FORCE_PRUSTI_FILTER="${FORCE_PRUSTI_FILTER:-true}"
 info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
 
+PANICS_OVERFLOW_EVALUATION="${PANICS_OVERFLOW_EVALUATION:-false}"
+info "Using PANICS_OVERFLOW_EVALUATION=$PANICS_OVERFLOW_EVALUATION"
+
 export RUSTUP_TOOLCHAIN="$(cat $DIR/../../rust-toolchain)"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
@@ -71,9 +74,9 @@ if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILT
 	fi
 fi
 
-supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json")"
+supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json" | grep . )"
 
-info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)"
+info "Prepare whitelist ($(echo "$supported_procedures" | wc -l) items)"
 
 (
 	echo "CHECK_PANICS = false"
@@ -97,5 +100,43 @@ export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 cargoclean
+exit_status="0"
 # Timeout in seconds
-timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1
+timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
+if [[ "$exit_status" != "0" ]]; then
+	info "Prusti verification failed with exit status $exit_status."
+	exit 101
+fi
+
+if [[ "$PANICS_OVERFLOW_EVALUATION" == "true" ]] ; then
+	info "Prepare panics and overflow evaluation for $(echo "$supported_procedures" | wc -l) items"
+
+	echo "$supported_procedures" | while read procedure_path
+	do
+		info "Checking for absence of panics and overflows in '$procedure_path'"
+
+		(
+			echo "CHECK_PANICS = true"
+			echo "CHECK_BINARY_OPERATIONS = true"
+			echo "ENABLE_WHITELIST = true"
+			echo "WHITELIST = ["
+			echo "    \"$procedure_path\""
+			echo "]"
+		) > "$CRATE_ROOT/Prusti.toml"
+
+		# Keep log/ and nll-facts/ folders
+		# Keep target/*/incremental/ folder
+		export PRUSTI_FULL_COMPILATION=true
+		export RUSTC="$DIR/../../docker/prusti"
+		export RUST_BACKTRACE=1
+		cargoclean
+		exit_status="0"
+		# Timeout in seconds
+		timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
+		if [[ "$exit_status" == "0" ]]; then
+			info "Result of panics and overflow evaluation for '$procedure_path': success"
+		else
+			info "Result of panics and overflow evaluation for '$procedure_path': failure (exit status $exit_status)"
+		fi
+	done
+fi
