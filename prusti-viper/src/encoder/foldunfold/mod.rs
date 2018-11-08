@@ -466,6 +466,11 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             let (base, mut fields) = expr.explode_place();
             fields.push(field);
             let new_base = self.fold(base);
+            debug_assert!(match new_base {
+                vir::Expr::Local(..) |
+                vir::Expr::LabelledOld(..) => true,
+                _ => false
+            });
             fields.into_iter()
                 .fold(
                     new_base,
@@ -596,6 +601,8 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             vir::default_fold_expr(self, expr)
         } else {
             // Try to add unfolding
+            let initial_bctxt = self.curr_bctxt.clone();
+
             let inner_expr = vir::default_fold_expr(self, expr);
             let perms: Vec<_> = inner_expr
                 .get_required_permissions(self.curr_bctxt.predicates())
@@ -610,14 +617,19 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             );
 
             // Add appropriate unfolding around this old expression
-            self.curr_bctxt
+            let result = self.curr_bctxt
                 .obtain_permissions(perms)
                 .into_iter()
                 .rev()
                 .fold(
                     inner_expr,
                     |expr, action| action.to_expr(expr)
-                )
+                );
+
+            // Restore the initial state (unfoldings must have no effect on siblings)
+            self.curr_bctxt = initial_bctxt;
+
+            result
         };
 
         debug!("[exit] fold = {}", res);
