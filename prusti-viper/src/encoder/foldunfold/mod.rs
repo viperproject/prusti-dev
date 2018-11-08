@@ -457,6 +457,26 @@ impl<'b, 'a: 'b> ExprReplacer<'b, 'a>{
 }
 
 impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
+    fn fold_field(&mut self, expr: Box<vir::Expr>, field: vir::Field) -> vir::Expr {
+        debug!("[enter] fold_field {}, {}", expr, field);
+
+        let res = if self.wait_old_expr {
+            vir::Expr::Field(self.fold_boxed(expr), field)
+        } else {
+            let (base, mut fields) = expr.explode_place();
+            fields.push(field);
+            let new_base = self.fold(base);
+            fields.into_iter()
+                .fold(
+                    new_base,
+                    |res, f| res.field(f)
+                )
+        };
+
+        debug!("[exit] fold_unfolding = {}", res);
+        res
+    }
+
     fn fold_unfolding(&mut self, name: String, args: Vec<vir::Expr>, expr: Box<vir::Expr>, frac: vir::Frac) -> vir::Expr {
         debug!("[enter] fold_unfolding {}, {}, {}, {}", name, args[0], expr, frac);
 

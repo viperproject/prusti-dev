@@ -983,6 +983,17 @@ impl Expr {
         finder.found
     }
 
+    pub fn explode_place(&self) -> (Expr, Vec<Field>) {
+        match self {
+            Expr::Field(ref base, ref field) => {
+                let (base_base, mut fields) = base.explode_place();
+                fields.push(field.clone());
+                (base_base, fields)
+            }
+            _ => (self.clone(), vec![])
+        }
+    }
+
     // Methods from Place
 
     pub fn local(local: LocalVar) -> Self {
