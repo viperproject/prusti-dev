@@ -87,7 +87,7 @@ pub fn run<F>(run_compiler: F) -> isize
         if let Err(CompileIncomplete::Errored(_)) = result {
             match session {
                 Some(_) => {
-                    panic!("error reported but abort_if_errors didn't abort???");
+                    panic!("error reported but abort_if_errors didn't abort");
                 }
                 None => {
                     let emitter =
