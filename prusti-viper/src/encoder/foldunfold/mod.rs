@@ -601,8 +601,6 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             vir::default_fold_expr(self, expr)
         } else {
             // Try to add unfolding
-            let initial_bctxt = self.curr_bctxt.clone();
-
             let inner_expr = vir::default_fold_expr(self, expr);
             let perms: Vec<_> = inner_expr
                 .get_required_permissions(self.curr_bctxt.predicates())
@@ -617,7 +615,8 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             );
 
             // Add appropriate unfolding around this old expression
-            let result = self.curr_bctxt
+            // Note: unfoldings must have no effect on siblings
+            let result = self.curr_bctxt.clone()
                 .obtain_permissions(perms)
                 .into_iter()
                 .rev()
@@ -625,9 +624,6 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                     inner_expr,
                     |expr, action| action.to_expr(expr)
                 );
-
-            // Restore the initial state (unfoldings must have no effect on siblings)
-            self.curr_bctxt = initial_bctxt;
 
             result
         };
