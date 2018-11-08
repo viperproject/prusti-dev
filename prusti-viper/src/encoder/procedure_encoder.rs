@@ -942,6 +942,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let predicate = vir::Expr::pred_permission(
                         encoded_place.clone(), vir::Frac::one()).unwrap();
                     stmts.extend(self.encode_obtain(predicate));
+                    stmts.extend(self.encode_transfer_permissions(
+                        encoded_place, old_place, loan_location));
                 }
 
                 // Emit the apply statement.
@@ -1658,6 +1660,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
                     assertion = assertion.replace_place(&original_expr, &old_expr);
                 }
+                let ty = self.locals.get_type(contract.returned_value);
+                let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return.clone(), ty);
+                let original_expr = encoded_deref;
+                let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
+                assertion = assertion.replace_place(&original_expr, &old_expr);
                 rhs.push(assertion);
             }
             let rhs = rhs.into_iter().conjoin();
@@ -1778,8 +1785,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let deref_pred = vir::Expr::pred_permission(
                         old_deref_place.clone(), vir::Frac::one()).unwrap();
                     package_stmts.extend(
-                        self.encode_transfer_permissions(deref_place, old_deref_place, location)
+                        self.encode_transfer_permissions(deref_place, old_deref_place.clone(), location)
                     );
+                    let predicate = vir::Expr::pred_permission(
+                        old_deref_place, vir::Frac::one()).unwrap();
+                    package_stmts.extend(self.encode_obtain(predicate));
                 }
             }
 
