@@ -244,7 +244,8 @@ impl vir::Stmt {
                 state.insert_all_acc(new_acc_places.into_iter());
                 state.insert_all_pred(new_pred_places.into_iter());
 
-                // Move also the acc permission
+                /*
+                // Hack: Move also the acc permission
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {
                     debug!("Moving acc({}) to acc({}) state.", lhs_place, rhs_place);
                     state.insert_acc(
@@ -255,6 +256,7 @@ impl vir::Stmt {
                         state.remove_acc_place(lhs_place);
                     }
                 }
+                */
             }
 
             &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {

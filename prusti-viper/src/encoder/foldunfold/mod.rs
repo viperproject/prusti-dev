@@ -91,28 +91,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn replace_expr(&self, expr: &vir::Expr, curr_bctxt: &BranchCtxt<'p>) -> vir::Expr {
-        ExprReplacer::new(curr_bctxt.clone(), &self.bctxt_at_label).fold(expr.clone())
+        ExprReplacer::new(curr_bctxt.clone(), &self.bctxt_at_label, false).fold(expr.clone())
     }
 
     fn replace_old_expr(&self, expr: &vir::Expr, curr_bctxt: &BranchCtxt<'p>) -> vir::Expr {
-        expr.clone().map_old_expr(
-            |label, inner_expr| {
-                let mut inner_bctxt = self.bctxt_at_label.get(label).unwrap().clone();
-                // Replace old[label] with curr
-                inner_bctxt.mut_state().replace_places(
-                    |place| place.map_labels(
-                        |opt_label| {
-                            if opt_label == label.clone() {
-                                None
-                            } else {
-                                Some(opt_label)
-                            }
-                        }
-                    )
-                );
-                self.replace_expr(&inner_expr, &inner_bctxt).old(label)
-            }
-        )
+        ExprReplacer::new(curr_bctxt.clone(), &self.bctxt_at_label, true).fold(expr.clone())
     }
 
     /// Insert "unfolding in" in old expressions
@@ -133,7 +116,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 inner_state.insert_all_perms(
                     expr.get_permissions(bctxt.predicates())
                         .into_iter()
-                        .filter(|p| p.is_pred())
+                        .filter(|p| p.is_pred() && p.is_curr())
                 );
 
                 // Rewrite statement
@@ -225,7 +208,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
         let mut stmts: Vec<vir::Stmt> = vec![];
 
-        // Insert "unfolding in" inside old expressions
+        // 0. Insert "unfolding in" inside old expressions. This handles *old* requirements.
         stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &bctxt);
 
         // 1. Obtain "preferred" permissions (i.e. due to "weak obtain" statements)
@@ -254,11 +237,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
         }
 
-        // 2. Obtain required *curr* permissions. *old* requirements will be handled at step 4.
+        // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         let perms: Vec<_> = stmt
             .get_required_permissions(bctxt.predicates())
             .into_iter()
-            .filter(|p| p.is_curr())
+            .filter(|p| p.is_curr() && p.is_curr())
             .collect();
         debug!("required permissions: {{\n{}\n}}", perms.iter().map(|x| format!("  {:?}", x)).collect::<Vec<_>>().join(",\n"));
 
@@ -459,19 +442,39 @@ struct ExprReplacer<'b, 'a: 'b> {
     curr_bctxt: BranchCtxt<'a>,
     bctxt_at_label: &'b HashMap<String, BranchCtxt<'a>>,
     lhs_bctxt: Option<BranchCtxt<'a>>,
+    wait_old_expr: bool,
 }
 
 impl<'b, 'a: 'b> ExprReplacer<'b, 'a>{
-    pub fn new(curr_bctxt: BranchCtxt<'a>, bctxt_at_label: &'b HashMap<String, BranchCtxt<'a>>) -> Self {
+    pub fn new(curr_bctxt: BranchCtxt<'a>, bctxt_at_label: &'b HashMap<String, BranchCtxt<'a>>, wait_old_expr: bool) -> Self {
         ExprReplacer {
             curr_bctxt,
             bctxt_at_label,
-            lhs_bctxt: None
+            lhs_bctxt: None,
+            wait_old_expr
         }
     }
 }
 
 impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
+    fn fold_unfolding(&mut self, name: String, args: Vec<vir::Expr>, expr: Box<vir::Expr>, frac: vir::Frac) -> vir::Expr {
+        // Compute inner state
+        let mut inner_bctxt = self.curr_bctxt.clone();
+        let inner_state = inner_bctxt.mut_state();
+        vir::Stmt::Unfold(name.clone(), args.clone(), frac).apply_on_state(inner_state, self.curr_bctxt.predicates());
+
+        // Store states
+        let mut tmp_curr_bctxt = inner_bctxt;
+        std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
+
+        let inner_expr = self.fold_boxed(expr);
+
+        // Restore states
+        std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
+
+        vir::Expr::Unfolding(name, args, inner_expr, frac)
+    }
+
     fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>) -> vir::Expr {
         // Compute lhs state
         let mut lhs_bctxt = self.curr_bctxt.clone();
@@ -490,7 +493,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         rhs_state.insert_all_perms(
             rhs.get_permissions(self.curr_bctxt.predicates())
                 .into_iter()
-                .filter(|p| p.is_pred())
+                .filter(|p| p.is_pred() && p.is_curr())
         );
 
         // Store states
@@ -533,12 +536,15 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
 
         // Store states
         std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
+        let old_wait_old_expr = self.wait_old_expr;
+        self.wait_old_expr = false;
 
         // Rewrite inner expression
         let inner_expr = self.fold_boxed(expr);
 
         // Restore states
         std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
+        self.wait_old_expr = old_wait_old_expr;
 
         // Rebuild expression
         vir::Expr::LabelledOld(label, inner_expr)
@@ -547,20 +553,25 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     fn fold(&mut self, expr: vir::Expr) -> vir::Expr {
         debug!("fold {}", expr);
 
-        let perms: Vec<_> = expr
-            .get_required_permissions(self.curr_bctxt.predicates())
-            .into_iter()
-            .filter(|p| p.is_curr())
-            .collect();
+        if self.wait_old_expr {
+            vir::default_fold_expr(self, expr)
+        } else {
+            let inner_expr = vir::default_fold_expr(self, expr);
+            let perms: Vec<_> = inner_expr
+                .get_required_permissions(self.curr_bctxt.predicates())
+                .into_iter()
+                .filter(|p| p.is_curr())
+                .collect();
 
-        // Add appropriate unfolding around this old expression
-        self.curr_bctxt
-            .obtain_permissions(perms)
-            .into_iter()
-            .rev()
-            .fold(
-                expr,
-                |expr, action| action.to_expr(expr)
-            )
+            // Add appropriate unfolding around this old expression
+            self.curr_bctxt
+                .obtain_permissions(perms)
+                .into_iter()
+                .rev()
+                .fold(
+                    inner_expr,
+                    |expr, action| action.to_expr(expr)
+                )
+        }
     }
 }

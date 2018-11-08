@@ -1078,19 +1078,23 @@ impl Expr {
     pub fn old<S: fmt::Display + ToString>(self, label: S) -> Self {
         match self {
             Expr::Local(..) => {
+                /*
                 debug!(
                     "Trying to put an old expression 'old[{}](..)' around {}, which is a local variable",
                     label,
                     self
                 );
+                */
                 self
             },
             Expr::LabelledOld(..) => {
+                /*
                 debug!(
                     "Trying to put an old expression 'old[{}](..)' around {}, which already has a label",
                     label,
                     self
                 );
+                */
                 self
             },
             _ => Expr::LabelledOld(label.to_string(), box self)
