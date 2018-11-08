@@ -560,7 +560,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         if self.wait_old_expr {
             vir::default_fold_expr(self, expr)
         } else {
-            let inner_expr = vir::default_fold_expr(self, expr);
+            let inner_expr = expr;
             let perms: Vec<_> = inner_expr
                 .get_required_permissions(self.curr_bctxt.predicates())
                 .into_iter()
