@@ -507,12 +507,14 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>) -> vir::Expr {
         debug!("[enter] fold_magic_wand {}, {}", lhs, rhs);
 
+        let new_lhs = self.fold_boxed(lhs);
+
         // Compute lhs state
         let mut lhs_bctxt = self.curr_bctxt.clone();
         let lhs_state = lhs_bctxt.mut_state();
         lhs_state.remove_all();
-        vir::Stmt::Inhale(*lhs.clone()).apply_on_state(lhs_state, self.curr_bctxt.predicates());
-        if let box vir::Expr::PredicateAccessPredicate(ref name, ref args, frac) = lhs {
+        vir::Stmt::Inhale(*new_lhs.clone()).apply_on_state(lhs_state, self.curr_bctxt.predicates());
+        if let box vir::Expr::PredicateAccessPredicate(ref name, ref args, frac) = new_lhs {
             lhs_state.insert_acc(args[0].clone(), frac);
         }
         lhs_state.replace_places(|place| place.old("lhs"));
@@ -540,7 +542,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
         // Rewrite lhs and build magic wand
-        let res = vir::Expr::MagicWand(self.fold_boxed(lhs), new_rhs);
+        let res = vir::Expr::MagicWand(new_lhs, new_rhs);
 
         debug!("[enter] fold_magic_wand = {}", res);
         res
