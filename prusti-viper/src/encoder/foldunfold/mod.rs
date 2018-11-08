@@ -557,9 +557,10 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     fn fold(&mut self, expr: vir::Expr) -> vir::Expr {
         debug!("fold {}", expr);
 
-        if self.wait_old_expr {
+        if self.wait_old_expr || !expr.is_pure() {
             vir::default_fold_expr(self, expr)
         } else {
+            // Try to add unfolding
             let perms: Vec<_> = expr
                 .get_required_permissions(self.curr_bctxt.predicates())
                 .into_iter()

@@ -580,13 +580,11 @@ impl State {
 
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "State {{")?;
-        write!(f, "acc: {{")?;
-        write!(f, "{}", self.display_acc())?;
-        write!(f, "}}")?;
-        write!(f, "pred: {{")?;
-        write!(f, "{}", self.display_pred())?;
-        write!(f, "}}")?;
-        write!(f, "}}")
+        writeln!(f, "acc: {{")?;
+        writeln!(f, "  {}", self.display_acc())?;
+        writeln!(f, "}}")?;
+        writeln!(f, "pred: {{")?;
+        writeln!(f, "  {}", self.display_pred())?;
+        writeln!(f, "}}")
     }
 }

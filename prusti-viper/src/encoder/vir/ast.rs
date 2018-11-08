@@ -1145,6 +1145,25 @@ impl Expr {
         }
     }
 
+    pub fn is_pure(&self) -> bool {
+        struct PurityFinder {
+            non_pure: bool
+        }
+        impl ExprWalker for PurityFinder {
+            fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: Frac) {
+                self.non_pure = true;
+            }
+            fn walk_field_access_predicate(&mut self, x: &Expr, y: Frac) {
+                self.non_pure = true;
+            }
+        }
+        let mut walker = PurityFinder{
+            non_pure: false
+        };
+        walker.walk(self);
+        !walker.non_pure
+    }
+
     /// Only defined for places
     pub fn get_base(&self) -> LocalVar {
         debug_assert!(self.is_place());
