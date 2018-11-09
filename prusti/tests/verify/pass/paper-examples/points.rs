@@ -4,7 +4,7 @@ struct Point {
   x: i32, y: i32
 }
 
-#[ensures="p.x == old(p.x) + old(s)"]   // TODO: Remove old around s.
+#[ensures="p.x == old(p.x) + s"]
 #[ensures="p.y == old(p.y)"]
 fn shift_x(p: &mut Point, s: i32) {
   p.x = p.x + s
