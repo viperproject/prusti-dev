@@ -153,7 +153,7 @@ pub fn main() {
         let mut args: Vec<String> = env::args().collect();
 
         let prusti_filter_disabled = (!args.is_empty() && args[1] == "rustc")
-            && !env::var("PRUSTI_TESTS").ok().map_or(false, |val| val == "true")
+            && !env::var("PRUSTI_TEST").ok().map_or(false, |val| val == "true")
             && (!args.iter().any(|s| s == "--emit=dep-info,metadata"));
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
