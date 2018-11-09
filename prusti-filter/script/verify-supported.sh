@@ -32,8 +32,8 @@ info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
 FORCE_PRUSTI_FILTER="${FORCE_PRUSTI_FILTER:-true}"
 info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
 
-FINE_GRANED_EVALUATION="${FINE_GRANED_EVALUATION:-false}"
-info "Using FINE_GRANED_EVALUATION=$FINE_GRANED_EVALUATION"
+FINE_GRAINED_EVALUATION="${FINE_GRAINED_EVALUATION:-false}"
+info "Using FINE_GRAINED_EVALUATION=$FINE_GRAINED_EVALUATION"
 
 export PRUSTI_CHECK_PANICS="${PRUSTI_CHECK_PANICS:-false}"
 info "Using PRUSTI_CHECK_PANICS=$PRUSTI_CHECK_PANICS"
@@ -99,7 +99,7 @@ export RUST_BACKTRACE=1
 # Sometimes Prusti is run over dependencies, in a different folder. So, make sure that the whitelist is always enabled.
 export PRUSTI_ENABLE_WHITELIST=true
 
-if [[ "$FINE_GRANED_EVALUATION" == "false" ]] ; then
+if [[ "$FINE_GRAINED_EVALUATION" == "false" ]] ; then
 
 	info "Prepare whitelist with $num_supported_procedures items"
 
@@ -131,9 +131,11 @@ if [[ "$FINE_GRANED_EVALUATION" == "false" ]] ; then
 
 else
 
-	info "Run fine-graned evaluation of $num_supported_procedures items"
+	info "Run fine-grained evaluation of $num_supported_procedures items"
 
-	final_exit_status="0"
+	# Hack to set $final_exit_status from the pipe
+	FINE_GRAINED_EXIT_STATUS="$CRATE_ROOT/prusti-fine-grained-exit-status.txt"
+	rm -f "$FINE_GRAINED_EXIT_STATUS"
 
 	echo "$supported_procedures" | (grep . || true) | while read procedure_path
 	do
@@ -156,10 +158,11 @@ else
 		timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
 		if [[ "$exit_status" != "0" ]]; then
 			info "Prusti verification failed with exit status $exit_status (item $procedure_path)."
-			final_exit_status="$(( exit_status > final_exit_status ? exit_status : final_exit_status ))"
+			echo "$exit_status" >> "$FINE_GRAINED_EXIT_STATUS"
 		fi
 	done
 
-	info "Final exit status: $final_exit_status."
+	final_exit_status="$( echo "$(cat "$FINE_GRAINED_EXIT_STATUS")" | sort -n | head -n 1 | sed 's/^$/0/')"
+	info "Final exit status: $final_exit_status"
 	exit $final_exit_status
 fi
