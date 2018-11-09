@@ -161,5 +161,5 @@ else
 	done
 
 	info "Final exit status: $final_exit_status."
-	exit final_exit_status
+	exit $final_exit_status
 fi
