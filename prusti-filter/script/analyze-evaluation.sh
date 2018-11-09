@@ -21,10 +21,10 @@ fi
 
 title "=== Evaluation ==="
 
-inlineinfo "Start of evaluation"
+inlineinfo "Start of first crate evaluation"
 jq --raw-output '.start_date | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sort | head -n 1
 
-inlineinfo "End of evaluation"
+inlineinfo "End of last crate evaluation"
 jq --raw-output '.end_date | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sort | tail -n 1
 
 inlineinfo "Crates for which the evaluation is in progress"
