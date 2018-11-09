@@ -120,7 +120,11 @@ if [[ "$FINE_GRANED_EVALUATION" == "false" ]] ; then
 	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
 	if [[ "$exit_status" != "0" ]]; then
 		info "Prusti verification failed with exit status $exit_status."
-		exit 101
+		if [[ "$exit_status" == "124" ]]; then
+			exit 124
+		else
+			exit 101
+		fi
 	else
 		exit 0
 	fi
