@@ -5,14 +5,14 @@ error() { >&2 echo -e "[!] ${*}"; }
 
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-info "Executing Prusti script located in '$DIR'"
+info "Executing Prusti-filter script located in '$DIR'"
 
 # Read and set some environment variables
 export RUST_LOG=${RUST_LOG:-info}
 
 export RUSTUP_TOOLCHAIN="$(cat $DIR/../rust-toolchain)"
 
-# The compiler version for which Prusti has been compiled
+# The compiler version for which Prusti-filter has been compiled
 RUST_VERSION="$RUSTUP_TOOLCHAIN-x86_64-unknown-linux-gnu"
 
 # Set COMPILER_PATH
@@ -65,7 +65,7 @@ for file in "${PRUSTI_HOME}"/deps/libprusti_contracts-*.rlib; do
 done
 if [ -z "$PRUSTI_CONTRACTS_LIB" ]; then
 	error "Unable to find PRUSTI_CONTRACTS_LIB."
-	error "It looks like Prusti has not been compiled or installed."
+	error "It looks like Prusti-filter has not been compiled or installed."
 	exit 1
 else
     info "Using PRUSTI_CONTRACTS_LIB '$PRUSTI_CONTRACTS_LIB'"
@@ -76,8 +76,8 @@ info "Using LD_LIBRARY_PATH '$LD_LIBRARY_PATH'"
 
 info "Arguments: $@"
 
-# Run Prusti
-info "Run Prusti...\n"
+# Run Prusti-filter
+info "Run Prusti-filter...\n"
 exec "${PRUSTI_FILTER}" \
 	-L "${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/" \
 	--extern prusti_contracts="${PRUSTI_CONTRACTS_LIB}" \
