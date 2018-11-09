@@ -138,7 +138,7 @@ fn main() {
             old(state);
         };
 
-        controller.after_analysis.stop = Compilation::Stop;
+        //controller.after_analysis.stop = Compilation::Stop;
 
         debug!("rustc command: {:?}", args.join(" "));
         rustc_driver::run_compiler(&args, Box::new(controller), None, None)
