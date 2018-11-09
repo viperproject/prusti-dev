@@ -1,10 +1,10 @@
 /// Source: https://docs.rs/same-file/1.0.4/src/same_file/lib.rs.html#326-328
 extern crate prusti_contracts;
 
-pub type c_int = i32;
+pub type CInt = i32;
 
 pub struct FileDesc {
-    fd: c_int,
+    fd: CInt,
 }
 
 pub struct SysFsFile(FileDesc);
