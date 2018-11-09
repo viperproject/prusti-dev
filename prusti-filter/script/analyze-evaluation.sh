@@ -24,7 +24,7 @@ title "=== Evaluation ==="
 inlineinfo "Start of first crate evaluation"
 jq --raw-output '.start_date | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sort | head -n 1
 
-inlineinfo "End of last crate evaluation"
+inlineinfo "End of latest crate evaluation"
 jq --raw-output '.end_date | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sort | tail -n 1
 
 inlineinfo "Crates for which the evaluation is in progress"
@@ -72,7 +72,7 @@ cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit statu
 
 
 inlineinfo "Crates for which Prusti failed"
-jq --raw-output 'select(.exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status != null && .exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Verifiable items from crates for which Prusti failed"
 (jq --raw-output 'select(.exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
