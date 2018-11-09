@@ -52,7 +52,7 @@ SECONDS=0
 exit_status="$?"
 end_date="$(date '+%Y-%m-%d %H:%M:%S')"
 duration="$SECONDS"
-whitelist_items="$( (egrep 'Number of supported procedures in crate: [0-9]+$' "$log_file" | tail -n 1 | cut -d ' ' -f 8) | sed 's/^$/0/' )"
+whitelist_items="$( echo "$(egrep 'Number of supported procedures in crate: [0-9]+$' "$log_file" | tail -n 1 | cut -d ' ' -f 8)" | sed 's/^$/0/' )"
 verified_items="$( (egrep 'Received [0-9]+ items to be verified' "$log_file" | cut -d ' ' -f 6 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file" | cut -d ' ' -f 8 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 
