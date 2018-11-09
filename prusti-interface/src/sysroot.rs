@@ -8,20 +8,20 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-// Source: https://github.com/rust-lang-nursery/rls/blob/master/src/build/rustc.rs
-
-use std::env;
+use std;
 use std::process::Command;
 
 pub fn current_sysroot() -> Option<String> {
-    let home = env::var("RUSTUP_HOME").or_else(|_| env::var("MULTIRUST_HOME"));
-    let toolchain = env::var("RUSTUP_TOOLCHAIN").or_else(|_| env::var("MULTIRUST_TOOLCHAIN"));
-    if let (Ok(home), Ok(toolchain)) = (home, toolchain) {
-        Some(format!("{}/toolchains/{}", home, toolchain))
-    } else {
-        let rustc_exe = env::var("RUSTC").unwrap_or_else(|_| "rustc".to_owned());
-        env::var("SYSROOT").ok().or_else(|| {
-            Command::new(rustc_exe)
+    option_env!("SYSROOT")
+        .map(String::from)
+        .or_else(|| std::env::var("SYSROOT").ok())
+        .or_else(|| {
+            let home = option_env!("RUSTUP_HOME").or(option_env!("MULTIRUST_HOME"));
+            let toolchain = option_env!("RUSTUP_TOOLCHAIN").or(option_env!("MULTIRUST_TOOLCHAIN"));
+            home.and_then(|home| toolchain.map(|toolchain| format!("{}/toolchains/{}", home, toolchain)))
+        })
+        .or_else(|| {
+            Command::new("rustc")
                 .arg("--print")
                 .arg("sysroot")
                 .output()
@@ -29,5 +29,4 @@ pub fn current_sysroot() -> Option<String> {
                 .and_then(|out| String::from_utf8(out.stdout).ok())
                 .map(|s| s.trim().to_owned())
         })
-    }
 }

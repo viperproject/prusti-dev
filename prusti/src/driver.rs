@@ -34,6 +34,7 @@ use syntax::ast;
 use driver_utils::run;
 use prusti_interface::config;
 use prusti_interface::sysroot::current_sysroot;
+use std::path::Path;
 
 struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -154,26 +155,20 @@ pub fn main() {
 
         // Disable Prusti if...
         let prusti_filter_disabled = true
-            // we have been called by cargo with RUSTC_WRAPPER,
-            && (!args.is_empty() && args[1] == "rustc")
-            // this is not a test,
+            // we have been called by Cargo with RUSTC_WRAPPER, and
+            && (args.len() > 1 && Path::new(&args[1]).file_stem() == Some("rustc".as_ref()))
+            // this is not a test, and
             && !env::var("PRUSTI_TEST").ok().map_or(false, |val| val == "true")
             // we are compiling a dependency
-            && (!args.iter().any(|s| s == "--emit=dep-info,metadata"));
+            && !args.iter().any(|s| s.starts_with("--emit=dep-info"));
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this
-        if args.len() > 1 && args[1] == "rustc" {
-            assert!(args.len() > 2 && args[2] == "-");
-            args.remove(1);
-            args.remove(1);
+        if args.len() <= 1 {
+            std::process::exit(1);
         }
-
-        // Early exit
-        if prusti_filter_disabled {
-            let default_compiler_calls = Box::new(RustcDefaultCalls);
-            debug!("rustc command: {:?}", args.join(" "));
-            return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
+        if Path::new(&args[1]).file_stem() == Some("rustc".as_ref()) {
+            args.remove(1);
         }
 
         // this conditional check for the --sysroot flag is there so users can call
@@ -185,6 +180,13 @@ pub fn main() {
             args.push("--sysroot".to_owned());
             args.push(sys_root);
         };
+
+        // Early exit
+        if prusti_filter_disabled {
+            let default_compiler_calls = Box::new(RustcDefaultCalls);
+            debug!("rustc command: '{}'", args.join(" "));
+            return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
+        }
 
         // Arguments required by Prusti (Rustc may produce different MIR)
         set_var("POLONIUS_ALGORITHM", "Naive");
@@ -199,6 +201,9 @@ pub fn main() {
             args.push("-Zdump-mir-graphviz".to_owned());
         }
 
+        args.push("--cfg".to_string());
+        args.push(r#"feature="prusti""#.to_string());
+
         if !config::contracts_lib().is_empty() {
             args.push("--extern".to_owned());
             args.push(format!("prusti_contracts={}", config::contracts_lib()));
@@ -208,7 +213,7 @@ pub fn main() {
 
         let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
 
-        debug!("rustc command: {:?}", args.join(" "));
+        debug!("rustc command: '{}'", args.join(" "));
         rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
     });
     std::process::exit(exit_status as i32);

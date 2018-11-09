@@ -44,6 +44,12 @@ info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
 export RUSTUP_TOOLCHAIN="$(cat $DIR/../../rust-toolchain)"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
+CARGO_PRUSTI="$DIR/../../docker/cargo-prusti"
+info "Using CARGO_PRUSTI=$CARGO_PRUSTI"
+
+CARGO_PRUSTI_FILTER="$DIR/../../docker/cargo-prusti-filter"
+info "Using CARGO_PRUSTI_FILTER=$CARGO_PRUSTI_FILTER"
+
 info "Run standard compilation"
 
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
@@ -69,13 +75,11 @@ info "Filter supported procedures"
 
 if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILTER" == "true" ]] ; then
 	rm -f "$CRATE_ROOT/prusti-filter-results.json"
-	export RUSTC_WRAPPER="$DIR/../../docker/prusti-filter"
 	export RUST_BACKTRACE=1
 	exit_status="0"
 	cargoclean
 	# Timeout in seconds
-	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
-	unset RUSTC_WRAPPER
+	timeout -k 10 $EVALUATION_TIMEOUT "$CARGO_PRUSTI_FILTER" -j 1 || exit_status="$?"
 	unset RUST_BACKTRACE
 	if [[ "$exit_status" != "0" ]]; then
 		info "The automatic filtering of verifiable functions failed with exit status $exit_status."
@@ -94,7 +98,6 @@ rm -rf log/ nll-facts/
 # This is important! Without this, NLL facts are not recomputed and dumped to nll-facts.
 rm -rf target/*/incremental/
 export PRUSTI_FULL_COMPILATION=true
-export RUSTC_WRAPPER="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 # Sometimes Prusti is run over dependencies, in a different folder. So, make sure that the whitelist is always enabled.
 export PRUSTI_ENABLE_WHITELIST=true
@@ -117,7 +120,7 @@ if [[ "$FINE_GRAINED_EVALUATION" == "false" ]] ; then
 	cargoclean
 	exit_status="0"
 	# Timeout in seconds
-	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
+	timeout -k 10 $EVALUATION_TIMEOUT "$CARGO_PRUSTI" -j 1 || exit_status="$?"
 	if [[ "$exit_status" != "0" ]]; then
 		info "Prusti verification failed with exit status $exit_status."
 		if [[ "$exit_status" == "124" ]]; then
@@ -156,7 +159,7 @@ else
 		cargoclean
 		exit_status="0"
 		# Timeout in seconds
-		timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
+		timeout -k 10 $EVALUATION_TIMEOUT "$CARGO_PRUSTI" -j 1 || exit_status="$?"
 		if [[ "$exit_status" != "0" ]]; then
 			info "Prusti verification failed with exit status $exit_status (item $procedure_path)."
 			echo "$exit_status" >> "$FINE_GRAINED_EXIT_STATUS"
