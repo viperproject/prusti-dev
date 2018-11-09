@@ -1363,6 +1363,35 @@ impl Expr {
             current_label: None,
         }.fold(self)
     }
+
+    /// Apply the closure to all places in the expression.
+    pub fn fold_places<F>(self, f: F) -> Expr
+        where
+            F: Fn(Expr) -> Expr
+    {
+        struct PlaceFolder<F>
+            where
+                F: Fn(Expr) -> Expr
+        {
+            f: F,
+        };
+        impl<F> ExprFolder for PlaceFolder<F>
+            where
+                F: Fn(Expr) -> Expr
+        {
+            fn fold(&mut self, e: Expr) -> Expr {
+                if e.is_place() {
+                    (self.f)(e)
+                } else {
+                    default_fold_expr(self, e)
+                }
+            }
+            // TODO: Handle triggers?
+        }
+        PlaceFolder {
+            f
+        }.fold(self)
+    }
 }
 
 impl Trigger {

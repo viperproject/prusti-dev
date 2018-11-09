@@ -1732,10 +1732,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
                 let ty = self.locals.get_type(arg);
                 if self.mir_encoder.is_reference(ty) {
+                    // If the argument is a reference, we wrap _1.val_ref into old.
                     let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
                     let original_expr = encoded_deref;
                     let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
                     assertion = assertion.replace_place(&original_expr, &old_expr);
+                } else {
+                    // If the argument is a reference, we wrap entire path into old.
+                    assertion = assertion.fold_places(
+                        |place| {
+                            let base = place.get_base();
+                            if encoded_arg.weak_eq(&base.into()) {
+                                place.old(pre_label)
+                            } else {
+                                place
+                            }
+                        });
                 }
             }
             assertion = assertion.remove_redundant_old();
