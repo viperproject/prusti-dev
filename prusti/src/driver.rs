@@ -9,7 +9,6 @@ extern crate env_logger;
 extern crate getopts;
 #[macro_use]
 extern crate log;
-extern crate prusti;
 extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_errors;
@@ -17,8 +16,11 @@ extern crate rustc_codegen_utils;
 extern crate syntax;
 extern crate prusti_interface;
 extern crate syntax_pos;
+extern crate prusti_viper;
 
 mod driver_utils;
+mod typeck;
+mod verifier;
 
 use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
@@ -116,14 +118,14 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             trace!("[after_analysis.callback] enter");
             let untyped_specifications = get_specifications.replace(None).unwrap();
             let typed_specifications =
-                prusti::typeck::type_specifications(state, untyped_specifications);
+                typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
 
             info!("Type-checking of annotations successful");
 
             // Call the verifier
             if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {
-                prusti::verifier::verify(state, typed_specifications);
+                verifier::verify(state, typed_specifications);
             } else {
                 warn!("Verification skipped due to PRUSTI_NO_VERIFY env variable");
             }
