@@ -238,11 +238,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         }
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
-        let perms: Vec<_> = stmt
-            .get_required_permissions(bctxt.predicates())
+        let all_perms = stmt.get_required_permissions(bctxt.predicates());
+        let pred_permissions: Vec<_> = all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
+        let acc_permissions: Vec<_> = all_perms
             .into_iter()
-            .filter(|p| p.is_curr() && p.is_curr())
+            .filter(|p| {
+                if !p.is_acc() {
+                    false
+                } else {
+                    if p.is_curr() {
+                        true
+                    } else {
+                        pred_permissions
+                            .iter()
+                            .any(|pred_p| pred_p.get_place() == p.get_place())
+                    }
+                }
+            })
             .collect();
+        let mut perms = pred_permissions;
+        perms.extend(acc_permissions.into_iter());
         debug!("required permissions: {{\n{}\n}}", perms.iter().map(|x| format!("  {:?}", x)).collect::<Vec<_>>().join(",\n"));
 
         if !perms.is_empty() {

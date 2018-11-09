@@ -113,8 +113,13 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
-            &vir::Stmt::TransferPerm(_, _) |
             &vir::Stmt::StopExpiringLoans => HashSet::new(),
+
+            &vir::Stmt::TransferPerm(ref lhs, _) => {
+                let mut res = HashSet::new();
+                res.insert(Acc(lhs.clone(), Frac::new(1, 1000)));
+                res
+            }
 
             &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
                 let mut permissions = guard.get_required_permissions(predicates);
@@ -131,9 +136,9 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 permissions
             }
 
-            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref lhs, ref _rhs), ref _package_stmts, ref _position) => {
+            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref _lhs, ref _rhs), ref _package_stmts, ref _position) => {
                 // We model the magic wand as "assert lhs; stmts; exhale rhs"
-                lhs.get_required_permissions(predicates)
+                HashSet::new()
             }
 
             &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref _rhs)) => {
@@ -216,7 +221,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 debug_assert!(place.is_place());
                 // FIXME: Don't use full permissions (why?)
                 let epsilon = Frac::new(1, 1000);
-                match place.get_label() {
+                let result = match place.get_label() {
                     None => {
                         vec![
                             Pred(place.clone(), epsilon),
@@ -229,7 +234,8 @@ impl RequiredPermissionsGetter for vir::Expr {
                             Acc(place.clone().old(label), epsilon)
                         ].into_iter().collect()
                     }
-                }
+                };
+                result
             }
 
             vir::Expr::FieldAccessPredicate(expr, frac) => {

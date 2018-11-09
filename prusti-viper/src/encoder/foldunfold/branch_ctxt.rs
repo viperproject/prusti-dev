@@ -324,7 +324,11 @@ impl<'a> BranchCtxt<'a> {
 
                 // Simulate folding of `req`
                 assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
-                assert!(self.state.contains_acc(req.get_place()));
+                assert!(
+                    self.state.contains_acc(req.get_place()),
+                    "req={} state={}",
+                    req.get_place(),
+                    self.state);
                 assert!(!self.state.contains_pred(req.get_place()));
                 self.state.remove_all_perms(scaled_places_in_pred.iter());
                 self.state.insert_pred(req.get_place().clone(), frac);

@@ -132,3 +132,33 @@ impl<'a, 'tcx: 'a> From<&'a mir::Place<'tcx>> for Place<'tcx> {
         Place::NormalPlace(other.clone())
     }
 }
+
+impl<'tcx> Place<'tcx> {
+
+    pub fn is_root(&self, local: Local) -> bool {
+        fn check_if_root(place: &mir::Place, local: Local) -> bool {
+            match place {
+                mir::Place::Local(root) => {
+                    local.index() == root.index()
+                },
+                mir::Place::Projection(
+                    box mir::Projection { ref base, .. }
+                ) => {
+                    check_if_root(base, local)
+                }
+                _ => { unimplemented!() }
+            }
+        }
+        match self {
+            Place::NormalPlace(ref place) => {
+                check_if_root(place, local)
+            }
+            Place::SubstitutedPlace {
+                substituted_root,
+                ..
+            } => {
+                *substituted_root == local
+            }
+        }
+    }
+}

@@ -6,6 +6,7 @@
 #![allow(deprecated)]
 
 use std::fmt;
+use std::mem;
 use std::ops::Mul;
 use num_rational::Ratio;
 
@@ -1334,6 +1335,32 @@ impl Expr {
         PlaceReplacer {
             target,
             replacement
+        }.fold(self)
+    }
+
+    /// Replaces expressions like `old[l5](old[l5](_9.val_ref).foo.bar)`
+    /// into `old[l5](_9.val_ref.foo.bar)`
+    pub fn remove_redundant_old(self) -> Self {
+        struct RedundantOldRemover {
+            current_label: Option<String>,
+        };
+        impl ExprFolder for RedundantOldRemover {
+            fn fold_labelled_old(&mut self, label: String, base: Box<Expr>) -> Expr {
+                let old_current_label = mem::replace(
+                    &mut self.current_label,
+                    Some(label.clone()));
+                let new_base = default_fold_expr(self, *base);
+                let new_expr = if Some(label.clone()) == old_current_label {
+                    new_base
+                } else {
+                    new_base.old(label)
+                };
+                self.current_label = old_current_label;
+                new_expr
+            }
+        }
+        RedundantOldRemover {
+            current_label: None,
         }.fold(self)
     }
 }

@@ -1726,7 +1726,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode functional specification
         let mut func_spec = vec![];
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, pre_label, &encoded_args, Some(&encoded_return), false, None));
+            let mut assertion = self.encoder.encode_assertion(
+                &item.assertion, &self.mir, pre_label, &encoded_args,
+                Some(&encoded_return), false, None);
+            for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
+                let ty = self.locals.get_type(arg);
+                if self.mir_encoder.is_reference(ty) {
+                    let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
+                    let original_expr = encoded_deref;
+                    let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
+                    assertion = assertion.replace_place(&original_expr, &old_expr);
+                }
+            }
+            assertion = assertion.remove_redundant_old();
+            func_spec.push(assertion);
         }
 
         (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin(), magic_wands)
@@ -1822,6 +1835,49 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (type_spec, func_spec, magic_wands) = self.encode_postcondition_expr(
             contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false);
 
+        // Find which arguments are blocked by the returned reference.
+        let blocked_args: Vec<usize> = {
+            let borrow_infos = &contract.borrow_infos;
+            if !borrow_infos.is_empty() {
+                assert_eq!(borrow_infos.len(), 1,
+                           "We can have at most one magic wand in the postcondition.");
+                let mut blocked_args = Vec::new();
+                for blocked_place in &borrow_infos[0].blocked_paths {
+                    for (i, arg) in contract.args.iter().enumerate() {
+                        debug!("blocked_place={:?} i={:?} arg={:?}", blocked_place, i, arg);
+                        if blocked_place.is_root(*arg) {
+                            blocked_args.push(i);
+                        }
+                    }
+                }
+                blocked_args
+            } else {
+                Vec::new()
+            }
+        };
+
+        // Transfer borrow permissions to old.
+        let mut encoded_ref_args = Vec::new();
+        for (i, &arg) in contract.args.iter().enumerate() {
+            if blocked_args.contains(&i) {
+                // Permissions of arguments that are blocked by the returned reference are not
+                // added to the postcondition.
+                continue;
+            }
+            let ty = self.locals.get_type(arg);
+            if self.mir_encoder.is_reference(ty) {
+                let encoded_arg: vir::Expr = self.encode_prusti_local(arg).into();
+                let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
+                let original_expr = encoded_deref;
+                let old_expr = original_expr.clone().old(PRECONDITION_LABEL);
+                encoded_ref_args.push(old_expr.clone());
+                self.cfg_method.add_stmt(
+                    return_cfg_block,
+                    vir::Stmt::TransferPerm(original_expr, old_expr)
+                );
+            }
+        }
+
         // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
@@ -1832,19 +1888,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let there_are_magic_wands = !contract.borrow_infos.is_empty();
 
-        if !there_are_magic_wands {
-            // Make the deref of reference arguments to be folded (see issue #47)
-            self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Fold predicates for &mut args"));
-            for arg_index in self.mir.args_iter() {
-                let arg_ty = self.mir.local_decls[arg_index].ty;
-                if self.mir_encoder.is_reference(arg_ty) {
-                    let encoded_arg = self.mir_encoder.encode_local(arg_index);
-                    let (deref_place, ..) = self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
-                    let deref_pred = self.mir_encoder.encode_place_predicate_permission(deref_place, vir::Frac::one()).unwrap();
-                    for stmt in self.encode_obtain(deref_pred).drain(..) {
-                        self.cfg_method.add_stmt(return_cfg_block, stmt);
-                    }
-                }
+        // Make the deref of reference arguments to be folded (see issue #47)
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Fold predicates for &mut args"));
+        for deref_place in encoded_ref_args {
+            let deref_pred = self.mir_encoder.encode_place_predicate_permission(
+                deref_place, vir::Frac::one()).unwrap();
+            for stmt in self.encode_obtain(deref_pred).drain(..) {
+                self.cfg_method.add_stmt(return_cfg_block, stmt);
             }
         }
 

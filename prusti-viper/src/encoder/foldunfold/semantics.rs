@@ -244,6 +244,25 @@ impl vir::Stmt {
                 state.insert_all_acc(new_acc_places.into_iter());
                 state.insert_all_pred(new_pred_places.into_iter());
 
+                // Move also the acc permission if the rhs is old.
+                if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {
+                    if rhs_place.is_old() {
+                        debug!("Moving acc({}) to acc({}) state.", lhs_place, rhs_place);
+                        state.insert_acc(
+                            rhs_place.clone(),
+                            state.acc().get(lhs_place).unwrap().clone()
+                        );
+                        if !lhs_place.is_local() && !lhs_place.is_curr() {
+                            state.remove_acc_place(lhs_place);
+                        }
+                    }
+                }
+
+                // Remove the access permission if the lhs was old.
+                if state.contains_acc(lhs_place) && lhs_place.is_old() {
+                    state.remove_acc_place(lhs_place);
+                }
+
                 /*
                 // Hack: Move also the acc permission
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {
