@@ -34,6 +34,14 @@ start_date="$(date '+%Y-%m-%d %H:%M:%S')"
 SECONDS=0
 
 (
+	echo "{"
+	echo "  \"crate_name\": \"$crate_name\","
+	echo "  \"start_date\": \"$start_date\","
+	echo "  \"in_progress\": true"
+	echo "}"
+) | tee "$report_file"
+
+(
 	echo ""
 	echo "===== Verify crate '$crate_name' ($start_date) ====="
 	echo ""
@@ -53,7 +61,7 @@ successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file
 	echo "Duration: $duration seconds"
 	echo "Items in whitelist: $whitelist_items"
 	echo ""
-	echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items/$verified_items/$successful_items items (whitelisted, verified, successful), $duration seconds ($end_date)"
+	echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items/$verified_items/$successful_items items (whitelisted/verified/successful), $duration seconds ($end_date)"
 ) 2>&1 | tee -a "$log_file"
 
 (
@@ -65,6 +73,7 @@ successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file
 	echo "  \"verified_items\": \"$verified_items\","
 	echo "  \"successful_items\": \"$successful_items\","
 	echo "  \"start_date\": \"$start_date\","
-	echo "  \"end_date\": \"$end_date\""
+	echo "  \"end_date\": \"$end_date\","
+	echo "  \"in_progress\": false"
 	echo "}"
 ) | tee "$report_file"
