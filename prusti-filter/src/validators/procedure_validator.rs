@@ -485,7 +485,10 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 }
             }
 
-            mir::TerminatorKind::Assert { ref cond, .. } => self.check_operand(mir, cond),
+            mir::TerminatorKind::Assert { ref cond, .. } => {
+                interesting!(self, "uses assertions");
+                self.check_operand(mir, cond)
+            },
 
             mir::TerminatorKind::Yield {..} => unsupported!(self, "`yield` MIR statement is not supported"),
 
@@ -609,6 +612,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             }
 
             mir::Rvalue::CheckedBinaryOp(ref op, ref left_operand, ref right_operand) => {
+                interesting!(self, "uses checked binary operations");
                 let left_ty = self.get_operand_ty(mir, left_operand);
                 let right_ty = self.get_operand_ty(mir, right_operand);
                 self.check_binary_op(op, left_ty, right_ty);

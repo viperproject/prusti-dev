@@ -469,15 +469,19 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         // Rule: the rhs must always have an even number of "$"
-        self.env.get_item_def_path(def_id)
-            .replace("::", "$$")
-            .replace("<", "$openang$").replace(">", "$closeang$")
-            .replace("(", "$openrou$").replace(")", "$closerou$")
-            .replace("[", "$opensqu$").replace("]", "$closesqu$")
-            .replace("{", "$opencur$").replace("}", "$closecur$")
-            .replace(",", "$comma$")
-            .replace(";", "$semic$")
-            .replace(" ", "$space$")
+        let mut name = "m".to_string();
+        name.push_str(
+            &self.env.get_item_def_path(def_id)
+                .replace("::", "$$")
+                .replace("<", "$openang$").replace(">", "$closeang$")
+                .replace("(", "$openrou$").replace(")", "$closerou$")
+                .replace("[", "$opensqu$").replace("]", "$closesqu$")
+                .replace("{", "$opencur$").replace("}", "$closecur$")
+                .replace(",", "$comma$")
+                .replace(";", "$semic$")
+                .replace(" ", "$space$")
+        );
+        name
     }
 
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {

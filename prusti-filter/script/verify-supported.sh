@@ -32,6 +32,15 @@ info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
 FORCE_PRUSTI_FILTER="${FORCE_PRUSTI_FILTER:-true}"
 info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
 
+FINE_GRAINED_EVALUATION="${FINE_GRAINED_EVALUATION:-false}"
+info "Using FINE_GRAINED_EVALUATION=$FINE_GRAINED_EVALUATION"
+
+export PRUSTI_CHECK_PANICS="${PRUSTI_CHECK_PANICS:-false}"
+info "Using PRUSTI_CHECK_PANICS=$PRUSTI_CHECK_PANICS"
+
+export PRUSTI_CHECK_BINARY_OPERATIONS="${PRUSTI_CHECK_BINARY_OPERATIONS:-false}"
+info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
+
 export RUSTUP_TOOLCHAIN="$(cat $DIR/../../rust-toolchain)"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
@@ -53,6 +62,9 @@ if [[ "$exit_status" != "0" ]]; then
 	exit 42
 fi
 
+# Delete old Prusti configurations
+rm -f "$CRATE_ROOT/Prusti.toml"
+
 info "Filter supported procedures"
 
 if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILTER" == "true" ]] ; then
@@ -62,7 +74,7 @@ if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILT
 	exit_status="0"
 	cargoclean
 	# Timeout in seconds
-	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?" && true
+	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
 	unset RUSTC
 	unset RUST_BACKTRACE
 	if [[ "$exit_status" != "0" ]]; then
@@ -71,23 +83,11 @@ if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILT
 	fi
 fi
 
-supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json")"
-
-info "Prepare whitelist ($(echo "$supported_procedures" | grep . | wc -l) items)"
-
-(
-	echo "CHECK_PANICS = false"
-	echo "ENABLE_WHITELIST = true"
-	echo "WHITELIST = ["
-	echo "$supported_procedures" | sed 's/$/,/' | sed '$ s/.$//'
-	echo "]"
-) > "$CRATE_ROOT/Prusti.toml"
-
-# Sometimes a dependecy is compiled somewhere else. So, make sure that the whitelist is always enabled.
-export PRUSTI_ENABLE_WHITELIST=true
-export PRUSTI_CHECK_PANICS=false
-
-info "Start verification"
+# Collect supported procedures
+supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json" )"
+num_supported_procedures="$(echo "$supported_procedures" | grep . | wc -l || true)"
+info "Number of supported procedures in crate: $num_supported_procedures"
+#info "Supported procedures in crate:\n$supported_procedures"
 
 # Save disk space
 rm -rf log/ nll-facts/
@@ -96,6 +96,74 @@ rm -rf target/*/incremental/
 export PRUSTI_FULL_COMPILATION=true
 export RUSTC="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
-cargoclean
-# Timeout in seconds
-timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1
+# Sometimes Prusti is run over dependencies, in a different folder. So, make sure that the whitelist is always enabled.
+export PRUSTI_ENABLE_WHITELIST=true
+
+if [[ "$FINE_GRAINED_EVALUATION" == "false" ]] ; then
+
+	info "Prepare whitelist with $num_supported_procedures items"
+
+	(
+		echo "CHECK_PANICS = $PRUSTI_CHECK_PANICS"
+		echo "CHECK_BINARY_OPERATIONS = $PRUSTI_CHECK_BINARY_OPERATIONS"
+		echo "ENABLE_WHITELIST = true"
+		echo "WHITELIST = ["
+		echo "$supported_procedures" | sed 's/$/,/' | sed '$ s/.$//'
+		echo "]"
+	) > "$CRATE_ROOT/Prusti.toml"
+
+	info "Start verification"
+
+	cargoclean
+	exit_status="0"
+	# Timeout in seconds
+	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
+	if [[ "$exit_status" != "0" ]]; then
+		info "Prusti verification failed with exit status $exit_status."
+		if [[ "$exit_status" == "124" ]]; then
+			exit 124
+		else
+			exit 101
+		fi
+	else
+		exit 0
+	fi
+
+else
+
+	info "Run fine-grained evaluation of $num_supported_procedures items"
+
+	# Hack to set $final_exit_status from the pipe
+	FINE_GRAINED_EXIT_STATUS="$CRATE_ROOT/prusti-fine-grained-exit-status.txt"
+	rm -f "$FINE_GRAINED_EXIT_STATUS"
+	touch "$FINE_GRAINED_EXIT_STATUS"
+
+	echo "$supported_procedures" | (grep . || true) | while read procedure_path
+	do
+		info "Prepare whitelist with just $procedure_path"
+
+		(
+			echo "CHECK_PANICS = $PRUSTI_CHECK_PANICS"
+			echo "CHECK_BINARY_OPERATIONS = $PRUSTI_CHECK_BINARY_OPERATIONS"
+			echo "ENABLE_WHITELIST = true"
+			echo "WHITELIST = ["
+			echo "    $procedure_path"
+			echo "]"
+		) > "$CRATE_ROOT/Prusti.toml"
+
+		info "Start verification of $procedure_path"
+
+		cargoclean
+		exit_status="0"
+		# Timeout in seconds
+		timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
+		if [[ "$exit_status" != "0" ]]; then
+			info "Prusti verification failed with exit status $exit_status (item $procedure_path)."
+			echo "$exit_status" >> "$FINE_GRAINED_EXIT_STATUS"
+		fi
+	done
+
+	final_exit_status="$(echo "$(cat "$FINE_GRAINED_EXIT_STATUS")" | sort -n | tail -n 1 | sed 's/^$/0/')"
+	info "Final exit status: $final_exit_status"
+	exit $final_exit_status
+fi
