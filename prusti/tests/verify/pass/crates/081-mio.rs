@@ -1,5 +1,3 @@
-#![feature(box_syntax, box_patterns)]
-
 /// Source: https://carllerche.github.io/mio/src/mio/event_imp.rs.html
 extern crate prusti_contracts;
 

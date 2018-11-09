@@ -315,11 +315,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
         self.check_mir_signature(procedure);
 
+        let mir = procedure.get_mir();
+
         //for local_decl in &mir.local_decls {
         //    self.check_ty(local_decl.ty, "local variable");
         //}
 
-        let mir = procedure.get_mir();
         for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
                 continue;
@@ -420,7 +421,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
-                                    sty: ty::TyFnDef(def_id, ..),
+                                    sty: ty::TyFnDef(def_id, ref substs),
                                     ..
                                 },
                                 ..
@@ -449,6 +450,13 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                             }
                             if let Some((ref place, _)) = destination {
                                 self.check_place(mir, place);
+                            }
+                            for kind in substs.iter() {
+                                match kind.unpack() {
+                                    ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "function's lifetime parameters are partially supported"),
+
+                                    ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "function's type parameter"),
+                                }
                             }
                             let can_build_mir = match self.tcx.hir.as_local_node_id(def_id) {
                                 None => {

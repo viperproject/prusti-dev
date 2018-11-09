@@ -281,15 +281,9 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
     }
 
     fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
-        let mir = procedure.get_mir();
-        self.check_return_ty(mir.return_ty());
-        requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
-        requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
+        self.check_mir_signature(procedure);
 
-        for arg_index in mir.args_iter() {
-            let arg = &mir.local_decls[arg_index];
-            self.check_input_ty(arg.ty);
-        }
+        let mir = procedure.get_mir();
 
         //for local_decl in &mir.local_decls {
         //    self.check_ty(local_decl.ty);
@@ -309,6 +303,18 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                 self.check_mir_stmt(mir, stmt);
             }
             self.check_mir_terminator(mir, basic_block_data.terminator.as_ref().unwrap());
+        }
+    }
+
+    fn check_mir_signature(&mut self, procedure: &Procedure<'a, 'tcx>) {
+        let mir = procedure.get_mir();
+        self.check_return_ty(mir.return_ty());
+        requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
+        requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
+
+        for arg_index in mir.args_iter() {
+            let arg = &mir.local_decls[arg_index];
+            self.check_input_ty(arg.ty);
         }
     }
 
@@ -369,7 +375,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                         literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
-                                    sty: ty::TyFnDef(def_id, ..),
+                                    sty: ty::TyFnDef(def_id, ref substs),
                                     ..
                                 },
                                 ..
@@ -399,28 +405,41 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                             if let Some((ref place, _)) = destination {
                                 self.check_place(mir, place);
                             }
-                            match self.tcx.hir.as_local_node_id(def_id) {
+                            for kind in substs.iter() {
+                                match kind.unpack() {
+                                    ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
+
+                                    ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty),
+                                }
+                            }
+                            let can_build_mir = match self.tcx.hir.as_local_node_id(def_id) {
                                 None => {
                                     unsupported!(
                                         self,
                                         "calling functions from an external crate is not supported"
                                     );
+                                    false
                                 }
                                 Some(node_id) => match self.tcx.hir.get(node_id) {
-                                    hir::map::NodeVariant(_) => {} // OK
-                                    hir::map::NodeStructCtor(_) => {} // OK
+                                    hir::map::NodeVariant(_) => { true } // OK
+                                    hir::map::NodeStructCtor(_) => { true } // OK
                                     _ => match self.tcx.hir.maybe_body_owned_by(node_id) {
-                                        Some(_) => {} // OK
+                                        Some(_) => { true } // OK
                                         None => {
                                             unsupported!(
                                                 self,
                                                 "calling body-less functions is not supported"
                                             );
+                                            false
                                         },
                                     },
                                 },
+                            };
+                            if can_build_mir {
+                                // Check that the contract of the called function is supported
+                                let procedure = Procedure::new(self.tcx, def_id);
+                                self.check_mir_signature(&procedure);
                             }
-                            // TODO: check that the contract of the called function is supported
                         },
                     }
                 } else {

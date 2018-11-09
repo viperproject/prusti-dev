@@ -133,9 +133,13 @@ fn main() {
             //file.write_all(&data.into_bytes()).unwrap();
 
             // Write result
-            fs::write("prusti-filter-results.json", data).expect("Unable to write file");
+            let result_path = "prusti-filter-results.json";
+            fs::write(result_path, data).expect("Unable to write file");
 
-            info!("Filtering successful");
+            info!(
+                "Filtering successful. The result of the filtering has been stored to '{}'.",
+                result_path
+            );
             old(state);
         };
 
