@@ -210,15 +210,15 @@ impl<'tcx> ErrorManager<'tcx> {
 
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
                 "P0017",
-                format!("internal error - unexpected verification error ([{}] {})", full_err_id, ver_error.message),
+                format!("internal encoding error - unexpected verification error ([{}] {})", full_err_id, ver_error.message),
                 MultiSpan::from_span(*error_span)
             ),
 
             (full_err_id, _) => {
-                error!("internal error - unhandled verification error: {:?}, context: {:?}", ver_error, error_ctx);
+                error!("Unhandled verification error: {:?}, context: {:?}", ver_error, error_ctx);
                 CompilerError::new(
                     "P0018",
-                    format!("Unhandled verification error ([{}] {})", full_err_id, ver_error.message),
+                    format!("internal encoding error - unhandled verification error ([{}] {})", full_err_id, ver_error.message),
                     MultiSpan::from_span(*error_span)
                 )
             },

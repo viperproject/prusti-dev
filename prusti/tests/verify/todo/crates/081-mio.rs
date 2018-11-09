@@ -12,8 +12,16 @@ pub struct Event {
     token: Token
 }
 
+pub struct UnixReady(Ready);
+
 pub fn kind_mut(event: &mut Event) -> &mut Ready {
     &mut event.kind
+}
+
+impl UnixReady {
+    fn deref_mut(&mut self) -> &mut Ready {
+        &mut self.0
+    }
 }
 
 fn main() {}
