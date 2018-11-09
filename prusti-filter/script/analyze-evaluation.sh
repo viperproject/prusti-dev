@@ -32,48 +32,50 @@ jq --raw-output 'select(.in_progress) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/rep
 for crate in $(jq --raw-output 'select(.in_progress) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json); do echo " - $crate"; done
 
 inlineinfo "Crates for which standard compilation failed or timed out"
-jq --raw-output 'select(.exit_status == 42) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status == "42") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Crates for which standard compilation succeeded"
-jq --raw-output 'select(.exit_status != 42) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status != "42") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Crates for which standard compilation succeeded, but the filtering failed"
-jq --raw-output 'select(.exit_status == 43) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status == "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 43"
 
+
 inlineinfo "Crates for which standard compilation and the filtering succeeded"
-jq --raw-output 'select(.exit_status != 42 and .exit_status != 43) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status != "42" and .exit_status != "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Function items from crates for which standard compilation and the filtering succeeded"
 (jq '.functions | length' "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json 2> /dev/null | tr '\n' '+'; echo "0") | bc
 
 inlineinfo "Verifiable items from crates for which standard compilation and the filtering succeeded"
-(jq --raw-output 'select(.exit_status != 42 and .exit_status != 43) | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status != "42" and .exit_status != "43") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 inlineinfo "Crates for which Prusti succeeded"
-jq --raw-output 'select(.exit_status == 0) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status == "0") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Verifiable items from crates for which Prusti succeeded"
-(jq --raw-output 'select(.exit_status == 0) | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status == "0") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 inlineinfo "Verified items from crates for which Prusti succeeded"
-(jq --raw-output 'select(.exit_status == 0) | .verified_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status == "0") | .verified_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 
 inlineinfo "Crates for which Prusti timed out"
-jq --raw-output 'select(.exit_status == 124) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status == "124") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Verifiable items from crates for which Prusti timed out"
-(jq --raw-output 'select(.exit_status == 124) | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status == "124") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 124"
 
 
 inlineinfo "Crates for which Prusti failed"
-(jq --raw-output 'select(.exit_status != 42 and .exit_status != 0 and .exit_status != 124) | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 inlineinfo "Verifiable items from crates for which Prusti failed"
-(jq --raw-output 'select(.exit_status != 42 and .exit_status != 0 and .exit_status != 124) | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep -v "exit status 42" | grep -v "exit status 0" | grep -v "exit status 124"
 
