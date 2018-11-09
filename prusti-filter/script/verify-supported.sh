@@ -162,7 +162,7 @@ else
 		fi
 	done
 
-	final_exit_status="$( echo "$(cat "$FINE_GRAINED_EXIT_STATUS")" | sort -n | head -n 1 | sed 's/^$/0/')"
+	final_exit_status="$( echo "$(cat "$FINE_GRAINED_EXIT_STATUS")" | sort -n | tail -n 1 | sed 's/^$/0/')"
 	info "Final exit status: $final_exit_status"
 	exit $final_exit_status
 fi
