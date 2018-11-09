@@ -47,11 +47,13 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         debug!("Verifier returned {:?}", verification_result);
 
         match verification_result {
-            VerificationResult::Success => info!("Verification successful"),
+            VerificationResult::Success => {
+                info!("Successful verification of {} items", verification_task.procedures.len());
+            }
             VerificationResult::Failure => {
                 info!("Verification failed");
                 assert!(env.has_errors());
-            },
+            }
         };
     }
 

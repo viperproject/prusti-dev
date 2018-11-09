@@ -44,15 +44,16 @@ SECONDS=0
 exit_status="$?"
 end_date="$(date '+%Y-%m-%d %H:%M:%S')"
 duration="$SECONDS"
-whitelist_items="$(grep '"' "$crate_source_dir/Prusti.toml" 2> /dev/null | wc -l)"
-verified_items="$(echo "$(egrep 'Received [0-9]+ items to be verified' "$log_file" | tail -n 1 | cut -d ' ' -f 6)" | sed 's/^$/0/')"
+whitelist_items="$( (egrep 'Number of supported procedures in crate: [0-9]+$' "$log_file" | tail -n 1 | cut -d ' ' -f 8) | sed 's/^$/0/' )"
+verified_items="$( (egrep 'Received [0-9]+ items to be verified' "$log_file" | cut -d ' ' -f 6 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
+successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file" | cut -d ' ' -f 8 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 
 (
 	echo "Exit status: $exit_status"
 	echo "Duration: $duration seconds"
 	echo "Items in whitelist: $whitelist_items"
 	echo ""
-	echo "Summary for crate '$crate_name': exit status $exit_status, $verified_items verified items (of $whitelist_items in the whitelist), $duration seconds ($end_date)"
+	echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items/$verified_items/$successful_items items (whitelisted, verified, successful), $duration seconds ($end_date)"
 ) 2>&1 | tee -a "$log_file"
 
 (
@@ -62,6 +63,7 @@ verified_items="$(echo "$(egrep 'Received [0-9]+ items to be verified' "$log_fil
 	echo "  \"duration\": \"$duration\","
 	echo "  \"whitelist_items\": \"$whitelist_items\","
 	echo "  \"verified_items\": \"$verified_items\","
+	echo "  \"successful_items\": \"$successful_items\","
 	echo "  \"start_date\": \"$start_date\","
 	echo "  \"end_date\": \"$end_date\""
 	echo "}"
