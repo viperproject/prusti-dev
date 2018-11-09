@@ -61,6 +61,9 @@ inlineinfo "Verifiable items from crates for which Prusti succeeded"
 inlineinfo "Verified items from crates for which Prusti succeeded"
 (jq --raw-output 'select(.exit_status == "0") | .verified_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
+inlineinfo "Successfully verified items"
+(jq --raw-output '.successful_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+
 
 inlineinfo "Crates for which Prusti timed out"
 jq --raw-output 'select(.exit_status == "124") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
