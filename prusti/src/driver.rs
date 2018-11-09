@@ -148,51 +148,61 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
 
 pub fn main() {
     env_logger::init();
-    trace!("[main] enter");
 
-    let sys_root = current_sysroot()
-        .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
-    debug!("Using sys_root='{}'", sys_root);
+    let exit_status = run(move || {
+        let mut args: Vec<String> = env::args().collect();
 
-    set_var("POLONIUS_ALGORITHM", "Naive");
-    let mut args: Vec<String> = env::args().collect();
+        let prusti_filter_disabled = (!args.is_empty() && args[1] == "rustc")
+            && !env::var("PRUSTI_TESTS").ok().map_or(false, |val| val == "true")
+            && (!args.iter().any(|s| s == "--emit=dep-info,metadata"));
 
-    // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
-    // We're invoking the compiler programmatically, so we ignore this
-    if !args.is_empty() && args[1] == "rustc" {
-        args.remove(1);
-    }
+        // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
+        // We're invoking the compiler programmatically, so we ignore this
+        if !args.is_empty() && args[1] == "rustc" {
+            args.remove(1);
+        }
 
-    // this conditional check for the --sysroot flag is there so users can call
-    // `prusti-filter` directly without having to pass --sysroot or anything
-    if !args.iter().any(|s| s == "--sysroot") {
-        args.push("--sysroot".to_owned());
-        args.push(sys_root);
-    };
+        // Early exit
+        if prusti_filter_disabled {
+            let default_compiler_calls = Box::new(RustcDefaultCalls);
+            return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
+        }
 
-    // Arguments required by Prusti (Rustc may produce different MIR)
-    args.push("-Zborrowck=mir".to_owned());
-    args.push("-Zpolonius".to_owned());
-    args.push("-Znll-facts".to_owned());
-    args.push("-Zidentify-regions".to_owned());
-    args.push("-Zdump-mir-dir=log/mir/".to_owned());
-    args.push("-Zdump-mir=renumber".to_owned());
-    if config::dump_debug_info() {
-        args.push("-Zdump-mir=all".to_owned());
-        args.push("-Zdump-mir-graphviz".to_owned());
-    }
-    /*
-    if !config::contracts_lib().is_empty() {
-        args.push("--extern".to_owned());
-        args.push(format!("prusti_contracts={}", config::contracts_lib()));
-    } else {
-        warn!("Configuration variable CONTRACTS_LIB is empty");
-    }
-    */
+        // this conditional check for the --sysroot flag is there so users can call
+        // `prusti-filter` directly without having to pass --sysroot or anything
+        if !args.iter().any(|s| s == "--sysroot") {
+            let sys_root = current_sysroot()
+                .expect("need to specify SYSROOT env var during compilation, or use rustup or multirust");
+            debug!("Using sys_root='{}'", sys_root);
+            args.push("--sysroot".to_owned());
+            args.push(sys_root);
+        };
 
-    debug!("rustc command: {:?}", args.join(" "));
-    let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
-    let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
-    trace!("[main] exit");
+        // Arguments required by Prusti (Rustc may produce different MIR)
+        set_var("POLONIUS_ALGORITHM", "Naive");
+        args.push("-Zborrowck=mir".to_owned());
+        args.push("-Zpolonius".to_owned());
+        args.push("-Znll-facts".to_owned());
+        args.push("-Zidentify-regions".to_owned());
+        args.push("-Zdump-mir-dir=log/mir/".to_owned());
+        args.push("-Zdump-mir=renumber".to_owned());
+        if config::dump_debug_info() {
+            args.push("-Zdump-mir=all".to_owned());
+            args.push("-Zdump-mir-graphviz".to_owned());
+        }
+        /*
+        if !config::contracts_lib().is_empty() {
+            args.push("--extern".to_owned());
+            args.push(format!("prusti_contracts={}", config::contracts_lib()));
+        } else {
+            warn!("Configuration variable CONTRACTS_LIB is empty");
+        }
+        */
+
+        debug!("rustc command: {:?}", args.join(" "));
+        let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
+
+        rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
+    });
     std::process::exit(exit_status as i32);
 }

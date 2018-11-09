@@ -20,6 +20,7 @@ extern crate prusti_interface;
 mod crate_visitor;
 mod validators;
 
+use rustc_driver::RustcDefaultCalls;
 use rustc_driver::driver::{CompileController, CompileState};
 use rustc_driver::Compilation;
 use std::env;
@@ -35,11 +36,10 @@ fn main() {
     env_logger::init();
 
     let exit_status = rustc_driver::run(move || {
-        let sys_root = current_sysroot()
-            .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
-        debug!("Using sys_root='{}'", sys_root);
-
         let mut args: Vec<String> = env::args().collect();
+
+        let prusti_disabled = (!args.is_empty() && args[1] == "rustc")
+            && !args.iter().any(|s| s == "--emit=dep-info,metadata");
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this
@@ -47,9 +47,18 @@ fn main() {
             args.remove(1);
         }
 
+        // Early exit
+        if prusti_disabled {
+            let default_compiler_calls = Box::new(RustcDefaultCalls);
+            return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
+        }
+
         // this conditional check for the --sysroot flag is there so users can call
         // `prusti-filter` directly without having to pass --sysroot or anything
         if !args.iter().any(|s| s == "--sysroot") {
+            let sys_root = current_sysroot()
+                .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
+            debug!("Using sys_root='{}'", sys_root);
             args.push("--sysroot".to_owned());
             args.push(sys_root);
         };
@@ -114,8 +123,7 @@ fn main() {
             old(state);
         };
 
-        // Do *not* stop compilation, because we might were compiling just dependencies
-        // controller.compilation_done.stop = Compilation::Stop;
+        controller.after_analysis.stop = Compilation::Stop;
 
         rustc_driver::run_compiler(&args, Box::new(controller), None, None)
     });
