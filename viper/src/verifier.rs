@@ -102,17 +102,29 @@ impl<'a> Verifier<'a, state::Started> {
             ast_utils.pretty_print(program)
         );
 
-        let consistency_errors = ast_utils.check_consistency(program);
+        let mut consistency_errors= vec![];
+
+        // We suspect that there is a 1/1000 probability of getting false positive consistency
+        // errors. So, we re-execute.
+        for i in 0..5 {
+            consistency_errors = ast_utils.check_consistency(program);
+            if consistency_errors.is_empty() {
+                if i != 0 {
+                    warn!("Consistency errors disappeared after re-checking {} times.", i);
+                }
+                break;
+            }
+        }
 
         if !consistency_errors.is_empty() {
             error!(
-                "The provided program has {} consistency errors.",
+                "The provided Viper program has {} consistency errors.",
                 consistency_errors.len()
             );
             for error in consistency_errors {
                 error!("{}", self.jni.to_string(error));
             }
-            panic!("Consistency errors");
+            panic!("Consistency errors. The encoded Viper program is incorrect.");
         }
 
         let start_verification = Instant::now();
@@ -122,7 +134,7 @@ impl<'a> Verifier<'a, state::Started> {
         );
         let duration = start_verification.elapsed();
 
-        debug!("Viper verification took {}.{} seconds", duration.as_secs(), duration.subsec_millis()/10);
+        info!("Viper verification took {}.{} seconds", duration.as_secs(), duration.subsec_millis()/10);
         debug!("Viper verification result: {}", self.jni.to_string(viper_result));
 
         let is_failure = self.jni
