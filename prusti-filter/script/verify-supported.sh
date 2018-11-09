@@ -135,7 +135,7 @@ else
 
 	final_exit_status="0"
 
-	echo "$supported_procedures" | grep . | while read procedure_path
+	echo "$supported_procedures" | (grep . || true) | while read procedure_path
 	do
 		info "Prepare whitelist with just $procedure_path"
 
