@@ -152,8 +152,13 @@ pub fn main() {
     let exit_status = run(move || {
         let mut args: Vec<String> = env::args().collect();
 
-        let prusti_filter_disabled = (!args.is_empty() && args[1] == "rustc")
+        // Disable Prusti if...
+        let prusti_filter_disabled = true
+            // we have been called by cargo with RUSTC_WRAPPER,
+            && (!args.is_empty() && args[1] == "rustc")
+            // this is not a test,
             && !env::var("PRUSTI_TEST").ok().map_or(false, |val| val == "true")
+            // we are compiling a dependency
             && (!args.iter().any(|s| s == "--emit=dep-info,metadata"));
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.

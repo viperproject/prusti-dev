@@ -38,7 +38,11 @@ fn main() {
     let exit_status = rustc_driver::run(move || {
         let mut args: Vec<String> = env::args().collect();
 
-        let prusti_disabled = (!args.is_empty() && args[1] == "rustc")
+        // Disable Prusti if...
+        let prusti_disabled = true
+            // we have been called by cargo with RUSTC_WRAPPER,
+            && (!args.is_empty() && args[1] == "rustc")
+            // we are compiling a dependency
             && !args.iter().any(|s| s == "--emit=dep-info,metadata");
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.

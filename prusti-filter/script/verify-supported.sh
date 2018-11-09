@@ -69,13 +69,13 @@ info "Filter supported procedures"
 
 if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILTER" == "true" ]] ; then
 	rm -f "$CRATE_ROOT/prusti-filter-results.json"
-	export RUSTC="$DIR/../../docker/prusti-filter"
+	export RUSTC_WRAPPER="$DIR/../../docker/prusti-filter"
 	export RUST_BACKTRACE=1
 	exit_status="0"
 	cargoclean
 	# Timeout in seconds
 	timeout -k 10 $EVALUATION_TIMEOUT cargo build -j 1 || exit_status="$?"
-	unset RUSTC
+	unset RUSTC_WRAPPER
 	unset RUST_BACKTRACE
 	if [[ "$exit_status" != "0" ]]; then
 		info "The automatic filtering of verifiable functions failed with exit status $exit_status."
@@ -94,7 +94,7 @@ rm -rf log/ nll-facts/
 # This is important! Without this, NLL facts are not recomputed and dumped to nll-facts.
 rm -rf target/*/incremental/
 export PRUSTI_FULL_COMPILATION=true
-export RUSTC="$DIR/../../docker/prusti"
+export RUSTC_WRAPPER="$DIR/../../docker/prusti"
 export RUST_BACKTRACE=1
 # Sometimes Prusti is run over dependencies, in a different folder. So, make sure that the whitelist is always enabled.
 export PRUSTI_ENABLE_WHITELIST=true

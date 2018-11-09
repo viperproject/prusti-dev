@@ -56,7 +56,7 @@ RUN cd /tmp/prusti-dev && \
 	cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib
 ADD docker/prusti /usr/local/bin/prusti
 ADD docker/cargo-prusti /usr/local/bin/cargo-prusti
-ENV RUSTC "/usr/local/bin/prusti"
+ENV RUSTC_WRAPPER "/usr/local/bin/prusti"
 
 # Set up locale.
 RUN locale-gen en_US.UTF-8
