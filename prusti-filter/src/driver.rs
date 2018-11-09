@@ -24,63 +24,34 @@ use rustc_driver::driver::{CompileController, CompileState};
 use rustc_driver::Compilation;
 use std::env;
 use std::fs;
-use std::process::Command;
 use self::crate_visitor::{CrateVisitor, CrateStatus};
 use validators::Validator;
 use rustc::hir::intravisit::Visitor;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
+use prusti_interface::sysroot::current_sysroot;
 
 
 fn main() {
     env_logger::init();
 
     let exit_status = rustc_driver::run(move || {
-        // Mostly copied from clippy
-
-        let sys_root = option_env!("SYSROOT")
-            .map(String::from)
-            .or_else(|| std::env::var("SYSROOT").ok())
-            .or_else(|| {
-                let home = option_env!("RUSTUP_HOME").or(option_env!("MULTIRUST_HOME"));
-                let toolchain = option_env!("RUSTUP_TOOLCHAIN").or(option_env!("MULTIRUST_TOOLCHAIN"));
-                home.and_then(|home| toolchain.map(|toolchain| format!("{}/toolchains/{}", home, toolchain)))
-            })
-            .or_else(|| {
-                Command::new("rustc")
-                    .arg("--print")
-                    .arg("sysroot")
-                    .output()
-                    .ok()
-                    .and_then(|out| String::from_utf8(out.stdout).ok())
-                    .map(|s| s.trim().to_owned())
-            })
+        let sys_root = current_sysroot()
             .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
-
         debug!("Using sys_root='{}'", sys_root);
 
+        let mut args: Vec<String> = env::args().collect();
+
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
-        // We're invoking the compiler programmatically, so we ignore this/
-        let mut orig_args: Vec<String> = env::args().collect();
-        if orig_args.len() <= 1 {
-            std::process::exit(1);
-        }
-        if orig_args[1] == "rustc" {
-            // we still want to be able to invoke it normally though
-            orig_args.remove(1);
+        // We're invoking the compiler programmatically, so we ignore this
+        if !args.is_empty() && args[1] == "rustc" {
+            args.remove(1);
         }
 
         // this conditional check for the --sysroot flag is there so users can call
-        // `clippy_driver` directly
-        // without having to pass --sysroot or anything
-        let mut args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") {
-            orig_args.clone()
-        } else {
-            orig_args
-                .clone()
-                .into_iter()
-                .chain(Some("--sysroot".to_owned()))
-                .chain(Some(sys_root))
-                .collect()
+        // `prusti-filter` directly without having to pass --sysroot or anything
+        if !args.iter().any(|s| s == "--sysroot") {
+            args.push("--sysroot".to_owned());
+            args.push(sys_root);
         };
 
         // Arguments required by Prusti (Rustc may produce different MIR)

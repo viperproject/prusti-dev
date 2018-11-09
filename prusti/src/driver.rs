@@ -23,6 +23,7 @@ mod driver_utils;
 use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
+use std::env;
 use std::env::{var, set_var};
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -30,6 +31,7 @@ use std::cell::Cell;
 use syntax::ast;
 use driver_utils::run;
 use prusti_interface::config;
+use prusti_interface::sysroot::current_sysroot;
 
 struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -145,8 +147,28 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
 pub fn main() {
     env_logger::init();
     trace!("[main] enter");
+
+    let sys_root = current_sysroot()
+        .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
+    debug!("Using sys_root='{}'", sys_root);
+
     set_var("POLONIUS_ALGORITHM", "Naive");
-    let mut args: Vec<String> = std::env::args().collect();
+    let mut args: Vec<String> = env::args().collect();
+
+    // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
+    // We're invoking the compiler programmatically, so we ignore this
+    if !args.is_empty() && args[1] == "rustc" {
+        args.remove(1);
+    }
+
+    // this conditional check for the --sysroot flag is there so users can call
+    // `prusti-filter` directly without having to pass --sysroot or anything
+    if !args.iter().any(|s| s == "--sysroot") {
+        args.push("--sysroot".to_owned());
+        args.push(sys_root);
+    };
+
+    // Arguments required by Prusti (Rustc may produce different MIR)
     args.push("-Zborrowck=mir".to_owned());
     args.push("-Zpolonius".to_owned());
     args.push("-Znll-facts".to_owned());
@@ -165,8 +187,8 @@ pub fn main() {
         warn!("Configuration variable CONTRACTS_LIB is empty");
     }
     */
-    let args_string = args.join(" ");
-    debug!("rustc command: {:?}", args_string);
+
+    debug!("rustc command: {:?}", args.join(" "));
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
     let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
     trace!("[main] exit");
