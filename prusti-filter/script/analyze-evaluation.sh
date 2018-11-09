@@ -40,6 +40,7 @@ jq --raw-output 'select(.exit_status != "42") | .crate_name' "$CRATE_DOWNLOAD_DI
 inlineinfo "Crates for which standard compilation succeeded, but the filtering failed"
 jq --raw-output 'select(.exit_status == "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 jq --raw-output 'select(.exit_status == "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^/ - /'
+cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 43"
 
 
 inlineinfo "Crates for which standard compilation and the filtering succeeded"
@@ -71,7 +72,7 @@ cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit statu
 
 
 inlineinfo "Crates for which Prusti failed"
-(jq --raw-output 'select(.exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 inlineinfo "Verifiable items from crates for which Prusti failed"
 (jq --raw-output 'select(.exit_status != "42" and .exit_status != "0" and .exit_status != "124") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
