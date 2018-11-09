@@ -163,13 +163,16 @@ pub fn main() {
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this
-        if !args.is_empty() && args[1] == "rustc" {
+        if args.len() > 1 && args[1] == "rustc" {
+            assert!(args.len() > 2 && args[2] == "-");
+            args.remove(1);
             args.remove(1);
         }
 
         // Early exit
         if prusti_filter_disabled {
             let default_compiler_calls = Box::new(RustcDefaultCalls);
+            debug!("rustc command: {:?}", args.join(" "));
             return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
         }
 
@@ -195,18 +198,17 @@ pub fn main() {
             args.push("-Zdump-mir=all".to_owned());
             args.push("-Zdump-mir-graphviz".to_owned());
         }
-        /*
+
         if !config::contracts_lib().is_empty() {
             args.push("--extern".to_owned());
             args.push(format!("prusti_contracts={}", config::contracts_lib()));
         } else {
             warn!("Configuration variable CONTRACTS_LIB is empty");
         }
-        */
 
-        debug!("rustc command: {:?}", args.join(" "));
         let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
 
+        debug!("rustc command: {:?}", args.join(" "));
         rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
     });
     std::process::exit(exit_status as i32);

@@ -30,6 +30,7 @@ use validators::Validator;
 use rustc::hir::intravisit::Visitor;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::sysroot::current_sysroot;
+use prusti_interface::config;
 
 
 fn main() {
@@ -47,13 +48,16 @@ fn main() {
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this
-        if !args.is_empty() && args[1] == "rustc" {
+        if args.len() > 1 && args[1] == "rustc" {
+            assert!(args.len() > 2 && args[2] == "-");
+            args.remove(1);
             args.remove(1);
         }
 
         // Early exit
         if prusti_disabled {
             let default_compiler_calls = Box::new(RustcDefaultCalls);
+            debug!("rustc command: {:?}", args.join(" "));
             return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
         }
 
@@ -70,6 +74,13 @@ fn main() {
         // Arguments required by Prusti (Rustc may produce different MIR)
         args.push("-Zborrowck=mir".to_owned());
         args.push("-Zpolonius".to_owned());
+
+        if !config::contracts_lib().is_empty() {
+            args.push("--extern".to_owned());
+            args.push(format!("prusti_contracts={}", config::contracts_lib()));
+        } else {
+            warn!("Configuration variable CONTRACTS_LIB is empty");
+        }
 
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
@@ -129,6 +140,7 @@ fn main() {
 
         controller.after_analysis.stop = Compilation::Stop;
 
+        debug!("rustc command: {:?}", args.join(" "));
         rustc_driver::run_compiler(&args, Box::new(controller), None, None)
     });
     std::process::exit(exit_status as i32);
