@@ -1655,10 +1655,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     Some(&encoded_return), false, None);
                 for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
                     let ty = self.locals.get_type(arg);
-                    let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
-                    let original_expr = encoded_deref;
-                    let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
-                    assertion = assertion.replace_place(&original_expr, &old_expr);
+                    if self.mir_encoder.is_reference(ty) {
+                        let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
+                        let original_expr = encoded_deref;
+                        let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
+                        assertion = assertion.replace_place(&original_expr, &old_expr);
+                    }
                 }
                 let ty = self.locals.get_type(contract.returned_value);
                 let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return.clone(), ty);
