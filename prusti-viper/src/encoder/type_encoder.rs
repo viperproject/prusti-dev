@@ -387,12 +387,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyInt(ast::IntTy::I16) => "i16".to_string(),
             ty::TypeVariants::TyInt(ast::IntTy::I32) => "i32".to_string(),
             ty::TypeVariants::TyInt(ast::IntTy::I64) => "i64".to_string(),
+            ty::TypeVariants::TyInt(ast::IntTy::I128) => "i128".to_string(),
             ty::TypeVariants::TyInt(ast::IntTy::Isize) => "isize".to_string(),
 
             ty::TypeVariants::TyUint(ast::UintTy::U8) => "u8".to_string(),
             ty::TypeVariants::TyUint(ast::UintTy::U16) => "u16".to_string(),
             ty::TypeVariants::TyUint(ast::UintTy::U32) => "u32".to_string(),
             ty::TypeVariants::TyUint(ast::UintTy::U64) => "u64".to_string(),
+            ty::TypeVariants::TyUint(ast::UintTy::U128) => "u128".to_string(),
             ty::TypeVariants::TyUint(ast::UintTy::Usize) => "usize".to_string(),
 
             ty::TypeVariants::TyChar => "char".to_string(),
