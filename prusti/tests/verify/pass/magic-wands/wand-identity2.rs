@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate prusti_contracts;
 
 struct T {
@@ -42,19 +44,6 @@ fn identity_use2() {
     let v = identity3(x, 8);
     assert!(*v == 8);
     assert!(t.val == 8);
-}
-
-fn identity_use3() {
-    let mut t = T { val: 5 };
-    assert!(t.val == 5);
-    let y = &mut t;
-    assert!(y.val == 5);
-    let z = identity(y);
-    z.val = 6;
-    let x = identity2(z, 7);
-    let v = identity3(x, 8);
-    assert!(*v == 8);
-    assert!(t.val == 9);    //~ ERROR: assert!(..) statement might not hold
 }
 
 fn main() {}
