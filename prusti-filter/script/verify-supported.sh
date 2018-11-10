@@ -2,8 +2,8 @@
 
 set -eo pipefail
 
-info() { echo -e "[-] $(date '+%Y-%m-%d %H:%M:%S') ${*}"; }
-error() { echo -e "[!] $(date '+%Y-%m-%d %H:%M:%S') ${*}"; }
+info() { echo -e "[-] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }
+error() { echo -e "[!] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }
 
 cargoclean() {
 	# Clean the artifacts of this project ("bin" or "lib"), but not those of the dependencies

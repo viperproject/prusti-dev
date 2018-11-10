@@ -20,18 +20,23 @@ if [[ ! -r "$CRATE_ROOT/source/Cargo.toml" ]]; then
 	exit 1
 fi
 
-EVALUATION_TIMEOUT="${EVALUATION_TIMEOUT:-900}"
-OVERALL_EVALUATION_TIMEOUT="$(( EVALUATION_TIMEOUT * 10 ))"
-info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
-info "Using OVERALL_EVALUATION_TIMEOUT=$OVERALL_EVALUATION_TIMEOUT seconds"
-
 log_file="${CRATE_ROOT}/${SCRIPT_NAME}.log"
 report_file="${CRATE_ROOT}/report.json"
 crate_source_dir="${CRATE_ROOT}/source"
 crate_name="$(basename "$CRATE_ROOT")"
-
 start_date="$(date '+%Y-%m-%d %H:%M:%S')"
 SECONDS=0
+
+(
+	echo ""
+	echo "===== Verify crate '$crate_name' ($start_date) ====="
+	echo ""
+) | tee "$log_file"
+
+EVALUATION_TIMEOUT="${EVALUATION_TIMEOUT:-900}"
+OVERALL_EVALUATION_TIMEOUT="$(( EVALUATION_TIMEOUT * 10 ))"
+info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds" | tee -a "$log_file"
+info "Using OVERALL_EVALUATION_TIMEOUT=$OVERALL_EVALUATION_TIMEOUT seconds" | tee -a "$log_file"
 
 (
 	echo "{"
@@ -39,15 +44,12 @@ SECONDS=0
 	echo "  \"start_date\": \"$start_date\","
 	echo "  \"in_progress\": true"
 	echo "}"
-) | tee "$report_file"
+) | tee -a "$report_file"
 
 (
-	echo ""
-	echo "===== Verify crate '$crate_name' ($start_date) ====="
-	echo ""
 	# Timeout is OVERALL_EVALUATION_TIMEOUT seconds (+5 min)
-	timeout -k 300 $OVERALL_EVALUATION_TIMEOUT "$DIR/verify-supported.sh" "$crate_source_dir" 2>&1
-) 2>&1 | tee "$log_file"
+	timeout -k 300 $OVERALL_EVALUATION_TIMEOUT "$DIR/verify-supported.sh" "$crate_source_dir"
+) 2>&1 | tee -a "$log_file"
 
 exit_status="$?"
 end_date="$(date '+%Y-%m-%d %H:%M:%S')"
@@ -62,7 +64,7 @@ successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file
 	echo "Items in whitelist: $whitelist_items"
 	echo ""
 	echo "Summary for crate '$crate_name': exit status $exit_status, $whitelist_items/$verified_items/$successful_items items (whitelisted/verified/successful), $duration seconds ($end_date)"
-) 2>&1 | tee -a "$log_file"
+) | tee -a "$log_file"
 
 (
 	echo "{"

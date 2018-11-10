@@ -144,7 +144,7 @@ fn main() {
         };
 
         // Stop compilation
-        controller.after_analysis.stop = Compilation::Stop;
+        //controller.after_analysis.stop = Compilation::Stop;
         //controller.compilation_done.stop = Compilation::Stop;
 
         debug!("rustc command: '{}'", args.join(" "));
