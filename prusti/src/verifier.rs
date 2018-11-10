@@ -48,10 +48,10 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
         match verification_result {
             VerificationResult::Success => {
-                info!("Successful verification of {} items", verification_task.procedures.len());
+                println!("Successful verification of {} items", verification_task.procedures.len());
             }
             VerificationResult::Failure => {
-                info!("Verification failed");
+                println!("Verification failed");
                 assert!(env.has_errors());
             }
         };
