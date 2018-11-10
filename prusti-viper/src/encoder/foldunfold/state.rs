@@ -454,9 +454,17 @@ impl State {
         debug_assert!(places.iter().all(|p| p.is_place()));
         let mut to_remove: Vec<_> = self.dropped.iter().cloned().collect();
         self.dropped.clear();
-        for item in to_remove.iter() {
-            if !places.iter().any(|p| item.get_place().has_prefix(p)) {
-                self.remove_perm(item);
+        for dropped_perm in to_remove.into_iter() {
+            if !places.iter().any(|p| dropped_perm.get_place().has_prefix(p)) {
+                if dropped_perm.is_pred() {
+                    self.remove_pred_matching(|p| p.has_prefix(dropped_perm.get_place()));
+                }
+                if dropped_perm.is_acc() {
+                    self.remove_acc_matching(|p| p.has_prefix(dropped_perm.get_place()));
+                }
+                //self.remove_perm(&dropped_perm);
+                //self.remove_moved_matching(|p| p.has_prefix(dropped_perm.get_place()));
+                //self.insert_moved(dropped_perm.get_place().clone());
             }
         }
     }

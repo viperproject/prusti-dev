@@ -987,11 +987,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .filter(|node| node.reborrowed_loans.is_empty())
                 .collect::<Vec<_>>();
 
-            assert!(
-                dag_leaves.iter()
-                    .all(|node| node.zombity == ReborrowingZombity::Real)
-            );
-
             let restored_borrows = dag_leaves.into_iter().map(
                 |node| {
                     let loan_location = self.polonius_info.get_loan_location(&node.loan);

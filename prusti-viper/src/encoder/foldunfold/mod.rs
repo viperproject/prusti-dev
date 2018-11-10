@@ -331,6 +331,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                     package_stmts.extend(
                         self.replace_stmt(stmt, false, &mut package_bctxt)
                     );
+                    if config::dump_debug_info() {
+                        Log::report(
+                            "vir_package",
+                            "package.vir",
+                            vir::Stmt::package_magic_wand(
+                                lhs.clone(),
+                                rhs.clone(),
+                                package_stmts.clone(),
+                                position.clone()
+                            )
+                        );
+                    }
                 }
                 vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts, position.clone())
             }

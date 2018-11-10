@@ -215,22 +215,22 @@ impl RequiredPermissionsGetter for vir::Expr {
                 HashSet::new()
             }
 
-            vir::Expr::PredicateAccessPredicate(_, args, _) => {
+            vir::Expr::PredicateAccessPredicate(_, args, frac) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
-                // FIXME: Don't use full permissions (why?)
+                // FIXME: Don't use full permissions (why?) (<-- good question)
                 let epsilon = Frac::new(1, 1000);
                 let result = match place.get_label() {
                     None => {
                         vec![
-                            Pred(place.clone(), epsilon),
+                            Pred(place.clone(), *frac),
                             Acc(place.clone(), epsilon)
                         ].into_iter().collect()
                     }
                     Some(label) => {
                         vec![
-                            Pred(place.clone().old(label), epsilon),
+                            Pred(place.clone().old(label), *frac),
                             Acc(place.clone().old(label), epsilon)
                         ].into_iter().collect()
                     }
