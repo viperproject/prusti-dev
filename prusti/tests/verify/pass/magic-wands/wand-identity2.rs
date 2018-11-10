@@ -57,7 +57,7 @@ fn identity_use3() {
     let v = identity3(x, 8);
     assert!(*v == 8);
     // Failing tests must go to the `tests/verify/fail/` folder
-    //assert!(t.val == 9);    //~ ERROR: assert!(..) statement might not hold
+    //assert!(t.val == 9);
 }
 
 fn main() {}
