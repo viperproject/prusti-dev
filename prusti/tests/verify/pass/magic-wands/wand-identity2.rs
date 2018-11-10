@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate prusti_contracts;
 
 struct T {
@@ -54,7 +56,8 @@ fn identity_use3() {
     let x = identity2(z, 7);
     let v = identity3(x, 8);
     assert!(*v == 8);
-    assert!(t.val == 9);    //~ ERROR: assert!(..) statement might not hold
+    // Failing tests must go to the `tests/verify/fail/` folder
+    //assert!(t.val == 9);    //~ ERROR: assert!(..) statement might not hold
 }
 
 fn main() {}
