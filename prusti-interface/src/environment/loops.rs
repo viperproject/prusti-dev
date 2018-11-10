@@ -362,7 +362,10 @@ impl ProcedureLoops {
                     .iter()
                     .any(|(potential_prefix, _kind)|
                         place != potential_prefix &&
-                            utils::is_prefix(place, potential_prefix)
+                        (
+                            utils::is_prefix(place, potential_prefix) ||
+                            utils::is_prefix(potential_prefix, place)
+                            )
                     );
                 if !has_prefix && !read_leaves.contains(place) && !write_leaves.contains(place) {
                     read_leaves.push((*place).clone());

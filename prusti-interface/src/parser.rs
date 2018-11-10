@@ -1183,7 +1183,7 @@ impl<'tcx> SpecParser<'tcx> {
         let re = if is_postcondition {
             Regex::new(
                 r"(?sx)
-                ^(?P<whitespace1>\s*after_expiry\s*\()
+                ^(?P<whitespace1>\s*after_expiry\s*(<result>)?\s*\()
                 (?P<body>.*)
                 (?P<whitespace2>\)\s*)$
             ").unwrap()
