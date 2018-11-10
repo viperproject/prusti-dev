@@ -52,7 +52,8 @@ fn capitalize(vec: &mut VecWrapperI32) {
     let mut i = 0;
     let mut not_finished = i < vec.len();
     while not_finished {
-        vec.store(i, vec.lookup(i));
+        let value = vec.lookup(i);
+        vec.store(i, value);
         i += 1;
         not_finished = i < vec.len();
     }
