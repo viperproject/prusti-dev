@@ -1,6 +1,3 @@
-// TODO: Automatically add old around non-reference typed function
-// arguments in pledges `n` → `old(n)`.
-
 #![feature(box_syntax, box_patterns)]
 extern crate prusti_contracts;
 
@@ -48,9 +45,9 @@ fn get_nth_x(r: &Route, n: i32) -> i32 {
 // reference the functional specification is associated.
 #[ensures="after_expiry(
     length(r) == old(length(r)) &&
-    get_nth_x(r, old(n)) == before_expiry(result.x) &&
+    get_nth_x(r, n) == before_expiry(result.x) &&
     forall i: i32 ::
-        (0<=i && i<length(r) && i != old(n)) ==>
+        (0<=i && i<length(r) && i != n) ==>
         get_nth_x(r, i) == old(get_nth_x(r, i))
 )
 "]
@@ -72,7 +69,7 @@ fn borrow_nth(r:&mut Route, n: i32) ->
   old(get_nth_x(r, n)) + s"]
 #[ensures="forall i: i32 ::
   (0<=i && i<length(r) && i != n) ==>
-  get_nth_x(r, i) == old(get_nth_x(r, i))"]  // TODO: i<=length(r) → i<length(r)
+  get_nth_x(r, i) == old(get_nth_x(r, i))"]
 fn shift_nth_x(r: &mut Route, n: i32, s:i32) {
   let p = borrow_nth(r, n);
   shift_x(p,s);

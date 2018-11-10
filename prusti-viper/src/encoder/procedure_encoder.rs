@@ -1682,15 +1682,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut assertion = self.encoder.encode_assertion(
                     &body, &self.mir, pre_label, &encoded_args,
                     Some(&encoded_return), false, None);
-                for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
-                    let ty = self.locals.get_type(arg);
-                    if self.mir_encoder.is_reference(ty) {
-                        let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
-                        let original_expr = encoded_deref;
-                        let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
-                        assertion = assertion.replace_place(&original_expr, &old_expr);
-                    }
-                }
+                assertion = self.wrap_arguments_into_old(
+                    assertion, pre_label, contract, &encoded_args);
                 let ty = self.locals.get_type(contract.returned_value);
                 let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return.clone(), ty);
                 let original_expr = encoded_deref;
@@ -1704,6 +1697,41 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         } else {
             None
         }
+    }
+
+    /// Wrap function arguments used in the postcondition into ``old``:
+    ///
+    /// +   For references wrap the base ``_1.var_ref``.
+    /// +   For non-references wrap the entire place into old.
+    fn wrap_arguments_into_old(
+        &self,
+        mut assertion: vir::Expr,
+        pre_label: &str,
+        contract: &ProcedureContract<'tcx>,
+        encoded_args: &[vir::Expr],
+    ) -> vir::Expr {
+        for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
+            let ty = self.locals.get_type(arg);
+            if self.mir_encoder.is_reference(ty) {
+                // If the argument is a reference, we wrap _1.val_ref into old.
+                let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
+                let original_expr = encoded_deref;
+                let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
+                assertion = assertion.replace_place(&original_expr, &old_expr);
+            } else {
+                // If the argument is not a reference, we wrap entire path into old.
+                assertion = assertion.fold_places(
+                    |place| {
+                        let base = place.get_base();
+                        if encoded_arg.weak_eq(&base.into()) {
+                            place.old(pre_label)
+                        } else {
+                            place
+                        }
+                    });
+            }
+        }
+        assertion.remove_redundant_old()
     }
 
     /// Encode the postcondition with two expressions:
@@ -1761,28 +1789,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let mut assertion = self.encoder.encode_assertion(
                 &item.assertion, &self.mir, pre_label, &encoded_args,
                 Some(&encoded_return), false, None);
-            for (encoded_arg, &arg) in encoded_args.iter().zip(&contract.args) {
-                let ty = self.locals.get_type(arg);
-                if self.mir_encoder.is_reference(ty) {
-                    // If the argument is a reference, we wrap _1.val_ref into old.
-                    let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
-                    let original_expr = encoded_deref;
-                    let old_expr = vir::Expr::labelled_old(pre_label, original_expr.clone());
-                    assertion = assertion.replace_place(&original_expr, &old_expr);
-                } else {
-                    // If the argument is a reference, we wrap entire path into old.
-                    assertion = assertion.fold_places(
-                        |place| {
-                            let base = place.get_base();
-                            if encoded_arg.weak_eq(&base.into()) {
-                                place.old(pre_label)
-                            } else {
-                                place
-                            }
-                        });
-                }
-            }
-            assertion = assertion.remove_redundant_old();
+            assertion = self.wrap_arguments_into_old(
+                assertion, pre_label, contract, &encoded_args);
             func_spec.push(assertion);
         }
 
