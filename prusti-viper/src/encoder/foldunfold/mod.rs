@@ -141,6 +141,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     self.replace_expr(&rhs, &rhs_bctxt)
                 )
             }
+            vir::Stmt::PackageMagicWand(wand, stmts, pos) => {
+                vir::Stmt::PackageMagicWand(
+                    self.replace_expr(&wand, bctxt),
+                    stmts,
+                    pos
+                )
+            }
             _ => stmt.map_expr(|e| self.replace_expr(&e, bctxt)),
         }
     }

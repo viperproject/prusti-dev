@@ -43,18 +43,18 @@ fn get_nth_x(r: &Route, n: i32) -> i32 {
 }
 
 #[requires="0 <= n && n < length(r)"]
-#[ensures="result.x == old(get_nth_x(r, n))"]
+//#[ensures="result.x == old(get_nth_x(r, n))"]
 // Since a function (with our restrictions) can have only one magic wand
 // in its postcondition, we do not require the user to write with which
 // reference the functional specification is associated.
-#[ensures="after_expiry(
-    length(r) == old(length(r)) &&
-    get_nth_x(r, old(n)) == before_expiry(result.x) &&
-    forall i: i32 ::
-        (0<=i && i<length(r) && i != old(n)) ==>
-        get_nth_x(r, i) == old(get_nth_x(r, i))
-)
-"]
+//#[ensures="after_expiry(
+//    length(r) == old(length(r)) &&
+//    get_nth_x(r, old(n)) == before_expiry(result.x) &&
+//    forall i: i32 ::
+//        (0<=i && i<length(r) && i != old(n)) ==>
+//        get_nth_x(r, i) == old(get_nth_x(r, i))
+//)
+//"]
 // See Sec. ~{\texttt{\ref{sec:promises}}}~
 fn borrow_nth(r:&mut Route, n: i32) ->
  &mut Point {
@@ -71,9 +71,9 @@ fn borrow_nth(r:&mut Route, n: i32) ->
 #[ensures="length(r) == old(length(r))"]
 #[ensures="get_nth_x(r, n) ==
   old(get_nth_x(r, n)) + s"]
-//#[ensures="forall i: i32 ::
-//  (0<=i && i<length(r) && i != n) ==>
-//  get_nth_x(r, i) == old(get_nth_x(r, i))"]  // TODO: i<=length(r) → i<length(r)
+#[ensures="forall i: i32 ::
+  (0<=i && i<length(r) && i != n) ==>
+  get_nth_x(r, i) == old(get_nth_x(r, i))"]  // TODO: i<=length(r) → i<length(r)
 fn shift_nth_x(r: &mut Route, n: i32, s:i32) {
   let p = borrow_nth(r, n);
   shift_x(p,s);
