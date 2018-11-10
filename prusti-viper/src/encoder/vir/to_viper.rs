@@ -77,18 +77,44 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 lhs.to_viper(ast),
                 rhs.to_viper(ast)
             ),
-            &Stmt::Fold(ref pred_name, ref args, frac) => ast.fold(
-                ast.predicate_access_predicate(
-                    ast.predicate_access(
-                        &args.to_viper(ast),
-                        &pred_name
-                    ),
-                    ast.fractional_perm(
-                        ast.int_lit(*frac.numer() as i64),
-                        ast.int_lit(*frac.denom() as i64),
+            &Stmt::Fold(ref pred_name, ref args, frac) => {
+                let mut stmts = Vec::new();
+                // FIXME: When packaging a magic wand, Silicon needs help in showing that it has
+                // access to the needed paths.
+                assert_eq!(args.len(), 1);
+                let place = &args[0];
+                assert!(place.is_place());
+                fn add_asserts<'v>(stmts: &mut Vec<viper::Stmt<'v>>, expr: &Expr, ast: &AstFactory<'v>) {
+                    match expr {
+                        Expr::Field(ref base, _) => {
+                            add_asserts(stmts, base, ast);
+                            let fake_position = Position::new(0, 0, "fold_assert".to_string());
+                            let assert = Stmt::Assert(
+                                Expr::FieldAccessPredicate(box expr.clone(), Frac::new(1, 10000)),
+                                fake_position,
+                            );
+                            stmts.push(assert.to_viper(ast));
+                        }
+                        _ => {}
+                    }
+                }
+                add_asserts(&mut stmts, place, ast);
+                stmts.push(
+                    ast.fold(
+                        ast.predicate_access_predicate(
+                            ast.predicate_access(
+                                &args.to_viper(ast),
+                                &pred_name
+                            ),
+                            ast.fractional_perm(
+                                ast.int_lit(*frac.numer() as i64),
+                                ast.int_lit(*frac.denom() as i64),
+                            )
+                        )
                     )
-                )
-            ),
+                );
+                ast.seqn(stmts.as_slice(), &[])
+            },
             &Stmt::Unfold(ref pred_name, ref args, frac) => ast.unfold(
                 ast.predicate_access_predicate(
                     ast.predicate_access(
