@@ -1181,13 +1181,14 @@ impl<'tcx> SpecParser<'tcx> {
         let is_postcondition = true;
         let re = if is_postcondition {
             Regex::new(
-                r"(?x)
-                ^\s*after_expiry\s*
-                \s*\((?P<body>.*)\)\s*$
+                r"(?sx)
+                ^(?P<whitespace1>\s*after_expiry\s*\()
+                (?P<body>.*)
+                (?P<whitespace2>\)\s*)$
             ").unwrap()
         } else {
             Regex::new(
-                r"(?x)
+                r"(?sx)
                 ^\s*after_expiry\s*
                 (<(?P<reference>[a-zA-Z0-9_]+)>)?
                 \s*\((?P<body>.*)\)\s*$
@@ -1208,8 +1209,12 @@ impl<'tcx> SpecParser<'tcx> {
             } else {
                 None
             };
-            let body = self.parse_assertion_simple(
-                span, caps.name("body").unwrap().as_str().to_string())?;
+            let body_str = caps.name("body").unwrap().as_str();
+            let new_span = {
+                let whitespace1_len = caps.name("whitespace1").unwrap().as_str().len();
+                shift_resize_span(span, whitespace1_len as u32, body_str.len() as u32)
+            };
+            let body = self.parse_assertion(new_span, body_str)?;
             debug!(
                 "after_expiry: reference={:?} body={:?}",
                 reference, body
