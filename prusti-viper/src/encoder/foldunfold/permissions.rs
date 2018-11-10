@@ -113,7 +113,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
-            &vir::Stmt::StopExpiringLoans => HashSet::new(),
+            &vir::Stmt::StopExpiringLoans(_) => HashSet::new(),
 
             &vir::Stmt::TransferPerm(ref lhs, _) => {
                 let mut res = HashSet::new();
@@ -170,7 +170,7 @@ impl vir::Stmt {
             &vir::Stmt::EndFrame |
             &vir::Stmt::TransferPerm(_, _) |
             &vir::Stmt::ExpireBorrowsIf(_, _, _) |
-            &vir::Stmt::StopExpiringLoans |
+            &vir::Stmt::StopExpiringLoans(_) |
             &vir::Stmt::PackageMagicWand(_, _, _) |
             &vir::Stmt::ApplyMagicWand(_) => HashSet::new(),
 

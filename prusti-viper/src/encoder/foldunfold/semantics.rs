@@ -270,14 +270,19 @@ impl vir::Stmt {
                     }
                 }
                 */
+
+                // Finally, mark the lhs as moved
+                if !lhs_place.has_prefix(rhs_place) { // Maybe this is always true?
+                    state.insert_moved(lhs_place.clone());
+                }
             }
 
             &vir::Stmt::ExpireBorrowsIf(ref _guard, ref _then_stmts, ref _else_stmts) => {
                 // Do nothing here. The semantics is handled in `foldunfold/mod.rs`.
             }
 
-            &vir::Stmt::StopExpiringLoans => {
-                state.remove_dropped();
+            &vir::Stmt::StopExpiringLoans(ref places) => {
+                state.remove_dropped(places);
             }
 
             &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs), ref package_stmts, ref _position) => {

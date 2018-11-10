@@ -100,6 +100,18 @@ impl<'a> BranchCtxt<'a> {
         // If they are already the same, avoid unnecessary operations
         if self.state != other.state {
             // Compute which paths are moved out
+            /*
+            let moved_paths: HashSet<_> = if anti_join {
+                filter_with_prefix_in_other(
+                    self.state.moved(),
+                    other.state.moved()
+                )
+            } else {
+                ancestors(
+                    &self.state.moved().clone().union(other.state.moved()).cloned().collect()
+                )
+            };
+            */
             let moved_paths: HashSet<_> = ancestors(
                 &self.state.moved().clone().union(other.state.moved()).cloned().collect()
             );

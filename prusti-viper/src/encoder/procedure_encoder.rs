@@ -983,8 +983,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         if stmts.len() > 0 {
+            let dag_leaves = reborrowing_dag.iter()
+                .filter(|node| node.reborrowed_loans.is_empty())
+                .collect::<Vec<_>>();
+
+            assert!(
+                dag_leaves.iter()
+                    .all(|node| node.zombity == ReborrowingZombity::Real)
+            );
+
+            let restored_borrows = dag_leaves.into_iter().map(
+                |node| {
+                    let loan_location = self.polonius_info.get_loan_location(&node.loan);
+                    let loan_places = self.polonius_info.get_loan_places(&node.loan).unwrap();
+                    let (_, restored) = self.encode_loan_places(&loan_places);
+                    restored
+                }
+            ).collect::<Vec<_>>();
+
             stmts.push(
-                vir::Stmt::StopExpiringLoans
+                vir::Stmt::StopExpiringLoans(restored_borrows)
             );
         }
 

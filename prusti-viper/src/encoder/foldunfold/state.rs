@@ -85,7 +85,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for moved_place in &self.moved {
-                if !acc_place.has_old() && acc_place.has_proper_prefix(moved_place) {
+                if !moved_place.has_old() && !acc_place.has_old() && acc_place.has_proper_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has acc {}, but also moved path {}",
                         acc_place,
@@ -96,14 +96,14 @@ impl State {
         }
         for pred_place in self.pred.keys() {
             for moved_place in &self.moved {
-                if !pred_place.has_old() && pred_place.has_prefix(moved_place) {
+                if !moved_place.has_old() && !pred_place.has_old() && pred_place.has_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
                         moved_place
                     );
                 }
-                if !pred_place.has_old() && moved_place.has_prefix(pred_place) {
+                if !moved_place.has_old() && !pred_place.has_old() && moved_place.has_prefix(pred_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
@@ -114,7 +114,7 @@ impl State {
         }
         // Check moved
         for place in &self.moved {
-            if !self.contains_acc(place) &&
+            if !place.has_old() && !self.contains_acc(place) &&
                 !self.framing_stack.iter().any(|fs|
                     fs.contains(&Perm::Acc(place.clone(), Frac::one()))
                 ) {
@@ -449,11 +449,15 @@ impl State {
         self.dropped.contains(item)
     }
 
-    pub fn remove_dropped(&mut self) {
+    /// Argument: the places to preserve
+    pub fn remove_dropped(&mut self, places: &[vir::Expr]) {
+        debug_assert!(places.iter().all(|p| p.is_place()));
         let mut to_remove: Vec<_> = self.dropped.iter().cloned().collect();
         self.dropped.clear();
         for item in to_remove.iter() {
-            self.remove_perm(item);
+            if !places.iter().any(|p| item.get_place().has_prefix(p)) {
+                self.remove_perm(item);
+            }
         }
     }
 

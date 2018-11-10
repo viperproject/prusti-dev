@@ -138,7 +138,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     ),
                 )
             }
-            &Stmt::StopExpiringLoans => {
+            &Stmt::StopExpiringLoans(_) => {
                 // Skip
                 ast.comment(&self.to_string())
             }

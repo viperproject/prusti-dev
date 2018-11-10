@@ -205,7 +205,8 @@ pub enum Stmt {
     /// algorithms threats this statement (and statements in the branches) in a very special way.
     ExpireBorrowsIf(Expr, Vec<Stmt>, Vec<Stmt>),
     /// A statement that informs the fold/unfold that we finished restoring a DAG of expiring loans
-    StopExpiringLoans,
+    /// The argument is a list of the locations that are restored
+    StopExpiringLoans(Vec<Expr>),
     /// Package a Magic Wand
     /// Arguments: the magic wand, then the package statements.
     PackageMagicWand(Expr, Vec<Stmt>, Position),
@@ -375,7 +376,11 @@ impl fmt::Display for Stmt {
                 write!(f, "}}")
             }
 
-            Stmt::StopExpiringLoans => write!(f, "stop expiring borrows"),
+            Stmt::StopExpiringLoans(ref restored) => write!(
+                f,
+                "stop expiring borrows {{{}}}",
+                restored.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", ")
+            ),
 
             Stmt::PackageMagicWand(Expr::MagicWand(ref lhs, ref rhs), ref package_stmts, _position) => {
                 writeln!(f, "package {}", lhs)?;
@@ -419,7 +424,7 @@ pub trait StmtFolder {
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::TransferPerm(a, b) => self.fold_transfer_perm(a, b),
             Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
-            Stmt::StopExpiringLoans => self.fold_stop_expiring_borrows(),
+            Stmt::StopExpiringLoans(a) => self.fold_stop_expiring_borrows(a),
             Stmt::PackageMagicWand(w, s, p) => self.fold_package_magic_wand(w, s, p),
             Stmt::ApplyMagicWand(w) => self.fold_apply_magic_wand(w),
         }
@@ -497,8 +502,10 @@ pub trait StmtFolder {
         )
     }
 
-    fn fold_stop_expiring_borrows(&mut self) -> Stmt {
-        Stmt::StopExpiringLoans
+    fn fold_stop_expiring_borrows(&mut self, a: Vec<Expr>) -> Stmt {
+        Stmt::StopExpiringLoans(
+            a.into_iter().map(|x| self.fold_expr(x)).collect()
+        )
     }
 
     fn fold_package_magic_wand(&mut self, w: Expr, s: Vec<Stmt>, p: Position) -> Stmt {

@@ -16,6 +16,7 @@ use encoder::vir::ExprIterator;
 use prusti_interface::config;
 use prusti_interface::report::Log;
 use std;
+use encoder::foldunfold::places_utils::*;
 
 mod perm;
 mod permissions;
@@ -292,27 +293,34 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                         self.replace_stmt(else_stmt, false, &mut else_bctxt)
                     );
                 }
+                let final_moved = filter_with_prefix_in_other(
+                    then_bctxt.state().moved(),
+                    else_bctxt.state().moved()
+                );
                 let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
+                let mut final_bctxt = then_bctxt;
                 new_then_stmts.extend(
                     then_actions.iter().map(|a| a.to_stmt())
                 );
                 new_else_stmts.extend(
                     else_actions.iter().map(|a| a.to_stmt())
                 );
+                // Set moved paths
+                final_bctxt.mut_state().set_moved(final_moved);
                 // Restore dropped permissions
                 for action in then_actions.iter() {
                     if let Action::Drop(ref perm) = action {
-                        then_bctxt.mut_state().insert_perm(perm.clone());
-                        then_bctxt.mut_state().insert_dropped(perm.clone());
+                        final_bctxt.mut_state().insert_perm(perm.clone());
+                        final_bctxt.mut_state().insert_dropped(perm.clone()); // remove this??
                     }
                 }
                 for action in else_actions.iter() {
                     if let Action::Drop(ref perm) = action {
-                        then_bctxt.mut_state().insert_perm(perm.clone());
-                        then_bctxt.mut_state().insert_dropped(perm.clone());
+                        final_bctxt.mut_state().insert_perm(perm.clone());
+                        final_bctxt.mut_state().insert_dropped(perm.clone()); // remove this??
                     }
                 }
-                *bctxt = then_bctxt;
+                *bctxt = final_bctxt;
                 vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
             }
 

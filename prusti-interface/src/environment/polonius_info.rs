@@ -201,7 +201,7 @@ impl ToString for ReborrowingForest {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum ReborrowingGuard {
     /// The reborrow can be restored unconditionally.
     NoGuard,
@@ -210,7 +210,7 @@ pub enum ReborrowingGuard {
     MirBlock(mir::BasicBlock),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum ReborrowingZombity {
     /// The loan is not a zombie, which means that the borrowed path is
     /// still real.
