@@ -655,6 +655,7 @@ impl<'tcx> SpecParser<'tcx> {
         trace!("[rewrite_loop_block] enter");
         // Important: fold the content of the loop with `self.fold_block`
         let mut block = self.fold_block(block).into_inner();
+        // Early return
         if invariants.is_empty() {
             return ptr::P(block);
         }
