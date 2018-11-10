@@ -1,6 +1,5 @@
 // TODO: Automatically add old around non-reference typed function
 // arguments in pledges `n` → `old(n)`.
-// TODO: Implement support for borrows inside branches.
 
 #![feature(box_syntax, box_patterns)]
 extern crate prusti_contracts;
