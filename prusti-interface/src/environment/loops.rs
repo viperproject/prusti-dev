@@ -157,6 +157,8 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                 Borrow { kind: mir::BorrowKind::Shared, .. } => PlaceAccessKind::SharedBorrow,
                 Borrow { kind: mir::BorrowKind::Mut { .. }, .. } => PlaceAccessKind::MutableBorrow,
                 Call => PlaceAccessKind::Store,
+                                    // FIXME: This is just a guess. Upgrade to the new
+                                    // version of rustc to get proper information.
                 Inspect => PlaceAccessKind::Read,
                 x => unimplemented!("{:?}", x),
             };
