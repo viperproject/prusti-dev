@@ -1930,13 +1930,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let mut permissions = vec![];
         for tree in permissions_forest.get_trees().iter() {
-            for node in tree.get_nodes().iter() {
-                let kind = node.get_permission_kind();
+            for (kind, mir_place) in tree.get_permissions().into_iter() {
                 if kind.is_none() {
                     continue;
                 }
-                let mir_place = node.get_place();
-                let (encoded_place, ty, _) = self.mir_encoder.encode_place(mir_place);
+                let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
                 if let ty::TypeVariants::TyClosure(..) = ty.sty {
                     // Do not encode closures
                     continue;

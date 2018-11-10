@@ -217,6 +217,7 @@ impl<'tcx> PermissionTree<'tcx> {
         debug!("place {:?}", place);
         debug!("self.root {:?}", self.root);
         let mut component_count = place.component_count() - 1;  // Without root.
+        assert!(component_count > 0, "Adding a root {:?} to an existing tree.", place);
         let mut current_parent_node = &mut self.root;
         while component_count > 1 {
             let component = place_iter.next().unwrap();
@@ -246,13 +247,31 @@ impl<'tcx> PermissionTree<'tcx> {
         &self.root
     }
 
-    pub fn get_nodes(&self) -> Vec<&PermissionNode<'tcx>> {
+    pub fn get_permissions(&self) -> Vec<(PermissionKind, mir::Place<'tcx>)> {
         let mut visited = vec![];
         let mut to_visit = vec![ &self.root ];
         while let Some(node) = to_visit.pop() {
-            visited.push(node);
+            let kind = node.get_permission_kind();
             for child in node.get_children().iter() {
                 to_visit.push(child);
+                match kind {
+                    PermissionKind::ReadNode |
+                    PermissionKind::WriteNode => {
+                        visited.push((kind, child.get_place().clone()));
+                    }
+                    _ => {
+                        unreachable!();
+                    }
+                }
+            }
+            match kind {
+                PermissionKind::ReadSubtree |
+                PermissionKind::WriteSubtree => {
+                    visited.push((kind, node.get_place().clone()));
+                }
+                PermissionKind::ReadNode |
+                PermissionKind::WriteNode |
+                PermissionKind::None => {}
             }
         }
         visited

@@ -116,7 +116,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 inner_state.insert_all_perms(
                     expr.get_permissions(bctxt.predicates())
                         .into_iter()
-                        .filter(|p| p.is_pred() && p.is_curr())
+                        .filter(|p| !p.get_place().is_local() && p.is_curr())
                 );
 
                 // Rewrite statement
