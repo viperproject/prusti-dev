@@ -33,15 +33,24 @@ function ctrl_c() {
 }
 trap ctrl_c INT
 
+start_date="$(date '+%Y-%m-%d-%H%M%S')"
+evaluation_log_file="$CRATE_DOWNLOAD_DIR/evaluation-log-${start_date}.log"
+evaluation_report_file="$CRATE_DOWNLOAD_DIR/evaluation-report-${start_date}.log"
+info "Using evaluation_log_file='$evaluation_log_file'"
+info "Using evaluation_report_file='$evaluation_report_file'"
+
+echo "=== Start evaluation $start_date ===" | tee "$evaluation_log_file"
+
 # Run evaluations in parallel
 MAX_PARALLEL_EVALUATIONS="${MAX_PARALLEL_EVALUATIONS:-1}"
-info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS"
+info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS" | tee -a "$evaluation_log_file"
 
 ls -d "$CRATE_DOWNLOAD_DIR"/*/ | \
 	xargs -I CMD --max-procs="$MAX_PARALLEL_EVALUATIONS" --max-args=1 \
-	"$DIR/evaluate-crate.sh" CMD
+	"$DIR/evaluate-crate.sh" CMD \
+	2>&1 | tee -a "$evaluation_log_file"
 
 # Analyze evaluation
-evaluation_report_file="$CRATE_DOWNLOAD_DIR/evaluation-report-$(date '+%Y-%m-%d-%H%M%S').log"
-info "Using MAX_PARALLEL_EVALUATIONS=$MAX_PARALLEL_EVALUATIONS" | tee "$evaluation_report_file"
-"$DIR/analyze-evaluation.sh" "$CRATE_DOWNLOAD_DIR" | tee -a "$evaluation_report_file"
+"$DIR/analyze-evaluation.sh" "$CRATE_DOWNLOAD_DIR" \
+	| tee "$evaluation_report_file" \
+	| tee -a "$evaluation_log_file"
