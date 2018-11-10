@@ -332,6 +332,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                         self.replace_stmt(stmt, false, &mut package_bctxt)
                     );
                     if config::dump_debug_info() {
+                        package_stmts.push(
+                            vir::Stmt::comment(format!("[state] acc: {{\n{}\n}}", package_bctxt.state().display_acc()))
+                        );
+                        package_stmts.push(
+                            vir::Stmt::comment(format!("[state] pred: {{\n{}\n}}", package_bctxt.state().display_pred()))
+                        );
                         Log::report(
                             "vir_package",
                             "package.vir",
@@ -576,6 +582,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             rhs.get_permissions(self.curr_bctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
+                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
         );
 
         // Store states
