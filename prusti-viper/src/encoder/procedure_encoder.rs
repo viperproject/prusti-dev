@@ -1680,6 +1680,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let original_expr = encoded_deref;
                 let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
                 assertion = assertion.replace_place(&original_expr, &old_expr);
+                assertion = assertion.remove_redundant_old();
                 rhs.push(assertion);
             }
             let rhs = rhs.into_iter().conjoin();

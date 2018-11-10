@@ -1093,7 +1093,7 @@ impl Expr {
         }
     }
 
-    /// Puts the an `old[label](..)` around the expression
+    /// Puts an `old[label](..)` around the expression
     pub fn old<S: fmt::Display + ToString>(self, label: S) -> Self {
         match self {
             Expr::Local(..) => {
