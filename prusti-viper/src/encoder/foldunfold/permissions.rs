@@ -223,16 +223,29 @@ impl RequiredPermissionsGetter for vir::Expr {
                 let epsilon = Frac::new(1, 1000);
                 let result = match place.get_label() {
                     None => {
-                        vec![
-                            Pred(place.clone(), epsilon),
-                            Acc(place.clone(), epsilon)
-                        ].into_iter().collect()
+                        if place.is_old() {
+                            vec![
+                                Pred(place.clone(), epsilon),
+                            ].into_iter().collect()
+                        } else {
+                            vec![
+                                Pred(place.clone(), epsilon),
+                                Acc(place.clone(), epsilon)
+                            ].into_iter().collect()
+                        }
+
                     }
                     Some(label) => {
-                        vec![
-                            Pred(place.clone().old(label), epsilon),
-                            Acc(place.clone().old(label), epsilon)
-                        ].into_iter().collect()
+                        if place.is_old() {
+                            vec![
+                                Pred(place.clone().old(label), epsilon),
+                            ].into_iter().collect()
+                        } else {
+                            vec![
+                                Pred(place.clone().old(label), epsilon),
+                                Acc(place.clone().old(label), epsilon)
+                            ].into_iter().collect()
+                        }
                     }
                 };
                 result
