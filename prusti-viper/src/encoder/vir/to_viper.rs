@@ -57,7 +57,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Comment(ref comment) => ast.comment(&comment),
             &Stmt::Label(ref label) => ast.label(&label, &[]),
             &Stmt::Inhale(ref expr) => {
-                let fake_position = ast.identifier_position(0, 0, "TODO");
+                let fake_position = ast.identifier_position(0, 0, "inhale");
                 ast.inhale(expr.to_viper(ast), fake_position)
             },
             &Stmt::Exhale(ref expr, ref pos) => {

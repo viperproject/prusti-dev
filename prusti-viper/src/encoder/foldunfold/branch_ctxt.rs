@@ -107,8 +107,11 @@ impl<'a> BranchCtxt<'a> {
             other.state.set_moved(moved_paths.clone());
             debug!("moved_paths: {:?}", moved_paths);
 
-            trace!("left acc: {:?}", self.state.acc());
-            trace!("right acc: {:?}", other.state.acc());
+            trace!("left acc: {{\n{}\n}}", self.state.display_acc());
+            trace!("right acc: {{\n{}\n}}", other.state.display_acc());
+
+            trace!("left pred: {{\n{}\n}}", self.state.display_pred());
+            trace!("right pred: {{\n{}\n}}", other.state.display_pred());
 
             trace!("left acc_leafes: {:?}", self.state.acc_leafes());
             trace!("right acc_leafes: {:?}", other.state.acc_leafes());

@@ -62,18 +62,7 @@ impl vir::Stmt {
 
                 // Mark the `rhs` as moved or borrowed
                 match kind {
-                    vir::AssignKind::Move => {
-                        debug_assert!(rhs.is_place());
-                        assert!(rhs.get_type().is_ref());
-
-                        // Check that the rhs contains no moved paths
-                        assert!(!state.is_prefix_of_some_moved(&rhs));
-                        for prefix in rhs.all_proper_prefixes() {
-                            assert!(!state.contains_pred(&prefix));
-                        }
-
-                        state.insert_moved(rhs.clone());
-                    }
+                    vir::AssignKind::Move |
                     vir::AssignKind::MutableBorrow => {
                         debug_assert!(rhs.is_place());
                         assert!(rhs.get_type().is_ref());
@@ -116,6 +105,11 @@ impl vir::Stmt {
                         .filter(|(p, _)| p.has_prefix(&rhs))
                         .map(|(p, frac)| (p.clone().replace_place(&rhs, lhs_place), *frac));
                     state.insert_all_pred(new_pred_places);
+
+                    // Finally, mark the rhs as moved
+                    if !rhs.has_prefix(lhs_place) {
+                        state.insert_moved(rhs.clone());
+                    }
                 } else {
                     // This is not move assignemnt or the creation of a mutable borrow
                     assert!(match kind { vir::AssignKind::Copy => true, _ => false }, "Unexpected assignment kind: {:?}", kind);
@@ -258,7 +252,7 @@ impl vir::Stmt {
                     }
                 }
 
-                // Remove the access permission if the lhs was old.
+                // Remove the lhs access permission if it was old.
                 if state.contains_acc(lhs_place) && lhs_place.is_old() {
                     state.remove_acc_place(lhs_place);
                 }
@@ -278,8 +272,8 @@ impl vir::Stmt {
                 */
             }
 
-            &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
-                unimplemented!("TODO")
+            &vir::Stmt::ExpireBorrowsIf(ref _guard, ref _then_stmts, ref _else_stmts) => {
+                // Do nothing here. The semantics is handled in `foldunfold/mod.rs`.
             }
 
             &vir::Stmt::StopExpiringLoans => {

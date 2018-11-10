@@ -363,14 +363,14 @@ impl fmt::Display for Stmt {
                     write!(f, "\n")?;
                 }
                 for stmt in then_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "    \n"))?;
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
                 }
                 write!(f, "}} else {{")?;
                 if !else_stmts.is_empty() {
                     write!(f, "\n")?;
                 }
                 for stmt in else_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "    \n"))?;
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
                 }
                 write!(f, "}}")
             }
@@ -385,7 +385,7 @@ impl fmt::Display for Stmt {
                     write!(f, "\n")?;
                 }
                 for stmt in package_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "    \n"))?;
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
                 }
                 write!(f, "}}")
             }

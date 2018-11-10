@@ -176,7 +176,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
     /// Replace some statements, mutating the branch context
     fn replace_stmt(&mut self, stmt: &vir::Stmt, is_last_before_return: bool, bctxt: &mut BranchCtxt<'p>) -> Vec<vir::Stmt> {
-        debug!("replace_stmt: ----->>>>> {} <<<<<-----", stmt);
+        debug!("[enter] replace_stmt: ##### {} #####", stmt);
         let mut stmt = stmt.clone();
 
         // Store state for old expressions
@@ -293,7 +293,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                     );
                 }
                 let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
-                *bctxt = then_bctxt;
                 new_then_stmts.extend(
                     then_actions.iter().map(|a| a.to_stmt())
                 );
@@ -303,16 +302,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 // Restore dropped permissions
                 for action in then_actions.iter() {
                     if let Action::Drop(ref perm) = action {
-                        bctxt.mut_state().insert_perm(perm.clone());
-                        bctxt.mut_state().insert_dropped(perm.clone());
+                        then_bctxt.mut_state().insert_perm(perm.clone());
+                        then_bctxt.mut_state().insert_dropped(perm.clone());
                     }
                 }
                 for action in else_actions.iter() {
                     if let Action::Drop(ref perm) = action {
-                        bctxt.mut_state().insert_perm(perm.clone());
-                        bctxt.mut_state().insert_dropped(perm.clone());
+                        then_bctxt.mut_state().insert_perm(perm.clone());
+                        then_bctxt.mut_state().insert_dropped(perm.clone());
                     }
                 }
+                *bctxt = then_bctxt;
                 vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
             }
 
@@ -332,7 +332,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
 
         // 4. Add "unfolding" expressions in statement. This handles *old* requirements.
         debug!("Add unfoldings in stmt {}", stmt);
-        stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
+        match stmt {
+            vir::Stmt::ExpireBorrowsIf(..) => {} // Do nothing
+            _ => {
+                stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
+            }
+        }
 
         // 5. Apply effect of statement on state
         bctxt.apply_stmt(&stmt);
@@ -341,6 +346,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         // Delete lhs state
         self.bctxt_at_label.remove("lhs");
 
+        debug!(
+            "[exit] replace_stmt = [\n{}\n]",
+            stmts.iter().map(|s| s.to_string()).collect::<Vec<_>>().join("\n  ")
+        );
         stmts
     }
 
