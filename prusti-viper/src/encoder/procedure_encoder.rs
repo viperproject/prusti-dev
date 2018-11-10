@@ -949,7 +949,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Emit the apply statement.
                 let statement = vir::Stmt::apply_magic_wand(lhs, rhs);
                 debug!("{:?} at {:?}", statement, loan_location);
-                stmts.push(statement);
+
+                match node.guard {
+                    ReborrowingGuard::NoGuard => {
+                        stmts.push(statement);
+                    }
+
+                    ReborrowingGuard::MirBlock(ref guard_bbi) => {
+                        let executed_flag_var = self.cfg_block_has_been_executed[guard_bbi].clone();
+                        stmts.push(
+                            vir::Stmt::ExpireBorrowsIf(
+                                vir::Expr::local(executed_flag_var).into(),
+                                vec![statement],
+                                vec![]
+                            )
+                        );
+                    }
+                }
 
                 // Fix the permissions on rhs.
                 if let Some(post_stmts) = self.magic_wand_apply_post.get(&loan_location) {
