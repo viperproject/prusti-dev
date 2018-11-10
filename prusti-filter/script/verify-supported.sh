@@ -2,8 +2,8 @@
 
 set -eo pipefail
 
-info() { echo -e "[-] ${*}"; }
-error() { echo -e "[!] ${*}"; }
+info() { echo -e "[-] $(date '+%Y-%m-%d %H:%M:%S') ${*}"; }
+error() { echo -e "[!] $(date '+%Y-%m-%d %H:%M:%S') ${*}"; }
 
 cargoclean() {
 	# Clean the artifacts of this project ("bin" or "lib"), but not those of the dependencies
@@ -29,7 +29,7 @@ fi
 EVALUATION_TIMEOUT="${EVALUATION_TIMEOUT:-900}"
 info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
 
-FORCE_PRUSTI_FILTER="${FORCE_PRUSTI_FILTER:-true}"
+FORCE_PRUSTI_FILTER="${FORCE_PRUSTI_FILTER:-false}"
 info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
 
 FINE_GRAINED_EVALUATION="${FINE_GRAINED_EVALUATION:-false}"
@@ -55,6 +55,7 @@ info "Run standard compilation"
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
 export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
+
 exit_status="0"
 cargo clean || exit_status="$?"
 if [[ "$exit_status" != "0" ]]; then
@@ -93,6 +94,8 @@ num_supported_procedures="$(echo "$supported_procedures" | grep . | wc -l || tru
 info "Number of supported procedures in crate: $num_supported_procedures"
 #info "Supported procedures in crate:\n$supported_procedures"
 
+# Clean compilation cache
+cargo clean
 # Save disk space
 rm -rf log/ nll-facts/
 # This is important! Without this, NLL facts are not recomputed and dumped to nll-facts.
