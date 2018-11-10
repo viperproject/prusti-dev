@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate prusti_contracts;
 
 struct T {

@@ -9,7 +9,6 @@ extern crate env_logger;
 extern crate getopts;
 #[macro_use]
 extern crate log;
-extern crate prusti;
 extern crate rustc;
 extern crate rustc_driver;
 extern crate rustc_errors;
@@ -17,12 +16,16 @@ extern crate rustc_codegen_utils;
 extern crate syntax;
 extern crate prusti_interface;
 extern crate syntax_pos;
+extern crate prusti_viper;
 
 mod driver_utils;
+mod typeck;
+mod verifier;
 
 use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
+use std::env;
 use std::env::{var, set_var};
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -30,6 +33,8 @@ use std::cell::Cell;
 use syntax::ast;
 use driver_utils::run;
 use prusti_interface::config;
+use prusti_interface::sysroot::current_sysroot;
+use std::path::Path;
 
 struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -114,14 +119,14 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             trace!("[after_analysis.callback] enter");
             let untyped_specifications = get_specifications.replace(None).unwrap();
             let typed_specifications =
-                prusti::typeck::type_specifications(state, untyped_specifications);
+                typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
 
             info!("Type-checking of annotations successful");
 
             // Call the verifier
             if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {
-                prusti::verifier::verify(state, typed_specifications);
+                verifier::verify(state, typed_specifications);
             } else {
                 warn!("Verification skipped due to PRUSTI_NO_VERIFY env variable");
             }
@@ -144,31 +149,72 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
 
 pub fn main() {
     env_logger::init();
-    trace!("[main] enter");
-    set_var("POLONIUS_ALGORITHM", "Naive");
-    let mut args: Vec<String> = std::env::args().collect();
-    args.push("-Zborrowck=mir".to_owned());
-    args.push("-Zpolonius".to_owned());
-    args.push("-Znll-facts".to_owned());
-    args.push("-Zidentify-regions".to_owned());
-    args.push("-Zdump-mir-dir=log/mir/".to_owned());
-    args.push("-Zdump-mir=renumber".to_owned());
-    if config::dump_debug_info() {
-        args.push("-Zdump-mir=all".to_owned());
-        args.push("-Zdump-mir-graphviz".to_owned());
-    }
-    /*
-    if !config::contracts_lib().is_empty() {
-        args.push("--extern".to_owned());
-        args.push(format!("prusti_contracts={}", config::contracts_lib()));
-    } else {
-        warn!("Configuration variable CONTRACTS_LIB is empty");
-    }
-    */
-    let args_string = args.join(" ");
-    debug!("rustc command: {:?}", args_string);
-    let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
-    let exit_status = run(move || rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None));
-    trace!("[main] exit");
+
+    let exit_status = run(move || {
+        let mut args: Vec<String> = env::args().collect();
+
+        // Disable Prusti if...
+        let prusti_filter_disabled = true
+            // we have been called by Cargo with RUSTC_WRAPPER, and
+            && (args.len() > 1 && Path::new(&args[1]).file_stem() == Some("rustc".as_ref()))
+            // this is not a test, and
+            && !env::var("PRUSTI_TEST").ok().map_or(false, |val| val == "true")
+            // we are compiling a dependency
+            && !args.iter().any(|s| s.starts_with("--emit=dep-info"));
+
+        // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
+        // We're invoking the compiler programmatically, so we ignore this
+        if args.len() <= 1 {
+            std::process::exit(1);
+        }
+        if Path::new(&args[1]).file_stem() == Some("rustc".as_ref()) {
+            args.remove(1);
+        }
+
+        // this conditional check for the --sysroot flag is there so users can call
+        // `prusti-filter` directly without having to pass --sysroot or anything
+        if !args.iter().any(|s| s == "--sysroot") {
+            let sys_root = current_sysroot()
+                .expect("need to specify SYSROOT env var during compilation, or use rustup or multirust");
+            debug!("Using sys_root='{}'", sys_root);
+            args.push("--sysroot".to_owned());
+            args.push(sys_root);
+        };
+
+        // Early exit
+        if prusti_filter_disabled {
+            let default_compiler_calls = Box::new(RustcDefaultCalls);
+            debug!("rustc command: '{}'", args.join(" "));
+            return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
+        }
+
+        // Arguments required by Prusti (Rustc may produce different MIR)
+        set_var("POLONIUS_ALGORITHM", "Naive");
+        args.push("-Zborrowck=mir".to_owned());
+        args.push("-Zpolonius".to_owned());
+        args.push("-Znll-facts".to_owned());
+        args.push("-Zidentify-regions".to_owned());
+        args.push("-Zdump-mir-dir=log/mir/".to_owned());
+        args.push("-Zdump-mir=renumber".to_owned());
+        if config::dump_debug_info() {
+            args.push("-Zdump-mir=all".to_owned());
+            args.push("-Zdump-mir-graphviz".to_owned());
+        }
+
+        args.push("--cfg".to_string());
+        args.push(r#"feature="prusti""#.to_string());
+
+        if !config::contracts_lib().is_empty() {
+            args.push("--extern".to_owned());
+            args.push(format!("prusti_contracts={}", config::contracts_lib()));
+        } else {
+            warn!("Configuration variable CONTRACTS_LIB is empty");
+        }
+
+        let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
+
+        debug!("rustc command: '{}'", args.join(" "));
+        rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
+    });
     std::process::exit(exit_status as i32);
 }

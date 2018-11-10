@@ -20,72 +20,72 @@ extern crate prusti_interface;
 mod crate_visitor;
 mod validators;
 
+use rustc_driver::RustcDefaultCalls;
 use rustc_driver::driver::{CompileController, CompileState};
 use rustc_driver::Compilation;
 use std::env;
 use std::fs;
-use std::process::Command;
 use self::crate_visitor::{CrateVisitor, CrateStatus};
 use validators::Validator;
 use rustc::hir::intravisit::Visitor;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
+use prusti_interface::sysroot::current_sysroot;
+use prusti_interface::config;
+use std::path::Path;
 
 
 fn main() {
     env_logger::init();
 
     let exit_status = rustc_driver::run(move || {
-        // Mostly copied from clippy
+        let mut args: Vec<String> = env::args().collect();
 
-        let sys_root = option_env!("SYSROOT")
-            .map(String::from)
-            .or_else(|| std::env::var("SYSROOT").ok())
-            .or_else(|| {
-                let home = option_env!("RUSTUP_HOME").or(option_env!("MULTIRUST_HOME"));
-                let toolchain = option_env!("RUSTUP_TOOLCHAIN").or(option_env!("MULTIRUST_TOOLCHAIN"));
-                home.and_then(|home| toolchain.map(|toolchain| format!("{}/toolchains/{}", home, toolchain)))
-            })
-            .or_else(|| {
-                Command::new("rustc")
-                    .arg("--print")
-                    .arg("sysroot")
-                    .output()
-                    .ok()
-                    .and_then(|out| String::from_utf8(out.stdout).ok())
-                    .map(|s| s.trim().to_owned())
-            })
-            .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
-
-        debug!("Using sys_root='{}'", sys_root);
+        // Disable Prusti if...
+        let prusti_disabled = true
+            // we have been called by Cargo with RUSTC_WRAPPER, and
+            && (args.len() > 1 && Path::new(&args[1]).file_stem() == Some("rustc".as_ref()))
+            // we are compiling a dependency
+            && !args.iter().any(|s| s.starts_with("--emit=dep-info"));
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
-        // We're invoking the compiler programmatically, so we ignore this/
-        let mut orig_args: Vec<String> = env::args().collect();
-        if orig_args.len() <= 1 {
+        // We're invoking the compiler programmatically, so we ignore this
+        if args.len() <= 1 {
             std::process::exit(1);
         }
-        if orig_args[1] == "rustc" {
-            // we still want to be able to invoke it normally though
-            orig_args.remove(1);
+        if Path::new(&args[1]).file_stem() == Some("rustc".as_ref()) {
+            args.remove(1);
         }
 
         // this conditional check for the --sysroot flag is there so users can call
-        // `clippy_driver` directly
-        // without having to pass --sysroot or anything
-        let mut args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") {
-            orig_args.clone()
-        } else {
-            orig_args
-                .clone()
-                .into_iter()
-                .chain(Some("--sysroot".to_owned()))
-                .chain(Some(sys_root))
-                .collect()
+        // `prusti-filter` directly without having to pass --sysroot or anything
+        if !args.iter().any(|s| s == "--sysroot") {
+            let sys_root = current_sysroot()
+                .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
+            debug!("Using sys_root='{}'", sys_root);
+            args.push("--sysroot".to_owned());
+            args.push(sys_root);
         };
+
+        // Early exit
+        if prusti_disabled {
+            let default_compiler_calls = Box::new(RustcDefaultCalls);
+            debug!("rustc command: '{}'", args.join(" "));
+            return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);
+        }
 
         // Arguments required by Prusti (Rustc may produce different MIR)
         args.push("-Zborrowck=mir".to_owned());
         args.push("-Zpolonius".to_owned());
+
+        args.push("--cfg".to_string());
+        args.push(r#"feature="prusti""#.to_string());
+
+        if !config::contracts_lib().is_empty() {
+            args.push("--extern".to_owned());
+            args.push(format!("prusti_contracts={}", config::contracts_lib()));
+        } else {
+            warn!("Configuration variable CONTRACTS_LIB is empty");
+        }
 
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
@@ -143,9 +143,10 @@ fn main() {
             old(state);
         };
 
-        // Do *not* stop compilation, because we might were compiling just dependencies
-        // controller.compilation_done.stop = Compilation::Stop;
+        //controller.after_analysis.stop = Compilation::Stop;
+        //controller.compilation_done.stop = Compilation::Stop;
 
+        debug!("rustc command: '{}'", args.join(" "));
         rustc_driver::run_compiler(&args, Box::new(controller), None, None)
     });
     std::process::exit(exit_status as i32);

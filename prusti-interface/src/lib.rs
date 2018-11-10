@@ -45,3 +45,4 @@ pub mod report;
 pub mod config;
 pub mod parser;
 pub mod ast_builder;
+pub mod sysroot;
