@@ -140,7 +140,7 @@ else
 	info "Run fine-grained evaluation of $num_supported_procedures items"
 
 	# Hack to set $final_exit_status from the pipe
-	FINE_GRAINED_EXIT_STATUS="$CRATE_ROOT/prusti-fine-grained-exit-status.txt"
+	FINE_GRAINED_EXIT_STATUS="$CRATE_ROOT/prusti-fine-grained-exit-status.log"
 	rm -f "$FINE_GRAINED_EXIT_STATUS"
 	touch "$FINE_GRAINED_EXIT_STATUS"
 
@@ -165,11 +165,11 @@ else
 		timeout -k 10 $EVALUATION_TIMEOUT "$CARGO_PRUSTI" -j 1 || exit_status="$?"
 		if [[ "$exit_status" != "0" ]]; then
 			info "Prusti verification failed with exit status $exit_status (item $procedure_path)."
-			echo "$exit_status" >> "$FINE_GRAINED_EXIT_STATUS"
+			echo "$exit_status for path $procedure_path" >> "$FINE_GRAINED_EXIT_STATUS"
 		fi
 	done
 
-	final_exit_status="$(echo "$(cat "$FINE_GRAINED_EXIT_STATUS")" | sort -n | tail -n 1 | sed 's/^$/0/')"
+	final_exit_status="$(echo "$(cat "$FINE_GRAINED_EXIT_STATUS")" | sort -n | tail -n 1 | cut -d ' ' -f 1 | sed 's/^$/0/')"
 	info "Final exit status: $final_exit_status"
 	exit $final_exit_status
 fi
