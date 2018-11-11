@@ -1478,7 +1478,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 ErrorCtxt::ExhaleMethodPrecondition
                             );
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_func_spec), pos.clone()));
-                            stmts.push(vir::Stmt::Exhale(replace_fake_exprs(pre_type_spec), pos));
+                            stmts.push(vir::Stmt::Exhale(replace_fake_exprs(pre_type_spec.clone()), pos));
 
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
@@ -1504,6 +1504,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Label(post_label.clone()));
                             for magic_wand in magic_wands {
                                 stmts.push(vir::Stmt::Inhale(magic_wand));
+                            }
+
+                            // As a last step, re-allocate arguments that were used in the function
+                            // call. We do this after inhaling the functional spec, such that the
+                            // user can not inhale equalities and trigger unsoundness.
+                            // This is only needed inside loops.
+                            let inside_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
+                            if inside_loop {
+                                let type_spec = procedure_contract.args.iter()
+                                    .map(|&local| self.encode_local_variable_permission(local))
+                                    .into_iter().conjoin();
+                                debug_assert_eq!(type_spec, pre_type_spec);
+                                stmts.push(vir::Stmt::Inhale(replace_fake_exprs(pre_type_spec)));
                             }
 
                             stmts.extend(stmts_after);
@@ -1592,7 +1605,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - one for the type encoding
     /// - one for the functional specification.
     fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> (vir::Expr, vir::Expr) {
-        let type_spec = contract.args.iter().map(|&local| self.encode_local_variable_permission(local));
+        let type_spec = contract.args.iter()
+            .map(|&local| self.encode_local_variable_permission(local));
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         // Encode functional specification
