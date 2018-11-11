@@ -105,8 +105,8 @@ impl<'tcx> ErrorManager<'tcx> {
         } else {
             error!("Unregistered verification error: {:?}", ver_error);
             return CompilerError::new(
-                ver_error.full_id.clone(),
-                format!("Unregistered verification error: {}", ver_error.message),
+                "P0000",
+                format!("Unregistered verification error: [{}] {}", ver_error.full_id, ver_error.message),
                 MultiSpan::new()
             )
         };
