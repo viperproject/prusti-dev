@@ -41,7 +41,9 @@ info "Using FILTERING_TIMEOUT=$FILTERING_TIMEOUT seconds"
 CARGO_PRUSTI_FILTER="$DIR/../../docker/cargo-prusti-filter"
 info "Using CARGO_PRUSTI_FILTER=$CARGO_PRUSTI_FILTER"
 
-filtering_report="$CRATE_DOWNLOAD_DIR/filtering-report.csv"
+start_date="$(date '+%Y-%m-%d-%H%M%S')"
+filtering_report="$CRATE_DOWNLOAD_DIR/filtering-report-$start_date.csv"
+filtering_report_final="$CRATE_DOWNLOAD_DIR/filtering-report.csv"
 echo "'Crate name', 'Successful filtering', 'Duration (s)', 'Exit status'" > "$filtering_report"
 info "Report: '$filtering_report'"
 
@@ -75,3 +77,5 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		echo "'$crate_name', false, $duration, $exit_status" >> "$filtering_report"
 	fi
 done
+
+cp "$filtering_report_final" "$filtering_report"
