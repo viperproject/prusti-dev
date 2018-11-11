@@ -71,16 +71,16 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             let procedure = Procedure::new(self.tcx, def_id);
             self.check_mir(&procedure);
         } else {
-            unsupported!(self, "function calls to outer crates are unsupported")
+            unsupported!(self, "uses function calls from outer crates")
         }
     }
 
     fn check_fn_sig(&mut self, sig: &ty::FnSig<'tcx>) {
-        requires!(self, !sig.variadic, "variadic functions are not supported");
+        requires!(self, !sig.variadic, "uses variadic functions");
 
         match sig.unsafety {
             hir::Unsafety::Unsafe => {
-                unsupported!(self, "unsafe functions are not supported");
+                unsupported!(self, "uses unsafe functions");
             }
 
             hir::Unsafety::Normal => {} // OK
@@ -96,18 +96,18 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
     fn check_fn_kind(&mut self, fk: FnKind<'tcx>) {
         match fk {
             FnKind::Closure(..) => {
-                unsupported!(self, "closures are not supported");
+                unsupported!(self, "uses closures");
             }
 
             FnKind::ItemFn(_, ref generics, header, _, _) => {
                 for generic_param in generics.params.iter() {
                     match generic_param.kind {
-                        hir::GenericParamKind::Type {..} => unsupported!(self, "function type parameters are not supported"),
+                        hir::GenericParamKind::Type {..} => unsupported!(self, "uses function type parameters"),
 
                         hir::GenericParamKind::Lifetime {..} => {} // OK
                     }
                 }
-                requires!(self, generics.where_clause.predicates.is_empty(), "lifetimes constraints are not supported");
+                requires!(self, generics.where_clause.predicates.is_empty(), "uses lifetimes constraints");
                 self.check_fn_header(header);
             }
 
@@ -120,7 +120,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
     fn check_fn_header(&mut self, fh: hir::FnHeader) {
         match fh.unsafety {
             hir::Unsafety::Unsafe => {
-                unsupported!(self, "unsafe functions are not supported");
+                unsupported!(self, "uses unsafe functions");
             }
 
             hir::Unsafety::Normal => {} // OK
@@ -128,7 +128,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
         match fh.asyncness {
             hir::IsAsync::Async => {
-                unsupported!(self, "asynchronous functions are not supported");
+                unsupported!(self, "uses asynchronous functions");
             }
 
             hir::IsAsync::NotAsync => {} // OK
@@ -153,7 +153,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                 self.check_inner_ty(inner_ty)
             },
 
-            _ => unsupported!(self, "pure functions can only have arguments of type integer, boolean, char or reference"),
+            _ => unsupported!(self, "has arguments of type non-integer, non-boolean, non-char or non-reference"),
         }
 
         self.check_ty(ty);
@@ -169,7 +169,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyUint(_) => {} // OK
 
-            _ => unsupported!(self, "pure functions can only return integer, boolean or char values"),
+            _ => unsupported!(self, "has return value of type non-integer, non-boolean or non-char"),
         }
 
         self.check_ty(ty);
@@ -185,7 +185,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyUint(_) => {} // OK
 
-            ty::TypeVariants::TyFloat(..) => unsupported!(self, "floating-point types are not supported"),
+            ty::TypeVariants::TyFloat(..) => unsupported!(self, "uses floating-point types"),
 
             // Structures, enumerations and unions.
             //
@@ -197,42 +197,42 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                 self.check_ty_adt(adt_def, substs);
                 for kind in substs.iter() {
                     match kind.unpack() {
-                        ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
+                        ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "uses data type with lifetime parameters"),
 
                         ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty),
                     }
                 }
             },
 
-            ty::TypeVariants::TyForeign(..) => unsupported!(self, "foreign types are not supported"),
+            ty::TypeVariants::TyForeign(..) => unsupported!(self, "uses foreign types"),
 
-            ty::TypeVariants::TyStr => partially!(self, "`str` types are ignored"),
+            ty::TypeVariants::TyStr => partially!(self, "uses `str` types"),
 
             ty::TypeVariants::TyArray(inner_ty, ..) => {
                 self.check_inner_ty(inner_ty);
-                unsupported!(self, "`array` types are not supported")
+                unsupported!(self, "uses `array` types")
             },
 
             ty::TypeVariants::TySlice(inner_ty, ..) => {
                 self.check_inner_ty(inner_ty);
-                unsupported!(self, "`slice` types are not supported")
+                unsupported!(self, "uses `slice` types")
             },
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: inner_ty, .. }) => self.check_inner_ty(inner_ty),
 
             ty::TypeVariants::TyRef(_, inner_ty, _) => self.check_inner_ty(inner_ty),
 
-            ty::TypeVariants::TyFnDef(..) => unsupported!(self, "function types are not supported"),
+            ty::TypeVariants::TyFnDef(..) => unsupported!(self, "uses function types"),
 
-            ty::TypeVariants::TyFnPtr(..) => unsupported!(self, "function pointer types are not supported"),
+            ty::TypeVariants::TyFnPtr(..) => unsupported!(self, "uses function pointer types"),
 
-            ty::TypeVariants::TyDynamic(..) => unsupported!(self, "trait types are not supported"),
+            ty::TypeVariants::TyDynamic(..) => unsupported!(self, "uses trait types"),
 
-            ty::TypeVariants::TyClosure(..) => unsupported!(self, "closures are not supported"),
+            ty::TypeVariants::TyClosure(..) => unsupported!(self, "uses closures"),
 
-            ty::TypeVariants::TyGenerator(..) => unsupported!(self, "generators are not supported"),
+            ty::TypeVariants::TyGenerator(..) => unsupported!(self, "uses generators"),
 
-            ty::TypeVariants::TyGeneratorWitness(..) => unsupported!(self, "types inside generators are not supported"),
+            ty::TypeVariants::TyGeneratorWitness(..) => unsupported!(self, "uses generators"),
 
             ty::TypeVariants::TyNever => {}, // OK
 
@@ -242,20 +242,20 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                 }
             }
 
-            ty::TypeVariants::TyProjection(..) => unsupported!(self, "associated types are not supported"),
+            ty::TypeVariants::TyProjection(..) => unsupported!(self, "uses associated types"),
 
-            ty::TypeVariants::TyAnon(..) => unsupported!(self, "anonymized types are not supported"),
+            ty::TypeVariants::TyAnon(..) => unsupported!(self, "uses anonymized types"),
 
-            ty::TypeVariants::TyParam(..) => unsupported!(self, "generic type parameters are not supported"),
+            ty::TypeVariants::TyParam(..) => unsupported!(self, "uses generic type parameters"),
 
-            ty::TypeVariants::TyInfer(..) => unsupported!(self, "uninferred types are not supported"),
+            ty::TypeVariants::TyInfer(..) => unsupported!(self, "has uninferred types"),
 
-            ty::TypeVariants::TyError => unsupported!(self, "erroneous inferred types are not supported"),
+            ty::TypeVariants::TyError => unsupported!(self, "has erroneous inferred types"),
         }
     }
 
     fn check_ty_adt(&mut self, adt_def: &ty::AdtDef, substs: &Substs<'tcx>) {
-        requires!(self, !adt_def.is_union(), "union types are not supported");
+        requires!(self, !adt_def.is_union(), "uses union types");
 
         if adt_def.is_box() {
             let boxed_ty = substs.type_at(0);
@@ -274,7 +274,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         self.check_ty(ty);
 
         match ty.sty {
-            ty::TypeVariants::TyRef(..) => partially!(self, "references inside data structures are partially supported"),
+            ty::TypeVariants::TyRef(..) => partially!(self, "uses references inside data structures"),
 
             _ => {} // OK
         }
@@ -291,7 +291,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
         requires!(
             self, ProcedureLoops::new(mir).count_loop_heads() == 0,
-            "loops are not allowed in pure functions"
+            "uses loops"
         );
 
         // TODO: check only blocks that may lead to a `Return` terminator
@@ -309,8 +309,8 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
     fn check_mir_signature(&mut self, procedure: &Procedure<'a, 'tcx>) {
         let mir = procedure.get_mir();
         self.check_return_ty(mir.return_ty());
-        requires!(self, mir.yield_ty.is_none(), "`yield` is not supported");
-        requires!(self, mir.upvar_decls.is_empty(), "variables captured in closures are not supported");
+        requires!(self, mir.yield_ty.is_none(), "uses `yield`");
+        requires!(self, mir.upvar_decls.is_empty(), "uses variables captured in closures");
 
         for arg_index in mir.args_iter() {
             let arg = &mir.local_decls[arg_index];
@@ -333,7 +333,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::StatementKind::StorageDead(_) => {} // OK
 
-            mir::StatementKind::InlineAsm {..} => unsupported!(self, "inline ASM is not supported"),
+            mir::StatementKind::InlineAsm {..} => unsupported!(self, "uses inline Assembly"),
 
             mir::StatementKind::Validate(_, _) => {} // OK
 
@@ -353,7 +353,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::TerminatorKind::Resume => {
                 // This should be unreachable
-                partially!(self, "`resume` MIR statements are partially supported");
+                partially!(self, "uses `resume` MIR statements");
             },
 
             mir::TerminatorKind::Abort => {} // OK
@@ -407,7 +407,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                             }
                             for kind in substs.iter() {
                                 match kind.unpack() {
-                                    ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
+                                    ty::subst::UnpackedKind::Lifetime(..) => {} // OK
 
                                     ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty),
                                 }
@@ -416,7 +416,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                                 None => {
                                     unsupported!(
                                         self,
-                                        "calling functions from an external crate is not supported"
+                                        "calls functions from an external crate"
                                     );
                                     false
                                 }
@@ -428,7 +428,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                                         None => {
                                             unsupported!(
                                                 self,
-                                                "calling body-less functions is not supported"
+                                                "calls body-less functions"
                                             );
                                             false
                                         },
@@ -443,15 +443,15 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                         },
                     }
                 } else {
-                    unsupported!(self, "non explicit function calls are not supported");
+                    unsupported!(self, "uses non explicit function calls");
                 }
             }
 
             mir::TerminatorKind::Assert { ref cond, .. } => self.check_operand(mir, cond),
 
-            mir::TerminatorKind::Yield {..} => unsupported!(self, "`yield` MIR statement is not supported"),
+            mir::TerminatorKind::Yield {..} => unsupported!(self, "uses `yield`"),
 
-            mir::TerminatorKind::GeneratorDrop {..} => unsupported!(self, "`generator drop` MIR statement is not supported"),
+            mir::TerminatorKind::GeneratorDrop {..} => unsupported!(self, "uses `generator drop` MIR statement"),
 
             mir::TerminatorKind::FalseEdges {..} => {} // OK
 
@@ -490,7 +490,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                 self.check_ty(local_ty);
             }
 
-            mir::Place::Static(..) => unsupported!(self, "static variables are not supported"),
+            mir::Place::Static(..) => unsupported!(self, "uses static variables"),
 
             mir::Place::Projection(box ref projection) => self.check_projection(mir, projection),
         }
@@ -503,13 +503,13 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::ProjectionElem::Field(_, ty) => self.check_inner_ty(ty),
 
-            mir::ProjectionElem::Index(..) => unsupported!(self, "index operations are not supported"),
+            mir::ProjectionElem::Index(..) => unsupported!(self, "uses index operations"),
 
-            mir::ProjectionElem::ConstantIndex {..} => unsupported!(self, "indices generated by slice patterns are not supported"),
+            mir::ProjectionElem::ConstantIndex {..} => unsupported!(self, "uses indices generated by slice patterns"),
 
-            mir::ProjectionElem::Subslice {..} => unsupported!(self, "indices generated by slice patterns are not supported"),
+            mir::ProjectionElem::Subslice {..} => unsupported!(self, "uses indices generated by slice patterns"),
 
-            mir::ProjectionElem::Downcast(adt_def, _) => requires!(self, !adt_def.is_union(), "union types are not supported"),
+            mir::ProjectionElem::Downcast(adt_def, _) => requires!(self, !adt_def.is_union(), "uses union types"),
         }
     }
 
@@ -521,12 +521,12 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             BitXor | BitAnd | BitOr => {
                 match (&left_ty.sty, &right_ty.sty) {
                     (ty::TypeVariants::TyBool, ty::TypeVariants::TyBool) => {} // OK
-                    _ => unsupported!(self, "bit operations are only supported for boolean types")
+                    _ => unsupported!(self, "uses bit operations for non-boolean types")
                 }
             },
-            Shl | Shr => unsupported!(self, "bit shift operations are not supported"),
+            Shl | Shr => unsupported!(self, "uses bit shift operations"),
             Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
-            Offset => unsupported!(self, "offset operation is not supported"),
+            Offset => unsupported!(self, "uses offset operation"),
         }
     }
 
@@ -537,7 +537,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             Not => {
                 match &ty.sty {
                     ty::TypeVariants::TyBool => {} // OK
-                    _ => unsupported!(self, "'!' negation is only supported for boolean types"),
+                    _ => unsupported!(self, "uses '!' negation for non-boolean types"),
                 }
             },
         }
@@ -547,13 +547,13 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         match rvalue {
             mir::Rvalue::Use(ref operand) => self.check_operand(mir, operand),
 
-            mir::Rvalue::Repeat(..) => unsupported!(self, "`repeat` operations are not supported"),
+            mir::Rvalue::Repeat(..) => unsupported!(self, "uses `repeat` operations"),
 
             mir::Rvalue::Ref(_, _, ref place) => self.check_place(mir, place),
 
             mir::Rvalue::Len(ref place) => self.check_place(mir, place),
 
-            mir::Rvalue::Cast(..) => unsupported!(self, "cast operations are not supported"),
+            mir::Rvalue::Cast(..) => unsupported!(self, "uses cast operations"),
 
             mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
                 let left_ty = self.get_operand_ty(mir, left_operand);
@@ -579,7 +579,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty),
 
-            mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, "`sizeof` operations are not supported"),
+            mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, "uses `sizeof` operations"),
 
             mir::Rvalue::Discriminant(ref place) => self.check_place(mir, place),
 
@@ -608,13 +608,13 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             mir::Literal::Value { value } => {
                 match value.val {
                     ConstVal::Value(ref value) => {
-                        requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
+                        requires!(self, value.to_scalar().is_some(), "uses non-scalar literals");
                     },
                     ConstVal::Unevaluated(def_id, substs) => {
                         // On crate `078_crossbeam` the `const_eval` call fails with
                         // "can't type-check body of DefId(0/0:18 ~ lock_api[964c]::mutex[0]::RawMutex[0]::INIT[0])"
                         // at "const INIT: Self;"
-                        partially!(self, "unevaluated constant are partially supported");
+                        partially!(self, "uses unevaluated constants");
                         /*
                         let param_env = self.tcx.param_env(def_id);
                         let cid = GlobalId {
@@ -623,14 +623,14 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                         };
                         if let Ok(const_value) = self.tcx.const_eval(param_env.and(cid)) {
                             if let ConstVal::Value(ref value) = const_value.val {
-                                requires!(self, value.to_scalar().is_some(), "non-scalar literals are not supported");
+                                requires!(self, value.to_scalar().is_some(), "uses non-scalar literals");
                             } else {
                                 // This should be unreachable
-                                unsupported!(self, "erroneous unevaluated literals are not supported")
+                                unsupported!(self, "uses erroneous unevaluated literals")
                             }
                         } else {
                             // This should be unreachable
-                            unsupported!(self, "erroneous unevaluated literals are not supported")
+                            unsupported!(self, "uses erroneous unevaluated literals")
                         }
                         */
                     }
@@ -644,10 +644,10 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                     ty::TypeVariants::TyUint(_) |
                     ty::TypeVariants::TyChar => {} // OK
 
-                    _ => unsupported!(self, "only literals of type boolean, integer or char are supported")
+                    _ => unsupported!(self, "uses literals of type non-boolean, non-integer or non-char")
                 };
             }
-            mir::Literal::Promoted { .. } => partially!(self, "promoted constant literals are partially supported")
+            mir::Literal::Promoted { .. } => partially!(self, "uses promoted constant literals")
         }
     }
 
@@ -656,7 +656,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
         match kind {
             mir::AggregateKind::Array(ty) => {
-                unsupported!(self, "arrays are not supported");
+                unsupported!(self, "uses arrays");
                 self.check_inner_ty(ty)
             },
 
@@ -665,16 +665,16 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
             mir::AggregateKind::Adt(_, _, substs, _) => {
                 for kind in substs.iter() {
                     match kind.unpack() {
-                        ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "lifetime parameters are partially supported"),
+                        ty::subst::UnpackedKind::Lifetime(..) => partially!(self, "uses data structures with lifetime parameters"),
 
                         ty::subst::UnpackedKind::Type(ty) => self.check_inner_ty(ty),
                     }
                 }
             }
 
-            mir::AggregateKind::Closure(..) => unsupported!(self, "closures are not supported"),
+            mir::AggregateKind::Closure(..) => unsupported!(self, "uses closures"),
 
-            mir::AggregateKind::Generator(..) => unsupported!(self, "generators are not supported"),
+            mir::AggregateKind::Generator(..) => unsupported!(self, "uses generators"),
         }
 
         for operand in operands {
