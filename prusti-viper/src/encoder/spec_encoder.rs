@@ -288,7 +288,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let fn_name = self.path_to_string(fn_path);
                         if fn_name == "old" {
                             panic!("Old expressions can not be used in triggers");
-                            /*assert!(arguments.len() == 1);
+                            /*assert_eq!(arguments.len(), 1);
                             vir::Expr::labelled_old(
                                 PRECONDITION_LABEL,
                                 self.encode_hir_expr(&arguments[0]),

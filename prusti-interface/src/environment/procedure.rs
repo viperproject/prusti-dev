@@ -295,8 +295,8 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
                 trace!("discr: '{:?}'", discr);
                 if format!("{:?}", discr) == "const false" {
                     // Some assumptions
-                    assert!(values[0] == 0 as u128);
-                    assert!(values.len() == 1);
+                    assert_eq!(values[0], 0 as u128);
+                    assert_eq!(values.len(), 1);
 
                     // Do not visit the 'then' branch.
                     // So, it will not be put into nonspec_basic_blocks.

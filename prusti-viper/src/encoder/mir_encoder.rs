@@ -143,7 +143,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let num_variants = adt_def.variants.len();
                         // FIXME: why this can be None?
                         let variant_index = opt_variant_index.unwrap_or_else(|| {
-                            assert!(num_variants == 1);
+                            assert_eq!(num_variants, 1);
                             0
                         });
                         let tcx = self.encoder.env().tcx();

@@ -469,7 +469,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         // Rule: the rhs must always have an even number of "$"
-        let mut name = "m".to_string();
+        let mut name = "m_".to_string();
         name.push_str(
             &self.env.get_item_def_path(def_id)
                 .replace("::", "$$")

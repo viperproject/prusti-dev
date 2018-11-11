@@ -483,7 +483,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                                  magic_wand.variable);
                     write_graph!(self, "<td colspan=\"8\">{}</td>", to_sorted_string!(root_loans));
                     write_graph!(self, "</tr>");
-                    assert!(root_loans.len() == 1);
+                    assert_eq!(root_loans.len(), 1);
 
                     let dag = self.polonius_info.construct_reborrowing_dag_loop_body(
                         &loop_loans, &zombie_loans, location);

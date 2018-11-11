@@ -28,6 +28,9 @@ extern crate viper;
 extern crate num_rational;
 extern crate num_traits;
 
+#[macro_use]
+extern crate pretty_assertions;
+
 mod encoder;
 mod utils;
 pub mod verifier;
