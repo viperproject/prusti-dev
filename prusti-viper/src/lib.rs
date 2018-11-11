@@ -28,6 +28,7 @@ extern crate viper;
 extern crate num_rational;
 extern crate num_traits;
 
+#[cfg(debug_assertions)]
 #[macro_use]
 extern crate pretty_assertions;
 

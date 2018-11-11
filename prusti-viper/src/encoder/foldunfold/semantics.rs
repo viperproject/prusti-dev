@@ -198,7 +198,7 @@ impl vir::Stmt {
                 debug_assert!(lhs_place.get_type().is_ref());
                 debug_assert!(rhs_place.get_type().is_ref());
                 debug_assert_eq!(lhs_place.get_type(), rhs_place.get_type());
-                debug_assert!(!state.is_proper_prefix_of_some_acc(rhs_place));
+                //debug_assert!(!state.is_proper_prefix_of_some_acc(rhs_place));
                 //debug_assert!(!state.is_prefix_of_some_pred(rhs_place));
                 //debug_assert!(!lhs_place.is_curr() || !state.is_prefix_of_some_moved(lhs_place));
 
