@@ -160,6 +160,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
                                     // FIXME: This is just a guess. Upgrade to the new
                                     // version of rustc to get proper information.
                 Inspect => PlaceAccessKind::Read,
+                Drop => PlaceAccessKind::Move,
                 x => unimplemented!("{:?}", x),
             };
             let access = PlaceAccess {
