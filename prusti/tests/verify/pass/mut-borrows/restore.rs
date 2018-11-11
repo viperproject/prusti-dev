@@ -26,7 +26,7 @@ fn compute(flag: bool) -> (T, T) {
     y.val += 44;
 
     assert!(x.val == 88 || x.val == 55);
-    assert!(y.val == 66 || x.val == 99);
+    assert!(y.val == 66 || y.val == 99);
 
     (x, y)
 }

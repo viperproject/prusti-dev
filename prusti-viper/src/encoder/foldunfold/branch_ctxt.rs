@@ -214,8 +214,32 @@ impl<'a> BranchCtxt<'a> {
                 );
             }
 
-            trace!("Actions in left branch: {:?}", &left_actions);
-            trace!("Actions in left branch: {:?}", &right_actions);
+            // Drop access permissions not in `actual_acc`
+            for acc_place in filter_not_extensions_of(&self.state.acc_places(), &other.state.acc_places()) {
+                debug!("Drop acc {} in left branch (it has no prefix in the other branch)", acc_place);
+                assert!(self.state.acc().contains_key(&acc_place));
+                let frac = self.state.remove_acc_place(&acc_place);
+                left_actions.push(
+                    Action::Drop(Perm::acc(acc_place.clone(), frac))
+                );
+            }
+            for acc_place in filter_not_extensions_of(&other.state.acc_places(), &self.state.acc_places()) {
+                debug!("Drop acc {} in right branch (it has no prefix in the other branch)", acc_place);
+                assert!(other.state.acc().contains_key(&acc_place));
+                let frac = other.state.remove_acc_place(&acc_place);
+                left_actions.push(
+                    Action::Drop(Perm::acc(acc_place.clone(), frac))
+                );
+            }
+
+            trace!(
+                "Actions in left branch: {}",
+                left_actions.iter().map(|a| a.to_string()).collect::<Vec<_>>().join(", ")
+            );
+            trace!(
+                "Actions in right branch: {}",
+                right_actions.iter().map(|a| a.to_string()).collect::<Vec<_>>().join(", ")
+            );
 
             assert_eq!(self.state.acc(), other.state.acc());
             assert_eq!(self.state.pred(), other.state.pred());

@@ -232,3 +232,40 @@ pub fn intersection<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>)
 pub fn difference<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
     left.clone().difference(right).cloned().collect()
 }
+
+/// Returns the elements of A1 that are not a prefix of some elements in A2.
+pub fn filter_not_prefix_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+    let mut res = HashSet::new();
+    for left_item in left.iter() {
+        let mut keep: bool = true;
+        for right_item in right.iter() {
+            if right_item.has_prefix(left_item) {
+                keep = false;
+                break;
+            }
+        }
+        if keep {
+            res.insert(left_item.clone());
+        }
+    }
+    res
+}
+
+
+/// Returns the elements of A1 that are not an extension of some elements in A2.
+pub fn filter_not_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+    let mut res = HashSet::new();
+    for left_item in left.iter() {
+        let mut keep: bool = true;
+        for right_item in right.iter() {
+            if left_item.has_prefix(right_item) {
+                keep = false;
+                break;
+            }
+        }
+        if keep {
+            res.insert(left_item.clone());
+        }
+    }
+    res
+}
