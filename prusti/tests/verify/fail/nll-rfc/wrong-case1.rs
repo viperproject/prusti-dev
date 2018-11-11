@@ -15,6 +15,7 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper function
     #[trusted]
     #[pure]
+    #[ensures="result >= 0"]
     pub fn len(&self) -> usize {
         self.v.len()
     }
@@ -37,6 +38,7 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper method
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
+    #[ensures="self.len() == old(self.len())"]
     #[ensures="self.lookup(old(index)) == old(value)"]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
@@ -51,15 +53,19 @@ impl VecWrapperI32 {
 fn capitalize(vec: &mut VecWrapperI32) {
     let mut i = 0;
     let mut not_finished = i < vec.len();
+    #[invariant="0 <= i && i <= vec.len()"]
+    #[invariant="not_finished ==> i < vec.len()"]
     while not_finished {
         let value = vec.lookup(i);
         vec.store(i, value);
         i += 1;
         not_finished = i < vec.len();
+        unreachable!(); //~ ERROR might be reachable
     }
 }
 
-fn bar() {
+#[ensures="false"]
+fn bar() { //~ ERROR postcondition
     let mut data = VecWrapperI32::new();
     data.push(1);
     data.push(2);
