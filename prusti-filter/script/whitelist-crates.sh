@@ -39,15 +39,18 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 	jq '.functions[] | .node_path' \
 		"$CRATE_ROOT/prusti-filter-results.json" \
-		> "$CRATE_DIR/procedures.csv"
+		> "$CRATE_DIR/procedures.csv" \
+		|| true
 
 	jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' \
 		"$CRATE_ROOT/prusti-filter-results.json" \
-		> "$CRATE_DIR/supported-procedures.csv"
+		> "$CRATE_DIR/supported-procedures.csv" \
+		|| true
 
 	jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses panics")) | .node_path' \
 		"$CRATE_ROOT/prusti-filter-results.json" \
-		> "$CRATE_DIR/supported-procedures-with-panics.csv"
+		> "$CRATE_DIR/supported-procedures-with-panics.csv" \
+		|| true
 
 	num_procedures="$(cat "$CRATE_DIR/procedures.csv" | wc -l)"
 	num_supported_procedures="$(cat "$CRATE_DIR/supported-procedures.csv" | wc -l)"

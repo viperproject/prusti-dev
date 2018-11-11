@@ -193,8 +193,8 @@ Examples that use borrows:
 +   four_bit_adder – deref implementation.
 +   strip_comments_from_a_string – reborrows a substring (uses closures)
 
-Verify supported functions from top 500 crates
-----------------------------------------------
+Verify supported functions from top 500 crates (option A)
+---------------------------------------------------------
 
 (from the `prusti-dev` folder)
 
@@ -242,3 +242,20 @@ EVALUATION_TIMEOUT=900 \
 MAX_PARALLEL_EVALUATIONS=4 \
 ./prusti-filter/script/evaluate-all-crates.sh ../crates/
 ```
+
+Verify supported functions from top 500 crates (option B)
+---------------------------------------------------------
+
+(from the `prusti-dev` folder)
+
+1.  Download most popular 500 crates:
+
+    ```bash
+    prusti-filter/script/download-top-500.sh ../crates
+    ```
+
+2. Compile and run the evaluation on all the crates
+
+	```bash
+	prusti-filter/script/full-evaluation.sh ../crates
+	```
