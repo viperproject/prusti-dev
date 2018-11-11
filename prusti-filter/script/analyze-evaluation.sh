@@ -29,28 +29,30 @@ jq --raw-output '.end_date | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sort 
 
 inlineinfo "Crates for which the evaluation is in progress"
 jq --raw-output 'select(.in_progress) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+
 jq --raw-output 'select(.in_progress) | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^/ - /'
 
 inlineinfo "Crates for which standard compilation failed or timed out"
 jq --raw-output 'select(.exit_status == "42") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Crates for which standard compilation succeeded"
-jq --raw-output 'select(.exit_status != "42") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status != null and .exit_status != "42") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Crates for which standard compilation succeeded, but the filtering failed"
 jq --raw-output 'select(.exit_status == "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+
 jq --raw-output 'select(.exit_status == "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^/ - /'
 cat "$CRATE_DOWNLOAD_DIR"/*/evaluate-crate.log | grep Summary | grep "exit status 43"
 
 
 inlineinfo "Crates for which standard compilation and the filtering succeeded"
-jq --raw-output 'select(.exit_status != "42" and .exit_status != "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
+jq --raw-output 'select(.exit_status != null and .exit_status != "42" and .exit_status != "43") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
 
 inlineinfo "Function items from crates for which standard compilation and the filtering succeeded"
 (jq '.functions | length' "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json 2> /dev/null | tr '\n' '+'; echo "0") | bc
 
 inlineinfo "Verifiable items from crates for which standard compilation and the filtering succeeded"
-(jq --raw-output 'select(.exit_status != "42" and .exit_status != "43") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
+(jq --raw-output 'select(.exit_status != null and .exit_status != "42" and .exit_status != "43") | .whitelist_items | values' "$CRATE_DOWNLOAD_DIR"/*/report.json | sed 's/^$/0/' | tr "\n" '+'; echo "0") | bc
 
 inlineinfo "Crates for which Prusti succeeded"
 jq --raw-output 'select(.exit_status == "0") | .crate_name' "$CRATE_DOWNLOAD_DIR"/*/report.json | wc -l
@@ -100,7 +102,7 @@ egrep '^[[:space:]]*fn[[:space:]]+(.*[^;]$|.*{)' -r "$CRATE_DOWNLOAD_DIR"/*/sour
 inlineinfo "Number of functions from all the crates"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .node_path' | wc -l
 
-info "Functions from all the crates: distribution by lines of code"
+info "Functions from all the crates: distribution by lines of code (frequency, lines of code)"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .lines_of_code' | sort | uniq -c | sort -k 2 -n | head -n 15
 echo "..."
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | .lines_of_code' | sort | uniq -c | sort -k 2 -n | tail -n 3
@@ -115,7 +117,7 @@ space
 inlineinfo "Number of functions from all the crates, excluded macro expansions"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .node_path' | wc -l
 
-info "Functions from all the crates (excluded macro expansions): distribution by lines of code"
+info "Functions from all the crates (excluded macro expansions): distribution by lines of code (frequency, lines of code)"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .lines_of_code' | sort | uniq -c | sort -k 2 -n | head -n 15
 echo "..."
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .lines_of_code' | sort | uniq -c | sort -k 2 -n | tail -n 3
@@ -144,7 +146,7 @@ info "Source code of supported functions with >= 12 encoded basic blocks"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.num_encoded_basic_blocks >= 12) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
 
 info "Source code of supported functions with a reference in the return type"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | length > 0) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
 
 space
 

@@ -408,14 +408,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ),
 
                     _ => {
-                        warn!("TODO: encoding of bin op check '{:?}' is incomplete for type {:?}", op, ty);
+                        warn!("Encoding of bin op check '{:?}' is incomplete for type {:?}", op, ty);
                         false.into()
                     }
                 }
 
                 mir::BinOp::Shl |
                 mir::BinOp::Shr => {
-                    warn!("TODO: encoding of bin op check '{:?}' is incomplete", op);
+                    warn!("Encoding of bin op check '{:?}' is incomplete", op);
                     false.into()
                 }
 

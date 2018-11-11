@@ -395,7 +395,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             old_expr.replace_place(local_var_ref, old_local_var_ref.clone())
                         } else {
                             // See issue #20 "Evaluation of arguments in old expressions"
-                            warn!("TODO: local variables may be evaluated in the wrong state");
+                            debug!("local variables may be evaluated in the wrong state");
                             old_expr
                         }
                     }
@@ -974,7 +974,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ReborrowingKind::Loop { .. } => {
-                unimplemented!("TODO: handle magic wand(s) obtained from loops");
+                unimplemented!("handle magic wand(s) obtained from loops");
             }
         }
 
@@ -1507,8 +1507,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
 
                             // As a last step, re-allocate arguments that were used in the function
-                            // call. We do this after inhaling the functional spec, such that the
-                            // user can not inhale equalities and trigger unsoundness.
+                            // call. We do this after inhaling the functional spec, so that the
+                            // user can not inhale equalities and trigger unsoundness by mistake.
                             // This is only needed inside loops.
                             let inside_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                             if inside_loop {
@@ -2397,8 +2397,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         trace!("promoted constant literal {:?}: {:?}", index, ty);
                         trace!("{:?}", self.mir.promoted[*index].basic_blocks());
                         trace!("{:?}", self.mir.promoted[*index].basic_blocks().into_iter().next().unwrap().statements[0]);
-                        // TODO
-                        warn!("TODO: encoding of promoted constant literal '{:?}: {:?}' is incomplete", index, ty);
+                        // TODO: call eval_const
+                        warn!("Encoding of promoted constant literal '{:?}: {:?}' is incomplete", index, ty);
                         // Workaround: do not initialize values
                     }
                 }
