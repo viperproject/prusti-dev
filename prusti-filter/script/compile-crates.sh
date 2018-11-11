@@ -25,6 +25,7 @@ info "Using COMPILATION_TIMEOUT=$COMPILATION_TIMEOUT seconds"
 
 compilation_report="$CRATE_DOWNLOAD_DIR/compilation-report.csv"
 supported_crates="$CRATE_DOWNLOAD_DIR/supported-crates.csv"
+supported_crates_tmp="$supported_crates.tmp"
 echo "'Crate name', 'Successful cleanup', 'Successful compilation', 'Duration (s)', 'Exit status'" > "$compilation_report"
 info "Report: '$compilation_report'"
 rm -f "$supported_crates"
@@ -36,7 +37,7 @@ export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
 export RUST_BACKTRACE=1
 
-export RUSTUP_TOOLCHAIN="$(cat $DIR/../../rust-toolchain)"
+export RUSTUP_TOOLCHAIN="$(cat "$DIR/../../rust-toolchain")"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
 ls -d "$CRATE_DOWNLOAD_DIR"/*/ | while read crate_path; do
@@ -60,9 +61,11 @@ ls -d "$CRATE_DOWNLOAD_DIR"/*/ | while read crate_path; do
 	if [[ "$exit_status" == "0" ]]; then
 		info "Successful compilation"
 		echo "'$crate_name', true, true, $duration, $exit_status" >> "$compilation_report"
-		echo "$crate_name" >> "$supported_crates"
+		echo "$crate_name" >> "$supported_crates_tmp"
 	else
 		info "Cargo build failed with exit status $exit_status"
 		echo "'$crate_name', true, false, $duration, $exit_status" >> "$compilation_report"
 	fi
 done
+
+mv "$supported_crates_tmp" "$supported_crates"

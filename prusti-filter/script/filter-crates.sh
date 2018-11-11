@@ -52,7 +52,7 @@ export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
 export RUST_BACKTRACE=1
 
-export RUSTUP_TOOLCHAIN="$(cat $DIR/../../rust-toolchain)"
+export RUSTUP_TOOLCHAIN="$(cat "$DIR/../../rust-toolchain")"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
 cat "$CRATES_LIST_PATH" | while read crate_name; do

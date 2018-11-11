@@ -25,21 +25,6 @@ fi
 TIMEOUT="${2:-900}"
 info "Using TIMEOUT=$TIMEOUT seconds"
 
-# Force exit on Ctrl-c
-function list_descendants() {
-	local children=$(ps -o pid= --ppid "$1")
-	for pid in $children; do
-		list_descendants "$pid"
-	done
-	echo "$children"
-}
-function ctrl_c() {
-	info "Force exit. Kill all subprocesses..."
-	pkill -P $$
-	exit 2
-}
-trap ctrl_c INT
-
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 evaluation_log_file="$CRATE_DOWNLOAD_DIR/evaluation-log-${start_date}.log"
 info "Using evaluation_log_file='$evaluation_log_file'"

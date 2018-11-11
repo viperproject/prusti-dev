@@ -63,7 +63,7 @@ export RUST_BACKTRACE=1
 export PRUSTI_FULL_COMPILATION=true
 export PRUSTI_ENABLE_WHITELIST=true
 
-export RUSTUP_TOOLCHAIN="$(cat $DIR/../../rust-toolchain)"
+export RUSTUP_TOOLCHAIN="$(cat "$DIR/../../rust-toolchain")"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
 cat "$CRATES_LIST_PATH" | while read crate_name; do
@@ -90,7 +90,7 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		echo "CHECK_BINARY_OPERATIONS = $PRUSTI_CHECK_BINARY_OPERATIONS"
 		echo "ENABLE_WHITELIST = true"
 		echo "WHITELIST = ["
-		echo "$(cat "$WHITELIST_FILE" | sed 's/$/,/' | sed '$ s/.$//')"
+		cat "$WHITELIST_FILE" | sed 's/$/,/' | sed '$ s/.$//'
 		echo "]"
 	) > "$CRATE_ROOT/Prusti.toml"
 
