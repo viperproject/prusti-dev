@@ -411,7 +411,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     match func_proc_name {
                         "prusti_contracts::internal::old" => {
                             trace!("Encoding old expression {:?}", args[0]);
-                            assert!(args.len() == 1);
+                            assert_eq!(args.len(), 1);
                             let encoded_rhs = self.mir_encoder.encode_old_expr(encoded_args[0].clone(), PRECONDITION_LABEL);
                             let mut state = states[&target_block].clone();
                             state.substitute_value(&lhs_value, encoded_rhs);
@@ -420,7 +420,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                         "prusti_contracts::internal::before_expiry" => {
                             trace!("Encoding before_expiry expression {:?}", args[0]);
-                            assert!(args.len() == 1);
+                            assert_eq!(args.len(), 1);
                             let encoded_rhs = self.mir_encoder.encode_old_expr(encoded_args[0].clone(), WAND_LHS_LABEL);
                             let mut state = states[&target_block].clone();
                             state.substitute_value(&lhs_value, encoded_rhs);

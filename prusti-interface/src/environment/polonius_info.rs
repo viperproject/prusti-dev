@@ -1140,7 +1140,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             let incoming_zombies = incoming_loans.iter().any(|&b| b);
             debug!("incoming_loans={:?} loan={:?} zombie_loans={:?}",
                    incoming_loans, loan, zombie_loans);
-            assert!(incoming_zombies == incoming_loans.iter().all(|&b| b));
+            assert_eq!(incoming_zombies, incoming_loans.iter().all(|&b| b));
             incoming_zombies
         } else {
             false
@@ -1250,7 +1250,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 }
             }
         }
-        assert!(root_loans.len() == 1, "We do not support branches inside loops");
+        assert_eq!(root_loans.len(), 1, "We do not support branches inside loops");
         root_loans[0]
     }
 
@@ -1309,7 +1309,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 .. location
             }]
         } else {
-            debug_assert!(location.statement_index == 0);
+            debug_assert_eq!(location.statement_index, 0);
             let mut predecessors = HashSet::new();
             for (bbi, bb_data) in self.mir.basic_blocks().iter_enumerated() {
                 for &bb_successor in bb_data.terminator.as_ref().unwrap().successors() {

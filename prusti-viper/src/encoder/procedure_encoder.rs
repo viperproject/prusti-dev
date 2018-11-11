@@ -1274,7 +1274,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     "<std::boxed::Box<T>>::new" => {
                         // This is the initialization of a box
                         // args[0]: value to put in the box
-                        assert!(args.len() == 1);
+                        assert_eq!(args.len(), 1);
 
                         let &(ref target_place, _) = destination.as_ref().unwrap();
                         let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place);
@@ -2222,7 +2222,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let num_variants = adt_def.variants.len();
                         // FIXME: why this can be None?
                         let variant_index = opt_variant_index.unwrap_or_else(|| {
-                            assert!(num_variants == 1);
+                            assert_eq!(num_variants, 1);
                             0
                         });
                         let tcx = self.encoder.env().tcx();

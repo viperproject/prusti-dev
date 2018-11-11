@@ -332,7 +332,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let mut perms: Vec<vir::Expr> = vec![];
                 let num_variants = adt_def.variants.len();
                 let tcx = self.encoder.env().tcx();
-                assert!(num_variants == 1);
+                assert_eq!(num_variants, 1);
                 let field_ty = self.ty.boxed_ty();
                 let elem_field = self.encoder.encode_ref_field("val_ref", field_ty);
                 let predicate_name = self.encoder.encode_type_predicate_use(field_ty);

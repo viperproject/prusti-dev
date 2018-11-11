@@ -59,7 +59,7 @@ impl<'tcx> LocalVariableManager<'tcx> {
         for (real_local, real_local_decl) in real_locals.iter_enumerated() {
             let index = manager.variables.push(
                 LocalVarData::RealLocal(real_local, real_local_decl.clone()));
-            assert!(real_local.index() == index.index());
+            assert_eq!(real_local.index(), index.index());
         }
         manager
     }
