@@ -385,6 +385,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let curr_mir_encoder = MirEncoder::new_with_namespace(self.encoder, curr_mir, curr_def_id, curr_namespace.clone());
 
             trace!("Procedure {:?} is contained in {:?}", curr_def_id, outer_def_id);
+            let stop_at_bbi = if format!("{:?}", outer_def_id).contains("{{closure}}") {
+                // FIXME: A hack to identify if we are more than on closure inside the loop.
+                // If this is a case, when stop_at_bbi makes no sense because it refers to
+                // non-existant basic block.
+                None
+            } else {
+                self.stop_at_bbi.clone()
+            };
             let is_spec_function = self.encoder.get_closure_instantiations(outer_def_id).is_empty();
             let outer_node_id = tcx.hir.as_local_node_id(outer_def_id).unwrap();
             let outer_procedure = self.encoder.env().get_procedure(outer_def_id);
@@ -470,7 +478,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let initial_state = run_backward_interpretation_point_to_point(
                 outer_mir,
                 &interpreter,
-                self.stop_at_bbi.unwrap_or(mir::START_BLOCK),
+                stop_at_bbi.unwrap_or(mir::START_BLOCK),
                 outer_bb_index,
                 outer_stmt_index,
                 state,

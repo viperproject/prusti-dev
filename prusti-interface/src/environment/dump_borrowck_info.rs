@@ -348,7 +348,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td>{:?}</td>", bb);
         write_graph!(self, "<td colspan=\"7\"></td>");
         write_graph!(self, "<td>Definitely Initialized</td>");
-        write_graph!(self, "<td>Liveness</td>");
+        if self.show_liveness() {
+            write_graph!(self, "<td>Liveness</td>");
+        }
         write_graph!(self, "</th>");
 
         // Is this the entry point of a procedure?
@@ -504,7 +506,9 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td colspan=\"2\">Borrow Regions</td>");
         write_graph!(self, "<td colspan=\"2\">Regions</td>");
         write_graph!(self, "<td>{}</td>", self.get_definitely_initialized_before_block(bb));
-        write_graph!(self, "<td>{}</td>", self.get_live_before_block(bb));
+        if self.show_liveness() {
+            write_graph!(self, "<td>{}</td>", self.get_live_before_block(bb));
+        }
         write_graph!(self, "</th>");
 
         let mir::BasicBlockData { ref statements, ref terminator, .. } = self.mir[bb];
@@ -529,10 +533,12 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         write_graph!(self, "<td></td>");
         self.write_mid_point_blas(location)?;
         write_graph!(self, "<td colspan=\"4\"></td>");
-        write_graph!(self, "<td>{}</td>",
-                     self.get_definitely_initialized_after_statement(location));
-        write_graph!(self, "<td>{}</td>",
-                     self.get_live_after_statement(location));
+            write_graph!(self, "<td>{}</td>",
+                         self.get_definitely_initialized_after_statement(location));
+        if self.show_liveness() {
+            write_graph!(self, "<td>{}</td>",
+                         self.get_live_after_statement(location));
+        }
         write_graph!(self, "</tr>");
         if let Some(ref term) = &terminator {
             if let mir::TerminatorKind::Return = term.kind {
@@ -703,8 +709,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
         write_graph!(self, "<td>{}</td>",
                      self.get_definitely_initialized_after_statement(location));
-        write_graph!(self, "<td>{}</td>",
-                     self.get_live_after_statement(location));
+        if self.show_liveness() {
+            write_graph!(self, "<td>{}</td>",
+                         self.get_live_after_statement(location));
+        }
 
         write_graph!(self, "</tr>");
         Ok(())
@@ -792,6 +800,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
     fn show_restricts(&self) -> bool {
         get_config_option("PRUSTI_DUMP_SHOW_RESTRICTS", false)
+    }
+
+    fn show_liveness(&self) -> bool {
+        get_config_option("PRUSTI_DUMP_SHOW_LIVENESS", false)
     }
 }
 
