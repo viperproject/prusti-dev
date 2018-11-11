@@ -44,7 +44,7 @@ info "Using OVERALL_EVALUATION_TIMEOUT=$OVERALL_EVALUATION_TIMEOUT seconds" | te
 	echo "  \"start_date\": \"$start_date\","
 	echo "  \"in_progress\": true"
 	echo "}"
-) | tee -a "$report_file"
+) | tee "$report_file"
 
 (
 	# Timeout is OVERALL_EVALUATION_TIMEOUT seconds (+5 min)
