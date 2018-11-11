@@ -1093,6 +1093,13 @@ impl Expr {
         }
     }
 
+    pub fn is_unfolding(&self) -> bool {
+        match self {
+            &Expr::Unfolding(..) => true,
+            _ => false,
+        }
+    }
+
     /// Puts an `old[label](..)` around the expression
     pub fn old<S: fmt::Display + ToString>(self, label: S) -> Self {
         match self {
