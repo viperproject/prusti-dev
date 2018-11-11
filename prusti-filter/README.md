@@ -225,3 +225,20 @@ Verify supported functions from top 500 crates
 	```bash
 	prusti-filter/script/analyze-evaluation.sh ../crates
 	```
+
+### Examples
+
+```bash
+EVALUATION_TIMEOUT=1800 \
+./prusti-filter/script/evaluate-all-crates.sh ../crates/
+```
+
+```bash
+BASELINE_EVALUATION=false \
+PRUSTI_CHECK_PANICS=true \
+PRUSTI_CHECK_BINARY_OPERATIONS=true \
+FINE_GRAINED_EVALUATION=true \
+EVALUATION_TIMEOUT=900 \
+MAX_PARALLEL_EVALUATIONS=4 \
+./prusti-filter/script/evaluate-all-crates.sh ../crates/
+```
