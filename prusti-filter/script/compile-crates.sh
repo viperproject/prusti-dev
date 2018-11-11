@@ -23,12 +23,13 @@ fi
 COMPILATION_TIMEOUT="${2:-900}"
 info "Using COMPILATION_TIMEOUT=$COMPILATION_TIMEOUT seconds"
 
-compilation_report="$CRATE_DOWNLOAD_DIR/compilation-report.csv"
-supported_crates="$CRATE_DOWNLOAD_DIR/supported-crates.csv"
-supported_crates_tmp="$supported_crates.tmp"
+start_date="$(date '+%Y-%m-%d-%H%M%S')"
+compilation_report="$CRATE_DOWNLOAD_DIR/compilation-report-$start_date.csv"
+supported_crates="$CRATE_DOWNLOAD_DIR/supported-crates-$start_date.csv"
+compilation_report_final="$CRATE_DOWNLOAD_DIR/compilation-report.csv"
+supported_crates_final="$CRATE_DOWNLOAD_DIR/supported-crates.csv"
 echo "'Crate name', 'Successful cleanup', 'Successful compilation', 'Duration (s)', 'Exit status'" > "$compilation_report"
 info "Report: '$compilation_report'"
-rm -f "$supported_crates"
 
 info "Run standard compilation"
 
@@ -61,11 +62,12 @@ ls -d "$CRATE_DOWNLOAD_DIR"/*/ | while read crate_path; do
 	if [[ "$exit_status" == "0" ]]; then
 		info "Successful compilation"
 		echo "'$crate_name', true, true, $duration, $exit_status" >> "$compilation_report"
-		echo "$crate_name" >> "$supported_crates_tmp"
+		echo "$crate_name" >> "$supported_crates"
 	else
 		info "Cargo build failed with exit status $exit_status"
 		echo "'$crate_name', true, false, $duration, $exit_status" >> "$compilation_report"
 	fi
 done
 
-mv "$supported_crates_tmp" "$supported_crates"
+cp "$compilation_report" "$compilation_report_final"
+cp "$supported_crates" "$supported_crates_final"

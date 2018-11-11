@@ -26,7 +26,8 @@ TIMEOUT="${2:-900}"
 info "Using TIMEOUT=$TIMEOUT seconds"
 
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
-evaluation_log_file="$CRATE_DOWNLOAD_DIR/evaluation-log-${start_date}.log"
+evaluation_log_file="$CRATE_DOWNLOAD_DIR/evaluation-log-$start_date.log"
+evaluation_log_file_final="$CRATE_DOWNLOAD_DIR/evaluation-log.log"
 info "Using evaluation_log_file='$evaluation_log_file'"
 
 (
@@ -44,3 +45,5 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 		"supported-procedures-with-panics.csv" "$TIMEOUT"
 
 ) 2>&1 | tee "$evaluation_log_file"
+
+cp "$evaluation_log_file" "$evaluation_log_file_final"

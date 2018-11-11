@@ -26,7 +26,9 @@ if [[ ! -r "$CRATES_LIST_PATH" ]]; then
 	exit 1
 fi
 
-whitelist_report="$CRATE_DOWNLOAD_DIR/whitelist-report.csv"
+start_date="$(date '+%Y-%m-%d-%H%M%S')"
+whitelist_report="$CRATE_DOWNLOAD_DIR/whitelist-report-$start_date.csv"
+whitelist_report_final="$CRATE_DOWNLOAD_DIR/whitelist-report.csv"
 echo "'Crate name', 'Successful whitelist', 'Items in whitelist'" > "$whitelist_report"
 info "Report: '$whitelist_report'"
 
@@ -62,3 +64,5 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 	echo "'$crate_name', $num_procedures, $num_supported_procedures, $num_supported_procedures_with_panics" >> "$whitelist_report"
 done
+
+cp "$whitelist_report" "$whitelist_report_final"

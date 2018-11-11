@@ -50,7 +50,9 @@ info "Using PRUSTI_CHECK_PANICS=$PRUSTI_CHECK_PANICS"
 export PRUSTI_CHECK_BINARY_OPERATIONS="${PRUSTI_CHECK_BINARY_OPERATIONS:-false}"
 info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
 
-verification_report="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME-$(date '+%Y-%m-%d-%H%M%S').csv"
+start_date="$(date '+%Y-%m-%d-%H%M%S')"
+verification_report="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME-$start_date.csv"
+verification_report_final="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME.csv"
 echo "'Crate name', 'Procedure', 'Verifies fine', 'Duration (s)', 'Exit status'" > "$verification_report"
 info "Report: '$verification_report'"
 
@@ -106,3 +108,5 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		fi
 	done
 done
+
+cp "$verification_report" "$verification_report_final"
