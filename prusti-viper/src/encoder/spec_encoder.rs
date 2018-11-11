@@ -294,7 +294,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                 self.encode_hir_expr(&arguments[0]),
                             )*/
                         } else {
-                            unimplemented!("TODO: call function {:?} from specification", fn_name)
+                            unimplemented!("TODO: function call {:?}", fn_name)
                         }
                     }
 
