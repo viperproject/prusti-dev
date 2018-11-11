@@ -17,7 +17,7 @@ CRATE_DOWNLOAD_DIR="$(cd "${1:-.}" && pwd)"
 cd "$CRATE_DOWNLOAD_DIR"
 
 if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
-	echo "It looks like CRATE_DOWNLOAD_DIR is wrong: '$CRATE_DOWNLOAD_DIR'"
+	error "It looks like CRATE_DOWNLOAD_DIR is wrong: '$CRATE_DOWNLOAD_DIR'"
 	exit 1
 fi
 
@@ -58,4 +58,4 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 	"$DIR/verify-crates-fine-grained.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
 		"supported-procedures-with-panics.csv" "$TIMEOUT"
 
-) | tee "$evaluation_log_file"
+) 2>&1 | tee "$evaluation_log_file"
