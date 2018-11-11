@@ -35,6 +35,9 @@ info "Using FORCE_PRUSTI_FILTER=$FORCE_PRUSTI_FILTER"
 FINE_GRAINED_EVALUATION="${FINE_GRAINED_EVALUATION:-false}"
 info "Using FINE_GRAINED_EVALUATION=$FINE_GRAINED_EVALUATION"
 
+BASELINE_EVALUATION="${BASELINE_EVALUATION:-true}"
+info "Using BASELINE_EVALUATION=$BASELINE_EVALUATION"
+
 export PRUSTI_CHECK_PANICS="${PRUSTI_CHECK_PANICS:-false}"
 info "Using PRUSTI_CHECK_PANICS=$PRUSTI_CHECK_PANICS"
 
@@ -50,23 +53,25 @@ info "Using CARGO_PRUSTI=$CARGO_PRUSTI"
 CARGO_PRUSTI_FILTER="$DIR/../../docker/cargo-prusti-filter"
 info "Using CARGO_PRUSTI_FILTER=$CARGO_PRUSTI_FILTER"
 
-info "Run standard compilation"
-
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
 export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
 export POLONIUS_ALGORITHM="Naive"
 
-exit_status="0"
-cargo clean || exit_status="$?"
-if [[ "$exit_status" != "0" ]]; then
-	info "The crate does not compile (cargo clean failed with exit status $exit_status). Skip verification."
-	exit 42
-fi
-# Timeout in seconds
-timeout -k 10 $EVALUATION_TIMEOUT cargo build || exit_status="$?"
-if [[ "$exit_status" != "0" ]]; then
-	info "The crate does not compile (cargo build failed with exit status $exit_status). Skip verification."
-	exit 42
+if [[ "$BASELINE_EVALUATION" != "false" ]] ; then
+	info "Run standard compilation"
+
+	exit_status="0"
+	cargo clean || exit_status="$?"
+	if [[ "$exit_status" != "0" ]]; then
+		info "The crate does not compile (cargo clean failed with exit status $exit_status). Skip verification."
+		exit 42
+	fi
+	# Timeout in seconds
+	timeout -k 10 $EVALUATION_TIMEOUT cargo build || exit_status="$?"
+	if [[ "$exit_status" != "0" ]]; then
+		info "The crate does not compile (cargo build failed with exit status $exit_status). Skip verification."
+		exit 42
+	fi
 fi
 
 # Delete old Prusti configurations
@@ -94,8 +99,11 @@ num_supported_procedures="$(echo "$supported_procedures" | grep . | wc -l || tru
 info "Number of supported procedures in crate: $num_supported_procedures"
 #info "Supported procedures in crate:\n$supported_procedures"
 
-# Clean compilation cache
-cargo clean
+if [[ "$BASELINE_EVALUATION" != "false" ]] ; then
+	# Clean compilation cache
+	cargo clean
+fi
+
 # Save disk space
 rm -rf log/ nll-facts/
 # This is important! Without this, NLL facts are not recomputed and dumped to nll-facts.
