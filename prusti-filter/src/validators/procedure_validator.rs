@@ -112,12 +112,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
         match ty.sty {
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => {
-                interesting!(self, "mutable reference in return type");
+                interesting!(self, "has mutable reference in return type");
                 self.check_return_ty(inner_ty);
             }
 
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) => {
-                interesting!(self, "immutable reference in return type");
+                interesting!(self, "has immutable reference in return type");
                 self.check_return_ty(inner_ty);
             }
 
@@ -433,7 +433,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     let proc_name: &str = &self.tcx.absolute_item_path_str(def_id);
                     match proc_name {
                         "std::rt::begin_panic" |
-                        "std::panicking::begin_panic" => {} // OK
+                        "std::panicking::begin_panic" => {
+                            interesting!(self, "uses panics");
+                        }
 
                         "<std::boxed::Box<T>>::new" => {
                             for arg in args {

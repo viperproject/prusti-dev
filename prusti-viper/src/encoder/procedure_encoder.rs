@@ -1507,8 +1507,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
 
                             // As a last step, re-allocate arguments that were used in the function
-                            // call. We do this after inhaling the functional spec, such that the
-                            // user can not inhale equalities and trigger unsoundness.
+                            // call. We do this after inhaling the functional spec, so that the
+                            // user can not inhale equalities and trigger unsoundness by mistake.
                             // This is only needed inside loops.
                             let inside_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                             if inside_loop {
