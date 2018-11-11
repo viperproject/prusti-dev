@@ -105,10 +105,10 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file" | cut -d ' ' -f 4 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 
 	if [[ "$exit_status" == "0" ]]; then
-		info "Successful verification"
+		info "Successful verification ($whitelist_items/$verified_items/$successful_items)"
 		echo "'$crate_name', true, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status" >> "$verification_report"
 	else
-		info "Verification failed with exit status $exit_status."
+		info "Verification failed with exit status $exit_status ($whitelist_items/$verified_items/$successful_items)"
 		echo "'$crate_name', false, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status" >> "$verification_report"
 	fi
 done
