@@ -123,7 +123,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: inner_ty, .. }) => {
                 self.check_return_ty(inner_ty);
-            },
+            }
 
             // Structures, enumerations and unions.
             ty::TypeVariants::TyAdt(adt_def, substs) => {
@@ -131,15 +131,15 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     let field_ty = field_def.ty(self.tcx, substs);
                     self.check_return_ty(field_ty);
                 }
-            },
+            }
 
             ty::TypeVariants::TyArray(inner_ty, ..) => {
                 self.check_return_ty(inner_ty);
-            },
+            }
 
             ty::TypeVariants::TySlice(inner_ty, ..) => {
                 self.check_return_ty(inner_ty);
-            },
+            }
 
             ty::TypeVariants::TyTuple(inner_tys) => {
                 for inner_ty in inner_tys {
@@ -220,7 +220,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "adt"),
                     }
                 }
-            },
+            }
 
             ty::TypeVariants::TyForeign(..) => unsupported_pos!(self, pos, "uses foreign types"),
 
@@ -229,29 +229,29 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             ty::TypeVariants::TyArray(inner_ty, ..) => {
                 self.check_inner_ty(inner_ty, pos);
                 unsupported_pos!(self, pos, "uses `array` types")
-            },
+            }
 
             ty::TypeVariants::TySlice(inner_ty, ..) => {
                 self.check_inner_ty(inner_ty, pos);
                 unsupported_pos!(self, pos, "uses `slice` types")
-            },
+            }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutMutable, ty: inner_ty }) => {
                 partially_pos!(self, pos, "uses raw pointers");
                 self.check_inner_ty(inner_ty, pos);
-            },
+            }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: hir::MutImmutable, ty: inner_ty }) => {
                 partially_pos!(self, pos, "uses shared raw pointers");
                 self.check_inner_ty(inner_ty, pos);
-            },
+            }
 
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => self.check_inner_ty(inner_ty, pos),
 
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) => {
                 partially_pos!(self, pos, "uses shared references");
                 self.check_inner_ty(inner_ty, pos);
-            },
+            }
 
             ty::TypeVariants::TyFnDef(..) => unsupported_pos!(self, pos, "uses function types"),
 
@@ -265,7 +265,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyGeneratorWitness(..) => unsupported_pos!(self, pos, "uses generators"),
 
-            ty::TypeVariants::TyNever => {}, // OK
+            ty::TypeVariants::TyNever => {} // OK
 
             ty::TypeVariants::TyTuple(inner_tys) => {
                 for inner_ty in inner_tys {
@@ -367,7 +367,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::StatementKind::Assign(ref place, ref rvalue) => {
                 self.check_place(mir, place);
                 self.check_rvalue(mir, rvalue);
-            },
+            }
 
             mir::StatementKind::ReadForMatch(ref place) => self.check_place(mir, place),
 
@@ -400,7 +400,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::TerminatorKind::Resume => {
                 // This should be unreachable
                 partially!(self, "uses `resume` MIR statements");
-            },
+            }
 
             mir::TerminatorKind::Abort => {} // OK
 
@@ -473,16 +473,16 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                         None => {
                                             unsupported!(self, "calls body-less functions");
                                             false
-                                        },
-                                    },
-                                },
+                                        }
+                                    }
+                                }
                             };
                             if can_build_mir {
                                 // Check that the contract of the called function is supported
                                 let procedure = Procedure::new(self.tcx, def_id);
                                 self.check_mir_signature(&procedure);
                             }
-                        },
+                        }
                     }
                 } else {
                     unsupported!(self, "uses non explicit function calls");
@@ -492,7 +492,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::TerminatorKind::Assert { ref cond, .. } => {
                 interesting!(self, "uses assertions");
                 self.check_operand(mir, cond)
-            },
+            }
 
             mir::TerminatorKind::Yield {..} => unsupported!(self, "uses `yield`"),
 
@@ -561,16 +561,19 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     fn check_binary_op(&mut self, op: &mir::BinOp, left_ty: ty::Ty<'tcx>, right_ty: ty::Ty<'tcx>) {
         use rustc::mir::BinOp::*;
         match op {
-            Add | Sub | Mul => {}, // OK
-            Div | Rem => {}, // OK
+            Add | Sub | Mul => {} // OK
+            Div => {
+                interesting!(self, "uses division")
+            }
+            Rem => {} // OK
             BitXor | BitAnd | BitOr => {
                 match (&left_ty.sty, &right_ty.sty) {
                     (ty::TypeVariants::TyBool, ty::TypeVariants::TyBool) => {} // OK
                     _ => unsupported!(self, "uses bit operations for non-boolean types")
                 }
-            },
+            }
             Shl | Shr => unsupported!(self, "uses bit shift operations"),
-            Eq | Lt | Le | Ne | Ge | Gt => {}, // OK
+            Eq | Lt | Le | Ne | Ge | Gt => {} // OK
             Offset => unsupported!(self, "uses offset operation"),
         }
     }
@@ -578,13 +581,13 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     fn check_unary_op(&mut self, op: &mir::UnOp, ty: ty::Ty<'tcx>) {
         use rustc::mir::UnOp::*;
         match op {
-            Neg => {}, // OK
+            Neg => {} // OK
             Not => {
                 match &ty.sty {
                     ty::TypeVariants::TyBool => {} // OK
                     _ => unsupported!(self, "uses '!' negation for non-boolean types"),
                 }
-            },
+            }
         }
     }
 
@@ -597,7 +600,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                 partially!(self, "uses shared references");
                 self.check_place(mir, place);
-            },
+            }
 
             mir::Rvalue::Ref(_, mir::BorrowKind::Unique, ref place) => self.check_place(mir, place),
 
@@ -628,7 +631,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 let ty = self.get_operand_ty(mir, operand);
                 self.check_unary_op(op, ty);
                 self.check_operand(mir, operand)
-            },
+            }
 
             mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty, "assignment of box"),
 
@@ -662,7 +665,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 match value.val {
                     ConstVal::Value(ref value) => {
                         requires!(self, value.to_scalar().is_some(), "uses non-scalar literals");
-                    },
+                    }
                     ConstVal::Unevaluated(def_id, substs) => {
                         // On crate `078_crossbeam` the `const_eval` call fails with
                         // "can't type-check body of DefId(0/0:18 ~ lock_api[964c]::mutex[0]::RawMutex[0]::INIT[0])"
@@ -711,7 +714,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::AggregateKind::Array(ty) => {
                 unsupported!(self, "uses arrays");
                 self.check_ty(ty, "assignment")
-            },
+            }
 
             mir::AggregateKind::Tuple => {} // OK
 
