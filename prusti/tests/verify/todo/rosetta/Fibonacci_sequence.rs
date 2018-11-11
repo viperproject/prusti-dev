@@ -49,14 +49,6 @@ impl UsizeOption {
             UsizeOption::None => false,
         }
     }
-    #[requires="self.is_some()"]
-    #[ensures="result == old(self.peek())"]
-    fn unwrap(self) -> usize {
-        match self {
-            UsizeOption::Some(n) => n,
-            UsizeOption::None => unreachable!(),
-        }
-    }
     #[pure]
     #[requires="self.is_some()"]
     fn peek(&self) -> usize {
@@ -133,12 +125,14 @@ fn main() {
     #[invariant="continue_iteration ==> iter.valid()"]
     while continue_iteration {
         let item = iter.next();
-        if item.is_some() {
-            let i = iter.counter();
-            let n = item.unwrap();
-            print_fib(i, n);
-        } else {
-            continue_iteration = false;
+        match item {
+            UsizeOption::Some(n) => {
+                let i = iter.counter();
+                print_fib(i, n);
+            }
+            UsizeOption::None => {
+                continue_iteration = false;
+            }
         }
     }
 }
