@@ -44,7 +44,7 @@ info "Using CARGO_PRUSTI_FILTER=$CARGO_PRUSTI_FILTER"
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 filtering_report="$CRATE_DOWNLOAD_DIR/filtering-report-$start_date.csv"
 filtering_report_final="$CRATE_DOWNLOAD_DIR/filtering-report.csv"
-echo "'Crate name', 'Successful filtering', 'Duration (s)', 'Exit status'" > "$filtering_report"
+echo "'Crate name', 'Successful filtering', 'Duration (s)', 'Exit status', 'Start', 'End'" > "$filtering_report"
 info "Report: '$filtering_report'"
 
 info "Run filtering on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -62,6 +62,8 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	CRATE_ROOT="$CRATE_DOWNLOAD_DIR/$crate_name/source"
 	cd "$CRATE_ROOT"
 
+	start_crate="$(date '+%Y-%m-%d %H:%M:%S')"
+
 	rm -f "$CRATE_ROOT/prusti-filter-results.json"
 	cargoclean
 
@@ -70,11 +72,13 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	timeout -k 10 "$FILTERING_TIMEOUT" "$CARGO_PRUSTI_FILTER" -j 1 || exit_status="$?"
 	duration="$SECONDS"
 	if [[ "$exit_status" == "0" ]]; then
+		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Successful filtering"
-		echo "'$crate_name', true, $duration, $exit_status" >> "$filtering_report"
+		echo "'$crate_name', true, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$filtering_report"
 	else
+		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Filtering failed with exit status $exit_status."
-		echo "'$crate_name', false, $duration, $exit_status" >> "$filtering_report"
+		echo "'$crate_name', false, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$filtering_report"
 	fi
 done
 

@@ -53,7 +53,7 @@ info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 verification_report="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME-$start_date.csv"
 verification_report_final="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME.csv"
-echo "'Crate name', 'Successful verification', 'Whitelist items', 'Verified items', 'Successful items', 'Duration (s)', 'Exit status'" > "$verification_report"
+echo "'Crate name', 'Successful verification', 'Whitelist items', 'Verified items', 'Successful items', 'Duration (s)', 'Exit status', 'Start', 'End'" > "$verification_report"
 info "Report: '$verification_report'"
 
 info "Run verification on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -75,7 +75,9 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	cd "$CRATE_ROOT"
 
 	WHITELIST_FILE="$CRATE_DIR/$WHITELIST_FILENAME"
-	log_file="$CRATE_DIR/verify-coarse-grained.log"
+	log_file="$CRATE_DIR/verify-coarse-grained-$start_date.log"
+
+	start_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 
 	# Save disk space
 	rm -rf log/ nll-facts/
@@ -99,7 +101,7 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 	exit_status="0"
 	SECONDS=0
-	timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 | tee "$log_file" || exit_status="$?"
+	timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 2>&1 | tee "$log_file" || exit_status="$?"
 	duration="$SECONDS"
 
 	whitelist_items="$( echo "$(egrep 'Number of supported procedures in crate: [0-9]+$' "$log_file" | tail -n 1 | cut -d ' ' -f 10)" | sed 's/^$/0/' )"
@@ -107,11 +109,13 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file" | cut -d ' ' -f 4 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 
 	if [[ "$exit_status" == "0" ]]; then
+		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Successful verification ($whitelist_items/$verified_items/$successful_items)"
-		echo "'$crate_name', true, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status" >> "$verification_report"
+		echo "'$crate_name', true, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$verification_report"
 	else
+		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Verification failed with exit status $exit_status ($whitelist_items/$verified_items/$successful_items)"
-		echo "'$crate_name', false, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status" >> "$verification_report"
+		echo "'$crate_name', false, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$verification_report"
 	fi
 done
 

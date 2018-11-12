@@ -53,7 +53,7 @@ info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 verification_report="$CRATE_DOWNLOAD_DIR/fine-grained-verification-report-$WHITELIST_FILENAME-$start_date.csv"
 verification_report_final="$CRATE_DOWNLOAD_DIR/fine-grained-verification-report-$WHITELIST_FILENAME.csv"
-echo "'Crate name', 'Procedure', 'Verifies fine', 'Duration (s)', 'Exit status'" > "$verification_report"
+echo "'Crate name', 'Procedure', 'Verifies fine', 'Duration (s)', 'Exit status', 'Start', 'End'" > "$verification_report"
 info "Report: '$verification_report'"
 
 info "Run verification on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -75,6 +75,7 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	cd "$CRATE_ROOT"
 
 	WHITELIST_FILE="$CRATE_DIR/$WHITELIST_FILENAME"
+	log_file="$CRATE_DIR/verify-fine-grained-$start_date.log"
 
 	# Save disk space
 	rm -rf log/ nll-facts/
@@ -83,6 +84,8 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 	cat "$WHITELIST_FILE" | while read procedure_path; do
 		info "=== Crate '$crate_name' procedure $procedure_path ==="
+
+		start_proc="$(date '+%Y-%m-%d %H:%M:%S')"
 
 		(
 			echo "CHECK_PANICS = $PRUSTI_CHECK_PANICS"
@@ -97,14 +100,16 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 		exit_status="0"
 		SECONDS=0
-		timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 || exit_status="$?"
+		timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 2>&1 | tee -a "$log_file" || exit_status="$?"
 		duration="$SECONDS"
 		if [[ "$exit_status" == "0" ]]; then
+			end_proc="$(date '+%Y-%m-%d %H:%M:%S')"
 			info "Successful verification"
-			echo "'$crate_name', $procedure_path, true, $duration, $exit_status" >> "$verification_report"
+			echo "'$crate_name', $procedure_path, true, $duration, $exit_status, '$start_proc', '$end_proc'" >> "$verification_report"
 		else
+			end_proc="$(date '+%Y-%m-%d %H:%M:%S')"
 			info "Verification failed with exit status $exit_status."
-			echo "'$crate_name', $procedure_path, false, $duration, $exit_status" >> "$verification_report"
+			echo "'$crate_name', $procedure_path, false, $duration, $exit_status, '$start_proc', '$end_proc'" >> "$verification_report"
 		fi
 	done
 done
