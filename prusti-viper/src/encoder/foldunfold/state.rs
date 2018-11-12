@@ -42,11 +42,18 @@ impl State {
         // Check access permissions
         for place in self.pred.keys() {
             if !place.has_old() && !self.contains_acc(place) {
-                panic!(
-                    "Consistency error: state has pred {}, but not acc {}",
-                    place,
-                    place
-                );
+                let contains_parent_pred = if let Some(parent) = place.get_parent() {
+                    self.pred.contains_key(&parent)
+                } else {
+                    false
+                };
+                if !contains_parent_pred {
+                    panic!(
+                        "Consistency error: state has pred {}, but not acc {}",
+                        place,
+                        place
+                    );
+                }
             }
         }
         for place in self.acc.keys() {
@@ -64,11 +71,13 @@ impl State {
         for place in self.pred.keys() {
             for other_place in self.pred.keys() {
                 if !place.has_old() && !other_place.has_old() && place.has_proper_prefix(&other_place) {
-                    panic!(
-                        "Consistency error: state has pred {}, but also pred {}",
-                        place,
-                        other_place
-                    );
+                    if self.pred[place] + self.pred[other_place] > Frac::one() {
+                        panic!(
+                            "Consistency error: state has pred {}, but also pred {}",
+                            place,
+                            other_place
+                        );
+                    }
                 }
             }
         }

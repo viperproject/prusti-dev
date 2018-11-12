@@ -217,7 +217,15 @@ impl<'tcx> PermissionTree<'tcx> {
         debug!("place {:?}", place);
         debug!("self.root {:?}", self.root);
         let mut component_count = place.component_count() - 1;  // Without root.
-        assert!(component_count > 0, "Adding a root {:?} to an existing tree.", place);
+        if component_count == 0 {
+            // Because we add all write nodes before read nodes, it can
+            // happen that we have a tree already for which we want to add
+            // a read node. In this case we just ignore the node being added.
+            // TODO: Check if we do not need to make sure to add all if
+            // its children.
+            assert!(!is_target_write, "Adding a write root node to an existing tree.");
+            return;
+        }
         let mut current_parent_node = &mut self.root;
         while component_count > 1 {
             let component = place_iter.next().unwrap();
