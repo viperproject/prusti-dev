@@ -328,7 +328,7 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
     fn visit_raw_ptr(&mut self, ty: ty::Ty<'tcx>, mutability: hir::Mutability) {
         trace!("visit_raw_ptr({:?}, {:?}) current_path={:?}", ty, mutability, self.current_path);
         // TODO
-        warn!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
+        debug!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
     }
 }
 

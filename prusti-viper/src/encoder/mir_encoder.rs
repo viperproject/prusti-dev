@@ -271,7 +271,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 val_place.into()
             }
             &mir::Operand::Constant(box mir::Constant { ty, literal: mir::Literal::Promoted { index }, .. }) => {
-                warn!("Incomplete encoding of promoted literal {:?}", operand);
+                debug!("Incomplete encoding of promoted literal {:?}", operand);
 
                 // Generate a function call that leaves the expression undefined.
                 let uuid = format!("defid_{}_{}$promoted_{:?}", self.def_id.krate, self.def_id.index.as_raw_u32(), index.index());
@@ -408,14 +408,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ),
 
                     _ => {
-                        warn!("Encoding of bin op check '{:?}' is incomplete for type {:?}", op, ty);
+                        debug!("Encoding of bin op check '{:?}' is incomplete for type {:?}", op, ty);
                         false.into()
                     }
                 }
 
                 mir::BinOp::Shl |
                 mir::BinOp::Shr => {
-                    warn!("Encoding of bin op check '{:?}' is incomplete", op);
+                    debug!("Encoding of bin op check '{:?}' is incomplete", op);
                     false.into()
                 }
 

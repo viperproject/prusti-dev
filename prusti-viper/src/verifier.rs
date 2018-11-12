@@ -170,19 +170,21 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 let reasons = support_status.get_partially_supported_reasons().join(", ");
                 let proc_name = self.env.get_item_name(proc_id);
                 let message = if is_pure_function {
-                    format!("verification of pure function '{}' may be partially supported. Reasons: {}.", proc_name, reasons)
+                    format!("note that pure function '{}' {}.", proc_name, reasons)
                 } else {
-                    format!("verification of procedure '{}' may be partially supported. Reasons: {}.", proc_name, reasons)
+                    format!("note that procedure '{}' {}.", proc_name, reasons)
                 };
+                debug!("{}", message);
                 self.env.warn(&message);
             } else if support_status.is_unsupported() {
                 let reasons = support_status.get_unsupported_reasons().join(", ");
                 let proc_name = self.env.get_item_name(proc_id);
                 let message = if is_pure_function {
-                    format!("verification of pure function '{}' may be not supported. Reasons: {}.", proc_name, reasons)
+                    format!("note that pure function '{}' {}.", proc_name, reasons)
                 } else {
-                    format!("verification of procedure '{}' may be not supported. Reasons: {}.", proc_name, reasons)
+                    format!("note that procedure '{}' {}.", proc_name, reasons)
                 };
+                debug!("{}", message);
                 self.env.warn(&message);
             }
         }

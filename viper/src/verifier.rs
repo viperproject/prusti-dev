@@ -110,7 +110,7 @@ impl<'a> Verifier<'a, state::Started> {
             consistency_errors = ast_utils.check_consistency(program);
             if consistency_errors.is_empty() {
                 if i != 0 {
-                    warn!("Consistency errors disappeared after re-checking {} times.", i);
+                    debug!("Consistency errors disappeared after re-checking {} times.", i);
                 }
                 break;
             }
@@ -128,9 +128,12 @@ impl<'a> Verifier<'a, state::Started> {
         }
 
         let start_verification = Instant::now();
-        let viper_result = self.jni.unwrap_result(
-            self.verifier_wrapper
-                .call_verify(self.verifier_instance, program.to_jobject()),
+        let viper_result = self.jni.retry_on_exception(
+            || {
+                self.verifier_wrapper
+                    .call_verify(self.verifier_instance, program.to_jobject())
+            },
+            3
         );
         let duration = start_verification.elapsed();
 

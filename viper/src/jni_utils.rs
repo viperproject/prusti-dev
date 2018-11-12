@@ -62,6 +62,19 @@ impl<'a> JniUtils<'a> {
         })
     }
 
+    pub fn retry_on_exception<F, T>(&self, f: F, retry: usize) -> T where F: Fn() -> Result<T> {
+        let mut res = f();
+        for _ in 0..retry {
+            if res.is_ok() {
+                break;
+            } else {
+                let _ = self.env.exception_clear();
+                res = f();
+            }
+        }
+        self.unwrap_result(res)
+    }
+
     /// Converts a Rust Option<JObject> to a Scala Option
     pub fn new_option(&self, opt: Option<JObject>) -> JObject {
         match opt {

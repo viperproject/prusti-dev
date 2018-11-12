@@ -131,7 +131,7 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         let opt_node_id = tcx.hir.as_local_node_id(def_id);
         match opt_node_id {
             None => {
-                warn!("Incomplete encoding of procedures from an external crate");
+                debug!("Incomplete encoding of procedures from an external crate");
                 false
             }
             Some(node_id) => {

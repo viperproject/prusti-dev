@@ -9,6 +9,8 @@ set -eo pipefail
 info() { echo -e "[-] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }
 error() { echo -e "[!] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }
 
+info "=== Compilation ==="
+
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
