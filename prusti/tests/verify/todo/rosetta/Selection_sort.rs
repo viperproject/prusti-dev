@@ -50,11 +50,6 @@ impl VecWrapperI32 {
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
-
-    #[trusted]
-    pub fn swap(&mut self, index_a: usize, index_b: usize) {
-        self.v.swap(index_a, index_b);
-    }
 }
 
 #[pure]
