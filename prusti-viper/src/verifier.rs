@@ -174,7 +174,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 } else {
                     format!("verification of procedure '{}' may be partially supported. Reasons: {}.", proc_name, reasons)
                 };
-                self.env.warn(&message);
+                //self.env.warn(&message);
             } else if support_status.is_unsupported() {
                 let reasons = support_status.get_unsupported_reasons().join(", ");
                 let proc_name = self.env.get_item_name(proc_id);

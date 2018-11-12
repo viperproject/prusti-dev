@@ -110,7 +110,7 @@ impl<'a> Verifier<'a, state::Started> {
             consistency_errors = ast_utils.check_consistency(program);
             if consistency_errors.is_empty() {
                 if i != 0 {
-                    warn!("Consistency errors disappeared after re-checking {} times.", i);
+                    debug!("Consistency errors disappeared after re-checking {} times.", i);
                 }
                 break;
             }

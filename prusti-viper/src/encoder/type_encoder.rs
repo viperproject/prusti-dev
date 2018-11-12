@@ -361,7 +361,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             },
 
             ref ty_variant => {
-                warn!("Encoding of type '{}' is incomplete", ty_variant);
+                debug!("Encoding of type '{}' is incomplete", ty_variant);
                 vec![
                     vir::Expr::Const(true.into())
                 ]

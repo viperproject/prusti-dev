@@ -2398,7 +2398,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         trace!("{:?}", self.mir.promoted[*index].basic_blocks());
                         trace!("{:?}", self.mir.promoted[*index].basic_blocks().into_iter().next().unwrap().statements[0]);
                         // TODO: call eval_const
-                        warn!("Encoding of promoted constant literal '{:?}: {:?}' is incomplete", index, ty);
+                        debug!("Encoding of promoted constant literal '{:?}: {:?}' is incomplete", index, ty);
                         // Workaround: do not initialize values
                     }
                 }
