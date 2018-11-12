@@ -15,8 +15,8 @@ fn fib(i: usize) -> usize {
 }
 
 #[trusted]
-#[requires="fib(i) == n"]
-fn print_fib(i: usize, n: usize) {
+#[requires="fib(_i) == n"]
+fn print_fib(_i: usize, n: usize) {
     println!("{}", n);
 }
 
@@ -35,6 +35,48 @@ fn checked_add(a: usize, b: usize) -> UsizeOption {
         None => UsizeOption::None,
     }
 }
+
+// Iterative
+
+fn iterative_fibonacci() {
+    let mut prev = 0;
+    // Rust needs this type hint for the checked_add method
+    let mut curr = 1usize;
+
+    let mut _ghost_counter = 1;
+    let mut add_succeeded = true;
+
+    #[invariant="_ghost_counter >= 1"]
+    #[invariant="add_succeeded ==> fib(_ghost_counter) == curr"]
+    #[invariant="add_succeeded ==> fib(_ghost_counter-1) == prev"]
+    while add_succeeded {
+        if let UsizeOption::Some(n) = checked_add(curr, prev) {
+            prev = curr;
+            curr = n;
+            _ghost_counter += 1;
+            print_fib(_ghost_counter, curr);
+        } else {
+            add_succeeded = false;
+        }
+    }
+}
+
+// Recursive
+
+#[requires="_ghost_counter >= 1"]
+#[requires="fib(_ghost_counter-1) == prev"]
+#[requires="fib(_ghost_counter) == curr"]
+fn recursive_fibonacci(_ghost_counter: usize, prev: usize, curr: usize) {
+    let mut prev = prev;
+    let mut curr = curr;
+    swap(&mut prev, &mut curr);
+    if let UsizeOption::Some(n) = checked_add(curr, prev) {
+        print_fib(_ghost_counter+1, n);
+        recursive_fibonacci(_ghost_counter+1, prev, n);
+    }
+}
+
+// Using an Iterator
 
 enum UsizeOption {
     Some(usize),
@@ -58,28 +100,6 @@ impl UsizeOption {
         }
     }
 }
-
-/*
-fn iterative_fibonacci() {
-    let mut prev = 0;
-    // Rust needs this type hint for the checked_add method
-    let mut curr = 1usize;
-
-    while let Some(n) = curr.checked_add(prev) {
-        prev = curr;
-        curr = n;
-        println!("{}", n);
-    }
-}
-
-fn fibonacci(mut prev: usize, mut curr: usize) {
-    mem::swap(&mut prev, &mut curr);
-    if let Some(n) = curr.checked_add(prev) {
-        println!("{}", n);
-        fibonacci(prev, n);
-    }
-}
-*/
 
 struct Fib {
     prev: usize,
@@ -135,4 +155,6 @@ fn main() {
             }
         }
     }
+    iterative_fibonacci();
+    recursive_fibonacci(1, 0, 1);
 }
