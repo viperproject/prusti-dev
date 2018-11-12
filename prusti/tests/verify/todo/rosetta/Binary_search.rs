@@ -96,33 +96,78 @@ fn cmp(a: &mut i32, b: &mut i32) -> Ordering {
     else { Greater }
 }
 
-
 fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
 {
     let mut size = arr.len();
     let mut base = 0;
 
     let mut result = UsizeOption::None;
-    //let mut finished = size > 2;
- 
-    //while finished {
-        //size /= 2;
+    let mut finished = size > 2;
+
+    while finished {
+        size /= 2;
         let mid = base + size;
 
         let mid_element = arr.borrow(mid);
-        let x = mid_element;
-        //let cmp_result = cmp(mid_element, elem);
-        //base = match cmp_result {
-            //Less    => mid,
-            //Greater => base,
-            //Equal   => {
-                //result = UsizeOption::Some(mid);
-                //0   // Just return anything because we are finished.
-            //}
-        //};
-        //finished = size > 2 || result.is_some();
-    //}
- 
+        let cmp_result = cmp(mid_element, elem);
+        base = match cmp_result {
+            Less    => mid,
+            Greater => base,
+            Equal   => {
+                result = UsizeOption::Some(mid);
+                0   // Just return anything because we are finished.
+            }
+        };
+        finished = size > 2 || result.is_some();
+    }
+
+    result
+}
+
+fn borrow_test1(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
+{
+    let mut size = arr.len();
+    let mut base = 0;
+    let mut result = UsizeOption::None;
+    let mid = base + size;
+    let mid_element = arr.borrow(mid);
+    let x = mid_element;
+    result
+}
+
+fn borrow_test2(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
+{
+    let mut size = arr.len();
+    let mut base = 0;
+
+    let mut result = UsizeOption::None;
+    let mut finished = size > 2;
+
+    while finished {
+        size /= 2;
+        let mid = base + size;
+        let mid_element = arr.borrow(mid);
+    }
+
+    result
+}
+
+fn borrow_test3(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
+{
+    let mut size = arr.len();
+    let mut base = 0;
+
+    let mut result = UsizeOption::None;
+    let mut finished = size > 2;
+
+    while finished {
+        size /= 2;
+        let mid = base + size;
+        let mid_element = arr.borrow(mid);
+        let cmp_result = cmp(mid_element, elem);
+        finished = size > 2 || result.is_some();
+    }
+
     result
 }
 
