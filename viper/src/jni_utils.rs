@@ -68,7 +68,7 @@ impl<'a> JniUtils<'a> {
             if res.is_ok() {
                 break;
             } else {
-                self.env.exception_clear();
+                let _ = self.env.exception_clear();
                 res = f();
             }
         }
