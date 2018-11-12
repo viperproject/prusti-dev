@@ -937,13 +937,61 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for path in &borrow_info.blocking_paths {
                     let (encoded_place, _, _) = self.encode_generic_place(path);
                     let encoded_place = replace_fake_exprs(encoded_place);
-                    let old_place = vir::Expr::LabelledOld(
-                        post_label.clone(), box encoded_place.clone());
-                    let predicate = vir::Expr::pred_permission(
-                        encoded_place.clone(), vir::Frac::one()).unwrap();
-                    stmts.extend(self.encode_obtain(predicate));
-                    stmts.extend(self.encode_transfer_permissions(
-                        encoded_place, old_place, loan_location));
+
+                    // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
+                    if node.incoming_zombies {
+                        let lhs_label = self.label_after_location.get(&loan_location).cloned().expect(
+                            &format!(
+                                "No label has been saved for location {:?} ({:?})",
+                                loan_location,
+                                self.label_after_location
+                            )
+                        );
+                        for &in_loan in node.reborrowing_loans.iter() {
+                            let in_location = self.polonius_info.get_loan_location(&in_loan);
+                            let in_node = dag.get_node(in_loan);
+                            let in_label = self.label_after_location.get(&in_location).cloned().expect(
+                                &format!(
+                                    "No label has been saved for location {:?} ({:?})",
+                                    in_location,
+                                    self.label_after_location
+                                )
+                            );
+                            match in_node.guard {
+                                ReborrowingGuard::NoGuard => {
+                                    stmts.extend(
+                                        self.encode_transfer_permissions(
+                                            encoded_place.clone().old(&in_label),
+                                            encoded_place.clone().old(&post_label),
+                                            loan_location
+                                        )
+                                    )
+                                },
+                                ReborrowingGuard::MirBlock(ref bbi) => {
+                                    let executed_flag_var = self.cfg_block_has_been_executed[bbi].clone();
+                                    stmts.push(
+                                        vir::Stmt::ExpireBorrowsIf(
+                                            vir::Expr::local(executed_flag_var).into(),
+                                            self.encode_transfer_permissions(
+                                                encoded_place.clone().old(&in_label),
+                                                encoded_place.clone().old(&post_label),
+                                                loan_location
+                                            ),
+                                            vec![]
+                                        )
+                                    )
+                                },
+                            }
+                        }
+                    }
+
+                    stmts.extend(
+                        self.encode_transfer_permissions(
+                            encoded_place.clone(),
+                            encoded_place.old(&post_label),
+                            loan_location
+                        )
+                    );
                 }
 
                 // Emit the apply statement.
