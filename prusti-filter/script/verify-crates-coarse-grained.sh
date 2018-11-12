@@ -17,6 +17,8 @@ cargoclean() {
 	done
 }
 
+info "=== Coarse-grained verification ==="
+
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
