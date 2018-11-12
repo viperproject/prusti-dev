@@ -16,6 +16,7 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper function
     #[trusted]
     #[pure]
+    #[ensures="result >= 0"]
     pub fn len(&self) -> usize {
         self.v.len()
     }
@@ -30,7 +31,7 @@ impl VecWrapperI32 {
     // Encoded as body-less Viper function
     #[trusted]
     #[pure]
-    #[requires="index < self.len()"]
+    #[requires="0 <= index && index < self.len()"]
     pub fn lookup(&self, index: usize) -> i32 {
         self.v[index]
     }
@@ -40,7 +41,7 @@ impl VecWrapperI32 {
     #[requires="index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
     #[ensures="self.lookup(index) == value"]
-    #[ensures="forall i: usize :: (i < self.len() && i != index) ==>
+    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
                     self.lookup(i) == old(self.lookup(i))"]
     pub fn store(&mut self, index: usize, value: i32) {
         self.v[index] = value;
@@ -49,33 +50,34 @@ impl VecWrapperI32 {
     #[trusted]
     #[ensures="self.len() == old(self.len()) + 1"]
     #[ensures="self.lookup(old(self.len())) == value"]
-    #[ensures="forall i: usize :: (i < old(self.len())) ==>
+    #[ensures="forall i: usize :: (0 <= i && i < old(self.len())) ==>
                     self.lookup(i) == old(self.lookup(i))"]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
 }
 
+#[requires="vec.len() >= 0"]    // TODO: This one should not be needed.
 #[ensures="vec.len() == old(vec.len())"]
-#[ensures="forall i: usize :: (i < vec.len()) ==> vec.lookup(i) <= 0"]
-#[ensures=r"forall j: usize :: (j < vec.len() && old(vec.lookup(j)) > 0) ==>
+#[ensures="forall i: usize :: (0 <= i && i < vec.len()) ==> vec.lookup(i) <= 0"]
+#[ensures=r"forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) > 0) ==>
                 -old(vec.lookup(j)) == vec.lookup(j)"]
-#[ensures=r"forall j: usize :: (j < vec.len() && old(vec.lookup(j)) <= 0) ==>
+#[ensures=r"forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) <= 0) ==>
                 old(vec.lookup(j)) == vec.lookup(j)"]
 fn capitalize(vec: &mut VecWrapperI32) {
     let mut i = 0;
     let mut not_finished = i < vec.len();
     #[invariant="vec.len() == old(vec.len())"]
-    #[invariant="i <= vec.len()"]
+    #[invariant="0 <= i && i <= vec.len()"]
     #[invariant="not_finished ==> i < vec.len()"]
     #[invariant="!not_finished ==> i == vec.len()"]
     #[invariant="forall j: usize :: (0 <= j && j < i) ==> vec.lookup(j) <= 0"]
     #[invariant=r"forall j: usize :: (i <= j && j < vec.len()) ==>
-                old(vec.lookup(j)) == vec.lookup(j)"]
+                    old(vec.lookup(j)) == vec.lookup(j)"]
     #[invariant=r"forall j: usize :: (0 <= j && j < i && old(vec.lookup(j)) > 0) ==>
-                -old(vec.lookup(j)) == vec.lookup(j)"]
+                    -old(vec.lookup(j)) == vec.lookup(j)"]
     #[invariant=r"forall j: usize :: (0 <= j && j < i && old(vec.lookup(j)) <= 0) ==>
-                old(vec.lookup(j)) == vec.lookup(j)"]
+                    old(vec.lookup(j)) == vec.lookup(j)"]
     while not_finished {
         let value = vec.lookup(i);
         if value > 0 {
