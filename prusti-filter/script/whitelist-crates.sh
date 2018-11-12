@@ -51,14 +51,14 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		> "$CRATE_DIR/supported-procedures.csv" \
 		|| true
 
-	jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses panics")) | .node_path' \
+	jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions")) | .node_path' \
 		"$CRATE_ROOT/prusti-filter-results.json" \
-		> "$CRATE_DIR/supported-procedures-with-panics.csv" \
+		> "$CRATE_DIR/supported-procedures-with-assertions.csv" \
 		|| true
 
 	num_procedures="$(cat "$CRATE_DIR/procedures.csv" | wc -l)"
 	num_supported_procedures="$(cat "$CRATE_DIR/supported-procedures.csv" | wc -l)"
-	num_supported_procedures_with_panics="$(cat "$CRATE_DIR/supported-procedures-with-panics.csv" | wc -l)"
+	num_supported_procedures_with_panics="$(cat "$CRATE_DIR/supported-procedures-with-assertions.csv" | wc -l)"
 
 	info "Number of procedures: $num_procedures"
 	info "Number of supported procedures: $num_supported_procedures"

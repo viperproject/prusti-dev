@@ -42,7 +42,7 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 
 	PRUSTI_CHECK_PANICS=true PRUSTI_CHECK_BINARY_OPERATIONS=true \
 	"$DIR/verify-crates-fine-grained.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
-		"supported-procedures-with-panics.csv" "$TIMEOUT"
+		"supported-procedures-with-assertions.csv" "$TIMEOUT"
 
 ) 2>&1 | tee "$evaluation_log_file"
 
