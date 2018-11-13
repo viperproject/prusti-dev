@@ -1029,7 +1029,7 @@ impl Expr {
     pub fn is_simple_place(&self) -> bool {
         match self {
             &Expr::Local(_) => true,
-            &Expr::Field(ref base, _) => base.is_place(),
+            &Expr::Field(ref base, _) => base.is_simple_place(),
             _ => false
         }
     }

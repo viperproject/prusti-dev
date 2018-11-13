@@ -57,7 +57,7 @@ impl State {
             }
         }
         for place in self.acc.keys() {
-            if place.is_simple_place() && !place.is_local() && place.is_simple_place() {
+            if place.is_simple_place() && !place.is_local() {
                 if !self.contains_acc(&place.clone().get_parent().unwrap()) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
