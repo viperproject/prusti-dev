@@ -55,7 +55,7 @@ info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 verification_report="$CRATE_DOWNLOAD_DIR/fine-grained-verification-report-$WHITELIST_FILENAME-$start_date.csv"
 verification_report_final="$CRATE_DOWNLOAD_DIR/fine-grained-verification-report-$WHITELIST_FILENAME.csv"
-echo "'Crate name', 'Procedure', 'Verifies fine', 'Duration (s)', 'Exit status', 'Start', 'End'" > "$verification_report"
+echo "'Crate name', 'Procedure', 'Verifies fine', 'Duration (s)', 'Exit status', 'Start', 'End', 'Parsing duration', 'Type-checking duration', 'Encoding duration', 'Verification duration'" > "$verification_report"
 info "Report: '$verification_report'"
 
 info "Run verification on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -104,14 +104,20 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		SECONDS=0
 		timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 2>&1 | tee -a "$log_file" || exit_status="$?"
 		duration="$SECONDS"
+
+		parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+		type_checking_duration="$(egrep 'Type-checking of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+		encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+		verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+
 		if [[ "$exit_status" == "0" ]]; then
 			end_proc="$(date '+%Y-%m-%d %H:%M:%S')"
 			info "Successful verification"
-			echo "'$crate_name', $procedure_path, true, $duration, $exit_status, '$start_proc', '$end_proc'" >> "$verification_report"
+			echo "'$crate_name', $procedure_path, true, $duration, $exit_status, '$start_proc', '$end_proc', $parsing_duration, $type_checking_duration, $encoding_duration, $verification_duration" >> "$verification_report"
 		else
 			end_proc="$(date '+%Y-%m-%d %H:%M:%S')"
 			info "Verification failed with exit status $exit_status."
-			echo "'$crate_name', $procedure_path, false, $duration, $exit_status, '$start_proc', '$end_proc'" >> "$verification_report"
+			echo "'$crate_name', $procedure_path, false, $duration, $exit_status, '$start_proc', '$end_proc', $parsing_duration, $type_checking_duration, $encoding_duration, $verification_duration" >> "$verification_report"
 		fi
 	done
 done

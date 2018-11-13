@@ -55,7 +55,7 @@ info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 verification_report="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME-$start_date.csv"
 verification_report_final="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME.csv"
-echo "'Crate name', 'Successful verification', 'Whitelist items', 'Verified items', 'Successful items', 'Duration (s)', 'Exit status', 'Start', 'End'" > "$verification_report"
+echo "'Crate name', 'Successful verification', 'Whitelist items', 'Verified items', 'Successful items', 'Duration (s)', 'Exit status', 'Start', 'End', 'Parsing duration', 'Type-checking duration', 'Encoding duration', 'Verification duration'" > "$verification_report"
 info "Report: '$verification_report'"
 
 info "Run verification on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -89,8 +89,8 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	# Full cargo clean
 	cargo clean
 
-	num_procedures="$(cat "$WHITELIST_FILE" | wc -l)"
-	info "Procedures in whitelist: $num_procedures"
+	whitelist_items="$(cat "$WHITELIST_FILE" | wc -l)"
+	info "Procedures in whitelist: $whitelist_items"
 
 	(
 		echo "CHECK_PANICS = $PRUSTI_CHECK_PANICS"
@@ -106,18 +106,22 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 2>&1 | tee "$log_file" || exit_status="$?"
 	duration="$SECONDS"
 
-	whitelist_items="$( echo "$(egrep 'Number of supported procedures in crate: [0-9]+$' "$log_file" | tail -n 1 | cut -d ' ' -f 10)" | sed 's/^$/0/' )"
 	verified_items="$( (egrep 'Received [0-9]+ items to be verified' "$log_file" | cut -d ' ' -f 6 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 	successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file" | cut -d ' ' -f 4 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
+
+	parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+	type_checking_duration="$(egrep 'Type-checking of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+	encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+	verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
 
 	if [[ "$exit_status" == "0" ]]; then
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Successful verification ($whitelist_items/$verified_items/$successful_items)"
-		echo "'$crate_name', true, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$verification_report"
+		echo "'$crate_name', true, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status, '$start_crate', '$end_crate', $parsing_duration, $type_checking_duration, $encoding_duration, $verification_duration" >> "$verification_report"
 	else
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Verification failed with exit status $exit_status ($whitelist_items/$verified_items/$successful_items)"
-		echo "'$crate_name', false, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$verification_report"
+		echo "'$crate_name', false, $whitelist_items, $verified_items, $successful_items, $duration, $exit_status, '$start_crate', '$end_crate', $parsing_duration, $type_checking_duration, $encoding_duration, $verification_duration" >> "$verification_report"
 	fi
 done
 
