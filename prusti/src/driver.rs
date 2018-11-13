@@ -196,6 +196,8 @@ pub fn main() {
         }
 
         // Arguments required by Prusti (Rustc may produce different MIR)
+        //set_var("POLONIUS_ALGORITHM", "DatafrogOpt"); TODO: Switch to opt because Naive does not
+        // compute borrows.
         set_var("POLONIUS_ALGORITHM", "Naive");
         args.push("-Zborrowck=mir".to_owned());
         args.push("-Zpolonius".to_owned());
