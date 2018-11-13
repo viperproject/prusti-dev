@@ -1,4 +1,4 @@
-//extern crate prusti_contracts;
+extern crate prusti_contracts;
 
 struct G {
     value: u32,
