@@ -1478,6 +1478,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
                                         let val_field = self.encoder.encode_value_field(arg_ty);
                                         fake_exprs.insert(fake_arg_place.field(val_field), arg_val_expr);
+                                        // FIXME
+                                        warn!("Please use a local variable as argument for function call '{}', and not a constant.", func_proc_name);
                                     }
                                 }
                             }

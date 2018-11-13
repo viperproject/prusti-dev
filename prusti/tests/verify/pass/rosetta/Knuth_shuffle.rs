@@ -80,8 +80,9 @@ fn knuth_shuffle(v: &mut VecWrapperI32) {
     let l = v.len();
 
     let mut n = 0;
+    let bgn = 0;
     while n < l {
-        let i = rng.gen_range(0, l - n);
+        let i = rng.gen_range(bgn, l - n);
         v.swap(i, l - n - 1);
         n += 1;
     }
