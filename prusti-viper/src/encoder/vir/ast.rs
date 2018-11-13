@@ -967,23 +967,21 @@ impl Expr {
     }
 
     pub fn find(&self, sub_target: &Expr) -> bool {
-        pub struct ExprPlaceFinder<'a> {
+        pub struct ExprFinder<'a> {
             sub_target: &'a Expr,
             found: bool
         }
-        impl<'a> ExprWalker for ExprPlaceFinder<'a> {
+        impl<'a> ExprWalker for ExprFinder<'a> {
             fn walk(&mut self, expr: &Expr) {
-                if expr.is_place() {
-                    if expr.has_prefix(self.sub_target) {
-                        self.found = true;
-                    }
+                if expr == self.sub_target || (expr.is_place() && expr.weak_eq(self.sub_target)) {
+                    self.found = true;
                 } else {
                     default_walk_expr(self, expr)
                 }
             }
         }
 
-        let mut finder = ExprPlaceFinder {
+        let mut finder = ExprFinder {
             sub_target,
             found: false,
         };
@@ -1028,6 +1026,14 @@ impl Expr {
         }
     }
 
+    pub fn is_simple_place(&self) -> bool {
+        match self {
+            &Expr::Local(_) => true,
+            &Expr::Field(ref base, _) => base.is_simple_place(),
+            _ => false
+        }
+    }
+
     /// Only defined for places
     pub fn get_parent(&self) -> Option<Expr> {
         debug_assert!(self.is_place());
@@ -1035,29 +1041,8 @@ impl Expr {
             &Expr::Local(_) => None,
             &Expr::Field(box ref base, _) |
             &Expr::AddrOf(box ref base, _) => Some(base.clone()),
-            &Expr::LabelledOld(ref label, box ref base) => base.get_parent().map(|p| p.old(label)),
-            &Expr::Unfolding(ref name, ref args, box ref base, frac) => {
-                base.get_parent().map(
-                    |parent| {
-                        match parent {
-                            // Simplify
-                            Expr::Local(..) |
-                            Expr::LabelledOld(..) => parent,
-
-                            // Keep unfolding expression
-                            _ => {
-                                Expr::Unfolding(
-                                    name.clone(),
-                                    args.clone(),
-                                    box parent,
-                                    frac
-                                )
-                            }
-                        }
-
-                    }
-                )
-            },
+            &Expr::LabelledOld(_, _) => None,
+            &Expr::Unfolding(ref name, ref args, box ref base, frac) => None,
             ref x => panic!("{}", x),
         }
     }
@@ -1151,10 +1136,6 @@ impl Expr {
         walker.found
     }
 
-    pub fn has_old(&self) -> bool {
-        self.contains_old_label()
-    }
-
     pub fn is_old(&self) -> bool {
         self.get_label().is_some()
     }
@@ -1195,6 +1176,8 @@ impl Expr {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(ref var) => var.clone(),
+            &Expr::LabelledOld(_, ref base) |
+            &Expr::Unfolding(_, _, ref base, _) => base.get_base(),
             _ => self.get_parent().unwrap().get_base(),
         }
     }
