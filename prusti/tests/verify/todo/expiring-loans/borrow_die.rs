@@ -63,7 +63,6 @@ fn test4(y: &mut F, z: &mut F) {
     let f2 = &mut x.f;
 }
 
-
 fn test1(x: &mut F) {
     let y = x;
     let z = y;
