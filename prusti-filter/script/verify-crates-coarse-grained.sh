@@ -109,10 +109,10 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	verified_items="$( (egrep 'Received [0-9]+ items to be verified' "$log_file" | cut -d ' ' -f 6 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 	successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file" | cut -d ' ' -f 4 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
 
-	parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
-	type_checking_duration="$(egrep 'Type-checking of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
-	encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
-	verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+	parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
+	type_checking_duration="$(egrep 'Type-checking of annotations successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
+	encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
+	verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 7 | sed 's/(//')"
 
 	if [[ "$exit_status" == "0" ]]; then
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"

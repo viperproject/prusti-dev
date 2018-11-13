@@ -105,10 +105,10 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 2>&1 | tee -a "$log_file" || exit_status="$?"
 		duration="$SECONDS"
 
-		parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
-		type_checking_duration="$(egrep 'Type-checking of annotations successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
-		encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
-		verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | cut -d ' ' -f 9 | sed 's/(//')"
+		parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
+		type_checking_duration="$(egrep 'Type-checking of annotations successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
+		encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
+		verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
 
 		if [[ "$exit_status" == "0" ]]; then
 			end_proc="$(date '+%Y-%m-%d %H:%M:%S')"
