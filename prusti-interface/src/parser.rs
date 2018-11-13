@@ -1238,6 +1238,22 @@ impl<'tcx> SpecParser<'tcx> {
         span: Span,
         spec_string: &str,
     ) -> Result<UntypedAssertion, AssertionParsingError> {
+        trace!("[enter] parse_forall spec_string={}", spec_string);
+        let spec_string_without_parenthesis = {
+            // Remove parenthesis.
+            let re = Regex::new(
+                r"(?sx)
+                ^\s*\(\s*(?P<forall>.*)\s*\)\s*$
+            ",
+            ).unwrap();
+            if let Some(caps) = re.captures(spec_string) {
+                caps.name("forall").unwrap().as_str().to_string()
+            } else {
+                spec_string.to_string()
+            }
+        };
+        debug!("parse_forall spec_string_without_parenthesis={}",
+               spec_string_without_parenthesis);
         let re = Regex::new(
             r"(?x)
             ^\s*forall\s*
@@ -1245,7 +1261,7 @@ impl<'tcx> SpecParser<'tcx> {
             (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
         ",
         ).unwrap();
-        if let Some(caps) = re.captures(spec_string) {
+        if let Some(caps) = re.captures(&spec_string_without_parenthesis) {
             let vars = self.parse_vars(span, caps.name("vars").unwrap())?;
             let triggers = match caps.name("triggers") {
                 Some(triggers) => self.parse_triggers(span, triggers)?,
