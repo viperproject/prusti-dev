@@ -41,7 +41,7 @@ impl State {
     pub fn check_consistency(&self) {
         // Check access permissions
         for place in self.pred.keys() {
-            if !place.has_old() && !self.contains_acc(place) {
+            if place.is_simple_place() && !self.contains_acc(place) {
                 let contains_parent_pred = if let Some(parent) = place.get_parent() {
                     self.pred.contains_key(&parent)
                 } else {
@@ -57,7 +57,7 @@ impl State {
             }
         }
         for place in self.acc.keys() {
-            if !place.has_old() && !place.is_local() && !place.has_old() {
+            if place.is_simple_place() && !place.is_local() && place.is_simple_place() {
                 if !self.contains_acc(&place.clone().get_parent().unwrap()) {
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
@@ -70,7 +70,7 @@ impl State {
         // Check predicates and moved paths
         for place in self.pred.keys() {
             for other_place in self.pred.keys() {
-                if !place.has_old() && !other_place.has_old() && place.has_proper_prefix(&other_place) {
+                if place.is_simple_place() && other_place.is_simple_place() && place.has_proper_prefix(&other_place) {
                     if self.pred[place] + self.pred[other_place] > Frac::one() {
                         panic!(
                             "Consistency error: state has pred {}, but also pred {}",
@@ -83,7 +83,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for pred_place in self.pred.keys() {
-                if !acc_place.has_old() && !pred_place.has_old() && acc_place.has_proper_prefix(&pred_place) {
+                if acc_place.is_simple_place() && pred_place.is_simple_place() && acc_place.has_proper_prefix(&pred_place) {
                     panic!(
                         "Consistency error: state has acc {}, but also pred {}",
                         acc_place,
@@ -94,7 +94,7 @@ impl State {
         }
         for acc_place in self.acc.keys() {
             for moved_place in &self.moved {
-                if !moved_place.has_old() && !acc_place.has_old() && acc_place.has_proper_prefix(moved_place) {
+                if moved_place.is_simple_place() && acc_place.is_simple_place() && acc_place.has_proper_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has acc {}, but also moved path {}",
                         acc_place,
@@ -105,14 +105,14 @@ impl State {
         }
         for pred_place in self.pred.keys() {
             for moved_place in &self.moved {
-                if !moved_place.has_old() && !pred_place.has_old() && pred_place.has_prefix(moved_place) {
+                if moved_place.is_simple_place() && pred_place.is_simple_place() && pred_place.has_prefix(moved_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
                         moved_place
                     );
                 }
-                if !moved_place.has_old() && !pred_place.has_old() && moved_place.has_prefix(pred_place) {
+                if moved_place.is_simple_place() && pred_place.is_simple_place() && moved_place.has_prefix(pred_place) {
                     panic!(
                         "Consistency error: state has pred {}, but also moved path {}",
                         pred_place,
@@ -123,7 +123,7 @@ impl State {
         }
         // Check moved
         for place in &self.moved {
-            if !place.has_old() && !self.contains_acc(place) &&
+            if place.is_simple_place() && !self.contains_acc(place) &&
                 !self.framing_stack.iter().any(|fs|
                     fs.contains(&Perm::Acc(place.clone(), Frac::one()))
                 ) {

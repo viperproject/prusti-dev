@@ -54,8 +54,8 @@ impl Perm {
         self.get_place().is_local()
     }
 
-    pub fn has_old(&self) -> bool {
-        self.get_place().has_old()
+    pub fn is_simple_place(&self) -> bool {
+        self.get_place().is_simple_place()
     }
 
     pub fn typed_ref_name(&self) -> Option<String> {

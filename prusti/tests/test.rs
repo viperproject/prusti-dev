@@ -77,6 +77,13 @@ fn run_verification(group_name: &str) {
         run_tests(&config);
     }
 
+    let path = PathBuf::from(format!("tests/{}/pass", group_name));
+    if path.exists() {
+        config.mode = common::Mode::RunPass;
+        config.src_base = path;
+        run_tests(&config);
+    }
+
     let path = PathBuf::from(format!("tests/{}/pass-overflows", group_name));
     if path.exists() {
         config.mode = common::Mode::RunPass;
@@ -86,6 +93,13 @@ fn run_verification(group_name: &str) {
         remove_var("PRUSTI_CHECK_BINARY_OPERATIONS");
     }
 
+    let path = PathBuf::from(format!("tests/{}/fail", group_name));
+    if path.exists() {
+        config.mode = common::Mode::CompileFail;
+        config.src_base = path;
+        run_tests(&config);
+    }
+
     let path = PathBuf::from(format!("tests/{}/fail-overflows", group_name));
     if path.exists() {
         config.mode = common::Mode::CompileFail;
@@ -93,20 +107,6 @@ fn run_verification(group_name: &str) {
         set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "true");
         run_tests(&config);
         remove_var("PRUSTI_CHECK_BINARY_OPERATIONS");
-    }
-
-    let path = PathBuf::from(format!("tests/{}/pass", group_name));
-    if path.exists() {
-        config.mode = common::Mode::RunPass;
-        config.src_base = path;
-        run_tests(&config);
-    }
-
-    let path = PathBuf::from(format!("tests/{}/fail", group_name));
-    if path.exists() {
-        config.mode = common::Mode::CompileFail;
-        config.src_base = path;
-        run_tests(&config);
     }
 }
 

@@ -172,7 +172,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         let left_state = left.state();
         let right_state = right.state();
 
-        //TODO: re-enable this consistency check, discarding all places for which `.has_old()` is true
+        // TODO: re-enable this consistency check, discarding all places for which `.is_simple_place()` is false
         //debug_assert_eq!(left_state.acc(), right_state.acc(), "back edge (acc)");
         //debug_assert_eq!(left_state.pred(), right_state.pred(), "back edge (pred)");
         //debug_assert_eq!(left_state.framing_stack(), right_state.framing_stack(), "back edge (framing)");
