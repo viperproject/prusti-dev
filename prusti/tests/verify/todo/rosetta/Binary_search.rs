@@ -8,7 +8,6 @@ pub struct VecWrapperI32{
 }
 
 impl VecWrapperI32 {
-    // Encoded as body-less Viper function
     #[trusted]
     #[pure]
     #[ensures="result >= 0"]
@@ -16,14 +15,12 @@ impl VecWrapperI32 {
         self.v.len()
     }
 
-    // Encoded as body-less Viper method
     #[trusted]
     #[ensures="result.len() == 0"]
     pub fn new() -> Self {
         VecWrapperI32{ v: Vec::new() }
     }
 
-    // Encoded as body-less Viper function
     #[trusted]
     #[pure]
     #[requires="0 <= index && index < self.len()"]
@@ -33,11 +30,18 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
+    #[ensures="after_expiry(
+        self.len() == old(self.len()) &&
+        self.lookup(index) == before_expiry(*result) &&
+        (
+            forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
+            self.lookup(i) == old(self.lookup(i))
+        )
+        )"]
     pub fn borrow(&mut self, index: usize) -> &mut i32 {
         self.v.get_mut(index).unwrap()
     }
 
-    // Encoded as body-less Viper method
     #[trusted]
     #[requires="index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
@@ -72,6 +76,10 @@ impl UsizeOption {
         }
     }
     #[pure]
+    fn is_none(&self) -> bool {
+        !self.is_some()
+    }
+    #[pure]
     #[requires="self.is_some()"]
     fn peek(&self) -> usize {
         match self {
@@ -102,9 +110,13 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut base = 0;
 
     let mut result = UsizeOption::None;
-    let mut finished = size > 2;
+    let mut continue_loop = size > 2;
 
-    while finished {
+    #[invariant="0 <= base"]
+    #[invariant="0 <= size"]
+    #[invariant="base + size <= arr.len()"]
+    #[invariant="continue_loop ==> size > 2"]
+    while continue_loop {
         size /= 2;
         let mid = base + size;
 
@@ -118,54 +130,7 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
                 0   // Just return anything because we are finished.
             }
         };
-        finished = size > 2 || result.is_some();
-    }
-
-    result
-}
-
-fn borrow_test1(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
-{
-    let mut size = arr.len();
-    let mut base = 0;
-    let mut result = UsizeOption::None;
-    let mid = base + size;
-    let mid_element = arr.borrow(mid);
-    let x = mid_element;
-    result
-}
-
-fn borrow_test2(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
-{
-    let mut size = arr.len();
-    let mut base = 0;
-
-    let mut result = UsizeOption::None;
-    let mut finished = size > 2;
-
-    while finished {
-        size /= 2;
-        let mid = base + size;
-        let mid_element = arr.borrow(mid);
-    }
-
-    result
-}
-
-fn borrow_test3(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
-{
-    let mut size = arr.len();
-    let mut base = 0;
-
-    let mut result = UsizeOption::None;
-    let mut finished = size > 2;
-
-    while finished {
-        size /= 2;
-        let mid = base + size;
-        let mid_element = arr.borrow(mid);
-        let cmp_result = cmp(mid_element, elem);
-        finished = size > 2 || result.is_some();
+        continue_loop = size > 2 && result.is_none();
     }
 
     result
