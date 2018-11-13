@@ -192,7 +192,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             }
         }
 
-        for &proc_id in &task.procedures.iter().rev() {
+        for &proc_id in task.procedures.iter().rev() {
             self.encoder.queue_encoding(proc_id)
         }
         self.encoder.process_encoding_queue();

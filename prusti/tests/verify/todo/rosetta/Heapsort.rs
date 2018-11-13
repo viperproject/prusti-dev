@@ -33,6 +33,14 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
+    #[ensures="after_expiry(
+        self.len() == old(self.len()) &&
+        self.lookup(index) == before_expiry(*result) &&
+        (
+            forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
+            self.lookup(i) == old(self.lookup(i))
+        )
+        )"]
     pub fn borrow(&mut self, index: usize) -> &mut i32 {
         self.v.get_mut(index).unwrap()
     }
