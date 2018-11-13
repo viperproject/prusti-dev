@@ -68,7 +68,11 @@ impl vir::Stmt {
                         assert!(rhs.get_type().is_ref());
 
                         // Check that the rhs contains no moved paths
-                        assert!(!state.is_prefix_of_some_moved(&rhs));
+                        assert!(
+                            !state.is_prefix_of_some_moved(&rhs),
+                            "The rhs place of statement '{}' is currently moved-out or blocked due to a borrow",
+                            self
+                        );
                         for prefix in rhs.all_proper_prefixes() {
                             assert!(!state.contains_pred(&prefix));
                         }
