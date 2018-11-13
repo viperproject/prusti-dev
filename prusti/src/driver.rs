@@ -35,6 +35,7 @@ use driver_utils::run;
 use prusti_interface::config;
 use prusti_interface::sysroot::current_sysroot;
 use std::path::Path;
+use std::time::Instant;
 
 struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -105,11 +106,14 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         let get_specifications = Rc::clone(&specifications);
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
+            let start = Instant::now();
+
             prusti_interface::parser::register_attributes(state);
             let untyped_specifications = prusti_interface::parser::rewrite_crate(state);
             put_specifications.set(Some(untyped_specifications));
 
-            info!("Parsing of annotations successful");
+            let duration = start.elapsed();
+            info!("Parsing of annotations successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
             trace!("[after_parse.callback] exit");
             old(state);
         };
@@ -117,12 +121,15 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         let old = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
+            let start = Instant::now();
+
             let untyped_specifications = get_specifications.replace(None).unwrap();
             let typed_specifications =
                 typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
 
-            info!("Type-checking of annotations successful");
+            let duration = start.elapsed();
+            info!("Type-checking of annotations successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
 
             // Call the verifier
             if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {

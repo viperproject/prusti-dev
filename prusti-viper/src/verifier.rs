@@ -15,6 +15,7 @@ use prusti_interface::report::Log;
 use viper::{self, Viper, VerificationBackend};
 use prusti_interface::specifications::{TypedSpecificationMap};
 use prusti_filter::validators::{Validator, SupportStatus};
+use std::time::Instant;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -142,6 +143,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
 impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
     fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+        let start = Instant::now();
+
         // Dump the configuration
         Log::report("config", "prusti", config::dump());
 
@@ -194,7 +197,9 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         }
         self.encoder.process_encoding_queue();
 
-        info!("Encoding to Viper successful");
+        let duration = start.elapsed();
+        info!("Encoding to Viper successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+        let start = Instant::now();
 
         let program = {
             let ast = &self.ast_factory;
@@ -220,11 +225,15 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
 
-        info!("Construction of JVM objects successful");
+        let duration = start.elapsed();
+        info!("Construction of JVM objects successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+        let start = Instant::now();
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
 
-        info!("Verification complete");
+        let duration = start.elapsed();
+        info!("Verification complete ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+        let start = Instant::now();
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,

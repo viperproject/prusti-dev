@@ -139,7 +139,7 @@ impl<'a> Verifier<'a, state::Started> {
         );
         let duration = start_verification.elapsed();
 
-        info!("Viper verification took {}.{} seconds", duration.as_secs(), duration.subsec_millis()/10);
+        debug!("Viper verification took {}.{} seconds", duration.as_secs(), duration.subsec_millis()/10);
         debug!("Viper verification result: {}", self.jni.to_string(viper_result));
 
         let is_failure = self.jni
