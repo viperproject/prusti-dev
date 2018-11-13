@@ -984,14 +984,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
                         }
                     }
-
-                    stmts.extend(
-                        self.encode_transfer_permissions(
-                            encoded_place.clone(),
-                            encoded_place.old(&post_label),
-                            loan_location
-                        )
-                    );
+                    if !node.incoming_zombies || node.reborrowing_loans.is_empty() {
+                        stmts.extend(
+                            self.encode_transfer_permissions(
+                                encoded_place.clone(),
+                                encoded_place.old(&post_label),
+                                loan_location
+                            )
+                        );
+                    }
                 }
 
                 // Emit the apply statement.
