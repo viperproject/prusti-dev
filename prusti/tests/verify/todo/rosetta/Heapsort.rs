@@ -107,6 +107,7 @@ fn heap_sort(array: &mut VecWrapperI32)
     }
 }
 
+#[requires="end < array.len()"]
 fn shift_down(array: &mut VecWrapperI32, start: usize, end: usize)
 {
     let mut root = start;
@@ -115,8 +116,7 @@ fn shift_down(array: &mut VecWrapperI32, start: usize, end: usize)
         let mut child = root * 2 + 1;
         if child > end {
             continue_loop = false;
-        }
-        else {
+        } else {
             if child + 1 <= end && order(*array.borrow(child), *array.borrow(child + 1)) {
                 child += 1;
             }
