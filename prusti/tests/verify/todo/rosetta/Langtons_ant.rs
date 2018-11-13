@@ -28,6 +28,10 @@ impl Matrix {
 
     #[trusted]
     #[ensures="result.valid()"]
+    //TODO
+    //#[ensures="forall y: usize, x: usize ::
+    //            (0 <= x && x < self._ghost_x_size && 0 <= y && y < self._ghost_y_size) ==>
+    //            self.lookup(y, x) == 0 || self.lookup(y, x) == 1"]
     fn new(y_size: usize, x_size: usize) -> Self {
         Self {
             _ghost_y_size: y_size,
@@ -48,6 +52,7 @@ impl Matrix {
     }
 
     #[pure]
+    //FIXME
     #[requires="forall y: usize, x: usize ::
                 (0 <= x && x < self._ghost_x_size && 0 <= y && y < self._ghost_y_size) ==>
                 self.lookup(y, x) == 0 || self.lookup(y, x) == 1"]
