@@ -52,7 +52,7 @@ info "Report: '$filtering_report'"
 info "Run filtering on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
 
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
-export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
+export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts" # "-C overflow-check=yes"
 export POLONIUS_ALGORITHM="Naive"
 export RUST_BACKTRACE=1
 
