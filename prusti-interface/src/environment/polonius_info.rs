@@ -681,6 +681,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let borrow_live_at = self.get_borrow_live_at(zombie);
         let successors = self.get_successors(location);
         let is_return = is_return(self.mir, location);
+        let mid_point = self.get_point(location, facts::PointType::Mid);
+        let becoming_zombie_loans = self
+            .additional_facts
+            .borrow_become_zombie_at
+            .get(&mid_point)
+            .cloned()
+            .unwrap_or(Vec::new());
         self.get_active_loans(location, zombie)
             .into_iter()
             .filter(|loan| {
@@ -696,6 +703,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     });
                 !alive_in_successor && !(successors.is_empty() && is_return)
             })
+            .filter(|loan| {
+                !becoming_zombie_loans.contains(loan)
+            })
             .collect()
     }
 
@@ -705,6 +715,13 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             zombie: bool) -> Vec<facts::Loan> {
         trace!("get_loans_dying_between {:?}, {:?}, {}", initial_loc, final_loc, zombie);
         debug_assert!(self.get_successors(initial_loc).contains(&final_loc));
+        let mid_point = self.get_point(initial_loc, facts::PointType::Mid);
+        let becoming_zombie_loans = self
+            .additional_facts
+            .borrow_become_zombie_at
+            .get(&mid_point)
+            .cloned()
+            .unwrap_or(Vec::new());
         self.get_active_loans(initial_loc, zombie)
             .into_iter()
             .filter(|loan| {
@@ -715,6 +732,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     .map_or(true, |successor_loans| {
                         !successor_loans.contains(loan)
                     })
+            })
+            .filter(|loan| {
+                !becoming_zombie_loans.contains(loan)
             })
             .collect()
     }
