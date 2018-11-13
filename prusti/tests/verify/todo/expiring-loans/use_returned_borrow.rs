@@ -51,4 +51,3 @@ fn reborrow(x: &mut F) -> &mut F {
 
 fn main() {
 }
-

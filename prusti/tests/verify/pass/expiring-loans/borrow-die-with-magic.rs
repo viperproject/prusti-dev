@@ -22,7 +22,6 @@ fn test3(y: &mut F) {
     use_both(f, g);
 }
 
-/*
 fn test3b(y: &mut F) {
     let x = &mut *y;
     let f = &mut x.f;
@@ -30,16 +29,5 @@ fn test3b(y: &mut F) {
     // This generates a magic wand
     let m = either(f, g);
 }
-*/
-
-/*
-fn test4(y: &mut F, z: &mut F) {
-    let mut x = &mut *y;
-    let f = &mut x.f;
-    let g = &mut x.g;
-    x = &mut *z;
-    use_both(f, g);
-    let f2 = &mut x.f;
-}*/
 
 fn main() {}

@@ -25,21 +25,4 @@ fn test1(x: &mut F) {
     let _z = &mut *_z;
 }
 
-/*fn test3(y: &mut F) {
-    let x = &mut *y;
-    let f = &mut x.f;
-    let g = &mut x.g;
-    use_both(f, g);
-}
-
-fn test4(y: &mut F, z: &mut F) {
-    let mut x = &mut *y;
-    let f = &mut x.f;
-    let g = &mut x.g;
-    x = &mut *z;
-    use_both(f, g);
-    let f2 = &mut x.f;
-}
-*/
-
 fn main() {}
