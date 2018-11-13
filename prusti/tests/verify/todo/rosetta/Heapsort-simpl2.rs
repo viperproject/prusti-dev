@@ -100,7 +100,7 @@ fn heap_sort(array: &mut VecWrapperI32)
     let mut continue_loop = end >= 1;
     while continue_loop {
         array.swap(0, end);             // TODO: Problematic line.
-        shift_down(array, 0, end - 1);  // TODO: Problematic line.
+        //shift_down(array, 0, end - 1);  // TODO: Problematic line.
         end -= 1;
         continue_loop = end >= 1;
     }

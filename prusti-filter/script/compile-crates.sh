@@ -36,7 +36,7 @@ info "Report: '$compilation_report'"
 info "Run standard compilation"
 
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses
-export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts"
+export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts" # "-C overflow-check=yes"
 export POLONIUS_ALGORITHM="Naive"
 export RUST_BACKTRACE=1
 

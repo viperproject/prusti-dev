@@ -24,21 +24,21 @@ impl VecWrapperI32I32 {
 
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
-    pub fn lookup(&self, index: usize) -> (i32, i32) {
+    pub fn lookup(&mut self, index: usize) -> (i32, i32) {
         self.v[index]
     }
 }
 
-struct VecWrapperI32Point{
+struct VecCandidates{
     v: Vec<(i32, Point)>
 }
 
-impl VecWrapperI32Point {
+impl VecCandidates {
 
     #[trusted]
     #[ensures="result.len() == 0"]
     pub fn new() -> Self {
-        VecWrapperI32Point{ v: Vec::new() }
+        VecCandidates{ v: Vec::new() }
     }
 
     #[trusted]
@@ -49,6 +49,8 @@ impl VecWrapperI32Point {
     }
 
     #[trusted]
+    #[requires="0 <= value.1.x && value.1.x < size()"]
+    #[requires="0 <= value.1.y && value.1.y < size()"]
     #[ensures="self.len() == old(self.len()) + 1"]
     pub fn push(&mut self, value: (i32, Point)) {
         self.v.push(value);
@@ -56,7 +58,9 @@ impl VecWrapperI32Point {
 
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
-    pub fn lookup(&self, index: usize) -> (i32, Point) {
+    #[ensures="0 <= result.1.x && result.1.x < size()"]
+    #[ensures="0 <= result.1.y && result.1.y < size()"]
+    pub fn lookup(&mut self, index: usize) -> (i32, Point) {
         let r = &self.v[index];
         (r.0, Point { x: r.1.x, y: r.1.y })
     }
@@ -119,17 +123,31 @@ struct Point {
 }
  
 impl Point {
+    #[ensures="self.x == old(self.x)"]
+    #[ensures="self.y == old(self.y)"]
     fn mov(&mut self, &mut (dx,dy): &mut (i32, i32)) -> Point {
         Point {
             x: self.x + dx,
             y: self.y + dy
         }
     }
+    #[ensures="result.x == old(self.x)"]
+    #[ensures="result.y == old(self.y)"]
+    #[ensures="self.x == old(self.x)"]
+    #[ensures="self.y == old(self.y)"]
     fn clone(&mut self) -> Point {
         Point {
             x: self.x,
             y: self.y,
         }
+    }
+}
+
+#[pure]
+fn valid(point: &Option<(i32, Point)>) -> bool {
+    match point {
+        Some((_, p)) => 0 <= p.x && p.x < size() && 0 <= p.y && p.y < size(),
+        None => true,
     }
 }
  
@@ -145,21 +163,24 @@ impl Board {
         };
     }
  
-    fn available(&self, p: Point) -> bool {
+    #[ensures="result ==> (0 <= p.x && p.x < size() && 0 <= p.y && p.y < size())"]
+    fn available(&mut self, p: Point) -> bool {
         let valid = 0 <= p.x && p.x < size()
                  && 0 <= p.y && p.y < size();
         return valid  && self.field.lookup(p.x, p.y) == 0;
     }
  
     // calculate the number of possible moves
-    fn count_degree(&self, p: Point) -> i32 {
+    fn count_degree(&mut self, p: Point) -> i32 {
         let mut p = p;
         let mut count = 0;
-        let moves = moves();
+        let mut moves = moves();
         let mut i = 0;
         let mut continue_loop = i < moves.len();
+        #[invariant="0 <= i"]
+        #[invariant="continue_loop ==> i < moves.len()"]
         while continue_loop {
-            let mut dir = moves.lookup(i);  // TODO: Problematic line.
+            let mut dir = moves.lookup(i);
             let next = p.mov(&mut dir);
             if self.available(next) {
                 count += 1;
@@ -196,29 +217,40 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
 
     let mut continue_loop_1 = step <= size() * size();
  
+    #[invariant="0 <= p.x && p.x < size()"]
+    #[invariant="0 <= p.y && p.y < size()"]
     while continue_loop_1 {
         // choose next square by Warnsdorf's rule
-        let mut candidates = VecWrapperI32Point::new();
-        let moves = moves();
+        let mut candidates = VecCandidates::new();
+        let mut moves = moves();
         let mut i = 0;
-        let mut continue_loop = i < moves.len();
-        while continue_loop {
-            let mut dir = moves.lookup(i);  // TODO: Problematic line.
+        let mut continue_loop_3 = i < moves.len();
+        assert!(0 <= p.x && p.x < size());
+        #[invariant="0 <= i"]
+        #[invariant="continue_loop_3 ==> i < moves.len()"]
+        #[invariant="0 <= p.x && p.x < size()"]
+        #[invariant="0 <= p.y && p.y < size()"]
+        while continue_loop_3 {
+            let mut dir = moves.lookup(i);
             let mut adj = p.mov(&mut dir);
             if board.available(adj.clone()) {
                 let degree = board.count_degree(adj.clone());
                 candidates.push((degree, adj));
             }
             i += 1;
-            continue_loop = i < moves.len();
+            continue_loop_3 = i < moves.len();
         }
+        assert!(0 <= p.x && p.x < size());
 
         let mut i = 0;
         let mut continue_loop_2 = i < candidates.len();
         let mut min = None;
         let mut min_degree = size() * size();
+        #[invariant="0 <= i"]
+        #[invariant="continue_loop_2 ==> i < candidates.len()"]
+        #[invariant="valid(&min)"]
         while continue_loop_2 {
-            let (degree, adj) = candidates.lookup(i);  // TODO: Problematic line.
+            let (degree, adj) = candidates.lookup(i);
             if min_degree > degree {
                 min_degree = degree;
                 min = Some((degree, adj));
@@ -226,12 +258,17 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
             i += 1;
             continue_loop_2 = i < candidates.len();
         }
+        assert!(0 <= p.x && p.x < size());
         match min {
-            Some((_, adj)) => // move to next square
-                p = adj,
+            Some((_, adj)) => {// move to next square
+                assert!(0 <= p.x && p.x < size());
+                p = adj;
+                assert!(0 <= p.x && p.x < size());
+            }
             None =>            // can't move
                 failed = true,
         };
+        assert!(0 <= p.x && p.x < size());
         board.field.store(p.x, p.y, step);
         step += 1;
         continue_loop_1 = step <= size() * size() && !failed;
