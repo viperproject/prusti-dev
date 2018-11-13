@@ -1,4 +1,4 @@
-extern crate prusti_contracts;
+//extern crate prusti_contracts;
 
 struct G {
     value: u32,
@@ -12,7 +12,7 @@ struct F {
 fn consume_F(_f: F) {}
 
 fn test5(y: &mut F, z: &mut F, z2: &mut G, b: bool) {
-    let mut x = &mut *y; // Note: Rust might postpone the creation of this borrow
+    let mut x = &mut *y;
     let f = &mut x.f;
     let mut g;
     if b {
@@ -27,19 +27,12 @@ fn test5(y: &mut F, z: &mut F, z2: &mut G, b: bool) {
 }
 
 fn test4(y: &mut F, z: &mut F) {
-    let mut x = &mut *y; // Note: Rust might postpone the creation of this borrow
+    let mut x = &mut *y;
     let f = &mut x.f;
     let g = &mut x.g;
     x = &mut *z;
     use_both(f, g);
     let f2 = &mut x.f;
-}
-
-fn test(y: &mut G) {
-    let mut x = &mut *y; // Note: Rust might postpone the creation of this borrow
-    let f = &mut x.value;
-    x = &mut *y;
-    use_one(f);
 }
 
 fn use_one(_f: &mut u32) {}
