@@ -168,13 +168,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         }
     }
 
-    fn compatible_back_edge(left: &BranchCtxt<'p>, right: &BranchCtxt<'p>) -> bool {
+    fn check_compatible_back_edge(left: &BranchCtxt<'p>, right: &BranchCtxt<'p>) {
         let left_state = left.state();
         let right_state = right.state();
 
-        left_state.acc() == right_state.acc() &&
-            left_state.pred() == right_state.pred() &&
-            left_state.framing_stack() == right_state.framing_stack()
+        //TODO: re-enable this consistency check, discarding all places for which `.has_old()` is true
+        //debug_assert_eq!(left_state.acc(), right_state.acc(), "back edge (acc)");
+        //debug_assert_eq!(left_state.pred(), right_state.pred(), "back edge (pred)");
+        //debug_assert_eq!(left_state.framing_stack(), right_state.framing_stack(), "back edge (framing)");
     }
 
     /// Give the initial branch context

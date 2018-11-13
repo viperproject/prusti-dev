@@ -24,7 +24,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
     fn current_cfg(&self, cfg: &CfgMethod) {}
 
     /// Are two branch context compatible for a back edge?
-    fn compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt) -> bool;
+    fn check_compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt);
 
     /// Give the initial branch context
     fn initial_context(&mut self) -> BranchCtxt;
@@ -176,12 +176,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
                 if visited[index] {
                     debug!("Back edge from {:?} to {:?}", curr_block_index, following_index);
                     let other_bctxt = initial_bctxt[index].as_ref().unwrap();
-                    assert!(
-                        Self::compatible_back_edge(&bctxt, other_bctxt),
-                        "States are not compatible for a back edge\n - left: {:?}\n - right: {:?}",
-                        bctxt,
-                        other_bctxt
-                    );
+                    Self::check_compatible_back_edge(&bctxt, other_bctxt);
                 }
             }
 
