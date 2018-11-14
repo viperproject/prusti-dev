@@ -678,4 +678,49 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         debug!("[exit] fold = {}", res);
         res
     }
+
+    fn fold_func_app(
+        &mut self,
+        function_name: String,
+        args: Vec<vir::Expr>,
+        formal_args: Vec<vir::LocalVar>,
+        return_type: vir::Type,
+        position: vir::Position
+    ) -> vir::Expr {
+        if self.wait_old_expr {
+            vir::Expr::FuncApp(
+                function_name,
+                args.into_iter().map(|e| self.fold(e)).collect(),
+                formal_args.clone(),
+                return_type.clone(),
+                position.clone())
+        } else {
+
+            let func_app = vir::Expr::FuncApp(
+                function_name,
+                args,
+                formal_args,
+                return_type,
+                position);
+
+            trace!("[enter] fold_func_app {}", func_app);
+
+            let perms: Vec<_> = func_app
+                .get_required_permissions(self.curr_bctxt.predicates())
+                .into_iter()
+                .collect();
+
+            let result = self.curr_bctxt.clone()
+                .obtain_permissions(perms)
+                .into_iter()
+                .rev()
+                .fold(
+                    func_app,
+                    |expr, action| action.to_expr(expr)
+                );
+
+            trace!("[exit] fold_func_app {}", result);
+            result
+        }
+    }
 }
