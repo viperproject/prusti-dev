@@ -128,7 +128,7 @@ if [[ "$FINE_GRAINED_EVALUATION" == "false" ]] ; then
 
 	info "Start verification"
 
-	cargoclean
+	cargo clean
 	exit_status="0"
 	# Timeout in seconds
 	timeout -k 10 $EVALUATION_TIMEOUT "$CARGO_PRUSTI" -j 1 || exit_status="$?"
