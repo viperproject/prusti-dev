@@ -300,6 +300,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                             epsilon,
                         )
                     } else {
+                        debug!("arg {} is not a place with type ref", arg);
                         arg.clone()
                     }
                 }).collect::<Vec<_>>().get_required_permissions(predicates)

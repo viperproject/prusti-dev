@@ -28,6 +28,7 @@ mod action;
 
 pub fn add_folding_unfolding_to_expr(expr: vir::Expr, bctxt: &BranchCtxt) -> vir::Expr {
     let bctxt_at_label = HashMap::new();
+    let expr = ExprReplacer::new(bctxt.clone(), &bctxt_at_label, true).fold(expr);
     ExprReplacer::new(bctxt.clone(), &bctxt_at_label, false).fold(expr)
 }
 
