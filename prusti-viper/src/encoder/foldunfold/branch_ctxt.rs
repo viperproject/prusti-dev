@@ -346,10 +346,6 @@ impl<'a> BranchCtxt<'a> {
             };
 
             if can_fold {
-                for fold_req_place in &places_in_pred {
-                    actions.extend(self.obtain(fold_req_place));
-                }
-
                 // We want to fold using the maximum possible fraction
                 let frac = places_in_pred.iter().map(|p| {
                     self.state.acc().iter()
@@ -363,6 +359,10 @@ impl<'a> BranchCtxt<'a> {
                 }).min().unwrap_or(Frac::one());
                 debug!("We want to fold {} with permission {} (we need at least {})", req, frac, req.get_frac());
                 assert!(frac >= req.get_frac());
+
+                for fold_req_place in &places_in_pred {
+                    actions.extend(self.obtain(&(fold_req_place.clone() * frac)));
+                }
 
                 let scaled_places_in_pred: Vec<_> = places_in_pred.into_iter().map(|p| p * frac).collect();
 

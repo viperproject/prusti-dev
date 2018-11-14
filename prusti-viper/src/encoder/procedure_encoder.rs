@@ -2417,7 +2417,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 // Copy the values from `src` to `lhs`
                 stmts.extend(
-                    self.encode_copy(src, lhs.clone(), ty, true, location)
+                    self.encode_copy(src, lhs.clone(), ty, true, false, location)
                 );
 
                 // Store a label for this state
@@ -2432,7 +2432,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &mir::Operand::Copy(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
                 // Copy the values from `src` to `lhs`
-                self.encode_copy(src, lhs.clone(), ty, false, location)
+                self.encode_copy(src, lhs.clone(), ty, false, false, location)
             }
 
             &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
@@ -2546,7 +2546,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ///
     /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
     /// a Rust move assignment, and not a copy assignment.
-    fn encode_copy(&mut self, src: vir::Expr, dst: vir::Expr, self_ty: ty::Ty<'tcx>, is_move: bool, location: mir::Location) -> Vec<vir::Stmt> {
+    fn encode_copy(&mut self, src: vir::Expr, dst: vir::Expr, self_ty: ty::Ty<'tcx>, is_move: bool, is_inner_ty: bool, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("Encode copy {:?}, {:?}, {:?}", src, dst, self_ty);
 
         match self_ty.sty {
@@ -2577,6 +2577,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             dst.clone().field(field.clone()),
                             ty,
                             is_move,
+                            true,
                             location
                         )
                     );
@@ -2611,6 +2612,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 dst.clone().field(elem_field.clone()),
                                 field_ty,
                                 is_move,
+                                true,
                                 location
                             )
                         )
@@ -2625,14 +2627,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Hack: we encode *copy* of shared references as a *move*
                 //assert!(is_move);
                 let ref_field = self.encoder.encode_ref_field("val_ref", ty);
-                vec![
+                let mut stmts = vec![
                     // Move the reference to the boxed value
                     vir::Stmt::Assign(
                         dst.clone().field(ref_field.clone()),
-                        src.clone().field(ref_field.clone()).into(),
+                        src.clone().field(ref_field.clone()),
                         vir::AssignKind::Move
                     )
-                ]
+                ];
+                stmts.extend(
+                    self.encode_havoc_and_allocation(
+                        &src.clone().field(ref_field.clone())
+                    )
+                );
+                stmts
             }
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
@@ -2642,14 +2650,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let field_ty = self_ty.boxed_ty();
                 let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
                 assert_eq!(adt_def.variants.len(), 1);
-                vec![
+                let mut stmts = vec![
                     // Move the reference to the boxed value
                     vir::Stmt::Assign(
                         dst.clone().field(ref_field.clone()),
                         src.clone().field(ref_field.clone()).into(),
                         vir::AssignKind::Move
                     )
-                ]
+                ];
+                stmts.extend(
+                    self.encode_havoc_and_allocation(
+                        &src.clone().field(ref_field.clone())
+                    )
+                );
+                stmts
             }
 
             ref x => unimplemented!("{:?}", x),
