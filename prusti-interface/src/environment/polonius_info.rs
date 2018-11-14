@@ -1335,7 +1335,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 }
             }
         }
-        assert_eq!(root_loans.len(), 1, "We do not support branches inside loops");
+        assert_eq!(root_loans.len(), 1, "Loans depending on branches inside loops are not implemented yet");
         root_loans[0]
     }
 
