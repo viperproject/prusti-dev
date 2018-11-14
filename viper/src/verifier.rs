@@ -199,17 +199,19 @@ impl<'a> Verifier<'a, state::Started> {
                     )
                 );
 
-                assert!(
-                    self.jni
-                        .is_instance_of(pos, "viper/silver/ast/HasIdentifier",),
-                    format!(
+                let pos_id = if self.jni.is_instance_of(pos, "viper/silver/ast/HasIdentifier") {
+                    Some(
+                        self.jni.get_string(
+                            self.jni.unwrap_result(has_identifier_wrapper.call_id(pos))
+                        )
+                    )
+                } else {
+                    debug!(
                         "The verifier returned an error whose position has no identifier: {:?}",
                         self.jni.to_string(viper_error)
-                    )
-                );
-
-                let pos_id = self.jni
-                    .get_string(self.jni.unwrap_result(has_identifier_wrapper.call_id(pos)));
+                    );
+                    None
+                };
 
                 errors.push(VerificationError::new(error_full_id, pos_id, message))
             }
