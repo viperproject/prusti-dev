@@ -75,7 +75,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
             verifier_args.extend(vec![
                 "--tempDirectory", "./log/viper_tmp",
                 "--logLevel", "WARN",
-                "--enableMoreCompleteExhale",
+                //"--enableMoreCompleteExhale", // Buggy :(
             ]);
         } else {
             verifier_args.extend(vec![
@@ -88,7 +88,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
                 verifier_args.extend(vec![
                     "--printMethodCFGs",
                     "--logLevel", "INFO",
-                    "--enableMoreCompleteExhale",
+                    //"--enableMoreCompleteExhale", // Buggy :(
                     //"--printTranslatedProgram",
                 ]);
             } else {
