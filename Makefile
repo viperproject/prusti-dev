@@ -27,7 +27,6 @@ build:
 	$(SET_ENV_VARS) cargo build --all
 
 release:
-	git show
 	$(SET_ENV_VARS) cargo build --release --all
 
 test:

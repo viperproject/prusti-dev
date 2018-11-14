@@ -73,7 +73,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
         let mut verifier_args = vec![];
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
-                //"--enableMoreCompleteExhale", // Buggy :(
+                "--enableMoreCompleteExhale", // Buggy :(
                 "--tempDirectory", "./log/viper_tmp",
                 "--logLevel", "WARN",
             ]);
