@@ -11,12 +11,12 @@ pub enum VerificationResult {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct VerificationError {
     pub full_id: String,
-    pub pos_id: String,
+    pub pos_id: Option<String>,
     pub message: String
 }
 
 impl VerificationError {
-    pub fn new(full_id: String, pos_id: String, message: String) -> Self {
+    pub fn new(full_id: String, pos_id: Option<String>, message: String) -> Self {
         VerificationError { full_id, pos_id, message }
     }
 }

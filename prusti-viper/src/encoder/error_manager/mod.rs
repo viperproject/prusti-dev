@@ -98,127 +98,158 @@ impl<'tcx> ErrorManager<'tcx> {
     }
 
     pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {
-        let opt_error_ctx = self.error_contexts.get(&ver_error.pos_id);
+        let opt_error_ctx = ver_error.pos_id.as_ref().and_then(
+            |pos_id| self.error_contexts.get(pos_id)
+        );
 
         let (error_span, error_ctx) = if let Some(x) = opt_error_ctx {
             x
         } else {
-            error!("Unregistered verification error: {:?}", ver_error);
-            return CompilerError::new(
-                "P0000",
-                format!("Unregistered verification error: [{}] {}", ver_error.full_id, ver_error.message),
-                MultiSpan::new()
-            )
+            debug!("Unregistered verification error: {:?}", ver_error);
+
+            match ver_error.pos_id {
+                Some(ref pos_id) => {
+                    return CompilerError::new(
+                        "P0001",
+                        format!(
+                            "internal encoding error - unregistered verification error: [{}; {}] {}",
+                            ver_error.full_id,
+                            pos_id,
+                            ver_error.message
+                        ),
+                        MultiSpan::new()
+                    )
+                }
+                None => {
+                    return CompilerError::new(
+                        "P0002",
+                        format!(
+                            "internal encoding error - unregistered verification error: [{}] {}",
+                            ver_error.full_id,
+                            ver_error.message
+                        ),
+                        MultiSpan::new()
+                    )
+                }
+            }
         };
 
         match (ver_error.full_id.as_str(), error_ctx) {
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => CompilerError::new(
-                "P0001",
+                "P0003",
                 "statement might panic",
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => CompilerError::new(
-                "P0002",
+                "P0004",
                 "panic!(..) statement might panic",
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => CompilerError::new(
-                "P0003",
+                "P0005",
                 "assert!(..) statement might not hold",
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => CompilerError::new(
-                "P0004",
+                "P0006",
                 "unreachable!(..) statement might be reachable",
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => CompilerError::new(
-                "P0005",
+                "P0007",
                 format!("assertion might fail with \"{}\"", message),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unimplemented)) => CompilerError::new(
-                "P0006",
+                "P0008",
                 "unimplemented!(..) statement might be reachable",
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => CompilerError::new(
-                "P0007",
+                "P0009",
                 format!("statement might abort"),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => CompilerError::new(
-                "P0008",
+                "P0010",
                 format!("unreachable code might be reachable. This might be a bug in the compiler."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => CompilerError::new(
-                "P0009",
+                "P0011",
                 format!("precondition might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => CompilerError::new(
-                "P0010",
+                "P0012",
                 format!("postcondition might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => CompilerError::new(
-                "P0011",
+                "P0013",
                 format!("loop invariant might not hold on entry."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => CompilerError::new(
-                "P0012",
+                "P0014",
                 format!("loop invariant might not hold on entry."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => CompilerError::new(
-                "P0013",
+                "P0015",
                 format!("loop invariant might not hold at the end of a loop iteration."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => CompilerError::new(
-                "P0014",
+                "P0016",
                 format!("loop invariant might not hold at the end of a loop iteration."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => CompilerError::new(
-                "P0015",
+                "P0017",
                 format!("precondition of pure function call might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 
             ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => CompilerError::new(
-                "P0016",
+                "P0018",
                 format!("pledge in the postcondition might not hold."),
                 MultiSpan::from_span(*error_span)
             ),
 
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
-                "P0017",
-                format!("internal encoding error - unexpected verification error ([{}] {})", full_err_id, ver_error.message),
+                "P0019",
+                format!(
+                    "internal encoding error - unexpected verification error: [{}] {}",
+                    full_err_id,
+                    ver_error.message
+                ),
                 MultiSpan::from_span(*error_span)
             ),
 
             (full_err_id, _) => {
-                error!("Unhandled verification error: {:?}, context: {:?}", ver_error, error_ctx);
+                debug!("Unhandled verification error: {:?}, context: {:?}", ver_error, error_ctx);
                 CompilerError::new(
-                    "P0018",
-                    format!("internal encoding error - unhandled verification error ([{}] {})", full_err_id, ver_error.message),
+                    "P0020",
+                    format!(
+                        "internal encoding error - unhandled verification error: [{}] {}",
+                        full_err_id,
+                        ver_error.message
+                    ),
                     MultiSpan::from_span(*error_span)
                 )
             },
