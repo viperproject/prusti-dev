@@ -9,8 +9,6 @@ extern crate prusti_contracts;
 use std::sync::mpsc;
 
 struct StringWrapper {
-    // TODO: Why including this tries to encode the value if it is
-    // not used in the verified code?
     //value: String,
 }
 
@@ -28,8 +26,6 @@ enum Message {
 }
 
 struct Receiver {
-    // TODO: Why including this tries to encode the receiver if it is
-    // not used in the verified code?
     //receiver: mpsc::Receiver<Message>,
 }
 
