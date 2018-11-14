@@ -1255,7 +1255,7 @@ impl<'tcx> SpecParser<'tcx> {
         debug!("parse_forall spec_string_without_parenthesis={}",
                spec_string_without_parenthesis);
         let re = Regex::new(
-            r"(?x)
+            r"(?sx)
             ^\s*forall\s*
             (?P<vars>.*)\s*::\s*(\{(?P<triggers>.*)\})?\s*
             (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
