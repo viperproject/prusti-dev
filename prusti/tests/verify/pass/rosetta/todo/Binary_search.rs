@@ -43,16 +43,6 @@ impl VecWrapperI32 {
     }
 
     #[trusted]
-    #[requires="index < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
-    #[ensures="self.lookup(index) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
-    pub fn store(&mut self, index: usize, value: i32) {
-        self.v[index] = value;
-    }
-
-    #[trusted]
     #[ensures="self.len() == old(self.len()) + 1"]
     #[ensures="self.lookup(old(self.len())) == value"]
     #[ensures="forall i: usize :: (0 <= i && i < old(self.len())) ==>

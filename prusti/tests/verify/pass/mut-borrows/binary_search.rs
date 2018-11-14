@@ -43,7 +43,7 @@ impl VecWrapperI32 {
     }
 
     #[trusted]
-    #[requires="index < self.len()"]
+    #[requires="0 <= index && index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
     #[ensures="self.lookup(index) == value"]
     #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
