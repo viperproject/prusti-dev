@@ -27,21 +27,8 @@ mod places_utils;
 mod action;
 
 pub fn add_folding_unfolding_to_expr(expr: vir::Expr, bctxt: &BranchCtxt) -> vir::Expr {
-    let perms: Vec<_> = expr
-        .get_required_permissions(bctxt.predicates())
-        .into_iter()
-        .filter(|p| p.is_curr())
-        .collect();
-
-    // Add appropriate unfolding around this expression
-    bctxt.clone()
-        .obtain_permissions(perms)
-        .into_iter()
-        .rev()
-        .fold(
-            expr,
-            |res, action| action.to_expr(res)
-        )
+    let bctxt_at_label = HashMap::new();
+    ExprReplacer::new(bctxt.clone(), &bctxt_at_label, false).fold(expr)
 }
 
 pub fn add_folding_unfolding_to_function(function: vir::Function, predicates: HashMap<String, vir::Predicate>) -> vir::Function {

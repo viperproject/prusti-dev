@@ -351,7 +351,16 @@ impl<'a> BranchCtxt<'a> {
                 }
 
                 // We want to fold using the maximum possible fraction
-                let frac = places_in_pred.iter().map(|p| self.state.get_available_frac(p)).min().unwrap_or(Frac::one());
+                let frac = places_in_pred.iter().map(|p| {
+                    self.state.acc().iter()
+                        .chain(self.state.pred().iter())
+                        .filter(|(place, _)| place.has_prefix(p.get_place()))
+                        .map(|(place, frac)| {
+                            debug!("Place {} can offer {}", place, frac);
+                            *frac
+                        })
+                        .min().unwrap_or(Frac::one())
+                }).min().unwrap_or(Frac::one());
                 debug!("We want to fold {} with permission {} (we need at least {})", req, frac, req.get_frac());
                 assert!(frac >= req.get_frac());
 
