@@ -306,9 +306,7 @@ impl Grid {
 
         let mut continue_loop = true;
         let mut result = None;
-        //let nodes = &mut self.nodes;
-        #[invariant="0 <= end"]
-        #[invariant="end < self.nodes.len()"]     // TODO: Problematic line.
+        #[invariant="0 <= end && end < self.nodes.len()"]
         while continue_loop {
             if let Some(State { node, cost }) = heap.pop() {
                 if node == end {
