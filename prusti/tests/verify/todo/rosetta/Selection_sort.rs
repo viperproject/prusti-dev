@@ -60,12 +60,42 @@ fn check(array: &VecWrapperI32, i: usize) -> bool {
     true
 }
 
+#[pure]
+#[requires="0 <= i && i <= array.len()"]
+#[requires="forall k1: usize, k2: usize :: (0 <= k1 && k1 < i && i <= k2 && k2 < array.len()) ==>
+             array.lookup(k1) <= array.lookup(k2)"]
+fn check2(array: &VecWrapperI32, i: usize) -> bool {
+    true
+}
+
+#[pure]
+#[requires="0 <= i && i <= array.len()"]
+#[requires="i <= min"]
+#[requires="min < array.len()"]
+#[requires="forall k1: usize :: (0 <= k1 && k1 < i) ==>
+             array.lookup(k1) <= array.lookup(min)"]
+fn check3(array: &VecWrapperI32, i: usize, min: usize) -> bool {
+    true
+}
+
+#[pure]
+#[requires="0 <= i && i <= array.len()"]
+#[requires="i <= min"]
+#[requires="min < array.len()"]
+#[requires="forall k2: usize :: (i <= k2 && k2 < array.len()) ==>
+             array.lookup(min) <= array.lookup(k2)"]
+fn check4(array: &VecWrapperI32, i: usize, min: usize) -> bool {
+    true
+}
+
+#[ensures="array.len() == old(array.len())"]
 fn selection_sort(array: &mut VecWrapperI32) {
  
     let mut min;
  
     let mut i = 0;
     let mut continue_loop_1 = i < array.len();
+    #[invariant="array.len() == old(array.len())"]
     #[invariant="0 <= i && i <= array.len()"]
     #[invariant="continue_loop_1 ==> i < array.len()"]
     #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < i) ==>
@@ -79,32 +109,43 @@ fn selection_sort(array: &mut VecWrapperI32) {
 
         let mut j = i+1;
         let mut continue_loop_2 = j < array.len();
-        #[invariant="0 <= i"]
+        #[invariant="array.len() == old(array.len())"]
+        #[invariant="0 <= i && i < array.len()"]
+        #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < i) ==>
+                     array.lookup(k1) <= array.lookup(k2)"]
+        #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < i && i <= k2 && k2 < array.len()) ==>
+                     array.lookup(k1) <= array.lookup(k2)"]
+
         #[invariant="i < j"]
+        #[invariant="j <= array.len()"]
         #[invariant="continue_loop_2 ==> j < array.len()"]
-        #[invariant="0 <= min"]
+        #[invariant="!continue_loop_2 ==> j == array.len()"]
+
+        #[invariant="i <= min"]
         #[invariant="min < array.len()"]
-        #[invariant="i < array.len()"]
+        #[invariant="forall k1: usize :: (0 <= k1 && k1 < i) ==>
+                     array.lookup(k1) <= array.lookup(min)"]
         #[invariant="forall k: usize ::
                      (i <= k && k < j && k < array.len()) ==>
                      array.lookup(min) <= array.lookup(k)"]
-        #[invariant="!continue_loop_2 ==> forall k: usize ::
-                         (i <= k && k < array.len()) ==>
-                         array.lookup(min) <= array.lookup(k)"]
-        #[invariant="forall k: usize ::
-                     (0 <= k && k < i) ==>
-                     array.lookup(k) <= array.lookup(min)"]
-        #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < i && i <= k2 && k2 < array.len()) ==>
-                     array.lookup(k1) <= array.lookup(k2)"]
         while continue_loop_2 {
+            check3(array, i, min);
             if array.lookup(j) < array.lookup(min) {
                 min = j;
             }
+            check3(array, i, min);
             j += 1;
             continue_loop_2 = j < array.len();
         }
 
+        assert!(j == array.len());
+        assert!(i <= min && min < array.len());
+
+        check3(array, i, min);
+        check4(array, i, min);
+
         check(array, i);
+        check2(array, i);
 
         let tmp = array.lookup(i);
         let min_value = array.lookup(min);
@@ -112,10 +153,12 @@ fn selection_sort(array: &mut VecWrapperI32) {
         array.store(min, tmp);
 
         check(array, i);
+        check2(array, i);
 
         i += 1;
 
         check(array, i);
+        check2(array, i);
 
         continue_loop_1 = i < array.len();
     }
