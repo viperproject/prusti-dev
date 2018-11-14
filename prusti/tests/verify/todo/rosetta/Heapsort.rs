@@ -47,7 +47,7 @@ impl VecWrapperI32 {
 
     // Encoded as body-less Viper method
     #[trusted]
-    #[requires="index < self.len()"]
+    #[requires="0 <= index && index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
     #[ensures="self.lookup(index) == value"]
     #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
@@ -66,6 +66,13 @@ impl VecWrapperI32 {
     }
 
     #[trusted]
+    #[requires="0 <= index_a && index_a < self.len()"]
+    #[requires="0 <= index_b && index_b < self.len()"]
+    #[ensures="self.len() == old(self.len())"]
+    #[ensures="self.lookup(index_a) == old(self.lookup(index_b))"]
+    #[ensures="self.lookup(index_b) == old(self.lookup(index_a))"]
+    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
+                    self.lookup(i) == old(self.lookup(i))"]
     pub fn swap(&mut self, index_a: usize, index_b: usize) {
         self.v.swap(index_a, index_b);
     }
@@ -91,6 +98,7 @@ fn main() {
     heap_sort(&mut v);
 }
 
+#[ensures="array.len() == old(array.len())"]
 fn heap_sort(array: &mut VecWrapperI32)
 {
     let len = array.len();
@@ -98,6 +106,9 @@ fn heap_sort(array: &mut VecWrapperI32)
     let mut start = len/2-1;
     let mut continue_loop = start >= 0;
     // Create heap
+    #[invariant="len == array.len()"]
+    #[invariant="start < len"]
+    #[invariant="continue_loop ==> start >= 0"]
     while continue_loop {
         shift_down(array, start, len - 1);
         start -= 1;
@@ -106,6 +117,9 @@ fn heap_sort(array: &mut VecWrapperI32)
 
     let mut end = len-1;
     let mut continue_loop = end >= 1;
+    #[invariant="len == array.len()"]
+    #[invariant="end < len"]
+    #[invariant="continue_loop ==> end >= 1"]
     while continue_loop {
         let start = 0;
         array.swap(start, end);
@@ -116,10 +130,16 @@ fn heap_sort(array: &mut VecWrapperI32)
 }
 
 #[requires="end < array.len()"]
+#[requires="0 <= start && start < array.len()"]
+#[requires="0 <= end && end < array.len()"]
+#[ensures="array.len() == old(array.len())"]
 fn shift_down(array: &mut VecWrapperI32, start: usize, end: usize)
 {
     let mut root = start;
     let mut continue_loop = true;
+    #[invariant="0 <= root && root < array.len()"]
+    #[invariant="0 <= end && end < array.len()"]
+    #[invariant="array.len() == old(array.len())"]
     while continue_loop {
         let mut child = root * 2 + 1;
         if child > end {
