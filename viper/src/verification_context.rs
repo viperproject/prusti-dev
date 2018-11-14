@@ -42,18 +42,20 @@ impl<'a> VerificationContext<'a> {
         debug!("Verification backend: '{}'", backend);
 
         let mut verifier_args = vec![];
-        verifier_args.extend(args);
         if let VerificationBackend::Carbon = backend {
             verifier_args.extend(vec![
-            "--boogieExe",
-            &boogie_path,
+                "--boogieExe",
+                &boogie_path,
             ]);
         }
         verifier_args.extend(vec![
             "--z3Exe",
             &z3_path,
-            "dummy-program.sil"
         ]);
+        verifier_args.extend(args);
+        verifier_args.push(
+            "dummy-program.sil"
+        );
 
         debug!("Verifier arguments: '{}'", verifier_args.iter().cloned().collect::<Vec<_>>().join(" "));
 
