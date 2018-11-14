@@ -111,21 +111,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             name: function_name.clone(),
             formal_args,
             return_type,
-            pres: vec![preconditions.0, preconditions.1],
-            posts: vec![postcondition],
+            pres: vec![
+                preconditions.0,
+                preconditions.1
+            ],
+            posts: vec![
+                postcondition
+            ],
             body
         };
 
         self.encoder.log_vir_program_before_foldunfold(function.to_string());
 
         // Add folding/unfolding
-        let final_function = if is_bodyless {
-            function
-        } else {
-            foldunfold::add_folding_unfolding(function, self.encoder.get_used_viper_predicates_map())
-        };
-
-        final_function
+        foldunfold::add_folding_unfolding_to_function(
+            function,
+            self.encoder.get_used_viper_predicates_map()
+        )
     }
 
     /// Encode the precondition with two expressions:

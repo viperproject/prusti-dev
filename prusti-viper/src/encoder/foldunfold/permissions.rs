@@ -290,13 +290,14 @@ impl RequiredPermissionsGetter for vir::Expr {
             }
 
             vir::Expr::FuncApp(ref name, ref args, ..) => {
-                // If the argument is a place to a reference, ask for the full permission on it
+                // TODO: avoid using epsilon
+                let epsilon = Frac::new(1, 1000);
                 args.iter().map(|arg| {
                     if arg.is_place() && arg.get_type().is_ref() {
                         vir::Expr::PredicateAccessPredicate(
                             arg.get_type().to_string(),
                             vec![ arg.clone().into() ],
-                            vir::Frac::one(),
+                            epsilon,
                         )
                     } else {
                         arg.clone()

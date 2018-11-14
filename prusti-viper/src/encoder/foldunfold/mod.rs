@@ -26,41 +26,40 @@ mod semantics;
 mod places_utils;
 mod action;
 
-
-pub fn add_folding_unfolding(mut function: vir::Function, predicates: HashMap<String, vir::Predicate>) -> vir::Function {
-    if function.body.is_none() {
-        return function
-    }
-
-    let formal_vars = function.formal_args.clone();
-    let mut bctxt = BranchCtxt::new(formal_vars, &predicates);
-    // Inhale preconditions
-    for pre in &function.pres {
-        bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()));
-    }
-
-    let body = function.body.unwrap();
-
-    let perms: Vec<_> = body
-        .get_required_permissions(&predicates)
+pub fn add_folding_unfolding_to_expr(expr: vir::Expr, bctxt: &BranchCtxt) -> vir::Expr {
+    let perms: Vec<_> = expr
+        .get_required_permissions(bctxt.predicates())
         .into_iter()
         .filter(|p| p.is_curr())
         .collect();
 
     // Add appropriate unfolding around this expression
-    let new_body = bctxt
+    bctxt.clone()
         .obtain_permissions(perms)
         .into_iter()
         .rev()
         .fold(
-            body,
-            |expr, action| action.to_expr(expr)
-        );
-
-    function.body = Some(new_body);
-    function
+            expr,
+            |res, action| action.to_expr(res)
+        )
 }
 
+pub fn add_folding_unfolding_to_function(function: vir::Function, predicates: HashMap<String, vir::Predicate>) -> vir::Function {
+    // Compute inner state
+    let formal_vars = function.formal_args.clone();
+    let mut bctxt = BranchCtxt::new(formal_vars, &predicates);
+    for pre in &function.pres {
+        bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()));
+    }
+
+    // Add appropriate unfolding around expressions
+    vir::Function {
+        pres: function.pres.into_iter().map(|e| add_folding_unfolding_to_expr(e, &bctxt)).collect(),
+        posts: function.posts.into_iter().map(|e| add_folding_unfolding_to_expr(e, &bctxt)).collect(),
+        body: function.body.map(|e| add_folding_unfolding_to_expr(e, &bctxt)),
+        ..function
+    }
+}
 
 pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, cfg: vir::CfgMethod) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
