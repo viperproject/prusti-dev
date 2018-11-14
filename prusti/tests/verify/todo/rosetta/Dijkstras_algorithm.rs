@@ -294,7 +294,7 @@ impl Grid {
 
     #[requires="0 <= start && start < self.nodes.len()"]
     #[requires="0 <= end && end < self.nodes.len()"]
-    fn find_path(&self, start: usize, end: usize) -> Option<(VecWrapperPath, usize)> {
+    fn find_path(&mut self, start: usize, end: usize) -> Option<(VecWrapperPath, usize)> {
         let mut dist = VecWrapperDistances::new((usize::MAX, None), self.nodes.len());
 
         let mut heap = BinaryHeapWrapper::new();
@@ -306,9 +306,9 @@ impl Grid {
 
         let mut continue_loop = true;
         let mut result = None;
-        let nodes = &mut self.nodes;
+        //let nodes = &mut self.nodes;
         #[invariant="0 <= end"]
-        #[invariant="end < nodes.len()"]     // TODO: Problematic line.
+        #[invariant="end < self.nodes.len()"]     // TODO: Problematic line.
         while continue_loop {
             if let Some(State { node, cost }) = heap.pop() {
                 if node == end {
