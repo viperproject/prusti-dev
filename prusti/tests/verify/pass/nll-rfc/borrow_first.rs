@@ -65,6 +65,7 @@ fn some_condition(r: &i32) -> bool {
 }
 
 
+#[requires="vec.len() > 0"]
 fn foo(vec: &mut VecWrapperI32) -> &mut i32 {
     let r = vec.borrow(0);
     if some_condition(r) {
@@ -76,7 +77,10 @@ fn foo(vec: &mut VecWrapperI32) -> &mut i32 {
     }
 }
 
-fn main() {
+fn test() {
     let mut vec = VecWrapperI32::new();
+    vec.push(5);
     foo(&mut vec);
 }
+
+fn main() {}
