@@ -33,7 +33,7 @@ impl VecWrapperI32 {
 
     // Encoded as body-less Viper method
     #[trusted]
-    #[requires="index < self.len()"]
+    #[requires="0 <= index && index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
     #[ensures="self.lookup(index) == value"]
     #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
@@ -52,6 +52,13 @@ impl VecWrapperI32 {
     }
 
     #[trusted]
+    #[requires="0 <= index_a && index_a < self.len()"]
+    #[requires="0 <= index_b && index_b < self.len()"]
+    #[ensures="self.len() == old(self.len())"]
+    #[ensures="self.lookup(index_a) == old(self.lookup(index_b))"]
+    #[ensures="self.lookup(index_b) == old(self.lookup(index_a))"]
+    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index_a && i != index_b) ==>
+                    self.lookup(i) == old(self.lookup(i))"]
     pub fn swap(&mut self, index_a: usize, index_b: usize) {
         self.v.swap(index_a, index_b);
     }
@@ -65,6 +72,8 @@ struct ThreadRngWrapper {}
 
 impl ThreadRngWrapper {
     #[trusted]
+    #[requires="low < high"]
+    #[ensures="low <= result && result < high"]
     fn gen_range(&mut self, low: usize, high: usize) -> usize {
         unimplemented!();
     }
@@ -81,6 +90,9 @@ fn knuth_shuffle(v: &mut VecWrapperI32) {
 
     let mut n = 0;
     let bgn = 0;
+    #[invariant="n >= 0"]
+    #[invariant="bgn == 0"]
+    #[invariant="l == v.len()"]
     while n < l {
         let i = rng.gen_range(bgn, l - n);
         v.swap(i, l - n - 1);
