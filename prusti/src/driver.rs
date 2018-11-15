@@ -209,6 +209,8 @@ pub fn main() {
             args.push("-Zdump-mir=all".to_owned());
             args.push("-Zdump-mir-graphviz".to_owned());
         }
+        args.push("-A".to_owned());
+        args.push("unused_comparisons".to_owned());
 
         args.push("--cfg".to_string());
         args.push(r#"feature="prusti""#.to_string());
