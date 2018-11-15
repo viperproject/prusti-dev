@@ -103,7 +103,7 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 	exit_status="0"
 	SECONDS=0
-	timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 2>&1 | tee "$log_file" || exit_status="$?"
+	timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" 2>&1 | tee "$log_file" || exit_status="$?"
 	duration="$SECONDS"
 
 	verified_items="$( (egrep 'Received [0-9]+ items to be verified' "$log_file" | cut -d ' ' -f 6 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
