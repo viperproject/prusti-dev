@@ -770,6 +770,29 @@ impl fmt::Display for Expr {
     }
 }
 
+impl <'a> Mul<&'a Frac> for Box<Expr> {
+    type Output = Box<Expr>;
+
+    fn mul(self, frac: &'a Frac) -> Box<Expr> {
+        Box::new(*self * frac)
+    }
+}
+
+impl <'a> Mul<&'a Frac> for Expr {
+    type Output = Expr;
+
+    fn mul(self, frac: &'a Frac) -> Expr {
+        match self {
+            Expr::PredicateAccessPredicate(x, y, z) => Expr::PredicateAccessPredicate(x, y, z * frac),
+            Expr::FieldAccessPredicate(x, y) => Expr::FieldAccessPredicate(x, y * frac),
+            Expr::UnaryOp(x, y) => Expr::UnaryOp(x, y * frac),
+            Expr::BinOp(x, y, z) => Expr::BinOp(x, y * frac, z * frac),
+            Expr::Cond(x, y, z) => Expr::Cond(x, y * frac, z * frac),
+            _ => self
+        }
+    }
+}
+
 impl fmt::Display for Trigger {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(

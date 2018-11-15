@@ -439,6 +439,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    pub fn encode_unfolded_place_predicate_permission(&self, place: vir::Expr) -> vir::Expr {
+        let predicate_name = place.typed_ref_name().unwrap();
+        let predicates = self.encoder.get_used_viper_predicates_map();
+        let predicate = predicates.get(&predicate_name).unwrap();
+        match predicate.body {
+            Some(ref body) => {
+                let self_expr = &predicate.args[0];
+                body.clone().replace_place(&self_expr.clone().into(), &place) // * &frac
+            },
+            None => true.into()
+        }
+    }
+
     pub fn encode_place_predicate_permission(&self, place: vir::Expr, frac: vir::Frac) -> Option<vir::Expr> {
         place.typed_ref_name().map(|predicate_name|
             vir::Expr::PredicateAccessPredicate(
