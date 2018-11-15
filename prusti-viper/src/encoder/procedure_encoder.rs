@@ -1981,7 +1981,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         };
 
         // Transfer borrow permissions to old.
-        let mut encoded_ref_args = Vec::new();
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::comment("Fold predicates for &mut args and transfer borrow permissions to old"));
         for (i, &arg) in contract.args.iter().enumerate() {
             if blocked_args.contains(&i) {
                 // Permissions of arguments that are blocked by the returned reference are not
@@ -1992,12 +1994,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             if self.mir_encoder.is_reference(ty) {
                 let encoded_arg: vir::Expr = self.encode_prusti_local(arg).into();
                 let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
-                let original_expr = encoded_deref;
-                let old_expr = original_expr.clone().old(PRECONDITION_LABEL);
-                encoded_ref_args.push(old_expr.clone());
+
+                // Fold argument.
+                let deref_pred = self.mir_encoder.encode_place_predicate_permission(
+                    encoded_deref.clone(), vir::Frac::one()).unwrap();
+                for stmt in self.encode_obtain(deref_pred).drain(..) {
+                    self.cfg_method.add_stmt(return_cfg_block, stmt);
+                }
+
+                // Transfer permissions.
+                let old_expr = encoded_deref.clone().old(PRECONDITION_LABEL);
                 self.cfg_method.add_stmt(
                     return_cfg_block,
-                    vir::Stmt::TransferPerm(original_expr, old_expr)
+                    vir::Stmt::TransferPerm(encoded_deref, old_expr)
                 );
             }
         }
@@ -2010,17 +2019,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
 
-        let there_are_magic_wands = !contract.borrow_infos.is_empty();
-
-        // Make the deref of reference arguments to be folded (see issue #47)
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Fold predicates for &mut args"));
-        for deref_place in encoded_ref_args {
-            let deref_pred = self.mir_encoder.encode_place_predicate_permission(
-                deref_place, vir::Frac::one()).unwrap();
-            for stmt in self.encode_obtain(deref_pred).drain(..) {
-                self.cfg_method.add_stmt(return_cfg_block, stmt);
-            }
-        }
 
         // Exhale permissions of postcondition
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos.clone()));
@@ -2639,11 +2637,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vir::AssignKind::Move
                     )
                 ];
-                stmts.extend(
-                    self.encode_havoc_and_allocation(
-                        &src.clone().field(ref_field.clone())
-                    )
-                );
+                if self.loop_encoder.get_loop_depth(location.block) > 0 {
+                    // We havoc only inside a loop.
+                    stmts.extend(
+                        self.encode_havoc_and_allocation(
+                            &src.clone().field(ref_field.clone())
+                        )
+                    );
+                }
                 stmts
             }
 
@@ -2662,11 +2663,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vir::AssignKind::Move
                     )
                 ];
-                stmts.extend(
-                    self.encode_havoc_and_allocation(
-                        &src.clone().field(ref_field.clone())
-                    )
-                );
+                if self.loop_encoder.get_loop_depth(location.block) > 0 {
+                    stmts.extend(
+                        self.encode_havoc_and_allocation(
+                            &src.clone().field(ref_field.clone())
+                        )
+                    );
+                }
                 stmts
             }
 
