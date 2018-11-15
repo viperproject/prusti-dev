@@ -45,7 +45,7 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         let build_version = jni.to_string(
             jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance))
         );
-        debug!("Using backend {} version {}", name, build_version);
+        info!("Using backend {} version {}", name, build_version);
 
         Verifier {
             env,
