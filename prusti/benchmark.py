@@ -21,9 +21,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 TOML_FILE = os.path.join(ROOT, 'Prusti.toml')
 LOG_FILE = os.path.join(ROOT, 'bench.csv')
 MAKE_FLAGS = ["JAVA_HOME=/usr/lib/jvm/jdk-11.0.1/"]
-ENV_VARS = dict((
-    ("Z3_PATH", '/home/software/z3/z3-4.8.3.74db2f250907-x64-ubuntu-14.04/bin/z3')
-))
+ENV_VARS = dict(os.environ,
+    Z3_PATH='/home/software/z3/z3-4.8.3.74db2f250907-x64-ubuntu-14.04/bin/z3',
+)
 
 
 def create_configuration_file():
@@ -37,6 +37,17 @@ CHECK_BINARY_OPERATIONS = false
 
 
 def build_project():
+    cmd = [
+            "make",
+            "clean",
+            ] + MAKE_FLAGS
+    print(' '.join(cmd))
+    subprocess.run(
+        cmd,
+        cwd=ROOT,
+        check=True,
+        env=ENV_VARS,
+    )
     subprocess.run(
         [
             "make",
@@ -98,8 +109,6 @@ def run_benchmark(file_path):
 def main():
     create_configuration_file()
     build_project()
-    run_benchmarks()
-    MAKE_FLAGS = []
     run_benchmarks()
 
 
