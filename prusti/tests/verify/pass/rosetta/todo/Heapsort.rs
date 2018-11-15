@@ -84,7 +84,7 @@ fn order(x: i32, y: i32) -> bool {
 }
 
 fn main() {
-    let mut v = VecWrapperI32::new();
+    /*let mut v = VecWrapperI32::new();
     v.push(4);
     v.push(6);
     v.push(8);
@@ -95,7 +95,7 @@ fn main() {
     v.push(2);
     v.push(9);
     v.push(5);
-    heap_sort(&mut v);
+    heap_sort(&mut v);*/
 }
 
 #[ensures="array.len() == old(array.len())"]

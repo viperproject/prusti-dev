@@ -12,6 +12,7 @@ RUST_VERSION = ${RUSTUP_TOOLCHAIN}-x86_64-unknown-linux-gnu
 COMPILER_PATH = $$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH = ${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:./target/debug:./target/debug/deps
 PRUSTI_DRIVER=./target/debug/prusti-driver
+PRUSTI_DRIVER_RELEASE=./target/release/prusti-driver
 
 SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
 
@@ -27,7 +28,6 @@ build:
 	$(SET_ENV_VARS) cargo build --all
 
 release:
-	git show
 	$(SET_ENV_VARS) cargo build --release --all
 
 test:
@@ -50,6 +50,34 @@ run:
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
+
+run-release:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
+	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
+	$(PRUSTI_DRIVER_RELEASE) \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+		$(RUN_FILE)
+
+run-release-profile:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
+	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
+    valgrind --tool=callgrind \
+	${PRUSTI_DRIVER_RELEASE} \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+		${RUN_FILE}
+	@echo "Now run 'kcachegrind callgrind.out.*'"
+
+run-release-flamegraph:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
+	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
+    perf record -g -F 99 \
+	${PRUSTI_DRIVER_RELEASE} \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+		${RUN_FILE}
+	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
 update:
 	cargo update

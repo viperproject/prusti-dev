@@ -19,16 +19,16 @@ pub struct CfgMethod {
     pub(super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     pub(super) reserved_labels: HashSet<String>,
-    pub(super) basic_blocks: Vec<CfgBlock>,
+    pub basic_blocks: Vec<CfgBlock>,    // FIXME: Hack, should be pub(super).
     pub(super) basic_blocks_labels: Vec<String>,
     fresh_var_index: i32,
     fresh_label_index: i32,
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct CfgBlock {
+pub struct CfgBlock {    // FIXME: Hack, should be pub(super).
     pub(super) invs: Vec<Expr>,
-    pub(super) stmts: Vec<Stmt>,
+    pub stmts: Vec<Stmt>,   // FIXME: Hack, should be pub(super).
     pub(super) successor: Successor,
 }
 

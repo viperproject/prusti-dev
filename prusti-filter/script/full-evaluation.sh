@@ -47,3 +47,5 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 ) 2>&1 | tee "$evaluation_log_file"
 
 cp "$evaluation_log_file" "$evaluation_log_file_final"
+
+PRUSTI_CHECK_PANICS=true PRUSTI_CHECK_BINARY_OPERATIONS=true time ./prusti-filter/script/verify-crates-fine-grained.sh ../crates/ ../crates/supported-crates.csv "supported-procedures-with-assertions.csv" 900

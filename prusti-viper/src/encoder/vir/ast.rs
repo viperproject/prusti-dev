@@ -546,6 +546,8 @@ pub enum Expr {
     Cond(Box<Expr>, Box<Expr>, Box<Expr>),
     // ForAll: variables, triggers, body
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>),
+    // let variable == (expr) in body
+    LetExpr(LocalVar, Box<Expr>, Box<Expr>),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
 }
@@ -598,6 +600,9 @@ pub trait ExprFolder : Sized {
     fn fold_forall(&mut self, x: Vec<LocalVar>, y: Vec<Trigger>, z: Box<Expr>) -> Expr {
         Expr::ForAll(x, y, self.fold_boxed(z))
     }
+    fn fold_let_expr(&mut self, x: LocalVar, y: Box<Expr>, z: Box<Expr>) -> Expr {
+        Expr::LetExpr(x, self.fold_boxed(y), self.fold_boxed(z))
+    }
     fn fold_func_app(&mut self, x: String, y: Vec<Expr>, z: Vec<LocalVar>, k: Type, p: Position) -> Expr {
         Expr::FuncApp(x, y.into_iter().map(|e| self.fold(e)).collect(), z, k, p)
     }
@@ -618,6 +623,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Unfolding(x, y, z, frac) => this.fold_unfolding(x, y, z, frac),
         Expr::Cond(x, y, z) => this.fold_cond(x, y, z),
         Expr::ForAll(x, y, z) => this.fold_forall(x, y, z),
+        Expr::LetExpr(x, y, z) => this.fold_let_expr(x, y, z),
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
     }
 }
@@ -674,6 +680,10 @@ pub trait ExprWalker : Sized {
     fn walk_forall(&mut self, x: &Vec<LocalVar>, y: &Vec<Trigger>, z: &Expr) {
         self.walk(z);
     }
+    fn walk_let_expr(&mut self, x: &LocalVar, y: &Expr, z: &Expr) {
+        self.walk(y);
+        self.walk(z);
+    }
     fn walk_func_app(&mut self, x: &str, y: &Vec<Expr>, z: &Vec<LocalVar>, k: &Type, p: &Position) {
         for e in y {
             self.walk(e)
@@ -696,6 +706,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Unfolding(ref x, ref y, ref z, frac) => this.walk_unfolding(x, y, z, frac),
         Expr::Cond(ref x, ref y, ref z) => this.walk_cond(x, y, z),
         Expr::ForAll(ref x, ref y, ref z) => this.walk_forall(x, y, z),
+        Expr::LetExpr(ref x, ref y, ref z) => this.walk_let_expr(x, y, z),
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
     }
 }
@@ -742,6 +753,12 @@ impl fmt::Display for Expr {
                 f, "forall {} {} :: {}",
                 vars.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", "),
                 triggers.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                body.to_string()
+            ),
+            Expr::LetExpr(ref var, ref expr, ref body) => write!(
+                f, "(let {:?} == ({}) in {})",
+                var,
+                expr.to_string(),
                 body.to_string()
             ),
             Expr::FuncApp(ref name, ref args, ..) => write!(
@@ -937,6 +954,10 @@ impl Expr {
 
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right)
+    }
+
+    pub fn let_expr(variable: LocalVar, expr: Expr, body: Expr) -> Self {
+        Expr::LetExpr(variable, box expr, box body)
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
