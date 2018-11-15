@@ -63,14 +63,17 @@ def get_benchmarks():
     rosetta_path = os.path.join(ROOT, 'tests/verify/pass/rosetta/')
     rosetta_glob = os.path.join(rosetta_path, '*.rs')
     rosetta_todo_glob = os.path.join(rosetta_path, 'todo', '*.rs')
-    rosetta_stress_path = os.path.join(ROOT, 'prusti/tests/verify/todo/stress/rosetta/')
+    rosetta_stress_path = os.path.join(ROOT, 'tests/verify/todo/stress/rosetta/')
     rosetta_stress_glob = os.path.join(rosetta_stress_path, '*.rs')
-    paper_path = os.path.join(ROOT, 'prusti/tests/verify/pass/paper-examples/')
+    paper_path = os.path.join(ROOT, 'tests/verify/pass/paper-examples/')
     paper_glob = os.path.join(paper_path, '*.rs')
+    nll_path = os.path.join(ROOT, 'tests/verify/pass/nll-rfc/')
+    nll_glob = os.path.join(nll_path, '*.rs')
     return (list(glob.glob(rosetta_glob)) +
             list(glob.glob(rosetta_todo_glob)) +
             list(glob.glob(rosetta_stress_glob)) +
-            list(glob.glob(paper_glob)))
+            list(glob.glob(paper_glob)) +
+            list(glob.glob(nll_glob)))
 
 
 def run_benchmarks():
