@@ -13,11 +13,11 @@ fn shift_x(p: &mut Point, s: i32) {
 fn align_x_endpoint(
   mut segm: (Box<Point>, Box<Point>)
 ) -> (Box<Point>, Box<Point>) {
-  let endBox = &mut segm.1;  // Borrow B1 ~\label{line:borrow}~
-  let endPt = &mut **endBox; // Borrow B2 ~\label{line:reborrow}~
+  let endBox = &mut segm.1;
+  let endPt = &mut **endBox;
   // segm.1, endBox are not usable here
   let end_x = (*endPt).x;
-  shift_x(endPt, (*segm.0).x - end_x); //~\label{line:expire}~
+  shift_x(endPt, (*segm.0).x - end_x);
   // borrows expire: segm.1 usable again
   assert!((*segm.0).x == (*segm.1).x);
   segm
