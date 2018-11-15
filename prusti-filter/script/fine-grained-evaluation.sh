@@ -34,7 +34,7 @@ if [ -z "$(ls -A "$VIPER_HOME"/*.jar)" ]; then
 	exit 1
 fi
 
-if [ -x "$Z3_PATH" ]; then
+if [ ! -x "$Z3_PATH" ]; then
 	error "It looks like Z3_PATH is wrong: '$Z3_PATH'"
 	exit 1
 fi
