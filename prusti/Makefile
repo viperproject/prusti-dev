@@ -13,6 +13,7 @@ RUST_VERSION=${RUSTUP_TOOLCHAIN}-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/debug:../target/debug/deps
 PRUSTI_DRIVER=../target/debug/prusti-driver
+PRUSTI_DRIVER_RELEASE=../target/release/prusti-driver
 
 SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
 
@@ -23,6 +24,15 @@ run:
 	${PRUSTI_DRIVER} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ../target/debug/deps/libprusti_contracts-*.rlib) \
+		${RUN_FILE}
+
+run_release:
+	@echo "The best way to run Prusti is with `./docker/prusti`"
+	$(SET_ENV_VARS) \
+	RUST_LOG=${LOG_LEVEL} \
+	${PRUSTI_DRIVER_RELEASE} \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		--extern prusti_contracts=$(wildcard ../target/release/deps/libprusti_contracts-*.rlib) \
 		${RUN_FILE}
 
 run-profile:
@@ -64,7 +74,7 @@ generate_ui_stderr:
 
 build:
 	$(SET_ENV_VARS) \
-	cargo build
+	cargo build --all
 
 test:
 	$(SET_ENV_VARS) \
@@ -95,6 +105,7 @@ format_code:
 	cargo fmt
 
 build_release:
+	$(SET_ENV_VARS) \
 	cargo build --release
 
 build_image:
