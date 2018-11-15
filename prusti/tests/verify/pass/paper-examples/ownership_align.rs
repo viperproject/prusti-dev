@@ -14,13 +14,13 @@ fn shift_x(p: Box<Point>, s:i32) -> Box<Point> {
 
 fn compress(mut segm: (Box<Point>, Box<Point>))
                     -> (Box<Point>, Box<Point>) {
-  let mut end = segm.1; // move assignment ~\label{line:move}~
-  // segm.1 is now inaccessible  ~\label{line:moved}~
+  let mut end = segm.1; // move assignment
+  // segm.1 is now inaccessible
   let diff = (*segm.0).x - (*end).x + 1;
-  end = shift_x(end, diff); //~\label{line:call}~
-  segm.1 = end; // ~\label{line:moveback}~
+  end = shift_x(end, diff);
+  segm.1 = end;
   // end is now inaccessible
-  assert!((*segm.0).x < (*segm.1).x); //~\label{line:assert}~
+  assert!((*segm.0).x < (*segm.1).x);
   segm
 }
 
