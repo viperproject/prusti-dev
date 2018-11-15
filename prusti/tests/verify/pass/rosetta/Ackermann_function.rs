@@ -4,6 +4,8 @@
 extern crate prusti_contracts;
 
 #[pure]
+#[requires="0 <= m && 0 <= n"]
+#[ensures="result >= 0"]
 fn ack_pure(m: isize, n: isize) -> isize {
     if m == 0 {
         n + 1
@@ -15,7 +17,9 @@ fn ack_pure(m: isize, n: isize) -> isize {
 }
 
 
+#[requires="0 <= m && 0 <= n"]
 #[ensures="result == ack_pure(m, n)"]
+#[ensures="result >= 0"]
 fn ack1(m: isize, n: isize) -> isize {
     if m == 0 {
         n + 1
@@ -26,7 +30,9 @@ fn ack1(m: isize, n: isize) -> isize {
     }
 }
 
+#[requires="0 <= m && 0 <= n"]
 #[ensures="result == ack_pure(m, n)"]
+#[ensures="result >= 0"]
 fn ack2(m: isize, n: isize) -> isize {
 	match (m, n) {
 		(0, n) => n + 1,
