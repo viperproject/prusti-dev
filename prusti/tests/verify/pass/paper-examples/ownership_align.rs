@@ -6,8 +6,8 @@ struct Point {
   x: i32, y: i32
 }
 
-#[ensures="old((*p).x + s) == (*result).x"]
-#[ensures="old((*p).y) == (*result).y"]
+#[ensures="(*result).x == old((*p).x + s)"]
+#[ensures="(*result).y == old((*p).y)"]
 fn shift_x(p: Box<Point>, s:i32) -> Box<Point> {
   box Point { x: (*p).x + s, y: (*p).y }
 }
