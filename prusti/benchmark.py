@@ -1,6 +1,16 @@
 #/usr/bin/python3
 
+"""
+Mounting directories as RAMFS::
+
+    sudo mount -t ramfs -o size=512m ramfs ./log/
+    sudo mount -t ramfs -o size=512m ramfs ./nll-facts/
+    sudo chmod 777 ./log ./nll-facts
+
+"""
+
 import csv
+import datetime
 import glob
 import os
 import subprocess
@@ -11,6 +21,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 TOML_FILE = os.path.join(ROOT, 'Prusti.toml')
 LOG_FILE = os.path.join(ROOT, 'bench.csv')
 MAKE_FLAGS = ["JAVA_HOME=/usr/lib/jvm/jdk-11.0.1/"]
+ENV_VARS = dict((
+    ("Z3_PATH", '/home/software/z3/z3-4.8.3.74db2f250907-x64-ubuntu-14.04/bin/z3')
+))
 
 
 def create_configuration_file():
@@ -31,6 +44,7 @@ def build_project():
             ] + MAKE_FLAGS,
         cwd=ROOT,
         check=True,
+        env=ENV_VARS,
     )
 
 
@@ -50,15 +64,15 @@ def run_benchmarks():
     with open(LOG_FILE, 'a') as fp:
         writer = csv.writer(fp)
         for benchmark in benchmarks:
-            row = run_benchmark(benchmark)
-            if row:
-                writer.writerow(row)
+            for i in range(3):
+                row = run_benchmark(benchmark)
+                if row:
+                    writer.writerow(row)
 
 
 def run_benchmark(file_path):
-    if not 'Knigh' in file_path:
-        return
-    print(file_path)
+    timestamp = datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S")
+    print(timestamp, file_path)
     start_time = time.time()
     result = subprocess.run(
         [
@@ -69,6 +83,7 @@ def run_benchmark(file_path):
         cwd=ROOT,
         check=True,
         stderr=subprocess.PIPE,
+        env=ENV_VARS,
     )
     end_time = time.time()
     duration = end_time - start_time
@@ -77,11 +92,14 @@ def run_benchmark(file_path):
         result.stderr,
         re.MULTILINE)
     verification_time = float(match.group(1))
-    return (file_path, start_time, end_time, duration, verification_time)
+    return (timestamp, file_path, start_time, end_time, duration,
+            verification_time, str(MAKE_FLAGS), str(ENV_VARS))
 
 def main():
     create_configuration_file()
     build_project()
+    run_benchmarks()
+    MAKE_FLAGS = []
     run_benchmarks()
 
 
