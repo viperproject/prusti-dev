@@ -18,6 +18,7 @@ mod utils;
 mod places;
 mod foldunfold;
 mod error_manager;
+mod optimiser;
 
 pub mod vir;
 

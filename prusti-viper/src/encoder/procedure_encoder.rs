@@ -11,6 +11,7 @@ use encoder::Encoder;
 use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;
 use encoder::foldunfold;
+use encoder::optimiser;
 use encoder::loop_encoder::LoopEncoder;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::spec_encoder::SpecEncoder;
@@ -417,7 +418,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Add fold/unfold
-        let final_method = foldunfold::add_fold_unfold(self.encoder, self.cfg_method);
+        let method_with_fold_unfold = foldunfold::add_fold_unfold(self.encoder, self.cfg_method);
+
+        // Optimise encoding a bit
+        let final_method = optimiser::rewrite(method_with_fold_unfold);
 
         // Dump final CFG
         if config::dump_debug_info() {

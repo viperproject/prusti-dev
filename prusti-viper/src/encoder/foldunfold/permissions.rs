@@ -261,6 +261,10 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::Cond(box guard, box left, box right) => vec![guard, left, right].get_required_permissions(predicates),
 
+            vir::Expr::LetExpr(_variable, _expr, _body) => {
+                unreachable!("Let expressions should be introduced after fold/unfold.");
+            }
+
             vir::Expr::ForAll(vars, triggers, box body) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
 
@@ -406,6 +410,10 @@ impl vir::Expr {
             vir::Expr::MagicWand(ref lhs, ref _rhs) => {
                 // We don't track magic wands resources
                 HashSet::new()
+            }
+
+            vir::Expr::LetExpr(ref _variable, ref _expr, ref _body) => {
+                unreachable!("Let expressions should be introduced after fold/unfold.");
             }
         }
     }

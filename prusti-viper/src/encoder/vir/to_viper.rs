@@ -269,6 +269,11 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 &triggers.to_viper(ast),
                 body.to_viper(ast)
             ),
+            &Expr::LetExpr(ref var, ref expr, ref body) => ast.let_expr(
+                var.to_viper_decl(ast),
+                expr.to_viper(ast),
+                body.to_viper(ast)
+            ),
             &Expr::FuncApp(ref function_name, ref args, ref formal_args, ref return_type, ref pos) => {
                 let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
                 ast.func_app(
