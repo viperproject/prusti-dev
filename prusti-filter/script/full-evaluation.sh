@@ -27,7 +27,7 @@ info "Using TIMEOUT=$TIMEOUT seconds"
 
 # Viper and Z3
 export VIPER_HOME="$DIR/../../../viper"
-export Z3_PATH="$DIR/../../../z3/z3"
+export Z3_PATH="$DIR/../../../z3/bin/z3"
 
 if [ -z "$(ls -A "$VIPER_HOME/*.jar")" ]; then
 	error "It looks like VIPER_HOME is wrong: '$VIPER_HOME'"
