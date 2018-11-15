@@ -83,7 +83,7 @@ impl Viper {
                 )
             );
 
-            debug!("Using JVM {}, Java {}", vm_name, java_version);
+            info!("Using JVM {}, Java {}", vm_name, java_version);
         }
 
         let this = Viper { jvm };
