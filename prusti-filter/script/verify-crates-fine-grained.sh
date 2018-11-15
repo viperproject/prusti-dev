@@ -102,7 +102,7 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 		exit_status="0"
 		SECONDS=0
-		timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" -j 1 2>&1 | tee -a "$log_file" || exit_status="$?"
+		timeout -k 10 "$VERIFICATION_TIMEOUT" "$CARGO_PRUSTI" 2>&1 | tee -a "$log_file" || exit_status="$?"
 		duration="$SECONDS"
 
 		parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
