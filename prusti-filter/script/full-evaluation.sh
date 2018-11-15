@@ -25,6 +25,20 @@ fi
 TIMEOUT="${2:-900}"
 info "Using TIMEOUT=$TIMEOUT seconds"
 
+# Viper and Z3
+export VIPER_HOME="$DIR/../../../viper"
+export Z3_PATH="$DIR/../../../z3/z3"
+
+if [ -z "$(ls -A "$VIPER_HOME/*.jar")" ]; then
+	error "It looks like VIPER_HOME is wrong: '$VIPER_HOME'"
+	exit 1
+fi
+
+if [ -x "$Z3_PATH" ]; then
+	error "It looks like Z3_PATH is wrong: '$Z3_PATH'"
+	exit 1
+fi
+
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 evaluation_log_file="$CRATE_DOWNLOAD_DIR/full-evaluation-log-$start_date.log"
 evaluation_log_file_final="$CRATE_DOWNLOAD_DIR/full-evaluation-log.log"
@@ -47,5 +61,3 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 ) 2>&1 | tee "$evaluation_log_file"
 
 cp "$evaluation_log_file" "$evaluation_log_file_final"
-
-PRUSTI_CHECK_PANICS=true PRUSTI_CHECK_BINARY_OPERATIONS=true time ./prusti-filter/script/verify-crates-fine-grained.sh ../crates/ ../crates/supported-crates.csv "supported-procedures-with-assertions.csv" 900

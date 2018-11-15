@@ -56,16 +56,16 @@ run-release:
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER_RELEASE) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
 
 run-release-profile:
 	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
-    valgrind --tool=callgrind \
+    valgrind --tool=callgrind --vex-iropt-register-updates=allregs-at-mem-access \
 	${PRUSTI_DRIVER_RELEASE} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \
 		${RUN_FILE}
 	@echo "Now run 'kcachegrind callgrind.out.*'"
 
@@ -75,7 +75,7 @@ run-release-flamegraph:
     perf record -g -F 99 \
 	${PRUSTI_DRIVER_RELEASE} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \
 		${RUN_FILE}
 	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 

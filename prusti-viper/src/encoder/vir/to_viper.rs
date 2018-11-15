@@ -90,7 +90,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             add_asserts(stmts, base, ast);
                             let fake_position = Position::new(0, 0, "fold_assert".to_string());
                             let assert = Stmt::Assert(
-                                Expr::FieldAccessPredicate(box expr.clone(), Frac::new(1, 10000)),
+                                Expr::FieldAccessPredicate(box expr.clone(), Frac::new(1, 1000)),
                                 fake_position,
                             );
                             stmts.push(assert.to_viper(ast));
