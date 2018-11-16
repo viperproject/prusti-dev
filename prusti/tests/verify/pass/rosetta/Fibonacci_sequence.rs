@@ -1,5 +1,29 @@
-/// An adaptation of the example from
-/// https://rosettacode.org/wiki/Fibonacci_sequence#Rust
+//! An adaptation of the example from
+//! https://rosettacode.org/wiki/Fibonacci_sequence#Rust
+//!
+//!
+//! Omitted:
+//!
+//! +   Analytical version:
+//!
+//!     +   Uses closures.
+//!     +   Uses floating point numbers.
+//!
+//! Changes:
+//!
+//! +   Replaced ``println!`` with calling trusted functions.
+//! +   Unified function types.
+//! +   Renamed functions.
+//! +   Added ghost counters to prove that all versions generate the same sequence.
+//! +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+//! +   Rewrote closure into a match statement.
+//! +   Replaced Iterator::next function with a function next.
+//! +   Wrapped built-in types and functions.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
+//! +   The verified three implementations print only Fibonacci numbers.
 
 extern crate prusti_contracts;
 
