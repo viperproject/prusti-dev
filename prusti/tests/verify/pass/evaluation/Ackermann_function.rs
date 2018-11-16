@@ -11,6 +11,7 @@
 ///
 /// +   Absence of panics.
 /// +   The return value is positive.
+/// +   The functions are equivalent.
 
 extern crate prusti_contracts;
 
