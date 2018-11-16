@@ -42,6 +42,11 @@ verification_report_final="$CRATE_DOWNLOAD_DIR/verification-time-report.csv"
 echo "'Crate name', 'Parsing duration', 'Type-checking duration', 'Encoding duration', 'Verification duration'" > "$verification_report"
 info "Report: '$verification_report'"
 
+if [[ -r "$verification_report" ]]
+then
+	rm "$verification_report"
+fi
+
 info "Run on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
 
 cat "$CRATES_LIST_PATH" | while read crate_name; do
