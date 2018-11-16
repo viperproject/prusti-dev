@@ -56,7 +56,7 @@ def build_project():
             ] + MAKE_FLAGS,
         cwd=ROOT,
         check=True,
-        env=ENV_VARS,
+        # env=ENV_VARS,
     )
 
 
