@@ -75,17 +75,20 @@ def get_benchmarks():
     evaluation_glob = os.path.join(evaluation_path, '*.rs')
     evaluation_overflow_path = os.path.join(ROOT, 'tests/verify/pass-overflows/evaluation/')
     evaluation_overflow_glob = os.path.join(evaluation_overflow_path, '*.rs')
-    return (list(glob.glob(rosetta_glob)) +
-            list(glob.glob(rosetta_todo_glob)) +
-            list(glob.glob(rosetta_stress_glob)) +
-            list(glob.glob(paper_glob)) +
-            list(glob.glob(evaluation_glob)) +
-            list(glob.glob(evaluation_overflow_glob)) +
-            list(glob.glob(nll_glob)))
+    # return (list(glob.glob(rosetta_glob)) +
+            # list(glob.glob(rosetta_todo_glob)) +
+            # list(glob.glob(rosetta_stress_glob)) +
+            # list(glob.glob(paper_glob)) +
+            # list(glob.glob(evaluation_glob)) +
+            # list(glob.glob(evaluation_overflow_glob)) +
+            # list(glob.glob(nll_glob)))
+    return (list(glob.glob(evaluation_glob)) +
+            list(glob.glob(evaluation_overflow_glob)))
 
 
 def run_benchmarks():
     benchmarks = get_benchmarks()
+    print('\n'.join(sorted(benchmarks)), len(benchmarks))
     with open(LOG_FILE, 'a') as fp:
         writer = csv.writer(fp)
         for benchmark in benchmarks:
