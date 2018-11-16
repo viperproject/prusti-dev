@@ -58,11 +58,16 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		continue
 	fi
 
+	verified_items="$( (egrep 'Received [0-9]+ items to be verified' "$log_file" | cut -d ' ' -f 6 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
+	successful_items="$( (egrep 'Successful verification of [0-9]+ items' "$log_file" | cut -d ' ' -f 4 | sed 's/$/+/' | tr '\n' ' ' ; echo "0") | bc )"
+
 	parsing_duration="$( (egrep 'Parsing of annotations successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	type_checking_duration="$( (egrep 'Type-checking of annotations successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	encoding_duration="$( (egrep 'Encoding to Viper successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	verification_duration="$( (egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 7 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
+	num_verification_runs="$( egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | wc -l )"
 
+	info "Verification runs: $num_verification_runs, verified items $verified_items in $verification_duration s"
 	echo "'$crate_name',$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
 done
 
