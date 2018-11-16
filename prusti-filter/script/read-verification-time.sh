@@ -39,7 +39,7 @@ VERIFICATION_LOG_DATE="$3"
 
 verification_report="$CRATE_DOWNLOAD_DIR/verification-time-report-$VERIFICATION_LOG_DATE.csv"
 verification_report_final="$CRATE_DOWNLOAD_DIR/verification-time-report.csv"
-echo '"Crate name","Parsing duration","Type-checking duration","Encoding duration","Verification duration"' > "$verification_report"
+echo '"Crate name","Number of dependencies","Parsing duration","Type-checking duration","Encoding duration","Verification duration"' > "$verification_report"
 info "Report: '$verification_report'"
 
 info "Run on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -65,10 +65,10 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	type_checking_duration="$( (egrep 'Type-checking of annotations successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	encoding_duration="$( (egrep 'Encoding to Viper successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	verification_duration="$( (egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 7 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
-	num_verification_runs="$( egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | wc -l )"
+	num_dependencies="$( egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | wc -l )"
 
-	info "Verification runs: $num_verification_runs, verified items $verified_items in $verification_duration s"
-	echo "'$crate_name',$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
+	info "Verification runs: $num_dependencies, verified items $verified_items in $verification_duration s"
+	echo "'$crate_name',$num_dependencies,$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
 done
 
 if [[ -r "$verification_report" ]]
