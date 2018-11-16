@@ -2,9 +2,6 @@
 /// [blog](http://smallcultfollowing.com/babysteps/blog/2018/06/15/mir-based-borrow-check-nll-status-update/)
 /// that illustrates differences between Rust 2018 NLL and Polonius.
 ///
-/// This example illustrates the differences between lexical borrow checker and the new non-lexical
-/// borrow checker that is going to be part of Rust 2018 edition.
-///
 /// Changes:
 ///
 /// +   Rewrote to remove a return statement.
