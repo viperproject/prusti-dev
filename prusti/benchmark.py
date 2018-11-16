@@ -62,6 +62,8 @@ def build_project():
 def get_benchmarks():
     rosetta_path = os.path.join(ROOT, 'tests/verify/pass/rosetta/')
     rosetta_glob = os.path.join(rosetta_path, '*.rs')
+    rosetta_overflow_path = os.path.join(ROOT, 'tests/verify/pass-overflows/rosetta/')
+    rosetta_overflow_glob = os.path.join(rosetta_overflow_path, '*.rs')
     rosetta_todo_glob = os.path.join(rosetta_path, 'todo', '*.rs')
     rosetta_stress_path = os.path.join(ROOT, 'tests/verify/todo/stress/rosetta/')
     rosetta_stress_glob = os.path.join(rosetta_stress_path, '*.rs')
