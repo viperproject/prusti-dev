@@ -63,7 +63,7 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	encoding_duration="$( (egrep 'Encoding to Viper successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	verification_duration="$( (egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 7 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 
-	echo "'$crate_name', $parsing_duration, $type_checking_duration, $encoding_duration, $verification_duration" >> "$verification_report"
+	echo "'$crate_name',$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
 done
 
 if [[ -r "$verification_report" ]]
