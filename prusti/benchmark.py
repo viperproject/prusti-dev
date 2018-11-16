@@ -130,7 +130,7 @@ def run_benchmark(file_path):
             verification_time, str(MAKE_FLAGS), str(ENV_VARS))
 
 def main():
-    build_project()
+    #build_project()
     run_benchmarks()
 
 
