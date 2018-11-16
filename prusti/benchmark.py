@@ -28,15 +28,14 @@ ENV_VARS = dict(os.environ,
 )
 
 
-def create_configuration_file():
+def create_configuration_file(check_binary):
     with open(TOML_FILE, 'w') as fp:
         fp.write(
 '''
 DUMP_DEBUG_INFO = false
 DUMP_BORROWCK_INFO = false
-CHECK_BINARY_OPERATIONS = false
-''')
-
+CHECK_BINARY_OPERATIONS = {}
+'''.format(check_binary))
 
 def build_project():
     cmd = [
@@ -94,10 +93,15 @@ def run_benchmarks():
     with open(LOG_FILE, 'a') as fp:
         writer = csv.writer(fp)
         for benchmark in benchmarks:
+            if 'overflows' in benchmark:
+                check_overflow = 'true'
+            else:
+                check_overflow = 'false'
+            create_configuration_file(check_overflow)
             for i in range(3):
                 row = run_benchmark(benchmark)
                 if row:
-                    writer.writerow(row)
+                    writer.writerow(row + ['overflow='+check_overflow])
 
 
 def run_benchmark(file_path):
@@ -126,7 +130,6 @@ def run_benchmark(file_path):
             verification_time, str(MAKE_FLAGS), str(ENV_VARS))
 
 def main():
-    create_configuration_file()
     build_project()
     run_benchmarks()
 
