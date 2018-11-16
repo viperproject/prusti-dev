@@ -41,7 +41,7 @@ def build_project():
     cmd = [
             "make",
             "clean",
-            ] + MAKE_FLAGS
+            ]# + MAKE_FLAGS
     print(' '.join(cmd))
     subprocess.run(
         cmd,
