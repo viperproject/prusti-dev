@@ -1,17 +1,17 @@
-/// An adaptation of the example from
-/// https://rosettacode.org/wiki/Ackermann_function#Rust
-///
-/// Changes:
-///
-/// +   Replaced ``println!`` with calling trusted functions.
-/// +   Unified function types.
-/// +   Renamed functions.
-///
-/// Verified properties:
-///
-/// +   Absence of panics.
-/// +   The return value is positive.
-/// +   The functions are equivalent.
+//! An adaptation of the example from
+//! https://rosettacode.org/wiki/Ackermann_function#Rust
+//!
+//! Changes:
+//!
+//! +   Replaced ``println!`` with calling trusted functions.
+//! +   Unified function types.
+//! +   Renamed functions.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
+//! +   The return value is positive.
+//! +   The functions are equivalent.
 
 extern crate prusti_contracts;
 
