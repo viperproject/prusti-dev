@@ -23,8 +23,8 @@ LOG_FILE = os.path.join(ROOT, 'bench.csv')
 MAKE_FLAGS = [] # ["JAVA_HOME=/usr/lib/jvm/jdk-11.0.1/"]
 ENV_VARS = dict(os.environ,
     # Z3_PATH='/home/software/z3/z3-4.8.3.74db2f250907-x64-ubuntu-14.04/bin/z3',
-    Z3_PATH=os.path.abspath('../../../../z3/bin/z3'),
-    VIPER_HOME=os.path.abspath('../../../../viper'),
+    Z3_PATH=os.path.abspath(os.path.join(ROOT, '../../../../z3/bin/z3')),
+    VIPER_HOME=os.path.abspath(os.path.join(ROOT, '../../../../viper')),
 )
 
 
