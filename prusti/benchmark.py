@@ -47,7 +47,7 @@ def build_project():
         cmd,
         cwd=ROOT,
         check=True,
-        env=ENV_VARS,
+        # env=ENV_VARS,
     )
     subprocess.run(
         [
