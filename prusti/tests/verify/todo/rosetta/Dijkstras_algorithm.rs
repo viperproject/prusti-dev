@@ -120,6 +120,21 @@ impl VecWrapperUsizeUsize {
     pub fn push(&mut self, value: (usize, usize)) {
         self.v.push(value);
     }
+
+    #[trusted]
+    #[requires="0 <= index && index < self.len()"]
+    #[ensures="result.0 == old(self.lookup_target(index))"]
+    #[ensures="after_expiry(self.len() == old(self.len()))"]
+    pub fn borrow(&mut self, index: usize) -> &mut (usize, usize) {
+        self.v.get_mut(index).unwrap()
+    }
+
+    #[trusted]
+    #[pure]
+    #[requires="0 <= index && index < self.len()"]
+    pub fn lookup_target(&self, index: usize) -> usize {
+        self.v[index].0
+    }
 }
 
 struct VecWrapperPath{
@@ -185,6 +200,12 @@ impl VecWrapperDistances {
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
+    #[ensures="(match result {
+                (_, Some(node)) => {
+                    0 <= node && node < self.len()
+                },
+                (_, None) => true
+    })"]
     pub fn lookup(&mut self, index: usize) -> (usize, Option<usize>) {
         self.v[index]
     }
@@ -204,18 +225,34 @@ struct BinaryHeapWrapper {
 impl BinaryHeapWrapper {
 
     #[trusted]
-    pub fn new() -> Self {
+    #[ensures="_ghost_node_count == result.node_count()"]
+    pub fn new(_ghost_node_count: usize) -> Self {
         Self {
             h: BinaryHeap::new(),
         }
     }
 
     #[trusted]
+    #[pure]
+    pub fn node_count(&self) -> usize {
+        unimplemented!();
+    }
+
+    #[trusted]
+    #[requires="0 <= value.node && value.node < self.node_count()"]
+    #[ensures="self.node_count() == old(self.node_count())"]
     pub fn push(&mut self, value: State) {
         self.h.push(value);
     }
 
     #[trusted]
+    #[ensures="(match result {
+        Some(State { node, .. }) => {
+            0 <= node && node < self.node_count()
+        },
+        None => true
+    })"]
+    #[ensures="self.node_count() == old(self.node_count())"]
     pub fn pop(&mut self) -> Option<State> {
         self.h.pop()
     }
@@ -254,6 +291,7 @@ impl PartialOrd for State {
 type WeightedEdge = (usize, usize, usize);
 
 impl Grid {
+    /*
     fn new() -> Self {
         Grid { nodes: VecWrapperNode::new() }
     }
@@ -291,13 +329,14 @@ impl Grid {
             continue_loop = i < vec.len();
         }
     }
+    */
 
     #[requires="0 <= start && start < self.nodes.len()"]
     #[requires="0 <= end && end < self.nodes.len()"]
     fn find_path(&mut self, start: usize, end: usize) -> Option<(VecWrapperPath, usize)> {
         let mut dist = VecWrapperDistances::new((usize::MAX, None), self.nodes.len());
 
-        let mut heap = BinaryHeapWrapper::new();
+        let mut heap = BinaryHeapWrapper::new(self.nodes.len());
         dist.store(start, (0, None));
         heap.push(State {
             node: start,
@@ -306,6 +345,8 @@ impl Grid {
 
         let mut continue_loop = true;
         let mut result = None;
+        #[invariant="heap.node_count() == self.nodes.len()"]
+        #[invariant="dist.len() == self.nodes.len()"]
         #[invariant="0 <= end && end < self.nodes.len()"]
         while continue_loop {
             if let Some(State { node, cost }) = heap.pop() {
@@ -314,6 +355,12 @@ impl Grid {
                     let mut current_dist = dist.lookup(end);
                     path.push(end);
                     let mut continue_loop_1 = true;
+                    #[invariant="(match current_dist {
+                        (_, Some(node)) => {
+                                0 <= node && node < dist.len()
+                            },
+                        (_, None) => true
+                    })"]
                     while continue_loop_1 {
                         if let Some(prev) = current_dist.1 {
                             path.push(prev);
@@ -325,23 +372,39 @@ impl Grid {
                     path.reverse();
                     result = Some((path, cost));
                     continue_loop = false;
-                }
-
-                /*
-                if cost > dist[node].0 {
-                    continue;
-                }
-                for edge in &self.nodes[node].edges {
-                    let next = State {
-                        node: edge.0,
-                        cost: cost + edge.1,
-                    };
-                    if next.cost < dist[next.node].0 {
-                        dist[next.node] = (next.cost, Some(node));
-                        heap.push(next);
+                } else {
+                    if !(cost > dist.lookup(node).0) {
+                        let mut i = 0;
+                        let node_count = self.nodes.len();
+                        let borrowed_node = self.nodes.borrow(node);
+                        let mut continue_loop_2 = i < borrowed_node.edges.len();
+                        #[invariant="0 <= i && i <= borrowed_node.edges.len()"]
+                        #[invariant="continue_loop_2 ==> i < borrowed_node.edges.len()"]
+                        #[invariant="
+                            forall k: usize ::
+                            (0 <= k && k < borrowed_node.edges.len()) ==>
+                            (0 <= borrowed_node.edges.lookup_target(k) &&
+                             borrowed_node.edges.lookup_target(k) < node_count)
+                        "]
+                        #[invariant="node_count == dist.len()"]
+                        #[invariant="node_count == heap.node_count()"]
+                        while continue_loop_2 {
+                            let edge = borrowed_node.edges.borrow(i);
+                            let next = State {
+                                node: edge.0,
+                                cost: cost + edge.1,
+                            };
+                            if next.cost < dist.lookup(next.node).0 {
+                                dist.store(next.node, (next.cost, Some(node)));
+                                heap.push(next);
+                            }
+                            continue_loop_2 = i < borrowed_node.edges.len();
+                        }
+                        borrowed_node;
+                            // TODO: This is a workaround for a bug,
+                            // which we discovered after code freeze.
                     }
                 }
-                */
             } else {
                 continue_loop = false;
             }
