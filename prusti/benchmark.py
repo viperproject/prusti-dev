@@ -101,7 +101,7 @@ def run_benchmarks():
             for i in range(3):
                 row = run_benchmark(benchmark)
                 if row:
-                    writer.writerow(row + ['overflow='+check_overflow])
+                    writer.writerow(tuple(row) + ('overflow='+check_overflow,))
 
 
 def run_benchmark(file_path):
