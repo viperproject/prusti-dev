@@ -6,6 +6,11 @@
 ///
 /// +   Rewrote to remove a return statement.
 /// +   Wrapped built-in types and functions.
+///
+/// Verified properties:
+///
+/// +   Absence of panics.
+/// +   Absence of overflows.
 
 extern crate prusti_contracts;
 

@@ -11,6 +11,10 @@
 ///
 /// +   Changed built-in types with mock types.
 /// +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+///
+/// Verified properties:
+///
+/// +   Absence of panics.
 
 extern crate prusti_contracts;
 
