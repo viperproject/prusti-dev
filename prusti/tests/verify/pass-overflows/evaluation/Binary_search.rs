@@ -12,6 +12,9 @@
 //!
 //! +   Absence of panics.
 //! +   Absence of overflows.
+//! +   If the result is `None`, then the input vector did not contain the
+//!     element.
+//! +   If the result is `Some(index)` then the `arr[index] == elem`.
 //!
 //! The original example contains a bug, which can be showed by using
 //! the following counter-example:
@@ -157,6 +160,11 @@ fn cmp(a: &mut i32, b: &mut i32) -> Ordering {
 #[ensures="arr.len() == old(arr.len())"]
 #[ensures="forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))"]
 #[ensures="*elem == old(*elem)"]
+#[ensures="result.is_none() ==>
+            (forall k: usize :: (0 <= k && k < arr.len()) ==> *elem != arr.lookup(k))"]
+#[ensures="result.is_some() ==> (
+                0 <= result.peek() && result.peek() < arr.len() &&
+                arr.lookup(result.peek()) == *elem)"]
 fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
 {
     let mut size = arr.len();
@@ -170,15 +178,18 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     #[invariant="0 <= size"]
     #[invariant="base < 18446744073709551615 - size"]
     #[invariant="base + size <= arr.len()"]
-    #[invariant="continue_loop ==> size > 0"]
+    #[invariant="continue_loop == (size > 0 && result.is_none())"]
     #[invariant="arr.len() == old(arr.len())"]
     #[invariant="*elem == old(*elem)"]
     #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
                 arr.lookup(k1) <= arr.lookup(k2)"]
     #[invariant="forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))"]
     #[invariant="forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem"]
-    #[invariant="continue_loop ==>
-                 (forall k: usize:: (base + size <= k && k < arr.len()) ==> *elem <= arr.lookup(k))"]
+    #[invariant="result.is_none() ==>
+                 (forall k: usize:: (base + size <= k && k < arr.len()) ==> *elem < arr.lookup(k))"]
+    #[invariant="result.is_some() ==> (
+                    0 <= result.peek() && result.peek() < arr.len() &&
+                    arr.lookup(result.peek()) == *elem)"]
     while continue_loop {
         let half = size / 2;
         let mid = base + half;
