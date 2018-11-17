@@ -42,9 +42,6 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[ensures="self.len() == old(self.len()) + 1"]
-    #[ensures="self.lookup(old(self.len())) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
