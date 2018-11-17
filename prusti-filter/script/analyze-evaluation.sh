@@ -112,7 +112,13 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 space
 
 inlineinfo "Number of functions from all the crates that have a reference in the return type"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | length > 0) | .node_path' | wc -l
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | .node_path' | wc -l
+
+inlineinfo "Number of functions from all the crates that have a mutable reference in the return type"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "has mutable reference in return type")) | .node_path' | wc -l
+
+inlineinfo "Number of functions from all the crates that have an immutable reference in the return type"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "has immutable reference in return type")) | .node_path' | wc -l
 
 space
 
