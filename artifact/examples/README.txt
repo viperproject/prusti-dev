@@ -12,13 +12,13 @@ these steps:
 1.  Download and install VirtualBox from https://www.virtualbox.org/.
 2.  Extract the ZIP archive.
 3.  Start VirtualBox.
-4.  Choose File → Import VM...
+4.  Choose File → Import VM...  (Import Appliance... on Mac)
 5.  Select the extracted Prusti.ova file and follow the instructions.
 
 If the import was successful, there should be *Prusti* in the list of
-virtual machines. Select it and click Start.
-
-The user is called prusti and the password is also prusti.
+virtual machines. Select it and click Start. The OS should log in
+without asking for password. In case, you need it, the user is called
+prusti and the password is also prusti.
 
 II. Trying Examples
 -------------------
@@ -43,10 +43,15 @@ You can run Prusti on an example as follows:
 
         prusti borrow_first.rs
 
-4.  Prusti will print the verification outcome, which for
-    ``borrow_first.rs`` would be *Successful verification of 3 items*.
+    Note that for examples that have an empty main function, Prusti will
+    emit warnings about unused functions and structs. This is expected
+    and does not influence verification.
 
-5.  To see how Prusti reports, try commenting out part of the
+4.  The last messsage printed by Prusti will be the verification
+    outcome, which for ``borrow_first.rs`` would be *Successful
+    verification of 3 items*.
+
+5.  To see how Prusti reports errors, try commenting out part of the
     specification or introducing a bug. For instance, the
     ``borrow_first_missing_spec.rs`` example is equivalent to the
     previous one just with one of the preconditions commented out. If
