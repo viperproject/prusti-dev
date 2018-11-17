@@ -31,7 +31,7 @@ def main():
         verifications = [float(verification) for (_, verification) in values]
         for (total, verification) in values:
             print("  ", total, verification)
-        print("  total={:.0f}  ({:.0f})  verification={:.0f}  ({:.0f})".format(
+        print("  total={:.1f}  ({:.1f})  verification={:.1f}  ({:.1f})".format(
             statistics.mean(totals), statistics.pstdev(totals),
             statistics.mean(verifications), statistics.pstdev(verifications)
         ))
