@@ -99,3 +99,5 @@ You can run Prusti on an example as follows:
     PRUSTI_CHECK_PANICS to ``false``::
 
         PRUSTI_CHECK_PANICS=false prusti Heapsort.rs
+
+    (No verification error will be reported in this case.)
