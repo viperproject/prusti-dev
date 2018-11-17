@@ -2,6 +2,9 @@
 Using Prusti
 ============
 
+The link to the ZIP file containing the virtual machine was removed for
+double blind review.
+
 I. Virtual Machine
 ------------------
 
@@ -12,12 +15,12 @@ these steps:
 1.  Download and install VirtualBox from https://www.virtualbox.org/.
 2.  Extract the ZIP archive.
 3.  Start VirtualBox.
-4.  Choose File → Import VM...  (Import Appliance... on Mac)
+4.  Choose File → Import VM...  (Import Appliance... on Mac).
 5.  Select the extracted Prusti.ova file and follow the instructions.
 
 If the import was successful, there should be *Prusti* in the list of
 virtual machines. Select it and click Start. The OS should log in
-without asking for password. In case, you need it, the user is called
+without asking for password. In case you need it, the user is called
 prusti and the password is also prusti.
 
 II. Trying Examples
