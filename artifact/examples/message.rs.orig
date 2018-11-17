@@ -1,0 +1,18 @@
+// http://smallcultfollowing.com/babysteps/blog/2018/10/31/mir-based-borrowck-is-almost-here/
+
+fn router(me: &str, rx: Receiver<Message>, tx: Sender<Message>) {
+  for message in rx {
+    match &message {
+      Message::Letter { recipient, data } => {
+        if recipient != me {
+          tx.send(message).unwrap();
+        } else {
+          process(data);
+        }
+      }
+
+      // ... maybe other cases here ...
+    }
+  }
+}
+
