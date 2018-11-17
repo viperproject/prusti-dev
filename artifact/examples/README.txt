@@ -50,7 +50,7 @@ You can run Prusti on an example as follows:
     emit warnings about unused functions and structs. This is expected
     and does not influence verification.
 
-4.  The last messsage printed by Prusti will be the verification
+4.  The last message printed by Prusti will be the verification
     outcome, which for ``borrow_first.rs`` would be *Successful
     verification of 3 items*.
 
