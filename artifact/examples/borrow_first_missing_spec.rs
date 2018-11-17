@@ -79,9 +79,11 @@ fn some_condition(r: &i32) -> bool {
 }
 
 
-#[requires="vec.len() > 0"]
+//#[requires="vec.len() > 0"]
 fn foo(vec: &mut VecWrapperI32) -> &mut i32 {
-    let r = vec.borrow(0);
+    let r = vec.borrow(0);  // This will panic if the vector is empty.
+                            // We can specify that the vector is not empty by uncommenting the
+                            // precondition.
     if some_condition(r) {
         r
     } else {
