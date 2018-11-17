@@ -3,7 +3,7 @@ Verified Rosetta Code Examples
 ==============================
 
 This folder contains the examples from Rosetta Code we verified with
-Prusti. Each example is split between two fails: the original Rust file
+Prusti. Each example is split between two files: the original Rust file
 ``*.rs.orig`` and the verified version ``*.rs``. For example, the
 original version of the binary search example can be found in file
 ``Binary_search.rs.orig`` and the verified version in file
