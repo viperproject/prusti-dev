@@ -138,10 +138,6 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
                 arr.lookup(k1) <= arr.lookup(k2)"]
     #[invariant="forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))"]
-    #[invariant="forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem"]
-    // TODO: Finish
-    //#[invariant="continue_loop ==>
-                 //(forall k: usize:: (base + size < k && k < arr.len()) ==> *elem < arr.lookup(k))"]
     while continue_loop {
         size /= 2;
         let mid = base + size;
