@@ -23,12 +23,17 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH
 
+
+# Obtain Rust-toolchain version
+RUN mkdir -p /usr/local/prusti/lib
+ADD rust-toolchain /usr/local/prusti/rust-toolchain
+
 # Install Rust.
 RUN mkdir -p /tmp/rust && \
 	    cd /tmp/rust && \
 	    wget -q -c https://sh.rustup.rs -O install.sh && \
 	    chmod 755 install.sh && \
-	    ./install.sh -y --no-modify-path --default-toolchain "$(cat rust-toolchain)" && \
+	    ./install.sh -y --no-modify-path --default-toolchain "$(cat /usr/local/prusti/rust-toolchain)" && \
 	    rm -rf /tmp/rust
 
 # Install Prusti prerequisites.
