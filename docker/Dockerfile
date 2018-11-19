@@ -24,7 +24,12 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 # Install Rust.
-RUN bash <(curl https://sh.rustup.rs -sSf) -y --no-modify-path --default-toolchain "$(cat rust-toolchain)"
+RUN mkdir -p /tmp/rust && \
+	    cd /tmp/rust && \
+	    wget -q -c https://sh.rustup.rs -O install.sh && \
+	    chmod 755 install.sh && \
+	    ./install.sh -y --no-modify-path --default-toolchain "$(cat rust-toolchain)" && \
+	    rm -rf /tmp/rust
 
 # Install Prusti prerequisites.
 RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
