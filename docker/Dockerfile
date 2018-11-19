@@ -51,9 +51,10 @@ ADD . /tmp/prusti-dev
 RUN cd /tmp/prusti-dev && \
     cargo build --release && \
 	mkdir -p /usr/local/prusti/lib && \
+	cp rust-toolchain /usr/local/prusti/rust-toolchain && \
 	cp target/release/prusti-driver /usr/local/prusti/prusti-driver && \
 	cp target/release/libprusti.so /usr/local/prusti/libprusti.so && \
-	cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib
+	cp target/release/libprusti_contracts.rlib /usr/local/prusti/libprusti_contracts.rlib
 ADD docker/prusti /usr/local/bin/prusti
 ADD docker/cargo-prusti /usr/local/bin/cargo-prusti
 ENV RUSTC_WRAPPER "/usr/local/bin/prusti"

@@ -11,7 +11,20 @@ info "Executing Prusti script located in '$DIR'"
 export JAVA_HOME=${JAVA_HOME:-"/usr/lib/jvm/default-java"}
 export RUST_LOG=${RUST_LOG:-info}
 
-export RUSTUP_TOOLCHAIN="$(cat $DIR/../rust-toolchain)"
+# Set RUSTUP_TOOLCHAIN
+if [ -r "/usr/local/prusti/rust-toolchain" ]; then
+	RUSTUP_TOOLCHAIN="$(cat "/usr/local/prusti/rust-toolchain")"
+fi
+if [ -r "$DIR/../rust-toolchain" ]; then
+	RUSTUP_TOOLCHAIN="$(cat "$DIR/../rust-toolchain")"
+fi
+if [ -z "$RUSTUP_TOOLCHAIN" ]; then
+	error "Unable to set RUSTUP_TOOLCHAIN."
+	error "It looks like Prusti has not been downloaded or installed properly."
+	exit 1
+else
+	info "Using RUSTUP_TOOLCHAIN '$RUSTUP_TOOLCHAIN'"
+fi
 
 # The compiler version for which Prusti has been compiled
 RUST_VERSION="$RUSTUP_TOOLCHAIN-x86_64-unknown-linux-gnu"
