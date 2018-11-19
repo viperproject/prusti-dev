@@ -1,7 +1,7 @@
 image: 'rust:latest'
 
 stages:
-- test
+  - test
 
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/cargo
@@ -15,7 +15,6 @@ cache:
   - $APT_CACHE_DIR
 
 before_script:
-  - uname -a
   - add-apt-repository ppa:webupd8team/java
   - curl -L http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
   - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
@@ -26,15 +25,15 @@ before_script:
   - cp z3-*/bin/z3 "$Z3_PATH"
   - rm -r z3.zip z3-*
   - rustup default "$(cat rust-toolchain)"
-  - silicon --version
-  - "$Z3_PATH" -version
+  - silicon -version
+  - ./"$Z3_PATH" -version
   - java -version
-  - rustc --version
-  - cargo --version
+  - rustc -version
+  - cargo -version
 
 test:
   stage: test
   script:
-  - cargo build --all
-  - cargo test --verbose -- --nocapture
-  - ./docker/prusti prusti/tests/verify/pass/no-annotations/assert-true.rs
+    - cargo build -all
+    - cargo test -verbose --nocapture
+    - ./docker/prusti prusti/tests/verify/pass/no-annotations/assert-true.rs
