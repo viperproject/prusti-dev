@@ -6,6 +6,7 @@ stages:
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/cargo
   Z3_PATH: /usr/local/bin/z3
+  APT_CACHE_DIR: $CI_PROJECT_DIR/apt-cache
 
 cache:
   paths:
@@ -16,11 +17,11 @@ cache:
 test:
   stage: test
   before_script:
-  - apt-get update -y -qq && apt-get install -y -qq curl build-essential
+  - apt-get update -y -qq && apt-get install -y -qq -o dir::cache::archives="$APT_CACHE_DIR" curl build-essential
   - bash <(curl https://sh.rustup.rs -sSf) -y --no-modify-path --default-toolchain "$(cat rust-toolchain)"
   - curl -L http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
   - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | tee /etc/apt/sources.list.d/viper.list
-  - apt-get update -y -qq && apt-get install -y -qq viper openjdk-9-jdk
+  - apt-get update -y -qq && apt-get install -y -qq -o dir::cache::archives="$APT_CACHE_DIR" viper default-jdk
   - wget https://github.com/Z3Prover/z3/releases/download/z3-4.8.1/z3-4.8.1.016872a5e0f6-x64-ubuntu-16.04.zip -O z3.zip
   - unzip z3.zip
   - cp z3-*/bin/z3 "$Z3_PATH"
