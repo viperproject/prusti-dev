@@ -160,6 +160,10 @@ pub fn main() {
     let exit_status = run(move || {
         let mut args: Vec<String> = env::args().collect();
 
+        if args.len() <= 1 {
+            std::process::exit(1);
+        }
+
         // Disable Prusti if...
         let prusti_filter_disabled = true
             // we have been called by Cargo with RUSTC_WRAPPER, and
@@ -171,9 +175,6 @@ pub fn main() {
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this
-        if args.len() <= 1 {
-            std::process::exit(1);
-        }
         if Path::new(&args[1]).file_stem() == Some("rustc".as_ref()) {
             args.remove(1);
         }

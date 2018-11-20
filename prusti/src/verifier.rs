@@ -37,14 +37,20 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         let verification_task = VerificationTask { procedures: annotated_procedures };
         debug!("Verification task: {:?}", &verification_task);
 
-        debug!("Prepare verifier...");
-        let verifier_builder = ViperVerifierBuilder::new();
-        let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
-        let mut verifier = verification_context.new_verifier(&env, &spec);
+        let verification_result = if verification_task.procedures.is_empty() {
+            VerificationResult::Success
+        } else {
+            debug!("Prepare verifier...");
+            let verifier_builder = ViperVerifierBuilder::new();
+            let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
+            let mut verifier = verification_context.new_verifier(&env, &spec);
 
-        debug!("Run verifier...");
-        let verification_result = verifier.verify(&verification_task);
-        debug!("Verifier returned {:?}", verification_result);
+            debug!("Run verifier...");
+            let verification_result = verifier.verify(&verification_task);
+            debug!("Verifier returned {:?}", verification_result);
+
+            verification_result
+        };
 
         match verification_result {
             VerificationResult::Success => {

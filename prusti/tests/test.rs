@@ -84,7 +84,7 @@ fn run_verification(group_name: &str) {
         run_tests(&config);
     }
 
-    let path = PathBuf::from(format!("tests/{}/pass-overflows", group_name));
+    let path = PathBuf::from(format!("tests/{}/pass-overflow", group_name));
     if path.exists() {
         config.mode = common::Mode::RunPass;
         config.src_base = path;
@@ -100,7 +100,7 @@ fn run_verification(group_name: &str) {
         run_tests(&config);
     }
 
-    let path = PathBuf::from(format!("tests/{}/fail-overflows", group_name));
+    let path = PathBuf::from(format!("tests/{}/fail-overflow", group_name));
     if path.exists() {
         config.mode = common::Mode::CompileFail;
         config.src_base = path;

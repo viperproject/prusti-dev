@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![recursion_limit = "1024"]
+#![feature(iterator_flatten)]
 
 #[macro_use]
 extern crate error_chain;

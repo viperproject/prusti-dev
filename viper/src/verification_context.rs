@@ -9,6 +9,7 @@ use verifier::state;
 use ast_utils::*;
 use std::env;
 use verification_backend::VerificationBackend;
+use std::path::Path;
 
 pub struct VerificationContext<'a> {
     env: AttachGuard<'a>,
@@ -32,13 +33,31 @@ impl<'a> VerificationContext<'a> {
     }
 
     pub fn new_verifier_with_args(&self, backend: VerificationBackend, args: Vec<&str>) -> Verifier<state::Started> {
-        let z3_path = env::var("Z3_PATH").unwrap_or_else(|_| "/usr/bin/viper-z3".to_string());
-        let boogie_path = env::var("BOOGIE_PATH").unwrap_or_else(|_| "/usr/bin/boogie".to_string());
+        let z3_path = vec![
+            env::var("Z3_PATH").ok(),
+            env::var("Z3_EXE").ok(),
+            Some("/usr/bin/viper-z3".to_string()),
+            Some("/usr/local/bin/z3".to_string()),
+            Some("/usr/bin/z3".to_string()),
+        ].into_iter().flatten().find(
+            |path| Path::new(path).exists()
+        ).expect(
+            "No valid Z3 path has been found. Please set Z3_EXE."
+        );
+
+        let boogie_path = vec![
+            env::var("BOOGIE_PATH").ok(),
+            env::var("BOOGIE_EXE").ok(),
+            Some("/usr/local/bin/boogie".to_string()),
+            Some("/usr/bin/boogie".to_string()),
+        ].into_iter().flatten().find(
+            |path| Path::new(path).exists()
+        ).expect(
+            "No valid Boogie path has been found. Please set BOOGIE_EXE."
+        );
 
         debug!("Using Z3 path: '{}'", &z3_path);
-
         debug!("Using BOOGIE path: '{}'", &boogie_path);
-
         debug!("Verification backend: '{}'", backend);
 
         let mut verifier_args = vec![];

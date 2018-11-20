@@ -1,5 +1,17 @@
-/// An adaptation of the example from
-/// https://rosettacode.org/wiki/Knuth_shuffle#Rust
+//! An adaptation of the example from
+//! https://rosettacode.org/wiki/Knuth_shuffle#Rust
+//!
+//! Changes:
+//!
+//! +   Monomorphised types.
+//! +   Wrapped built-in types and functions.
+//! +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+//! +   Replaced ``println!`` with calling trusted functions.
+//! +   Moved constants into variables.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
 
 extern crate prusti_contracts;
 
@@ -30,9 +42,6 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[ensures="self.len() == old(self.len()) + 1"]
-    #[ensures="self.lookup(old(self.len())) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
