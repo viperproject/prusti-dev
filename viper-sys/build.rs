@@ -43,6 +43,7 @@ fn main() {
         }
     };
 
+    println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-env-changed=VIPER_HOME");
     let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
     let mut viper_jars: Vec<String> = fs::read_dir(&viper_home)
