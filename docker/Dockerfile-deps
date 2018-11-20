@@ -1,0 +1,64 @@
+# Adapted version of the Docker image used for the Rust Playground.
+FROM ubuntu:16.04
+MAINTAINER Vytautas Astrauskas "vastrauskas@gmail.com"
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install prerequisites
+RUN apt-get update && \
+    apt-get install -y \
+        build-essential \
+        locales \
+        file \
+        curl \
+        wget \
+        git \
+        python2.7 \
+        cmake \
+        pkg-config \
+        libssl-dev \
+		unzip \
+		default-jdk \
+        && \
+    apt-get clean
+
+# Set up locale
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+ENV JAVA_HOME="/usr/lib/jvm/default-java" \
+	LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
+
+# Obtain Rust-toolchain version
+RUN mkdir -p /usr/local/prusti/lib
+ADD rust-toolchain /usr/local/prusti/rust-toolchain
+
+# Install Rust
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path --default-toolchain "$(cat /usr/local/prusti/rust-toolchain)"
+
+# Install Viper
+RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
+RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
+RUN apt-get update && \
+    apt-get install -y viper && \
+    apt-get clean
+
+# Install Z3
+RUN mkdir /tmp/z3 && \
+	cd /tmp/z3 && \
+	wget -q 'https://github.com/Z3Prover/z3/releases/download/z3-4.8.1/z3-4.8.1.016872a5e0f6-x64-ubuntu-16.04.zip' -O z3.zip && \
+	unzip z3.zip && \
+	cp z3-*/bin/z3 /usr/local/bin/z3 && \
+    chmod +x /usr/local/bin/z3 && \
+    cd / && \
+  	rm -r /tmp/z3
+
+ENV Z3_PATH=/usr/local/bin/z3
+
+WORKDIR /

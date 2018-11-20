@@ -88,6 +88,10 @@ docs: update
 clippy: clean
 	$(SET_ENV_VARS) cargo clippy --all
 
+publish-deps: clean
+	docker build -t fpoli/prusti-deps -f docker/Dockerfile-deps .
+	docker push fpoli/prusti-deps
+
 clean:
 	cargo clean
 	find . -name '*.bk' -delete
