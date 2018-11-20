@@ -60,7 +60,6 @@ impl WrapperGenerator {
         let jvm_args = InitArgsBuilder::new()
             .version(JNIVersion::V8)
             .option(&format!("-Djava.class.path={}", self.jars.join(":")))
-            .option("-Xdebug")
             .build()?;
 
         let jvm = JavaVM::new(jvm_args)?;
