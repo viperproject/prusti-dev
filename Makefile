@@ -1,6 +1,4 @@
 SHELL := /bin/bash
-RUN_FILE = tests/typecheck/pass/lint.rs
-RUN_FILE_FOLDER = $(shell dirname ${RUN_FILE})
 RUST_LOG ?= prusti=info
 RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
