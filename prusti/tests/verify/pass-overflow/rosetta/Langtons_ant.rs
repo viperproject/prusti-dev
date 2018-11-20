@@ -1,5 +1,21 @@
-/// An adaptation of the example from
-/// https://rosettacode.org/wiki/Langton%27s_ant#Rust
+//! An adaptation of the example from
+//! https://rosettacode.org/wiki/Langton%27s_ant#Rust
+//!
+//! Changes:
+//!
+//! +   Wrapped built-in types and functions.
+//! +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+//! +   Replaced ``println!`` with calling trusted functions.
+//! +   Added ghost functions to track the program state.
+//! +   Fixed the bug by changing usize into isize.
+//!
+//! Verified properties (for fixed version):
+//!
+//! +   Absence of panics.
+//!
+//! Found bug:
+//!
+//! +   The subtraction may overflow because usize variable is used.
 
 extern crate prusti_contracts;
 

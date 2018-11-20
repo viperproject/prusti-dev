@@ -1,5 +1,26 @@
-/// An adaptation of the example from
-/// https://rosettacode.org/wiki/100_doors#Rust
+//! An adaptation of the example from
+//! https://rosettacode.org/wiki/100_doors#Rust
+//!
+//! Omitted:
+//!
+//! +   Declarative version:
+//!
+//!     +   Uses closures.
+//!
+//! +   Optimized version: 
+//!
+//!     +   Uses closures.
+//!
+//! Changes:
+//!
+//! +   Replaced ``println!`` with calling trusted functions.
+//! +   Wrapped built-in types and functions.
+//! +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+//! +   Moved constants into variables.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
 
 extern crate prusti_contracts;
 

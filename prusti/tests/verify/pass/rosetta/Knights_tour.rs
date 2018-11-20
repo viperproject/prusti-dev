@@ -1,5 +1,18 @@
 //! An adaptation of the example from
 //! https://rosettacode.org/wiki/Knight%27s_tour#Rust
+//!
+//! Changes:
+//!
+//! +   Inlined constants.
+//! +   Unified types to remove type casts.
+//! +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+//! +   Replaced comprehension with a manual loop.
+//! +   Replaced ``println!`` with calling trusted functions.
+//! +   Replaced auto-derives with manually written functions.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
 
 extern crate prusti_contracts;
 
@@ -225,7 +238,6 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
         let mut moves = moves();
         let mut i = 0;
         let mut continue_loop_3 = i < moves.len();
-        assert!(0 <= p.x && p.x < size());
         #[invariant="0 <= i"]
         #[invariant="continue_loop_3 ==> i < moves.len()"]
         #[invariant="0 <= p.x && p.x < size()"]
@@ -240,7 +252,6 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
             i += 1;
             continue_loop_3 = i < moves.len();
         }
-        assert!(0 <= p.x && p.x < size());
 
         let mut i = 0;
         let mut continue_loop_2 = i < candidates.len();
@@ -258,17 +269,13 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
             i += 1;
             continue_loop_2 = i < candidates.len();
         }
-        assert!(0 <= p.x && p.x < size());
         match min {
             Some((_, adj)) => {// move to next square
-                assert!(0 <= p.x && p.x < size());
                 p = adj;
-                assert!(0 <= p.x && p.x < size());
             }
             None =>            // can't move
                 failed = true,
         };
-        assert!(0 <= p.x && p.x < size());
         board.field.store(p.x, p.y, step);
         step += 1;
         continue_loop_1 = step <= size() * size() && !failed;

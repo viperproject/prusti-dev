@@ -1,5 +1,14 @@
-/// An adaptation of the example from
-/// http://rosettacode.org/wiki/Towers_of_Hanoi#Rust
+//! An adaptation of the example from
+//! http://rosettacode.org/wiki/Towers_of_Hanoi#Rust
+//!
+//! Changes:
+//!
+//! +   Replaced ``println!`` with calling trusted functions.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
+//! +   Absence of overflows.
 
 extern crate prusti_contracts;
 

@@ -1,5 +1,16 @@
-/// An adaptation of the example from
-/// https://rosettacode.org/wiki/Sorting_algorithms/Selection_sort#Rust
+//! An adaptation of the example from
+//! https://rosettacode.org/wiki/Sorting_algorithms/Selection_sort#Rust
+//!
+//! Changes:
+//!
+//! +   Wrapped built-in types and functions.
+//! +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+//! +   Replaced ``println!`` with calling trusted functions.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
+//! +   The resulting vector is sorted.
 
 extern crate prusti_contracts;
 
