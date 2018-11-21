@@ -1,8 +1,20 @@
 /// An adaptation of this example:
 /// https://play.rust-lang.org/?version=nightly&mode=debug&edition=2018&gist=b8dfafd14113f2933c1b5127c861df44
 ///
-/// which was created by Nicholas D. Matsakis to show-case NLL in his blog:
+/// which was created by Matsakis to show-case NLL in his blog:
 /// http://smallcultfollowing.com/babysteps/blog/2018/10/31/mir-based-borrowck-is-almost-here/
+///
+/// This example illustrates the differences between lexical borrow checker and the new non-lexical
+/// borrow checker that is going to be part of Rust 2018 edition.
+///
+/// Changes:
+///
+/// +   Changed built-in types with mock types.
+/// +   Rewrote loops into supported shape (while bool with no break, continue, or return).
+///
+/// Verified properties:
+///
+/// +   Absence of panics.
 
 extern crate prusti_contracts;
 

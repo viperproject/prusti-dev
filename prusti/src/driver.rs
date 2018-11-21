@@ -172,7 +172,8 @@ pub fn main() {
             && !env::var("PRUSTI_TEST").ok().map_or(false, |val| val == "true")
             // this is not the final rustc invocation, thus we are compiling a dependency
             // See: https://github.com/rust-lang-nursery/rust-clippy/issues/1066#issuecomment-440393949
-            && !args.iter().any(|s| s.starts_with("--emit=dep-info,metadata"));
+            //&& !args.iter().any(|s| s.starts_with("--emit=dep-info,metadata"));
+            && false;
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this

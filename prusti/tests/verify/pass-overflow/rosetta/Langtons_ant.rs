@@ -40,16 +40,11 @@ struct Matrix {
     vec: Vec<Vec<u8>>,
 }
 
-#[pure]
-fn max_isize() -> isize {
-    9223372036854775807
-}
-
 impl Matrix {
 
     #[trusted]
-    #[requires="0 < y_size && y_size < max_isize()"]
-    #[requires="0 < x_size && x_size < max_isize()"]
+    #[requires="0 < y_size && y_size <= std::isize::MAX"]
+    #[requires="0 < x_size && x_size <= std::isize::MAX"]
     #[ensures="result.y_size() == y_size"]
     #[ensures="result.x_size() == x_size"]
     #[ensures="forall y: isize, x: isize ::
@@ -65,14 +60,14 @@ impl Matrix {
 
     #[pure]
     #[trusted]
-    #[ensures="0 < result && result < max_isize()"]
+    #[ensures="0 < result && result <= std::isize::MAX"]
     fn x_size(&self) -> isize {
         self._ghost_x_size as isize
     }
 
     #[pure]
     #[trusted]
-    #[ensures="0 < result && result < max_isize()"]
+    #[ensures="0 < result && result <= std::isize::MAX"]
     fn y_size(&self) -> isize {
         self._ghost_y_size as isize
     }

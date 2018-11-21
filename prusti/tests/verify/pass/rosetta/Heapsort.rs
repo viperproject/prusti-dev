@@ -19,7 +19,7 @@ pub struct VecWrapperI32{
 }
 
 impl VecWrapperI32 {
-    // Encoded as body-less Viper function
+
     #[trusted]
     #[pure]
     #[ensures="result >= 0"]
@@ -27,14 +27,12 @@ impl VecWrapperI32 {
         self.v.len()
     }
 
-    // Encoded as body-less Viper method
     #[trusted]
     #[ensures="result.len() == 0"]
     pub fn new() -> Self {
         VecWrapperI32{ v: Vec::new() }
     }
 
-    // Encoded as body-less Viper function
     #[trusted]
     #[pure]
     #[requires="0 <= index && index < self.len()"]
@@ -56,7 +54,6 @@ impl VecWrapperI32 {
         self.v.get_mut(index).unwrap()
     }
 
-    // Encoded as body-less Viper method
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
