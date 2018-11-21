@@ -6,22 +6,19 @@ stages:
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/cargo
   Z3_PATH: /usr/local/bin/z3
-  APT_CACHE_DIR: $CI_PROJECT_DIR/apt-cache
   JAVA_HOME: /usr/lib/jvm/default-java/
   RUST_BACKTRACE: 1
   RUST_TEST_THREADS: 1
 
 cache:
   paths:
-  - target/
   - $CARGO_HOME/
-  - $APT_CACHE_DIR/
 
 test:
   stage: test
   before_script:
   - apt-get update -y -qq && apt-get install -y -qq curl wget unzip build-essential pkg-config gcc libssl-dev
-  - bash <(curl https://sh.rustup.rs -sSf) -y --no-modify-path --default-toolchain "$(cat rust-toolchain)"
+  - curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path --default-toolchain "$(cat rust-toolchain)"
   - source $CARGO_HOME/env
   - curl -L http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
   - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | tee /etc/apt/sources.list.d/viper.list
@@ -39,7 +36,6 @@ test:
   - java -version
   - rustc --version
   - cargo --version
-  - cargo clean
   - cargo build --all
   - cargo test --all --verbose -- --nocapture
   - ./docker/prusti prusti/tests/verify/pass/no-annotations/assert-true.rs
