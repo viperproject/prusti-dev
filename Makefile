@@ -86,8 +86,8 @@ docs: update
 clippy: clean
 	$(SET_ENV_VARS) cargo clippy --all
 
-publish-deps: clean
-	docker build -t fpoli/prusti-deps -f docker/Dockerfile-deps .
+publish-docker-deps: clean
+	docker build -t fpoli/prusti-deps --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/Dockerfile-deps docker/
 	docker push fpoli/prusti-deps
 
 clean:
