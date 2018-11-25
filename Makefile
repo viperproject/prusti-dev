@@ -1,6 +1,4 @@
 SHELL := /bin/bash
-RUN_FILE = tests/typecheck/pass/lint.rs
-RUN_FILE_FOLDER = $(shell dirname ${RUN_FILE})
 RUST_LOG ?= prusti=info
 RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
@@ -88,9 +86,12 @@ docs: update
 clippy: clean
 	$(SET_ENV_VARS) cargo clippy --all
 
-publish-deps: clean
-	docker build -t fpoli/prusti-deps -f docker/Dockerfile-deps .
+publish-docker-deps:
+	docker build -t fpoli/prusti-deps --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/Dockerfile-deps docker/
 	docker push fpoli/prusti-deps
+
+build-docker-prusti: clean
+	docker build --no-cache -t rust-nightly -f docker/Dockerfile-prusti .
 
 clean:
 	cargo clean

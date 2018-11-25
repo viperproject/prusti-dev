@@ -2,6 +2,11 @@
 FROM ubuntu:16.04
 MAINTAINER Vytautas Astrauskas "vastrauskas@gmail.com"
 
+# The Rust-toolchain version to be used
+ARG RUST_TOOLCHAIN
+RUN test -n "$RUST_TOOLCHAIN"
+ENV RUST_TOOLCHAIN $RUST_TOOLCHAIN
+
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install prerequisites
@@ -35,12 +40,8 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 ENV JAVA_HOME="/usr/lib/jvm/default-java"
 ENV LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
 
-# Obtain Rust-toolchain version
-RUN mkdir -p /usr/local/prusti/lib
-ADD rust-toolchain /usr/local/prusti/rust-toolchain
-
 # Install Rust
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path --default-toolchain "$(cat /usr/local/prusti/rust-toolchain)"
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path --default-toolchain "$RUST_TOOLCHAIN"
 
 # Install Viper
 RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -

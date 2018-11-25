@@ -1,6 +1,6 @@
 #!/bin/bash
 
-info() { >&2 echo -e "[-] ${*}"; }
+info() { test -n "$PRUSTI_DEBUG" && >&2 echo -e "[-] ${*}"; }
 error() { >&2 echo -e "[!] ${*}"; }
 
 # Get the directory in which this script is contained
@@ -10,6 +10,8 @@ info "Executing Cargo Prusti script located in '$DIR'"
 # Produce binaries
 export PRUSTI_FULL_COMPILATION=true
 
+info "Cargo arguments: $@"
+
 export RUSTC_WRAPPER="$DIR/prusti"
-#exec cargo check "$@"
-exec cargo build "$@"
+exec cargo check "$@"
+#exec cargo build "$@"

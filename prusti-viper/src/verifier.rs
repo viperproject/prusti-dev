@@ -179,7 +179,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     format!("note that procedure '{}' {}.", proc_name, reasons)
                 };
                 debug!("{}", message);
-                self.env.warn(&message);
+                //self.env.warn(&message);
             } else if support_status.is_unsupported() {
                 let reasons = support_status.get_unsupported_reasons().join(", ");
                 let proc_name = self.env.get_item_name(proc_id);
@@ -189,7 +189,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     format!("note that procedure '{}' {}.", proc_name, reasons)
                 };
                 debug!("{}", message);
-                self.env.warn(&message);
+                //self.env.warn(&message);
             }
         }
 

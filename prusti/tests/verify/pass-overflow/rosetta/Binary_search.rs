@@ -53,6 +53,7 @@
 //!
 //! This file contains a verified version of it.
 
+#![allow(dead_code)]
 extern crate prusti_contracts;
 
 pub struct VecWrapperI32{
@@ -63,7 +64,7 @@ impl VecWrapperI32 {
     #[trusted]
     #[pure]
     #[ensures="result >= 0"]
-    #[ensures="result < 18446744073709551615"]
+    #[ensures="result <= std::usize::MAX"]
     pub fn len(&self) -> usize {
         self.v.len()
     }
@@ -151,8 +152,8 @@ use self::Ordering::*;
             })"]
 fn cmp(a: &mut i32, b: &mut i32) -> Ordering {
     if *a == *b { Equal }
-    else if *a < *b { Less }
-    else { Greater }
+        else if *a < *b { Less }
+            else { Greater }
 }
 
 #[requires="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
@@ -169,27 +170,26 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
 {
     let mut size = arr.len();
     let mut base = 0;
-    let mut end = base + size;
 
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 0;
 
     #[invariant="0 <= base"]
     #[invariant="0 <= size"]
-    #[invariant="base < 18446744073709551615 - size"]
+    #[invariant="base <= std::usize::MAX - size"]
     #[invariant="base + size <= arr.len()"]
     #[invariant="continue_loop == (size > 0 && result.is_none())"]
     #[invariant="arr.len() == old(arr.len())"]
     #[invariant="*elem == old(*elem)"]
     #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>
-                arr.lookup(k1) <= arr.lookup(k2)"]
+            arr.lookup(k1) <= arr.lookup(k2)"]
     #[invariant="forall k: usize:: (0 <= k && k < arr.len()) ==> arr.lookup(k) == old(arr.lookup(k))"]
     #[invariant="forall k: usize:: (0 <= k && k < base) ==> arr.lookup(k) < *elem"]
     #[invariant="result.is_none() ==>
-                 (forall k: usize:: (base + size <= k && k < arr.len()) ==> *elem < arr.lookup(k))"]
+             (forall k: usize:: (base + size <= k && k < arr.len()) ==> *elem < arr.lookup(k))"]
     #[invariant="result.is_some() ==> (
-                    0 <= result.peek() && result.peek() < arr.len() &&
-                    arr.lookup(result.peek()) == *elem)"]
+                0 <= result.peek() && result.peek() < arr.len() &&
+                arr.lookup(result.peek()) == *elem)"]
     while continue_loop {
         let half = size / 2;
         let mid = base + half;

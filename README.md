@@ -122,7 +122,9 @@ docker build --no-cache -t rust-nightly -f docker/Dockerfile-prusti .
 ```bash
 cd "$PRUSTI_DEMO_DIR"
 git clone git@github.com:integer32llc/rust-playground.git
-cd rust-playground/ui
+cd rust-playground
+git checkout 811143311ca1977c84b69e57399c799b4914d980
+cd ui
 cargo build --release
 cd frontend
 yarn

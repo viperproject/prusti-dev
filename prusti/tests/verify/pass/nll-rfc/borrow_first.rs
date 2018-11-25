@@ -1,31 +1,36 @@
-/// An adaptation of the example from Nicholas D. Matsakis
-/// [blog](http://smallcultfollowing.com/babysteps/blog/2018/06/15/mir-based-borrow-check-nll-status-update/)
-/// that illustrates differences between Rust 2018 NLL and Polonius.
+//! An adaptation of the example from Matsakis
+//! [blog](http://smallcultfollowing.com/babysteps/blog/2018/06/15/mir-based-borrow-check-nll-status-update/)
+//! that illustrates differences between Rust 2018 NLL and Polonius.
+//!
+//! Changes:
+//!
+//! +   Rewrote to remove a return statement.
+//! +   Wrapped built-in types and functions.
+//!
+//! Verified properties:
+//!
+//! +   Absence of panics.
+//! +   Absence of overflows.
 
+// This is currently needed for importing specifications.
 extern crate prusti_contracts;
 
+/// A struct that wraps a built-in vector for signed 32-bit integers.
 pub struct VecWrapperI32{
     v: Vec<i32>
 }
 
 impl VecWrapperI32 {
-    // Encoded as body-less Viper function
-    #[trusted]
-    #[pure]
-    #[ensures="result >= 0"]
-    #[ensures="result < 18446744073709551615"]
-    pub fn len(&self) -> usize {
-        self.v.len()
-    }
 
-    // Encoded as body-less Viper method
+    // Trusted functions are assumed to be correct. This allows attaching specifications to
+    // existing functions.
     #[trusted]
     #[ensures="result.len() == 0"]
     pub fn new() -> Self {
         VecWrapperI32{ v: Vec::new() }
     }
 
-    // Encoded as body-less Viper function
+    // Pure functions can be used in specifications.
     #[trusted]
     #[pure]
     #[requires="0 <= index && index < self.len()"]
@@ -39,7 +44,6 @@ impl VecWrapperI32 {
         &mut self.v[index]
     }
 
-    // Encoded as body-less Viper method
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
     #[ensures="self.len() == old(self.len())"]
@@ -58,6 +62,15 @@ impl VecWrapperI32 {
     pub fn push(&mut self, value: i32) {
         self.v.push(value);
     }
+
+    #[trusted]
+    #[pure]
+    #[ensures="result >= 0"]
+    #[ensures="result < 18446744073709551615"]
+    pub fn len(&self) -> usize {
+        self.v.len()
+    }
+
 }
 
 #[pure]
@@ -76,12 +89,6 @@ fn foo(vec: &mut VecWrapperI32) -> &mut i32 {
         let last = vec.len()-1;
         vec.borrow(last)
     }
-}
-
-fn test() {
-    let mut vec = VecWrapperI32::new();
-    vec.push(5);
-    foo(&mut vec);
 }
 
 fn main() {}
