@@ -100,10 +100,10 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         //control.make_glob_map = ???
         //control.keep_ast = true;
 
-        let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
         let specifications = Rc::new(Cell::new(None));
         let put_specifications = Rc::clone(&specifications);
         let get_specifications = Rc::clone(&specifications);
+        let old_after_parse_callback = std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
             let start = Instant::now();
@@ -115,10 +115,10 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let duration = start.elapsed();
             info!("Parsing of annotations successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
             trace!("[after_parse.callback] exit");
-            old(state);
+            old_after_parse_callback(state);
         };
 
-        let old = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
+        let old_after_analysis_callback = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
             let start = Instant::now();
@@ -143,7 +143,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             }
 
             trace!("[after_analysis.callback] exit");
-            old(state);
+            old_after_analysis_callback(state);
         };
 
         if Ok(String::from("true")) != var("PRUSTI_FULL_COMPILATION") {
