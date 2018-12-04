@@ -27,12 +27,12 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Install Java.
+# Install Java
 RUN apt-get update && \
     apt-get install -y default-jdk && \
     rm -rf /var/lib/apt/lists/*
 ENV JAVA_HOME /usr/lib/jvm/default-java
-ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64/server/
+ENV LD_LIBRARY_PATH $JAVA_HOME/lib/server/
 ENV JAVA_TOOL_OPTIONS -Dfile.encoding=UTF8
 
 # Install Rust
@@ -44,13 +44,6 @@ ENV CARGO_HOME /usr/local/cargo
 ENV PATH /usr/local/cargo/bin:$PATH
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path --default-toolchain "$RUST_TOOLCHAIN"
 
-# Install Viper
-RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
-RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
-RUN apt-get update && \
-    apt-get install -y viper && \
-    rm -rf /var/lib/apt/lists/*
-
 # Install Z3
 ENV Z3_PATH /usr/local/bin/z3
 RUN mkdir /tmp/z3 && \
@@ -61,5 +54,12 @@ RUN mkdir /tmp/z3 && \
     chmod +x "$Z3_PATH" && \
     cd / && \
     rm -r /tmp/z3
+
+# Install Viper
+RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
+RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
+RUN apt-get update && \
+    apt-get install -y viper && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
