@@ -1,10 +1,5 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Vytautas Astrauskas "vastrauskas@gmail.com"
-
-# The Rust-toolchain version to be used
-ARG RUST_TOOLCHAIN
-RUN test -n "$RUST_TOOLCHAIN"
-ENV RUST_TOOLCHAIN $RUST_TOOLCHAIN
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -12,19 +7,19 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
     apt-get install -y \
         build-essential \
-        locales \
-        file \
-        curl \
-        wget \
-        git \
-        python2.7 \
         cmake \
-        pkg-config \
+        curl \
+        file \
+        gcc \
+        git \
         libssl-dev \
-		unzip \
-		default-jdk \
-        && \
-    apt-get clean
+        locales \
+        pkg-config \
+        python \
+        unzip \
+        wget \
+    && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set up locale
 RUN locale-gen en_US.UTF-8
@@ -32,33 +27,39 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH
-
-ENV JAVA_HOME="/usr/lib/jvm/default-java"
-ENV LD_LIBRARY_PATH="$JAVA_HOME/jre/lib/amd64/server/"
+# Install Java.
+RUN apt-get update && \
+    apt-get install -y default-jdk && \
+    rm -rf /var/lib/apt/lists/*
+ENV JAVA_HOME /usr/lib/jvm/default-java
+ENV LD_LIBRARY_PATH $JAVA_HOME/jre/lib/amd64/server/
+ENV JAVA_TOOL_OPTIONS -Dfile.encoding=UTF8
 
 # Install Rust
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path --default-toolchain "$RUST_TOOLCHAIN"
+ARG RUST_TOOLCHAIN
+RUN test -n "$RUST_TOOLCHAIN"
+ENV RUST_TOOLCHAIN $RUST_TOOLCHAIN
+ENV RUSTUP_HOME /usr/local/rustup
+ENV CARGO_HOME /usr/local/cargo
+ENV PATH /usr/local/cargo/bin:$PATH
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path --default-toolchain "$RUST_TOOLCHAIN"
 
 # Install Viper
 RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
 RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
 RUN apt-get update && \
     apt-get install -y viper && \
-    apt-get clean
+    rm -rf /var/lib/apt/lists/*
 
 # Install Z3
+ENV Z3_PATH /usr/local/bin/z3
 RUN mkdir /tmp/z3 && \
-	cd /tmp/z3 && \
-	wget -q 'https://github.com/Z3Prover/z3/releases/download/z3-4.8.3/z3-4.8.3.7f5d66c3c299-x64-ubuntu-16.04.zip' -O z3.zip && \
-	unzip z3.zip && \
-	cp z3-*/bin/z3 /usr/local/bin/z3 && \
-    chmod +x /usr/local/bin/z3 && \
+    cd /tmp/z3 && \
+    wget -q 'https://github.com/Z3Prover/z3/releases/download/z3-4.8.3/z3-4.8.3.7f5d66c3c299-x64-ubuntu-16.04.zip' -O z3.zip && \
+    unzip z3.zip && \
+    cp z3-*/bin/z3 "$Z3_PATH" && \
+    chmod +x "$Z3_PATH" && \
     cd / && \
-  	rm -r /tmp/z3
-
-ENV Z3_PATH=/usr/local/bin/z3
+    rm -r /tmp/z3
 
 WORKDIR /
