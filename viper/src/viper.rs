@@ -22,6 +22,10 @@ impl Default for Viper {
 
 impl Viper {
     pub fn new() -> Self {
+        Self::new_with_args(vec![])
+    }
+
+    pub fn new_with_args(java_args: Vec<String>) -> Self {
         let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
 
         debug!("Using Viper home: '{}'", &viper_home);
@@ -36,11 +40,13 @@ impl Viper {
 
         debug!("Java classpath: {}", jar_paths.clone().join(":"));
 
-        let jvm_args = InitArgsBuilder::new()
+        let init_args = InitArgsBuilder::new()
             .version(JNIVersion::V8)
             .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
-            .option("-Xmx4096m") // maximum heap size
-            .option("-Xss1024m") // stack size
+            // maximum heap size
+            .option("-Xmx4096m")
+            // stack size
+            .option("-Xss1024m");
             //.option("-Xdebug")
             //.option("-verbose:gc")
             //.option("-Xcheck:jni")
@@ -48,6 +54,9 @@ impl Viper {
             //.option("-Djava.security.debug=all")
             //.option("-verbose:jni")
             //.option("-XX:+TraceJNICalls")
+        let jvm_args = java_args
+            .into_iter()
+            .fold(init_args, |curr_args, opt| curr_args.option(&opt))
             .build()
             .unwrap_or_else(|e| {
                 panic!(e.display_chain().to_string());

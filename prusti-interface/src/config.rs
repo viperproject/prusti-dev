@@ -24,6 +24,7 @@ lazy_static! {
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
+        settings.set_default::<Vec<String>>("JVM_ARGS", vec![]).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -108,4 +109,9 @@ pub fn check_binary_operations() -> bool {
 /// Location of 'libprusti_contracts*.rlib'
 pub fn contracts_lib() -> String {
     SETTINGS.read().unwrap().get::<String>("CONTRACTS_LIB").unwrap()
+}
+
+/// Get extra JVM arguments
+pub fn jvm_args() -> Vec<String> {
+    SETTINGS.read().unwrap().get::<Vec<String>>("JVM_ARGS").unwrap()
 }
