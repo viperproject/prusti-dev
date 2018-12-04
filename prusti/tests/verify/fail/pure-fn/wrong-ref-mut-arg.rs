@@ -20,7 +20,7 @@ fn lookup(head: &mut List, index: usize) -> u32 {
     } else {
         match head.next {
             Some(box ref mut tail) => lookup(tail, index - 1),
-            None => unreachable!()
+            None => unreachable!() //~ ERROR might be reachable
         }
     }
 }
