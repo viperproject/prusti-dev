@@ -42,7 +42,9 @@ ENV RUST_TOOLCHAIN $RUST_TOOLCHAIN
 ENV RUSTUP_HOME /usr/local/rustup
 ENV CARGO_HOME /usr/local/cargo
 ENV PATH /usr/local/cargo/bin:$PATH
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path --default-toolchain "$RUST_TOOLCHAIN"
+# https://github.com/rust-lang-nursery/rustup.rs/issues/998
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path --default-toolchain "$RUST_TOOLCHAIN" && \
+    rm -rf ~/.rustup/toolchains/*/share/doc
 
 # Install Z3
 ENV Z3_PATH /usr/local/bin/z3
@@ -58,6 +60,8 @@ RUN mkdir /tmp/z3 && \
 # Install Viper
 RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
 RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
+# A new release will trigger these lines to run again, forcing a new installation of Viper.
+ADD https://pmserver.inf.ethz.ch/viper/debs/xenial/Packages /root/viper-xenial-packages.txt
 RUN apt-get update && \
     apt-get install -y viper && \
     rm -rf /var/lib/apt/lists/*
