@@ -86,12 +86,12 @@ docs: update
 clippy: clean
 	$(SET_ENV_VARS) cargo clippy --all
 
-publish-docker-deps:
-	docker build -t fpoli/prusti-deps --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/Dockerfile-deps docker/
-	docker push fpoli/prusti-deps
+publish-docker-images:
+	docker push fpoli/prusti-base
 
-build-docker-prusti: clean
-	docker build --no-cache -t rust-nightly -f docker/Dockerfile-prusti .
+build-docker-images: clean
+	docker build -t fpoli/prusti-base --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/Dockerfile-base docker/
+	docker build --no-cache -t rust-nightly -f docker/Dockerfile-playground .
 
 clean:
 	cargo clean
