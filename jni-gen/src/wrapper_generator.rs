@@ -65,6 +65,7 @@ impl WrapperGenerator {
         let jvm = JavaVM::new(jvm_args)?;
         let env = jvm.attach_current_thread()?;
 
+        //remove_dir_all(out_dir)?;
         create_dir_all(out_dir)?;
 
         for class in &self.classes {
