@@ -44,18 +44,20 @@
 #![feature(try_from)]
 #![feature(nll)]
 
+extern crate getopts;
 #[macro_use]
 extern crate log;
-extern crate prusti_contracts;
-extern crate prusti_interface;
-extern crate prusti_viper;
-extern crate regex;
 extern crate rustc;
-extern crate rustc_data_structures;
 extern crate rustc_driver;
-extern crate rustc_mir;
+extern crate rustc_errors;
+extern crate rustc_codegen_utils;
 extern crate syntax;
+extern crate prusti_interface;
 extern crate syntax_pos;
+extern crate prusti_viper;
 
 pub mod typeck;
 pub mod verifier;
+pub mod driver_utils;
+pub mod compiler_calls;
+pub mod prusti_runner;

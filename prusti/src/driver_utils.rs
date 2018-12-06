@@ -73,7 +73,6 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
 
 }
 
-
 pub fn run<F>(run_compiler: F) -> isize
     where F: FnOnce() -> (CompileResult, Option<Session>) + Send + 'static
 {
@@ -105,4 +104,44 @@ pub fn run<F>(run_compiler: F) -> isize
         }
     });
     0
+}
+
+pub fn silent_run<F>(run_compiler: F) -> isize
+    where F: FnOnce() -> (CompileResult, Option<Session>) + Send + 'static
+{
+    let result = in_rustc_thread(move || {
+        let (compile_result, session) = run_compiler();
+
+        if let Some(ref sess) = &session {
+            if sess.has_errors() {
+                return 2;
+            }
+        }
+
+        match compile_result {
+            Err(CompileIncomplete::Errored(_)) => {
+                match session {
+                    Some(_) => {
+                        3
+                    }
+                    None => {
+                        4
+                    }
+                }
+            }
+
+            Err(CompileIncomplete::Stopped) => 0,
+
+            Ok(_) => 0,
+        }
+    });
+
+    match result {
+        // Thread panicked
+        Err(value) => {
+            return 1
+        }
+
+        Ok(exit_code) => exit_code,
+    }
 }
