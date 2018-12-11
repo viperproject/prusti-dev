@@ -97,7 +97,7 @@ pub fn generate_constructor(
                 .into(),
         )?;
 
-        parameter_names.push(java_str_to_string(&parameter_name)?);
+        parameter_names.push(java_str_to_valid_rust_argument_name(&parameter_name)?);
         parameter_signatures.push(java_str_to_string(&parameter_signature)?);
     }
 

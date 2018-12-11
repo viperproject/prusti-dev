@@ -111,7 +111,7 @@ fn run_verification(group_name: &str) {
 }
 
 #[test]
-fn typecheck_test() {
+fn test_runner() {
     run_no_verification("parse");
     run_no_verification("typecheck");
     run_verification("verify");

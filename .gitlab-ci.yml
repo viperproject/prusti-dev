@@ -1,38 +1,21 @@
-image: 'ubuntu:16.04'
+image: 'fpoli/prusti-base'
 
 stages:
 - test
 
 variables:
-  CARGO_HOME: $CI_PROJECT_DIR/cargo
-  Z3_PATH: /usr/local/bin/z3
-  JAVA_HOME: /usr/lib/jvm/default-java/
   RUST_BACKTRACE: 1
   RUST_TEST_THREADS: 1
 
 cache:
   paths:
-  - $CARGO_HOME/
+  - /usr/local/cargo/
 
 test:
   stage: test
-  before_script:
-  - apt-get update -y -qq && apt-get install -y -qq curl wget unzip build-essential pkg-config gcc libssl-dev
-  - curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path --default-toolchain "$(cat rust-toolchain)"
-  - source $CARGO_HOME/env
-  - curl -L http://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
-  - echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | tee /etc/apt/sources.list.d/viper.list
-  - apt-get update -y -qq && apt-get install -y -qq viper default-jdk
-  - JAVA_LIBJVM_DIR="$(dirname "$(find "$(readlink -f ${JAVA_HOME})" -name "libjvm.so")")"
-  - export LD_LIBRARY_PATH="$JAVA_LIBJVM_DIR"
-  - wget -q 'https://github.com/Z3Prover/z3/releases/download/z3-4.8.1/z3-4.8.1.016872a5e0f6-x64-ubuntu-16.04.zip' -O z3.zip
-  - unzip z3.zip
-  - cp z3-*/bin/z3 "$Z3_PATH"
-  - chmod +x "$Z3_PATH"
-  - rm -r z3.zip z3-*
   script:
   - silicon --version || true
-  - /"$Z3_PATH" -version
+  - /"$Z3_EXE" -version
   - java -version
   - rustc --version
   - cargo --version

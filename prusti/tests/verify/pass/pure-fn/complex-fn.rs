@@ -9,6 +9,7 @@ struct T {
 }
 
 #[pure]
+#[requires="-1000 < n && n < 1000"]
 fn negative(n: i32) -> i32 {
     let x = T {
         a: (A(n), 0),

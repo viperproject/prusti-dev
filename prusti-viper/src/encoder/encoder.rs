@@ -44,6 +44,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
+    pure_function_bodies: RefCell<HashMap<ProcedureDefId, vir::Expr>>,
     pure_functions: RefCell<HashMap<ProcedureDefId, vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
@@ -77,6 +78,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             builtin_methods: RefCell::new(HashMap::new()),
             builtin_functions: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
+            pure_function_bodies: RefCell::new(HashMap::new()),
             pure_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
@@ -485,10 +487,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {
-        // TODO: add caching?
-        let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
-        pure_function_encoder.encode_body()
+        if !self.pure_function_bodies.borrow().contains_key(&proc_def_id) {
+            let procedure = self.env.get_procedure(proc_def_id);
+            let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+            let body = pure_function_encoder.encode_body();
+            self.pure_function_bodies.borrow_mut().insert(proc_def_id, body);
+        }
+        self.pure_function_bodies.borrow()[&proc_def_id].clone()
     }
 
     pub fn encode_pure_function_def(&self, proc_def_id: ProcedureDefId) -> vir::Function {

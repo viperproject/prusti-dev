@@ -114,8 +114,7 @@ mkdir -p "$PRUSTI_DEMO_DIR"
 ```bash
 cd "$PRUSTI_DEMO_DIR"
 git clone "<url-of-prusti-repository>"
-make clean # optional if this is a fresh repository
-docker build --no-cache -t rust-nightly -f docker/Dockerfile-prusti .
+make build-docker-images
 ```
 
 ### 2. Build `rust-playground`
@@ -123,7 +122,7 @@ docker build --no-cache -t rust-nightly -f docker/Dockerfile-prusti .
 cd "$PRUSTI_DEMO_DIR"
 git clone git@github.com:integer32llc/rust-playground.git
 cd rust-playground
-git checkout 811143311ca1977c84b69e57399c799b4914d980
+git checkout a7148c804cb2d94f062b44b4bc3e516bd6922a7c
 cd ui
 cargo build --release
 cd frontend

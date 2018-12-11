@@ -23,7 +23,7 @@ fn verify_empty_program() {
     let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
     debug!("Using Viper home: '{}'", &viper_home);
 
-    let z3_path = env::var("Z3_PATH").unwrap_or_else(|_| "/usr/bin/viper-z3".to_string());
+    let z3_path = env::var("Z3_EXE").unwrap_or_else(|_| "/usr/bin/viper-z3".to_string());
     debug!("Using Z3 path: '{}'", &z3_path);
 
     let jar_paths: Vec<String> = fs::read_dir(viper_home)

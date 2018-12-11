@@ -274,12 +274,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 debug!("Incomplete encoding of promoted literal {:?}", operand);
 
                 // Generate a function call that leaves the expression undefined.
-                let uuid = format!("defid_{}_{}$promoted_{:?}", self.def_id.krate, self.def_id.index.as_raw_u32(), index.index());
                 let encoded_type = self.encoder.encode_value_type(ty);
                 let function_name = self.encoder.encode_builtin_function_use(
-                    BuiltinFunctionKind::Undefined(uuid, encoded_type.clone())
+                    BuiltinFunctionKind::Undefined(encoded_type.clone())
                 );
                 let pos = self.encoder.error_manager().register(
+                    // TODO: use a proper span
                     self.mir.span,
                     ErrorCtxt::PureFunctionCall
                 );

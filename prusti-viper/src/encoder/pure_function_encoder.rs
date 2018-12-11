@@ -25,6 +25,7 @@ use encoder::vir::ExprIterator;
 use std::fmt;
 use rustc_data_structures::indexed_vec::Idx;
 use encoder::error_manager::ErrorCtxt;
+use encoder::error_manager::PanicCause;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -245,22 +246,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
         use rustc::mir::TerminatorKind;
 
         // Generate a function call that leaves the expression undefined.
-        // TODO: generate unique names for each use
-        let undef_expr = |id| {
-            let uuid = format!(
-                "undef_expr$defid_{}_{}$bb_{}$id_{}",
-                self.mir_encoder.def_id().krate,
-                self.mir_encoder.def_id().index.as_raw_u32(),
-                bb.index(),
-                id
-            );
+        let undef_expr = |pos| {
             let encoded_type = self.encoder.encode_value_type(self.mir.return_ty());
             let function_name = self.encoder.encode_builtin_function_use(
-                BuiltinFunctionKind::Undefined(uuid, encoded_type.clone())
-            );
-            let pos = self.encoder.error_manager().register(
-                self.mir.span,
-                ErrorCtxt::PureFunctionCall
+                BuiltinFunctionKind::Undefined(encoded_type.clone())
             );
             vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
         };
@@ -270,7 +259,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
             TerminatorKind::Abort |
             TerminatorKind::Resume{..} => {
                 assert!(states.is_empty());
-                MultiExprBackwardInterpreterState::new_single(undef_expr(0))
+                let pos = self.encoder.error_manager().register(
+                    term.source_info.span,
+                    ErrorCtxt::Unexpected
+                );
+                MultiExprBackwardInterpreterState::new_single(undef_expr(pos))
             }
 
             TerminatorKind::Drop{ ref target, .. } => {
@@ -401,8 +394,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 ),
                 ..
             } => {
+                let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
                 if destination.is_some() {
-                    let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
                     let lhs_value = encoded_lhs.clone().field(self.encoder.encode_value_field(ty));
@@ -465,7 +458,60 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     }
                 } else {
                     // Encoding of a non-terminating function call
-                    MultiExprBackwardInterpreterState::new_single(undef_expr(0))
+                    let error_ctxt = match func_proc_name {
+                        "std::rt::begin_panic" |
+                        "std::panicking::begin_panic" => {
+                            // This is called when a Rust assertion fails
+                            // args[0]: message
+                            // args[1]: position of failing assertions
+
+                            // Example of args[0]: 'const "internal error: entered unreachable code"'
+                            let panic_message = format!("{:?}", args[0]);
+
+                            // Pattern match on the macro that generated the panic
+                            // TODO: use a better approach to match macros
+                            let macro_backtrace = term.source_info.span.macro_backtrace();
+                            debug!("macro_backtrace: {:?}", macro_backtrace);
+
+                            let panic_cause = if !macro_backtrace.is_empty() {
+                                let macro_name = term.source_info.span.macro_backtrace()[0].macro_decl_name.clone();
+                                // HACK to match the filename of the span
+                                let def_site_span = format!("{:?}", term.source_info.span.macro_backtrace()[0].def_site_span);
+
+                                match macro_name.as_str() {
+                                    "panic!" if def_site_span.contains("<panic macros>") => {
+                                        if macro_backtrace.len() > 1 {
+                                            let second_macro_name = term.source_info.span.macro_backtrace()[1].macro_decl_name.clone();
+                                            // HACK to match the filename of the span
+                                            let second_def_site_span = format!("{:?}", term.source_info.span.macro_backtrace()[1].def_site_span);
+
+                                            match second_macro_name.as_str() {
+                                                "panic!" if second_def_site_span.contains("<panic macros>") => PanicCause::Panic,
+                                                "assert!" if second_def_site_span == "None" => PanicCause::Assert,
+                                                "unreachable!" if second_def_site_span.contains("<unreachable macros>") => PanicCause::Unreachable,
+                                                "unimplemented!" if second_def_site_span.contains("<unimplemented macros>") => PanicCause::Unimplemented,
+                                                _ => PanicCause::Panic
+                                            }
+                                        } else {
+                                            PanicCause::Panic
+                                        }
+                                    }
+                                    _ => PanicCause::Unknown
+                                }
+                            } else {
+                                // Something else called panic!()
+                                PanicCause::Unknown
+                            };
+                            ErrorCtxt::PanicInPureFunction(panic_cause)
+                        }
+
+                        _ => ErrorCtxt::DivergingCallInPureFunction,
+                    };
+                    let pos = self.encoder.error_manager().register(
+                        term.source_info.span,
+                        error_ctxt
+                    );
+                    MultiExprBackwardInterpreterState::new_single(undef_expr(pos))
                 }
             }
 
@@ -482,13 +528,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     vir::Expr::not(cond_val)
                 };
 
+                let pos = self.encoder.error_manager().register(
+                    term.source_info.span,
+                    ErrorCtxt::AssertTerminator(msg.description().to_string())
+                );
+
                 MultiExprBackwardInterpreterState::new(
                     states[target].exprs().iter().enumerate().map(
                         |(index, expr)| {
                             vir::Expr::ite(
                                 viper_guard.clone(),
                                 expr.clone(),
-                                undef_expr(index)
+                                undef_expr(pos.clone())
                             )
                         }
                     ).collect()

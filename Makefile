@@ -38,6 +38,17 @@ quick-test:
 	$(SET_ENV_VARS) \
 	cargo test --all
 
+long-test:
+	find prusti/tests/verify/long-pass/ -name '*.rs' | while read run_file; do \
+		echo "Testing '$$run_file'..."; \
+		$(SET_ENV_VARS) RUST_BACKTRACE=1\
+		$(PRUSTI_DRIVER) \
+			-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+			--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+			"$$run_file" \
+			|| exit 1; \
+	done
+
 bench:
 	$(SET_ENV_VARS) cargo bench --all
 
@@ -86,12 +97,13 @@ docs: update
 clippy: clean
 	$(SET_ENV_VARS) cargo clippy --all
 
-publish-docker-deps:
-	docker build -t fpoli/prusti-deps --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/Dockerfile-deps docker/
-	docker push fpoli/prusti-deps
+publish-docker-images:
+	docker push fpoli/prusti-base
 
-build-docker-prusti: clean
-	docker build --no-cache -t rust-nightly -f docker/Dockerfile-prusti .
+build-docker-images: clean
+	docker build -t fpoli/prusti-base --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/Dockerfile-base docker/
+	docker build -t fpoli/prusti-jenkins -f docker/Dockerfile-jenkins docker/
+	docker build -t rust-nightly -f docker/Dockerfile-playground .
 
 clean:
 	cargo clean

@@ -68,3 +68,13 @@ pub fn generate_jvalue_wrapper(par: &str, signature: &str) -> String {
 pub fn java_str_to_string(string: &JavaStr) -> Result<String> {
     unsafe { Ok(CStr::from_ptr(string.get_raw()).to_str()?.to_string()) }
 }
+
+pub fn java_str_to_valid_rust_argument_name(string: &JavaStr) -> Result<String> {
+    let mut res = "arg_".to_string();
+    res.push_str(
+        &java_str_to_string(string)?
+            .replace("_", "___")
+            .replace("$", "_d_")
+    );
+    Ok(res)
+}

@@ -1,9 +1,8 @@
-# Adapted version of the Docker image used for the Rust Playground.
-FROM fpoli/prusti-deps:latest
+FROM fpoli/prusti-base:latest
 MAINTAINER Vytautas Astrauskas "vastrauskas@gmail.com"
 
 # Install Prusti.
-RUN echo "TODO: Download prusti-dev in /tmp/prusti-dev"
+# TODO: Download prusti-dev in /tmp/prusti-dev
 ADD . /tmp/prusti-dev
 RUN cd /tmp/prusti-dev && \
     cargo build --release && \
@@ -14,7 +13,7 @@ RUN cd /tmp/prusti-dev && \
 	cp target/release/libprusti_contracts.rlib /usr/local/prusti/libprusti_contracts.rlib
 ADD docker/prusti /usr/local/bin/prusti
 ADD docker/cargo-prusti /usr/local/bin/cargo-prusti
-ENV RUSTC_WRAPPER "/usr/local/bin/prusti"
+ENV RUSTC_WRAPPER /usr/local/bin/prusti
 
 # Continue compilation after the verification succeeds
 ENV PRUSTI_FULL_COMPILATION true
@@ -23,12 +22,14 @@ ADD docker/entrypoint.sh /root/
 ENTRYPOINT ["/root/entrypoint.sh"]
 
 # Set up workdir.
-ENV USER=root
+ENV USER root
 RUN cd / && \
     cargo new playground && \
     sed -i '1s/^/extern crate prusti_contracts;\n/;s/println.*$/assert!(true)/' /playground/src/main.rs
 WORKDIR /playground
 
-RUN cargo build && \
-    cargo build --release && \
-    rm src/*.rs
+# Pre-build dependencies
+# ADD Cargo.toml /playground/Cargo.toml
+RUN cargo build
+RUN cargo build --release
+RUN rm src/*.rs
