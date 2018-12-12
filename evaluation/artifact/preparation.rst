@@ -10,7 +10,7 @@ Steps to prepare the artifact for submission
 
 3.  Install the new version of Silicon.
 
-    1.  rm -rf /usr/lib/viper/*
+    1.  rm -r /usr/lib/viper/*
     2.  Move the silicon fat jar into /usr/lib/viper.
     3.  Test it by trying to verify an empty method.
 
@@ -20,11 +20,11 @@ Steps to prepare the artifact for submission
 
 5.  Copy the following files to VM::
 
-	mkdir -p /usr/local/prusti/lib
-	cp target/release/prusti-driver /usr/local/prusti/prusti-driver
+    mkdir -p /usr/local/prusti/lib
+    cp target/release/prusti-driver /usr/local/prusti/prusti-driver
     chmod 755 /usr/local/prusti/prusti-driver
-	cp target/release/libprusti.so /usr/local/prusti/libprusti.so
-	cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib
+    cp target/release/libprusti.so /usr/local/prusti/libprusti.so
+    cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib
     ADD docker/prusti /usr/local/bin/prusti
     ADD docker/cargo-prusti /usr/local/bin/cargo-prusti
     chmod 755 /usr/local/bin/prusti
@@ -37,3 +37,15 @@ Steps to prepare the artifact for submission
     export PATH=/usr/local/cargo/bin:$PATH
 
 7.  Get examples on the VM.
+8.  Delete log and nll-facts folders.
+8.  Create VM snapshot.
+9.  Export VM into OVA.
+9.  ZIP VM together with README.
+10. Take sha256.
+11. Upload to the server.
+12. Upload README to the server.
+
+6ee6948d786a8d54319bc1ef35af54ebe733e73dce40b1573ca21cdcefeeb505
+
+12. Publish the link to VM as a software link.
+13. Upload README as a supplementary material.
