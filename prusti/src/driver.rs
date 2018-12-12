@@ -7,6 +7,7 @@
 
 #[macro_use]
 extern crate log;
+extern crate env_logger;
 extern crate prusti;
 extern crate prusti_interface;
 extern crate rustc_driver;
@@ -20,7 +21,7 @@ use prusti::prusti_runner::run_prusti;
 use std::process::exit;
 
 pub fn main() {
-    rustc_driver::init_rustc_env_logger();
+    env_logger::init();
     let exit_status = run(move || {
         let mut args: Vec<_> = env::args().collect();
 
