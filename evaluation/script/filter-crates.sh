@@ -84,4 +84,4 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	fi
 done
 
-cp "$filtering_report_final" "$filtering_report"
+cp "$filtering_report" "$filtering_report_final"
