@@ -21,7 +21,7 @@ fn test(n: i32) -> i32 {
             let mut ic = 0;
 
             #[invariant="n == old(n)"]
-            #[invariant="ic <= n && res == ia * (1 + n * (1 + n)) + 1 + ib * (1 + n) + 1 + ib"]
+            #[invariant="ic <= n && res == ia * (1 + n * (1 + n)) + 1 + ib * (1 + n) + 1 + ic"]
             while ic < n {
                 res += 1;
                 ic += 1;
