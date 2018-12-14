@@ -4,7 +4,7 @@
 #
 # Usage: script <crate/download/dir> <file/with/list/of/crates> <file_name/of/whitelist> [timeout-per-crate-in-seconds]
 
-set -eo pipefail
+set -xeo pipefail
 
 info() { echo -e "[-] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }
 error() { echo -e "[!] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }

@@ -6,6 +6,7 @@ use encoder::vir::cfg::method::*;
 use encoder::vir::to_viper::{ToViper, ToViperDecl};
 use viper;
 use viper::AstFactory;
+use rand::{thread_rng, Rng};
 
 impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
