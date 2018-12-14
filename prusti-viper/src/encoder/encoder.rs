@@ -35,6 +35,7 @@ use prusti_interface::environment::Procedure;
 use std::io::Write;
 use rustc::mir::interpret::GlobalId;
 use std::iter::FromIterator;
+use encoder::vir::WithIdentifier;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -128,25 +129,25 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn get_used_viper_fields(&self) -> Vec<vir::Field> {
-        let mut fields = self.fields.borrow().values().cloned().collect();
+        let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
         fields.sort_by_key(|f| f.get_identifier());
         fields
     }
 
-    pub fn get_used_viper_functions(&self) -> Vec<viper::Function<'v>> {
-        let mut functions: Vec<Box<vir::ToViper<'v, viper::Function<'v>>>> = vec![];
+    pub fn get_used_viper_functions(&self) -> Vec<vir::Function> {
+        let mut functions: Vec<_> = vec![];
         for function in self.builtin_functions.borrow().values() {
             functions.push(function.clone());
         }
         for function in self.pure_functions.borrow().values() {
             functions.push(function.clone());
         }
-        function.sort_by_key(|f| f.get_identifier());
+        functions.sort_by_key(|f| f.get_identifier());
         functions
     }
 
     pub fn get_used_viper_predicates(&self) -> Vec<vir::Predicate> {
-        let mut predicates = self.type_predicates.borrow().values().cloned().collect();
+        let mut predicates: Vec<_> = self.type_predicates.borrow().values().cloned().collect();
         predicates.sort_by_key(|f| f.get_identifier());
         predicates
     }
@@ -155,15 +156,18 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().clone()
     }
 
-    pub fn get_used_viper_methods(&self) -> Vec<Box<vir::ToViper<'v, viper::Method<'v>> + WithIdentifier>> {
+    pub fn get_used_viper_methods(&self) -> Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> {
         let mut methods: Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> = vec![];
-        for method in self.builtin_methods.borrow().values() {
-            methods.push(Box::new(method.clone()));
+        let mut builtin_methods: Vec<_> = self.builtin_methods.borrow().values().cloned().collect();
+        let mut procedures: Vec<_> = self.procedures.borrow().values().cloned().collect();
+        builtin_methods.sort_by_key(|f| f.get_identifier());
+        procedures.sort_by_key(|f| f.get_identifier());
+        for item in builtin_methods.drain(..) {
+            methods.push(Box::new(item));
         }
-        for procedure in self.procedures.borrow().values() {
-            methods.push(Box::new(procedure.clone()));
+        for item in procedures.drain(..) {
+            methods.push(Box::new(item));
         }
-        methods.sort_by_key(|f| f.get_identifier());
         methods
     }
 

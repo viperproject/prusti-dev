@@ -332,3 +332,9 @@ impl CfgMethod {
         topo_sorted.push(self.block_index(curr_index))
     }
 }
+
+impl WithIdentifier for CfgMethod {
+    fn get_identifier(&self) -> String {
+        self.method_name.clone()
+    }
+}

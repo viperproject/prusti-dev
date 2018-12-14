@@ -28,7 +28,7 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
 
         // Sort blocks by label, except for the first block
         let mut blocks: Vec<_> = self.basic_blocks.iter().enumerate().skip(1).collect();
-        blocks.sort_by_key(|(&index, _)| index_to_label(&self.basic_blocks_labels, index));
+        blocks.sort_by_key(|(index, _)| index_to_label(&self.basic_blocks_labels, *index));
         blocks.insert(0, (0, &self.basic_blocks[0]));
 
         for (index, block) in blocks.into_iter() {
