@@ -4,7 +4,7 @@
 #
 # Usage: script <crate/download/dir> <file/with/list/of/crates> <file_name/of/whitelist> [timeout-per-crate-in-seconds]
 
-set -xeo pipefail
+set -uo pipefail
 
 info() { echo -e "[-] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }
 error() { echo -e "[!] ($(date '+%Y-%m-%d %H:%M:%S')) ${*}"; }
@@ -111,8 +111,8 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 	parsing_duration="$(egrep 'Parsing of annotations successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
 	type_checking_duration="$(egrep 'Type-checking of annotations successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
-	encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//')"
-	verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 7 | sed 's/(//')"
+	encoding_duration="$(egrep 'Encoding to Viper successful \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 9 | sed 's/(//' | sed 's/^$/0.0/'))"
+	verification_duration="$(egrep 'Verification complete \(.* seconds\)' "$log_file" | tail -1 | cut -d ' ' -f 7 | sed 's/(//' | sed 's/^$/0.0/')"
 
 	if [[ "$exit_status" == "0" ]]; then
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
