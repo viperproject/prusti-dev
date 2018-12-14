@@ -1,6 +1,6 @@
 extern crate compiletest_rs;
 
-use std::env::{set_var, remove_var};
+use std::env::{var, set_var, remove_var};
 use std::path::PathBuf;
 use compiletest_rs::{common, run_tests, Config};
 
@@ -32,6 +32,12 @@ fn run_no_verification(group_name: &str) {
     let mut config = Config::default();
     config.rustc_path = get_driver_path();
     config.link_deps();
+
+    // Filter the tests to run
+    if let Ok(name) = var::<&str>("TESTNAME") {
+        let s: String = name.to_owned();
+        config.filter = Some(s)
+    }
 
     let path = PathBuf::from(format!("tests/{}/ui", group_name));
     if path.exists() {
@@ -69,6 +75,12 @@ fn run_verification(group_name: &str) {
     let mut config = Config::default();
     config.rustc_path = get_driver_path();
     config.link_deps();
+
+    // Filter the tests to run
+    if let Ok(name) = var::<&str>("TESTNAME") {
+        let s: String = name.to_owned();
+        config.filter = Some(s)
+    }
 
     let path = PathBuf::from(format!("tests/{}/ui", group_name));
     if path.exists() {
