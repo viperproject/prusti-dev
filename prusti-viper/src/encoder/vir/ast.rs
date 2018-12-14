@@ -13,6 +13,10 @@ use num_rational::Ratio;
 pub use num_traits::One;
 pub use num_traits::Zero;
 
+pub trait WithIdentifier {
+    fn get_identifier(&self) -> String;
+}
+
 /// The identifier of a statement. Used in error reporting.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Position {
@@ -135,6 +139,12 @@ impl fmt::Debug for LocalVar {
 pub struct Field {
     pub name: String,
     pub typ: Type
+}
+
+impl WithIdentifier for Field {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
 }
 
 impl Field {
@@ -1499,6 +1509,12 @@ impl Predicate {
     }
 }
 
+impl WithIdentifier for Predicate {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
+}
+
 impl fmt::Display for Predicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "predicate {}(", self.name)?;
@@ -1529,6 +1545,12 @@ pub struct BodylessMethod {
     pub name: String,
     pub formal_args: Vec<LocalVar>,
     pub formal_returns: Vec<LocalVar>,
+}
+
+impl WithIdentifier for BodylessMethod {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
 }
 
 impl fmt::Display for BodylessMethod {
@@ -1563,6 +1585,12 @@ pub struct Function {
     pub pres: Vec<Expr>,
     pub posts: Vec<Expr>,
     pub body: Option<Expr>,
+}
+
+impl WithIdentifier for Function {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
+    }
 }
 
 impl fmt::Display for Function {

@@ -27,7 +27,6 @@ extern crate uuid;
 extern crate viper;
 extern crate num_rational;
 extern crate num_traits;
-extern crate rand;
 
 #[cfg(debug_assertions)]
 #[macro_use]

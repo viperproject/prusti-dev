@@ -6,7 +6,6 @@ use encoder::vir::cfg::method::*;
 use encoder::vir::to_viper::{ToViper, ToViperDecl};
 use viper;
 use viper::AstFactory;
-use rand::{thread_rng, Rng};
 
 impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
@@ -27,7 +26,12 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
             declarations.push(decl.into());
         }
 
-        for (index, block) in self.basic_blocks.iter().enumerate() {
+        // Sort blocks by label, except for the first block
+        let mut blocks: Vec<_> = self.basic_blocks.iter().enumerate().skip(1).collect();
+        blocks.sort_by_key(|(&index, _)| index_to_label(&self.basic_blocks_labels, index));
+        blocks.insert(0, (0, &self.basic_blocks[0]));
+
+        for (index, block) in blocks.into_iter() {
             blocks_ast.push(block_to_viper(
                 ast,
                 &self.basic_blocks_labels,

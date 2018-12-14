@@ -128,29 +128,34 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn get_used_viper_fields(&self) -> Vec<vir::Field> {
-        self.fields.borrow().values().cloned().collect()
+        let mut fields = self.fields.borrow().values().cloned().collect();
+        fields.sort_by_key(|f| f.get_identifier());
+        fields
     }
 
-    pub fn get_used_viper_functions(&self) -> Vec<Box<vir::ToViper<'v, viper::Function<'v>>>> {
+    pub fn get_used_viper_functions(&self) -> Vec<viper::Function<'v>> {
         let mut functions: Vec<Box<vir::ToViper<'v, viper::Function<'v>>>> = vec![];
         for function in self.builtin_functions.borrow().values() {
-            functions.push(Box::new(function.clone()));
+            functions.push(function.clone());
         }
         for function in self.pure_functions.borrow().values() {
-            functions.push(Box::new(function.clone()));
+            functions.push(function.clone());
         }
+        function.sort_by_key(|f| f.get_identifier());
         functions
     }
 
     pub fn get_used_viper_predicates(&self) -> Vec<vir::Predicate> {
-        self.type_predicates.borrow().values().cloned().collect()
+        let mut predicates = self.type_predicates.borrow().values().cloned().collect();
+        predicates.sort_by_key(|f| f.get_identifier());
+        predicates
     }
 
     pub fn get_used_viper_predicates_map(&self) -> HashMap<String, vir::Predicate> {
         self.type_predicates.borrow().clone()
     }
 
-    pub fn get_used_viper_methods(&self) -> Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> {
+    pub fn get_used_viper_methods(&self) -> Vec<Box<vir::ToViper<'v, viper::Method<'v>> + WithIdentifier>> {
         let mut methods: Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> = vec![];
         for method in self.builtin_methods.borrow().values() {
             methods.push(Box::new(method.clone()));
@@ -158,6 +163,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         for procedure in self.procedures.borrow().values() {
             methods.push(Box::new(procedure.clone()));
         }
+        methods.sort_by_key(|f| f.get_identifier());
         methods
     }
 
