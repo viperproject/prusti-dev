@@ -15,6 +15,8 @@ use verification_backend::VerificationBackend;
 use ast_utils::AstUtils;
 use std::marker::PhantomData;
 use std::time::Instant;
+use std::process::Command;
+use std::process;
 
 pub mod state {
     pub struct Uninitialized;
@@ -127,10 +129,15 @@ impl<'a> Verifier<'a, state::Started> {
             panic!("Consistency errors. The encoded Viper program is incorrect.");
         }
 
+        // We suspect that there is a 1/1000 probability of getting false positive exceptions.
+        // So, we re-execute.
         let start_verification = Instant::now();
-        let viper_result = self.jni.unwrap_result(
-            self.verifier_wrapper
-                .call_verify(self.verifier_instance, program.to_jobject())
+        let viper_result = self.jni.retry_on_exception(
+            || {
+                self.verifier_wrapper
+                    .call_verify(self.verifier_instance, program.to_jobject())
+            },
+            3
         );
         let duration = start_verification.elapsed();
 
@@ -170,6 +177,12 @@ impl<'a> Verifier<'a, state::Started> {
                             "The verification aborted due to the following exception: {}",
                             stack_trace
                         );
+                        // Dump JVM heap
+                        let _ = Command::new("jmap")
+                            .arg("-dump:format=b,file=jvmheapdump.bin")
+                            .arg(&process::id().to_string())
+                            .output()
+                            .unwrap();
                     } else {
                         error!(
                             "The verifier returned an unhandled error of type {}: {}",
