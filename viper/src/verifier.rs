@@ -104,19 +104,7 @@ impl<'a> Verifier<'a, state::Started> {
             ast_utils.pretty_print(program)
         );
 
-        let mut consistency_errors= vec![];
-
-        // We suspect that there is a 1/1000 probability of getting false positive consistency
-        // errors. So, we re-execute.
-        for i in 0..5 {
-            consistency_errors = ast_utils.check_consistency(program);
-            if consistency_errors.is_empty() {
-                if i != 0 {
-                    debug!("Consistency errors disappeared after re-checking {} times.", i);
-                }
-                break;
-            }
-        }
+        let consistency_errors = ast_utils.check_consistency(program);
 
         if !consistency_errors.is_empty() {
             error!(
@@ -129,15 +117,10 @@ impl<'a> Verifier<'a, state::Started> {
             panic!("Consistency errors. The encoded Viper program is incorrect.");
         }
 
-        // We suspect that there is a 1/1000 probability of getting false positive exceptions.
-        // So, we re-execute.
         let start_verification = Instant::now();
-        let viper_result = self.jni.retry_on_exception(
-            || {
-                self.verifier_wrapper
-                    .call_verify(self.verifier_instance, program.to_jobject())
-            },
-            3
+        let viper_result = self.jni.unwrap_result(
+            self.verifier_wrapper
+                .call_verify(self.verifier_instance, program.to_jobject())
         );
         let duration = start_verification.elapsed();
 
@@ -178,11 +161,14 @@ impl<'a> Verifier<'a, state::Started> {
                             stack_trace
                         );
                         // Dump JVM heap
-                        let _ = Command::new("jmap")
-                            .arg("-dump:format=b,file=jvmheapdump.bin")
-                            .arg(&process::id().to_string())
-                            .output()
-                            .unwrap();
+                        // Same command as `jmap -dump:format=b,file=viper_heap_dump.bin <pid>`
+                        // let pid = process::id().to_string();
+                        // let _ = Command::new("jcmd")
+                        //     .arg(&pid)
+                        //     .arg("GC.heap_dump")
+                        //     .arg(&format!("viper_heap_dump_{}.bin", pid))
+                        //     .output()
+                        //     .unwrap();
                     } else {
                         error!(
                             "The verifier returned an unhandled error of type {}: {}",
