@@ -53,7 +53,6 @@ bench:
 	$(SET_ENV_VARS) cargo bench --all
 
 run:
-	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
@@ -61,7 +60,6 @@ run:
 		$(RUN_FILE)
 
 run-release:
-	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER_RELEASE) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
@@ -69,7 +67,6 @@ run-release:
 		$(RUN_FILE)
 
 run-release-profile:
-	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
     valgrind --tool=callgrind --vex-iropt-register-updates=allregs-at-mem-access \
 	${PRUSTI_DRIVER_RELEASE} \
@@ -79,7 +76,6 @@ run-release-profile:
 	@echo "Now run 'kcachegrind callgrind.out.*'"
 
 run-release-flamegraph:
-	@echo "The best way to run Prusti is with `./docker/prusti`"
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
     perf record -g -F 99 \
 	${PRUSTI_DRIVER_RELEASE} \
