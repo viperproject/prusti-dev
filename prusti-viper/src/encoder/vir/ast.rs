@@ -1415,6 +1415,35 @@ impl Expr {
         }.fold(self)
     }
 
+    /// Leaves a conjunction of `acc(..)` expressions
+    pub fn filter_perm_conjunction(self) -> Self {
+        struct PermConjunctionFilter();
+        impl ExprFolder for PermConjunctionFilter {
+            fn fold(&mut self, e: Expr) -> Expr {
+                match e {
+                    f @ Expr::PredicateAccessPredicate(..) => f,
+                    f @ Expr::FieldAccessPredicate(..) => f,
+                    Expr::BinOp(BinOpKind::And, y, z) => self.fold_bin_op(BinOpKind::And, y, z),
+
+                    Expr::BinOp(..) |
+                    Expr::MagicWand(..) |
+                    Expr::Unfolding(..) |
+                    Expr::Cond(..) |
+                    Expr::UnaryOp(..) |
+                    Expr::Const(..) |
+                    Expr::Local(..) |
+                    Expr::Field(..) |
+                    Expr::AddrOf(..) |
+                    Expr::LabelledOld(..) |
+                    Expr::ForAll(..) |
+                    Expr::LetExpr(..) |
+                    Expr::FuncApp(..) => true.into(),
+                }
+            }
+        }
+        PermConjunctionFilter().fold(self)
+    }
+
     /// Apply the closure to all places in the expression.
     pub fn fold_places<F>(self, f: F) -> Expr
         where

@@ -122,12 +122,12 @@ make build-docker-images
 cd "$PRUSTI_DEMO_DIR"
 git clone git@github.com:integer32llc/rust-playground.git
 cd rust-playground
-git checkout a7148c804cb2d94f062b44b4bc3e516bd6922a7c
+git checkout f103d06cfb4c96ca6055ae9f4b16ca5cca03c852
 cd ui
 cargo build --release
 cd frontend
 yarn
-yarn run build
+yarn run build:production
 ```
 
 ### 3. Start demo

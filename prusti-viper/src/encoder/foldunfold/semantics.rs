@@ -22,6 +22,7 @@ fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
 fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
     state.remove_all_perms(
         expr.get_permissions(predicates).iter()
+            .filter(|p| p.is_curr())
             .filter(|p| !(p.is_local() && p.is_acc()))
             // Hack for final exhale of method: do not remove "old[pre](..)" permissions from state
             .filter(|p| p.get_label() != Some(&"pre".to_string()))

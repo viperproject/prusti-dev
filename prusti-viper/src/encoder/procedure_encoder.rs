@@ -1895,6 +1895,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // We need to make sure that the lhs of the magic wand is
             // fully folded before the label.
+            // To do so, we need to use the lhs without functional specification.
             let current_lhs = lhs
                 .clone()
                 .map_labels(|label| {
@@ -1903,7 +1904,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     } else {
                         Some(label)
                     }
-                });
+                })
+                .filter_perm_conjunction();
             stmts.extend(self.encode_obtain(current_lhs));
 
             // lhs must be phrased in terms of post state.

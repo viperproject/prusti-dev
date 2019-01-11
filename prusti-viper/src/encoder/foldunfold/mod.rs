@@ -252,8 +252,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 }
             })
             .collect();
-        let mut perms = pred_permissions;
-        perms.extend(acc_permissions.into_iter());
+        let mut perms = acc_permissions;
+        perms.extend(pred_permissions.into_iter());
         debug!("required permissions: {{\n{}\n}}", perms.iter().map(|x| format!("  {:?}", x)).collect::<Vec<_>>().join(",\n"));
 
         if !perms.is_empty() {
@@ -557,17 +557,40 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>) -> vir::Expr {
         debug!("[enter] fold_magic_wand {}, {}", lhs, rhs);
 
-        let new_lhs = self.fold_boxed(lhs);
-
         // Compute lhs state
         let mut lhs_bctxt = self.curr_bctxt.clone();
         let lhs_state = lhs_bctxt.mut_state();
         lhs_state.remove_all();
-        vir::Stmt::Inhale(*new_lhs.clone()).apply_on_state(lhs_state, self.curr_bctxt.predicates());
-        if let box vir::Expr::PredicateAccessPredicate(ref name, ref args, frac) = new_lhs {
-            lhs_state.insert_acc(args[0].clone(), frac);
-        }
+        lhs_state.insert_all_perms(
+            lhs.get_permissions(self.curr_bctxt.predicates())
+                .into_iter()
+                .filter(|p| p.is_pred())
+                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
+        );
         lhs_state.replace_places(|place| place.old("lhs"));
+        debug!("State of lhs of magic wand: {}", lhs_state);
+
+        // Store states
+        std::mem::swap(&mut self.curr_bctxt, &mut lhs_bctxt);
+
+        // Rewrite lhs
+        let new_lhs = self.fold_boxed(lhs);
+
+        // Restore states
+        std::mem::swap(&mut self.curr_bctxt, &mut lhs_bctxt);
+
+        // Computer lhs state, now with unfoldings
+        let mut new_lhs_bctxt = self.curr_bctxt.clone();
+        let new_lhs_state = new_lhs_bctxt.mut_state();
+        new_lhs_state.remove_all();
+        new_lhs_state.insert_all_perms(
+            new_lhs.get_permissions(self.curr_bctxt.predicates())
+                .into_iter()
+                .filter(|p| p.is_pred())
+                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
+        );
+        new_lhs_state.replace_places(|place| place.old("lhs"));
+        debug!("New state of lhs of magic wand: {}", new_lhs_state);
 
         // Compute rhs state
         let mut rhs_bctxt = self.curr_bctxt.clone();
@@ -582,16 +605,15 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         debug!("State of rhs of magic wand: {}", rhs_state);
 
         // Store states
-        let mut tmp_curr_bctxt = rhs_bctxt;
-        std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
-        self.lhs_bctxt = Some(lhs_bctxt);
+        std::mem::swap(&mut self.curr_bctxt, &mut rhs_bctxt);
+        self.lhs_bctxt = Some(new_lhs_bctxt);
 
         // Rewrite rhs
         let new_rhs = self.fold_boxed(rhs);
 
         // Restore states
         self.lhs_bctxt = None;
-        std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
+        std::mem::swap(&mut self.curr_bctxt, &mut rhs_bctxt);
 
         // Rewrite lhs and build magic wand
         let res = vir::Expr::MagicWand(new_lhs, new_rhs);
