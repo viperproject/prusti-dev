@@ -859,7 +859,7 @@ impl fmt::Display for BinOpKind {
             &BinOpKind::LeCmp => write!(f, "<="),
             &BinOpKind::Add => write!(f, "+"),
             &BinOpKind::Sub => write!(f, "-"),
-            &BinOpKind::Mul => write!(f, "-"),
+            &BinOpKind::Mul => write!(f, "*"),
             &BinOpKind::Div => write!(f, "\\"),
             &BinOpKind::Mod => write!(f, "%"),
             &BinOpKind::And => write!(f, "&&"),
