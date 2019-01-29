@@ -965,8 +965,14 @@ impl Expr {
             Expr::minus(right.clone()),
         );
         Expr::ite(
-            Expr::ge_cmp(left.clone(), 0.into()),
-            // positive value
+            Expr::or(
+                Expr::ge_cmp(left.clone(), 0.into()),
+                Expr::eq_cmp(
+                    Expr::modulo(left.clone(), right.clone()),
+                    0.into()
+                )
+            ),
+            // positive value or left % right == 0
             Expr::modulo(left.clone(), right.clone()),
             // negative value
             Expr::sub(Expr::modulo(left, right), abs_right),
