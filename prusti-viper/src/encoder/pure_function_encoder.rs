@@ -753,6 +753,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         state.substitute_place(&encoded_lhs, encoded_ref);
                     }
 
+                    &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
+
+                        // Substitute a place of a value with an expression
+                        state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val);
+                    }
+
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
                     }

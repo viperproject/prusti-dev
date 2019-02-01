@@ -180,3 +180,15 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//
 
 inlineinfo "Lines of generated Viper code that are fold/unfold/package/apply"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$' | grep " fold\| unfold\| package\| apply" | wc -l
+
+inlineinfo "Lines of generated Viper code that are due to inhale/exhale/assert acc"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l
+
+inlineinfo "Cleaned lines of generated Viper code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | wc -l
+
+inlineinfo "Cleaned lines of generated Viper code that are fold/unfold/package/apply"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " fold\| unfold\| package\| apply" | wc -l
+
+inlineinfo "Cleaned lines of generated Viper code that are due to inhale/exhale/assert acc"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l

@@ -288,7 +288,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn get_operand_ty(&mut self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
+    pub fn get_operand_ty(&self, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
         debug!("Get operand ty {:?}", operand);
         match operand {
             &mir::Operand::Move(ref place) |
@@ -363,7 +363,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ),
                     ty::TypeVariants::TyUint(ast::UintTy::U16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u16::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::u16::MIN.into())
+                        vir::Expr::gt_cmp(result, std::u16::MAX.into())
                     ),
                     ty::TypeVariants::TyUint(ast::UintTy::U32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::u32::MIN.into()),
@@ -422,6 +422,69 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 _ => unreachable!("{:?}", op)
             }
         }
+    }
+
+    pub fn encode_cast_expr(&self, operand: &mir::Operand<'tcx>, dst_ty: ty::Ty<'tcx>) -> vir::Expr {
+        let src_ty = self.get_operand_ty(operand);
+
+        let encoded_val = match (&src_ty.sty, &dst_ty.sty) {
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I8)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I16)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I16)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I64), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I64), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I128), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::Isize), ty::TypeVariants::TyInt(ast::IntTy::Isize)) |
+
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyChar) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U8)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U16)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyChar) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U8)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U16)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U16)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U64), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U64), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U128), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::Usize), ty::TypeVariants::TyUint(ast::UintTy::Usize)) =>
+                self.encode_operand_expr(operand),
+
+            _ => unimplemented!("unimplemented cast from type '{:?}' to type '{:?}'", src_ty, dst_ty),
+        };
+
+        encoded_val
     }
 
     pub fn encode_operand_place(&self, operand: &mir::Operand<'tcx>) -> Option<vir::Expr> {

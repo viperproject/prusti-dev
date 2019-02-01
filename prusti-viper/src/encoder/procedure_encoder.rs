@@ -619,6 +619,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts
                     }
 
+
+                    &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
+
+                        // Initialize `lhs.field`
+                        let field = self.encoder.encode_value_field(ty);
+                        stmts.push(
+                            vir::Stmt::Assign(
+                                encoded_lhs.field(field),
+                                encoded_val,
+                                vir::AssignKind::Copy
+                            )
+                        );
+                        stmts
+                    }
+
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
                     }
