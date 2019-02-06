@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::ast;
 use prusti_interface::report::Log;
+use prusti_interface::config;
 use encoder::borrows::ProcedureContract;
 use encoder::places;
 use encoder::vir::ExprIterator;
@@ -100,7 +101,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         self.encode_function_given_body(None)
     }
 
-    /// Private
+    // Private
+
     fn encode_function_given_body(&self, body: Option<vir::Expr>) -> vir::Function {
         let function_name = self.encode_function_name();
         let is_bodyless = body.is_none();
@@ -112,12 +114,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
         let preconditions = self.encode_precondition_expr(&contract);
-        let postcondition = self.encode_postcondition_expr(&contract);
+        let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
         let formal_args: Vec<_> = self.mir.args_iter().map(
             |local| self.encode_local(local)
         ).collect();
         let return_type = self.encode_function_return_type();
+        if config::check_binary_operations() {
+            let pure_fn_return_variable = vir::LocalVar::new(
+                "__result",
+                self.encode_function_return_type());
+            let return_bounds = self.encoder.encode_type_bounds(
+                &vir::Expr::Local(pure_fn_return_variable), self.mir.return_ty());
+            postcondition.extend(return_bounds);
+        }
 
         let function = vir::Function {
             name: function_name.clone(),
@@ -127,9 +137,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 preconditions.0,
                 preconditions.1
             ],
-            posts: vec![
-                postcondition
-            ],
+            posts: postcondition,
             body
         };
 

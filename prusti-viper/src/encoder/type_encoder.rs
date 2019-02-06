@@ -78,6 +78,47 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    fn get_integer_bounds(&self) -> Option<(vir::Expr, vir::Expr)> {
+        match self.ty.sty {
+            ty::TypeVariants::TyInt(int_ty) => {
+                let bounds = match int_ty {
+                    ast::IntTy::I8    => (std::i8::MIN.into(),    std::i8::MAX.into(),   ),
+                    ast::IntTy::I16   => (std::i16::MIN.into(),   std::i16::MAX.into(),  ),
+                    ast::IntTy::I32   => (std::i32::MIN.into(),   std::i32::MAX.into(),  ),
+                    ast::IntTy::I64   => (std::i64::MIN.into(),   std::i64::MAX.into(),  ),
+                    ast::IntTy::I128  => (std::i128::MIN.into(),  std::i128::MAX.into(), ),
+                    ast::IntTy::Isize => (std::isize::MIN.into(), std::isize::MAX.into(),),
+                };
+                Some(bounds)
+            },
+            ty::TypeVariants::TyUint(uint_ty) => {
+                let bounds = match uint_ty {
+                    ast::UintTy::U8    => (0.into(), std::u8::MAX.into(),   ),
+                    ast::UintTy::U16   => (0.into(), std::u16::MAX.into(),  ),
+                    ast::UintTy::U32   => (0.into(), std::u32::MAX.into(),  ),
+                    ast::UintTy::U64   => (0.into(), std::u64::MAX.into(),  ),
+                    ast::UintTy::U128  => (0.into(), std::u128::MAX.into(), ),
+                    ast::UintTy::Usize => (0.into(), std::usize::MAX.into(),),
+                };
+                Some(bounds)
+            },
+            ty::TypeVariants::TyBool |
+            ty::TypeVariants::TyChar => None,
+            ref x => unreachable!("{:?}", x),
+        }
+    }
+
+    pub fn encode_bounds(self, var: &vir::Expr) -> Vec<vir::Expr> {
+        if let Some((lower, upper)) = self.get_integer_bounds() {
+            vec![
+                vir::Expr::le_cmp(lower, var.clone()),
+                vir::Expr::le_cmp(var.clone(), upper),
+            ]
+        } else {
+            Vec::new()
+        }
+    }
+
     pub fn encode_predicate_def(self) -> vir::Predicate {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
@@ -106,25 +147,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ];
 
                 if config::check_binary_operations() {
-                    // Lowerbound
-                    match int_ty {
-                        ast::IntTy::I8 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i8::MIN.into())),
-                        ast::IntTy::I16 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i16::MIN.into())),
-                        ast::IntTy::I32 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i32::MIN.into())),
-                        ast::IntTy::I64 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i64::MIN.into())),
-                        ast::IntTy::I128 => body.push(vir::Expr::ge_cmp(val_field.clone(), std::i128::MIN.into())),
-                        ast::IntTy::Isize => body.push(vir::Expr::ge_cmp(val_field.clone(), std::isize::MIN.into())),
-                    }
-
-                    // Upperbound
-                    match int_ty {
-                        ast::IntTy::I8 => body.push(vir::Expr::le_cmp(val_field, std::i8::MAX.into())),
-                        ast::IntTy::I16 => body.push(vir::Expr::le_cmp(val_field, std::i16::MAX.into())),
-                        ast::IntTy::I32 => body.push(vir::Expr::le_cmp(val_field, std::i32::MAX.into())),
-                        ast::IntTy::I64 => body.push(vir::Expr::le_cmp(val_field, std::i64::MAX.into())),
-                        ast::IntTy::I128 => body.push(vir::Expr::le_cmp(val_field, std::i128::MAX.into())),
-                        ast::IntTy::Isize => body.push(vir::Expr::le_cmp(val_field, std::isize::MAX.into())),
-                    }
+                    let (lower, upper) = self.get_integer_bounds().unwrap();
+                    body.push(vir::Expr::le_cmp(lower, val_field.clone()));
+                    body.push(vir::Expr::le_cmp(val_field.clone(), upper));
                 }
 
                 body
@@ -143,20 +168,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ];
 
                 if config::check_binary_operations() {
-                    // Lowerbound
-                    body.push(
-                        vir::Expr::ge_cmp(val_field.clone(), 0.into())
-                    );
-
-                    // Upperbound
-                    match uint_ty {
-                        ast::UintTy::U8 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u8::MAX.into())),
-                        ast::UintTy::U16 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u16::MAX.into())),
-                        ast::UintTy::U32 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u32::MAX.into())),
-                        ast::UintTy::U64 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u64::MAX.into())),
-                        ast::UintTy::U128 => body.push(vir::Expr::le_cmp(val_field.clone(), std::u128::MAX.into())),
-                        ast::UintTy::Usize => body.push(vir::Expr::le_cmp(val_field.clone(), std::usize::MAX.into())),
-                    }
+                    let (lower, upper) = self.get_integer_bounds().unwrap();
+                    body.push(vir::Expr::le_cmp(lower, val_field.clone()));
+                    body.push(vir::Expr::le_cmp(val_field.clone(), upper));
                 }
 
                 body

@@ -366,6 +366,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         type_encoder.encode_type()
     }
 
+    pub fn encode_type_bounds(&self, var: &vir::Expr, ty: ty::Ty<'tcx>) -> Vec<vir::Expr> {
+        let type_encoder = TypeEncoder::new(self, ty);
+        type_encoder.encode_bounds(var)
+    }
+
     pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>,
                             label: &str, encoded_args: &[vir::Expr],
                             encoded_return: Option<&vir::Expr>, targets_are_values: bool,
