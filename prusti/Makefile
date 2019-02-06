@@ -76,13 +76,13 @@ build:
 	$(SET_ENV_VARS) \
 	cargo build --all
 
-test:
+test-deep:
 	$(SET_ENV_VARS) \
 	PRUSTI_CHECK_UNREACHABLE_TERMINATORS=1 \
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
 	cargo test
 
-quick-test:
+test:
 	$(SET_ENV_VARS) \
 	cargo test
 
