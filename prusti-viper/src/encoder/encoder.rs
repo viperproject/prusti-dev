@@ -496,10 +496,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         name
     }
 
-    pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {
+    /// Encode either a pure function body or a specification assertion (stored in the given MIR).
+    /// `is_encoding_assertion` marks that we are translating a specification assertion.
+    pub fn encode_pure_function_body(
+        &self,
+        proc_def_id: ProcedureDefId,
+        is_encoding_assertion: bool
+    ) -> vir::Expr {
         if !self.pure_function_bodies.borrow().contains_key(&proc_def_id) {
             let procedure = self.env.get_procedure(proc_def_id);
-            let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+            let pure_function_encoder = PureFunctionEncoder::new(
+                self,
+                proc_def_id,
+                procedure.get_mir(),
+                is_encoding_assertion
+            );
             let body = pure_function_encoder.encode_body();
             self.pure_function_bodies.borrow_mut().insert(proc_def_id, body);
         }
@@ -511,7 +522,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
         if !self.pure_functions.borrow().contains_key(&proc_def_id) {
             let procedure = self.env.get_procedure(proc_def_id);
-            let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+            let pure_function_encoder = PureFunctionEncoder::new(
+                self,
+                proc_def_id,
+                procedure.get_mir(),
+                false
+            );
             let function = if self.is_trusted(proc_def_id) {
                 pure_function_encoder.encode_bodyless_function()
             } else {
@@ -528,7 +544,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
         self.queue_encoding(proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+        let pure_function_encoder = PureFunctionEncoder::new(
+            self,
+            proc_def_id,
+            procedure.get_mir(),
+            false,
+        );
         pure_function_encoder.encode_function_name()
     }
 
@@ -537,7 +558,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
         self.queue_encoding(proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder = PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+        let pure_function_encoder = PureFunctionEncoder::new(
+            self,
+            proc_def_id,
+            procedure.get_mir(),
+            false,
+        );
         pure_function_encoder.encode_function_return_type()
     }
 

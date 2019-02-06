@@ -31,17 +31,28 @@ pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     proc_def_id: DefId,
     mir: &'p mir::Mir<'tcx>,
-    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>
+    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, proc_def_id: DefId, mir: &'p mir::Mir<'tcx>) -> Self {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        proc_def_id: DefId, mir: &'p mir::Mir<'tcx>,
+        is_encoding_assertion: bool
+    ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
+        let interpreter = PureFunctionBackwardInterpreter::new(
+            encoder,
+            mir,
+            proc_def_id,
+            "_pure".to_string(),
+            is_encoding_assertion,
+        );
         PureFunctionEncoder {
             encoder,
             proc_def_id,
             mir,
-            interpreter: PureFunctionBackwardInterpreter::new(encoder, mir, proc_def_id, "_pure".to_string())
+            interpreter,
         }
     }
 
@@ -209,19 +220,32 @@ pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 't
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     mir: &'p mir::Mir<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
-    namespace: String
+    namespace: String,
+    /// True if the encoder is currently encoding an assertion and not a pure function body. This
+    /// flag is used to distinguish when assert terminators should be translated into `false` and
+    /// when to a undefined function calls. This distinction allows overflow checks to be checked
+    /// on the caller side and assumed on the definition side.
+    is_encoding_assertion: bool,
 }
 
 /// XXX: This encoding works backward, but there is the risk of generating expressions whose length
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
 /// encoding (keeping path conditions expressions).
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
-    pub(super) fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, def_id: DefId, namespace: String) -> Self {
+
+    pub(super) fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        mir: &'p mir::Mir<'tcx>,
+        def_id: DefId,
+        namespace: String,
+        is_encoding_assertion: bool,
+    ) -> Self {
         PureFunctionBackwardInterpreter {
             encoder,
             mir,
             mir_encoder: MirEncoder::new_with_namespace(encoder, mir, def_id, namespace.clone()),
-            namespace
+            namespace,
+            is_encoding_assertion,
         }
     }
 
@@ -536,10 +560,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 MultiExprBackwardInterpreterState::new(
                     states[target].exprs().iter().enumerate().map(
                         |(index, expr)| {
+                            let failure_result = if self.is_encoding_assertion {
+                                // We are encoding an assertion, so all failures should be
+                                // equivalent to false.
+                                false.into()
+                            } else {
+                                // We are encoding a pure function, so all failures should
+                                // be unreachable.
+                                undef_expr(pos.clone())
+                            };
                             vir::Expr::ite(
                                 viper_guard.clone(),
                                 expr.clone(),
-                                undef_expr(pos.clone())
+                                failure_result,
                             )
                         }
                     ).collect()
