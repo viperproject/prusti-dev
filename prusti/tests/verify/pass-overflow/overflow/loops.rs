@@ -7,7 +7,6 @@ fn test(mut a: u32, mut b: u32) -> u32 {
     while a > 0 {
         a -= 1;
         b += 1;
-        assert!(false);
     }
     b
 }
