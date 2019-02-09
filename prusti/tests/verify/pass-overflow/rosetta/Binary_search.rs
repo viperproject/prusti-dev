@@ -63,8 +63,6 @@ pub struct VecWrapperI32{
 impl VecWrapperI32 {
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
-    #[ensures="result <= std::usize::MAX"]
     pub fn len(&self) -> usize {
         self.v.len()
     }
@@ -174,9 +172,6 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut result = UsizeOption::None;
     let mut continue_loop = size > 0;
 
-    #[invariant="0 <= base"]
-    #[invariant="0 <= size"]
-    #[invariant="base <= std::usize::MAX - size"]
     #[invariant="base + size <= arr.len()"]
     #[invariant="continue_loop == (size > 0 && result.is_none())"]
     #[invariant="arr.len() == old(arr.len())"]

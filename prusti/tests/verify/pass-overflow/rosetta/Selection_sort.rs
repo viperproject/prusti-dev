@@ -22,7 +22,6 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
     pub fn len(&self) -> usize {
         self.v.len()
     }

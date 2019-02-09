@@ -32,7 +32,6 @@ impl VecWrapperBool {
     // Encoded as body-less Viper function
     #[trusted]
     #[pure]
-    #[ensures="result >= 0"]
     pub fn len(&self) -> usize {
         self.v.len()
     }
@@ -109,8 +108,10 @@ fn doors1() {
 }
 
 #[trusted]
+#[requires="exp == 2 ==> base * base < std::u32::MAX"]
+#[ensures="exp == 2 ==> result == base * base"]
 fn pow(base: u32, exp: u32) -> u32 {
-    exp.pow(base)
+    base.pow(exp)
 }
 
 #[trusted]
@@ -120,9 +121,9 @@ fn print_door_open(i: u32) {
 
 fn doors4() {
     let mut i = 1u32;
-    let base = 2;
+    let exp = 2;
     while i < 10u32 {
-        let door = pow(base, i);
+        let door = pow(i, exp);
         print_door_open(door);
         i += 1;
     }
