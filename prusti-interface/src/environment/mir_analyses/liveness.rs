@@ -24,7 +24,7 @@ impl fmt::Debug for Assignment {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Default)]
 pub struct AssignmentSet {
     set: BTreeSet<Assignment>,
 }
