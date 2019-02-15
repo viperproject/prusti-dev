@@ -125,7 +125,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 // Rewrite statement
                 vir::Stmt::TransferPerm(
                     self.replace_expr(&lhs, &bctxt),
-                    self.replace_expr(&rhs, &rhs_bctxt)
+                    self.replace_old_expr(&rhs, &rhs_bctxt)
                 )
             }
             vir::Stmt::PackageMagicWand(wand, stmts, pos) => {
