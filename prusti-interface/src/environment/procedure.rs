@@ -4,19 +4,19 @@
 
 use rustc::mir;
 use rustc::ty::{self, Ty, TyCtxt};
+use rustc_data_structures::indexed_vec::{IndexVec, Idx};
 use std::collections::HashSet;
 use std::collections::HashMap;
 use rustc::mir::Mir;
 use std::cell::Ref;
-use rustc::mir::Terminator;
-use rustc::mir::BasicBlock;
-use rustc::mir::TerminatorKind;
+use rustc::mir::{BasicBlock, BasicBlockData, Terminator, TerminatorKind};
 use data::ProcedureDefId;
 use syntax::codemap::Span;
 use crate::environment::mir_analyses::initialization::{
     compute_definitely_initialized,
     DefinitelyInitializedAnalysisResult,
 };
+use super::loops;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -30,6 +30,7 @@ pub struct Procedure<'a, 'tcx: 'a> {
     nonspec_basic_blocks: HashSet<BasicBlock>,
     predecessors: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
     definitely_initialised_info: DefinitelyInitializedAnalysisResult<'tcx>,
+    ordered_basic_blocks: Vec<BasicBlockIndex>,
 }
 
 impl<'a, 'tcx> Procedure<'a, 'tcx> {
@@ -55,6 +56,8 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         let definitely_initialised_info = compute_definitely_initialized(
             &mir, tcx, def_path);
 
+        let ordered_basic_blocks = Self::order_basic_blocks(&mir);
+
         Self {
             tcx,
             proc_def_id,
@@ -63,7 +66,53 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             nonspec_basic_blocks,
             predecessors,
             definitely_initialised_info,
+            ordered_basic_blocks,
         }
+    }
+
+    /// Returns the list of basic blocks ordered in the topological order.
+    fn order_basic_blocks(mir: &Mir<'tcx>) -> Vec<BasicBlockIndex> {
+        let basic_blocks = mir.basic_blocks();
+        let mut sorted_blocks = Vec::new();
+        let mut permanent_mark = IndexVec::<BasicBlockIndex, bool>::from_elem_n(
+            false, basic_blocks.len());
+        let mut temporary_mark = permanent_mark.clone();
+        let loop_info = loops::ProcedureLoops::new(&mir);
+        let back_edges = loop_info.back_edges.into_iter().collect();
+
+        fn visit<'tcx>(basic_blocks: &IndexVec<BasicBlock, BasicBlockData<'tcx>>,
+                       back_edges: &HashSet<(mir::BasicBlock, mir::BasicBlock)>,
+                       current: BasicBlockIndex,
+                       sorted_blocks: &mut Vec<BasicBlockIndex>,
+                       permanent_mark: &mut IndexVec<BasicBlockIndex, bool>,
+                       temporary_mark: &mut IndexVec<BasicBlockIndex, bool>) {
+            if permanent_mark[current] {
+                return;
+            }
+            assert!(!temporary_mark[current], "Not a DAG!");
+            temporary_mark[current] = true;
+            for &successor in basic_blocks[current].terminator().successors() {
+                if back_edges.contains(&(current, successor)) {
+                    continue;
+                }
+                visit(basic_blocks, back_edges, successor,
+                      sorted_blocks, permanent_mark, temporary_mark);
+            }
+            permanent_mark[current] = true;
+            sorted_blocks.push(current);
+        }
+
+        loop {
+            let index = if let Some(index) = permanent_mark.iter().position(|x| !*x) {
+                BasicBlockIndex::new(index)
+            } else {
+                break
+            };
+            visit(basic_blocks, &back_edges, index,
+                  &mut sorted_blocks, &mut permanent_mark, &mut temporary_mark);
+        }
+        sorted_blocks.reverse();
+        sorted_blocks
     }
 
     pub fn predecessors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
@@ -124,7 +173,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Iterate over all CFG basic blocks
     pub fn get_all_cfg_blocks(&self) -> Vec<BasicBlock> {
-        self.mir.basic_blocks().indices().collect()
+        self.ordered_basic_blocks.clone()
     }
 
     /// Iterate over all reachable CFG basic blocks
