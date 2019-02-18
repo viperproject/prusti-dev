@@ -18,6 +18,7 @@
 extern crate log;
 extern crate prusti_interface;
 extern crate prusti_filter;
+extern crate regex;
 extern crate rustc;
 extern crate rustc_data_structures;
 extern crate rustc_mir;

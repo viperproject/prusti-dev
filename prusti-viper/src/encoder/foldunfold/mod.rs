@@ -185,7 +185,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
 
             vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _), ..) |
-            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _)) => {
+            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _), ..) => {
                 // TODO: This should be done also for magic wand expressions inside inhale/exhale.
                 let label = "lhs".to_string();
                 let mut labelled_bctxt = bctxt.clone();

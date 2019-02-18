@@ -3,10 +3,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::Encoder;
+use encoder::foldunfold;
+use encoder::spec_encoder::SpecEncoder;
 use encoder::vir;
+use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
 use encoder::vir::{Zero, One};
 use encoder::utils::range_extract;
+use prusti_interface::specifications::*;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
 use std::collections::hash_map::DefaultHasher;
@@ -360,6 +364,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ]
             },
 
+            ty::TypeVariants::TyParam(_) => {
+                // special case: type parameters shall be encoded as *abstract* predicates
+                return vir::Predicate::new(predicate_name, vec![self_local_var], None);
+            }
+
             ref ty_variant => {
                 debug!("Encoding of type '{}' is incomplete", ty_variant);
                 vec![
@@ -407,13 +416,23 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let mut composed_name = vec![
                     self.encoder.encode_item_name(adt_def.did)
                 ];
+                composed_name.push("_beg_".to_string()); // makes generics "less fragile"
+                let mut first = true;
                 for kind in subst.iter() {
+                    if first {
+                        first = false
+                    }
+                    else {
+                        // makes generics "less fragile"
+                        composed_name.push("_sep_".to_string());
+                    }
                     if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
                         composed_name.push(
                             self.encoder.encode_type_predicate_use(ty)
                         )
                     }
                 }
+                composed_name.push("_end_".to_string()); // makes generics "less fragile"
                 composed_name.join("$")
             },
 
@@ -466,7 +485,179 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 )
             },
 
+            ty::TypeVariants::TyParam(param_ty) => {
+                format!("__TYPARAM__${}$__", param_ty.name.as_str())
+            }
+
             ref x => unimplemented!("{:?}", x),
         }
+    }
+
+    pub fn encode_invariant_def(self) -> vir::Function {
+        debug!("Encode type invariant '{:?}'", self.ty);
+
+        let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
+        let self_local_var = vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
+
+        let invariant_name = self.encoder.encode_type_invariant_use(self.ty);
+
+        let field_invariants = match self.ty.sty {
+
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
+            ty::TypeVariants::TyRef(_, ref ty, _) => {
+                let elem_invariant_name = self.encoder.encode_type_invariant_use(ty);
+                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
+                let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
+                vec![self.encoder.encode_invariant_func_app(ty, elem_loc)]
+            }
+
+            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
+                let own_substs = ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), adt_def.did);
+
+                {
+                    // FIXME; hideous monstrosity...
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
+
+                    for (kind1, kind2) in own_substs.iter().zip(*subst) {
+                        if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) = (kind1.unpack(), kind2.unpack()) {
+                            tymap.insert(ty1, ty2);
+                        }
+                    }
+                }
+
+                let mut exprs: Vec<vir::Expr> = vec![];
+                let num_variants = adt_def.variants.len();
+                let tcx = self.encoder.env().tcx();
+                let opt_spec = self.encoder.get_spec_by_def_id(adt_def.did);
+
+                if let Some(spec) = opt_spec {
+                    //let encoded_args = vec![vir::Expr::from(self_local_var.clone())];
+                    let encoded_args = vec![];
+                    let spec_encoder = SpecEncoder::new_simple(self.encoder, &encoded_args);
+
+                    let mut hacky_folder = HackyExprFolder { saelf: self_local_var.clone() };
+
+                    match spec {
+                        SpecificationSet::Struct(items) => {
+                            for item in items {
+                                let enc = spec_encoder.encode_assertion(&item.assertion);
+                                // OPEN TODO: hacky fix here to convert the closure var to "self"...
+                                let enc = hacky_folder.fold(enc);
+                                exprs.push(enc);
+                            }
+                        },
+                        _ => unreachable!(),
+                    }
+                }
+
+                // FIXME; hideous monstrosity...
+                {
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
+                }
+
+                if num_variants == 0 {
+                    debug!("ADT {:?} has no variant", adt_def);
+                    // TODO
+                } else if num_variants == 1 {
+                    debug!("ADT {:?} has only one variant", adt_def);
+
+                    for field in &adt_def.variants[0].fields {
+                        debug!("Encoding field {:?}", field);
+                        let field_name = format!("enum_0_{}", field.ident.as_str());
+                        let field_ty = field.ty(tcx, subst);
+                        let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                        let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
+                        exprs.push(self.encoder.encode_invariant_func_app(field_ty, elem_loc));
+                    }
+                } else {
+                    debug!("ADT {:?} has {} variants", adt_def, num_variants);
+                    // TODO
+                }
+
+                exprs
+            },
+
+            // TODO
+            _ => (vec![]),
+        };
+
+        let precondition = vir::Expr::PredicateAccessPredicate(
+            predicate_name,
+            vec![self_local_var.clone().into()],
+            vir::Frac::one(),
+        );
+
+        let function = vir::Function {
+            name: invariant_name,
+            formal_args: vec![self_local_var],
+            return_type: vir::Type::Bool,
+            pres: vec![precondition],
+            posts: Vec::new(),
+            body: Some(field_invariants.into_iter().conjoin()),
+        };
+
+        // Add folding/unfolding
+        foldunfold::add_folding_unfolding_to_function(
+            function,
+            self.encoder.get_used_viper_predicates_map()
+        )
+    }
+
+    pub fn encode_invariant_use(self) -> String {
+        debug!("Encode type invariant name '{:?}'", self.ty);
+        format!("{}$inv", self.encode_predicate_use())
+    }
+
+    pub fn encode_tag_def(self) -> vir::Function {
+        debug!("Encode type invariant '{:?}'", self.ty);
+
+        //let pred_name = self.encoder.encode_type_tag_use(self.ty);
+        //let self_local_var = vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
+
+        let tag_name = self.encoder.encode_type_tag_use(self.ty);
+
+        let body = match self.ty.sty {
+            ty::TypeVariants::TyParam(param_ty) => None,
+            _ => Some(vir::Expr::Const(vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64))),
+        };
+
+        //let precondition = vir::Expr::PredicateAccessPredicate(
+        //    predicate_name,
+        //    vec![self_local_var.clone().into()],
+        //    vir::Frac::one(),
+        //);
+
+        let function = vir::Function {
+            name: tag_name,
+            formal_args: Vec::new(),
+            return_type: vir::Type::Int,
+            pres: Vec::new(),
+            posts: Vec::new(),
+            body,
+        };
+
+        //// Add folding/unfolding
+        //foldunfold::add_folding_unfolding_to_function(
+        //    function,
+        //    self.encoder.get_used_viper_predicates_map()
+        //)
+        function
+    }
+
+    pub fn encode_tag_use(self) -> String {
+        debug!("Encode type tag name '{:?}'", self.ty);
+        format!("{}$tag", self.encode_predicate_use())
+    }
+}
+
+struct HackyExprFolder {
+    saelf: vir::LocalVar,
+}
+
+impl ExprFolder for HackyExprFolder {
+    fn fold_local(&mut self, v: vir::LocalVar) -> vir::Expr {
+        vir::Expr::Local(self.saelf.clone())
     }
 }

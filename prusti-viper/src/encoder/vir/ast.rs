@@ -222,7 +222,7 @@ pub enum Stmt {
     PackageMagicWand(Expr, Vec<Stmt>, Position),
     /// Apply a Magic Wand.
     /// Arguments: the magic wand.
-    ApplyMagicWand(Expr),
+    ApplyMagicWand(Expr, Position),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -299,9 +299,10 @@ impl Stmt {
         )
     }
 
-    pub fn apply_magic_wand(lhs: Expr, rhs: Expr) -> Self {
+    pub fn apply_magic_wand(lhs: Expr, rhs: Expr, pos: Position) -> Self {
         Stmt::ApplyMagicWand(
             Expr::MagicWand(box lhs, box rhs),
+            pos,
         )
     }
 }
@@ -405,7 +406,7 @@ impl fmt::Display for Stmt {
                 write!(f, "}}")
             }
 
-            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs)) => {
+            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs), _position) => {
                 writeln!(f, "apply {} --* {}", lhs, rhs)
             }
 
@@ -436,7 +437,7 @@ pub trait StmtFolder {
             Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
             Stmt::StopExpiringLoans(a) => self.fold_stop_expiring_borrows(a),
             Stmt::PackageMagicWand(w, s, p) => self.fold_package_magic_wand(w, s, p),
-            Stmt::ApplyMagicWand(w) => self.fold_apply_magic_wand(w),
+            Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
         }
     }
 
@@ -526,13 +527,25 @@ pub trait StmtFolder {
         )
     }
 
-    fn fold_apply_magic_wand(&mut self, w: Expr) -> Stmt {
+    fn fold_apply_magic_wand(&mut self, w: Expr, p: Position) -> Stmt {
         Stmt::ApplyMagicWand(
             self.fold_expr(w),
+            p
         )
     }
 }
 
+impl Expr {
+    pub fn local_type(&self) -> String {
+        match &self {
+            Expr::Local(localvar) => match &localvar.typ {
+                Type::TypedRef(str) => str.clone(),
+                _ => panic!("expected Type::TypedRef"),
+            }
+            _ => panic!("expected Expr::Local"),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expr {
@@ -1365,14 +1378,42 @@ impl Expr {
         }
         struct PlaceReplacer<'a>{
             target: &'a Expr,
-            replacement: &'a Expr
+            replacement: &'a Expr,
+            // FIXME: the following fields serve a grotesque hack.
+            //  Purpose:  Generics. When a less-generic function-under-test desugars specs from
+            //            a more-generic function, the vir::Expr contains Local's with __TYPARAM__s,
+            //            but Field's with the function-under-test's concrete types. The purpose is
+            //            the to "fix" the (Viper) predicates of the fields, i.e. replace those
+            //            typarams with local (more) concrete types.
+            //            THIS IS FRAGILE!
+            typaram_substs: Option<typaram::Substs>,
+            subst: bool,
         };
+        impl<'a> PlaceReplacer<'a> {
+        }
         impl<'a> ExprFolder for PlaceReplacer<'a> {
             fn fold(&mut self, e: Expr) -> Expr {
                 if e.is_place() && e.weak_eq(self.target) {
+                    self.subst = true;
                     self.replacement.clone()
                 } else {
-                    default_fold_expr(self, e)
+                    match default_fold_expr(self, e) {
+                        Expr::Field(expr, mut field) => {
+                            if let Some(ts) = &self.typaram_substs {
+                                if self.subst && field.typ.is_ref() {
+                                    let inner1 = field.typ.name();
+                                    let inner2 = ts.apply(&inner1);
+                                    debug!("replacing:\n{}\n{}\n========", &inner1, &inner2);
+                                    field = Field::new(field.name, Type::TypedRef(inner2));
+                                }
+                            }
+                            Expr::Field(expr, field)
+                        }
+                        x => {
+                            self.subst = false;
+                            x
+                        },
+                    }
                 }
             }
 
@@ -1389,9 +1430,22 @@ impl Expr {
                 }
             }
         }
+        let typaram_substs = match (&target, &replacement) {
+            (Expr::Local(tv), Expr::Local(rv)) => {
+                if tv.typ.is_ref() && rv.typ.is_ref() {
+                    debug!("learning:\n{}\n{}\n=======", &target.local_type(), replacement.local_type());
+                    Some(typaram::Substs::learn(&target.local_type(), &replacement.local_type()))
+                } else {
+                    None
+                }
+            }
+            _ => None
+        };
         PlaceReplacer {
             target,
-            replacement
+            replacement,
+            typaram_substs,
+            subst: false,
         }.fold(self)
     }
 
@@ -1652,5 +1706,131 @@ impl fmt::Display for Function {
             write!(f, "}}")?;
         }
         write!(f, "")
+    }
+}
+
+mod typaram {
+    use regex::Regex;
+    use std::collections::HashMap;
+
+    pub struct Substs {
+        regex: Regex,
+        repls: HashMap<String, String>,
+    }
+
+    fn escape_dollars(s: &str) -> String {
+        s.replace('$', "\\$")
+    }
+
+    impl Substs {
+        pub fn learn(from: &str, to: &str) -> Self {
+            // construct repls_regex
+            let regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
+            let mut repls_regex_str = String::new();
+            repls_regex_str.push('^');
+            let mut typarams = Vec::new();
+            let mut last = 0;
+            for matsh in regex.find_iter(from) {
+                repls_regex_str.push_str(&escape_dollars(&from[last..matsh.start()]));
+                repls_regex_str.push_str("(.*?)");
+                typarams.push(matsh.as_str().to_string());
+                last = matsh.end();
+            }
+            repls_regex_str.push_str(&escape_dollars(&from[last..]));
+            repls_regex_str.push('$');
+            // use repls_regex to find typaram replacements
+            let mut repls = HashMap::new();
+            let repls_regex = Regex::new(&repls_regex_str).unwrap();
+            let captures = repls_regex.captures(to).unwrap();
+            for i in 1..captures.len() {
+                let from = typarams[i-1].to_string();
+                let to = captures.get(i).unwrap().as_str();
+                let old = repls.insert(from, to.to_string());
+                if let Some(x) = old {
+                    assert!(to == x);
+                }
+            }
+            Substs {
+                regex,
+                repls,
+            }
+        }
+
+        pub fn apply(&self, inner1: &str) -> String {
+            let mut newstr = String::new();
+            let mut last = 0;
+            for matsh in self.regex.find_iter(inner1) {
+                newstr.push_str(&inner1[last..matsh.start()]);
+                newstr.push_str(&self.repls[matsh.as_str()]);
+                last = matsh.end();
+            }
+            newstr.push_str(&inner1[last..]);
+            newstr
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        fn test(outer1: &str, outer2: &str, inner1: &str, inner2: &str) {
+            let substs = Substs::learn(outer1, outer2);
+            let inner2_gen = substs.apply(inner1);
+            assert_eq!(inner2_gen, inner2);
+        }
+
+        #[test]
+        pub fn test1() {
+            let outer1 = "ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_";
+            let outer2 = "ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_";
+            let inner1 = "m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_";
+            let inner2 = "m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_";
+            test(outer1, outer2, inner1, inner2);
+        }
+
+        #[test]
+        fn test2() {
+            let outer1 = "ref$m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_";
+            let outer2 = "ref$m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$__TYPARAM__$A$__$_end_";
+            let inner1 = "m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_";
+            let inner2 = "m_generics_basic_7$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$__TYPARAM__$A$__$_end_";
+            test(outer1, outer2, inner1, inner2);
+        }
+
+        #[test]
+        fn test3() {
+            let outer1 = "m_generics_basic_6$$Foo$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_end_";
+            let outer2 = "m_generics_basic_6$$Foo$opensqu$0$closesqu$$_beg_$u128$_end_";
+            let inner1 = "m_generics_basic_6$$BarBaz$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_end_";
+            let inner2 = "m_generics_basic_6$$BarBaz$opensqu$0$closesqu$$_beg_$u128$_end_";
+            test(outer1, outer2, inner1, inner2);
+        }
+
+        #[test]
+        fn test4() {
+            let outer1 = "ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_";
+            let outer2 = "ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_";
+            let inner1 = "m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_";
+            let inner2 = "m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_";
+            test(outer1, outer2, inner1, inner2);
+        }
+
+        #[test]
+        fn test5() {
+            let outer1 = "ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_";
+            let outer2 = "ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_";
+            let inner1 = "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_";
+            let inner2 = "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_";
+            test(outer1, outer2, inner1, inner2);
+        }
+
+        #[test]
+        fn test6() {
+            let outer1 = "ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_";
+            let outer2 = "ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_";
+            let inner1 = "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_";
+            let inner2 = "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_";
+            test(outer1, outer2, inner1, inner2);
+        }
     }
 }

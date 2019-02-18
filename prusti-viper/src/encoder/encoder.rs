@@ -28,7 +28,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::ast;
 use viper;
-use prusti_interface::specifications::{SpecID, TypedSpecificationMap, SpecificationSet, TypedAssertion, Specification, SpecType, Assertion};
+use prusti_interface::specifications::{SpecID, TypedSpecificationMap, SpecificationSet, TypedSpecificationSet, TypedAssertion, Specification, SpecType, Assertion};
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use std::mem;
 use prusti_interface::environment::Procedure;
@@ -48,8 +48,12 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     pure_function_bodies: RefCell<HashMap<ProcedureDefId, vir::Expr>>,
     pure_functions: RefCell<HashMap<ProcedureDefId, vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
+    type_invariant_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
+    type_tag_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
     type_predicates: RefCell<HashMap<String, vir::Predicate>>,
+    type_invariants: RefCell<HashMap<String, vir::Function>>,
+    type_tags: RefCell<HashMap<String, vir::Function>>,
     fields: RefCell<HashMap<String, vir::Field>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, mir::BasicBlock, usize, Vec<mir::Operand<'tcx>>)>>,
@@ -58,6 +62,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     use_whitelist: bool,
     whitelist: HashSet<String>,
+    pub typaram_repl: RefCell<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -82,8 +87,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             pure_function_bodies: RefCell::new(HashMap::new()),
             pure_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
+            type_invariant_names: RefCell::new(HashMap::new()),
+            type_tag_names: RefCell::new(HashMap::new()),
             predicate_types: RefCell::new(HashMap::new()),
             type_predicates: RefCell::new(HashMap::new()),
+            type_invariants: RefCell::new(HashMap::new()),
+            type_tags: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
@@ -91,6 +100,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir_program_before_viper_writer,
             use_whitelist: config::enable_whitelist(),
             whitelist: HashSet::from_iter(config::verification_whitelist()),
+            typaram_repl: RefCell::new(HashMap::new()),
         }
     }
 
@@ -140,6 +150,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             functions.push(function.clone());
         }
         for function in self.pure_functions.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.type_invariants.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.type_tags.borrow().values() {
             functions.push(function.clone());
         }
         functions.sort_by_key(|f| f.get_identifier());
@@ -222,9 +238,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) ->  ProcedureContractMirDef<'tcx> {
+    pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<&TypedSpecificationSet> {
         let opt_spec_id: Option<SpecID> = self.env().tcx()
-            .get_attrs(proc_def_id)
+            .get_attrs(def_id)
             .iter()
             .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
             .and_then(|x| x
@@ -238,7 +254,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     )
                 )
             );
-        let opt_fun_spec = opt_spec_id.and_then(|spec_id| self.spec().get(&spec_id));
+        opt_spec_id.and_then(|spec_id| self.spec().get(&spec_id))
+    }
+
+    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) ->  ProcedureContractMirDef<'tcx> {
+        let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
         let fun_spec = match opt_fun_spec {
             Some(fun_spec) => fun_spec.clone(),
             None => {
@@ -407,6 +427,51 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().get(predicate_name).cloned()
     }
 
+    pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
+        // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
+        if !self.type_invariant_names.borrow().contains_key(&ty.sty) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let result = type_encoder.encode_invariant_use();
+            self.type_invariant_names.borrow_mut().insert(ty.sty.clone(), result);
+            // Trigger encoding of definition
+            self.encode_type_invariant_def(ty);
+        }
+        let invariant_name = self.type_invariant_names.borrow()[&ty.sty].clone();
+        invariant_name
+    }
+
+    pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
+        let invariant_name = self.encode_type_invariant_use(ty);
+        if !self.type_invariants.borrow().contains_key(&invariant_name) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let invariant = type_encoder.encode_invariant_def();
+            self.type_invariants.borrow_mut().insert(invariant_name.clone(), invariant);
+        }
+        self.type_invariants.borrow()[&invariant_name].clone()
+    }
+
+    pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
+        if !self.type_tag_names.borrow().contains_key(&ty.sty) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let result = type_encoder.encode_tag_use();
+            self.type_tag_names.borrow_mut().insert(ty.sty.clone(), result);
+            // Trigger encoding of definition
+            self.encode_type_tag_def(ty);
+        }
+        let tag_name = self.type_tag_names.borrow()[&ty.sty].clone();
+        tag_name
+    }
+
+    pub fn encode_type_tag_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
+        let tag_name = self.encode_type_tag_use(ty);
+        if !self.type_tags.borrow().contains_key(&tag_name) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let tag = type_encoder.encode_tag_def();
+            self.type_tags.borrow_mut().insert(tag_name.clone(), tag);
+        }
+        self.type_tags.borrow()[&tag_name].clone()
+    }
+
     pub fn encode_const_expr(&self, value: &ty::Const<'tcx>) -> vir::Expr {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = match value.val {
@@ -494,6 +559,31 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 .replace(" ", "$space$")
         );
         name
+    }
+
+    pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
+        let type_pred = self.encode_type_predicate_use(ty);
+        vir::Expr::FuncApp(
+            self.encode_type_invariant_use(ty),
+            vec![encoded_arg],
+            // TODO ?
+            vec![vir::LocalVar::new("self", vir::Type::TypedRef(type_pred))],
+            vir::Type::Bool,
+            // TODO
+            vir::Position::new(0, 0, "".to_string()),
+        )
+    }
+
+    pub fn encode_tag_func_app(&self, ty: ty::Ty<'tcx>) -> vir::Expr {
+        vir::Expr::FuncApp(
+            self.encode_type_tag_use(ty),
+            vec![],
+            // TODO ?
+            vec![],
+            vir::Type::Int,
+            // TODO
+            vir::Position::new(0, 0, "".to_string()),
+        )
     }
 
     pub fn encode_pure_function_body(&self, proc_def_id: ProcedureDefId) -> vir::Expr {

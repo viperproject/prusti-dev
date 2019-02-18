@@ -336,6 +336,36 @@ impl<'tcx> SpecParser<'tcx> {
                 statements.push(stmt);
                 self.populate_statements(assertion, statements);
             }
+            AssertionKind::TypeCond(ref vars, ref assertion) => {
+                // TODO deduplicate (see below...)
+
+                let builder = &self.ast_builder;
+
+                // TODO: use a proper span
+                let span = DUMMY_SP;
+
+                let mut lambda_fn = builder.lambda_fn_decl(
+                    span,
+                    builder.fn_decl(
+                        vars.vars.clone(),
+                        ast::FunctionRetTy::Default(span)
+                    ),
+                    builder.expr_block(builder.block(span, vec![])),
+                    span
+                ).into_inner();
+
+                lambda_fn.attrs = vec![
+                    builder.attribute_name_value(span, "__PRUSTI_FORALL_ID", &vars.id.to_string()),
+                    builder.attribute_word(span, "pure"),
+                ].into();
+
+                let statement = builder.stmt_semi(ptr::P(lambda_fn));
+                statements.push(statement);
+
+                // the remainder
+                self.populate_statements(assertion, statements);
+            }
+            // encode generics typecond as forallvargs (hack!)
             AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
                 let mut stmts = self.convert_trigger_set_to_statements(trigger_set);
                 self.populate_statements(body, &mut stmts);
@@ -362,12 +392,13 @@ impl<'tcx> SpecParser<'tcx> {
                 let statement = builder.stmt_semi(ptr::P(lambda_fn));
                 statements.push(statement);
             }
-            AssertionKind::Pledge(ref reference, ref assertion) => {
+            AssertionKind::Pledge(ref reference, ref lhs, ref rhs) => {
                 if let Some(ref reference) = reference {
                     let statement = self.build_typeck_call(reference, None);
                     statements.push(statement);
                 }
-                self.populate_statements(assertion, statements);
+                self.populate_statements(lhs, statements);
+                self.populate_statements(rhs, statements);
             }
         };
         trace!("[populate_statements] exit");
@@ -479,6 +510,116 @@ impl<'tcx> SpecParser<'tcx> {
                     ],
                 );
                 spec_item
+            }
+            _ => {
+                unreachable!();
+            }
+        }
+    }
+
+    /// Generate a function that contains only an invariant for type-checking.
+    fn generate_spec_item_inv(
+        &mut self,
+        item: &ast::Item,
+        spec_id: SpecID,
+        invariants: &[UntypedSpecification],
+    ) -> ast::Item {
+        let mut name = item.ident.to_string();
+        match item.node {
+            ast::ItemKind::Struct(ref variantdata, ref generics) => {
+
+                let mut statements = vec![];
+
+                // Add invariants.
+                statements.extend(self.convert_to_statements(invariants));
+
+                // Import contracts, if needed
+                if !statements.is_empty() {
+                    statements.insert(0, self.build_prusti_contract_import(item.span));
+                }
+
+                // Add result to arguments
+                let unit_type = self.ast_builder.ty(
+                    item.span,
+                    ast::TyKind::Tup(Vec::new())
+                );
+
+                let mut self_arg: Vec<ast::Arg> = Vec::new();
+                self_arg.push(
+                    self.ast_builder.arg(
+                        item.span,
+                        ast::Ident::from_str("self"),
+                        // OPEN TODO: using a ref (&mut or &) causes permission troubles
+                        //self.ast_builder.ty_rptr(
+                        //    item.span,
+                        //    self.ast_builder.ty(item.span, ast::TyKind::ImplicitSelf),
+                        //    None,
+                        //    ast::Mutability::Mutable
+                        //)
+                        self.ast_builder.ty(item.span, ast::TyKind::ImplicitSelf)
+                    )
+                );
+
+                // Glue everything.
+                name.push_str("__spec");
+
+                let mut spec_item = self.ast_builder.impl_item_method(
+                    item.span,
+                    ast::Ident::from_str(&name),
+                    Vec::new(), // attrs,
+                    Default::default(), // Generics
+                    self_arg,
+                    unit_type,
+                    self.ast_builder.block(item.span, statements),
+                );
+
+                mem::replace(
+                    &mut spec_item.attrs,
+                    vec![
+                        self.ast_builder.attribute_name_value(
+                            item.span,
+                            "__PRUSTI_SPEC_ONLY",
+                            &spec_id.to_string(),
+                        ),
+                        self.ast_builder.attribute_allow(item.span, "unused_mut"),
+                        self.ast_builder.attribute_allow(item.span, "dead_code"),
+                        self.ast_builder.attribute_allow(item.span, "non_snake_case"),
+                        self.ast_builder.attribute_allow(item.span, "unused_imports"),
+                        self.ast_builder.attribute_allow(item.span, "unused_variables"),
+                    ],
+                );
+
+                let args = generics.params.iter().map(
+                    |x| ast::GenericArg::Type(self.ast_builder.ty_ident(DUMMY_SP, x.ident))
+                ).collect();
+
+                let mut spec_item_envelope = ast::Item {
+                    ident: ast::Ident::from_str(""), // FIXME?
+                    attrs: Vec::new(),
+                    id: ast::DUMMY_NODE_ID,
+                    node: ast::ItemKind::Impl(
+                        ast::Unsafety::Normal,
+                        ast::ImplPolarity::Positive,
+                        ast::Defaultness::Final,
+                        generics.clone(),
+                        None, // TraitRef
+                        // TODO not dummy ?! (or should it?)
+                        //self.ast_builder.ty_ident(DUMMY_SP, item.ident), // `item` is the struct
+                        self.ast_builder.ty_path(self.ast_builder.path_all(
+                            DUMMY_SP,
+                            false, // global
+                            vec![item.ident],
+                            args, // (type parameters)
+                            vec![], // bindings
+                        )),
+                        vec![spec_item], // methods et al.
+                    ),
+                    vis: self.ast_builder.visinh(), // TODO not dummy!
+                    span: DUMMY_SP, // TODO not dummy
+                    tokens: None,
+                };
+
+                spec_item_envelope
             }
             _ => {
                 unreachable!();
@@ -874,6 +1015,68 @@ impl<'tcx> SpecParser<'tcx> {
         )
     }
 
+    fn rewrite_struct_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        trace!("[rewrite_struct_item] enter");
+        let mut item = item.into_inner();
+
+        // Parse specification
+        let specs = self.parse_specs(item.attrs.clone());
+        if specs.iter().any(|spec| spec.typ != SpecType::Invariant) {
+            self.report_error(item.span, "only invariant allowed for struct");
+            return SmallVector::one(ptr::P(item));
+        }
+        let invariants: Vec<_> = specs
+            .clone()
+            .into_iter()
+            .filter(|spec| spec.typ == SpecType::Invariant)
+            .collect();
+        let spec_set = SpecificationSet::Struct(invariants.clone());
+
+        // Register specification
+        let id = self.register_specification(spec_set.clone());
+        item.attrs.push(
+            self.ast_builder
+                .attribute_name_value(item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
+        );
+
+        // Early returns
+        if spec_set.is_empty() {
+            trace!("[rewrite_struct_item] exit EARLY");
+            return SmallVector::one(ptr::P(item));
+        }
+
+        // Dump modified item
+        let new_item_str = syntax::print::pprust::item_to_string(&item);
+        debug!("new_item:\n{}", new_item_str);
+        self.log_modified_program(new_item_str);
+
+        // Create spec item
+        let mut spec_item = self.generate_spec_item_inv(&item, id, &invariants);
+
+        spec_item.attrs.extend(
+            item.attrs.iter().cloned().filter(
+                |attr| !attr.check_name("trusted") &&
+                    !attr.check_name("pure") &&
+                    !attr.check_name("invariant") &&
+                    !attr.check_name("requires") &&
+                    !attr.check_name("ensures") &&
+                    !attr.check_name(PRUSTI_SPEC_ATTR)
+            )
+        );
+
+        // Dump spec item
+        let spec_item_str = syntax::print::pprust::item_to_string(&spec_item);
+        debug!("spec_item:\n{}", spec_item_str);
+        self.log_modified_program(spec_item_str);
+
+        // Return small vector
+        trace!("[rewrite_struct_item] exit");
+        let mut result = SmallVector::new();
+        result.push(ptr::P(item));
+        result.push(ptr::P(spec_item));
+        result
+    }
+
     fn rewrite_trait_item_method(&mut self, mut trait_item: ast::TraitItem) -> SmallVector<ast::TraitItem> {
         trace!("[rewrite_trait_item_method] enter");
 
@@ -903,8 +1106,13 @@ impl<'tcx> SpecParser<'tcx> {
                         .attribute_name_value(trait_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
                 );
             }
-            // Skip body-less trait methods
-            ast::TraitItemKind::Method(_, None) => {} // OK
+            // TODO: correct?
+            ast::TraitItemKind::Method(_, None) => {
+                trait_item.attrs.push(
+                    self.ast_builder
+                        .attribute_name_value(trait_item.span, PRUSTI_SPEC_ATTR, &id.to_string()),
+                );
+            }
             _ => unreachable!(),
         }
 
@@ -1008,6 +1216,34 @@ impl<'tcx> SpecParser<'tcx> {
         spec_string_with_span
     }
 
+    fn parse_typaram_condition(&mut self, span: &mut Span, spec_string: &mut &str) -> Option<ForAllVars<ast::Arg>> {
+        // FIXME... the uglier the better
+        if let Some(pos) = spec_string.find("~~>") {
+            let foo = &spec_string[..pos];
+            let (ty1, ty2) = self.parse_type(*span, foo.to_string()).unwrap(); // FIXME span
+            let arg1 = self.ast_builder.arg(
+                *span,
+                self.ast_builder.ident_of("t1"),
+                ty1 // FIXME
+            );
+            let arg2 = self.ast_builder.arg(
+                *span,
+                self.ast_builder.ident_of("t2"),
+                ty2 // FIXME
+            );
+            let forallvars = ForAllVars {
+                // is actually a "FORALL_ID"
+                id: self.get_new_expression_id(),
+                vars: vec![arg1, arg2],
+            };
+            *spec_string = &spec_string[pos+3..];
+            *span = shift_span(*span, (pos+3) as u32);
+            Some(forallvars)
+        } else {
+            None
+        }
+    }
+
     fn parse_assertion_wrap(&mut self, span: Span, spec_string: &str) -> Option<UntypedAssertion> {
         match self.parse_assertion(span, spec_string) {
             Ok(assertion) => Some(assertion),
@@ -1030,9 +1266,23 @@ impl<'tcx> SpecParser<'tcx> {
             .into_iter()
             .map(|attribute| {
                 if let Ok(spec_type) = SpecType::try_from(&attribute.path.to_string() as &str) {
-                    if let Some((spec_string, span)) = self.extract_spec_string(&attribute) {
+                    if let Some((spec_string, mut span)) = self.extract_spec_string(&attribute) {
                         debug!("spec={:?} spec_type={:?}", spec_string, spec_type);
+                        // FIXME ugly code
+                        let mut spec_string: &str = &spec_string;
+                        let foo = self.parse_typaram_condition(&mut span, &mut spec_string);
                         if let Some(assertion) = self.parse_assertion_wrap(span, &spec_string) {
+                            let assertion = match foo {
+                                Some(x) => {
+                                    Assertion {
+                                        kind: box AssertionKind::TypeCond(
+                                            x,
+                                            assertion,
+                                        )
+                                    }
+                                }
+                                None => assertion,
+                            };
                             debug!("assertion={:?}", assertion);
                             Some(UntypedSpecification {
                                 typ: spec_type,
@@ -1095,6 +1345,57 @@ impl<'tcx> SpecParser<'tcx> {
         };
         trace!("[parse_expression] exit");
         result
+    }
+
+    /// Parse Rust type. (copied from parse_expression)
+    fn parse_type(
+        &mut self,
+        base_span: Span,
+        spec_string: String,
+    ) -> Result<(ptr::P<ast::Ty>, ptr::P<ast::Ty>), AssertionParsingError> {
+        trace!(
+            "[parse_ty] enter spec_string={:?} span={:?}",
+            spec_string,
+            base_span
+        );
+        let mut whitespace_count = 0;
+        for char in spec_string.chars() {
+            if !char.is_whitespace() {
+                break;
+            }
+            whitespace_count += 1;
+        }
+        let mut parser = parse::new_parser_from_source_str(
+            &self.session.parse_sess,
+            FileName::QuoteExpansion,
+            spec_string,
+        );
+        let expr = parser.parse_ty();
+        //parser.expected_tokens.clear();
+        match parser.expect(&parse::token::Token::EqEq) {
+            Ok(_) => {},
+            Err(mut err) => {
+                err.emit();
+                return Err(AssertionParsingError::ParsingRustExpressionFailed);
+            },
+        }
+        let expr2 = parser.parse_ty();
+        // TODO expect "eof" after parsing!
+        debug!("Parsed ty: {:?}", expr);
+        return Ok((expr.unwrap(), expr2.unwrap()));
+        //let result = match expr {
+        //    Ok(expr) => {
+        //        let mut rewriter = SpanRewriter::new(whitespace_count, expr.span, base_span);
+        //        let expr = rewriter.fold_ty(expr);
+        //        Ok(expr)
+        //    }
+        //    Err(mut err) => {
+        //        err.emit();
+        //        Err(AssertionParsingError::ParsingRustExpressionFailed)
+        //    }
+        //};
+        //trace!("[parse_ty] exit");
+        //result
     }
 
     fn parse_vars(
@@ -1174,6 +1475,7 @@ impl<'tcx> SpecParser<'tcx> {
         self.parse_expression(span, expr_string)
     }
 
+    // TODO: name; now also parses "assert_on_expiry"
     fn parse_after_expiry(
         &mut self,
         span: Span,
@@ -1183,7 +1485,7 @@ impl<'tcx> SpecParser<'tcx> {
         let re = if is_postcondition {
             Regex::new(
                 r"(?sx)
-                ^(?P<whitespace1>\s*after_expiry\s*(<result>)?\s*\()
+                ^(?P<whitespace1>\s*(?P<construct>(after|assert_on)_expiry)\s*(<result>)?\s*\()
                 (?P<body>.*)
                 (?P<whitespace2>\)\s*)$
             ").unwrap()
@@ -1211,19 +1513,39 @@ impl<'tcx> SpecParser<'tcx> {
                 None
             };
             let body_str = caps.name("body").unwrap().as_str();
+            let (lhs_str, rhs_str) = match caps.name("construct").unwrap().as_str() {
+                "after_expiry" => {
+                    // after_expiry(rhs) // lhs == true
+                    ("true", body_str)
+                }
+                "assert_on_expiry" => {
+                    // assert_on_expiry(lhs[, rhs]) // default: rhs == true
+                    let mut iter = body_str.rsplitn(2, ',');
+                    let one = iter.next();
+                    let two = iter.next();
+                    if two.is_none() {
+                        (one.unwrap(), "true")
+                    } else {
+                        (two.unwrap(), one.unwrap())
+                    }
+                }
+                _ => unreachable!(),
+            };
             let new_span = {
                 let whitespace1_len = caps.name("whitespace1").unwrap().as_str().len();
                 shift_resize_span(span, whitespace1_len as u32, body_str.len() as u32)
             };
-            let body = self.parse_assertion(new_span, body_str)?;
+            let lhs = self.parse_assertion(new_span, lhs_str)?;
+            let rhs = self.parse_assertion(new_span, rhs_str)?;
             debug!(
-                "after_expiry: reference={:?} body={:?}",
-                reference, body
+                "after_expiry: reference={:?} lhs={:?} rhs={:?}",
+                reference, lhs, rhs
             );
             let assertion = UntypedAssertion {
                 kind: box AssertionKind::Pledge(
                     reference,
-                    body,
+                    lhs,
+                    rhs,
                 ),
             };
             Ok(assertion)
@@ -1327,8 +1649,8 @@ impl<'tcx> SpecParser<'tcx> {
             }
         }
 
-        // Parse after_expiry.
-        if spec_string.contains("after_expiry") {
+        // Parse after_expiry or assert_on_expiry.
+        if spec_string.contains("after_expiry") || spec_string.contains("assert_on_expiry") {
             return self.parse_after_expiry(span, &spec_string);
         }
 
@@ -1486,6 +1808,9 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                     // Top-level functions
                     ast::ItemKind::Fn(..) => self.rewrite_fn_item(item),
 
+                    // Structs
+                    ast::ItemKind::Struct(..) => self.rewrite_struct_item(item),
+
                     // Impl methods
                     ast::ItemKind::Impl(unsafety, polarity, defaultness, generics, ifce, ty, impl_items) => {
                         let mut new_code_items = vec![];
@@ -1615,6 +1940,7 @@ fn substring(string: &str, start: usize, end: usize) -> String {
         .collect::<String>()
 }
 
+#[derive(Debug)]
 struct SpanRewriter {
     old_base_pos: syntax::codemap::BytePos,
     new_base_pos: syntax::codemap::BytePos,
@@ -1622,10 +1948,11 @@ struct SpanRewriter {
 
 impl SpanRewriter {
     pub fn new(whitespace_count: u32, old_base_span: Span, new_base_span: Span) -> SpanRewriter {
-        SpanRewriter {
+        let x = SpanRewriter {
             old_base_pos: old_base_span.lo(),
             new_base_pos: new_base_span.lo() + syntax::codemap::BytePos(whitespace_count),
-        }
+        };
+        x
     }
 }
 

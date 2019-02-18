@@ -66,7 +66,7 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
 /// general procedure info because we want to be able to translate
 /// procedure calls before translating call targets.
 /// TODO: Move to some properly named module.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ProcedureContractGeneric<L, P>
     where
         L: fmt::Debug,
@@ -109,21 +109,24 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         }
     }
 
-    pub fn pledges(&self) -> Vec<(Option<TypedExpression>, TypedAssertion)> {
+    pub fn pledges(&self) -> Vec<(Option<TypedExpression>, TypedAssertion, TypedAssertion)> {
         let mut pledges = Vec::new();
         fn check_assertion(assertion: &TypedAssertion,
-                           pledges: &mut Vec<(Option<TypedExpression>, TypedAssertion)>) {
+                           pledges: &mut Vec<(Option<TypedExpression>,
+                                              TypedAssertion,
+                                              TypedAssertion)>) {
             match assertion.kind.as_ref() {
                 AssertionKind::Expr(_) |
                 AssertionKind::Implies(_, _) |
+                AssertionKind::TypeCond(_, _) |
                 AssertionKind::ForAll(_, _, _) => {},
                 AssertionKind::And(ref assertions) => {
                     for assertion in assertions {
                         check_assertion(assertion, pledges);
                     }
                 },
-                AssertionKind::Pledge(ref reference, ref body) => {
-                    pledges.push((reference.clone(), body.clone()));
+                AssertionKind::Pledge(ref reference, ref lhs, ref rhs) => {
+                    pledges.push((reference.clone(), lhs.clone(), rhs.clone()));
                 },
             };
         }
@@ -219,13 +222,14 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
                 }
             })
             .collect();
-        ProcedureContract {
+        let result = ProcedureContract {
             args: args.clone(),
             returned_refs: self.returned_refs.iter().map(&substitute).collect(),
             returned_value: target,
             borrow_infos,
             specification: self.specification.clone(),
-        }
+        };
+        result
     }
 
 }
@@ -272,6 +276,8 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> ty::BoundRegion {
         match region {
             &ty::RegionKind::ReFree(free_region) => free_region.bound_region,
+            // TODO: is this correct?!
+            &ty::RegionKind::ReLateBound(_, bound_region) => bound_region,
             _ => unimplemented!(),
         }
     }
@@ -348,6 +354,96 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
            tcx.crate_name(tcx.def_path(proc_def_id).krate),
            tcx.def_path(proc_def_id).to_string_no_crate()
         )
+    }
+
+    // TODO explain...
+    let opt_assoc_item = tcx.opt_associated_item(proc_def_id);
+    let sig_only = match opt_assoc_item {
+        Some(assoc_item) => {
+            let is_method = match assoc_item.kind {
+                ty::AssociatedKind::Method => true,
+                _ => false,
+            };
+            let is_non_default = match assoc_item.defaultness {
+                hir::Defaultness::Default { has_value } => !has_value,
+                _ => false,
+            };
+            is_method && is_non_default
+        }
+        _ => false,
+    };
+    if sig_only {
+
+        // {{{{ // panics in borrow.rs (unsupported)
+
+        let fn_sig = tcx.fn_sig(proc_def_id);
+        error!("fn_sig: {:?}", fn_sig);
+        let mut fake_mir_args = Vec::new();
+        let mut fake_mir_args_ty = Vec::new();
+        for i in 0usize..fn_sig.inputs().skip_binder().len() {
+            fake_mir_args.push(mir::Local::new(i+1));
+            // FIXME; "skip_binder" is most likely wrong
+            fake_mir_args_ty.push(fn_sig.input(i).skip_binder().clone());
+            //fake_mir_args_ty.push(fn_sig.input(i).no_late_bound_regions().unwrap());
+        }
+        let return_ty = fn_sig.output().no_late_bound_regions().unwrap();
+
+        // }}}}
+
+        // {{{{ // panics in rustc: can't type-check this Hir ID
+
+        //let trait_item = tcx.hir.expect_trait_item(tcx.hir.as_local_node_id(proc_def_id).unwrap());
+        //let hir_id = trait_item.hir_id;
+        //let owner_def_id = hir_id.owner_def_id();
+        //let typeck_tables = tcx.typeck_tables_of(owner_def_id);
+        //let ty = typeck_tables.node_id_to_type(hir_id);
+        //error!("ty: {:?}", ty);
+
+        //let mut fake_mir_args = Vec::new();
+        //let mut fake_mir_args_ty = Vec::new();
+        //for input, miri in decl.inputs().iter().zip(1..) {
+        //    fake_mir_args.push(mir::Local::new(i));
+        //    fake_mir_args_ty.push(input.into_inner());
+        //}
+        //let return_ty = decl.output().no_late_bound_regions().unwrap();
+
+        // }}}}
+
+        error!("arg1: {:?}", fake_mir_args);
+        error!("arg2: {:?}", fake_mir_args_ty);
+        error!("return_ty: {:?}", return_ty);
+
+        let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
+        for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
+            visitor.analyse_arg(*arg, arg_ty);
+        }
+        visitor.analyse_return_ty(return_ty);
+        let borrow_infos: Vec<_> = visitor
+            .borrow_infos
+            .into_iter()
+            .filter(|info|
+                !info.blocked_paths.is_empty() &&
+                    !info.blocking_paths.is_empty())
+            .collect();
+        let is_not_blocked = |place: &mir::Place<'tcx>| {
+            !borrow_infos
+                .iter()
+                .any(|info| info.blocked_paths.contains(place))
+        };
+        let returned_refs: Vec<_> = visitor
+            .references_in
+            .into_iter()
+            .filter(is_not_blocked)
+            .collect();
+        let contract = ProcedureContractGeneric {
+            args: fake_mir_args,
+            returned_refs,
+            returned_value: mir::RETURN_PLACE,
+            borrow_infos,
+            specification,
+        };
+        //error!("faked mir contract: {:?}", &contract);
+        return contract;
     }
 
     // TODO: Use HIR instead of MIR

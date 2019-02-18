@@ -148,8 +148,14 @@ impl<'a> AstFactory<'a> {
         Stmt::new(obj)
     }
 
-    pub fn apply(&self, wand: Expr) -> Stmt<'a> {
-        build_ast_node!(self, Stmt, ast::Apply, wand.to_jobject())
+    pub fn apply(&self, wand: Expr, pos: Position) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Apply::with(self.env).new(
+            wand.to_jobject(),
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
     }
 
     pub fn seqn(&self, stmts: &[Stmt], scoped_decls: &[Declaration]) -> Stmt<'a> {

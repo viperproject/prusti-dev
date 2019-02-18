@@ -179,9 +179,11 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     position
                 )
             }
-            &Stmt::ApplyMagicWand(ref wand) => {
+            &Stmt::ApplyMagicWand(ref wand, ref pos) => {
+                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
                 ast.apply(
                     wand.to_viper(ast),
+                    position
                 )
             }
         }

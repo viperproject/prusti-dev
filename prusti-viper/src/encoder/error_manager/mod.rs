@@ -50,6 +50,8 @@ pub enum ErrorCtxt {
     PureFunctionCall,
     /// Package a magic wand for the postcondition, at the end of a method
     PackageMagicWandForPostcondition,
+    /// Apply a magic wand as a borrow expires, relevant for pledge conditions
+    ApplyMagicWandOnExpiry,
     /// A diverging function call performed in a pure function
     DivergingCallInPureFunction,
     /// A Viper pure function call with `false` precondition that encodes a Rust panic in a pure function
@@ -269,6 +271,12 @@ impl<'tcx> ErrorManager<'tcx> {
             ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented)) => CompilerError::new(
                 "P0022",
                 "unimplemented!(..) statement in pure function might be reachable",
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => CompilerError::new(
+                "P0023",
+                "obligation might not hold on borrow expiry",
                 MultiSpan::from_span(*error_span)
             ),
 
