@@ -110,3 +110,6 @@ clean:
 
 todo:
 	git grep -i "todo\|fixme\|xxx\|hack"
+
+demo:
+	vagrant up
