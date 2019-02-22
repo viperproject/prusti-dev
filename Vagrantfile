@@ -72,7 +72,9 @@ Vagrant.configure("2") do |config|
     curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
     apt-get update && apt-get install -y yarn
-    apt-get install -y build-essential fish
+    apt-get install -y libssl-dev build-essential fish pkg-config
+    curl -sL https://deb.nodesource.com/setup_10.x | bash -
+    apt-get update && apt-get install -y nodejs
 
     # Install Docker.
     apt-get install -y \
@@ -99,10 +101,13 @@ Vagrant.configure("2") do |config|
     git clone /vagrant prusti
     cd prusti
     make build-docker-images
+    export RUSTUP_TOOLCHAIN=$(cat "$PRUSTI_DEMO_DIR/prusti/rust-toolchain")
+    rustup toolchain install ${RUSTUP_TOOLCHAIN}
+    rustup default ${RUSTUP_TOOLCHAIN}
 
     # 2. Build `rust-playground`
     cd "$PRUSTI_DEMO_DIR"
-    git clone git@github.com:integer32llc/rust-playground.git
+    git clone https://github.com/integer32llc/rust-playground.git
     cd rust-playground
     git checkout f103d06cfb4c96ca6055ae9f4b16ca5cca03c852
     cd ui
