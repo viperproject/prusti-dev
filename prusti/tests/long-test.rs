@@ -15,6 +15,11 @@ static PRUSTI_CONTRACTS_LIB: &'static str = "../target/debug/libprusti_contracts
 // This test is disabled. Consider making a binary in src/ out of it.
 //#[test]
 fn test_runner() {
+    // This flag informs the driver that we are running the test suite, so that some additional
+    // checks are enabled. For example, comparison of the computed definitely initialized
+    // information with the expected one.
+    set_var("PRUSTI_TEST", "true");
+
     set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB);
     let test_files = fs::read_dir("./tests/verify/long-pass").unwrap();
     for file in test_files.filter_map(Result::ok).filter(|f| f.path().extension().unwrap() == "rs") {
