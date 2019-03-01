@@ -348,30 +348,27 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
 {
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
-    if let None = tcx.hir.as_local_node_id(proc_def_id) {
-        unimplemented!(
-            "We don't support extern function calls. Function name: {}{}",
-           tcx.crate_name(tcx.def_path(proc_def_id).krate),
-           tcx.def_path(proc_def_id).to_string_no_crate()
-        )
-    }
+    // External function, only use signature.
+    let mut sig_only = tcx.hir.as_local_node_id(proc_def_id).is_none();
 
-    // TODO explain...
-    let opt_assoc_item = tcx.opt_associated_item(proc_def_id);
-    let sig_only = match opt_assoc_item {
-        Some(assoc_item) => {
-            let is_method = match assoc_item.kind {
-                ty::AssociatedKind::Method => true,
-                _ => false,
-            };
-            let is_non_default = match assoc_item.defaultness {
-                hir::Defaultness::Default { has_value } => !has_value,
-                _ => false,
-            };
-            is_method && is_non_default
-        }
-        _ => false,
-    };
+    if !sig_only {
+        // TODO explain...
+        let opt_assoc_item = tcx.opt_associated_item(proc_def_id);
+        sig_only = match opt_assoc_item {
+            Some(assoc_item) => {
+                let is_method = match assoc_item.kind {
+                    ty::AssociatedKind::Method => true,
+                    _ => false,
+                };
+                let is_non_default = match assoc_item.defaultness {
+                    hir::Defaultness::Default { has_value } => !has_value,
+                    _ => false,
+                };
+                is_method && is_non_default
+            }
+            _ => false,
+        };
+    }
     if sig_only {
 
         // {{{{ // panics in borrow.rs (unsupported)
