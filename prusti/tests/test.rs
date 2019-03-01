@@ -70,6 +70,10 @@ fn run_verification(group_name: &str) {
     // information with the expected one.
     set_var("PRUSTI_TEST", "true");
 
+    set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
+    set_var("PRUSTI_DUMP_DEBUG_INFO", "false");
+    set_var("PRUSTI_DUMP_BORROWCK_INFO", "false");
+
     remove_var("PRUSTI_NO_VERIFY");
 
     let mut config = Config::default();
@@ -102,7 +106,7 @@ fn run_verification(group_name: &str) {
         config.src_base = path;
         set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "true");
         run_tests(&config);
-        remove_var("PRUSTI_CHECK_BINARY_OPERATIONS");
+        set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
     }
 
     let path = PathBuf::from(format!("tests/{}/fail", group_name));
@@ -118,7 +122,7 @@ fn run_verification(group_name: &str) {
         config.src_base = path;
         set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "true");
         run_tests(&config);
-        remove_var("PRUSTI_CHECK_BINARY_OPERATIONS");
+        set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
     }
 }
 

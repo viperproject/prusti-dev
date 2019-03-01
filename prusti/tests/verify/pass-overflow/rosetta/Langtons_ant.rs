@@ -43,8 +43,8 @@ struct Matrix {
 impl Matrix {
 
     #[trusted]
-    #[requires="0 < y_size && y_size <= std::isize::MAX"]
-    #[requires="0 < x_size && x_size <= std::isize::MAX"]
+    #[requires="0 < y_size"]
+    #[requires="0 < x_size"]
     #[ensures="result.y_size() == y_size"]
     #[ensures="result.x_size() == x_size"]
     #[ensures="forall y: isize, x: isize ::
@@ -60,14 +60,14 @@ impl Matrix {
 
     #[pure]
     #[trusted]
-    #[ensures="0 < result && result <= std::isize::MAX"]
+    #[ensures="0 < result"]
     fn x_size(&self) -> isize {
         self._ghost_x_size as isize
     }
 
     #[pure]
     #[trusted]
-    #[ensures="0 < result && result <= std::isize::MAX"]
+    #[ensures="0 < result"]
     fn y_size(&self) -> isize {
         self._ghost_y_size as isize
     }

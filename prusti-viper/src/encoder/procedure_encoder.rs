@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -150,7 +152,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut cfg_edges: HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>> = HashMap::new();
 
         // Initialize CFG blocks
-        let start_cfg_block = self.cfg_method.add_block("start", vec![], vec![
+        let def_init = {
+            // At the start only the arguments are definitely initialised.
+            self.mir.args_iter().map(|arg| {
+                let place = mir::Place::Local(arg);
+                self.mir_encoder.encode_place(&place).0
+            }).collect()
+        };
+        let start_cfg_block = self.cfg_method.add_block("start", def_init, vec![], vec![
             vir::Stmt::comment("========== start =========="),
             vir::Stmt::comment(format!("Name: {:?}", self.procedure.get_name())),
             vir::Stmt::comment(format!("Def path: {:?}", self.procedure.get_def_path())),
@@ -158,7 +167,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ]);
 
         for bbi in self.procedure.get_reachable_cfg_blocks() {
-            let cfg_block = self.cfg_method.add_block(&format!("{:?}", bbi), vec![], vec![
+            let def_init = self.procedure
+                .get_definitely_initialised_at_enter(bbi)
+                .map(|place| self.mir_encoder.encode_place(place).0)
+                .collect();
+            let cfg_block = self.cfg_method.add_block(&format!("{:?}", bbi), def_init, vec![], vec![
                 vir::Stmt::comment(format!("========== {:?} ==========", bbi))
             ]);
             cfg_blocks.insert(bbi, cfg_block);
@@ -168,9 +181,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let mut cfg_successors: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
             for bbi_successor in self.procedure.successors(bbi) {
                 if self.procedure.is_reachable_block(bbi_successor) {
-                    let cfg_edge = self.cfg_method.add_block(&format!("{:?}_{:?}", bbi, bbi_successor), vec![], vec![
-                        vir::Stmt::comment(format!("========== {:?} --> {:?} ==========", bbi, bbi_successor))
-                    ]);
+                    let def_init = self.procedure
+                        .get_definitely_initialised_at_enter(bbi_successor)
+                        .map(|place| self.mir_encoder.encode_place(place).0)
+                        .collect();
+                    let cfg_edge = self.cfg_method.add_block(
+                        &format!("{:?}_{:?}", bbi, bbi_successor),
+                        def_init,
+                        vec![],
+                        vec![
+                            vir::Stmt::comment(
+                                format!("========== {:?} --> {:?} ==========", bbi, bbi_successor)
+                            )
+                        ]
+                    );
                     self.cfg_method.set_successor(cfg_edge, Successor::Goto(cfg_blocks[&bbi_successor]));
                     cfg_successors.insert(bbi_successor, cfg_edge);
                 }
@@ -178,7 +202,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             cfg_edges.insert(bbi, cfg_successors);
         }
 
-        let return_cfg_block = self.cfg_method.add_block("return", vec![], vec![
+        let def_init = self.procedure
+            .get_definitely_initialised_at_return()
+            .map(|place| self.mir_encoder.encode_place(place).0)
+            .collect();
+        let return_cfg_block = self.cfg_method.add_block("return", def_init, vec![], vec![
             vir::Stmt::comment(format!("========== return ==========")),
             vir::Stmt::comment("Target of any 'return' statement."),
         ]);
@@ -639,6 +667,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         debug!("Current loc {:?} has label {}", location, label);
                         self.label_after_location.insert(location, label.clone());
                         stmts.push(vir::Stmt::Label(label.clone()));
+                        stmts
+                    }
+
+
+                    &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
+
+                        // Initialize `lhs.field`
+                        let field = self.encoder.encode_value_field(ty);
+                        stmts.push(
+                            vir::Stmt::Assign(
+                                encoded_lhs.field(field),
+                                encoded_val,
+                                vir::AssignKind::Copy
+                            )
+                        );
                         stmts
                     }
 
@@ -1217,7 +1261,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     );
                     let unreachable_label = self.cfg_method.get_fresh_label_name();
-                    let unreachable_block = self.cfg_method.add_block(&unreachable_label, vec![], vec![
+                    let unreachable_block = self.cfg_method.add_block(&unreachable_label, vec![], vec![], vec![
                         vir::Stmt::comment(format!("========== {} ==========", &unreachable_label)),
                         vir::Stmt::comment(format!("Block marked as 'unreachable' by the compiler")),
                     ]);
@@ -1676,7 +1720,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 // Prepare a block that encodes the branch of the failure
                 let failure_label = self.cfg_method.get_fresh_label_name();
-                let failure_block = self.cfg_method.add_block(&failure_label, vec![], vec![
+                let failure_block = self.cfg_method.add_block(&failure_label, vec![], vec![], vec![
                     vir::Stmt::comment(format!("========== {} ==========", &failure_label)),
                     vir::Stmt::comment(format!("A Rust assertion failed: {}", msg.description())),
                     if self.check_panics {

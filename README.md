@@ -104,6 +104,11 @@ Build for local development
 Demo with `rust-playground`
 ---------------------------
 
+If you have [Vagrant](https://www.vagrantup.com/) installed, just run
+``make demo`` and open
+http://localhost:23438/?version=nightly&mode=debug&edition=2018.
+Otherwise, you can follow the instructions below.
+
 Choose a folder in which to run the demo
 ```bash
 export PRUSTI_DEMO_DIR="/tmp/prusti-demo"

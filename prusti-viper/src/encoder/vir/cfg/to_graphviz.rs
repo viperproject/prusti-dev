@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -61,6 +63,16 @@ impl CfgMethod {
 
         lines.push("<tr><td bgcolor=\"gray\" align=\"center\">".to_string());
         lines.push(format!("{} (cfg:{})", escape_html(label), index));
+        lines.push("</td></tr>".to_string());
+
+        let mut def_init: Vec<_> = block.definitely_initialised_at_enter
+            .iter()
+            .map(|place| format!("{}", place))
+            .collect();
+        def_init.sort();
+        lines.push("<tr><td bgcolor=\"gray\" align=\"left\">".to_string());
+        lines.push("def init: ".to_string());
+        lines.push(def_init.join("; "));
         lines.push("</td></tr>".to_string());
 
         lines.push("<tr><td align=\"left\" balign=\"left\">".to_string());

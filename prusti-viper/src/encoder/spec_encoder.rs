@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -403,7 +405,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let mut curr_namespace = "_pure".to_string();
 
         // Encode the expression
-        let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id);
+        let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id, true);
 
         // For each of the enclosing closures, replace with the variables captured in the closure.
         // We support at most 1000 nested closures (arbitrarily chosen).
@@ -661,7 +663,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StraightLineBackwardInterpreter<'p, '
         namespace: String,
     ) -> Self {
         StraightLineBackwardInterpreter {
-            interpreter: PureFunctionBackwardInterpreter::new(encoder, mir, def_id, namespace),
+            interpreter: PureFunctionBackwardInterpreter::new(encoder, mir, def_id, namespace, false),
         }
     }
 }

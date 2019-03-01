@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -5,18 +7,21 @@
 use rustc::mir;
 use std::collections::HashMap;
 
-pub struct AnalysisResult<T> {
+pub struct AnalysisResult<T: Default> {
     /// The state before the basic block.
     pub(super) before_block: HashMap<mir::BasicBlock, T>,
     /// The state after the statement.
     pub(super) after_statement: HashMap<mir::Location, T>,
+    /// The state at return.
+    pub(super) at_return: T,
 }
 
-impl<T> AnalysisResult<T> {
+impl<T: Default> AnalysisResult<T> {
     pub fn new() -> Self {
         Self {
             before_block: HashMap::new(),
             after_statement: HashMap::new(),
+            at_return: T::default(),
         }
     }
     /// Get the initialization set before the first statement of the
@@ -34,6 +39,10 @@ impl<T> AnalysisResult<T> {
             "Missing initialization info for location {:?}",
             location
         ))
+    }
+    /// Get the initilization set at return.
+    pub fn get_at_return(&self) -> &T {
+        &self.at_return
     }
 }
 

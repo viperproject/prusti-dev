@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,6 +29,8 @@ pub struct CfgMethod {
 
 #[derive(Debug, Clone)]
 pub struct CfgBlock {    // FIXME: Hack, should be pub(super).
+    /// Places that are definitely initialised at the entry of the basic block.
+    pub(super) definitely_initialised_at_enter: Vec<Expr>,
     pub(super) invs: Vec<Expr>,
     pub stmts: Vec<Stmt>,   // FIXME: Hack, should be pub(super).
     pub(super) successor: Successor,
@@ -261,7 +265,13 @@ impl CfgMethod {
         self.basic_blocks[index.block_index].stmts.push(stmt);
     }
 
-    pub fn add_block(&mut self, label: &str, invs: Vec<Expr>, stmts: Vec<Stmt>) -> CfgBlockIndex {
+    pub fn add_block(
+        &mut self,
+        label: &str,
+        definitely_initialised_at_enter: Vec<Expr>,
+        invs: Vec<Expr>,
+        stmts: Vec<Stmt>
+    ) -> CfgBlockIndex {
         assert!(label.chars().take(1).all(|c| c.is_alphabetic() || c == '_'));
         assert!(label.chars().skip(1).all(|c| c.is_alphanumeric() || c == '_'));
         assert!(self.basic_blocks_labels.iter().all(|l| l != label));
@@ -269,6 +279,7 @@ impl CfgMethod {
         let index = self.basic_blocks.len();
         self.basic_blocks_labels.push(label.to_string());
         self.basic_blocks.push(CfgBlock {
+            definitely_initialised_at_enter,
             invs,
             stmts,
             successor: Successor::Undefined,

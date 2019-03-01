@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +21,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::ast;
 use prusti_interface::report::Log;
+use prusti_interface::config;
 use encoder::borrows::ProcedureContract;
 use encoder::places;
 use encoder::vir::ExprIterator;
@@ -31,17 +34,28 @@ pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     proc_def_id: DefId,
     mir: &'p mir::Mir<'tcx>,
-    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>
+    interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, proc_def_id: DefId, mir: &'p mir::Mir<'tcx>) -> Self {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        proc_def_id: DefId, mir: &'p mir::Mir<'tcx>,
+        is_encoding_assertion: bool
+    ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
+        let interpreter = PureFunctionBackwardInterpreter::new(
+            encoder,
+            mir,
+            proc_def_id,
+            "_pure".to_string(),
+            is_encoding_assertion,
+        );
         PureFunctionEncoder {
             encoder,
             proc_def_id,
             mir,
-            interpreter: PureFunctionBackwardInterpreter::new(encoder, mir, proc_def_id, "_pure".to_string())
+            interpreter,
         }
     }
 
@@ -89,7 +103,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         self.encode_function_given_body(None)
     }
 
-    /// Private
+    // Private
+
     fn encode_function_given_body(&self, body: Option<vir::Expr>) -> vir::Function {
         let function_name = self.encode_function_name();
         let is_bodyless = body.is_none();
@@ -101,12 +116,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
         let preconditions = self.encode_precondition_expr(&contract);
-        let postcondition = self.encode_postcondition_expr(&contract);
+        let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
         let formal_args: Vec<_> = self.mir.args_iter().map(
             |local| self.encode_local(local)
         ).collect();
         let return_type = self.encode_function_return_type();
+        if config::check_binary_operations() {
+            let pure_fn_return_variable = vir::LocalVar::new(
+                "__result",
+                self.encode_function_return_type());
+            let return_bounds = self.encoder.encode_type_bounds(
+                &vir::Expr::Local(pure_fn_return_variable), self.mir.return_ty());
+            postcondition.extend(return_bounds);
+        }
 
         let function = vir::Function {
             name: function_name.clone(),
@@ -116,9 +139,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 preconditions.0,
                 preconditions.1
             ],
-            posts: vec![
-                postcondition
-            ],
+            posts: postcondition,
             body
         };
 
@@ -209,19 +230,32 @@ pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 't
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     mir: &'p mir::Mir<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
-    namespace: String
+    namespace: String,
+    /// True if the encoder is currently encoding an assertion and not a pure function body. This
+    /// flag is used to distinguish when assert terminators should be translated into `false` and
+    /// when to a undefined function calls. This distinction allows overflow checks to be checked
+    /// on the caller side and assumed on the definition side.
+    is_encoding_assertion: bool,
 }
 
 /// XXX: This encoding works backward, but there is the risk of generating expressions whose length
 /// is exponential in the number of branches. If this becomes a problem, consider doing a forward
 /// encoding (keeping path conditions expressions).
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
-    pub(super) fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, mir: &'p mir::Mir<'tcx>, def_id: DefId, namespace: String) -> Self {
+
+    pub(super) fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        mir: &'p mir::Mir<'tcx>,
+        def_id: DefId,
+        namespace: String,
+        is_encoding_assertion: bool,
+    ) -> Self {
         PureFunctionBackwardInterpreter {
             encoder,
             mir,
             mir_encoder: MirEncoder::new_with_namespace(encoder, mir, def_id, namespace.clone()),
-            namespace
+            namespace,
+            is_encoding_assertion,
         }
     }
 
@@ -536,10 +570,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 MultiExprBackwardInterpreterState::new(
                     states[target].exprs().iter().enumerate().map(
                         |(index, expr)| {
+                            let failure_result = if self.is_encoding_assertion {
+                                // We are encoding an assertion, so all failures should be
+                                // equivalent to false.
+                                false.into()
+                            } else {
+                                // We are encoding a pure function, so all failures should
+                                // be unreachable.
+                                undef_expr(pos.clone())
+                            };
                             vir::Expr::ite(
                                 viper_guard.clone(),
                                 expr.clone(),
-                                undef_expr(pos.clone())
+                                failure_result,
                             )
                         }
                     ).collect()
@@ -751,6 +794,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                         // Substitute the place
                         state.substitute_place(&encoded_lhs, encoded_ref);
+                    }
+
+                    &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
+
+                        // Substitute a place of a value with an expression
+                        state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_val);
                     }
 
                     ref rhs => {

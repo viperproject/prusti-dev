@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -125,7 +127,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 // Rewrite statement
                 vir::Stmt::TransferPerm(
                     self.replace_expr(&lhs, &bctxt),
-                    self.replace_expr(&rhs, &rhs_bctxt)
+                    self.replace_old_expr(&rhs, &rhs_bctxt)
                 )
             }
             vir::Stmt::PackageMagicWand(wand, stmts, pos) => {

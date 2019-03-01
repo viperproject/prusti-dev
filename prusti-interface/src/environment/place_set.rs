@@ -1,3 +1,5 @@
+// © 2019, ETH Zurich
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,7 +15,7 @@ use rustc::ty::TyCtxt;
 /// Invariant: we never have a place and any of its descendants in the
 /// set at the same time. For example, having `x.f` and `x.f.g` in the
 /// set at the same time is illegal.
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct PlaceSet<'tcx> {
     places: HashSet<mir::Place<'tcx>>,
 }
