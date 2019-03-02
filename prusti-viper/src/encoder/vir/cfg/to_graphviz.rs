@@ -65,16 +65,6 @@ impl CfgMethod {
         lines.push(format!("{} (cfg:{})", escape_html(label), index));
         lines.push("</td></tr>".to_string());
 
-        let mut def_init: Vec<_> = block.definitely_initialised_at_enter
-            .iter()
-            .map(|place| format!("{}", place))
-            .collect();
-        def_init.sort();
-        lines.push("<tr><td bgcolor=\"gray\" align=\"left\">".to_string());
-        lines.push("def init: ".to_string());
-        lines.push(def_init.join("; "));
-        lines.push("</td></tr>".to_string());
-
         lines.push("<tr><td align=\"left\" balign=\"left\">".to_string());
         let mut first_row = true;
         for stmt in &block.stmts {

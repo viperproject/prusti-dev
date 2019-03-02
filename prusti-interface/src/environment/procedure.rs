@@ -14,10 +14,6 @@ use std::cell::Ref;
 use rustc::mir::{BasicBlock, BasicBlockData, Terminator, TerminatorKind};
 use data::ProcedureDefId;
 use syntax::codemap::Span;
-use crate::environment::mir_analyses::initialization::{
-    compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult,
-};
 use super::loops;
 
 /// Index of a Basic Block
@@ -31,7 +27,6 @@ pub struct Procedure<'a, 'tcx: 'a> {
     reachable_basic_blocks: HashSet<BasicBlock>,
     nonspec_basic_blocks: HashSet<BasicBlock>,
     predecessors: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
-    definitely_initialised_info: DefinitelyInitializedAnalysisResult<'tcx>,
     ordered_basic_blocks: Vec<BasicBlockIndex>,
 }
 
@@ -54,10 +49,6 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             }
         }
 
-        let def_path = tcx.hir.def_path(proc_def_id);
-        let definitely_initialised_info = compute_definitely_initialized(
-            &mir, tcx, def_path);
-
         let ordered_basic_blocks = Self::order_basic_blocks(&mir);
 
         Self {
@@ -67,7 +58,6 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             reachable_basic_blocks,
             nonspec_basic_blocks,
             predecessors,
-            definitely_initialised_info,
             ordered_basic_blocks,
         }
     }
@@ -236,19 +226,6 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     pub fn successors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
         get_normal_targets(self.mir[bbi].terminator.as_ref().unwrap())
-    }
-
-    pub fn get_definitely_initialised_at_enter<'s>(
-        &'s self,
-        bbi: BasicBlockIndex
-    ) -> impl Iterator<Item = &'s mir::Place<'tcx>> {
-        self.definitely_initialised_info.get_before_block(bbi).iter()
-    }
-
-    pub fn get_definitely_initialised_at_return<'s>(
-        &'s self,
-    ) -> impl Iterator<Item = &'s mir::Place<'tcx>> {
-        self.definitely_initialised_info.get_at_return().iter()
     }
 }
 
