@@ -20,7 +20,7 @@ use csv::{ReaderBuilder, WriterBuilder};
 use rustc::{hir, mir};
 use std::env;
 use std::path::Path;
-use rustc::ty::{self, TyCtxt};
+use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 use crate::environment::place_set::PlaceSet;
 use super::common::{self, WorkItem};
@@ -129,7 +129,6 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
             }
             counter += 1;
         }
-        self.compute_return_state();
     }
     /// Apply the effects of the statement to the place set. If the effect
     /// changes the place set, add the following statement or terminator
@@ -266,36 +265,10 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
             }
         }
     }
-    /// Compute the initiliasation state at the function return.
-    fn compute_return_state(&mut self) {
-        let mut sets = self.mir.basic_blocks()
-            .iter_enumerated()
-            .filter(|(_, bb)| {
-                if let mir::TerminatorKind::Return = bb.terminator().kind {
-                    true
-                } else {
-                    false
-                }
-            })
-            .map(|(bbi, _)| self.get_place_set_after_block(bbi));
-        if let Some(first) = sets.next() {
-            self.result.at_return = sets.fold(first, |acc, set| PlaceSet::merge(&acc, &set));
-        }
-    }
     /// If the operand is move, make the place uninitialized.
     fn apply_operand_effect(&self, place_set: &mut PlaceSet<'tcx>, operand: &mir::Operand<'tcx>) {
         if let mir::Operand::Move(place) = operand {
-            match place.ty(self.mir, self.tcx) {
-                mir::tcx::PlaceTy::Ty { ty: ty::TyS {
-                    sty: ty::TypeVariants::TyRef(_, _, _),
-                    ..
-                }} => {
-                    // We do not set references as uninitialised. See issue #119.
-                },
-                _ => {
-                    self.set_place_uninitialised(place_set, place);
-                }
-            }
+            self.set_place_uninitialised(place_set, place);
         }
     }
     /// Return the place set before the given statement.

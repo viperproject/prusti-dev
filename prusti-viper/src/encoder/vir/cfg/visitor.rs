@@ -56,7 +56,6 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
             let label = &cfg.basic_blocks_labels[index];
             new_cfg.add_block(
                 label,
-                block.definitely_initialised_at_enter.clone(),
                 block.invs.clone(),
                 vec![]
             );
@@ -122,7 +121,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
                         trace!("Prepend to {:?} coming from {:?}: {:?}", curr_block_index, src_block_index, &stmts_to_add);
                         let new_label = new_cfg.get_fresh_label_name();
                         stmts_to_add.insert(0, Stmt::comment(format!("========== {} ==========", new_label)));
-                        let new_block_index = new_cfg.add_block(&new_label, vec![], vec![], stmts_to_add.clone());
+                        let new_block_index = new_cfg.add_block(&new_label, vec![], stmts_to_add.clone());
                         new_cfg.set_successor(
                             new_block_index,
                             Successor::Goto(curr_block_index),
