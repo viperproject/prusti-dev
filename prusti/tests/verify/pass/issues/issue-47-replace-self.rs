@@ -4,11 +4,7 @@ struct S {
     f: i32
 }
 
-trait T {
-    fn test(&mut self);
-}
-
-impl T for S {
+impl S {
     #[requires="self.f == 123"]
     #[ensures="self.f == 456"]
     fn test(&mut self) {
