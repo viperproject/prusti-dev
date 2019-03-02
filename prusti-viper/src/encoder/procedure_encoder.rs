@@ -114,11 +114,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     pub fn encode(mut self) -> vir::CfgMethod {
-        debug!("Encode procedure {}", self.cfg_method.name());
+        trace!("Encode procedure {}", self.cfg_method.name());
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
-        //error!("procedure_contract: {:?}", &procedure_contract);
+        debug!("procedure_contract: {:?}", &procedure_contract);
         //error!("def_id of proc: {:?}", &self.proc_def_id);
         let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
         //error!("def_id of impl: {:?}", &impl_def_id);
@@ -130,10 +130,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 //error!("proc_name: {:?}", proc_name);
                 let assoc_items: Vec<_> = self.encoder.env().tcx().associated_items(id).collect();
                 //error!("assoc items: {:?}", &assoc_items);
+                if procedure_contract.functional_precondition().len() != 0 ||
+                    procedure_contract.functional_postcondition().len() != 0 {
+                    unimplemented!("Refinement of trait specifications is not supported.");
+                }
                 for assoc_item in assoc_items {
                     if assoc_item.name == proc_name {
                         // TODO use the impl's specs if there are any (separately replace pre/post!)
                         //error!("found: {:?}", &assoc_item);
+
                         procedure_contract = self.encoder.get_procedure_contract_for_def(assoc_item.def_id);
                         //error!("new procedure contract: {:?}", &procedure_contract);
                     }
