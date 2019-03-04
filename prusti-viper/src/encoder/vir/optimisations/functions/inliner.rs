@@ -1,3 +1,11 @@
+// © 2019, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+//! Inliner of pure functions.
+
 use std::collections::HashMap;
 use std::mem;
 use super::super::super::ast;
@@ -43,13 +51,12 @@ pub fn inline_constant_functions(mut functions: Vec<ast::Function>) -> Vec<ast::
         }
         for function in &mut non_pure_functions {
             function.inline_constant_functions(&pure_function_map);
-            debug!("non_pure: {}", function);
         }
         functions = non_pure_functions;
         non_pure_functions = Vec::new();
     }
-    non_pure_functions.extend(pure_functions);
-    non_pure_functions
+    functions.extend(pure_functions);
+    functions
 }
 
 /// Try converting the function to pure by removing permissions from the

@@ -215,6 +215,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             let functions = self.encoder.get_used_viper_functions();
             let functions = optimisations::functions::inline_constant_functions(functions)
                 .into_iter()
+                .map(|mut f| { optimisations::functions::simplify(&mut f); f })
                 .map(|f| f.to_viper(ast))
                 .collect::<Vec<_>>();
             let predicates = self.encoder.get_used_viper_predicates().to_viper(ast);

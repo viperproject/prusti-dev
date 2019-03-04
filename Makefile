@@ -38,7 +38,7 @@ quick-test:
 	$(SET_ENV_VARS) \
 	cargo test --all
 
-long-test:
+long-test: build
 	find prusti/tests/verify/long-pass/ -name '*.rs' | while read run_file; do \
 		echo "Testing '$$run_file'..."; \
 		START=$$(date +%s); \
