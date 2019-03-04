@@ -6,6 +6,7 @@
 
 use encoder::Encoder;
 use encoder::vir::ToViper;
+use encoder::vir::optimisations;
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
@@ -211,8 +212,11 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
             let domains = self.encoder.get_used_viper_domains();
             let fields = self.encoder.get_used_viper_fields().to_viper(ast);
-            let functions = self.encoder.get_used_viper_functions().into_iter()
-                .map(|m| m.to_viper(ast)).collect::<Vec<_>>();
+            let functions = self.encoder.get_used_viper_functions();
+            let functions = optimisations::functions::inline_constant_functions(functions)
+                .into_iter()
+                .map(|f| f.to_viper(ast))
+                .collect::<Vec<_>>();
             let predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
             let methods = self.encoder.get_used_viper_methods().into_iter()
                 .map(|m| m.to_viper(ast)).collect::<Vec<_>>();
