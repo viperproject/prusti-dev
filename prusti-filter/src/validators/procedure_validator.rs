@@ -1,4 +1,4 @@
-use syntax::ast::NodeId;
+use syntax::ast;
 use rustc::hir;
 use rustc::mir;
 use rustc::hir::intravisit::*;
@@ -65,7 +65,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
         self.support
     }
 
-    pub fn check_fn(&mut self, fk: FnKind<'tcx>, _fd: &hir::FnDecl, _b: hir::BodyId, _s: Span, id: NodeId) {
+    pub fn check_fn(&mut self, fk: FnKind<'tcx>, _fd: &hir::FnDecl, _b: hir::BodyId, _s: Span, id: ast::NodeId) {
         self.check_fn_kind(fk);
 
         let def_id = self.tcx.hir.local_def_id(id);
@@ -160,9 +160,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             FnKind::ItemFn(_, ref generics, header, _, _) => {
                 for generic_param in generics.params.iter() {
                     match generic_param.kind {
-                        hir::GenericParamKind::Type {..} => unsupported!(self, "uses function type parameters"),
+                        hir::GenericParamKind::Type {..} => interesting!(self, "uses function type parameters"),
 
-                        hir::GenericParamKind::Lifetime {..} => {} // OK
+                        hir::GenericParamKind::Lifetime {..} => interesting!(self, "uses function lifetime parameters"),
                     }
                 }
                 requires!(self, generics.where_clause.predicates.is_empty(), "uses lifetimes constraints");
@@ -257,7 +257,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyFnPtr(..) => unsupported_pos!(self, pos, "uses function pointer types"),
 
-            ty::TypeVariants::TyDynamic(..) => unsupported_pos!(self, pos, "uses trait types"),
+            ty::TypeVariants::TyDynamic(..) => unsupported_pos!(self, pos, "uses dynamic trait types"),
 
             ty::TypeVariants::TyClosure(..) => unsupported_pos!(self, pos, "uses closures"),
 
@@ -460,6 +460,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                     ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "function's type parameter"),
                                 }
                             }
+                            /*
                             let can_build_mir = match self.tcx.hir.as_local_node_id(def_id) {
                                 None => {
                                     unsupported!(self, "calls functions from an external crate");
@@ -482,6 +483,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                 let procedure = Procedure::new(self.tcx, def_id);
                                 self.check_mir_signature(&procedure);
                             }
+                            */
                         }
                     }
                 } else {
@@ -608,7 +610,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             mir::Rvalue::Len(..) => unsupported!(self, "uses length operations"),
 
-            mir::Rvalue::Cast(..) => unsupported!(self, "uses cast operations"),
+            mir::Rvalue::Cast(cast_kind, ref op, dst_ty) => self.check_cast(mir, *cast_kind, op, dst_ty),
 
             mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
                 let left_ty = self.get_operand_ty(mir, left_operand);
@@ -641,6 +643,66 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             mir::Rvalue::Aggregate(box ref kind, ref operands) => self.check_aggregate(mir, kind, operands),
         }
+    }
+
+    fn check_cast(&mut self, mir: &mir::Mir<'tcx>, cast_kind: mir::CastKind, op: &mir::Operand<'tcx>, dst_ty: ty::Ty<'tcx>) {
+        let src_ty = self.get_operand_ty(mir, op);
+
+        match (&src_ty.sty, &dst_ty.sty) {
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I8)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I16)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I16)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I64), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
+            (ty::TypeVariants::TyInt(ast::IntTy::I64), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::I128), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
+
+            (ty::TypeVariants::TyInt(ast::IntTy::Isize), ty::TypeVariants::TyInt(ast::IntTy::Isize)) |
+
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyChar) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U8)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U16)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyChar) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U8)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U16)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U16)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U64), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
+            (ty::TypeVariants::TyUint(ast::UintTy::U64), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::U128), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
+
+            (ty::TypeVariants::TyUint(ast::UintTy::Usize), ty::TypeVariants::TyUint(ast::UintTy::Usize)) => {} // OK
+
+            _ => unsupported!(self, "uses unsupported casts"),
+        };
     }
 
     fn check_operand(&mut self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>) {

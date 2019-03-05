@@ -226,7 +226,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyFnPtr(..) => unsupported!(self, "uses function pointer types"),
 
-            ty::TypeVariants::TyDynamic(..) => unsupported!(self, "uses trait types"),
+            ty::TypeVariants::TyDynamic(..) => unsupported!(self, "uses dynamic trait types"),
 
             ty::TypeVariants::TyClosure(..) => unsupported!(self, "uses closures"),
 
