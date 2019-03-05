@@ -504,12 +504,13 @@ impl<'b, 'a: 'b> ExprReplacer<'b, 'a>{
 }
 
 impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
-    fn fold_field(&mut self, expr: Box<vir::Expr>, field: vir::Field) -> vir::Expr {
+    fn fold_field(&mut self, expr: Box<vir::Expr>, field: vir::Field, pos: vir::Position) -> vir::Expr {
         debug!("[enter] fold_field {}, {}", expr, field);
 
         let res = if self.wait_old_expr {
-            vir::Expr::Field(self.fold_boxed(expr), field)
+            vir::Expr::Field(self.fold_boxed(expr), field, pos)
         } else {
+            // FIXME: we lose positions
             let (base, mut fields) = expr.explode_place();
             fields.push(field);
             let new_base = self.fold(base);
@@ -521,7 +522,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             fields.into_iter()
                 .fold(
                     new_base,
-                    |res, f| res.field(f)
+                    |res, f| res.field(f, pos.clone())
                 )
         };
 
@@ -529,11 +530,11 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         res
     }
 
-    fn fold_unfolding(&mut self, name: String, args: Vec<vir::Expr>, expr: Box<vir::Expr>, frac: vir::Frac) -> vir::Expr {
+    fn fold_unfolding(&mut self, name: String, args: Vec<vir::Expr>, expr: Box<vir::Expr>, frac: vir::Frac, pos: vir::Position) -> vir::Expr {
         debug!("[enter] fold_unfolding {}, {}, {}, {}", name, args[0], expr, frac);
 
         let res = if self.wait_old_expr {
-            vir::Expr::Unfolding(name, args, self.fold_boxed(expr), frac)
+            vir::Expr::Unfolding(name, args, self.fold_boxed(expr), frac, pos)
         } else {
             // Compute inner state
             let mut inner_bctxt = self.curr_bctxt.clone();
@@ -549,14 +550,14 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             // Restore states
             std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
-            vir::Expr::Unfolding(name, args, inner_expr, frac)
+            vir::Expr::Unfolding(name, args, inner_expr, frac, pos)
         };
 
         debug!("[exit] fold_unfolding = {}", res);
         res
     }
 
-    fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>) -> vir::Expr {
+    fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>, pos: vir::Position) -> vir::Expr {
         debug!("[enter] fold_magic_wand {}, {}", lhs, rhs);
 
         // Compute lhs state
@@ -569,7 +570,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
         );
-        lhs_state.replace_places(|place| place.old("lhs"));
+        lhs_state.replace_places(|place| place.old("lhs", place.pos().clone()));
         debug!("State of lhs of magic wand: {}", lhs_state);
 
         // Store states
@@ -591,7 +592,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
         );
-        new_lhs_state.replace_places(|place| place.old("lhs"));
+        new_lhs_state.replace_places(|place| place.old("lhs", place.pos().clone()));
         debug!("New state of lhs of magic wand: {}", new_lhs_state);
 
         // Compute rhs state
@@ -618,13 +619,13 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         std::mem::swap(&mut self.curr_bctxt, &mut rhs_bctxt);
 
         // Rewrite lhs and build magic wand
-        let res = vir::Expr::MagicWand(new_lhs, new_rhs);
+        let res = vir::Expr::MagicWand(new_lhs, new_rhs, pos);
 
         debug!("[enter] fold_magic_wand = {}", res);
         res
     }
 
-    fn fold_labelled_old(&mut self, label: String, expr: Box<vir::Expr>) -> vir::Expr {
+    fn fold_labelled_old(&mut self, label: String, expr: Box<vir::Expr>, pos: vir::Position) -> vir::Expr {
         debug!("[enter] fold_labelled_old {}: {}", label, expr);
 
         let mut tmp_curr_bctxt = if label == "lhs" && self.lhs_bctxt.is_some() {
@@ -659,7 +660,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         self.wait_old_expr = old_wait_old_expr;
 
         // Rebuild expression
-        let res = vir::Expr::LabelledOld(label, inner_expr);
+        let res = vir::Expr::LabelledOld(label, inner_expr, pos);
 
         debug!("[exit] fold_labelled_old = {}", res);
         res

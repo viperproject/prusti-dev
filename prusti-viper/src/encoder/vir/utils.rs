@@ -37,8 +37,8 @@ impl vir::Expr {
             substitutor: T,
         }
         impl<T> vir::ExprFolder for ExprOldExprSubstitutor<T> where T: Fn(&str, vir::Expr) -> vir::Expr {
-            fn fold_labelled_old(&mut self, x: String, y: Box<vir::Expr>) -> vir::Expr {
-                (self.substitutor)(&x, *y)
+            fn fold_labelled_old(&mut self, x: String, y: Box<vir::Expr>, p: vir::Position) -> vir::Expr {
+                (self.substitutor)(&x, *y).set_pos(p)
             }
         }
         ExprOldExprSubstitutor {
@@ -55,43 +55,12 @@ impl vir::Expr {
             substitutor: T,
         }
         impl<T> vir::ExprFolder for ExprLabelSubstitutor<T> where T: Fn(String) -> String {
-            fn fold_labelled_old(&mut self, x: String, y: Box<vir::Expr>) -> vir::Expr {
-                vir::Expr::LabelledOld((self.substitutor)(x), y)
+            fn fold_labelled_old(&mut self, x: String, y: Box<vir::Expr>, p: vir::Position) -> vir::Expr {
+                vir::Expr::LabelledOld((self.substitutor)(x), y, p)
             }
         }
         ExprLabelSubstitutor {
             substitutor,
         }.fold(self)
-    }
-}
-
-pub trait ExprIterator {
-    /// Conjoin a sequence of expressions into a single expression.
-    /// Returns true if the sequence has no elements.
-    fn conjoin(&mut self, pos: vir::Position) -> vir::Expr;
-
-    /// Disjoin a sequence of expressions into a single expression.
-    /// Returns true if the sequence has no elements.
-    fn disjoin(&mut self, pos: vir::Position) -> vir::Expr;
-}
-
-impl<T> ExprIterator for T
-    where
-        T: Iterator<Item = vir::Expr>
-{
-    fn conjoin(&mut self, pos: vir::Position) -> vir::Expr {
-        if let Some(init) = self.next() {
-            self.fold(init, |acc, conjunct| vir::Expr::and(acc, conjunct, pos.clone()))
-        } else {
-            true.into()
-        }
-    }
-
-    fn disjoin(&mut self, pos: vir::Position) -> vir::Expr {
-        if let Some(init) = self.next() {
-            self.fold(init, |acc, conjunct| vir::Expr::or(acc, conjunct, pos.clone()))
-        } else {
-            false.into()
-        }
     }
 }

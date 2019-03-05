@@ -102,6 +102,10 @@ impl<'tcx> ErrorManager<'tcx> {
 
     pub fn register(&mut self, span: Span, error_ctxt: ErrorCtxt) -> Position {
         let pos_id = Uuid::new_v4().to_hyphenated().to_string();
+        let lines_info = self.codemap.span_to_lines(span.source_callsite()).unwrap();
+        let first_line_info = lines_info.lines.get(0).unwrap();
+        let line = first_line_info.line_index as i32 + 1;
+        let column = first_line_info.start_col.0 as i32 + 1;
         let pos = Position::new(line, column, pos_id.to_string());
         self.redefine(&pos, span, error_ctxt);
         pos
@@ -110,10 +114,6 @@ impl<'tcx> ErrorManager<'tcx> {
     pub fn redefine(&mut self, pos: &Position, span: Span, error_ctxt: ErrorCtxt) {
         debug!("Register position: {:?}", pos);
         self.error_ctxt.insert(pos.id(), (span, error_ctxt));
-        let lines_info = self.codemap.span_to_lines(span.source_callsite()).unwrap();
-        let first_line_info = lines_info.lines.get(0).unwrap();
-        let line = first_line_info.line_index as i32 + 1;
-        let column = first_line_info.start_col.0 as i32 + 1;
     }
 
     pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {

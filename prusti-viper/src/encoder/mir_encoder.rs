@@ -22,6 +22,7 @@ use encoder::vir::ExprIterator;
 use encoder::places::LocalVariableManager;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::error_manager::ErrorCtxt;
+use syntax::codemap::Span;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static POSTCONDITION_LABEL: &'static str = "post";
@@ -542,5 +543,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let predicate = self.encoder.get_type_predicate_by_name(&predicate_name).unwrap();
         let pred_self_place = &predicate.args[0];
         predicate.body.unwrap().replace_place(&pred_self_place.into(), &place)
+    }
+
+    pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
+        unimplemented!()
+    }
+
+    pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
+        self.encoder.error_manager().register(span, ErrorCtxt::GenericExpression)
     }
 }

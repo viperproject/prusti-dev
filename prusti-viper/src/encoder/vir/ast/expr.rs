@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
+use std::mem;
 use encoder::vir::ast::*;
 use std::ops::Mul;
 
@@ -168,6 +169,26 @@ impl Expr {
             Expr::ForAll(_, _, _, ref p) => p,
             Expr::LetExpr(_, _, _, ref p) => p,
             Expr::FuncApp(_, _, _, _, _, ref p) => p,
+        }
+    }
+
+    pub fn set_pos(self, pos: Position) -> Self {
+        match self {
+            Expr::Local(v, _) => Expr::Local(v, pos),
+            Expr::Field(e, f, _) => Expr::Field(e, f, pos),
+            Expr::AddrOf(e, t, _) => Expr::AddrOf(e, t, pos),
+            Expr::Const(x, _) => Expr::Const(x, pos),
+            Expr::LabelledOld(x, y, _) => Expr::LabelledOld(x, y, pos),
+            Expr::MagicWand(x, y, _) => Expr::MagicWand(x, y, pos),
+            Expr::PredicateAccessPredicate(x, y, z, _) => Expr::PredicateAccessPredicate(x, y, z, pos),
+            Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
+            Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
+            Expr::BinOp(x, y, z, _) => Expr::BinOp(x, y, z, pos),
+            Expr::Unfolding(x, y, z, frac, _) => Expr::Unfolding(x, y, z, frac, pos),
+            Expr::Cond(x, y, z, _) => Expr::Cond(x, y, z, pos),
+            Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
+            Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
+            Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
         }
     }
 
@@ -345,7 +366,7 @@ impl Expr {
 
     pub fn explode_place(&self) -> (Expr, Vec<Field>) {
         match self {
-            Expr::Field(ref base, ref field) => {
+            Expr::Field(ref base, ref field, ref pos) => {
                 let (base_base, mut fields) = base.explode_place();
                 fields.push(field.clone());
                 (base_base, fields)
@@ -702,7 +723,8 @@ impl Expr {
             fn fold_labelled_old(&mut self, label: String, base: Box<Expr>, pos: Position) -> Expr {
                 let old_current_label = mem::replace(
                     &mut self.current_label,
-                    Some(label.clone()));
+                    Some(label.clone())
+                );
                 let new_base = default_fold_expr(self, *base);
                 let new_expr = if Some(label.clone()) == old_current_label {
                     new_base
@@ -967,6 +989,37 @@ impl <'a> Mul<&'a Frac> for Expr {
             Expr::BinOp(x, y, z, p) => Expr::BinOp(x, y * frac, z * frac, p),
             Expr::Cond(x, y, z, p) => Expr::Cond(x, y * frac, z * frac, p),
             _ => self
+        }
+    }
+}
+
+pub trait ExprIterator {
+    /// Conjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn conjoin(&mut self, pos: Position) -> Expr;
+
+    /// Disjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn disjoin(&mut self, pos: Position) -> Expr;
+}
+
+impl<T> ExprIterator for T
+    where
+        T: Iterator<Item = Expr>
+{
+    fn conjoin(&mut self, pos: Position) -> Expr {
+        if let Some(init) = self.next() {
+            self.fold(init, |acc, conjunct| Expr::and(acc, conjunct, pos.clone()))
+        } else {
+            true.into()
+        }
+    }
+
+    fn disjoin(&mut self, pos: Position) -> Expr {
+        if let Some(init) = self.next() {
+            self.fold(init, |acc, conjunct| Expr::or(acc, conjunct, pos.clone()))
+        } else {
+            false.into()
         }
     }
 }

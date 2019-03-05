@@ -176,9 +176,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode a flag that becomes true the first time the block is executed
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let executed_flag_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
+            let bb_pos = self.encode_expr_pos(self.get_span_of_basic_block(bbi));
             self.cfg_method.add_stmt(
                 start_cfg_block,
-                vir::Stmt::Assign(vir::Expr::local(executed_flag_var.clone()), false.into(), vir::AssignKind::Copy)
+                vir::Stmt::Assign(vir::Expr::local(executed_flag_var.clone(), pos), false.into(), vir::AssignKind::Copy)
             );
             self.cfg_block_has_been_executed.insert(bbi, executed_flag_var);
         }
@@ -194,12 +195,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let bb_data = &self.mir.basic_blocks()[bbi];
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
             let cfg_block = *cfg_blocks.get(&bbi).unwrap();
+            let bb_pos = self.encode_expr_pos(self.get_span_of_basic_block(bbi));
 
             // Store a flag that becomes true the first time the block is executed
             let executed_flag_var = self.cfg_block_has_been_executed[&bbi].clone();
             self.cfg_method.add_stmt(
                 cfg_block,
-                vir::Stmt::Assign(vir::Expr::local(executed_flag_var), true.into(), vir::AssignKind::Copy)
+                vir::Stmt::Assign(vir::Expr::local(executed_flag_var, bb_pos), true.into(), vir::AssignKind::Copy)
             );
 
             // Inhale the loop invariant if this is a loop head

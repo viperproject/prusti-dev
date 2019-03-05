@@ -65,18 +65,19 @@ impl vir::ExprFolder for Optimiser {
         &mut self,
         variables: Vec<vir::LocalVar>,
         triggers: Vec<vir::Trigger>,
-        body: Box<vir::Expr>
+        body: Box<vir::Expr>,
+        pos: vir::Position
     ) -> vir::Expr {
 
         debug!("original body: {}", body);
         let mut replacer = OldPlaceReplacer::new();
         let mut replaced_body = replacer.fold_boxed(body);
         debug!("replaced body: {}", replaced_body);
-        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body);
+        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos.clone());
 
         if replacer.counter > 0 {
             for (expr, variable) in replacer.map {
-                forall = vir::Expr::LetExpr(variable, box expr, box forall);
+                forall = vir::Expr::LetExpr(variable, box expr, box forall, pos);
             }
             debug!("replaced quantifier: {}", forall);
         }
@@ -113,20 +114,20 @@ impl vir::ExprFolder for OldPlaceReplacer {
     fn fold_labelled_old(
         &mut self,
         label: String,
-        expr: Box<vir::Expr>
+        expr: Box<vir::Expr>,
+        pos: vir::Position
     ) -> vir::Expr {
-        let old_expr = vir::Expr::LabelledOld(label, expr);
-        if old_expr.is_place() {
-            if let Some(local) = self.map.get(&old_expr) {
-                vir::Expr::Local(local.clone())
+        if expr.is_place() {
+            if let Some(local) = self.map.get(&expr) {
+                vir::Expr::Local(local.clone(), pos)
             } else {
-                let ty = old_expr.get_type();
+                let ty = expr.get_type();
                 let local = self.construct_fresh_local(ty);
-                self.map.insert(old_expr, local.clone());
-                vir::Expr::Local(local)
+                self.map.insert(*expr, local.clone());
+                vir::Expr::Local(local, pos)
             }
         } else {
-            old_expr
+            vir::Expr::LabelledOld(label, expr, pos)
         }
     }
 }
