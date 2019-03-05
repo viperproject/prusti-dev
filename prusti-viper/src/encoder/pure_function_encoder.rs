@@ -138,13 +138,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             }
         }
 
+        let pos = self.encoder.error_manager().register(
+            // TODO: use a better span
+            self.mir.span,
+            ErrorCtxt::PureFunctionDefinition
+        );
+
         let function = vir::Function {
             name: function_name.clone(),
             formal_args,
             return_type,
             pres: precondition,
             posts: postcondition,
-            body
+            body,
+            pos,
         };
 
         self.encoder.log_vir_program_before_foldunfold(function.to_string());

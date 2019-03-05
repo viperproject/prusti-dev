@@ -64,3 +64,34 @@ impl vir::Expr {
         }.fold(self)
     }
 }
+
+pub trait ExprIterator {
+    /// Conjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn conjoin(&mut self, pos: vir::Position) -> vir::Expr;
+
+    /// Disjoin a sequence of expressions into a single expression.
+    /// Returns true if the sequence has no elements.
+    fn disjoin(&mut self, pos: vir::Position) -> vir::Expr;
+}
+
+impl<T> ExprIterator for T
+    where
+        T: Iterator<Item = vir::Expr>
+{
+    fn conjoin(&mut self, pos: vir::Position) -> vir::Expr {
+        if let Some(init) = self.next() {
+            self.fold(init, |acc, conjunct| vir::Expr::and(acc, conjunct, pos.clone()))
+        } else {
+            true.into()
+        }
+    }
+
+    fn disjoin(&mut self, pos: vir::Position) -> vir::Expr {
+        if let Some(init) = self.next() {
+            self.fold(init, |acc, conjunct| vir::Expr::or(acc, conjunct, pos.clone()))
+        } else {
+            false.into()
+        }
+    }
+}

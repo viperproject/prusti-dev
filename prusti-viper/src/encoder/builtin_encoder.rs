@@ -9,6 +9,8 @@ use encoder::vir;
 use encoder::vir::ExprIterator;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
+use syntax_pos::DUMMY_SP;
+use encoder::error_manager::ErrorCtxt;
 
 #[derive(Clone,Copy,Debug,Hash,Eq,PartialEq)]
 pub enum BuiltinMethodKind {
@@ -66,7 +68,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 // Precondition is false, because we want to be sure that this function is never used
                 pres: vec![ false.into() ],
                 posts: vec![],
-                body: None
+                body: None,
+                pos: self.encoder.error_manager().register(DUMMY_SP, ErrorCtxt::Unexpected)
             },
         }
     }
