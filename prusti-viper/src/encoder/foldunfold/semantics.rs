@@ -311,6 +311,10 @@ impl vir::Stmt {
                 inhale_expr(rhs, state, predicates);
             }
 
+            &vir::Stmt::ExpireBorrows(ref _dag) => {
+                // TODO: #133
+            }
+
             ref x => unimplemented!("{}", x),
         }
     }

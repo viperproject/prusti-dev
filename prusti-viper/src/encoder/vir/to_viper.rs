@@ -188,6 +188,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     position
                 )
             }
+            &Stmt::ExpireBorrows(_) => {
+                // Skip
+                ast.comment(&self.to_string())
+            }
         }
     }
 }

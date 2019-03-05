@@ -11,6 +11,7 @@ use std::fmt;
 use std::mem;
 use std::ops::Mul;
 use num_rational::Ratio;
+use super::borrows::ReborrowingDAG;
 
 pub use num_traits::One;
 pub use num_traits::Zero;
@@ -225,6 +226,8 @@ pub enum Stmt {
     /// Apply a Magic Wand.
     /// Arguments: the magic wand.
     ApplyMagicWand(Expr, Position),
+    /// Expire borrows given in the reborrowing DAG.
+    ExpireBorrows(ReborrowingDAG),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -412,6 +415,10 @@ impl fmt::Display for Stmt {
                 writeln!(f, "apply {} --* {}", lhs, rhs)
             }
 
+            Stmt::ExpireBorrows(dag) => {
+                writeln!(f, "expire_borrows {}", dag)
+            }
+
             ref x => unimplemented!("{:?}", x),
         }
     }
@@ -440,6 +447,7 @@ pub trait StmtFolder {
             Stmt::StopExpiringLoans(a) => self.fold_stop_expiring_borrows(a),
             Stmt::PackageMagicWand(w, s, p) => self.fold_package_magic_wand(w, s, p),
             Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
+            Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
         }
     }
 
@@ -534,6 +542,10 @@ pub trait StmtFolder {
             self.fold_expr(w),
             p
         )
+    }
+
+    fn fold_expire_borrows(&mut self, dag: ReborrowingDAG) -> Stmt {
+        Stmt::ExpireBorrows(dag)
     }
 }
 

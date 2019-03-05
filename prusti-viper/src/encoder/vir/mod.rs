@@ -8,10 +8,12 @@ pub use self::ast::*;
 pub use self::cfg::*;
 pub use self::conversions::*;
 pub use self::to_viper::*;
+pub use self::borrows::ReborrowingDAG;
 
 mod ast;
+mod borrows;
+mod cfg;
 mod conversions;
 mod to_viper;
-mod cfg;
 pub mod utils;
 pub mod optimisations;

@@ -1091,11 +1091,31 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_expiration_of_loans(&mut self, loans: Vec<facts::Loan>,
-                                  zombie_loans: &[facts::Loan], location: mir::Location) -> Vec<vir::Stmt> {
+    fn construct_vir_reborrowing_dag(
+        &mut self,
+        loans: &[facts::Loan],
+        zombie_loans: &[facts::Loan],
+        location: mir::Location
+    ) -> vir::ReborrowingDAG {
+        //let mir_reborrowing_dag = self.polonius_info.construct_reborrowing_dag(
+            //&loans, &zombie_loans, location);
+        vir::ReborrowingDAG::new()
+    }
+
+    fn encode_expiration_of_loans(
+        &mut self,
+        loans: Vec<facts::Loan>,
+        zombie_loans: &[facts::Loan],
+        location: mir::Location
+    ) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_loans '{:?}' '{:?}'", loans, zombie_loans);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
+        if loans.len() > 0 {
+            let vir_reborrowing_dag = self.construct_vir_reborrowing_dag(
+                &loans, &zombie_loans, location);
+            stmts.push(vir::Stmt::ExpireBorrows(vir_reborrowing_dag));
+        }
         let reborrowing_dag = self.polonius_info.construct_reborrowing_dag(&loans, &zombie_loans, location);
         for node in reborrowing_dag.iter() {
             stmts.extend(

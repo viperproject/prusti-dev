@@ -148,6 +148,10 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 lhs.get_required_permissions(predicates)
             }
 
+            &vir::Stmt::ExpireBorrows(ref _dag) => {
+                HashSet::new()  // TODO: #133
+            }
+
             ref x => unimplemented!("{}", x),
         }
     }
@@ -174,7 +178,8 @@ impl vir::Stmt {
             &vir::Stmt::ExpireBorrowsIf(_, _, _) |
             &vir::Stmt::StopExpiringLoans(_) |
             &vir::Stmt::PackageMagicWand(_, _, _) |
-            &vir::Stmt::ApplyMagicWand(_, _) => HashSet::new(),
+            &vir::Stmt::ApplyMagicWand(_, _) |
+            &vir::Stmt::ExpireBorrows(_) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }
