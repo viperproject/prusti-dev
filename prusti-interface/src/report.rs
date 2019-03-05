@@ -30,6 +30,7 @@ impl Log {
                 path.push(&name.to_string());
                 Box::new(fs::File::create(path)?)
             },
+            // fallback
             None => {
                 let mut stdout = io::stdout();
                 write!(&mut stdout, "# {}: {}\n\n", namespace, name.to_string())?;
