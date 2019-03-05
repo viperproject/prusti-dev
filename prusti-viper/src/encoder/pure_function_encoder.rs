@@ -115,7 +115,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         }
 
         let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
-        let preconditions = self.encode_precondition_expr(&contract);
+        let precondition = self.encode_precondition_expr(&contract);
+        let mut precondition = vec![precondition.0, precondition.1];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
         let formal_args: Vec<_> = self.mir.args_iter().map(
@@ -129,16 +130,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             let return_bounds = self.encoder.encode_type_bounds(
                 &vir::Expr::Local(pure_fn_return_variable), self.mir.return_ty());
             postcondition.extend(return_bounds);
+            for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
+                let typ = self.interpreter.mir_encoder().get_local_ty(local);
+                let bounds = self.encoder.encode_type_bounds(
+                    &vir::Expr::Local(formal_arg.clone()), &typ);
+                precondition.extend(bounds);
+            }
         }
 
         let function = vir::Function {
             name: function_name.clone(),
             formal_args,
             return_type,
-            pres: vec![
-                preconditions.0,
-                preconditions.1
-            ],
+            pres: precondition,
             posts: postcondition,
             body
         };
