@@ -11,6 +11,7 @@ use ast_factory::structs::Domain;
 use ast_factory::structs::Field;
 use ast_factory::structs::Function;
 use ast_factory::structs::Predicate;
+use ast_factory::structs::Position;
 use ast_factory::structs::Method;
 use ast_factory::structs::Type;
 use ast_factory::structs::LocalVarDecl;
@@ -85,12 +86,10 @@ impl<'a> AstFactory<'a> {
         typ: Type,
         pres: &[Expr],
         posts: &[Expr],
+        pos: Position,
         body: Option<Expr>,
     ) -> Function<'a> {
-        build_ast_node!(
-            self,
-            Function,
-            ast::Function,
+        let obj = self.jni.unwrap_result(ast::Function::with(self.env).new(
             self.jni.new_string(name),
             self.jni.new_seq(&map_to_jobjects!(formal_args)),
             typ.to_jobject(),
@@ -100,8 +99,12 @@ impl<'a> AstFactory<'a> {
             match body {
                 None => self.jni.new_option(None),
                 Some(x) => self.jni.new_option(Some(x.to_jobject())),
-            }
-        )
+            },
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos()
+        ));
+        Function::new(obj)
     }
 
     pub fn method(
