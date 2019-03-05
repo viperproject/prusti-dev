@@ -9,11 +9,16 @@ use encoder::vir::cfg::method::*;
 use std::fmt::Debug;
 use utils::to_string::ToString;
 
+pub trait CheckNoOpAction {
+    /// Is the action a no operation?
+    fn is_noop(&self) -> bool;
+}
+
 /// Visit the reachable blocks of a CFG with a forward pass.
 /// During the visit, statements can be modified and injected.
 /// However, the structure of the CFG can not change.
 /// For each branch a context is updated, duplicated at forks, and merged with other contexts at joins.
-pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
+pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug> {
     /*
     /// Define `lub` by using the definition of `join`
     fn contained_in(&mut self, left: &BranchCtxt, right: &BranchCtxt) -> bool {
@@ -37,8 +42,12 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
     /// Inject some statements and replace a successor, mutating the branch context
     fn replace_successor(&mut self, succ: &Successor, bctxt: &mut BranchCtxt) -> (Vec<Stmt>, Successor);
 
-    /// Prepend some statements to an existing join point, returning the merged branch context.
-    fn prepend_join(&mut self, bctxts: Vec<&BranchCtxt>) -> (Vec<Vec<Stmt>>, BranchCtxt);
+    /// Compute actions that need to be performed before the join point,
+    /// returning the merged branch context.
+    fn prepend_join(&mut self, bctxts: Vec<&BranchCtxt>) -> (Vec<Action>, BranchCtxt);
+
+    /// Convert actions to statements.
+    fn perform_prejoin_action(&mut self, block_index: CfgBlockIndex, actions: Action) -> Vec<Stmt>;
 
     /// The main method: visit and replace the reachable blocks of a CFG.
     fn replace_cfg(&mut self, cfg: &CfgMethod) -> CfgMethod {
@@ -110,18 +119,22 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone> {
             if incoming_bctxt.is_empty() {
                 bctxt = self.initial_context();
             } else {
-                let new_stmts_and_bctxt = self.prepend_join(incoming_bctxt);
-                let new_stmts = new_stmts_and_bctxt.0;
-                bctxt = new_stmts_and_bctxt.1;
-                for (&src_index, mut stmts_to_add) in incoming_edges.iter().zip(new_stmts) {
+                let actions_and_bctxt = self.prepend_join(incoming_bctxt);
+                let actions = actions_and_bctxt.0;
+                bctxt = actions_and_bctxt.1;
+                for (&src_index, mut action) in incoming_edges.iter().zip(actions) {
                     assert!(visited[src_index]);
-                    if !stmts_to_add.is_empty() {
-                        // TODO: add the statements to the previous block, if possible
+                    if !action.is_noop() {
                         let src_block_index = new_cfg.block_index(src_index);
-                        trace!("Prepend to {:?} coming from {:?}: {:?}", curr_block_index, src_block_index, &stmts_to_add);
+                        trace!("Perform action to {:?} coming from {:?}: {:?}",
+                               curr_block_index, src_block_index, action);
                         let new_label = new_cfg.get_fresh_label_name();
-                        stmts_to_add.insert(0, Stmt::comment(format!("========== {} ==========", new_label)));
-                        let new_block_index = new_cfg.add_block(&new_label, vec![], stmts_to_add.clone());
+                        let new_block_index = new_cfg.add_block(
+                            &new_label,
+                            vec![],
+                            vec![Stmt::comment(format!("========== {} ==========", new_label))]);
+                        let stmts_to_add = self.perform_prejoin_action(new_block_index, action);
+                        new_cfg.add_stmts(new_block_index, stmts_to_add);
                         new_cfg.set_successor(
                             new_block_index,
                             Successor::Goto(curr_block_index),

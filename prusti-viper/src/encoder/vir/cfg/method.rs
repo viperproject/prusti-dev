@@ -43,7 +43,7 @@ pub enum Successor {
     GotoIf(Expr, CfgBlockIndex, CfgBlockIndex),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub struct CfgBlockIndex {
     pub(super) method_uuid: Uuid,
     pub(super) block_index: usize,
@@ -261,6 +261,12 @@ impl CfgMethod {
             self.labels.insert(label_name.clone());
         };
         self.basic_blocks[index.block_index].stmts.push(stmt);
+    }
+
+    pub fn add_stmts(&mut self, index: CfgBlockIndex, stmts: Vec<Stmt>) {
+        for stmt in stmts {
+            self.add_stmt(index, stmt);
+        }
     }
 
     pub fn add_block(&mut self, label: &str, invs: Vec<Expr>, stmts: Vec<Stmt>) -> CfgBlockIndex {
