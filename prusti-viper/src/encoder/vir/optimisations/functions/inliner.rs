@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::mem;
 use super::super::super::ast;
 
-/// Convert constant functions such as
+/// Convert functions whose body does not depend on arguments such as
 ///
 /// ```viper
 /// function foo(this: Ref): Bool
@@ -63,7 +63,7 @@ pub fn inline_constant_functions(mut functions: Vec<ast::Function>) -> Vec<ast::
 /// precondition. Returns true if successful.
 fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     trace!("[enter] try_purify(name={})", function.name);
-    if function.is_pure() && function.pres.len() == 1 {
+    if function.has_constant_body() && function.pres.len() == 1 {
         match function.pres[0] {
             ast::Expr::PredicateAccessPredicate(_, _, _) |
             ast::Expr::FieldAccessPredicate(_, _) => {
@@ -76,29 +76,28 @@ fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     None
 }
 
-trait PurityCheck {
-    /// Does self depend on the heap?
-    fn is_pure(&self) -> bool;
-}
-
-impl PurityCheck for ast::Function {
-    fn is_pure(&self) -> bool {
+impl ast::Function {
+    /// Does the function has a body that does not depend neither on
+    /// function parameters nor on the heap?
+    fn has_constant_body(&self) -> bool {
         match self.body {
-            Some(ref expr) => PurityCheck::is_pure(expr),
+            Some(ref expr) => expr.is_constant(),
             None => false,
         }
     }
 }
 
-impl PurityCheck for ast::Expr {
-    fn is_pure(&self) -> bool {
+impl ast::Expr {
+
+    /// Is this expression a constant?
+    fn is_constant(&self) -> bool {
         match self {
             ast::Expr::Const(_) =>
                 true,
             ast::Expr::UnaryOp(_, box subexpr) =>
-                PurityCheck::is_pure(subexpr),
+                subexpr.is_constant(),
             ast::Expr::BinOp(_, box subexpr1, box subexpr2) =>
-                PurityCheck::is_pure(subexpr1) && PurityCheck::is_pure(subexpr2),
+                subexpr1.is_constant() && subexpr2.is_constant(),
             _ => false,
         }
     }
