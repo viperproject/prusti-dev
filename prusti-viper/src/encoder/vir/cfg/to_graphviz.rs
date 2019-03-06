@@ -44,11 +44,11 @@ impl CfgMethod {
                     writeln!(graph, "dag_{}_node_{:?} [shape=none,label=<",
                              label, node.borrow).unwrap();
                     writeln!(graph, "<table>").unwrap();
-                    writeln!(graph, "<tr><td>{:?}</td></tr>", node).unwrap();
+                    writeln!(graph, "<tr><td colspan=\"2\">{:?}</td></tr>", node).unwrap();
                     match node.kind {
                         vir::borrows::NodeKind::Move(vir::borrows::MoveNode { ref src, ref dest, }) => {
-                            writeln!(graph, "<tr><td>{}</td></tr>", escape_html(src)).unwrap();
-                            writeln!(graph, "<tr><td>{}</td></tr>", escape_html(dest)).unwrap();
+                            writeln!(graph, "<tr><td>src:</td><td>{}</td></tr>", escape_html(src)).unwrap();
+                            writeln!(graph, "<tr><td>dst:</td><td>{}</td></tr>", escape_html(dest)).unwrap();
                         }
                         _ => {
                             unimplemented!();

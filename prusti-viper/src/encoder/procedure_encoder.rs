@@ -1101,12 +1101,31 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             &loans, &zombie_loans, location);
         let mut builder = vir::borrows::DAGBuilder::new();
         for node in mir_dag.iter() {
-            let src = vir::Expr::Const(vir::Const::Null);
-            let dest = vir::Expr::Const(vir::Const::Null);
-            builder.add_move_node(node.loan, &node.reborrowing_loans,
-                                  &node.reborrowed_loans, src, dest);
+            match node.kind {
+                ReborrowingKind::Assignment { loan } => {
+                    let (src, dest) = self.encode_assignment_borrow_expiration(
+                        &mir_dag, loan, node);
+                    builder.add_move_node(node.loan, &node.reborrowing_loans,
+                                          &node.reborrowed_loans, src, dest);
+                }
+                _ => unimplemented!()
+            }
         }
         builder.finish()
+    }
+
+    /// Compute from which place to which the permissions should be transferred
+    /// when expiring the `loan`.
+    fn encode_assignment_borrow_expiration(
+        &mut self,
+        dag: &ReborrowingDAG,
+        loan: facts::Loan,
+        node: &ReborrowingDAGNode,
+    ) -> (vir::Expr, vir::Expr) {
+        let loan_location = self.polonius_info.get_loan_location(&loan);
+        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
+        let (expiring, restored) = self.encode_loan_places(&loan_places);
+        (expiring, restored)
     }
 
     fn encode_expiration_of_loans(
