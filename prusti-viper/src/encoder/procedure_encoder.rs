@@ -1108,7 +1108,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     builder.add_move_node(node.loan, &node.reborrowing_loans,
                                           &node.reborrowed_loans, src, dest);
                 }
-                _ => unimplemented!()
+                _ => {} // unimplemented!()
             }
         }
         builder.finish()
