@@ -52,7 +52,7 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
                              errors::Level::Bug);
             }
 
-            let mut xs = vec![
+            let xs = vec![
                 "the compiler or Prusti unexpectedly panicked.".to_string(),
                 "possible reasons include the usage of Rust features that are not supported by Prusti.".to_string(),
                 format!("we would appreciate a bug report for Prusti: {}", PRUSTI_BUG_REPORT_URL),
@@ -138,7 +138,7 @@ pub fn silent_run<F>(run_compiler: F) -> isize
 
     match result {
         // Thread panicked
-        Err(value) => {
+        Err(_value) => {
             return 1
         }
 

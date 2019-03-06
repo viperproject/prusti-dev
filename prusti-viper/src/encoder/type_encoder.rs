@@ -109,7 +109,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 Some(bounds)
             },
             ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyChar => None,
+            ty::TypeVariants::TyChar |
+            ty::TypeVariants::TyRef(_, _, _) => None,
             ref x => unreachable!("{:?}", x),
         }
     }

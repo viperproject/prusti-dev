@@ -27,8 +27,8 @@ pub enum PanicCause {
     Unimplemented,
 }
 
-/// In case of verification error, this enum will contain all the information (span, ...)
-/// required to report the error in the compiler.
+/// In case of verification error, this enum will contain additional information
+/// required to describe the error.
 #[derive(Clone,Debug)]
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
@@ -52,8 +52,12 @@ pub enum ErrorCtxt {
     UnreachableTerminator,
     /// An error that should never happen
     Unexpected,
+    /// A pure function definition
+    PureFunctionDefinition,
     /// A pure function call
     PureFunctionCall,
+    /// A generic expression
+    GenericExpression,
     /// Package a magic wand for the postcondition, at the end of a method
     PackageMagicWandForPostcondition,
     /// Apply a magic wand as a borrow expires, relevant for pledge conditions
@@ -87,35 +91,39 @@ impl CompilerError {
 #[derive(Clone)]
 pub struct ErrorManager<'tcx> {
     codemap: &'tcx CodeMap,
-    error_contexts: HashMap<String, (Span, ErrorCtxt)>,
+    error_ctxt: HashMap<String, (Span, ErrorCtxt)>,
 }
 
 impl<'tcx> ErrorManager<'tcx> {
     pub fn new(codemap: &'tcx CodeMap) -> Self {
         ErrorManager {
             codemap,
-            error_contexts: HashMap::new(),
+            error_ctxt: HashMap::new(),
         }
     }
 
-    pub fn register(&mut self, span: Span, error_ctx: ErrorCtxt) -> Position {
+    pub fn register(&mut self, span: Span, error_ctxt: ErrorCtxt) -> Position {
         let pos_id = Uuid::new_v4().to_hyphenated().to_string();
-        self.error_contexts.insert(pos_id.to_string(), (span, error_ctx));
         let lines_info = self.codemap.span_to_lines(span.source_callsite()).unwrap();
         let first_line_info = lines_info.lines.get(0).unwrap();
         let line = first_line_info.line_index as i32 + 1;
         let column = first_line_info.start_col.0 as i32 + 1;
         let pos = Position::new(line, column, pos_id.to_string());
-        debug!("Register position: {:?}", pos);
+        self.redefine(&pos, span, error_ctxt);
         pos
     }
 
+    pub fn redefine(&mut self, pos: &Position, span: Span, error_ctxt: ErrorCtxt) {
+        debug!("Register position: {:?}", pos);
+        self.error_ctxt.insert(pos.id(), (span, error_ctxt));
+    }
+
     pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {
-        let opt_error_ctx = ver_error.pos_id.as_ref().and_then(
-            |pos_id| self.error_contexts.get(pos_id)
+        let opt_error_ctxt = ver_error.pos_id.as_ref().and_then(
+            |pos_id| self.error_ctxt.get(pos_id)
         );
 
-        let (error_span, error_ctx) = if let Some(x) = opt_error_ctx {
+        let (error_span, error_ctxt) = if let Some(x) = opt_error_ctxt {
             x
         } else {
             debug!("Unregistered verification error: {:?}", ver_error);
@@ -147,7 +155,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
         };
 
-        match (ver_error.full_id.as_str(), error_ctx) {
+        match (ver_error.full_id.as_str(), error_ctxt) {
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => CompilerError::new(
                 "P0001",
                 "statement might panic",
@@ -286,6 +294,14 @@ impl<'tcx> ErrorManager<'tcx> {
                 MultiSpan::from_span(*error_span)
             ),
 
+            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
+            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
+            ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => CompilerError::new(
+                "P0024",
+                "postcondition of pure function definition might not hold",
+                MultiSpan::from_span(*error_span)
+            ),
+
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
                 "P1003",
                 format!(
@@ -297,12 +313,12 @@ impl<'tcx> ErrorManager<'tcx> {
             ),
 
             (full_err_id, _) => {
-                debug!("Unhandled verification error: {:?}, context: {:?}", ver_error, error_ctx);
+                debug!("Unhandled verification error: {:?}, context: {:?}", ver_error, error_ctxt);
                 CompilerError::new(
                     "P1004",
                     format!(
                         "internal encoding error - unhandled verification error: {:?} [{}] {}",
-                        error_ctx,
+                        error_ctxt,
                         full_err_id,
                         ver_error.message,
                     ),

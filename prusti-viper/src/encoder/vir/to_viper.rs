@@ -365,6 +365,7 @@ impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
             self.return_type.to_viper(ast),
             &self.pres.to_viper(ast),
             &self.posts.to_viper(ast),
+            ast.no_position(),
             self.body.as_ref().map(|b| b.to_viper(ast))
         )
     }
