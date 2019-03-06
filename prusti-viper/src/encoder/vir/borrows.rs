@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
+use std::collections::HashMap;
 use super::ast::Expr;
 use prusti_interface::environment::borrowck;
 
@@ -16,16 +17,14 @@ pub type Borrow = borrowck::facts::Loan;
 /// in the fold-unfold state.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MoveNode {
-    borrow: Borrow,
-    src: Expr,
-    dest: Expr,
+    pub src: Expr,
+    pub dest: Expr,
 }
 
 /// The borrow that crossed a verification boundary and requires a
 /// magic wand. To undo it, we need to apply the given magic wand.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct MagicWandNode {
-    borrow: Borrow,
     /// This must be a magic wand.
     wand: Expr,
 }
@@ -50,9 +49,6 @@ impl MagicWandNode {
 /// The type of the reborrowing DAG node.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum NodeKind {
-    /// The root of the reborrowing DAG. Is used to mark the “location”
-    /// where the borrows expired.
-    Root,
     /// See description of `NodeMove`.
     Move(MoveNode),
     /// See description of `MagicWandNode`.
@@ -62,23 +58,80 @@ pub enum NodeKind {
 /// Node of the reborrowing DAG.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Node {
-    kind: NodeKind,
-
+    pub borrow: Borrow,
+    pub reborrowing_nodes: Vec<Borrow>,
+    pub reborrowed_nodes: Vec<Borrow>,
+    pub kind: NodeKind,
 }
 
-/// Reborrowing directed acyclic graph (DAG).
-#[derive(Clone, PartialEq, Eq, Hash)]
+impl fmt::Debug for Node {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.kind {
+            NodeKind::Move(_) => {
+                write!(f, "Move({:?})", self.borrow)
+            }
+            NodeKind::MagicWand(_) => {
+                write!(f, "MagicWand({:?})", self.borrow)
+            }
+        }
+    }
+}
+
+/// Reborrowing directed acyclic graph (DAG). It should not be mutated
+/// after it is constructed. For construction use `DAGBuilder`.
+#[derive(Clone, PartialEq, Eq)]
 pub struct DAG {
+    /// Mapping from borrows to their node indices.
+    borrow_indices: HashMap<Borrow, usize>,
     nodes: Vec<Node>,
 }
 
 impl DAG {
-    pub fn new() -> Self {
-        Self {
-            nodes: Vec::new(),
-        }
+    pub fn iter(&self) -> impl Iterator<Item=&Node> {
+        self.nodes.iter()
     }
     //pub fn get_location(node: Node) -> Location { ... }
+}
+
+/// A struct for constructing the reborrowing DAG.
+pub struct DAGBuilder {
+    dag: DAG,
+}
+
+impl DAGBuilder {
+    pub fn new() -> Self {
+        let dag = DAG {
+            borrow_indices: HashMap::new(),
+            nodes: Vec::new(),
+        };
+        Self {
+            dag: dag,
+        }
+    }
+    pub fn add_move_node(
+        &mut self,
+        borrow: Borrow,
+        reborrowing_nodes: &[Borrow],
+        reborrowed_nodes: &[Borrow],
+        src: Expr,
+        dest: Expr,
+    ) {
+        let new_index = self.dag.nodes.len();
+        assert!(!self.dag.borrow_indices.contains_key(&borrow));
+        let node = Node {
+            borrow: borrow,
+            reborrowing_nodes: reborrowing_nodes.into(),
+            reborrowed_nodes: reborrowed_nodes.into(),
+            kind: NodeKind::Move(MoveNode {
+                src: src,
+                dest: dest,
+            }),
+        };
+        self.dag.nodes.push(node);
+    }
+    pub fn finish(self) -> DAG {
+        self.dag
+    }
 }
 
 impl fmt::Debug for DAG {

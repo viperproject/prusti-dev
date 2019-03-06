@@ -27,17 +27,68 @@ impl CfgMethod {
         writeln!(graph, "labelloc=\"t\";").unwrap();
         writeln!(graph, "label=\"Method {}\";", escape_html(self.name())).unwrap();
 
-        // Reborrowing dags that we still need to draw.
-        let mut reborrowing_dags = Vec::new();
-
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let label = self.index_to_label(index);
+            let (content, reborrowing_dags) = self.block_to_graphviz(index, &label, block);
             writeln!(
                 graph,
                 "\"block_{}\" [shape=none,label=<{}>];",
                 escape_html(&label),
-                self.block_to_graphviz(index, label, block, &mut reborrowing_dags),
+                content
             ).unwrap();
+
+            for dag in reborrowing_dags {
+                writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
+                writeln!(graph, "   label=\"Reborrowing DAG {}\"", label).unwrap();
+                for node in dag.iter() {
+                    writeln!(graph, "dag_{}_node_{:?} [shape=none,label=<",
+                             label, node.borrow).unwrap();
+                    writeln!(graph, "<table>").unwrap();
+                    writeln!(graph, "<tr><td>{:?}</td></tr>", node).unwrap();
+                    match node.kind {
+                        vir::borrows::NodeKind::Move(vir::borrows::MoveNode { ref src, ref dest, }) => {
+                            writeln!(graph, "<tr><td>{}</td></tr>", escape_html(src)).unwrap();
+                            writeln!(graph, "<tr><td>{}</td></tr>", escape_html(dest)).unwrap();
+                        }
+                        _ => {
+                            unimplemented!();
+                        }
+                    }
+                    writeln!(graph, "</table>").unwrap();
+                    writeln!(graph, ">];").unwrap();
+                    for r_node in &node.reborrowing_nodes {
+                        writeln!(
+                            graph,
+                            "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
+                            label,
+                            r_node,
+                            label,
+                            node.borrow
+                        ).unwrap();
+                    }
+                    for r_node in &node.reborrowed_nodes {
+                        writeln!(
+                            graph,
+                            "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
+                            label,
+                            node.borrow,
+                            label,
+                            r_node
+                        ).unwrap();
+                    }
+                }
+                writeln!(graph, "}}").unwrap();
+
+                let node = dag.iter().next().unwrap();
+                writeln!(
+                    graph,
+                    "\"block_{}\" -> \"dag_{}_node_{:?}\" [dir=none lhead=cluster_{}];",
+                    label,
+                    label,
+                    node.borrow,
+                    label,
+                ).unwrap();
+            }
         }
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
@@ -54,12 +105,6 @@ impl CfgMethod {
             }
         }
 
-        for (label, dag) in reborrowing_dags {
-            writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
-            writeln!(graph, "   label=\"Reborrowing DAG {}\"", label);
-            writeln!(graph, "}}").unwrap();
-        }
-
         writeln!(graph, "}}").unwrap();
     }
 
@@ -67,13 +112,13 @@ impl CfgMethod {
         self.basic_blocks_labels[index].clone()
     }
 
-    fn block_to_graphviz<'a, 'b: 'a>(
+    fn block_to_graphviz<'b>(
         &self,
         index: usize,
-        label: String,
+        label: &str,
         block: &'b CfgBlock,
-        reborrowing_dags: &'a mut Vec<(String, &'b vir::borrows::DAG)>,
-    ) -> String {
+    ) -> (String, Vec<&'b vir::borrows::DAG>) {
+        let mut reborrowing_dags = Vec::new();
         let mut lines: Vec<String> = vec![];
         lines.push("<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">".to_string());
 
@@ -89,7 +134,7 @@ impl CfgMethod {
             }
             first_row = false;
             if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
-                reborrowing_dags.push((label.clone(), dag));
+                reborrowing_dags.push(dag);
                 lines.push(format!("ExpireBorrows({}) <br />", label));
             } else {
                 let stmt_string = stmt.to_string();
@@ -129,7 +174,7 @@ impl CfgMethod {
 
         lines.push("</table>".to_string());
 
-        lines.join("")
+        (lines.join(""), reborrowing_dags)
     }
 }
 

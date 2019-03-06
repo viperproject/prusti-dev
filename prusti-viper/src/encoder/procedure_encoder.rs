@@ -1097,9 +1097,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         zombie_loans: &[facts::Loan],
         location: mir::Location
     ) -> vir::borrows::DAG {
-        //let mir_reborrowing_dag = self.polonius_info.construct_reborrowing_dag(
-            //&loans, &zombie_loans, location);
-        vir::borrows::DAG::new()
+        let mir_dag = self.polonius_info.construct_reborrowing_dag(
+            &loans, &zombie_loans, location);
+        let mut builder = vir::borrows::DAGBuilder::new();
+        for node in mir_dag.iter() {
+            let src = vir::Expr::Const(vir::Const::Null);
+            let dest = vir::Expr::Const(vir::Const::Null);
+            builder.add_move_node(node.loan, &node.reborrowing_loans,
+                                  &node.reborrowed_loans, src, dest);
+        }
+        builder.finish()
     }
 
     fn encode_expiration_of_loans(

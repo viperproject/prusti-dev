@@ -8,7 +8,7 @@ use std::fmt;
 use encoder::vir::ast::*;
 use super::super::borrows::{DAG as ReborrowingDAG};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Stmt {
     Comment(String),
     Label(String),
