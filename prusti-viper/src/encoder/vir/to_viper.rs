@@ -195,6 +195,19 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::NestedCFG { entry, exit } => {
                 unimplemented!();
             }
+            &Stmt::If(ref guard, ref then_stmts) => {
+                ast.if_stmt(
+                    guard.to_viper(ast),
+                    ast.seqn(
+                        &then_stmts.to_viper(ast),
+                        &[],
+                    ),
+                    ast.seqn(
+                        &[],
+                        &[],
+                    ),
+                )
+            }
         }
     }
 }

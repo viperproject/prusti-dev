@@ -60,6 +60,8 @@ pub enum Stmt {
         entry: CfgBlockIndex,
         exit: CfgBlockIndex,
     },
+    /// An `if` statement: the guard and the 'then' branch.
+    If(Expr, Vec<Stmt>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -280,6 +282,7 @@ pub trait StmtFolder {
             Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
             Stmt::NestedCFG { entry, exit, } => self.fold_nested_cfg(entry, exit),
+            Stmt::If(g, t) => self.fold_if(g, t),
         }
     }
 
@@ -384,4 +387,10 @@ pub trait StmtFolder {
         Stmt::NestedCFG { entry, exit, }
     }
 
+    fn fold_if(&mut self, g: Expr, t: Vec<Stmt>) -> Stmt {
+        Stmt::If(
+            self.fold_expr(g),
+            t.into_iter().map(|x| self.fold(x)).collect(),
+        )
+    }
 }

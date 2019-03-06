@@ -179,7 +179,8 @@ impl vir::Stmt {
             &vir::Stmt::StopExpiringLoans(_) |
             &vir::Stmt::PackageMagicWand(_, _, _) |
             &vir::Stmt::ApplyMagicWand(_, _) |
-            &vir::Stmt::ExpireBorrows(_) => HashSet::new(),
+            &vir::Stmt::ExpireBorrows(_) |
+            &vir::Stmt::If(_, _) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
             &vir::Stmt::NestedCFG { .. } =>

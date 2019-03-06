@@ -75,7 +75,12 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, initial_bctxt: BranchCtxt<'p>, cfg: &'p vir::CfgMethod) -> Self {
+
+    pub fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        initial_bctxt: BranchCtxt<'p>,
+        cfg: &'p vir::CfgMethod
+    ) -> Self {
         FoldUnfold {
             encoder,
             initial_bctxt,
@@ -147,6 +152,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             _ => stmt.map_expr(|e| self.replace_expr(&e, bctxt)),
         }
     }
+
+    fn process_expire_borrows(&mut self, dag: &vir::borrows::DAG) -> Vec<vir::Stmt> {
+        for node in dag.iter() {
+        }
+        unimplemented!();
+    }
 }
 
 impl CheckNoOpAction for Vec<Action> {
@@ -187,8 +198,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
     }
 
     /// Replace some statements, mutating the branch context
-    fn replace_stmt(&mut self, stmt: &vir::Stmt, is_last_before_return: bool, bctxt: &mut BranchCtxt<'p>) -> Vec<vir::Stmt> {
+    fn replace_stmt(
+        &mut self,
+        stmt: &vir::Stmt,
+        is_last_before_return: bool,
+        bctxt: &mut BranchCtxt<'p>
+    ) -> Vec<vir::Stmt> {
         debug!("[enter] replace_stmt: ##### {} #####", stmt);
+
+        //if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
+            //return self.process_expire_borrows(dag);
+        //}
+
         let mut stmt = stmt.clone();
 
         // Store state for old expressions
