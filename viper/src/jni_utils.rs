@@ -64,6 +64,7 @@ impl<'a> JniUtils<'a> {
         })
     }
 
+    #[allow(dead_code)]
     pub fn retry_on_exception<F, T>(&self, f: F, retry: usize) -> T where F: Fn() -> Result<T> {
         let mut res = f();
         for _ in 0..retry {

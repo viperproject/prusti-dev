@@ -7,24 +7,18 @@
 use getopts;
 use rustc_errors;
 use rustc;
-use rustc_driver;
 use std;
 use typeck;
 use verifier;
 use prusti_interface;
-use rustc::session::{self, CompileResult, Session};
+use rustc::session;
 use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
-use std::env;
 use std::env::{var, set_var};
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::cell::Cell;
 use syntax::ast;
-use driver_utils::run;
-use prusti_interface::config;
-use prusti_interface::sysroot::current_sysroot;
-use std::path::Path;
 use std::time::Instant;
 
 pub struct PrustiCompilerCalls {

@@ -24,7 +24,7 @@ fn bench_build_program(bench: &mut Bencher) {
 fn bench_verify_program(bench: &mut Bencher) {
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast_factory = verification_context.new_ast_factory();
-    let verifier = verification_context.new_verifier();
+    let verifier = verification_context.new_verifier(VerificationBackend::Silicon);
     let program = build_program(&ast_factory);
 
     bench.iter(move || verifier.verify(program));
@@ -122,13 +122,16 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                     ast.full_perm(),
                 ),
                 ast.func_app(
-                    even_function,
+                    "even",
                     &[
                         ast.field_access(
                             ast.local_var("box", ast.ref_type()),
                             ast.field("value", ast.int_type()),
                         ),
                     ],
+                    &[ast.local_var_decl("v", ast.int_type())],
+                    ast.bool_type(),
+                    ast.no_position(),
                 ),
             ),
         ),
@@ -140,7 +143,13 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
         &[ast.local_var_decl("box", ast.ref_type())],
         &[
             // even(v)
-            ast.func_app(even_function, &[ast.local_var("v", ast.int_type())]),
+            ast.func_app(
+                "even",
+                &[ast.local_var("v", ast.int_type())],
+                &[ast.local_var_decl("v", ast.int_type())],
+                ast.bool_type(),
+                ast.no_position()
+            ),
         ],
         &[
             // EvenNumBox(box)
