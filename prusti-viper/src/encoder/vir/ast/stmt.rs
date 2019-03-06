@@ -6,7 +6,7 @@
 
 use std::fmt;
 use encoder::vir::ast::*;
-use super::super::borrows::ReborrowingDAG;
+use super::super::borrows::{DAG as ReborrowingDAG};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Stmt {

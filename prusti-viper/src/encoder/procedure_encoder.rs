@@ -1096,10 +1096,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         loans: &[facts::Loan],
         zombie_loans: &[facts::Loan],
         location: mir::Location
-    ) -> vir::ReborrowingDAG {
+    ) -> vir::borrows::DAG {
         //let mir_reborrowing_dag = self.polonius_info.construct_reborrowing_dag(
             //&loans, &zombie_loans, location);
-        vir::ReborrowingDAG::new()
+        vir::borrows::DAG::new()
     }
 
     fn encode_expiration_of_loans(

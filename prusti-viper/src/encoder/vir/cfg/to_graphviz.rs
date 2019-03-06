@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use encoder::vir;
 use encoder::vir::cfg::method::*;
 use std::io::Write;
 
@@ -26,13 +27,16 @@ impl CfgMethod {
         writeln!(graph, "labelloc=\"t\";").unwrap();
         writeln!(graph, "label=\"Method {}\";", escape_html(self.name())).unwrap();
 
+        // Reborrowing dags that we still need to draw.
+        let mut reborrowing_dags = Vec::new();
+
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let label = self.index_to_label(index);
             writeln!(
                 graph,
                 "\"block_{}\" [shape=none,label=<{}>];",
                 escape_html(&label),
-                self.block_to_graphviz(index, &label, block),
+                self.block_to_graphviz(index, label, block, &mut reborrowing_dags),
             ).unwrap();
         }
 
@@ -50,19 +54,31 @@ impl CfgMethod {
             }
         }
 
-         writeln!(graph, "}}").unwrap();
+        for (label, dag) in reborrowing_dags {
+            writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
+            writeln!(graph, "   label=\"Reborrowing DAG {}\"", label);
+            writeln!(graph, "}}").unwrap();
+        }
+
+        writeln!(graph, "}}").unwrap();
     }
 
     fn index_to_label(&self, index: usize) -> String {
         self.basic_blocks_labels[index].clone()
     }
 
-    fn block_to_graphviz(&self, index: usize, label: &str, block: &CfgBlock) -> String {
+    fn block_to_graphviz<'a, 'b: 'a>(
+        &self,
+        index: usize,
+        label: String,
+        block: &'b CfgBlock,
+        reborrowing_dags: &'a mut Vec<(String, &'b vir::borrows::DAG)>,
+    ) -> String {
         let mut lines: Vec<String> = vec![];
         lines.push("<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">".to_string());
 
         lines.push("<tr><td bgcolor=\"gray\" align=\"center\">".to_string());
-        lines.push(format!("{} (cfg:{})", escape_html(label), index));
+        lines.push(format!("{} (cfg:{})", escape_html(&label), index));
         lines.push("</td></tr>".to_string());
 
         lines.push("<tr><td align=\"left\" balign=\"left\">".to_string());
@@ -72,7 +88,10 @@ impl CfgMethod {
                 lines.push("<br/>".to_string());
             }
             first_row = false;
-            {
+            if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
+                reborrowing_dags.push((label.clone(), dag));
+                lines.push(format!("ExpireBorrows({}) <br />", label));
+            } else {
                 let stmt_string = stmt.to_string();
                 let mut splitted_stmt_lines = vec![];
                 for stmt_line in stmt_string.lines() {
