@@ -36,8 +36,11 @@ fn test_usize_ge_zero(x: usize) -> usize {
     foo_usize(x)
 }
 
-fn main() {
+pub fn test() {
     assert!(test_u32_ge_zero(123) >= 0);
     assert!(test_u64_ge_zero(123) >= 0);
     assert!(test_usize_ge_zero(123) >= 0);
+}
+
+fn main() {
 }
