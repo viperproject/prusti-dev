@@ -350,6 +350,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    /// Encode a specification item as a single expression.
+    pub fn get_assertion_spans(&self, assertion: &TypedAssertion) -> Vec<Span> {
+        trace!("get_assertion_spans {:?}", assertion);
+        match assertion.kind {
+            box AssertionKind::Expr(ref assertion_expr) => {
+                vec![ assertion_expr.expr.span.clone() ]
+            }
+            box AssertionKind::And(ref assertions) => {
+                assertions.iter()
+                    .map(|x| self.get_assertion_spans(x))
+                    .fold(
+                        vec![],
+                        |mut a, b| { a.extend(b); a }
+                    )
+            }
+            box AssertionKind::Implies(ref lhs, ref rhs) => {
+                let mut spans = vec![ lhs.expr.span.clone() ];
+                spans.extend(self.get_assertion_spans(rhs));
+                spans
+            }
+            box AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
+                // FIXME: include the quantifier
+                self.get_assertion_spans(body)
+            }
+            box AssertionKind::Pledge(ref _reference, ref body) => {
+                // FIXME: include the quantifier
+                self.get_assertion_spans(body)
+            }
+        }
+    }
+
     fn encode_expression(&self, assertion_expr: &TypedExpression) -> vir::Expr {
         debug!("encode_expression {:?}", assertion_expr);
         let tcx = self.encoder.env().tcx();

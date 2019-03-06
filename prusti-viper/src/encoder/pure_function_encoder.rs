@@ -144,6 +144,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             ErrorCtxt::PureFunctionDefinition
         );
 
+        debug_assert!(!postcondition.iter().any(|p| p.pos().is_default()));
+
         let function = vir::Function {
             name: function_name.clone(),
             formal_args,
@@ -209,14 +211,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let encoded_return = self.encode_local(contract.returned_value.clone().into());
         debug!("encoded_return: {:?}", encoded_return);
         for item in contract.functional_postcondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, Some(&encoded_return.clone().into()), true, None));
+            let encoded_postcond = self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, Some(&encoded_return.clone().into()), true, None);
+            debug_assert!(!encoded_postcond.pos().is_default());
+            func_spec.push(encoded_postcond);
         }
 
         let post = func_spec.into_iter().conjoin();
 
+        // TODO: use a better span
+        let postcondition_pos = self.encoder.error_manager().register(self.mir.span, ErrorCtxt::GenericExpression);
+
         // Fix return variable
         let pure_fn_return_variable = vir::LocalVar::new("__result", self.encode_function_return_type());
-        post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into())
+        post.replace_place(&encoded_return.into(), &pure_fn_return_variable.into()).set_default_pos(postcondition_pos)
     }
 
     fn encode_local(&self, local: mir::Local) -> vir::LocalVar {

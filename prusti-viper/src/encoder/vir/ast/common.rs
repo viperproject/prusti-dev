@@ -44,7 +44,7 @@ impl Position {
     }
 
     pub fn is_default(&self) -> bool {
-        self.line == 0 && self.column == 0 && self.id == "none"
+        self.line == 0 && self.column == 0 && self.id == "no-position"
     }
 }
 

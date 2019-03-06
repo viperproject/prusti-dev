@@ -8,7 +8,7 @@ use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureC
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::error_manager::ErrorManager;
+use encoder::error_manager::{ErrorManager, ErrorCtxt};
 use encoder::mir_encoder::MirEncoder;
 use encoder::spec_encoder::SpecEncoder;
 use encoder::places;
@@ -379,7 +379,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                             stop_at_bbi: Option<mir::BasicBlock>
     ) -> vir::Expr {
         let spec_encoder = SpecEncoder::new(self, mir, label, encoded_args, encoded_return, targets_are_values, stop_at_bbi);
-        spec_encoder.encode_assertion(assertion)
+        let spans = spec_encoder.get_assertion_spans(assertion);
+        spec_encoder.encode_assertion(assertion).set_default_pos(
+            self.error_manager().register(
+                spans,
+                ErrorCtxt::GenericExpression
+            )
+        )
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {

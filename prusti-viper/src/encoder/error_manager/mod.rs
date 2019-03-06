@@ -92,7 +92,7 @@ impl CompilerError {
 #[derive(Clone)]
 pub struct ErrorManager<'tcx> {
     codemap: &'tcx CodeMap,
-    error_ctxt: HashMap<String, (Span, ErrorCtxt)>,
+    error_ctxt: HashMap<String, (MultiSpan, ErrorCtxt)>,
 }
 
 impl<'tcx> ErrorManager<'tcx> {
@@ -107,9 +107,10 @@ impl<'tcx> ErrorManager<'tcx> {
         self.register(DUMMY_SP, ErrorCtxt::Unexpected)
     }
 
-    pub fn register(&mut self, span: Span, error_ctxt: ErrorCtxt) -> Position {
+    pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt) -> Position {
+        let span = span.into();
         let pos_id = Uuid::new_v4().to_hyphenated().to_string();
-        let lines_info = self.codemap.span_to_lines(span.source_callsite()).unwrap();
+        let lines_info = self.codemap.span_to_lines(span.primary_span().unwrap().source_callsite()).unwrap();
         let first_line_info = lines_info.lines.get(0).unwrap();
         let line = first_line_info.line_index as i32 + 1;
         let column = first_line_info.start_col.0 as i32 + 1;
@@ -118,7 +119,7 @@ impl<'tcx> ErrorManager<'tcx> {
         pos
     }
 
-    pub fn redefine(&mut self, pos: &Position, span: Span, error_ctxt: ErrorCtxt) {
+    pub fn redefine(&mut self, pos: &Position, span: MultiSpan, error_ctxt: ErrorCtxt) {
         debug!("Register position: {:?}", pos);
         self.error_ctxt.insert(pos.id(), (span, error_ctxt));
     }
@@ -164,133 +165,133 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => CompilerError::new(
                 "P0001",
                 "statement might panic",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => CompilerError::new(
                 "P0002",
                 "panic!(..) statement might panic",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => CompilerError::new(
                 "P0003",
                 "assert!(..) statement might not hold",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => CompilerError::new(
                 "P0004",
                 "unreachable!(..) statement might be reachable",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unimplemented)) => CompilerError::new(
                 "P0005",
                 "unimplemented!(..) statement might be reachable",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => CompilerError::new(
                 "P0006",
                 format!("assertion might fail with \"{}\"", message),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => CompilerError::new(
                 "P0007",
                 format!("statement might abort"),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => CompilerError::new(
                 "P008",
                 format!("unreachable code might be reachable. This might be a bug in the compiler."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => CompilerError::new(
                 "P0009",
                 format!("precondition might not hold."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => CompilerError::new(
                 "P0010",
                 format!("postcondition might not hold."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => CompilerError::new(
                 "P0011",
                 format!("loop invariant might not hold on entry."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => CompilerError::new(
                 "P0012",
                 format!("loop invariant might not hold on entry."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => CompilerError::new(
                 "P0013",
                 format!("loop invariant might not hold at the end of a loop iteration."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => CompilerError::new(
                 "P0014",
                 format!("loop invariant might not hold at the end of a loop iteration."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => CompilerError::new(
                 "P0015",
                 format!("precondition of pure function call might not hold."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => CompilerError::new(
                 "P0016",
                 format!("pledge in the postcondition might not hold."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::DivergingCallInPureFunction) => CompilerError::new(
                 "P0017",
                 format!("diverging function call in pure function might be reachable."),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Unknown)) => CompilerError::new(
                 "P0018",
                 "statement in pure function might panic",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Panic)) => CompilerError::new(
                 "P0019",
                 "panic!(..) statement in pure function might panic",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Assert)) => CompilerError::new(
                 "P0020",
                 "assert!(..) statement in pure function might not hold",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable)) => CompilerError::new(
                 "P0021",
                 "unreachable!(..) statement in pure function might be reachable",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented)) => CompilerError::new(
                 "P0022",
                 "unimplemented!(..) statement in pure function might be reachable",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
@@ -298,7 +299,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => CompilerError::new(
                 "P0023",
                 "postcondition of pure function definition might not hold",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
@@ -308,7 +309,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     full_err_id,
                     ver_error.message
                 ),
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             (full_err_id, _) => {
@@ -321,7 +322,7 @@ impl<'tcx> ErrorManager<'tcx> {
                         full_err_id,
                         ver_error.message,
                     ),
-                    MultiSpan::from_span(*error_span)
+                    error_span.clone()
                 )
             },
         }
