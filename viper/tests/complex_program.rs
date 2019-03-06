@@ -85,6 +85,7 @@ fn success_with_complex_program() {
         ast.bool_type(),
         &[],
         &[],
+        ast.no_position(),
         Some(
             // x % 2 == 0
             ast.eq_cmp(
