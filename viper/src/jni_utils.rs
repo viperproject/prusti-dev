@@ -9,6 +9,7 @@ use jni::objects::JObject;
 use jni::errors::Result;
 use jni::objects::JString;
 use jni::sys::jsize;
+use jni::strings::JNIString;
 use viper_sys::wrappers::*;
 use error_chain::ChainedError;
 
@@ -87,7 +88,7 @@ impl<'a> JniUtils<'a> {
     }
 
     /// Converts a Rust String to a Java String
-    pub fn new_string(&self, string: &str) -> JObject {
+    pub fn new_string<S: Into<JNIString>>(&self, string: S) -> JObject {
         self.unwrap_result(self.env.new_string(string)).into()
     }
 

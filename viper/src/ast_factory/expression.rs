@@ -15,106 +15,186 @@ use ast_factory::structs::Position;
 use jni::objects::JObject;
 
 impl<'a> AstFactory<'a> {
+    pub fn add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Add, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+    }
     pub fn add(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Add, left.to_jobject(), right.to_jobject())
+        self.add_with_pos(left, right, self.no_position())
+    }
+
+    pub fn sub_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Sub, left.to_jobject(), right.to_jobject(), pos.to_jobject())
     }
 
     pub fn sub(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Sub, left.to_jobject(), right.to_jobject())
+        self.sub_with_pos(left, right, self.no_position())
+    }
+
+    pub fn mul_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Mul, left.to_jobject(), right.to_jobject(), pos.to_jobject())
     }
 
     pub fn mul(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Mul, left.to_jobject(), right.to_jobject())
+        self.mul_with_pos(left, right, self.no_position())
+    }
+
+    pub fn div_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Div, left.to_jobject(), right.to_jobject(), pos.to_jobject())
     }
 
     pub fn div(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Div, left.to_jobject(), right.to_jobject())
+        self.div_with_pos(left, right, self.no_position())
+    }
+
+    pub fn module_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Mod, left.to_jobject(), right.to_jobject(), pos.to_jobject())
     }
 
     pub fn module(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Mod, left.to_jobject(), right.to_jobject())
+        self.module_with_pos(left, right, self.no_position())
     }
 
-    pub fn lt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn lt_cmp_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::LtCmp,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn le_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn lt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.lt_cmp_with_pos(left, right, self.no_position())
+    }
+
+    pub fn le_cmp_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::LeCmp,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn gt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn le_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.le_cmp_with_pos(left, right, self.no_position())
+    }
+
+    pub fn gt_cmp_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::GtCmp,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn ge_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn gt_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.gt_cmp_with_pos(left, right, self.no_position())
+    }
+
+    pub fn ge_cmp_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::GeCmp,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn eq_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn ge_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.ge_cmp_with_pos(left, right, self.no_position())
+    }
+
+    pub fn eq_cmp_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::EqCmp,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn ne_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn eq_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.eq_cmp_with_pos(left, right, self.no_position())
+    }
+
+    pub fn ne_cmp_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::NeCmp,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn int_lit(&self, i: i64) -> Expr<'a> {
+    pub fn ne_cmp(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.ne_cmp_with_pos(left, right, self.no_position())
+    }
+
+    pub fn int_lit_with_pos(&self, i: i64, pos: Position) -> Expr<'a> {
         let big_i = self.jni.new_big_int(&i);
-        build_ast_node!(self, Expr, ast::IntLit, big_i)
+        build_ast_node_with_pos!(self, Expr, ast::IntLit, big_i, pos.to_jobject())
+    }
+
+    pub fn int_lit(&self, i: i64) -> Expr<'a> {
+        self.int_lit_with_pos(i, self.no_position())
+    }
+
+    pub fn int_lit_from_ref_with_pos(&self, i: &ToString, pos: Position) -> Expr<'a> {
+        let big_i = self.jni.new_big_int(i);
+        build_ast_node_with_pos!(self, Expr, ast::IntLit, big_i, pos.to_jobject())
     }
 
     pub fn int_lit_from_ref(&self, i: &ToString) -> Expr<'a> {
-        let big_i = self.jni.new_big_int(i);
-        build_ast_node!(self, Expr, ast::IntLit, big_i)
+        self.int_lit_from_ref_with_pos(i, self.no_position())
+    }
+
+    pub fn minus_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Minus, expr.to_jobject(), pos.to_jobject())
     }
 
     pub fn minus(&self, expr: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Minus, expr.to_jobject())
+        self.minus_with_pos(expr, self.no_position())
+    }
+
+    pub fn or_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Or, left.to_jobject(), right.to_jobject(), pos.to_jobject())
     }
 
     pub fn or(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Or, left.to_jobject(), right.to_jobject())
+        self.or_with_pos(left, right, self.no_position())
+    }
+
+    pub fn and_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::And, left.to_jobject(), right.to_jobject(), pos.to_jobject())
     }
 
     pub fn and(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::And, left.to_jobject(), right.to_jobject())
+        self.and_with_pos(left, right, self.no_position())
+    }
+
+    pub fn implies_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Implies,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn implies(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -127,50 +207,81 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn magic_wand(&self, left: Expr, right: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn magic_wand_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::MagicWand,
             left.to_jobject(),
-            right.to_jobject()
+            right.to_jobject(),
+            pos.to_jobject()
         )
     }
 
+    pub fn magic_wand(&self, left: Expr, right: Expr) -> Expr<'a> {
+        self.magic_wand_with_pos(left, right, self.no_position())
+    }
+
+    pub fn not_with_pos(&self, expr: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::Not, expr.to_jobject(), pos.to_jobject())
+    }
+
     pub fn not(&self, expr: Expr) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::Not, expr.to_jobject())
+        self.not_with_pos(expr, self.no_position())
+    }
+
+    pub fn true_lit_with_pos(&self, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::TrueLit, pos.to_jobject())
     }
 
     pub fn true_lit(&self) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::TrueLit)
+        self.true_lit_with_pos(self.no_position())
+    }
+
+    pub fn false_lit_with_pos(&self, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::FalseLit, pos.to_jobject())
     }
 
     pub fn false_lit(&self) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::FalseLit)
+        self.false_lit_with_pos(self.no_position())
+    }
+
+    pub fn null_lit_with_pos(&self, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(self, Expr, ast::NullLit, pos.to_jobject())
     }
 
     pub fn null_lit(&self) -> Expr<'a> {
-        build_ast_node!(self, Expr, ast::NullLit)
+        self.null_lit_with_pos(self.no_position())
     }
 
-    pub fn field_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn field_access_predicate_with_pos(&self, loc: Expr, perm: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::FieldAccessPredicate,
             loc.to_jobject(),
-            perm.to_jobject()
+            perm.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn predicate_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn field_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
+        self.field_access_predicate_with_pos(loc, perm, self.no_position())
+    }
+
+    pub fn predicate_access_predicate_with_pos(&self, loc: Expr, perm: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::PredicateAccessPredicate,
             loc.to_jobject(),
-            perm.to_jobject()
+            perm.to_jobject(),
+            pos.to_jobject()
         )
+    }
+
+    pub fn predicate_access_predicate(&self, loc: Expr, perm: Expr) -> Expr<'a> {
+        self.predicate_access_predicate_with_pos(loc, perm, self.no_position())
     }
 
     pub fn inhale_exhale_pred(&self, inhale: Expr, exhale: Expr) -> Expr<'a> {
@@ -343,14 +454,19 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
-    pub fn field_access(&self, rcv: Expr, field: Field) -> Expr<'a> {
-        build_ast_node!(
+    pub fn field_access_with_pos(&self, rcv: Expr, field: Field, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::FieldAccess,
             rcv.to_jobject(),
-            field.to_jobject()
+            field.to_jobject(),
+            pos.to_jobject()
         )
+    }
+
+    pub fn field_access(&self, rcv: Expr, field: Field) -> Expr<'a> {
+        self.field_access_with_pos(rcv, field, self.no_position())
     }
 
     pub fn predicate_access(&self, args: &[Expr], predicate_name: &str) -> Expr<'a> {
@@ -363,25 +479,35 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn cond_exp(&self, cond: Expr, then_expr: Expr, else_expr: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn cond_exp_with_pos(&self, cond: Expr, then_expr: Expr, else_expr: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::CondExp,
             cond.to_jobject(),
             then_expr.to_jobject(),
-            else_expr.to_jobject()
+            else_expr.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn unfolding(&self, acc: Expr, body: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn cond_exp(&self, cond: Expr, then_expr: Expr, else_expr: Expr) -> Expr<'a> {
+        self.cond_exp_with_pos(cond, then_expr, else_expr, self.no_position())
+    }
+
+    pub fn unfolding_with_pos(&self, acc: Expr, body: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::Unfolding,
             acc.to_jobject(),
-            body.to_jobject()
+            body.to_jobject(),
+            pos.to_jobject()
         )
+    }
+
+    pub fn unfolding(&self, acc: Expr, body: Expr) -> Expr<'a> {
+        self.unfolding_with_pos(acc, body, self.no_position())
     }
 
     pub fn applying(&self, wand: Expr, body: Expr) -> Expr<'a> {
@@ -398,36 +524,51 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Expr, ast::Old, expr.to_jobject())
     }
 
-    pub fn labelled_old(&self, expr: Expr, old_label: &str) -> Expr<'a> {
-        build_ast_node!(
+    pub fn labelled_old_with_pos(&self, expr: Expr, old_label: &str, pos: Position) -> Expr<'a> {
+         build_ast_node_with_pos!(
             self,
             Expr,
             ast::LabelledOld,
             expr.to_jobject(),
-            self.jni.new_string(old_label)
+            self.jni.new_string(old_label),
+            pos.to_jobject()
         )
     }
 
-    pub fn let_expr(&self, variable: LocalVarDecl, expr: Expr, body: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn labelled_old(&self, expr: Expr, old_label: &str) -> Expr<'a> {
+        self.labelled_old_with_pos(expr, old_label, self.no_position())
+    }
+
+    pub fn let_expr_with_pos(&self, variable: LocalVarDecl, expr: Expr, body: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::Let,
             variable.to_jobject(),
             expr.to_jobject(),
-            body.to_jobject()
+            body.to_jobject(),
+            pos.to_jobject()
         )
     }
 
-    pub fn forall(&self, variables: &[LocalVarDecl], triggers: &[Trigger], expr: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn let_expr(&self, variable: LocalVarDecl, expr: Expr, body: Expr) -> Expr<'a> {
+        self.let_expr_with_pos(variable, expr, body, self.no_position())
+    }
+
+    pub fn forall_with_pos(&self, variables: &[LocalVarDecl], triggers: &[Trigger], expr: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::Forall,
             self.jni.new_seq(&map_to_jobjects!(variables)),
             self.jni.new_seq(&map_to_jobjects!(triggers)),
-            expr.to_jobject()
+            expr.to_jobject(),
+            pos.to_jobject()
         )
+    }
+
+    pub fn forall(&self, variables: &[LocalVarDecl], triggers: &[Trigger], expr: Expr) -> Expr<'a> {
+        self.forall_with_pos(variables, triggers, expr, self.no_position())
     }
 
     pub fn exists(&self, variables: &[LocalVarDecl], expr: Expr) -> Expr<'a> {
@@ -456,23 +597,33 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn trigger(&self, exps: &[Expr]) -> Trigger<'a> {
-        build_ast_node!(
+    pub fn trigger_with_pos(&self, exps: &[Expr], pos: Position) -> Trigger<'a> {
+        build_ast_node_with_pos!(
             self,
             Trigger,
             ast::Trigger,
-            self.jni.new_seq(&map_to_jobjects!(exps))
+            self.jni.new_seq(&map_to_jobjects!(exps)),
+            pos.to_jobject()
         )
     }
 
-    pub fn local_var(&self, name: &str, var_type: Type) -> Expr<'a> {
-        build_ast_node!(
+    pub fn trigger(&self, exps: &[Expr]) -> Trigger<'a> {
+        self.trigger_with_pos(exps, self.no_position())
+    }
+
+    pub fn local_var_with_pos(&self, name: &str, var_type: Type, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::LocalVar,
             self.jni.new_string(name),
-            var_type.to_jobject()
+            var_type.to_jobject(),
+            pos.to_jobject()
         )
+    }
+
+    pub fn local_var(&self, name: &str, var_type: Type) -> Expr<'a> {
+        self.local_var_with_pos(name, var_type, self.no_position())
     }
 
     pub fn result(&self, var_type: Type) -> Expr<'a> {

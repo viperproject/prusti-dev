@@ -5,6 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
+use std::mem::discriminant;
+use std::hash::{Hash, Hasher};
 use num_rational::Ratio;
 use encoder::vir::ast::*;
 
@@ -40,11 +42,32 @@ impl Position {
     pub fn id(&self) -> String {
         self.id.to_string()
     }
+
+    pub fn is_default(&self) -> bool {
+        self.line == 0 && self.column == 0 && self.id == "none"
+    }
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Position::new(0, 0, "none".to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_position() {
+        assert!(!Position::new(123, 234, "123123123".to_string()).is_default());
+        assert!(Position::default().is_default());
+    }
 }
 
 pub type Frac = Ratio<u32>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub enum Type {
     Int,
     Bool,
@@ -80,15 +103,20 @@ impl Type {
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
         }
     }
+}
 
-    pub fn weak_eq(&self, other: &Type) -> bool {
-        match (self, other) {
-            (Type::Bool, Type::Bool) |
-            (Type::Int, Type::Int) |
-            (Type::TypedRef(_), Type::TypedRef(_)) => true,
+impl PartialEq for Type {
+    fn eq(&self, other: &Self) -> bool {
+        discriminant(self) == discriminant(other)
+    }
+}
 
-            _ => false
-        }
+impl Eq for Type {
+}
+
+impl Hash for Type {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        discriminant(self).hash(state);
     }
 }
 
@@ -124,13 +152,9 @@ impl LocalVar {
             _ => None
         }
     }
-
-    pub fn weak_eq(&self, other: &LocalVar) -> bool {
-        self.name == other.name && self.typ.weak_eq(&other.typ)
-    }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone)]
 pub struct Field {
     pub name: String,
     pub typ: Type
@@ -163,8 +187,22 @@ impl Field {
         }
     }
 
-    pub fn weak_eq(&self, other: &Field) -> bool {
-        self.name == other.name && self.typ.weak_eq(&other.typ)
+}
+
+impl PartialEq for Field {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.typ == other.typ
+    }
+}
+
+impl Eq for Field {
+}
+
+
+impl Hash for Field {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+        self.typ.hash(state);
     }
 }
 

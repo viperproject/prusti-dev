@@ -138,12 +138,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 permissions
             }
 
-            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref _lhs, ref _rhs), ref _package_stmts, ref _position) => {
+            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref _lhs, ref _rhs, ref _pos), ref _package_stmts, ref _position) => {
                 // We model the magic wand as "assert lhs; stmts; exhale rhs"
                 HashSet::new()
             }
 
-            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref _rhs)) => {
+            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref _rhs, ref _pos)) => {
                 // We model the magic wand as "assert lhs; inhale rhs"
                 lhs.get_required_permissions(predicates)
             }
@@ -185,9 +185,9 @@ impl RequiredPermissionsGetter for vir::Expr {
     /// Returns the permissions required for the expression to be well-defined
     fn get_required_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
         match self {
-            vir::Expr::Const(_) => HashSet::new(),
+            vir::Expr::Const(_, _) => HashSet::new(),
 
-            vir::Expr::Unfolding(_, args, expr, frac) => {
+            vir::Expr::Unfolding(_, args, expr, frac, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -213,11 +213,11 @@ impl RequiredPermissionsGetter for vir::Expr {
                 req_places.into_iter().collect()
             }
 
-            vir::Expr::LabelledOld(ref label, expr) => {
+            vir::Expr::LabelledOld(ref label, expr, _) => {
                 HashSet::new()
             }
 
-            vir::Expr::PredicateAccessPredicate(_, args, frac) => {
+            vir::Expr::PredicateAccessPredicate(_, args, frac, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -253,21 +253,21 @@ impl RequiredPermissionsGetter for vir::Expr {
                 result
             }
 
-            vir::Expr::FieldAccessPredicate(expr, frac) => {
+            vir::Expr::FieldAccessPredicate(expr, frac, _) => {
                 expr.get_required_permissions(predicates).into_iter().map(|p| p * frac).collect()
             }
 
-            vir::Expr::UnaryOp(_, expr) => expr.get_required_permissions(predicates),
+            vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates),
 
-            vir::Expr::BinOp(_, box left, box right) => vec![left, right].get_required_permissions(predicates),
+            vir::Expr::BinOp(_, box left, box right, _) => vec![left, right].get_required_permissions(predicates),
 
-            vir::Expr::Cond(box guard, box left, box right) => vec![guard, left, right].get_required_permissions(predicates),
+            vir::Expr::Cond(box guard, box left, box right, _) => vec![guard, left, right].get_required_permissions(predicates),
 
-            vir::Expr::LetExpr(_variable, _expr, _body) => {
+            vir::Expr::LetExpr(_variable, _expr, _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            vir::Expr::ForAll(vars, triggers, box body) => {
+            vir::Expr::ForAll(vars, triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
 
                 let vars_places: HashSet<_> = vars
@@ -290,7 +290,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 Some(Acc(self.clone(), epsilon)).into_iter().collect()
             },
 
-            vir::Expr::MagicWand(ref lhs, ref _rhs) => {
+            vir::Expr::MagicWand(ref lhs, ref _rhs, _) => {
                 // Not exactly Viper's semantics
                 HashSet::new()
             }
@@ -300,9 +300,9 @@ impl RequiredPermissionsGetter for vir::Expr {
                 let epsilon = Frac::new(1, 1000);
                 args.iter().map(|arg| {
                     if arg.is_place() && arg.get_type().is_ref() {
-                        vir::Expr::PredicateAccessPredicate(
+                        vir::Expr::predicate_access_predicate(
                             arg.get_type().to_string(),
-                            vec![ arg.clone().into() ],
+                            arg.clone().into(),
                             epsilon,
                         )
                     } else {
@@ -321,14 +321,14 @@ impl vir::Expr {
     pub fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
         trace!("get_permissions {}", self);
         match self {
-            vir::Expr::Local(_) |
-            vir::Expr::Field(_, _) |
-            vir::Expr::AddrOf(_, _) |
-            vir::Expr::LabelledOld(_, _) |
-            vir::Expr::Const(_) |
+            vir::Expr::Local(_, _) |
+            vir::Expr::Field(_, _, _) |
+            vir::Expr::AddrOf(_, _, _) |
+            vir::Expr::LabelledOld(_, _, _) |
+            vir::Expr::Const(_, _) |
             vir::Expr::FuncApp(..)=> HashSet::new(),
 
-            vir::Expr::Unfolding(_, args, expr, frac) => {
+            vir::Expr::Unfolding(_, args, expr, frac, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -355,16 +355,16 @@ impl vir::Expr {
 
             }
 
-            vir::Expr::UnaryOp(_, ref expr) => expr.get_permissions(predicates),
+            vir::Expr::UnaryOp(_, ref expr, _) => expr.get_permissions(predicates),
 
-            vir::Expr::BinOp(_, box left, box right) => {
+            vir::Expr::BinOp(_, box left, box right, _) => {
                 union(
                     &left.get_permissions(predicates),
                     &right.get_permissions(predicates)
                 )
             },
 
-            vir::Expr::Cond(box guard, box left, box right) => {
+            vir::Expr::Cond(box guard, box left, box right, _) => {
                 union3(
                     &guard.get_permissions(predicates),
                     &left.get_permissions(predicates),
@@ -372,7 +372,7 @@ impl vir::Expr {
                 )
             },
 
-            vir::Expr::ForAll(vars, triggers, box body) => {
+            vir::Expr::ForAll(vars, triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
                 let vars_places: HashSet<Perm> = vars
                     .iter()
@@ -381,7 +381,7 @@ impl vir::Expr {
                 perm_difference(body.get_permissions(predicates), vars_places)
             }
 
-            vir::Expr::PredicateAccessPredicate(_, ref args, frac) => {
+            vir::Expr::PredicateAccessPredicate(_, ref args, frac, _) => {
                 assert_eq!(args.len(), 1);
                 let arg = &args[0];
 
@@ -399,7 +399,7 @@ impl vir::Expr {
                 opt_perm.into_iter().collect()
             }
 
-            vir::Expr::FieldAccessPredicate(box ref place, frac) => {
+            vir::Expr::FieldAccessPredicate(box ref place, frac, _) => {
                 // In Prusti we assume to have only places here
                 debug_assert!(place.is_place());
                 debug_assert!(place.is_curr());
@@ -409,12 +409,12 @@ impl vir::Expr {
                 Some(perm).into_iter().collect()
             }
 
-            vir::Expr::MagicWand(ref lhs, ref _rhs) => {
+            vir::Expr::MagicWand(ref lhs, ref _rhs, _) => {
                 // We don't track magic wands resources
                 HashSet::new()
             }
 
-            vir::Expr::LetExpr(ref _variable, ref _expr, ref _body) => {
+            vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
         }

@@ -213,10 +213,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
                 match place {
-                    vir::Expr::AddrOf(box base, typ) => base,
+                    vir::Expr::AddrOf(box base, typ, _) => base,
                     _ => {
                         let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
-                        place.field(vir::Field::new("val_ref", vir::Type::TypedRef(type_name))).into()
+                        place.field(vir::Field::new("val_ref", vir::Type::TypedRef(type_name)))
                     }
                 }
             }
@@ -228,7 +228,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             hir::Expr_::ExprMatch(..) => unreachable!("A path is expected, but found {:?}", base_expr),
 
             hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref var_path)) => {
-                vir::Expr::Local(self.encode_hir_variable(var_path))
+                vir::Expr::local(self.encode_hir_variable(var_path))
             }
 
             ref x => unimplemented!("{:?}", x),
@@ -345,7 +345,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
             box AssertionKind::Pledge(ref _reference, ref _body) => {
                 // Pledges are moved inside magic wands, so here we have only true.
-                vir::Expr::Const(vir::Const::Bool(true))
+                true.into()
             }
         }
     }
@@ -497,7 +497,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let value_field = self.encoder.encode_value_field(local_arg.ty);
                         let value_type = self.encoder.encode_value_type(local_arg.ty);
                         let proper_var = vir::LocalVar::new(var_name.to_string(), value_type);
-                        let encoded_arg_value = vir::Expr::Local(encoded_arg).field(value_field);
+                        let encoded_arg_value = vir::Expr::local(encoded_arg).field(value_field);
                         trace!(
                             "Place {}: {} is renamed to {} because a quantifier introduced it",
                             encoded_arg_value,
@@ -544,7 +544,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let spec_local = curr_mir_encoder.encode_local(local);
             let spec_local_place: vir::Expr = if self.targets_are_values {
                 let value_field = self.encoder.encode_value_field(local_ty);
-                vir::Expr::Local(spec_local).field(value_field)
+                vir::Expr::local(spec_local).field(value_field)
             } else {
                 spec_local.into()
             };
@@ -575,7 +575,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             let spec_fake_return_place: vir::Expr = if self.targets_are_values {
                 let value_field = self.encoder.encode_value_field(fake_return_ty);
-                vir::Expr::Local(spec_fake_return).field(value_field)
+                vir::Expr::local(spec_fake_return).field(value_field)
             } else {
                 spec_fake_return.clone().into()
             };

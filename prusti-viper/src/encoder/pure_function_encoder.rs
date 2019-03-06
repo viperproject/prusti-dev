@@ -82,7 +82,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         for arg in self.mir.args_iter() {
             let arg_ty = self.interpreter.mir_encoder().get_local_ty(arg);
             let value_field = self.encoder.encode_value_field(arg_ty);
-            let target_place: vir::Expr = vir::Expr::Local(
+            let target_place: vir::Expr = vir::Expr::local(
                 self.interpreter.mir_encoder()
                     .encode_local(arg)
             ).field(value_field);
@@ -128,12 +128,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 "__result",
                 self.encode_function_return_type());
             let return_bounds = self.encoder.encode_type_bounds(
-                &vir::Expr::Local(pure_fn_return_variable), self.mir.return_ty());
+                &vir::Expr::local(pure_fn_return_variable), self.mir.return_ty());
             postcondition.extend(return_bounds);
             for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
                 let bounds = self.encoder.encode_type_bounds(
-                    &vir::Expr::Local(formal_arg.clone()), &typ);
+                    &vir::Expr::local(formal_arg.clone()), &typ);
                 precondition.extend(bounds);
             }
         }
@@ -337,7 +337,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 let return_type = self.encoder.encode_type(self.mir.return_ty());
                 let return_var = vir::LocalVar::new(format!("{}_0", self.namespace), return_type);
                 let field = self.encoder.encode_value_field(self.mir.return_ty());
-                MultiExprBackwardInterpreterState::new_single(vir::Expr::Local(return_var.into()).field(field).into())
+                MultiExprBackwardInterpreterState::new_single(vir::Expr::local(return_var.into()).field(field).into())
             }
 
             TerminatorKind::SwitchInt { ref targets, ref discr, ref values, switch_ty } => {
@@ -796,7 +796,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
                         let encoded_place = self.mir_encoder.encode_place(place).0;
                         let encoded_ref = match encoded_place {
-                            vir::Expr::Field(box ref base, vir::Field { ref name, .. }) if name == "val_ref" => {
+                            vir::Expr::Field(box ref base, vir::Field { ref name, .. }, ref pos) if name == "val_ref" => {
                                 // Simplify "address of reference"
                                 base.clone()
                             }

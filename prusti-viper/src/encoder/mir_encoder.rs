@@ -232,7 +232,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     match encoded_base {
-                        vir::Expr::AddrOf(box base_base_place, ty) => base_base_place,
+                        vir::Expr::AddrOf(box base_base_place, _, _) => base_base_place,
                         _ => {
                             let ref_field = self.encoder.encode_ref_field("val_ref", ty);
                             encoded_base.field(ref_field)
@@ -519,12 +519,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_place_predicate_permission(&self, place: vir::Expr, frac: vir::Frac) -> Option<vir::Expr> {
-        place.typed_ref_name().map(|predicate_name|
-            vir::Expr::PredicateAccessPredicate(
-                predicate_name,
-                vec![place.into()],
-                frac,
-            )
+        vir::Expr::pred_permission(
+            place,
+            frac,
         )
     }
 
@@ -546,7 +543,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
-        unimplemented!()
+        let bb_data = &self.mir.basic_blocks()[bbi];
+        if bb_data.statements.is_empty() {
+            bb_data.terminator.as_ref().unwrap().source_info.span
+        } else {
+            bb_data.statements[bb_data.statements.len() - 1].source_info.span
+        }
     }
 
     pub fn encode_expr_pos(&self, span: Span) -> vir::Position {

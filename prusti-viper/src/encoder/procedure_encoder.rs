@@ -176,10 +176,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode a flag that becomes true the first time the block is executed
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let executed_flag_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
-            let bb_pos = self.encode_expr_pos(self.get_span_of_basic_block(bbi));
+            let bb_pos = self.mir_encoder.encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
             self.cfg_method.add_stmt(
                 start_cfg_block,
-                vir::Stmt::Assign(vir::Expr::local(executed_flag_var.clone(), pos), false.into(), vir::AssignKind::Copy)
+                vir::Stmt::Assign(vir::Expr::local(executed_flag_var.clone()).set_pos(bb_pos), false.into(), vir::AssignKind::Copy)
             );
             self.cfg_block_has_been_executed.insert(bbi, executed_flag_var);
         }
@@ -195,13 +195,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let bb_data = &self.mir.basic_blocks()[bbi];
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
             let cfg_block = *cfg_blocks.get(&bbi).unwrap();
-            let bb_pos = self.encode_expr_pos(self.get_span_of_basic_block(bbi));
+            let bb_pos = self.mir_encoder.encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
 
             // Store a flag that becomes true the first time the block is executed
             let executed_flag_var = self.cfg_block_has_been_executed[&bbi].clone();
             self.cfg_method.add_stmt(
                 cfg_block,
-                vir::Stmt::Assign(vir::Expr::local(executed_flag_var, bb_pos), true.into(), vir::AssignKind::Copy)
+                vir::Stmt::Assign(vir::Expr::local(executed_flag_var).set_pos(bb_pos), true.into(), vir::AssignKind::Copy)
             );
 
             // Inhale the loop invariant if this is a loop head
@@ -247,18 +247,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
             } else {
                 // Any spec block must be unreachable
-                let pos = self.encoder.error_manager().register(
-                    // TODO: choose a better error span
-                    self.mir.span,
-                    ErrorCtxt::Unexpected
-                );
                 self.cfg_method.add_stmt(
                     cfg_block,
                     vir::Stmt::comment("Unreachable block, used for type-checking specifications")
                 );
                 self.cfg_method.add_stmt(
                     cfg_block,
-                    vir::Stmt::Assert(false.into(), pos)
+                    vir::Stmt::Assert(false.into(), vir::Position::default())
                 );
             }
 
@@ -646,7 +641,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ref x => unimplemented!("{:?}", x)
-        }
+        }.into_iter().map(
+            |s| {
+                s.set_default_expr_pos(
+                    self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericExpression)
+                ).set_default_pos(
+                    self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericStatement)
+                )
+            }
+        ).collect()
     }
 
     /// Translate a borrowed place to a place that is currently usable
@@ -1814,8 +1817,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // If the argument is not a reference, we wrap entire path into old.
                 assertion = assertion.fold_places(
                     |place| {
-                        let base = place.get_base();
-                        if encoded_arg.weak_eq(&base.into()) {
+                        let base: vir::Expr = place.get_base().into();
+                        if encoded_arg == &base {
                             place.old(pre_label)
                         } else {
                             place
@@ -1867,7 +1870,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.magic_wand_at_location.insert(
                     location, (post_label.to_string(), lhs.clone(), rhs.clone()));
             }
-            magic_wands.push(vir::Expr::MagicWand(box lhs, box rhs));
+            magic_wands.push(vir::Expr::magic_wand(lhs, rhs));
         }
 
         // Encode permissions for return type
@@ -1965,7 +1968,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                        "We can have at most one magic wand in the postcondition.");
             for path in &borrow_infos[0].blocking_paths {
                 let (mut encoded_place, _, _) = self.encode_generic_place(path);
-                let old_place = vir::Expr::LabelledOld(post_label.to_string(), box encoded_place.clone());
+                let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
             }
         }
@@ -2501,7 +2504,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("Encode havoc {:?}", dst);
         // TODO: Can we encode the havoc with an exhale + inhale?
         let havoc_ref_method_name = self.encoder.encode_builtin_method_use(BuiltinMethodKind::HavocRef);
-        if let &vir::Expr::Local(ref dst_local_var) = dst {
+        if let &vir::Expr::Local(ref dst_local_var, ref _pos) = dst {
             vec![
                 vir::Stmt::MethodCall(havoc_ref_method_name, vec![], vec![dst_local_var.clone()]),
             ]
@@ -2775,7 +2778,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.walk_statements(
             |stmt| {
                 match stmt {
-                    vir::Stmt::Assign(vir::Expr::Local(ref local_var), _, _) => {
+                    vir::Stmt::Assign(vir::Expr::Local(ref local_var, _), _, _) => {
                         if encoded_mir_locals.contains(local_var) {
                             invalid(format!("assignment to MIR local variable: {}", stmt));
                         }

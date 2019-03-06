@@ -186,15 +186,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
             }
 
-            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _), ..) |
-            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _)) => {
+            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _, _), ..) |
+            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _, _)) => {
                 // TODO: This should be done also for magic wand expressions inside inhale/exhale.
                 let label = "lhs".to_string();
                 let mut labelled_bctxt = bctxt.clone();
                 let labelled_state = labelled_bctxt.mut_state();
                 labelled_state.remove_all();
                 vir::Stmt::Inhale(lhs.clone()).apply_on_state(labelled_state, bctxt.predicates());
-                if let vir::Expr::PredicateAccessPredicate(ref name, ref args, frac) = lhs {
+                if let vir::Expr::PredicateAccessPredicate(ref name, ref args, frac, _) = lhs {
                     labelled_state.insert_acc(args[0].clone(), *frac);
                 }
                 labelled_state.replace_places(|place| place.old(&label));
@@ -321,7 +321,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
                 vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
             }
 
-            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, box ref rhs), ref old_package_stmts, ref position) => {
+            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, box ref rhs, _), ref old_package_stmts, ref position) => {
                 let mut package_bctxt = bctxt.clone();
                 let mut package_stmts = vec![];
                 for stmt in old_package_stmts {
@@ -522,7 +522,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             fields.into_iter()
                 .fold(
                     new_base,
-                    |res, f| res.field(f, pos.clone())
+                    |res, f| res.field(f).set_pos(pos.clone())
                 )
         };
 
@@ -570,7 +570,10 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
         );
-        lhs_state.replace_places(|place| place.old("lhs", place.pos().clone()));
+        lhs_state.replace_places(|place| {
+            let pos = place.pos().clone();
+            place.old("lhs").set_pos(pos)
+        });
         debug!("State of lhs of magic wand: {}", lhs_state);
 
         // Store states
@@ -592,7 +595,10 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                 .filter(|p| p.is_pred())
                 .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
         );
-        new_lhs_state.replace_places(|place| place.old("lhs", place.pos().clone()));
+        new_lhs_state.replace_places(|place| {
+            let pos = place.pos().clone();
+            place.old("lhs").set_pos(pos)
+        });
         debug!("New state of lhs of magic wand: {}", new_lhs_state);
 
         // Compute rhs state

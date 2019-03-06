@@ -48,27 +48,37 @@ macro_rules! map_to_jobject_pairs {
 }
 
 #[macro_export]
-macro_rules! build_ast_node {
-    ($self:expr, $wrapper:ident, $($java_class:ident)::+) => {
+macro_rules! build_ast_node_with_pos {
+    ($self:expr, $wrapper:ident, $($java_class:ident)::+, $($args:expr),+) => {
          {
             let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).new(
-                $self.no_position().to_jobject(),
+                $($args),+ ,
                 $self.no_info(),
                 $self.no_trafos(),
             ));
             $wrapper::new(obj)
         }
     };
+}
+
+#[macro_export]
+macro_rules! build_ast_node {
+    ($self:expr, $wrapper:ident, $($java_class:ident)::+) => {
+         build_ast_node_with_pos!(
+            $self,
+            $wrapper,
+            $($java_class)::+,
+            $self.no_position().to_jobject()
+         )
+    };
     ($self:expr, $wrapper:ident, $($java_class:ident)::+, $($args:expr),+) => {
-         {
-            let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).new(
-                $($args),+ ,
-                $self.no_position().to_jobject(),
-                $self.no_info(),
-                $self.no_trafos(),
-            ));
-            $wrapper::new(obj)
-        }
+         build_ast_node_with_pos!(
+            $self,
+            $wrapper,
+            $($java_class)::+,
+            $($args),+ ,
+            $self.no_position().to_jobject()
+         )
     };
 }
 

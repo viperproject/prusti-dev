@@ -129,8 +129,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         let field_predicates = match self.ty.sty {
             ty::TypeVariants::TyBool => vec![
-                vir::Expr::FieldAccessPredicate(
-                    box vir::Expr::from(self_local_var.clone()).field(
+                vir::Expr::acc_permission(
+                    vir::Expr::from(self_local_var.clone()).field(
                         self.encoder.encode_value_field(self.ty)
                     ).into(),
                     vir::Frac::one()
@@ -143,8 +143,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ).into();
 
                 let mut body = vec![
-                    vir::Expr::FieldAccessPredicate(
-                        box val_field.clone(),
+                    vir::Expr::acc_permission(
+                        val_field.clone(),
                         vir::Frac::one()
                     )
                 ];
@@ -164,8 +164,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 ).into();
 
                 let mut body = vec![
-                    vir::Expr::FieldAccessPredicate(
-                        box val_field.clone(),
+                    vir::Expr::acc_permission(
+                        val_field.clone(),
                         vir::Frac::one()
                     )
                 ];
@@ -184,8 +184,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     self.encoder.encode_value_field(self.ty)
                 ).into();
                 vec![
-                    vir::Expr::FieldAccessPredicate(
-                        box val_field.clone(),
+                    vir::Expr::acc_permission(
+                        val_field.clone(),
                         vir::Frac::one()
                     ),
                     vir::Expr::le_cmp(
@@ -206,13 +206,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let elem_field = self.encoder.encode_ref_field("val_ref", ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 vec![
-                    vir::Expr::FieldAccessPredicate(
-                        box elem_loc.clone().into(),
+                    vir::Expr::acc_permission(
+                        elem_loc.clone().into(),
                         vir::Frac::one()
                     ),
-                    vir::Expr::PredicateAccessPredicate(
+                    vir::Expr::predicate_access_predicate(
                         predicate_name,
-                        vec![ elem_loc.into() ],
+                         elem_loc.into(),
                         vir::Frac::one(),
                     ),
                 ]
@@ -225,13 +225,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let predicate_name = self.encoder.encode_type_predicate_use(ty);
                     let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                     vec![
-                        vir::Expr::FieldAccessPredicate(
-                            box elem_loc.clone().into(),
+                        vir::Expr::acc_permission(
+                            elem_loc.clone().into(),
                             vir::Frac::one()
                         ),
-                        vir::Expr::PredicateAccessPredicate(
+                        vir::Expr::predicate_access_predicate(
                             predicate_name,
-                            vec![ elem_loc.into() ],
+                            elem_loc.into(),
                             vir::Frac::one(),
                         ),
                     ]
@@ -254,15 +254,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
                         let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                         perms.push(
-                            vir::Expr::FieldAccessPredicate(
-                                box elem_loc.clone().into(),
+                            vir::Expr::acc_permission(
+                                elem_loc.clone().into(),
                                 vir::Frac::one()
                             )
                         );
                         perms.push(
-                            vir::Expr::PredicateAccessPredicate(
+                            vir::Expr::predicate_access_predicate(
                                 predicate_name,
-                                vec![ elem_loc.into() ],
+                                elem_loc.into(),
                                 vir::Frac::one(),
                             )
                         )
@@ -273,8 +273,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let discriminan_loc = vir::Expr::from(self_local_var.clone()).field(discriminant_field);
                     // acc(self.discriminant)
                     perms.push(
-                        vir::Expr::FieldAccessPredicate(
-                            box discriminan_loc.clone().into(),
+                        vir::Expr::acc_permission(
+                            discriminan_loc.clone().into(),
                             vir::Frac::one()
                         )
                     );
@@ -320,15 +320,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
                             let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                             variant_perms.push(
-                                vir::Expr::FieldAccessPredicate(
-                                    box elem_loc.clone().into(),
+                                vir::Expr::acc_permission(
+                                    elem_loc.clone().into(),
                                     vir::Frac::one()
                                 )
                             );
                             variant_perms.push(
-                                vir::Expr::PredicateAccessPredicate(
+                                vir::Expr::predicate_access_predicate(
                                     predicate_name,
-                                    vec![ elem_loc.into() ],
+                                    elem_loc.into(),
                                     vir::Frac::one(),
                                 )
                             )
@@ -355,15 +355,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 perms.push(
-                    vir::Expr::FieldAccessPredicate(
-                        box elem_loc.clone().into(),
+                    vir::Expr::acc_permission(
+                        elem_loc.clone().into(),
                         vir::Frac::one()
                     )
                 );
                 perms.push(
-                    vir::Expr::PredicateAccessPredicate(
+                    vir::Expr::predicate_access_predicate(
                         predicate_name,
-                        vec![ elem_loc.into() ],
+                        elem_loc.into(),
                         vir::Frac::one(),
                     )
                 );
@@ -373,14 +373,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyNever => {
                 vec![
                     // A `false` here is unsound. See issue #38.
-                    vir::Expr::Const(true.into())
+                    true.into()
                 ]
             },
 
             ref ty_variant => {
                 debug!("Encoding of type '{}' is incomplete", ty_variant);
                 vec![
-                    vir::Expr::Const(true.into())
+                    true.into()
                 ]
             },
         };

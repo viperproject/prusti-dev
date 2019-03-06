@@ -39,7 +39,7 @@ impl Action {
             }
 
             Action::Unfold(ref pred, ref args, frac) => {
-                vir::Expr::Unfolding(pred.clone(), args.clone(), box inner_expr, *frac)
+                vir::Expr::unfolding(pred.clone(), args.clone(), inner_expr, *frac)
             }
 
             Action::Drop(_) => {

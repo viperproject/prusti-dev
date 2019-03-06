@@ -155,7 +155,7 @@ impl fmt::Display for Stmt {
                 restored.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", ")
             ),
 
-            Stmt::PackageMagicWand(Expr::MagicWand(ref lhs, ref rhs), ref package_stmts, _position) => {
+            Stmt::PackageMagicWand(Expr::MagicWand(ref lhs, ref rhs, _), ref package_stmts, _position) => {
                 writeln!(f, "package {}", lhs)?;
                 writeln!(f, "    --* {}", rhs)?;
                 write!(f, "{{")?;
@@ -168,7 +168,7 @@ impl fmt::Display for Stmt {
                 write!(f, "}}")
             }
 
-            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs)) => {
+            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs, _)) => {
                 writeln!(f, "apply {} --* {}", lhs, rhs)
             }
 
@@ -240,11 +240,40 @@ impl Stmt {
         )
     }
 
-    pub fn apply_magic_wand(lhs: Expr, rhs: Expr, pos: Position) -> Self {
+    pub fn apply_magic_wand(lhs: Expr, rhs: Expr) -> Self {
         Stmt::ApplyMagicWand(
-            Expr::MagicWand(box lhs, box rhs, pos),
+            Expr::MagicWand(box lhs, box rhs, Position::default()),
         )
     }
+
+    pub fn pos(&self) -> Option<&Position> {
+        match self {
+            Stmt::PackageMagicWand(_, _, ref p) => Some(p),
+            _ => None
+        }
+    }
+
+    pub fn set_pos(self, pos: Position) -> Self {
+        match self {
+            Stmt::PackageMagicWand(w, s, p) => Stmt::PackageMagicWand(w, s, pos),
+            x => x,
+        }
+    }
+
+    // Replace a Position::default() position with `pos`
+    pub fn set_default_pos(self, pos: Position) -> Self {
+        if self.pos().iter().any(|x| x.is_default()) {
+            self.set_pos(pos)
+        } else {
+            self
+        }
+    }
+
+    // Replace all Position::default() positions in expressions with `pos`
+    pub fn set_default_expr_pos(self, pos: Position) -> Self {
+        self.map_expr(|e| e.set_default_pos(pos.clone()))
+    }
+
 }
 
 pub trait StmtFolder {

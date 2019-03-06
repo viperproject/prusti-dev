@@ -77,7 +77,7 @@ impl vir::ExprFolder for Optimiser {
 
         if replacer.counter > 0 {
             for (expr, variable) in replacer.map {
-                forall = vir::Expr::LetExpr(variable, box expr, box forall, pos);
+                forall = vir::Expr::LetExpr(variable, box expr, box forall, pos.clone());
             }
             debug!("replaced quantifier: {}", forall);
         }

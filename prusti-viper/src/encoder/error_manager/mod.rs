@@ -11,6 +11,7 @@ use syntax_pos::MultiSpan;
 use uuid::Uuid;
 use viper::VerificationError;
 use syntax::codemap::CodeMap;
+use syntax_pos::DUMMY_SP;
 
 /// The cause of a panic!()
 #[derive(Clone,Debug)]
@@ -58,6 +59,8 @@ pub enum ErrorCtxt {
     PureFunctionCall,
     /// A generic expression
     GenericExpression,
+    /// A generic statement
+    GenericStatement,
     /// Package a magic wand for the postcondition, at the end of a method
     PackageMagicWandForPostcondition,
     /// A diverging function call performed in a pure function
@@ -98,6 +101,10 @@ impl<'tcx> ErrorManager<'tcx> {
             codemap,
             error_ctxt: HashMap::new(),
         }
+    }
+
+    pub fn no_position(&mut self) -> Position {
+        self.register(DUMMY_SP, ErrorCtxt::Unexpected)
     }
 
     pub fn register(&mut self, span: Span, error_ctxt: ErrorCtxt) -> Position {

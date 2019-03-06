@@ -297,7 +297,7 @@ impl vir::Stmt {
                 state.remove_dropped(places);
             }
 
-            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs), ref _stmts, ref _pos) => {
+            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _), ref _stmts, ref _pos) => {
                 // The semantics of the statements is handled in `foldunfold/mod.rs`.
                 //for stmt in package_stmts {
                 //    stmt.apply_on_state(state, predicates);
@@ -306,7 +306,7 @@ impl vir::Stmt {
                 inhale_expr(lhs, state, predicates);
             }
 
-            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs)) => {
+            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _)) => {
                 exhale_expr(lhs, state, predicates);
                 inhale_expr(rhs, state, predicates);
             }
