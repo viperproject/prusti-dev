@@ -17,8 +17,6 @@ use verification_backend::VerificationBackend;
 use ast_utils::AstUtils;
 use std::marker::PhantomData;
 use std::time::Instant;
-use std::process::Command;
-use std::process;
 
 pub mod state {
     pub struct Uninitialized;
