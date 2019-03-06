@@ -50,7 +50,7 @@ impl Position {
 
 impl Default for Position {
     fn default() -> Self {
-        Position::new(0, 0, "none".to_string())
+        Position::new(0, 0, "no-position".to_string())
     }
 }
 

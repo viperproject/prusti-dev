@@ -643,10 +643,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ref x => unimplemented!("{:?}", x)
         }.into_iter().map(
             |s| {
+                let expr_pos = self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericExpression);
+                let stmt_pos = self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericStatement);
+
                 s.set_default_expr_pos(
-                    self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericExpression)
+                    expr_pos
                 ).set_default_pos(
-                    self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericStatement)
+                    stmt_pos
                 )
             }
         ).collect()

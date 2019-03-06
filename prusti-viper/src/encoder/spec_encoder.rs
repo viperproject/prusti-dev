@@ -598,7 +598,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         );
 
         debug!("MIR expr {:?} --> {}", assertion_expr.id, encoded_expr);
-        encoded_expr
+        encoded_expr.set_default_pos(
+            self.encoder.error_manager().register(
+                assertion_expr.expr.span,
+                ErrorCtxt::GenericExpression
+            )
+        )
     }
 
 
