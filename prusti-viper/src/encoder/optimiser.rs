@@ -119,17 +119,18 @@ impl vir::ExprFolder for OldPlaceReplacer {
         expr: Box<vir::Expr>,
         pos: vir::Position
     ) -> vir::Expr {
+        let original_expr = vir::Expr::LabelledOld(label, expr.clone(), pos.clone());
         if expr.is_place() {
-            if let Some(local) = self.map.get(&expr) {
+            if let Some(local) = self.map.get(&original_expr) {
                 vir::Expr::Local(local.clone(), pos)
             } else {
                 let ty = expr.get_type();
                 let local = self.construct_fresh_local(ty);
-                self.map.insert(vir::Expr::LabelledOld(label, expr, pos.clone()), local.clone());
+                self.map.insert(original_expr, local.clone());
                 vir::Expr::Local(local, pos)
             }
         } else {
-            vir::Expr::LabelledOld(label, expr, pos)
+            original_expr
         }
     }
 }
