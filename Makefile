@@ -56,14 +56,14 @@ long-test: build
 bench:
 	$(SET_ENV_VARS) cargo bench --all
 
-run:
+run: build
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
 
-run-flamegraph:
+run-flamegraph: build
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
     perf record -F 99 --call-graph=dwarf,512 \
 	$(PRUSTI_DRIVER) \
@@ -72,14 +72,14 @@ run-flamegraph:
 		$(RUN_FILE)
 	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
-run-release:
+run-release: release
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER_RELEASE) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
 
-run-release-profile:
+run-release-profile: release
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
     valgrind --tool=callgrind --vex-iropt-register-updates=allregs-at-mem-access \
 	${PRUSTI_DRIVER_RELEASE} \
@@ -88,7 +88,7 @@ run-release-profile:
 		${RUN_FILE}
 	@echo "Now run 'kcachegrind callgrind.out.*'"
 
-run-release-flamegraph:
+run-release-flamegraph: release
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
     perf record -F 99 --call-graph=dwarf,512 \
 	${PRUSTI_DRIVER_RELEASE} \
