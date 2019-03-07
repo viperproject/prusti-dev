@@ -11,8 +11,9 @@ use encoder::vir;
 
 /// Optimisations currently done:
 ///
-/// 1.  Replace all `old(...)` inside `forall` with
-///     `let tmp == (old(..)) in forall`.
+/// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.
+///
+/// Note: this seems to be required to workaround some Silicon incompleteness.
 pub fn rewrite(cfg: vir::CfgMethod) -> vir::CfgMethod {
     let mut optimiser = Optimiser::new();
     optimiser.replace_cfg(cfg)
@@ -99,6 +100,7 @@ impl OldPlaceReplacer {
             map: HashMap::new(),
         }
     }
+
     fn construct_fresh_local(&mut self, ty: &vir::Type) -> vir::LocalVar {
         let name = format!("_LET_{}", self.counter);
         self.counter += 1;
@@ -123,7 +125,7 @@ impl vir::ExprFolder for OldPlaceReplacer {
             } else {
                 let ty = expr.get_type();
                 let local = self.construct_fresh_local(ty);
-                self.map.insert(*expr, local.clone());
+                self.map.insert(vir::Expr::LabelledOld(label, expr, pos.clone()), local.clone());
                 vir::Expr::Local(local, pos)
             }
         } else {
