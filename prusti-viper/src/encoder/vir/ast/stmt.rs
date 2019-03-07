@@ -187,6 +187,17 @@ impl fmt::Display for Stmt {
                 writeln!(f, "expire_borrows {}", dag)
             }
 
+            Stmt::If(ref guard, ref then_stmts) => {
+                write!(f, "if {} {{", guard)?;
+                if !then_stmts.is_empty() {
+                    write!(f, "\n")?;
+                }
+                for stmt in then_stmts.iter() {
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
+                }
+                write!(f, "}}")
+            }
+
             ref x => unimplemented!("{:?}", x),
         }
     }

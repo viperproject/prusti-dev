@@ -9,6 +9,7 @@
 
 use encoder::vir;
 use encoder::foldunfold::action::Action;
+use encoder::foldunfold::perm::Perm;
 use std::collections::HashMap;
 
 #[derive(Clone)]
@@ -28,5 +29,25 @@ impl EventLog {
     pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
         let entry = self.prejoin_actions.entry(block_index).or_insert(Vec::new());
         entry.push(action);
+    }
+    pub fn collect_dropped_permissions(
+        &self,
+        path: &[vir::CfgBlockIndex],
+        dag: &vir::borrows::DAG
+    ) -> Vec<Perm> {
+        assert!(path.len() > 0);
+        let relevant_path = &path[0..path.len()-1];
+        let mut dropped_permissions = Vec::new();
+        for curr_block_index in relevant_path {
+            if let Some(actions) = self.prejoin_actions.get(curr_block_index) {
+                for action in actions {
+                    if let Action::Drop(perm) = action {
+                        // TODO: Check if place is in DAG.
+                        dropped_permissions.push(perm.clone());
+                    }
+                }
+            }
+        }
+        dropped_permissions
     }
 }

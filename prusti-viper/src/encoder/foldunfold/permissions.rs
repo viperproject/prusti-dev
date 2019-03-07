@@ -124,18 +124,20 @@ impl RequiredPermissionsGetter for vir::Stmt {
             }
 
             &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
-                let mut permissions = guard.get_required_permissions(predicates);
-                // A little optimization
-                if !then_stmts.is_empty() && !else_stmts.is_empty() {
-                    permissions = union(
-                        &permissions,
-                        &intersection(
-                            &then_stmts[0].get_required_permissions(predicates),
-                            &else_stmts[0].get_required_permissions(predicates),
-                        )
-                    );
-                }
-                permissions
+                // TODO: Remove.
+                HashSet::new()
+                //let mut permissions = guard.get_required_permissions(predicates);
+                //// A little optimization
+                //if !then_stmts.is_empty() && !else_stmts.is_empty() {
+                    //permissions = union(
+                        //&permissions,
+                        //&intersection(
+                            //&then_stmts[0].get_required_permissions(predicates),
+                            //&else_stmts[0].get_required_permissions(predicates),
+                        //)
+                    //);
+                //}
+                //permissions
             }
 
             &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref _lhs, ref _rhs, ref _pos), ref _package_stmts, ref _position) => {

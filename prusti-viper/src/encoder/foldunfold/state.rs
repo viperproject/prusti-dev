@@ -542,6 +542,30 @@ impl State {
         }
     }
 
+    fn restore_dropped_perm(&mut self, item: Perm) {
+        trace!("[enter] restore_dropped_perm item={}", item);
+        for moved_place in &self.moved {
+            trace!("  moved_place={}", moved_place);
+        }
+        match item {
+            Perm::Acc(place, frac) => {
+                self.remove_moved_matching(|p| place.has_prefix(p));
+                self.insert_acc(place, frac);
+            },
+            Perm::Pred(place, frac) => {
+                self.remove_moved_matching(|p| place.has_prefix(p));
+                self.insert_pred(place, frac);
+            },
+        };
+    }
+
+    pub fn restore_dropped_perms<I>(&mut self, items: I) where I: Iterator<Item=Perm> {
+        for item in items {
+            self.restore_dropped_perm(item);
+        }
+        self.check_consistency();
+    }
+
     pub fn as_vir_expr(&self) -> vir::Expr {
         let mut exprs: Vec<vir::Expr> = vec![];
         for (place, frac) in self.acc.iter() {

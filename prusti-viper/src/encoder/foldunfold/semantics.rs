@@ -294,7 +294,8 @@ impl vir::Stmt {
             }
 
             &vir::Stmt::StopExpiringLoans(ref places) => {
-                state.remove_dropped(places);
+                // TODO: Remove this statement.
+                //state.remove_dropped(places);
             }
 
             &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _), ref _stmts, ref _pos) => {
