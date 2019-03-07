@@ -326,14 +326,6 @@ impl<'tcx> ErrorManager<'tcx> {
                 error_span.clone()
             ),
 
-            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => CompilerError::new(
-                "P0026",
-                "postcondition of pure function definition might not hold",
-                error_span.clone()
-            ),
-
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
                 "P1003",
                 format!(
