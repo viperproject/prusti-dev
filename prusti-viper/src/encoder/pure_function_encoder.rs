@@ -123,17 +123,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             |local| self.encode_local(local)
         ).collect();
         let return_type = self.encode_function_return_type();
+
+        // Add value range of the arguments and return value to the pre/postconditions
         if config::check_binary_operations() {
+            let res_value_range_pos = self.encoder.error_manager().register(
+                self.mir.span,
+                ErrorCtxt::PureFunctionPostconditionValueRangeOfResult
+            );
             let pure_fn_return_variable = vir::LocalVar::new(
                 "__result",
                 self.encode_function_return_type());
-            let return_bounds = self.encoder.encode_type_bounds(
-                &vir::Expr::local(pure_fn_return_variable), self.mir.return_ty());
+            let return_bounds: Vec<_> = self.encoder.encode_type_bounds(
+                &vir::Expr::local(pure_fn_return_variable),
+                self.mir.return_ty()
+            ).into_iter()
+                .map(|p| p.set_default_pos(res_value_range_pos.clone()))
+                .collect();
             postcondition.extend(return_bounds);
+
             for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
                 let typ = self.interpreter.mir_encoder().get_local_ty(local);
                 let bounds = self.encoder.encode_type_bounds(
-                    &vir::Expr::local(formal_arg.clone()), &typ);
+                    &vir::Expr::local(formal_arg.clone()),
+                    &typ
+                );
                 precondition.extend(bounds);
             }
         }
@@ -144,7 +157,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             ErrorCtxt::PureFunctionDefinition
         );
 
-        debug_assert!(!postcondition.iter().any(|p| p.pos().is_default()));
+        debug_assert!(!postcondition.iter().any(|p| p.pos().is_default()), "Some postcondition has no position: {:?}", postcondition);
 
         let function = vir::Function {
             name: function_name.clone(),

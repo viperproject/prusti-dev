@@ -57,6 +57,8 @@ pub enum ErrorCtxt {
     PureFunctionDefinition,
     /// A pure function call
     PureFunctionCall,
+    /// An expression that encodes the value range of the result of a pure function
+    PureFunctionPostconditionValueRangeOfResult,
     /// A generic expression
     GenericExpression,
     /// A generic statement
