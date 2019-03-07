@@ -18,14 +18,14 @@ fn test1<A, B>(arg: &mut Number<A, B>) {
 }
 
 #[requires="arg.i >= 9000"]
-#[ensures="arg.i >= 8000"] //~ ERROR postcondition might not hold
-fn test2a<C>(arg: &mut Number<C, i16>) {
+#[ensures="arg.i >= 8000"]
+fn test2a<C>(arg: &mut Number<C, i16>) { //~ ERROR postcondition might not hold
     test1(arg);
 }
 
 #[requires="arg.i >= 8000"]
-#[ensures="arg.i >= 7000"] //~ ERROR postcondition might not hold
-fn test2b<D>(arg: &mut Number<i8, D>) {
+#[ensures="arg.i >= 7000"]
+fn test2b<D>(arg: &mut Number<i8, D>) { //~ ERROR postcondition might not hold
     test1(arg);
 }
 

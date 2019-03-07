@@ -14,8 +14,8 @@ fn test1<Y>(arg: &mut Number<Y>) {
 }
 
 #[requires="arg.i >= 9000"]
-#[ensures="arg.i >= 8001"] //~ ERROR postcondition might not hold
-fn test2<Z>(arg: &mut Number<Z>) {
+#[ensures="arg.i >= 8001"]
+fn test2<Z>(arg: &mut Number<Z>) { //~ ERROR postcondition might not hold
     // using specs with a *different* typaram
     test1(arg);
 }

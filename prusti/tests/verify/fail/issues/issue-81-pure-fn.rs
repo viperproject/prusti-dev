@@ -8,8 +8,8 @@ fn bad(n: i32) -> bool {
 
 #[pure]
 #[requires="n > 0"]
-#[ensures="bad(n)"] //~ ERROR postcondition
-fn magic(n: i32) -> i32 {
+#[ensures="bad(n)"]
+fn magic(n: i32) -> i32 { //~ ERROR postcondition
     n
 }
 

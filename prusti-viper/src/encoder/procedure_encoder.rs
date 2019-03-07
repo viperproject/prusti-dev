@@ -2218,9 +2218,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
             {
-                let mut spans = vec![self.mir.span];
-                spans.extend(self.get_postcondition_span(contract));
-                spans
+                let mut multi_span = MultiSpan::from_span(self.mir.span);
+                for span in self.get_postcondition_span(contract).into_iter() {
+                    multi_span.push_span_label(span, "relevant postcondition".to_string());
+                }
+                multi_span
             },
             ErrorCtxt::AssertMethodPostcondition
         );
