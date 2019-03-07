@@ -15,7 +15,7 @@ struct Int<S> {
 impl<A> Int<A> {
     //#[requires="A == Even ~~> i % 2 == 0"]
     #[requires="A == Odd  ~~> i % 2 != 0"]
-    fn new(i: i32) -> Int<A> { //~ ERROR postcondition might not hold
+    fn new(i: i32) -> Int<A> { //~ ERROR type invariants
         Int {
             i,
             s: PhantomData,

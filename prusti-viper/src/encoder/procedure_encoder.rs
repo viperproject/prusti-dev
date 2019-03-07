@@ -36,7 +36,7 @@ use rustc::ty;
 use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use syntax::codemap::Span;
+use syntax::codemap::{Span, MultiSpan};
 use prusti_interface::specifications::*;
 use syntax::ast;
 use encoder::mir_encoder::MirEncoder;
@@ -119,17 +119,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
 
         debug!("procedure_contract: {:?}", &procedure_contract);
-        //error!("def_id of proc: {:?}", &self.proc_def_id);
+        //trace!("def_id of proc: {:?}", &self.proc_def_id);
         let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
-        //error!("def_id of impl: {:?}", &impl_def_id);
+        //trace!("def_id of impl: {:?}", &impl_def_id);
         if let Some(id) = impl_def_id {
             let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
-            //error!("def_id of trait: {:?}", &def_id_trait);
+            //trace!("def_id of trait: {:?}", &def_id_trait);
             if let Some(id) = def_id_trait {
                 let proc_name = self.encoder.env().tcx().item_name(self.proc_def_id).to_string();
-                //error!("proc_name: {:?}", proc_name);
+                //trace!("proc_name: {:?}", proc_name);
                 let assoc_items: Vec<_> = self.encoder.env().tcx().associated_items(id).collect();
-                //error!("assoc items: {:?}", &assoc_items);
+                //trace!("assoc items: {:?}", &assoc_items);
                 if procedure_contract.functional_precondition().len() != 0 ||
                     procedure_contract.functional_postcondition().len() != 0 {
                     unimplemented!("Refinement of trait specifications is not supported.");
@@ -2217,12 +2217,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
-            self.get_postcondition_span(contract),
+            {
+                let mut multi_span = MultiSpan::from_span(self.mir.span);
+                for span in self.get_postcondition_span(contract).into_iter() {
+                    multi_span.push_span_label(span, "relevant postcondition".to_string());
+                }
+                multi_span
+            },
             ErrorCtxt::AssertMethodPostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos));
 
-        // Assert invariants
+        // Assert type invariants
         let pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::AssertMethodPostconditionTypeInvariants
