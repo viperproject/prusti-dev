@@ -212,12 +212,18 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
             let domains = self.encoder.get_used_viper_domains();
             let fields = self.encoder.get_used_viper_fields().to_viper(ast);
-            let functions = self.encoder.get_used_viper_functions();
-            let functions = optimisations::functions::inline_constant_functions(functions)
-                .into_iter()
-                .map(|mut f| { optimisations::functions::simplify(&mut f); f })
-                .map(|f| f.to_viper(ast))
-                .collect::<Vec<_>>();
+            let unoptimized_functions = self.encoder.get_used_viper_functions();
+            let functions: Vec<_> = if config::simplify_expressions() {
+                optimisations::functions::inline_constant_functions(unoptimized_functions)
+                    .into_iter()
+                    .map(|mut f| { optimisations::functions::simplify(&mut f); f })
+                    .map(|f| f.to_viper(ast))
+                    .collect()
+            } else {
+                unoptimized_functions
+                    .map(|f| f.to_viper(ast))
+                    .collect()
+            };
             let predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
             let methods = self.encoder.get_used_viper_methods().into_iter()
                 .map(|m| m.to_viper(ast)).collect::<Vec<_>>();

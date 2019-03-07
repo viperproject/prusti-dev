@@ -27,6 +27,7 @@ lazy_static! {
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("JVM_ARGS", vec![]).unwrap();
+        settings.set_default("SIMPLIFY_FUNCTIONS", true).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -116,4 +117,9 @@ pub fn contracts_lib() -> String {
 /// Get extra JVM arguments
 pub fn jvm_args() -> Vec<String> {
     SETTINGS.read().unwrap().get::<Vec<String>>("JVM_ARGS").unwrap()
+}
+
+/// Should we simplify functions?
+pub fn simplify_expressions() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("SIMPLIFY_FUNCTIONS").unwrap()
 }
