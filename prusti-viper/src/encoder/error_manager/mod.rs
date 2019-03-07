@@ -59,6 +59,10 @@ pub enum ErrorCtxt {
     PureFunctionCall,
     /// An expression that encodes the value range of the result of a pure function
     PureFunctionPostconditionValueRangeOfResult,
+    /// A Viper function with `false` precondition that encodes the failure (panic) of an
+    /// `assert` Rust terminator in a Rust pure function.
+    /// Arguments: the message of the Rust assertion
+    PureFunctionAssertTerminator(String),
     /// A generic expression
     GenericExpression,
     /// A generic statement
@@ -301,6 +305,12 @@ impl<'tcx> ErrorManager<'tcx> {
             ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => CompilerError::new(
                 "P0023",
                 "postcondition of pure function definition might not hold",
+                error_span.clone()
+            ),
+
+            ("application.precondition:assertion.false", ErrorCtxt::PureFunctionAssertTerminator(ref message)) => CompilerError::new(
+                "P0024",
+                format!("assertion might fail with \"{}\"", message),
                 error_span.clone()
             ),
 

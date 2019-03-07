@@ -595,7 +595,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                 let pos = self.encoder.error_manager().register(
                     term.source_info.span,
-                    ErrorCtxt::AssertTerminator(msg.description().to_string())
+                    ErrorCtxt::PureFunctionAssertTerminator(msg.description().to_string())
                 );
 
                 MultiExprBackwardInterpreterState::new(
