@@ -66,8 +66,8 @@ fn capitalize(vec: &mut VecWrapperI32) {
     }
 }
 
-#[ensures="false"]
-fn bar() { //~ ERROR postcondition
+#[ensures="false"] //~ ERROR postcondition
+fn bar() {
     let mut data = VecWrapperI32::new();
     data.push(1);
     data.push(2);

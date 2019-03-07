@@ -14,28 +14,28 @@ fn u32_foo() -> u32 {
 
 fn u32_foo_call_1() {
     let n = u32_foo();
-    assert!(0 <= n);    //~ ERROR
+    assert!(0 <= n); //~ ERROR
 }
 
 fn u32_foo_call_2() {
     let n = u32_foo();
-    assert!(n <= 4294967295);    //~ ERROR
+    assert!(n <= 4294967295); //~ ERROR
 }
 
 fn u32_foo_call_3() {
-    assert!(0 <= u32_foo());        //~ ERROR
+    assert!(0 <= u32_foo()); //~ ERROR
 }
 
 fn u32_foo_call_4() {
-    assert!(u32_foo() <= 4294967295);    //~ ERROR
+    assert!(u32_foo() <= 4294967295); //~ ERROR
 }
 
-#[ensures="0 <= u32_foo()"]
-fn u32_foo_call_5() {   //~ ERROR
+#[ensures="0 <= u32_foo()"] //~ ERROR
+fn u32_foo_call_5() {
 }
 
-#[ensures="u32_foo() <= 4294967295"]
-fn u32_foo_call_6() {   //~ ERROR
+#[ensures="u32_foo() <= 4294967295"] //~ ERROR
+fn u32_foo_call_6() {
 }
 
 fn main() {}

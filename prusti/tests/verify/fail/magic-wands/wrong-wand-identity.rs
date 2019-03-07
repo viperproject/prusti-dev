@@ -6,8 +6,8 @@ struct T {
     val: i32
 }
 
-#[ensures="false"]
-fn identity(x: &mut T) -> &mut T { //~ ERROR
+#[ensures="false"] //~ ERROR
+fn identity(x: &mut T) -> &mut T {
     x
 }
 

@@ -1,13 +1,15 @@
 extern crate prusti_contracts;
 
 struct S {
-    f: i32
+    pub f: i32
 }
 
-impl S {
+impl From<i32> for S {
     #[requires="true"]
     #[ensures="false"] //~ ERROR
-    pub fn test(self) {}
+    fn from(f: i32) -> S {
+        S { f }
+    }
 }
 
 fn main() {}
