@@ -9,10 +9,13 @@ RUSTUP_TOOLCHAIN=$(shell cat rust-toolchain)
 RUST_VERSION = ${RUSTUP_TOOLCHAIN}-x86_64-unknown-linux-gnu
 COMPILER_PATH = $$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH = ${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:./target/debug:./target/debug/deps
+RELEASE_LIB_PATH = ${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:./target/release:./target/release/deps
 PRUSTI_DRIVER=./target/debug/prusti-driver
 PRUSTI_DRIVER_RELEASE=./target/release/prusti-driver
 
 SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
+
+SET_RELEASE_ENV_VARS = LD_LIBRARY_PATH=$(RELEASE_LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
 
 default: build
 
@@ -73,14 +76,14 @@ run-flamegraph: build
 	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
 run-release: release
-	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
+	$(SET_RELEASE_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER_RELEASE) \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
 
 run-release-profile: release
-	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
+	$(SET_RELEASE_ENV_VARS) RUST_LOG=$(RUST_LOG) \
     valgrind --tool=callgrind --vex-iropt-register-updates=allregs-at-mem-access \
 	${PRUSTI_DRIVER_RELEASE} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
@@ -89,7 +92,7 @@ run-release-profile: release
 	@echo "Now run 'kcachegrind callgrind.out.*'"
 
 run-release-flamegraph: release
-	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
+	$(SET_RELEASE_ENV_VARS) RUST_LOG=$(RUST_LOG) \
     perf record -F 99 --call-graph=dwarf,512 \
 	${PRUSTI_DRIVER_RELEASE} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
