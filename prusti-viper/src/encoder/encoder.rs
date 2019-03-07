@@ -379,10 +379,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                             stop_at_bbi: Option<mir::BasicBlock>
     ) -> vir::Expr {
         let spec_encoder = SpecEncoder::new(self, mir, label, encoded_args, encoded_return, targets_are_values, stop_at_bbi);
-        let spans = spec_encoder.get_assertion_spans(assertion);
         spec_encoder.encode_assertion(assertion).set_default_pos(
             self.error_manager().register(
-                spans,
+                assertion.get_spans(),
                 ErrorCtxt::GenericExpression
             )
         )

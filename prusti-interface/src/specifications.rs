@@ -14,6 +14,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::string::ToString;
 use syntax::{ast, ptr};
+use syntax::codemap::Span;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A specification type.
@@ -269,3 +270,35 @@ pub type TypedExpression = Expression<rustc::hir::Expr>;
 pub type TypedTriggerSet = TriggerSet<rustc::hir::Expr>;
 
 pub type TypedTrigger = Trigger<rustc::hir::Expr>;
+
+
+impl TypedAssertion {
+    pub fn get_spans(&self) -> Vec<Span> {
+        match self.kind {
+            box AssertionKind::Expr(ref assertion_expr) => {
+                vec![ assertion_expr.expr.span.clone() ]
+            }
+            box AssertionKind::And(ref assertions) => {
+                assertions.iter()
+                    .map(|a| a.get_spans())
+                    .fold(
+                        vec![],
+                        |mut a, b| { a.extend(b); a }
+                    )
+            }
+            box AssertionKind::Implies(ref lhs, ref rhs) => {
+                let mut spans = vec![ lhs.expr.span.clone() ];
+                spans.extend(rhs.get_spans());
+                spans
+            }
+            box AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
+                // FIXME: include the quantifier
+                body.get_spans()
+            }
+            box AssertionKind::Pledge(ref _reference, ref body) => {
+                // FIXME: include the quantifier
+                body.get_spans()
+            }
+        }
+    }
+}

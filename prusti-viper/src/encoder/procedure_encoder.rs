@@ -1832,6 +1832,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         assertion.remove_redundant_old()
     }
 
+    /// Get the span of a postcondition.
+    fn get_postcondition_span(
+        &mut self,
+        contract: &ProcedureContract<'tcx>,
+    ) -> Vec<Span> {
+        contract
+            .functional_postcondition()
+            .iter()
+            .map(|spec| spec.assertion.get_spans())
+            .fold(
+                vec![],
+                |mut a, b| { a.extend(b); a }
+            )
+    }
+
     /// Encode the postcondition with two expressions:
     /// - one for the type encoding
     /// - one for the functional specification.
@@ -2042,11 +2057,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
-            self.mir.span,
+            self.get_postcondition_span(contract),
             ErrorCtxt::ExhaleMethodPostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
-
 
         // Exhale permissions of postcondition
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos.clone()));
