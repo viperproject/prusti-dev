@@ -2218,14 +2218,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
             self.get_postcondition_span(contract),
-            ErrorCtxt::ExhaleMethodPostcondition
+            ErrorCtxt::AssertMethodPostcondition
         );
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos));
 
         // Assert invariants
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(invs_spec, pos.clone()));
+        let pos = self.encoder.error_manager().register(
+            self.mir.span,
+            ErrorCtxt::AssertMethodPostconditionTypeInvariants
+        );
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(invs_spec, pos));
 
         // Exhale permissions of postcondition
+        let pos = self.encoder.error_manager().register(
+            self.mir.span,
+            ErrorCtxt::ExhaleMethodPostcondition
+        );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos.clone()));
         for magic_wand in magic_wands {
             self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(magic_wand, pos.clone()));

@@ -63,6 +63,15 @@ run:
 		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
 		$(RUN_FILE)
 
+run-flamegraph:
+	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
+    perf record -F 99 --call-graph=dwarf,512 \
+	$(PRUSTI_DRIVER) \
+		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+		--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+		$(RUN_FILE)
+	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
+
 run-release:
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
 	$(PRUSTI_DRIVER_RELEASE) \
@@ -81,7 +90,7 @@ run-release-profile:
 
 run-release-flamegraph:
 	$(SET_ENV_VARS) RUST_LOG=$(RUST_LOG) \
-    perf record -g -F 99 \
+    perf record -F 99 --call-graph=dwarf,512 \
 	${PRUSTI_DRIVER_RELEASE} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
 		--extern prusti_contracts=$(wildcard ./target/release/deps/libprusti_contracts-*.rlib) \

@@ -41,7 +41,7 @@ lazy_static! {
 
         // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
-            Environment::with_prefix("PRUSTI").ignore_empty(true).separator(",")
+            Environment::with_prefix("PRUSTI").ignore_empty(true)
         ).unwrap();
 
         settings

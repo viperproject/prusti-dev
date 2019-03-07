@@ -26,7 +26,7 @@ impl<Z: IntState> Int<Z> {
 
     //#[requires="Z == Even ~~> i % 2 == 0"]
     //#[requires="Z == Odd  ~~> i % 2 != 0"]
-    fn new_fail(i: i32) -> Int<Z> { //~ ERROR postcondition might not hold
+    fn new_fail(i: i32) -> Int<Z> { //~ ERROR type invariants
         Int {
             i,
             s: PhantomData,
@@ -37,7 +37,7 @@ impl<Z: IntState> Int<Z> {
         self.i += 2;
     }
 
-    fn test_incr3(&mut self) { //~ ERROR postcondition might not hold
+    fn test_incr3(&mut self) { //~ ERROR type invariants
         self.i += 3;
     }
 
@@ -48,7 +48,7 @@ impl<Z: IntState> Int<Z> {
         }
     }
 
-    fn test_plus3(self) -> Self { //~ ERROR postcondition might not hold
+    fn test_plus3(self) -> Self { //~ ERROR type invariants
         Int {
             i: self.i + 3,
             s: PhantomData,

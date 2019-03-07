@@ -36,6 +36,10 @@ pub enum ErrorCtxt {
     Panic(PanicCause),
     /// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`
     ExhaleMethodPrecondition,
+    /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
+    AssertMethodPostcondition,
+    /// A Viper `assert expr` that encodes the call of a Rust procedure with precondition `expr`
+    AssertMethodPostconditionTypeInvariants,
     /// A Viper `exhale expr` that encodes the end of a Rust procedure with postcondition `expr`
     ExhaleMethodPostcondition,
     /// A Viper `exhale expr` that exhales the permissions of a loop invariant `expr`
@@ -323,6 +327,18 @@ impl<'tcx> ErrorManager<'tcx> {
             ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => CompilerError::new(
                 "P0025",
                 "obligation might not hold on borrow expiry",
+                error_span.clone()
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition) => CompilerError::new(
+                "P0026",
+                format!("postcondition might not hold."),
+                error_span.clone()
+            ),
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => CompilerError::new(
+                "P0027",
+                format!("type invariants might not hold at the end of the method."),
                 error_span.clone()
             ),
 

@@ -8,13 +8,13 @@ struct Number<X> {
 }
 
 #[requires="arg.i >= 9000"]
-#[ensures="arg.i >= 8001"]
-fn test1<Y>(arg: &mut Number<Y>) { //~ ERROR postcondition might not hold
+#[ensures="arg.i >= 8000"]
+fn test1<Y>(arg: &mut Number<Y>) {
     arg.i -= 1000;
 }
 
 #[requires="arg.i >= 9000"]
-#[ensures="arg.i >= 8000"]
+#[ensures="arg.i >= 8001"] //~ ERROR postcondition might not hold
 fn test2<Z>(arg: &mut Number<Z>) {
     // using specs with a *different* typaram
     test1(arg);

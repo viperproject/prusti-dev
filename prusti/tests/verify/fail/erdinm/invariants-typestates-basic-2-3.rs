@@ -22,11 +22,11 @@ impl<A> Int<A> {
         }
     }
 
-    fn test_incr2(&mut self) { //~ ERROR postcondition might not hold
+    fn test_incr2(&mut self) { //~ ERROR type invariants
         self.i += 3;
     }
 
-    fn test_plus2(self) -> Self { //~ ERROR postcondition might not hold
+    fn test_plus2(self) -> Self { //~ ERROR type invariants
         Int {
             i: self.i + 3,
             s: PhantomData,

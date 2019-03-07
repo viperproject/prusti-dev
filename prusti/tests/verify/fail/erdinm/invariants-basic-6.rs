@@ -9,7 +9,7 @@ struct Percentage {
 
 impl Percentage {
     //#[requires="value <= 100"]
-    fn new(value: u8) -> Self { //~ ERROR postcondition might not hold
+    fn new(value: u8) -> Self { //~ ERROR type invariants
         Percentage {
             value: value,
         }

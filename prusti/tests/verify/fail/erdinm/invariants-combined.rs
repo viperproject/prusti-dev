@@ -14,7 +14,7 @@ impl Percentage {
     }
 
     #[requires="value <= 101"] // mistake
-    fn new_fail(value: u8) -> Self { //~ ERROR postcondition might not hold
+    fn new_fail(value: u8) -> Self { //~ ERROR type invariants
         Percentage {
             value: value,
         }
@@ -34,7 +34,7 @@ impl Percentage {
         }
     }
 
-    fn incr_fail2(&mut self) { //~ ERROR postcondition might not hold
+    fn incr_fail2(&mut self) { //~ ERROR type invariants
         if self.value <= 100 { // mistake
             self.value += 1;
         }
