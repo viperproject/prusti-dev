@@ -390,14 +390,13 @@ impl<'v> ToViper<'v, viper::Function<'v>> for Function {
 
 impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Function<'v> {
-        let position = ast.identifier_position(self.pos.line(), self.pos.column(), &self.pos.id());
         ast.function(
             &self.name,
             &self.formal_args.to_viper_decl(ast),
             self.return_type.to_viper(ast),
             &self.pres.to_viper(ast),
             &self.posts.to_viper(ast),
-            position,
+            ast.no_position(),
             self.body.as_ref().map(|b| b.to_viper(ast))
         )
     }

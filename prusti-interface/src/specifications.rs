@@ -282,11 +282,11 @@ pub type TypedTrigger = Trigger<rustc::hir::Expr>;
 
 impl TypedAssertion {
     pub fn get_spans(&self) -> Vec<Span> {
-        match self.kind {
-            box AssertionKind::Expr(ref assertion_expr) => {
+        match *self.kind {
+            AssertionKind::Expr(ref assertion_expr) => {
                 vec![ assertion_expr.expr.span.clone() ]
             }
-            box AssertionKind::And(ref assertions) => {
+            AssertionKind::And(ref assertions) => {
                 assertions.iter()
                     .map(|a| a.get_spans())
                     .fold(
@@ -294,17 +294,23 @@ impl TypedAssertion {
                         |mut a, b| { a.extend(b); a }
                     )
             }
-            box AssertionKind::Implies(ref lhs, ref rhs) => {
+            AssertionKind::Implies(ref lhs, ref rhs) => {
                 let mut spans = vec![ lhs.expr.span.clone() ];
                 spans.extend(rhs.get_spans());
                 spans
             }
-            box AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
-                // FIXME: include the quantifier
+            AssertionKind::ForAll(ref _vars, ref trigger_set, ref body) => {
+                // FIXME: include the variables
                 body.get_spans()
             }
-            box AssertionKind::Pledge(ref _reference, ref body) => {
-                // FIXME: include the quantifier
+            AssertionKind::Pledge(ref _reference, ref lhs, ref rhs) => {
+                // FIXME: include the reference
+                let mut spans = lhs.get_spans();
+                spans.extend(rhs.get_spans());
+                spans
+            }
+            AssertionKind::TypeCond(ref _vars, ref body) => {
+                // FIXME: include the conditions
                 body.get_spans()
             }
         }

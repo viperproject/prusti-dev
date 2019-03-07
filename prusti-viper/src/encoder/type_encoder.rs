@@ -600,9 +600,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             _ => (vec![]),
         };
 
-        let precondition = vir::Expr::PredicateAccessPredicate(
+        let precondition = vir::Expr::predicate_access_predicate(
             predicate_name,
-            vec![self_local_var.clone().into()],
+            self_local_var.clone().into(),
             vir::Frac::one(),
         );
 
@@ -637,7 +637,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         let body = match self.ty.sty {
             ty::TypeVariants::TyParam(param_ty) => None,
-            _ => Some(vir::Expr::Const(vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64))),
+            _ => Some((vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64)).into()),
         };
 
         //let precondition = vir::Expr::PredicateAccessPredicate(
@@ -674,7 +674,7 @@ struct HackyExprFolder {
 }
 
 impl ExprFolder for HackyExprFolder {
-    fn fold_local(&mut self, v: vir::LocalVar) -> vir::Expr {
-        vir::Expr::Local(self.saelf.clone())
+    fn fold_local(&mut self, v: vir::LocalVar, pos: vir::Position) -> vir::Expr {
+        vir::Expr::Local(self.saelf.clone(), pos)
     }
 }

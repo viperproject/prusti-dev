@@ -15,7 +15,6 @@ pub struct Function {
     pub pres: Vec<Expr>,
     pub posts: Vec<Expr>,
     pub body: Option<Expr>,
-    pub pos: Position,
 }
 
 impl WithIdentifier for Function {

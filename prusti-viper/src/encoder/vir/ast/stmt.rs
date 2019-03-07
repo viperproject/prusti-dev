@@ -12,7 +12,7 @@ use encoder::vir::ast::*;
 use super::super::borrows::{DAG as ReborrowingDAG};
 use super::super::cfg::CfgBlockIndex;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Stmt {
     Comment(String),
     Label(String),
@@ -179,7 +179,7 @@ impl fmt::Display for Stmt {
                 write!(f, "}}")
             }
 
-            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs, _)) => {
+            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs, _), _) => {
                 writeln!(f, "apply {} --* {}", lhs, rhs)
             }
 
@@ -257,7 +257,7 @@ impl Stmt {
 
     pub fn apply_magic_wand(lhs: Expr, rhs: Expr, pos: Position) -> Self {
         Stmt::ApplyMagicWand(
-            Expr::MagicWand(box lhs, box rhs),
+            Expr::magic_wand(lhs, rhs),
             pos
         )
     }

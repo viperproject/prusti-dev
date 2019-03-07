@@ -33,14 +33,14 @@ impl MagicWandNode {
     /// Get the LHS of the magic wand.
     pub fn lhs(&self) -> &Expr {
         match self.wand {
-            Expr::MagicWand(box ref lhs, _) => lhs,
+            Expr::MagicWand(box ref lhs, _, _) => lhs,
             _ => unreachable!(),
         }
     }
     /// Get the RHS of the magic wand.
     pub fn rhs(&self) -> &Expr {
         match self.wand {
-            Expr::MagicWand(_, box ref rhs) => rhs,
+            Expr::MagicWand(_, box ref rhs, _) => rhs,
             _ => unreachable!(),
         }
     }

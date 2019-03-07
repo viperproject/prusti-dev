@@ -151,12 +151,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             }
         }
 
-        let pos = self.encoder.error_manager().register(
-            // TODO: use a better span
-            self.mir.span,
-            ErrorCtxt::PureFunctionDefinition
-        );
-
         debug_assert!(!postcondition.iter().any(|p| p.pos().is_default()), "Some postcondition has no position: {:?}", postcondition);
 
         let function = vir::Function {
@@ -166,7 +160,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             pres: precondition,
             posts: postcondition,
             body,
-            pos,
         };
 
         self.encoder.log_vir_program_before_foldunfold(function.to_string());

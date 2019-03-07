@@ -65,8 +65,8 @@ fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     trace!("[enter] try_purify(name={})", function.name);
     if function.has_constant_body() && function.pres.len() == 1 {
         match function.pres[0] {
-            ast::Expr::PredicateAccessPredicate(_, _, _) |
-            ast::Expr::FieldAccessPredicate(_, _) => {
+            ast::Expr::PredicateAccessPredicate(_, _, _, _) |
+            ast::Expr::FieldAccessPredicate(_, _, _) => {
                 function.pres.clear();
                 return function.body.clone();
             },
@@ -92,11 +92,11 @@ impl ast::Expr {
     /// Is this expression a constant?
     fn is_constant(&self) -> bool {
         match self {
-            ast::Expr::Const(_) =>
+            ast::Expr::Const(_, _) =>
                 true,
-            ast::Expr::UnaryOp(_, box subexpr) =>
+            ast::Expr::UnaryOp(_, box subexpr, _) =>
                 subexpr.is_constant(),
-            ast::Expr::BinOp(_, box subexpr1, box subexpr2) =>
+            ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) =>
                 subexpr1.is_constant() && subexpr2.is_constant(),
             _ => false,
         }
@@ -132,7 +132,7 @@ fn is_constant_function_call(
     pure_function_map: &HashMap<String, ast::Expr>
 ) -> Option<ast::Expr> {
     match expr {
-        ast::Expr::Unfolding(_, _, box ast::Expr::FuncApp(name, _, _, _, _), _) => {
+        ast::Expr::Unfolding(_, _, box ast::Expr::FuncApp(name, _, _, _, _), _, _) => {
             pure_function_map.get(name).cloned()
         },
         _ => {
@@ -151,10 +151,10 @@ impl ConstantFunctionInliner for ast::Expr {
             mem::swap(self, &mut expr);
         } else {
             match self {
-                ast::Expr::UnaryOp(_, box subexpr) => {
+                ast::Expr::UnaryOp(_, box subexpr, _) => {
                     subexpr.inline_constant_functions(pure_function_map)
                 },
-                ast::Expr::BinOp(_, box subexpr1, box subexpr2) => {
+                ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
                     subexpr1.inline_constant_functions(pure_function_map);
                     subexpr2.inline_constant_functions(pure_function_map);
                 },

@@ -69,7 +69,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 pres: vec![ false.into() ],
                 posts: vec![],
                 body: None,
-                pos: self.encoder.error_manager().register(DUMMY_SP, ErrorCtxt::Unexpected),
             },
         }
     }

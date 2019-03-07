@@ -323,7 +323,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => CompilerError::new(
                 "P0025",
                 "obligation might not hold on borrow expiry",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
@@ -331,7 +331,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => CompilerError::new(
                 "P0026",
                 "postcondition of pure function definition might not hold",
-                MultiSpan::from_span(*error_span)
+                error_span.clone()
             ),
 
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(

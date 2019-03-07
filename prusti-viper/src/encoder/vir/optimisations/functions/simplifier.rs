@@ -10,6 +10,7 @@ use std::mem;
 use super::super::super::ast;
 
 /// Simplify functions by doing some constant evaluation.
+/// TODO: This is also done by Viper. We should consider disabling/removing this functionality from here.
 pub fn simplify(function: &mut ast::Function) {
     if let Some(ref mut body) = function.body {
         body.simplify();
@@ -26,7 +27,7 @@ impl Simplifier for ast::Expr {
 
     fn simplify(&mut self) {
         match self {
-            ast::Expr::BinOp(_, box subexpr1, box subexpr2) => {
+            ast::Expr::BinOp(_, box subexpr1, box subexpr2, pos) => {
                 subexpr1.simplify();
                 subexpr2.simplify();
             },
@@ -34,9 +35,9 @@ impl Simplifier for ast::Expr {
         }
          match self {
             ast::Expr::BinOp(ast::BinOpKind::And,
-                             box ast::Expr::Const(ast::Const::Bool(b1)),
-                             box ast::Expr::Const(ast::Const::Bool(b2))) => {
-                let mut new_value = ast::Expr::Const(ast::Const::Bool(*b1 && *b2));
+                             box ast::Expr::Const(ast::Const::Bool(b1), _),
+                             box ast::Expr::Const(ast::Const::Bool(b2), _), pos) => {
+                let mut new_value = ast::Expr::Const(ast::Const::Bool(*b1 && *b2), pos.clone());
                 mem::swap(self, &mut new_value);
             },
             _ => {},
