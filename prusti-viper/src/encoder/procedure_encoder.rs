@@ -2056,7 +2056,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Assert functional specification of postcondition
         let pos = self.encoder.error_manager().register(
-            // TODO: choose a better error span
             self.get_postcondition_span(contract),
             ErrorCtxt::ExhaleMethodPostcondition
         );

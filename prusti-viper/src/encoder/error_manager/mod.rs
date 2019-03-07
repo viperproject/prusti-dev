@@ -116,11 +116,15 @@ impl<'tcx> ErrorManager<'tcx> {
     pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt) -> Position {
         let span = span.into();
         let pos_id = Uuid::new_v4().to_hyphenated().to_string();
-        let lines_info = self.codemap.span_to_lines(span.primary_span().unwrap().source_callsite()).unwrap();
-        let first_line_info = lines_info.lines.get(0).unwrap();
-        let line = first_line_info.line_index as i32 + 1;
-        let column = first_line_info.start_col.0 as i32 + 1;
-        let pos = Position::new(line, column, pos_id.to_string());
+        let pos = if let Some(primary_span) = span.primary_span() {
+            let lines_info = self.codemap.span_to_lines(span.primary_span().unwrap().source_callsite()).unwrap();
+            let first_line_info = lines_info.lines.get(0).unwrap();
+            let line = first_line_info.line_index as i32 + 1;
+            let column = first_line_info.start_col.0 as i32 + 1;
+            Position::new(line, column, pos_id.to_string())
+        } else {
+            Position::new(0, 0, pos_id.to_string())
+        };
         self.redefine(&pos, span, error_ctxt);
         pos
     }
