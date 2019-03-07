@@ -211,4 +211,3 @@ impl WithIdentifier for Field {
         self.name.clone()
     }
 }
-

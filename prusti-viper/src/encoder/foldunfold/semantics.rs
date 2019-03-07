@@ -306,9 +306,13 @@ impl vir::Stmt {
                 inhale_expr(lhs, state, predicates);
             }
 
-            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _)) => {
+            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _), _) => {
                 exhale_expr(lhs, state, predicates);
                 inhale_expr(rhs, state, predicates);
+            }
+
+            &vir::Stmt::ExpireBorrows(ref _dag) => {
+                // TODO: #133
             }
 
             ref x => unimplemented!("{}", x),

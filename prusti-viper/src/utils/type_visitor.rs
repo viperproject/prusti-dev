@@ -7,7 +7,7 @@
 use rustc::hir::Mutability;
 use rustc::ty::{
     AdtDef, FieldDef, Region, Slice, Ty, TyCtxt, TypeFlags,
-    TypeVariants, VariantDef};
+    TypeVariants, VariantDef, ParamTy};
 use rustc::ty::subst::Substs;
 use rustc::ty::TypeVariants::*;
 use syntax::ast::{IntTy, UintTy};
@@ -52,6 +52,9 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
             TyNever => {
                 self.visit_never();
             },
+            TyParam(param) => {
+                self.visit_param(param);
+            },
             ref x => {
                 unimplemented!("{:?}", x);
             }
@@ -74,6 +77,9 @@ pub trait TypeVisitor<'a, 'tcx> : Sized {
     }
 
     fn visit_never(&mut self) {
+    }
+
+    fn visit_param(&mut self, param: ParamTy) {
     }
 
     fn visit_adt(&mut self, adt_def: &'tcx AdtDef, substs: &'tcx Substs<'tcx>) {

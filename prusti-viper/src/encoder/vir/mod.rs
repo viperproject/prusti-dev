@@ -10,8 +10,9 @@ pub use self::conversions::*;
 pub use self::to_viper::*;
 
 mod ast;
+mod cfg;
 mod conversions;
 mod to_viper;
-mod cfg;
+pub mod borrows;
+pub mod optimisations;
 pub mod utils;
-

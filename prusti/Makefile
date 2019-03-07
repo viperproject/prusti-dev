@@ -82,7 +82,7 @@ test-deep:
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
 	cargo test
 
-test:
+test: build
 	$(SET_ENV_VARS) \
 	cargo test
 

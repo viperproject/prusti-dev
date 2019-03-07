@@ -114,9 +114,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     pub fn encode(mut self) -> vir::CfgMethod {
-        debug!("Encode procedure {}", self.cfg_method.name());
+        trace!("Encode procedure {}", self.cfg_method.name());
 
         let mut procedure_contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
+
+        debug!("procedure_contract: {:?}", &procedure_contract);
+        //error!("def_id of proc: {:?}", &self.proc_def_id);
+        let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
+        //error!("def_id of impl: {:?}", &impl_def_id);
+        if let Some(id) = impl_def_id {
+            let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
+            //error!("def_id of trait: {:?}", &def_id_trait);
+            if let Some(id) = def_id_trait {
+                let proc_name = self.encoder.env().tcx().item_name(self.proc_def_id).to_string();
+                //error!("proc_name: {:?}", proc_name);
+                let assoc_items: Vec<_> = self.encoder.env().tcx().associated_items(id).collect();
+                //error!("assoc items: {:?}", &assoc_items);
+                if procedure_contract.functional_precondition().len() != 0 ||
+                    procedure_contract.functional_postcondition().len() != 0 {
+                    unimplemented!("Refinement of trait specifications is not supported.");
+                }
+                for assoc_item in assoc_items {
+                    if assoc_item.name == proc_name {
+                        // TODO use the impl's specs if there are any (separately replace pre/post!)
+                        //error!("found: {:?}", &assoc_item);
+
+                        procedure_contract = self.encoder.get_procedure_contract_for_def(assoc_item.def_id);
+                        //error!("new procedure contract: {:?}", &procedure_contract);
+                    }
+                }
+            }
+        }
 
         // Formal return
         for local in self.mir.local_decls.indices().take(1) {
@@ -1026,7 +1054,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 // Emit the apply statement.
-                let statement = vir::Stmt::apply_magic_wand(lhs, rhs);
+                let pos = self.encoder.error_manager().register(
+                    //self.mir.span,
+                    // TODO change to where the loan expires?
+                    self.mir.source_info(loan_location).span, // the source of the ref
+                    ErrorCtxt::ApplyMagicWandOnExpiry
+                );
+                let statement = vir::Stmt::apply_magic_wand(lhs, rhs, pos);
                 debug!("{:?} at {:?}", statement, loan_location);
 
                 match node.guard {
@@ -1065,11 +1099,57 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_expiration_of_loans(&mut self, loans: Vec<facts::Loan>,
-                                  zombie_loans: &[facts::Loan], location: mir::Location) -> Vec<vir::Stmt> {
+    fn construct_vir_reborrowing_dag(
+        &mut self,
+        loans: &[facts::Loan],
+        zombie_loans: &[facts::Loan],
+        location: mir::Location
+    ) -> vir::borrows::DAG {
+        let mir_dag = self.polonius_info.construct_reborrowing_dag(
+            &loans, &zombie_loans, location);
+        let mut builder = vir::borrows::DAGBuilder::new();
+        for node in mir_dag.iter() {
+            match node.kind {
+                ReborrowingKind::Assignment { loan } => {
+                    let (src, dest) = self.encode_assignment_borrow_expiration(
+                        &mir_dag, loan, node);
+                    builder.add_move_node(node.loan, &node.reborrowing_loans,
+                                          &node.reborrowed_loans, src, dest);
+                }
+                _ => {} // unimplemented!()
+            }
+        }
+        builder.finish()
+    }
+
+    /// Compute from which place to which the permissions should be transferred
+    /// when expiring the `loan`.
+    fn encode_assignment_borrow_expiration(
+        &mut self,
+        dag: &ReborrowingDAG,
+        loan: facts::Loan,
+        node: &ReborrowingDAGNode,
+    ) -> (vir::Expr, vir::Expr) {
+        let loan_location = self.polonius_info.get_loan_location(&loan);
+        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
+        let (expiring, restored) = self.encode_loan_places(&loan_places);
+        (expiring, restored)
+    }
+
+    fn encode_expiration_of_loans(
+        &mut self,
+        loans: Vec<facts::Loan>,
+        zombie_loans: &[facts::Loan],
+        location: mir::Location
+    ) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_loans '{:?}' '{:?}'", loans, zombie_loans);
         let mut stmts: Vec<vir::Stmt> = vec![];
 
+        if loans.len() > 0 {
+            let vir_reborrowing_dag = self.construct_vir_reborrowing_dag(
+                &loans, &zombie_loans, location);
+            stmts.push(vir::Stmt::ExpireBorrows(vir_reborrowing_dag));
+        }
         let reborrowing_dag = self.polonius_info.construct_reborrowing_dag(&loans, &zombie_loans, location);
         for node in reborrowing_dag.iter() {
             stmts.extend(
@@ -1280,7 +1360,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
-                                    sty: ty::TyFnDef(def_id, ..),
+                                    sty: ty::TyFnDef(def_id, substs),
                                     ..
                                 },
                                 ..
@@ -1292,6 +1372,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ..
             } => {
                 let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+
+                let own_substs = ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
+
+                {
+                    // FIXME; hideous monstrosity...
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
+
+                    for (kind1, kind2) in own_substs.iter().zip(substs) {
+                        if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) = (kind1.unpack(), kind2.unpack()) {
+                            tymap.insert(ty1, ty2);
+                        }
+                    }
+                }
 
                 match func_proc_name {
                     "std::rt::begin_panic" |
@@ -1556,12 +1650,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let pre_label = self.cfg_method.get_fresh_label_name();
                             stmts.push(vir::Stmt::Label(pre_label.clone()));
 
-                            let (pre_type_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
+                            let (pre_type_spec, pre_invs_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
                             let pos = self.encoder.error_manager().register(
                                 term.source_info.span,
                                 ErrorCtxt::ExhaleMethodPrecondition
                             );
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_func_spec), pos.clone()));
+                            stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_invs_spec), pos.clone()));
                             stmts.push(vir::Stmt::Exhale(replace_fake_exprs(pre_type_spec.clone()), pos));
 
                             // Havoc the content of the lhs, if there is one
@@ -1578,10 +1673,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
-                            let (post_type_spec, post_func_spec, magic_wands) = self.encode_postcondition_expr(
+                            let (post_type_spec, post_invs_spec, post_func_spec, magic_wands) = self.encode_postcondition_expr(
                                 &procedure_contract, &pre_label, &post_label,
                                 Some((location, &fake_exprs)), real_target.is_none());
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_type_spec)));
+                            stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
 
                             // Emit the label and magic wands
@@ -1610,6 +1706,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
                     // generic (pure on non-pure) function call
+                }
+
+                // FIXME; hideous monstrosity...
+                {
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
                 }
 
                 if let &Some((_, target)) = destination {
@@ -1685,12 +1787,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ).unwrap()
     }
 
-    /// Encode the precondition with two expressions:
+    /// Encode the precondition with three expressions:
     /// - one for the type encoding
+    /// - one for the type invariants
     /// - one for the functional specification.
-    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> (vir::Expr, vir::Expr) {
+    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> (vir::Expr, vir::Expr, vir::Expr) {
         let type_spec = contract.args.iter()
             .map(|&local| self.encode_local_variable_permission(local));
+
+        let mut invs_spec: Vec<vir::Expr> = vec![];
+
+        for arg in contract.args.iter() {
+            invs_spec.push(
+                self.encoder.encode_invariant_func_app(
+                    self.locals.get_type(*arg),
+                    self.encode_prusti_local(*arg).into()
+                )
+            );
+        }
+
         let mut func_spec: Vec<vir::Expr> = vec![];
 
         // Encode functional specification
@@ -1698,18 +1813,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
         for item in contract.functional_precondition() {
-            func_spec.push(self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, None, false, None));
+            // FIXME
+            //warn!("before: {:?}", &item.assertion);
+            let value = self.encoder.encode_assertion(&item.assertion, &self.mir, &"", &encoded_args, None, false, None);
+            //warn!("after:  {:?}", &value);
+            func_spec.push(value);
         }
 
-        (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
+        (type_spec.into_iter().conjoin(), invs_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
     }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
                             contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let (type_spec, func_spec) = self.encode_precondition_expr(contract);
+        let (type_spec, invs_spec, func_spec) = self.encode_precondition_expr(contract);
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(type_spec));
+        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(invs_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(func_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Label(PRECONDITION_LABEL.to_string()));
     }
@@ -1761,35 +1881,57 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             assert!(pledges.len() <= 1,
                     "There can be at most one pledge in the function postcondition.");
             debug!("borrow_info {:?}", borrow_info);
-            let lhs = borrow_info.blocking_paths
+            let mut lhs: Vec<_> = borrow_info.blocking_paths
                 .iter()
                 .map(|place| {
                     debug!("place {:?}", place);
-                    self.encode_pred_permission(place, Some(post_label))
+                    let typ = self.encode_pred_permission(place, Some(post_label));
+                    let (place_expr, place_ty, _) = self.encode_generic_place(place);
+                    let inv = self.encoder.encode_invariant_func_app(
+                        place_ty,
+                        place_expr.maybe_old(Some(post_label))
+                    );
+                    vir::Expr::and(typ, inv)
                 })
-                .conjoin();
+                .collect();
             let mut rhs: Vec<_> = borrow_info.blocked_paths
                 .iter()
                 .map(|place| {
-                    self.encode_pred_permission(place, Some(pre_label))
+                    let typ = self.encode_pred_permission(place, Some(pre_label));
+                    let (place_expr, place_ty, _) = self.encode_generic_place(place);
+                    let inv = self.encoder.encode_invariant_func_app(
+                        place_ty,
+                        place_expr.maybe_old(Some(pre_label))
+                    );
+                    vir::Expr::and(typ, inv)
                 })
                 .collect();
-            if let Some((reference, body)) = pledges.pop() {
-                debug!("pledge reference={:?} body={:?}", reference, body);
+            if let Some((reference, body_lhs, body_rhs)) = pledges.pop() {
+                debug!("pledge reference={:?} lhs={:?} rhs={:?}", reference, body_lhs, body_rhs);
                 assert!(reference.is_none(), "The reference should be none in postcondition.");
-                let mut assertion = self.encoder.encode_assertion(
-                    &body, &self.mir, pre_label, &encoded_args,
+                let mut assertion_lhs = self.encoder.encode_assertion(
+                    &body_lhs, &self.mir, pre_label, &encoded_args,
                     Some(&encoded_return), false, None);
-                assertion = self.wrap_arguments_into_old(
-                    assertion, pre_label, contract, &encoded_args);
+                let mut assertion_rhs = self.encoder.encode_assertion(
+                    &body_rhs, &self.mir, pre_label, &encoded_args,
+                    Some(&encoded_return), false, None);
+                assertion_lhs = self.wrap_arguments_into_old(
+                    assertion_lhs, pre_label, contract, &encoded_args);
+                assertion_rhs = self.wrap_arguments_into_old(
+                    assertion_rhs, pre_label, contract, &encoded_args);
                 let ty = self.locals.get_type(contract.returned_value);
                 let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return.clone(), ty);
                 let original_expr = encoded_deref;
                 let old_expr = vir::Expr::labelled_old(post_label, original_expr.clone());
-                assertion = assertion.replace_place(&original_expr, &old_expr);
-                assertion = assertion.remove_redundant_old();
-                rhs.push(assertion);
+                // TODO ??
+                assertion_lhs = assertion_lhs.replace_place(&original_expr, &old_expr);
+                assertion_lhs = assertion_lhs.remove_redundant_old();
+                assertion_rhs = assertion_rhs.replace_place(&original_expr, &old_expr);
+                assertion_rhs = assertion_rhs.remove_redundant_old();
+                lhs.push(assertion_lhs);
+                rhs.push(assertion_rhs);
             }
+            let lhs = lhs.into_iter().conjoin();
             let rhs = rhs.into_iter().conjoin();
             Some((lhs, rhs))
         } else {
@@ -1847,8 +1989,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             )
     }
 
-    /// Encode the postcondition with two expressions:
+    /// Encode the postcondition with three expressions:
     /// - one for the type encoding
+    /// - one for the type invariants
     /// - one for the functional specification.
     /// Also return the magic wands to be added to the postcondition.
     fn encode_postcondition_expr(
@@ -1858,19 +2001,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
         diverging: bool
-    ) -> (vir::Expr, vir::Expr, Vec<vir::Expr>) {
+    ) -> (vir::Expr, vir::Expr, vir::Expr, Vec<vir::Expr>) {
         let mut type_spec = vec![];
+        let mut invs_spec = vec![];
 
-        // Encode the permissions got back for the arguments of type reference
+        // Encode the permissions got back and invariants for the arguments of type reference
         for place in contract.returned_refs.iter() {
             debug!("Put permission {:?} in postcondition", place);
             type_spec.push(self.encode_pred_permission(place, Some(pre_label)));
+            let (place_expr, place_ty, _) = self.encode_generic_place(place);
+            let inv = self.encoder.encode_invariant_func_app(
+                place_ty,
+                place_expr.maybe_old(Some(pre_label))
+            );
+            invs_spec.push(inv);
         }
 
         // Encode args and return.
         let encoded_args: Vec<vir::Expr> = contract.args.iter()
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
+
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
 
         let mut magic_wands = Vec::new();
@@ -1896,6 +2047,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             type_spec.push(self.encode_local_variable_permission(contract.returned_value));
         }
 
+        // Encode invariant for return value
+        // TODO put this in the above if?
+        invs_spec.push(self.encoder.encode_invariant_func_app(
+            self.locals.get_type(contract.returned_value),
+            encoded_return.clone()
+        ));
+
         // Encode functional specification
         let mut func_spec = vec![];
         for item in contract.functional_postcondition() {
@@ -1907,7 +2065,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             func_spec.push(assertion);
         }
 
-        (type_spec.into_iter().conjoin(), func_spec.into_iter().conjoin(), magic_wands)
+        (type_spec.into_iter().conjoin(),
+         invs_spec.into_iter().conjoin(),
+         func_spec.into_iter().conjoin(),
+         magic_wands)
     }
 
     /// Encode the package statement of magic wands at the end of the method
@@ -1999,7 +2160,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
-        let (type_spec, func_spec, magic_wands) = self.encode_postcondition_expr(
+        let (type_spec, invs_spec, func_spec, magic_wands) = self.encode_postcondition_expr(
             contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false);
 
         // Find which arguments are blocked by the returned reference.
@@ -2060,6 +2221,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::ExhaleMethodPostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos.clone()));
+
+        // Assert invariants
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(invs_spec, pos.clone()));
 
         // Exhale permissions of postcondition
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos.clone()));

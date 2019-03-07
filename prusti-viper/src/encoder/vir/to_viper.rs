@@ -187,9 +187,31 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     pos.to_viper(ast)
                 )
             }
-            &Stmt::ApplyMagicWand(ref wand) => {
+            &Stmt::ApplyMagicWand(ref wand, ref pos) => {
+                let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
                 ast.apply(
                     wand.to_viper(ast),
+                    position
+                )
+            }
+            &Stmt::ExpireBorrows(_) => {
+                // Skip
+                ast.comment(&self.to_string())
+            }
+            &Stmt::NestedCFG { entry, exit } => {
+                unimplemented!();
+            }
+            &Stmt::If(ref guard, ref then_stmts) => {
+                ast.if_stmt(
+                    guard.to_viper(ast),
+                    ast.seqn(
+                        &then_stmts.to_viper(ast),
+                        &[],
+                    ),
+                    ast.seqn(
+                        &[],
+                        &[],
+                    ),
                 )
             }
         }

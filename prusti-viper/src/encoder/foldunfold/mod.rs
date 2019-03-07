@@ -9,8 +9,9 @@ use encoder::Encoder;
 use self::branch_ctxt::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use encoder::vir::CfgReplacer;
+use encoder::vir::{CfgReplacer, CheckNoOpAction, CfgBlockIndex};
 use encoder::foldunfold::action::Action;
+use encoder::foldunfold::log::EventLog;
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir::ExprFolder;
@@ -27,6 +28,7 @@ mod branch_ctxt;
 mod semantics;
 mod places_utils;
 mod action;
+mod log;
 
 pub fn add_folding_unfolding_to_expr(expr: vir::Expr, bctxt: &BranchCtxt) -> vir::Expr {
     let bctxt_at_label = HashMap::new();
@@ -51,7 +53,10 @@ pub fn add_folding_unfolding_to_function(function: vir::Function, predicates: Ha
     }
 }
 
-pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, cfg: vir::CfgMethod) -> vir::CfgMethod {
+pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
+    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+    cfg: vir::CfgMethod
+) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map();
     let initial_bctxt = BranchCtxt::new(cfg_vars, &predicates);
@@ -66,10 +71,16 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     dump_debug_info: bool,
     check_foldunfold_state: bool,
     cfg: &'p vir::CfgMethod,
+    log: EventLog,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, initial_bctxt: BranchCtxt<'p>, cfg: &'p vir::CfgMethod) -> Self {
+
+    pub fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        initial_bctxt: BranchCtxt<'p>,
+        cfg: &'p vir::CfgMethod
+    ) -> Self {
         FoldUnfold {
             encoder,
             initial_bctxt,
@@ -77,6 +88,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             dump_debug_info: config::dump_debug_info(),
             check_foldunfold_state: config::check_foldunfold_state(),
             cfg,
+            log: EventLog::new(),
         }
     }
 
@@ -140,9 +152,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             _ => stmt.map_expr(|e| self.replace_expr(&e, bctxt)),
         }
     }
+
+    fn process_expire_borrows(&mut self, dag: &vir::borrows::DAG) -> Vec<vir::Stmt> {
+        for node in dag.iter() {
+        }
+        unimplemented!();
+    }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
+impl CheckNoOpAction for Vec<Action> {
+    fn is_noop(&self) -> bool {
+        self.is_empty()
+    }
+}
+
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<Action>>
+        for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     /// Dump the current CFG, for debugging purposes
     fn current_cfg(&self, new_cfg: &vir::CfgMethod) {
         if self.dump_debug_info {
@@ -173,8 +198,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
     }
 
     /// Replace some statements, mutating the branch context
-    fn replace_stmt(&mut self, stmt: &vir::Stmt, is_last_before_return: bool, bctxt: &mut BranchCtxt<'p>) -> Vec<vir::Stmt> {
+    fn replace_stmt(
+        &mut self,
+        stmt: &vir::Stmt,
+        is_last_before_return: bool,
+        bctxt: &mut BranchCtxt<'p>
+    ) -> Vec<vir::Stmt> {
         debug!("[enter] replace_stmt: ##### {} #####", stmt);
+
+        //if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
+            //return self.process_expire_borrows(dag);
+        //}
+
         let mut stmt = stmt.clone();
 
         // Store state for old expressions
@@ -187,7 +222,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             }
 
             vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _, _), ..) |
-            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _, _)) => {
+            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _, _), ..) => {
                 // TODO: This should be done also for magic wand expressions inside inhale/exhale.
                 let label = "lhs".to_string();
                 let mut labelled_bctxt = bctxt.clone();
@@ -447,8 +482,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
         (stmts, new_succ)
     }
 
-    /// Prepend some statements to an existing join point, returning the merged branch context.
-    fn prepend_join(&mut self, bcs: Vec<&BranchCtxt<'p>>) -> (Vec<Vec<vir::Stmt>>, BranchCtxt<'p>) {
+    /// Compute actions that need to be performed before the join point,
+    /// returning the merged branch context.
+    fn prepend_join(&mut self, bcs: Vec<&BranchCtxt<'p>>) -> (Vec<Vec<Action>>, BranchCtxt<'p>) {
         trace!("[enter] prepend_join(..{})", &bcs.len());
         assert!(bcs.len() > 0);
         if bcs.len() == 1 {
@@ -460,28 +496,40 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>> for 
             let right_bcs = &bcs[mid..];
 
             // Join the subgroups
-            let (left_stmts_vec, mut left_bc) = self.prepend_join(left_bcs.to_vec());
-            let (right_stmts_vec, right_bc) = self.prepend_join(right_bcs.to_vec());
+            let (left_actions_vec, mut left_bc) = self.prepend_join(left_bcs.to_vec());
+            let (right_actions_vec, right_bc) = self.prepend_join(right_bcs.to_vec());
 
             // Join the recursive calls
             let (merge_actions_left, merge_actions_right) = left_bc.join(right_bc);
             let merge_bc = left_bc;
 
-            let mut branch_stmts_vec: Vec<Vec<vir::Stmt>> = vec![];
-            for left_stmts in left_stmts_vec {
-                let mut branch_stmts = left_stmts.clone();
-                branch_stmts.extend(merge_actions_left.iter().map(|a| a.to_stmt()).collect::<Vec<_>>());
-                branch_stmts_vec.push(branch_stmts);
+            let mut branch_actions_vec: Vec<Vec<Action>> = vec![];
+            for mut left_actions in left_actions_vec {
+                left_actions.extend(merge_actions_left.iter().cloned());
+                branch_actions_vec.push(left_actions);
             }
-            for right_stmts in right_stmts_vec {
-                let mut branch_stmts = right_stmts.clone();
-                branch_stmts.extend(merge_actions_right.iter().map(|a| a.to_stmt()).collect::<Vec<_>>());
-                branch_stmts_vec.push(branch_stmts);
+            for mut right_actions in right_actions_vec {
+                right_actions.extend(merge_actions_right.iter().cloned());
+                branch_actions_vec.push(right_actions);
             }
 
-            trace!("[exit] prepend_join(..{}): {:?}", &bcs.len(), &branch_stmts_vec);
-            (branch_stmts_vec, merge_bc)
+            trace!("[exit] prepend_join(..{}): {:?}", &bcs.len(), &branch_actions_vec);
+            (branch_actions_vec, merge_bc)
         }
+    }
+
+    /// Convert actions to statements and log them.
+    fn perform_prejoin_action(
+        &mut self,
+        block_index: CfgBlockIndex,
+        actions: Vec<Action>
+    ) -> Vec<vir::Stmt> {
+        let mut stmts = Vec::new();
+        for action in actions {
+            stmts.push(action.to_stmt());
+            self.log.log_prejoin_action(block_index, action);
+        }
+        stmts
     }
 }
 

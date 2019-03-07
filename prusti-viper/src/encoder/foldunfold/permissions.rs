@@ -143,9 +143,13 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 HashSet::new()
             }
 
-            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref _rhs, ref _pos)) => {
+            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref _rhs, ref _wand_pos), ref _apply_pos) => {
                 // We model the magic wand as "assert lhs; inhale rhs"
                 lhs.get_required_permissions(predicates)
+            }
+
+            &vir::Stmt::ExpireBorrows(ref _dag) => {
+                HashSet::new()  // TODO: #133
             }
 
             ref x => unimplemented!("{}", x),
@@ -174,9 +178,13 @@ impl vir::Stmt {
             &vir::Stmt::ExpireBorrowsIf(_, _, _) |
             &vir::Stmt::StopExpiringLoans(_) |
             &vir::Stmt::PackageMagicWand(_, _, _) |
-            &vir::Stmt::ApplyMagicWand(_) => HashSet::new(),
+            &vir::Stmt::ApplyMagicWand(_, _) |
+            &vir::Stmt::ExpireBorrows(_) |
+            &vir::Stmt::If(_, _) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
+            &vir::Stmt::NestedCFG { .. } =>
+                unreachable!("TODO: Check if this cannot be reached by unfolding expression generation.")
         }
     }
 }

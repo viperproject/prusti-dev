@@ -39,7 +39,7 @@ use std::cell::RefCell;
 pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     // FIXME: this should be the MIR of the `__spec` function
-    mir: &'p mir::Mir<'tcx>,
+    mir: Option<&'p mir::Mir<'tcx>>,
     /// The context in which the specification should be encoded
     target_label: &'p str,
     target_args: &'p [vir::Expr],
@@ -64,12 +64,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         SpecEncoder {
             encoder,
-            mir,
+            mir: Some(mir),
             target_label,
             target_args,
             target_return,
             targets_are_values,
             stop_at_bbi
+        }
+    }
+
+    // TODO; useful for when we're using 'encode_assertion' only
+    pub fn new_simple(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        target_args: &'p [vir::Expr],
+    ) -> Self {
+        trace!("SpecEncoder simple constructor");
+
+        SpecEncoder {
+            encoder,
+            mir: None,
+            target_label: &"",
+            target_args,
+            target_return: None,
+            targets_are_values: false,
+            stop_at_bbi: None
         }
     }
 
@@ -152,7 +170,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             "_0".to_string()
         } else {
             // Is it an argument?
-            let opt_local = self.mir.local_decls
+            let opt_local = self.mir.unwrap().local_decls
                 .iter_enumerated()
                 .find(|(local, local_decl)| match local_decl.name {
                     None => false,
@@ -336,6 +354,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     self.encode_assertion(rhs)
                 )
             }
+            box AssertionKind::TypeCond(ref vars, ref assertion) => {
+                {
+                    let x = self.encoder.typaram_repl.borrow();
+                    //warn!("typaram_repl at TypeCond: {:?}", x);
+                }
+                let enc = |hir_id: hir::HirId| -> vir::Expr {
+                    let mut ty = self.encoder.env().hir_id_to_type(hir_id);
+                    // FIXME oh dear...
+                    {
+                        let x = self.encoder.typaram_repl.borrow();
+                        if let Some(repl_ty) = x.get(ty) {
+                            ty = repl_ty;
+                        }
+                    }
+                    self.encoder.encode_tag_func_app(ty)
+                };
+                let typecond = vir::Expr::eq_cmp(
+                    enc(vars.vars[0].hir_id), enc(vars.vars[1].hir_id)
+                );
+                vir::Expr::implies(
+                    typecond,
+                    self.encode_assertion(assertion)
+                )
+            }
             box AssertionKind::ForAll(ref vars, ref trigger_set, ref body) => {
                 vir::Expr::forall(
                     vars.vars.iter().map(|x| self.encode_hir_arg(x)).collect(),
@@ -343,7 +385,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     self.encode_assertion(body)
                 )
             }
-            box AssertionKind::Pledge(ref _reference, ref _body) => {
+            box AssertionKind::Pledge(ref _reference, ref _lhs, ref _rhs) => {
                 // Pledges are moved inside magic wands, so here we have only true.
                 true.into()
             }
@@ -535,7 +577,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         // Translate arguments and return from the SPEC to the TARGET context
         if self.stop_at_bbi.is_none() {
-            assert_eq!(curr_mir.args_iter().count(), self.target_args.len() + 1);
+            // FIXME
+            //assert_eq!(curr_mir.args_iter().count(), self.target_args.len() + 1);
         } else {
             assert_eq!(curr_mir.args_iter().count(), self.target_args.len());
         }

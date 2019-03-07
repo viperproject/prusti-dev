@@ -90,6 +90,13 @@ fn type_assertion(
                     },
                     type_assertion(assertion, typed_expressions, typed_forallargs),
                 ),
+                AssertionKind::TypeCond(vars, assertion) => AssertionKind::TypeCond(
+                    ForAllVars {
+                        id: vars.id,
+                        vars: typed_forallargs[&vars.id].clone(),
+                    },
+                    type_assertion(assertion, typed_expressions, typed_forallargs),
+                ),
                 AssertionKind::ForAll(vars, trigger_set, assertion) => AssertionKind::ForAll(
                     ForAllVars {
                         id: vars.id,
@@ -98,16 +105,18 @@ fn type_assertion(
                     type_trigger_set(trigger_set, typed_expressions),
                     type_assertion(assertion, typed_expressions, typed_forallargs),
                 ),
-                AssertionKind::Pledge(Some(reference), assertion) => AssertionKind::Pledge(
+                AssertionKind::Pledge(Some(reference), lhs, rhs) => AssertionKind::Pledge(
                     Some(Expression {
                         id: reference.id,
                         expr: typed_expressions[&reference.id].clone(),
                     }),
-                    type_assertion(assertion, typed_expressions, typed_forallargs),
+                    type_assertion(lhs, typed_expressions, typed_forallargs),
+                    type_assertion(rhs, typed_expressions, typed_forallargs),
                 ),
-                AssertionKind::Pledge(None, assertion) => AssertionKind::Pledge(
+                AssertionKind::Pledge(None, lhs, rhs) => AssertionKind::Pledge(
                     None,
-                    type_assertion(assertion, typed_expressions, typed_forallargs),
+                    type_assertion(lhs, typed_expressions, typed_forallargs),
+                    type_assertion(rhs, typed_expressions, typed_forallargs),
                 ),
             }
         },
@@ -144,6 +153,7 @@ fn convert_to_typed(
                 SpecificationSet::Procedure(convert(precondition), convert(postcondition)),
             ),
             SpecificationSet::Loop(invariants) => (id, SpecificationSet::Loop(convert(invariants))),
+            SpecificationSet::Struct(invariants) => (id, SpecificationSet::Struct(convert(invariants))),
         })
         .collect()
 }

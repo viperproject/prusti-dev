@@ -22,3 +22,4 @@ mod predicate;
 mod function;
 mod bodyless_method;
 mod common;
+pub mod typaram;

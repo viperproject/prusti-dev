@@ -69,6 +69,8 @@ pub enum ErrorCtxt {
     GenericStatement,
     /// Package a magic wand for the postcondition, at the end of a method
     PackageMagicWandForPostcondition,
+    /// Apply a magic wand as a borrow expires, relevant for pledge conditions
+    ApplyMagicWandOnExpiry,
     /// A diverging function call performed in a pure function
     DivergingCallInPureFunction,
     /// A Viper pure function call with `false` precondition that encodes a Rust panic in a pure function
@@ -98,14 +100,14 @@ impl CompilerError {
 #[derive(Clone)]
 pub struct ErrorManager<'tcx> {
     codemap: &'tcx CodeMap,
-    error_ctxt: HashMap<String, (MultiSpan, ErrorCtxt)>,
+    error_contexts: HashMap<String, (MultiSpan, ErrorCtxt)>,
 }
 
 impl<'tcx> ErrorManager<'tcx> {
     pub fn new(codemap: &'tcx CodeMap) -> Self {
         ErrorManager {
             codemap,
-            error_ctxt: HashMap::new(),
+            error_contexts: HashMap::new(),
         }
     }
 
@@ -131,12 +133,12 @@ impl<'tcx> ErrorManager<'tcx> {
 
     pub fn redefine(&mut self, pos: &Position, span: MultiSpan, error_ctxt: ErrorCtxt) {
         debug!("Register position: {:?}", pos);
-        self.error_ctxt.insert(pos.id(), (span, error_ctxt));
+        self.error_contexts.insert(pos.id(), (span, error_ctxt));
     }
 
     pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {
         let opt_error_ctxt = ver_error.pos_id.as_ref().and_then(
-            |pos_id| self.error_ctxt.get(pos_id)
+            |pos_id| self.error_contexts.get(pos_id)
         );
 
         let (error_span, error_ctxt) = if let Some(x) = opt_error_ctxt {
@@ -316,6 +318,20 @@ impl<'tcx> ErrorManager<'tcx> {
                 "P0024",
                 format!("assertion might fail with \"{}\"", message),
                 error_span.clone()
+            ),
+
+            ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => CompilerError::new(
+                "P0025",
+                "obligation might not hold on borrow expiry",
+                MultiSpan::from_span(*error_span)
+            ),
+
+            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
+            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
+            ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => CompilerError::new(
+                "P0026",
+                "postcondition of pure function definition might not hold",
+                MultiSpan::from_span(*error_span)
             ),
 
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(

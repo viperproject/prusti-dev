@@ -23,7 +23,7 @@ pub enum SpecType {
     Precondition,
     /// Postcondition of a procedure.
     Postcondition,
-    /// Loop invariant.
+    /// Loop invariant or struct invariant
     Invariant,
 }
 
@@ -197,17 +197,22 @@ pub enum AssertionKind<ET, AT> {
     And(Vec<Assertion<ET, AT>>),
     /// Implication ==>
     Implies(Expression<ET>, Assertion<ET, AT>),
+    /// TODO < Even > ==> x % 2 == 0
+    TypeCond(ForAllVars<AT>, Assertion<ET, AT>),
     /// Quantifier (forall vars :: {triggers} filter ==> body)
     ForAll(
         ForAllVars<AT>,
         TriggerSet<ET>,
         Assertion<ET, AT>,
     ),
-    /// Pledge after_expiry<reference>(body)
+    /// Pledge after_expiry<reference>(rhs)
+    ///     or after_expiry_if<reference>(lhs,rhs)
     Pledge(
         /// The blocking reference used in a loop. None for postconditions.
         Option<Expression<ET>>,
-        /// The body.
+        /// The body lhs.
+        Assertion<ET, AT>,
+        /// The body rhs.
         Assertion<ET, AT>,
     ),
 }
@@ -228,6 +233,8 @@ pub enum SpecificationSet<ET, AT> {
     Procedure(Vec<Specification<ET, AT>>, Vec<Specification<ET, AT>>),
     /// Loop invariant.
     Loop(Vec<Specification<ET, AT>>),
+    /// Struct invariant.
+    Struct(Vec<Specification<ET, AT>>),
 }
 
 impl<ET, AT> SpecificationSet<ET, AT> {
@@ -235,6 +242,7 @@ impl<ET, AT> SpecificationSet<ET, AT> {
         match self {
             SpecificationSet::Procedure(ref pres, ref posts) => pres.is_empty() && posts.is_empty(),
             SpecificationSet::Loop(ref invs) => invs.is_empty(),
+            SpecificationSet::Struct(ref invs) => invs.is_empty(),
         }
     }
 }

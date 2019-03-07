@@ -37,6 +37,11 @@ pub struct MinimalAstBuilder<'a> {
 }
 
 impl<'a> MinimalAstBuilder<'a> {
+    // FIXME
+    pub fn visinh(&self) -> Spanned<ast::VisibilityKind> {
+        dummy_spanned(ast::VisibilityKind::Inherited)
+    }
+
     pub fn new(parse_sess: &'a parse::ParseSess) -> MinimalAstBuilder<'a> {
         MinimalAstBuilder {
             parse_sess: parse_sess,
