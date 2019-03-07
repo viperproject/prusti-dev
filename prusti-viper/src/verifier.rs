@@ -221,6 +221,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     .collect()
             } else {
                 unoptimized_functions
+                    .into_iter()
                     .map(|f| f.to_viper(ast))
                     .collect()
             };
