@@ -120,6 +120,6 @@ pub fn jvm_args() -> Vec<String> {
 }
 
 /// Should we simplify functions?
-pub fn simplify_expressions() -> bool {
+pub fn simplify_functions() -> bool {
     SETTINGS.read().unwrap().get::<bool>("SIMPLIFY_FUNCTIONS").unwrap()
 }
