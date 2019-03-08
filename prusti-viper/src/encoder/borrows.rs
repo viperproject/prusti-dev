@@ -351,7 +351,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
     // External function, only use signature.
-    let mut sig_only = tcx.hir.as_local_node_id(proc_def_id).is_none();
+    let mut sig_only = true;
 
     if !sig_only {
         // TODO explain...
