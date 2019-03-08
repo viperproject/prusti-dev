@@ -17,37 +17,63 @@ fn escape_dollars(s: &str) -> String {
 }
 
 impl Substs {
+    /// Takes the string representation of two types: `from` is the generic one; `to` is the more
+    /// concrete one.
+    /// This function will compute what is the type substitution needed to go from `from` to `to`.
     pub fn learn(from: &str, to: &str) -> Self {
-        // construct repls_regex
         lazy_static! {
-            static ref re: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
+            static ref typaram_re: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
         }
+
+        // Start with an empty `repls_regex`
         let mut repls_regex_str = String::new();
         repls_regex_str.push('^');
-        let mut typarams = Vec::new();
+
+        // Extract the name of type parameters from the `from` string
+        let mut found_typarams = Vec::new();
         let mut last = 0;
-        for matsh in re.find_iter(from) {
-            repls_regex_str.push_str(&escape_dollars(&from[last..matsh.start()]));
+        for matched_item in typaram_re.find_iter(from) {
+            repls_regex_str.push_str(&escape_dollars(&from[last..matched_item.start()]));
             repls_regex_str.push_str("(.*?)");
-            typarams.push(matsh.as_str().to_string());
-            last = matsh.end();
+            found_typarams.push(matched_item.as_str().to_string());
+            last = matched_item.end();
         }
+
         repls_regex_str.push_str(&escape_dollars(&from[last..]));
         repls_regex_str.push('$');
-        // use repls_regex to find typaram replacements
-        let mut repls = HashMap::new();
         let repls_regex = Regex::new(&repls_regex_str).unwrap();
+
+        // Early return for simple case
+        if from == to {
+            return Substs {
+                regex: typaram_re.clone(),
+                repls: found_typarams.into_iter().map(|x| (x.clone(), x)).collect(),
+            };
+        }
+
+        // Use `repls_regex` to find typaram replacements
+        let mut repls = HashMap::new();
         let captures = repls_regex.captures(to).unwrap();
         for i in 1..captures.len() {
-            let from = typarams[i-1].to_string();
-            let to = captures.get(i).unwrap().as_str();
-            let old = repls.insert(from, to.to_string());
-            if let Some(x) = old {
-                assert!(to == x);
+            let from_typaram = found_typarams[i-1].to_string();
+            let to_typaram = captures.get(i).unwrap().as_str();
+            let old_entry = repls.insert(from_typaram.clone(), to_typaram.to_string());
+            // What if there was something in `repls`? Check that we didn't change it.
+            if let Some(x) = old_entry {
+                assert!(
+                    to == x,
+                    "Error in learn({:?}, {:?}). from_typaram: {:?}, to_typaram: {:?}, old_entry: {:?}, repls_regex_str: {:?}",
+                    from,
+                    to,
+                    from_typaram,
+                    to_typaram,
+                    Some(x),
+                    repls_regex_str
+                );
             }
         }
         Substs {
-            regex: re.clone(),
+            regex: typaram_re.clone(),
             repls,
         }
     }
