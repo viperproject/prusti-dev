@@ -376,7 +376,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
         // {{{{ // panics in borrow.rs (unsupported)
 
         let fn_sig = tcx.fn_sig(proc_def_id);
-        error!("fn_sig: {:?}", fn_sig);
+        //trace!("fn_sig: {:?}", fn_sig);
         let mut fake_mir_args = Vec::new();
         let mut fake_mir_args_ty = Vec::new();
         for i in 0usize..fn_sig.inputs().skip_binder().len() {
@@ -396,7 +396,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
         //let owner_def_id = hir_id.owner_def_id();
         //let typeck_tables = tcx.typeck_tables_of(owner_def_id);
         //let ty = typeck_tables.node_id_to_type(hir_id);
-        //error!("ty: {:?}", ty);
+        //trace!("ty: {:?}", ty);
 
         //let mut fake_mir_args = Vec::new();
         //let mut fake_mir_args_ty = Vec::new();
@@ -408,9 +408,9 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
 
         // }}}}
 
-        error!("arg1: {:?}", fake_mir_args);
-        error!("arg2: {:?}", fake_mir_args_ty);
-        error!("return_ty: {:?}", return_ty);
+        //trace!("arg1: {:?}", fake_mir_args);
+        //trace!("arg2: {:?}", fake_mir_args_ty);
+        //trace!("return_ty: {:?}", return_ty);
 
         let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
         for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
@@ -441,7 +441,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
             borrow_infos,
             specification,
         };
-        //error!("faked mir contract: {:?}", &contract);
+        //trace!("faked mir contract: {:?}", &contract);
         return contract;
     }
 
