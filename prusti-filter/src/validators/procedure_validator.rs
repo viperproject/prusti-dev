@@ -277,7 +277,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             ty::TypeVariants::TyAnon(..) => unsupported_pos!(self, pos, "uses anonymized types"),
 
-            ty::TypeVariants::TyParam(..) => unsupported_pos!(self, pos, "uses unresolved generic type parameters"),
+            ty::TypeVariants::TyParam(..) => interesting!(self, "uses unresolved generic type parameters"),
 
             ty::TypeVariants::TyInfer(..) => unsupported_pos!(self, pos, "has uninferred types"),
 
