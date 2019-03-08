@@ -2768,7 +2768,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
     /// a Rust move assignment, and not a copy assignment.
     fn encode_copy(&mut self, src: vir::Expr, dst: vir::Expr, self_ty: ty::Ty<'tcx>, is_move: bool, is_inner_ty: bool, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("Encode copy {:?}, {:?}, {:?}", src, dst, self_ty);
+        debug!("Encode copy {:?}, {:?}, {:?}, is_move: {}, is_inner_ty: {}", src, dst, self_ty, is_move, is_inner_ty);
 
         match self_ty.sty {
             ty::TypeVariants::TyBool |
@@ -2890,6 +2890,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     );
                 }
                 stmts
+            }
+
+            ty::TypeVariants::TyParam(_) => {
+                self.encode_havoc_and_allocation(
+                    &src.clone()
+                )
             }
 
             ref x => unimplemented!("{:?}", x),

@@ -25,6 +25,7 @@ pub trait Zero: Sized + Add<Self, Output = Self> {
     fn zero() -> Self;
 
     /// Returns `true` if `self` is equal to the additive identity.
+    #[trusted]
     #[inline]
     fn is_zero(&self) -> bool;
 }
@@ -36,6 +37,7 @@ macro_rules! zero_impl {
             fn zero() -> $t {
                 $v
             }
+            #[trusted]
             #[inline]
             fn is_zero(&self) -> bool {
                 *self == $v
@@ -60,13 +62,14 @@ zero_impl!(i64, 0);
 #[cfg(has_i128)]
 zero_impl!(i128, 0);
 
-zero_impl!(f32, 0.0);
-zero_impl!(f64, 0.0);
+//zero_impl!(f32, 0.0);
+//zero_impl!(f64, 0.0);
 
 impl<T: Zero> Zero for Wrapping<T>
 where
     Wrapping<T>: Add<Output = Wrapping<T>>,
 {
+    #[trusted]
     fn is_zero(&self) -> bool {
         self.0.is_zero()
     }
@@ -136,8 +139,8 @@ one_impl!(i64, 1);
 #[cfg(has_i128)]
 one_impl!(i128, 1);
 
-one_impl!(f32, 1.0);
-one_impl!(f64, 1.0);
+//one_impl!(f32, 1.0);
+//one_impl!(f64, 1.0);
 
 impl<T: One> One for Wrapping<T>
 where
@@ -194,12 +197,14 @@ fn wrapping_is_one() {
 pub trait CheckedAdd: Sized + Add<Self, Output = Self> {
     /// Adds two numbers, checking for overflow. If overflow happens, `None` is
     /// returned.
+    #[trusted]
     fn checked_add(&self, v: &Self) -> Option<Self>;
 }
 
 macro_rules! checked_impl {
     ($trait_name:ident, $method:ident, $t:ty) => {
         impl $trait_name for $t {
+            #[trusted]
             #[inline]
             fn $method(&self, v: &$t) -> Option<$t> {
                 <$t>::$method(*self, *v)
@@ -228,6 +233,7 @@ checked_impl!(CheckedAdd, checked_add, i128);
 pub trait CheckedSub: Sized + Sub<Self, Output = Self> {
     /// Subtracts two numbers, checking for underflow. If underflow happens,
     /// `None` is returned.
+    #[trusted]
     fn checked_sub(&self, v: &Self) -> Option<Self>;
 }
 
@@ -252,6 +258,7 @@ checked_impl!(CheckedSub, checked_sub, i128);
 pub trait CheckedMul: Sized + Mul<Self, Output = Self> {
     /// Multiplies two numbers, checking for underflow or overflow. If underflow
     /// or overflow happens, `None` is returned.
+    #[trusted]
     fn checked_mul(&self, v: &Self) -> Option<Self>;
 }
 
@@ -276,6 +283,7 @@ checked_impl!(CheckedMul, checked_mul, i128);
 pub trait CheckedDiv: Sized + Div<Self, Output = Self> {
     /// Divides two numbers, checking for underflow, overflow and division by
     /// zero. If any of that happens, `None` is returned.
+    #[trusted]
     fn checked_div(&self, v: &Self) -> Option<Self>;
 }
 
@@ -317,6 +325,7 @@ pub trait CheckedRem: Sized + Rem<Self, Output = Self> {
     /// assert_eq!(CheckedRem::checked_rem(&MIN, &1), Some(0));
     /// assert_eq!(CheckedRem::checked_rem(&MIN, &-1), None);
     /// ```
+    #[trusted]
     fn checked_rem(&self, v: &Self) -> Option<Self>;
 }
 
@@ -339,6 +348,7 @@ checked_impl!(CheckedRem, checked_rem, i128);
 macro_rules! checked_impl_unary {
     ($trait_name:ident, $method:ident, $t:ty) => {
         impl $trait_name for $t {
+            #[trusted]
             #[inline]
             fn $method(&self) -> Option<$t> {
                 <$t>::$method(*self)
@@ -365,6 +375,7 @@ pub trait CheckedNeg: Sized {
     /// assert_eq!(CheckedNeg::checked_neg(&0_u32), Some(0));
     /// assert_eq!(CheckedNeg::checked_neg(&1_u32), None);
     /// ```
+    #[trusted]
     fn checked_neg(&self) -> Option<Self>;
 }
 
@@ -399,12 +410,14 @@ pub trait CheckedShl: Sized + Shl<u32, Output = Self> {
     /// assert_eq!(CheckedShl::checked_shl(&x, 15), Some(0x8000));
     /// assert_eq!(CheckedShl::checked_shl(&x, 16), None);
     /// ```
+    #[trusted]
     fn checked_shl(&self, rhs: u32) -> Option<Self>;
 }
 
 macro_rules! checked_shift_impl {
     ($trait_name:ident, $method:ident, $t:ty) => {
         impl $trait_name for $t {
+            #[trusted]
             #[inline]
             fn $method(&self, rhs: u32) -> Option<$t> {
                 <$t>::$method(*self, rhs)
@@ -444,6 +457,7 @@ pub trait CheckedShr: Sized + Shr<u32, Output = Self> {
     /// assert_eq!(CheckedShr::checked_shr(&x, 15), Some(0x0001));
     /// assert_eq!(CheckedShr::checked_shr(&x, 16), None);
     /// ```
+    #[trusted]
     fn checked_shr(&self, rhs: u32) -> Option<Self>;
 }
 
@@ -503,6 +517,7 @@ macro_rules! pow_impl {
 
         impl<'a> Pow<&'a $rhs> for $t {
             type Output = $t;
+            #[trusted]
             #[inline]
             fn pow(self, rhs: &'a $rhs) -> $t {
                 ($method)(self, <$desired_rhs>::from(*rhs))
@@ -511,6 +526,7 @@ macro_rules! pow_impl {
 
         impl<'a> Pow<$rhs> for &'a $t {
             type Output = $t;
+            #[trusted]
             #[inline]
             fn pow(self, rhs: $rhs) -> $t {
                 ($method)(*self, <$desired_rhs>::from(rhs))
@@ -519,6 +535,7 @@ macro_rules! pow_impl {
 
         impl<'a, 'b> Pow<&'a $rhs> for &'b $t {
             type Output = $t;
+            #[trusted]
             #[inline]
             fn pow(self, rhs: &'a $rhs) -> $t {
                 ($method)(*self, <$desired_rhs>::from(*rhs))
