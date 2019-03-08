@@ -60,6 +60,14 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
             attr::contains_name(&trait_item.attrs, "trusted") {
             return;
         }
+
+        // Skip associated types and other non-methods items
+        if let hir::TraitItemKind::Method(..) = trait_item.node {
+            // continue
+        } else {
+            return;
+        }
+
         // Skip body-less trait methods
         if let hir::TraitItemKind::Method(_, hir::TraitMethod::Required(_)) = trait_item.node {
             return;
@@ -79,6 +87,14 @@ impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 't
             attr::contains_name(&impl_item.attrs, "trusted") {
             return;
         }
+
+        // Skip associated types and other non-methods items
+        if let hir::ImplItemKind::Method(..) = impl_item.node {
+            // continue
+        } else {
+            return;
+        }
+
         let def_id = self.tcx.hir.local_def_id(impl_item.id);
         let item_def_path = self.env.get_item_def_path(def_id);
         if !self.use_whitelist || self.whitelist.contains(&item_def_path) {
