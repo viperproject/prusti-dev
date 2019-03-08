@@ -108,8 +108,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
                 Some(bounds)
             },
+            ty::TypeVariants::TyChar => {
+                // char is always four bytes in size
+                Some((0.into(), 0xFFFFFFFFu32.into()))
+            },
             ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyChar |
             ty::TypeVariants::TyRef(_, _, _) => None,
             ref x => unreachable!("{:?}", x),
         }
@@ -141,67 +144,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 )
             ],
 
-            ty::TypeVariants::TyInt(int_ty) => {
-                let val_field: vir::Expr = vir::Expr::from(self_local_var.clone()).field(
-                    self.encoder.encode_value_field(self.ty)
-                ).into();
-
-                let mut body = vec![
-                    vir::Expr::acc_permission(
-                        val_field.clone(),
-                        vir::Frac::one()
-                    )
-                ];
-
-                if config::check_binary_operations() {
-                    let (lower, upper) = self.get_integer_bounds().unwrap();
-                    body.push(vir::Expr::le_cmp(lower, val_field.clone()));
-                    body.push(vir::Expr::le_cmp(val_field.clone(), upper));
-                }
-
-                body
-            }
-
-            ty::TypeVariants::TyUint(uint_ty) => {
-                let val_field: vir::Expr = vir::Expr::from(self_local_var.clone()).field(
-                    self.encoder.encode_value_field(self.ty)
-                ).into();
-
-                let mut body = vec![
-                    vir::Expr::acc_permission(
-                        val_field.clone(),
-                        vir::Frac::one()
-                    )
-                ];
-
-                if config::check_binary_operations() {
-                    let (lower, upper) = self.get_integer_bounds().unwrap();
-                    body.push(vir::Expr::le_cmp(lower, val_field.clone()));
-                    body.push(vir::Expr::le_cmp(val_field.clone(), upper));
-                }
-
-                body
-            }
-
+            ty::TypeVariants::TyInt(_) |
+            ty::TypeVariants::TyUint(_) |
             ty::TypeVariants::TyChar => {
                 let val_field: vir::Expr = vir::Expr::from(self_local_var.clone()).field(
                     self.encoder.encode_value_field(self.ty)
                 ).into();
-                vec![
+
+                let mut body = vec![
                     vir::Expr::acc_permission(
                         val_field.clone(),
                         vir::Frac::one()
-                    ),
-                    vir::Expr::le_cmp(
-                        0.into(),
-                        val_field.clone(),
-                    ),
-                    vir::Expr::le_cmp(
-                        val_field.clone(),
-                        // char is always four bytes in size
-                        0xFFFFFFFFu32.into(),
                     )
-                ]
+                ];
+
+                if config::check_binary_operations() {
+                    body.extend(self.encode_bounds(&val_field));
+                }
+
+                body
             }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |

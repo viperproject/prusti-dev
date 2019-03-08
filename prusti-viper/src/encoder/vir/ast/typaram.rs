@@ -154,4 +154,13 @@ mod tests {
         let inner2 = "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_";
         test(outer1, outer2, inner1, inner2);
     }
+
+    #[test]
+    pub fn test7() {
+        let outer1 = "tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__";
+        let outer2 = "tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__";
+        let inner1 = "tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__";
+        let inner2 = "tuple2$__TYPARAM__$T$__$__TYPARAM__$T$__";
+        test(outer1, outer2, inner1, inner2);
+    }
 }
