@@ -2220,7 +2220,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             {
                 let mut multi_span = MultiSpan::from_span(self.mir.span);
                 for span in self.get_postcondition_span(contract).into_iter() {
-                    multi_span.push_span_label(span, "relevant postcondition".to_string());
+                    multi_span.push_span_label(span, "".to_string());
                 }
                 multi_span
             },

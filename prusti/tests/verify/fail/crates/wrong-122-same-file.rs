@@ -34,8 +34,8 @@ impl UnixImplHandle {
 pub struct Handle(UnixImplHandle);
 
 impl Handle {
-    #[ensures="false"] //~ ERROR
-    pub fn as_file_mut(&mut self) -> &mut StdFsFile {
+    #[ensures="false"]
+    pub fn as_file_mut(&mut self) -> &mut StdFsFile { //~ ERROR postcondition
         self.0.as_file_mut()
     }
 }

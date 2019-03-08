@@ -6,8 +6,8 @@ struct T {
     f: i32,
 }
 
-#[ensures="old(x.f) == result"] //~ ERROR
-fn extract(x: &mut T) -> i32 {
+#[ensures="old(x.f) == result"]
+fn extract(x: &mut T) -> i32 { //~ ERROR postcondition
     // move x
     let y = x;
     let mut z = T { f: 42 };

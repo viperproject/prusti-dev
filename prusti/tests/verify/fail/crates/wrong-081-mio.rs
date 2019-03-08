@@ -12,14 +12,14 @@ pub struct Event {
 
 pub struct UnixReady(Ready);
 
-#[ensures="false"] //~ ERROR
-pub fn kind_mut(event: &mut Event) -> &mut Ready {
+#[ensures="false"]
+pub fn kind_mut(event: &mut Event) -> &mut Ready { //~ ERROR postcondition
     &mut event.kind
 }
 
 impl UnixReady {
-    #[ensures="false"] //~ ERROR
-    fn deref_mut(&mut self) -> &mut Ready {
+    #[ensures="false"]
+    fn deref_mut(&mut self) -> &mut Ready { //~ ERROR postcondition
         &mut self.0
     }
 }
