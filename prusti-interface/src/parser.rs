@@ -1412,7 +1412,9 @@ impl<'tcx> SpecParser<'tcx> {
         );
         let vars_string = var_match.as_str();
         let mut vars = Vec::new();
-        let re = Regex::new(r"^\s*([a-z][a-z0-9]*)\s*:\s*([a-z][a-z0-9]*)\s*$").unwrap();
+        lazy_static! {
+            static ref re: Regex = Regex::new(r"^\s*([a-z][a-z0-9]*)\s*:\s*([a-z][a-z0-9]*)\s*$").unwrap();
+        }
         let builder = &self.ast_builder;
         for var_string in vars_string.split(',') {
             if let Some(caps) = re.captures(var_string) {
@@ -1484,22 +1486,28 @@ impl<'tcx> SpecParser<'tcx> {
         spec_string: &str,
     ) -> Result<UntypedAssertion, AssertionParsingError> {
         let is_postcondition = true;
-        let re = if is_postcondition {
-            Regex::new(
+        lazy_static! {
+            static ref postcondition_re: Regex = Regex::new(
                 r"(?sx)
                 ^(?P<whitespace1>\s*(?P<construct>(after|assert_on)_expiry)\s*(<result>)?\s*\()
                 (?P<body>.*)
                 (?P<whitespace2>\)\s*)$
-            ").unwrap()
-        } else {
-            Regex::new(
+            ").unwrap();
+        }
+        lazy_static! {
+            static ref non_postcondition_re: Regex = Regex::new(
                 r"(?sx)
                 ^\s*after_expiry\s*
                 (<(?P<reference>[a-zA-Z0-9_]+)>)?
                 \s*\((?P<body>.*)\)\s*$
-            ").unwrap()
+            ").unwrap();
+        }
+        let captures_result = if is_postcondition {
+            postcondition_re.captures(spec_string)
+        } else {
+            non_postcondition_re.captures(spec_string)
         };
-        if let Some(caps) = re.captures(spec_string) {
+        if let Some(caps) = captures_result {
             let reference = if !is_postcondition {
                 let reference_match = match caps.name("reference") {
                     Some(m) => self.parse_forall_expr(span, m)?,
@@ -1565,11 +1573,13 @@ impl<'tcx> SpecParser<'tcx> {
         trace!("[enter] parse_forall spec_string={}", spec_string);
         let spec_string_without_parenthesis = {
             // Remove parenthesis.
-            let re = Regex::new(
-                r"(?sx)
-                ^\s*\(\s*(?P<forall>.*)\s*\)\s*$
-            ",
-            ).unwrap();
+            lazy_static! {
+                static ref re: Regex = Regex::new(
+                    r"(?sx)
+                    ^\s*\(\s*(?P<forall>.*)\s*\)\s*$
+                ",
+                ).unwrap();
+            }
             if let Some(caps) = re.captures(spec_string) {
                 caps.name("forall").unwrap().as_str().to_string()
             } else {
@@ -1578,13 +1588,15 @@ impl<'tcx> SpecParser<'tcx> {
         };
         debug!("parse_forall spec_string_without_parenthesis={}",
                spec_string_without_parenthesis);
-        let re = Regex::new(
-            r"(?sx)
-            ^\s*forall\s*
-            (?P<vars>.*)\s*::\s*(\{(?P<triggers>.*)\})?\s*
-            (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
-        ",
-        ).unwrap();
+        lazy_static! {
+            static ref re: Regex = Regex::new(
+                r"(?sx)
+                ^\s*forall\s*
+                (?P<vars>.*)\s*::\s*(\{(?P<triggers>.*)\})?\s*
+                (?P<filter>.*)\s*==>\s*(?P<body>.*)\s*$
+            ",
+            ).unwrap();
+        }
         if let Some(caps) = re.captures(&spec_string_without_parenthesis) {
             let vars = self.parse_vars(span, caps.name("vars").unwrap())?;
             let triggers = match caps.name("triggers") {
@@ -1644,7 +1656,9 @@ impl<'tcx> SpecParser<'tcx> {
 
         // Drop surrounding parenthesis.
         {
-            let re = Regex::new(r"^(\s*\()(.*)\)\s*$").unwrap();
+            lazy_static! {
+                static ref re: Regex = Regex::new(r"^(\s*\()(.*)\)\s*$").unwrap();
+            }
             if let Some(caps) = re.captures(&spec_string) {
                 let new_span = shift_span(span, caps[1].len() as u32);
                 return self.parse_assertion_simple(new_span, String::from(&caps[2]));

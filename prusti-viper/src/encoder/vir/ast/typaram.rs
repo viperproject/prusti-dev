@@ -19,12 +19,14 @@ fn escape_dollars(s: &str) -> String {
 impl Substs {
     pub fn learn(from: &str, to: &str) -> Self {
         // construct repls_regex
-        let regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
+        lazy_static! {
+            static ref re: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
+        }
         let mut repls_regex_str = String::new();
         repls_regex_str.push('^');
         let mut typarams = Vec::new();
         let mut last = 0;
-        for matsh in regex.find_iter(from) {
+        for matsh in re.find_iter(from) {
             repls_regex_str.push_str(&escape_dollars(&from[last..matsh.start()]));
             repls_regex_str.push_str("(.*?)");
             typarams.push(matsh.as_str().to_string());
@@ -45,7 +47,7 @@ impl Substs {
             }
         }
         Substs {
-            regex,
+            regex: re.clone(),
             repls,
         }
     }

@@ -69,7 +69,9 @@ impl FromStr for Region {
     type Err = ();
 
     fn from_str(region: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^\\'_#(?P<id>\d+)r$").unwrap();
+        lazy_static! {
+            static ref re: Regex = Regex::new(r"^\\'_#(?P<id>\d+)r$").unwrap();
+        }
         let caps = re.captures(region).unwrap();
         let id: usize = caps["id"].parse().unwrap();
         Ok(Self {
@@ -83,7 +85,9 @@ impl FromStr for Loan {
     type Err = ();
 
     fn from_str(loan: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^bw(?P<id>\d+)$").unwrap();
+        lazy_static! {
+            static ref re: Regex = Regex::new(r"^bw(?P<id>\d+)$").unwrap();
+        }
         let caps = re.captures(loan).unwrap();
         let id: usize = caps["id"].parse().unwrap();
         Ok(Self {
@@ -129,7 +133,9 @@ impl FromStr for Point {
     type Err = ();
 
     fn from_str(point: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^(?P<type>Mid|Start)\(bb(?P<bb>\d+)\[(?P<stmt>\d+)\]\)$").unwrap();
+        lazy_static! {
+            static ref re: Regex = Regex::new(r"^(?P<type>Mid|Start)\(bb(?P<bb>\d+)\[(?P<stmt>\d+)\]\)$").unwrap();
+        }
         let caps = re.captures(point).unwrap();
         let point_type: PointType = caps["type"].parse().unwrap();
         let basic_block: usize = caps["bb"].parse().unwrap();
