@@ -148,7 +148,7 @@ use std::mem;
 use syntax::codemap::respan;
 use constants::PRUSTI_SPEC_ATTR;
 use syntax_pos::DUMMY_SP;
-use report::Log;
+use report::log;
 use std::io::Write;
 use syntax::feature_gate::AttributeType;
 
@@ -189,7 +189,7 @@ pub fn register_attributes(state: &mut driver::CompileState) {
 
 /// Log the rewritten crate for debugging.
 fn log_crate(krate: &ast::Crate, source_filename: &str) {
-    let mut writer = Log::writer(
+    let mut writer = log::build_writer(
         "rust_crate_before_typechecking_writer",
         source_filename
     ).ok().unwrap();
@@ -223,7 +223,7 @@ impl<'tcx> SpecParser<'tcx> {
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),
             untyped_specifications: HashMap::new(),
-            rust_program_before_typechecking_writer: Log::writer("rust_program_before_typechecking", source_filename).ok().unwrap(),
+            rust_program_before_typechecking_writer: log::build_writer("rust_program_before_typechecking", source_filename).ok().unwrap(),
         }
     }
 

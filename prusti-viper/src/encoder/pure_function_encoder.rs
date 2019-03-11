@@ -20,7 +20,7 @@ use rustc::hir::def_id::DefId;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::ast;
-use prusti_interface::report::Log;
+use prusti_interface::report::log;
 use prusti_interface::config;
 use encoder::borrows::ProcedureContract;
 use encoder::places;

@@ -17,7 +17,7 @@ use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
 use prusti_interface::config;
-use prusti_interface::report::Log;
+use prusti_interface::report;
 use std;
 use encoder::foldunfold::places_utils::*;
 
@@ -174,7 +174,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             let source_path = self.encoder.env().source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
             let method_name = new_cfg.name();
-            Log::report_with_writer(
+            report::log::report_with_writer(
                 "graphviz_method_during_foldunfold",
                 format!("{}.{}.dot", source_filename, method_name),
                 |writer| new_cfg.to_graphviz(writer)
@@ -370,7 +370,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                         //package_stmts.push(
                         //    vir::Stmt::comment(format!("[state] pred: {{\n{}\n}}", package_bctxt.state().display_pred()))
                         //);
-                        Log::report(
+                        report::log::report(
                             "vir_package",
                             "package.vir",
                             vir::Stmt::package_magic_wand(

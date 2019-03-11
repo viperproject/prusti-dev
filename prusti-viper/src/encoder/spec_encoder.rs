@@ -16,7 +16,7 @@ use encoder::vir::ExprIterator;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::Procedure;
-use prusti_interface::report::Log;
+use prusti_interface::report::log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
 use rustc::hir;

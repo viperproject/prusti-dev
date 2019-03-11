@@ -99,7 +99,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         if let SpecificationSet::Procedure(ref pre, _) = self.specification {
             pre
         } else {
-            unreachable!()
+            unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 
@@ -107,7 +107,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         if let SpecificationSet::Procedure(_, ref post) = self.specification {
             post
         } else {
-            unreachable!()
+            unreachable!("Unexpected: {:?}", self.specification)
         }
     }
 

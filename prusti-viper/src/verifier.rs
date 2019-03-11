@@ -14,7 +14,7 @@ use prusti_interface::environment::EnvironmentImpl;
 use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
 use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
-use prusti_interface::report::Log;
+use prusti_interface::report::log;
 use viper::{self, Viper, VerificationBackend};
 use prusti_interface::specifications::{TypedSpecificationMap};
 use prusti_filter::validators::{Validator, SupportStatus};
@@ -152,7 +152,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         let start = Instant::now();
 
         // Dump the configuration
-        Log::report("config", "prusti", config::dump());
+        log::report("config", "prusti", config::dump());
 
         let validator = Validator::new(self.env.tcx());
 
@@ -240,7 +240,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         // Dump Viper program
         let source_path = self.env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        Log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
+        log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
 
         let duration = start.elapsed();
         info!("Construction of JVM objects successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);

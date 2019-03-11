@@ -28,7 +28,7 @@ use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
 use prusti_interface::environment::polonius_info::{ReborrowingZombity, ReborrowingGuard, ReborrowingDAG, ReborrowingDAGNode, ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
 use prusti_interface::environment::borrowck::{facts};
-use prusti_interface::report::Log;
+use prusti_interface::report::log;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
 use rustc::mir::TerminatorKind;
@@ -441,7 +441,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Dump initial CFG
         if config::dump_debug_info() {
-            Log::report_with_writer("graphviz_method_before_foldunfold", format!("{}.{}.dot", source_filename, method_name), |writer| self.cfg_method.to_graphviz(writer));
+            log::report_with_writer("graphviz_method_before_foldunfold", format!("{}.{}.dot", source_filename, method_name), |writer| self.cfg_method.to_graphviz(writer));
         }
 
         // Add fold/unfold
@@ -452,7 +452,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Dump final CFG
         if config::dump_debug_info() {
-            Log::report_with_writer("graphviz_method_before_viper", format!("{}.{}.dot", source_filename, method_name), |writer| final_method.to_graphviz(writer));
+            log::report_with_writer("graphviz_method_before_viper", format!("{}.{}.dot", source_filename, method_name), |writer| final_method.to_graphviz(writer));
         }
 
         final_method
@@ -1604,7 +1604,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         fake_exprs.insert(fake_arg_place.field(val_field), arg_val_expr);
                                         let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                                         if in_loop {
-                                            // FIXME
                                             warn!("Please use a local variable as argument for function call '{}', and not a constant.", func_proc_name);
                                         }
                                     }

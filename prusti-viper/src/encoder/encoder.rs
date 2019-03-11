@@ -19,7 +19,7 @@ use encoder::vir;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::EnvironmentImpl;
-use prusti_interface::report::Log;
+use prusti_interface::report::log;
 use rustc::hir::def_id::DefId;
 use rustc::middle::const_val::ConstVal;
 use rustc::hir;
@@ -72,10 +72,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         let vir_program_before_foldunfold_writer = RefCell::new(
-            Log::writer("vir_program_before_foldunfold", format!("{}.vir", source_filename)).ok().unwrap()
+            log::build_writer("vir_program_before_foldunfold", format!("{}.vir", source_filename)).ok().unwrap()
         );
         let vir_program_before_viper_writer = RefCell::new(
-            Log::writer("vir_program_before_viper", format!("{}.vir", source_filename)).ok().unwrap()
+            log::build_writer("vir_program_before_viper", format!("{}.vir", source_filename)).ok().unwrap()
         );
 
         Encoder {
@@ -240,8 +240,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<&TypedSpecificationSet> {
-        let opt_spec_id: Option<SpecID> = self.env().tcx()
+    pub fn get_opt_spec_id(&self, def_id: DefId) -> Option<SpecID> {
+        let opt_spec_id = self.env().tcx()
             .get_attrs(def_id)
             .iter()
             .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
@@ -256,7 +256,18 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     )
                 )
             );
-        opt_spec_id.and_then(|spec_id| self.spec().get(&spec_id))
+        debug!("Function {:?} has spec_id {:?}", def_id, opt_spec_id);
+        opt_spec_id
+    }
+
+    pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<&TypedSpecificationSet> {
+        // Currently, we don't support specifications for external functions.
+        // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
+        // that the def_id does not point to an external crate.
+        if !def_id.is_local() {
+            return None
+        }
+        self.get_opt_spec_id(def_id).and_then(|spec_id| self.spec().get(&spec_id))
     }
 
     fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) ->  ProcedureContractMirDef<'tcx> {
@@ -365,7 +376,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
-        trace!("encode_procedure({:?})", proc_def_id);
+        debug!("encode_procedure({:?})", proc_def_id);
         assert!(!self.env.has_attribute_name(proc_def_id, "pure"), "procedure is marked as pure: {:?}", proc_def_id);
         assert!(!self.env.has_attribute_name(proc_def_id, "trusted"), "procedure is marked as trusted: {:?}", proc_def_id);
         if !self.procedures.borrow().contains_key(&proc_def_id) {
@@ -620,6 +631,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_pure_function_def(&self, proc_def_id: ProcedureDefId) -> vir::Function {
+        debug!("encode_pure_function_defprocedure_encoder.rs:1815({:?})", proc_def_id);
         assert!(self.env.has_attribute_name(proc_def_id, "pure"), "procedure is not marked as pure: {:?}", proc_def_id);
 
         if !self.pure_functions.borrow().contains_key(&proc_def_id) {
