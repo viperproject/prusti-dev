@@ -542,7 +542,7 @@ impl State {
         }
     }
 
-    fn restore_dropped_perm(&mut self, item: Perm) {
+    pub fn restore_dropped_perm(&mut self, item: Perm) {
         trace!("[enter] restore_dropped_perm item={}", item);
         for moved_place in &self.moved {
             trace!("  moved_place={}", moved_place);

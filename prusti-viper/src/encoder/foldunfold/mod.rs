@@ -292,13 +292,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             .map(|i| final_bctxt[*i].as_ref().unwrap())
             .collect();
         let (actions, mut final_bctxt) = self.prepend_join(final_bctxts);
-        mem::swap(surrounding_bctxt, &mut final_bctxt);
         for (&i, mut action) in final_blocks.iter().zip(actions.iter()) {
             if !action.is_empty() {
-                let stmts_to_add = action.iter().map(|a| a.to_stmt());
+                let mut stmts_to_add = Vec::new();
+                for a in action {
+                    stmts_to_add.push(a.to_stmt());
+                    if let Action::Drop(perm) = a {
+                        if dag.in_borrowed_places(perm.get_place()) {
+                            // TODO: Do we need to do the same also in other places?
+                            stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                            final_bctxt.mut_state().restore_dropped_perm(perm.clone());
+                        }
+                    }
+                }
+                //let stmts_to_add = action.iter().map(|a| a.to_stmt());
                 cfg.basic_blocks[i].statements.extend(stmts_to_add);
             }
         }
+        mem::swap(surrounding_bctxt, &mut final_bctxt);
 
         let mut stmts = Vec::new();
         for (i, block) in cfg.basic_blocks.iter().enumerate() {
