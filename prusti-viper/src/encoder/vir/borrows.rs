@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
-use std::collections::HashMap;
-use super::ast::{Expr, Stmt};
+use std::collections::{HashMap, VecDeque};
+use super::ast::{Expr, Stmt, ExprIterator};
 use prusti_interface::environment::borrowck;
 
 /// The method-unique borrow identifier.
@@ -65,7 +65,7 @@ pub enum NodeKind {
 #[derive(Clone, PartialEq, Eq)]
 pub struct Node {
     /// This borrow occurred iff `guard` is `true`.
-    pub guard: Expr,
+    guard: Expr,
     pub borrow: Borrow,
     pub reborrowing_nodes: Vec<Borrow>,
     pub reborrowed_nodes: Vec<Borrow>,
@@ -167,6 +167,30 @@ impl DAG {
             }
         }
         trace!("[exit] check_integrity dag=[{:?}]", self);
+    }
+    /// Get the complete guard for the given node.
+    pub fn guard(&self, expiring_borrow: Borrow) -> Expr {
+        let index = self.get_borrow_index(expiring_borrow);
+        let mut guard_indices = vec![index];
+        let mut to_visit = VecDeque::new();
+        let mut visited = vec![false; self.nodes.len()];
+        to_visit.push_back(index);
+        visited[index] = true;
+        while let Some(curr_index) = to_visit.pop_front() {
+            let curr_node = &self.nodes[curr_index];
+            for borrow in &curr_node.reborrowing_nodes {
+                let borrow_index = self.borrow_indices[borrow];
+                if !visited[borrow_index] {
+                    to_visit.push_back(borrow_index);
+                    visited[borrow_index] = true;
+                    guard_indices.push(borrow_index);
+                }
+            }
+        }
+        guard_indices
+            .into_iter()
+            .map(|index| self.nodes[index].guard.clone())
+            .conjoin()
     }
 }
 

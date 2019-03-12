@@ -181,6 +181,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 .collect();
             let block = borrows::BasicBlock {
                 node: node,
+                guard: dag.guard(node.borrow),
                 predecessors: predecessors,
                 statements: vec![vir::Stmt::comment(format!("{:?}", node.borrow))],
                 successors: successors,
@@ -322,13 +323,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
 
         let mut stmts = Vec::new();
         for (i, block) in cfg.basic_blocks.iter().enumerate() {
-            stmts.push(vir::Stmt::If(block.node.guard.clone(),
+            stmts.push(vir::Stmt::If(block.guard.clone(),
                                      self.patch_places(&block.statements, label)));
             for ((from, to), statements) in &cfg.edges {
                 if *from == i {
                     let condition = vir::Expr::and(
-                        block.node.guard.clone(),
-                        cfg.basic_blocks[*to].node.guard.clone(),
+                        block.guard.clone(),
+                        cfg.basic_blocks[*to].guard.clone(),
                     );
                     stmts.push(vir::Stmt::If(condition,
                                              self.patch_places(statements, label)));
@@ -401,6 +402,7 @@ mod borrows {
     use std::io;
 
     pub(super) struct BasicBlock<'a> {
+        pub guard: vir::Expr,
         pub node: &'a vir::borrows::Node,
         pub predecessors: Vec<usize>,
         pub statements: Vec<vir::Stmt>,

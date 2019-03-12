@@ -44,7 +44,8 @@ impl CfgMethod {
                     writeln!(graph, "dag_{}_node_{:?} [shape=none,label=<",
                              label, node.borrow).unwrap();
                     writeln!(graph, "<table>").unwrap();
-                    writeln!(graph, "<tr><td colspan=\"2\">{:?}</td></tr>", node).unwrap();
+                    writeln!(graph, "<tr><td colspan=\"2\">{:?} (guard: {})</td></tr>",
+                             node, escape_html(&dag.guard(node.borrow))).unwrap();
                     for (i, stmt) in node.stmts.iter().enumerate() {
                         writeln!(graph, "<tr><td>{}</td><td>{}</td></tr>", i, escape_html(stmt)).unwrap();
 

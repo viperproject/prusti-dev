@@ -23,6 +23,10 @@ fn reborrow_u32(x: &mut u32) -> &mut u32 {
     x
 }
 
+fn reborrow_T(x: &mut T) -> &mut T {
+    x
+}
+
 fn borrow_u32(_x: &mut u32) {
 }
 
@@ -37,6 +41,17 @@ pub fn test1() {
 pub fn test2() {
     let mut a = 6;
     borrow_u32(&mut a);
+}
+
+fn test5(x: &mut T, cond: bool) {
+    let z = reborrow_T(x);
+    let z2;
+    if cond {
+        z2 = reborrow_T(z);
+    } else {
+        z2 = reborrow_T(x);
+    }
+    z2.f = 4;
 }
 
 pub struct ListNode {
