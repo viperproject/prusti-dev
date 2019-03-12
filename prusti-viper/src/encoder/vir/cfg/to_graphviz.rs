@@ -128,27 +128,35 @@ impl CfgMethod {
                 lines.push("<br/>".to_string());
             }
             first_row = false;
-            if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
-                reborrowing_dags.push(dag);
-                lines.push(format!("ExpireBorrows({}) <br />", label));
+            match stmt {
+                vir::Stmt::ExpireBorrows(ref dag) => {
+                    reborrowing_dags.push(dag);
+                }
+                vir::Stmt::PackageMagicWand(_, ref stmts, _, _) => {
+                    for stmt in stmts {
+                        if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
+                            reborrowing_dags.push(dag);
+                        }
+                    }
+                }
+                _ => {}
+            }
+            let stmt_string = stmt.to_string();
+            let mut splitted_stmt_lines = vec![];
+            for stmt_line in stmt_string.lines() {
+                splitted_stmt_lines.push(
+                    sub_strings(stmt_line, 120, 116)
+                        .into_iter()
+                        .map(|x| escape_html(x))
+                        .collect::<Vec<_>>()
+                        .join(" \\ <br/>    ")
+                );
+            }
+            let stmt_html = splitted_stmt_lines.join("<br/>");
+            if stmt.is_comment() {
+                lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
             } else {
-                let stmt_string = stmt.to_string();
-                let mut splitted_stmt_lines = vec![];
-                for stmt_line in stmt_string.lines() {
-                    splitted_stmt_lines.push(
-                        sub_strings(stmt_line, 120, 116)
-                            .into_iter()
-                            .map(|x| escape_html(x))
-                            .collect::<Vec<_>>()
-                            .join(" \\ <br/>    ")
-                    );
-                }
-                let stmt_html = splitted_stmt_lines.join("<br/>");
-                if stmt.is_comment() {
-                    lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
-                } else {
-                    lines.push(stmt_html);
-                }
+                lines.push(stmt_html);
             }
         }
         lines.push("</td></tr>".to_string());

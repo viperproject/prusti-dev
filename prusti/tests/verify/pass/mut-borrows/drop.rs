@@ -86,4 +86,3 @@ pub fn test4(cond: bool) {
 }
 
 fn main() {}
-

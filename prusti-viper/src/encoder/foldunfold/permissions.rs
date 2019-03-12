@@ -140,7 +140,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 //permissions
             }
 
-            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref _lhs, ref _rhs, ref _pos), ref _package_stmts, ref _position) => {
+            &vir::Stmt::PackageMagicWand(
+                vir::Expr::MagicWand(ref _lhs, ref _rhs, ref _pos),
+                ref _package_stmts,
+                ref _label,
+                ref _position
+            ) => {
                 // We model the magic wand as "assert lhs; stmts; exhale rhs"
                 HashSet::new()
             }
@@ -179,7 +184,7 @@ impl vir::Stmt {
             &vir::Stmt::TransferPerm(_, _) |
             &vir::Stmt::ExpireBorrowsIf(_, _, _) |
             &vir::Stmt::StopExpiringLoans(_) |
-            &vir::Stmt::PackageMagicWand(_, _, _) |
+            &vir::Stmt::PackageMagicWand(_, _, _, _) |
             &vir::Stmt::ApplyMagicWand(_, _) |
             &vir::Stmt::ExpireBorrows(_) |
             &vir::Stmt::If(_, _) => HashSet::new(),

@@ -177,7 +177,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref pos) => {
+            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref _label, ref pos) => {
                 ast.package(
                     wand.to_viper(ast),
                     ast.seqn(

@@ -37,6 +37,23 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     fn initial_context(&mut self) -> BranchCtxt;
 
     /// Replace some statements, mutating the branch context
+    ///
+    /// ``label`` is the label to be used for references when emitting
+    /// fold/unfold operations. This is a hacky work-around for Silicon
+    /// not being able to see that two locations are the same inside the
+    /// package statement. The minimal example that illustrates the issue:
+    ///
+    /// ```rust
+    /// pub struct ListNode {
+    ///     next: Option<Box<ListNode>>,
+    /// }
+    /// pub fn test5(list: &mut ListNode) -> &mut ListNode {
+    ///     match list.next {
+    ///         Some(box ref mut node) => test5(node),
+    ///         None => list,
+    ///     }
+    /// }
+    /// ```
     fn replace_stmt(
         &mut self,
         stmt: &Stmt,
@@ -44,6 +61,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
         bctxt: &mut BranchCtxt,
         curr_block_index: CfgBlockIndex,
         new_cfg: &CfgMethod,
+        label: Option<&str>,
     ) -> Vec<Stmt>;
 
     /// Inject some statements and replace a successor, mutating the branch context
@@ -170,7 +188,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
                     curr_block.successor.is_return();
                 let new_stmts = self.replace_stmt(stmt, last_stmt_before_return,
                                                   &mut bctxt, curr_block_index,
-                                                  &new_cfg);
+                                                  &new_cfg, None);
                 trace!("Replace stmt '{}' with [{}]", stmt, new_stmts.iter().to_string());
                 for new_stmt in new_stmts {
                     new_cfg.add_stmt(curr_block_index, new_stmt);

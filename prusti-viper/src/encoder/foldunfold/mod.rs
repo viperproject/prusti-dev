@@ -147,10 +147,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     self.replace_old_expr(&rhs, &rhs_bctxt)
                 )
             }
-            vir::Stmt::PackageMagicWand(wand, stmts, pos) => {
+            vir::Stmt::PackageMagicWand(wand, stmts, label, pos) => {
                 vir::Stmt::PackageMagicWand(
                     self.replace_expr(&wand, bctxt),
                     stmts,
+                    label,
                     pos
                 )
             }
@@ -164,6 +165,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         surrounding_bctxt: &mut BranchCtxt<'p>,
         surrounding_block_index: vir::CfgBlockIndex,
         new_cfg: &vir::CfgMethod,
+        label: Option<&str>,
     ) -> Vec<vir::Stmt> {
         trace!("[enter] process_expire_borrows dag=[{:?}]", dag);
         let mut cfg = borrows::CFG::new();
@@ -180,7 +182,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             let block = borrows::BasicBlock {
                 node: node,
                 predecessors: predecessors,
-                statements: Vec::new(),
+                statements: vec![vir::Stmt::comment(format!("{:?}", node.borrow))],
                 successors: successors,
             };
             cfg.add_block(block);
@@ -194,7 +196,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             if self.dump_debug_info {
                 let source_path = self.encoder.env().source_path();
                 let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-                Log::report_with_writer(
+                report::log::report_with_writer(
                     "graphviz_reborrowing_dag_during_foldunfold",
                     format!("{}.{}.dot", source_filename, dag),
                     |writer| cfg.to_graphviz(writer, curr_block_index)
@@ -271,7 +273,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 debug!("process_expire_borrows block={} ({:?}) stmt={}",
                        curr_block_index, curr_node.borrow, stmt);
                 let new_stmts = self.replace_stmt(
-                    &stmt, false, &mut bctxt, surrounding_block_index, new_cfg);
+                    &stmt, false, &mut bctxt, surrounding_block_index, new_cfg, label);
                 curr_block.statements.extend(new_stmts);
             }
 
@@ -300,18 +302,76 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
 
         let mut stmts = Vec::new();
         for (i, block) in cfg.basic_blocks.iter().enumerate() {
-            stmts.push(vir::Stmt::If(block.node.guard.clone(), block.statements.clone()));
+            stmts.push(vir::Stmt::If(block.node.guard.clone(),
+                                     self.patch_places(&block.statements, label)));
             for ((from, to), statements) in &cfg.edges {
                 if *from == i {
                     let condition = vir::Expr::and(
                         block.node.guard.clone(),
                         cfg.basic_blocks[*to].node.guard.clone(),
                     );
-                    stmts.push(vir::Stmt::If(condition, statements.clone()));
+                    stmts.push(vir::Stmt::If(condition,
+                                             self.patch_places(statements, label)));
                 }
             }
         }
         stmts
+    }
+
+    /// Wrap `_1.val_ref.f.g.` into `old[label](_1.val_ref).f.g`. This is needed
+    /// to make `_1.val_ref` reachable inside a package statement of a magic wand.
+    fn patch_places(&self, stmts: &Vec<vir::Stmt>, maybe_label: Option<&str>) -> Vec<vir::Stmt> {
+        if let Some(label) = maybe_label {
+            struct PlacePatcher<'a> {
+                label: &'a str,
+            }
+            impl<'a> vir::ExprFolder for PlacePatcher<'a> {
+                fn fold(&mut self, e: vir::Expr) -> vir::Expr {
+                    match e {
+                        vir::Expr::Field(box vir::Expr::Local(_, _), _, _) => {
+                            e.old(self.label)
+                        }
+                        _ => {
+                            vir::default_fold_expr(self, e)
+                        }
+                    }
+                }
+            }
+            fn patch_args(label: &str, args: &Vec<vir::Expr>) -> Vec<vir::Expr> {
+                args.iter()
+                    .cloned()
+                    .map(|arg| {
+                        assert!(arg.is_place());
+                        if arg.is_old() {
+                            arg
+                        } else {
+                            PlacePatcher { label }.fold(arg)
+                        }
+                    })
+                    .collect()
+            }
+            stmts
+                .iter()
+                .map(|stmt| {
+                    match stmt {
+                        vir::Stmt::Comment(_) |
+                        vir::Stmt::ApplyMagicWand(_, _) |
+                        vir::Stmt::TransferPerm(_, _) => {
+                            stmt.clone()
+                        },
+                        vir::Stmt::Fold(ref pred_name, ref args, frac) => {
+                            vir::Stmt::Fold(pred_name.clone(), patch_args(label, args), *frac)
+                        },
+                        vir::Stmt::Unfold(ref pred_name, ref args, frac) => {
+                            vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args), *frac)
+                        },
+                        x => unreachable!("{:?}", x),
+                    }
+                })
+                .collect()
+        } else {
+            stmts.clone()
+        }
     }
 }
 
@@ -462,11 +522,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         bctxt: &mut BranchCtxt<'p>,
         curr_block_index: vir::CfgBlockIndex,
         new_cfg: &vir::CfgMethod,
+        label: Option<&str>,
     ) -> Vec<vir::Stmt> {
         debug!("[enter] replace_stmt: ##### {} #####", stmt);
 
         if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
-            return self.process_expire_borrows(dag, bctxt, curr_block_index, new_cfg);
+            return self.process_expire_borrows(dag, bctxt, curr_block_index, new_cfg, label);
         }
 
         let mut stmt = stmt.clone();
@@ -615,13 +676,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 //              vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
 //          }
 
-            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, box ref rhs, _), ref old_package_stmts, ref position) => {
+            vir::Stmt::PackageMagicWand(
+                vir::Expr::MagicWand(box ref lhs, box ref rhs, _),
+                ref old_package_stmts,
+                ref label,
+                ref position
+            ) => {
                 let mut package_bctxt = bctxt.clone();
                 let mut package_stmts = vec![];
                 for stmt in old_package_stmts {
                     package_stmts.extend(
                         self.replace_stmt(stmt, false, &mut package_bctxt,
-                                          curr_block_index, new_cfg)
+                                          curr_block_index, new_cfg, Some(label))
                     );
                     if config::dump_debug_info() {
                         //package_stmts.push(
@@ -637,12 +703,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                                 lhs.clone(),
                                 rhs.clone(),
                                 package_stmts.clone(),
+                                label.clone(),
                                 position.clone()
                             )
                         );
                     }
                 }
-                vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts, position.clone())
+                vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts,
+                                              label.clone(), position.clone())
             }
 
             stmt => stmt,

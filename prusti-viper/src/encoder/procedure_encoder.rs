@@ -2386,7 +2386,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.mir.span,
                 ErrorCtxt::PackageMagicWandForPostcondition
             );
-            stmts.push(vir::Stmt::package_magic_wand(lhs, rhs, package_stmts, pos));
+            stmts.push(vir::Stmt::package_magic_wand(lhs, rhs, package_stmts,
+                                                     post_label.clone(), pos));
 
             // We need to transfer all permissions from old[post](lhs) to lhs.
             let borrow_infos = &contract.borrow_infos;

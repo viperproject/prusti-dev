@@ -1,3 +1,5 @@
+#![feature(box_patterns)]
+
 extern crate prusti_contracts;
 
 struct T {
@@ -35,6 +37,27 @@ pub fn test1() {
 pub fn test2() {
     let mut a = 6;
     borrow_u32(&mut a);
+}
+
+pub struct ListNode {
+    next: Option<Box<ListNode>>,
+}
+
+fn use_list(_list: &mut ListNode) {}
+
+pub fn test3(list: &mut ListNode) -> &mut ListNode {
+    match list.next {
+        Some(box ref mut node) => test3(node),
+        None => list,
+    }
+}
+
+pub fn test4(list: &mut ListNode) {
+    let last = match list.next {
+        Some(box ref mut node) => node,
+        None => list,
+    };
+    use_list(last);
 }
 
 fn main() {}
