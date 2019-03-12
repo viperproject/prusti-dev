@@ -953,7 +953,18 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             if permanent_mark[current] {
                 return;
             }
-            assert!(!temporary_mark[current], "Not a DAG! current_loan: {:?}", loans[current]);
+            assert!(
+                !temporary_mark[current],
+                "Not a DAG!\nrepresentative_loan: {:?}\nreborrows_direct: {:?}\nloans: {:?}\ncurrent: {:?}\nsorted_loans: {:?}\npermanent_mark: {:?}\ntemporary_mark: {:?}\nloan_location: {:?}",
+                representative_loan,
+                reborrows_direct,
+                loans,
+                current,
+                sorted_loans,
+                permanent_mark,
+                temporary_mark,
+                this.loan_position
+            );
             temporary_mark[current] = true;
             let current_loan = loans[current];
             if Some(current_loan) == *representative_loan {
