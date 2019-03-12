@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
+use std::collections::HashMap;
 use encoder::vir::ast::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -15,12 +16,6 @@ pub struct Function {
     pub pres: Vec<Expr>,
     pub posts: Vec<Expr>,
     pub body: Option<Expr>,
-}
-
-impl WithIdentifier for Function {
-    fn get_identifier(&self) -> String {
-        self.name.clone()
-    }
 }
 
 impl fmt::Display for Function {
@@ -47,5 +42,27 @@ impl fmt::Display for Function {
             write!(f, "}}")?;
         }
         write!(f, "")
+    }
+}
+
+impl Function {
+    pub fn inline_body(&self, args: Vec<Expr>) -> Expr {
+        let subst: HashMap<LocalVar, Expr> = self.formal_args.iter().cloned()
+            .zip(args.into_iter())
+            .collect();
+        // TODO: this does not handle let expressions, quantifiers, and so on
+        self.body.clone().unwrap().fold_expr(|orig_expr| {
+            if let Expr::Local(ref local, ref pos) = orig_expr {
+                subst[local].clone()
+            } else {
+                orig_expr
+            }
+        })
+    }
+}
+
+impl WithIdentifier for Function {
+    fn get_identifier(&self) -> String {
+        self.name.clone()
     }
 }

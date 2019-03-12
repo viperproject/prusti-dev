@@ -450,6 +450,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().get(predicate_name).cloned()
     }
 
+    pub fn get_type_invariant_by_name(&self, invariant_name: &str) -> Option<vir::Function> {
+        self.type_invariants.borrow().get(invariant_name).cloned()
+    }
+
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
         // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
         if !self.type_invariant_names.borrow().contains_key(&ty.sty) {
@@ -593,7 +597,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vec![vir::LocalVar::new("self", vir::Type::TypedRef(type_pred))],
             vir::Type::Bool,
             // TODO
-            vir::Position::new(0, 0, "".to_string()),
+            vir::Position::default(),
         )
     }
 
@@ -605,7 +609,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vec![],
             vir::Type::Int,
             // TODO
-            vir::Position::new(0, 0, "".to_string()),
+            vir::Position::default(),
         )
     }
 

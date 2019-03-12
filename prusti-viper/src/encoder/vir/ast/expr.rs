@@ -467,6 +467,13 @@ impl Expr {
         }
     }
 
+    pub fn get_local(&self) -> Option<&LocalVar> {
+        match self {
+            &Expr::Local(ref local, _) => Some(local),
+            _ => None,
+        }
+    }
+
     pub fn is_field(&self) -> bool {
         match self {
             &Expr::Field(..) => true,
@@ -861,6 +868,28 @@ impl Expr {
             // TODO: Handle triggers?
         }
         PlaceFolder {
+            f
+        }.fold(self)
+    }
+
+    /// Apply the closure to all expressions.
+    pub fn fold_expr<F>(self, f: F) -> Expr
+        where F: Fn(Expr) -> Expr
+    {
+        struct ExprFolderImpl<F>
+            where F: Fn(Expr) -> Expr
+        {
+            f: F,
+        };
+        impl<F> ExprFolder for ExprFolderImpl<F>
+            where F: Fn(Expr) -> Expr
+        {
+            fn fold(&mut self, e: Expr) -> Expr {
+                let new_expr = default_fold_expr(self, e);
+                (self.f)(new_expr)
+            }
+        }
+        ExprFolderImpl {
             f
         }.fold(self)
     }

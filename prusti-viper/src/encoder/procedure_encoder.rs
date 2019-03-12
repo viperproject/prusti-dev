@@ -1587,6 +1587,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
                             let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
                             let mut fake_vars = vec![];
+                            let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
+                            let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
 
                             for operand in args.iter() {
                                 let arg_ty = self.mir_encoder.get_operand_ty(operand);
@@ -1594,6 +1596,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 fake_vars.push(fake_arg.clone());
                                 let encoded_local = self.encode_prusti_local(fake_arg);
                                 let fake_arg_place = vir::Expr::local(encoded_local);
+                                let inv_name = self.encoder.encode_type_invariant_use(arg_ty);
+                                let arg_inv = self.encoder.encode_type_invariant_def(arg_ty);
+                                type_invs.insert(inv_name, arg_inv);
                                 match self.mir_encoder.encode_operand_place(operand) {
                                     Some(place) => {
                                         fake_exprs.insert(fake_arg_place, place.into());
@@ -1601,9 +1606,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     None => {
                                         let arg_val_expr = self.mir_encoder.encode_operand_expr(operand);
                                         let val_field = self.encoder.encode_value_field(arg_ty);
-                                        fake_exprs.insert(fake_arg_place.field(val_field), arg_val_expr);
+                                        fake_exprs.insert(fake_arg_place.clone().field(val_field), arg_val_expr);
                                         let in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
                                         if in_loop {
+                                            const_arg_vars.insert(fake_arg_place);
                                             warn!("Please use a local variable as argument for function call '{}', and not a constant.", func_proc_name);
                                         }
                                     }
@@ -1637,7 +1643,32 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                             let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
                                 for (fake_arg, arg_expr) in fake_exprs.iter() {
-                                    expr = expr.replace_place(&fake_arg, arg_expr);
+                                    expr = expr.fold_expr(|orig_expr| {
+                                        // Inline or skip usages of constant parameters
+                                        // See issue #85
+                                        match orig_expr {
+                                            vir::Expr::FuncApp(ref name, ref args, _, _, _) => {
+                                                if args.len() == 1 && args[0].is_local() && const_arg_vars.contains(&args[0]) {
+                                                    // Inline type invariant
+                                                    type_invs[name].inline_body(args.clone())
+                                                } else {
+                                                    orig_expr
+                                                }
+                                            }
+                                            vir::Expr::PredicateAccessPredicate(_, ref args, _, _) => {
+                                                debug_assert!(args.len() == 1);
+                                                let arg = &args[0];
+                                                if arg.is_local() && const_arg_vars.contains(arg) {
+                                                    // Skip predicate permission
+                                                    true.into()
+                                                } else {
+                                                    orig_expr
+                                                }
+                                            }
+
+                                            x => x
+                                        }
+                                    }).replace_place(&fake_arg, arg_expr);
                                 }
                                 expr
                             };

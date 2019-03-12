@@ -325,7 +325,7 @@ impl ReborrowingDAG {
 }
 
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
-    mir: &'a mir::Mir<'tcx>,
+    pub(crate) mir: &'a mir::Mir<'tcx>,
     pub(crate) borrowck_in_facts: facts::AllInputFacts,
     pub(crate) borrowck_out_facts: facts::AllOutputFacts,
     pub(crate) interner: facts::Interner,
@@ -953,7 +953,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             if permanent_mark[current] {
                 return;
             }
-            assert!(!temporary_mark[current], "Not a DAG!");
+            assert!(!temporary_mark[current], "Not a DAG! mir: {:?}", this.mir);
             temporary_mark[current] = true;
             let current_loan = loans[current];
             if Some(current_loan) == *representative_loan {

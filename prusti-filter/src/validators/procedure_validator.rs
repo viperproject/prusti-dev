@@ -470,9 +470,6 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 _ => {
                     for arg in args {
                         self.check_operand(mir, arg);
-                        if let mir::Operand::Constant(_) = arg {
-                            partially!(self, "uses a constant in a function call");
-                        }
                     }
                     if let Some((ref place, _)) = destination {
                         self.check_place(mir, place);
