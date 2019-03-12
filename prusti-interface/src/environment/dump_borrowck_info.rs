@@ -21,6 +21,7 @@ use std::cell;
 use std::env;
 use std::collections::{HashSet, BTreeMap, BTreeSet};
 use std::fs::File;
+use std::fs::create_dir_all;
 use std::io::{self, Write, BufWriter};
 use std::path::PathBuf;
 use rustc::hir::{self, intravisit};
@@ -30,8 +31,10 @@ use rustc_hash::FxHashMap;
 use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
 use syntax::codemap::Span;
+use rustc::hir::itemlikevisit::ItemLikeVisitor;
+use data::ProcedureDefId;
 
-pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>) {
+pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, procedures: &Vec<ProcedureDefId>) {
     trace!("[dump_borrowck_info] enter");
 
     assert!(tcx.use_mir_borrowck(), "NLL is not enabled.");
@@ -39,44 +42,34 @@ pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>) {
     let mut printer = InfoPrinter {
         tcx: tcx,
     };
-    intravisit::walk_crate(&mut printer, tcx.hir.krate());
+    //intravisit::walk_crate(&mut printer, tcx.hir.krate());
+    //tcx.hir.krate().visit_all_item_likes(&mut printer);
+
+    for def_id in procedures {
+        printer.print_info(*def_id);
+    }
 
     trace!("[dump_borrowck_info] exit");
 }
+
 
 struct InfoPrinter<'a, 'tcx: 'a> {
     pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
 }
 
-impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
-    fn nested_visit_map<'this>(&'this mut self) -> intravisit::NestedVisitorMap<'this, 'tcx> {
-        let map = &self.tcx.hir;
-        intravisit::NestedVisitorMap::All(map)
-    }
+impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
+    fn print_info(&self, def_id: ProcedureDefId) {
+        trace!("[print_info] enter {:?}", def_id);
 
-    fn visit_fn(&mut self, fk: intravisit::FnKind<'tcx>, _fd: &'tcx hir::FnDecl,
-                _b: hir::BodyId, _s: Span, node_id: ast::NodeId) {
-        let name = match fk {
-            intravisit::FnKind::ItemFn(name, ..) => name,
-            _ => return,
-        };
-        if name.to_string().ends_with("__spec") {
-            // We ignore spec functions.
-            return;
-        }
-
-        trace!("[visit_fn] enter name={:?}", name);
-
-        match env::var_os("PRUSTI_DUMP_PROC").and_then(|value| value.into_string().ok()) {
+        /*match env::var_os("PRUSTI_DUMP_PROC").and_then(|value| value.into_string().ok()) {
             Some(value) => {
                 if name != value {
                     return;
                 }
             },
             _ => {},
-        };
+        };*/
 
-        let def_id = self.tcx.hir.local_def_id(node_id);
         self.tcx.mir_borrowck(def_id);
 
         // Read Polonius facts.
@@ -89,6 +82,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         let graph_path = PathBuf::from("nll-facts")
             .join(def_path.to_filename_friendly_no_crate())
             .join("graph.dot");
+        debug!("Writing graph to {:?}", graph_path);
         let graph_file = File::create(graph_path).expect("Unable to create file");
         let graph = BufWriter::new(graph_file);
 
@@ -107,10 +101,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for InfoPrinter<'a, 'tcx> {
         };
         mir_info_printer.print_info().unwrap();
 
-        trace!("[visit_fn] exit");
+        trace!("[print_info] exit");
     }
 }
-
 
 struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub def_path: hir::map::DefPath,
@@ -179,7 +172,7 @@ macro_rules! to_sorted_string {
 
 impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
-    pub fn print_info(&mut self) -> Result<(),io::Error> {
+    pub fn print_info(mut self) -> Result<(),io::Error> {
         //self.dump_to_file("/tmp/requires",
                           //&self.polonius_info.borrowck_out_facts.restricts);
         //self.dump_to_file("/tmp/zrequires",
@@ -201,6 +194,10 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
         self.print_borrow_regions()?;
         self.print_restricts()?;
         write_graph!(self, "}}\n");
+
+        // flush
+        self.graph.into_inner().into_inner().unwrap();
+
         Ok(())
     }
 

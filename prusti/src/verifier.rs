@@ -15,7 +15,7 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
 use rustc_driver::driver;
 use prusti_interface::environment::EnvironmentImpl as Environment;
-
+use prusti_interface::report;
 
 /// Verify a (typed) specification on compiler state.
 pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
@@ -31,9 +31,6 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
     } else {
         debug!("Specification consists of {} elements.", spec.len());
 
-        debug!("Dump borrow checker info...");
-        env.dump_borrowck_info();
-
         debug!("Prepare verification task...");
         let annotated_procedures = env.get_annotated_procedures();
         let verification_task = VerificationTask { procedures: annotated_procedures };
@@ -42,6 +39,9 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         let verification_result = if verification_task.procedures.is_empty() {
             VerificationResult::Success
         } else {
+            debug!("Dump borrow checker info...");
+            env.dump_borrowck_info(&verification_task.procedures);
+
             debug!("Prepare verifier...");
             let verifier_builder = ViperVerifierBuilder::new();
             let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
@@ -56,10 +56,10 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
         match verification_result {
             VerificationResult::Success => {
-                println!("Successful verification of {} items", verification_task.procedures.len());
+                report::user::message(format!("Successful verification of {} items", verification_task.procedures.len()));
             }
             VerificationResult::Failure => {
-                println!("Verification failed");
+                report::user::message("Verification failed");
                 assert!(env.has_errors());
             }
         };

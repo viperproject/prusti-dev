@@ -56,6 +56,11 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         }
     }
 
+    /// Returns the name of the crate that is being compiled
+    pub fn crate_name(&self) -> &str {
+        self.state.crate_name.as_ref().unwrap()
+    }
+
     /// Returns the typing context
     pub fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
         self.state.tcx.unwrap()
@@ -145,9 +150,9 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     /// Dump various information from the borrow checker.
     ///
     /// Mostly used for experiments and debugging.
-    pub fn dump_borrowck_info(&self) {
+    pub fn dump_borrowck_info(&self, procedures: &Vec<ProcedureDefId>) {
         if config::dump_borrowck_info() {
-            dump_borrowck_info::dump_borrowck_info(self.tcx())
+            dump_borrowck_info::dump_borrowck_info(self.tcx(), procedures)
         }
     }
 
