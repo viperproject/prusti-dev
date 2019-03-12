@@ -12,90 +12,22 @@ use prusti_interface::environment::borrowck;
 /// The method-unique borrow identifier.
 pub type Borrow = borrowck::facts::Loan;
 
-/*
-/// The borrow that moved permissions from one path to another. To undo it,
-/// we need to move all permissions associated with `src` to `dest`
-/// in the fold-unfold state.
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MoveNode {
-    pub src: Expr,
-    pub dest: Expr,
-}
-
-/// The borrow that crossed a verification boundary and requires a
-/// magic wand. To undo it, we need to apply the given magic wand.
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MagicWandNode {
-//  /// This must be a magic wand.
-//  wand: Expr,
-}
-*/
-
-/*
-impl MagicWandNode {
-    /// Get the LHS of the magic wand.
-    pub fn lhs(&self) -> &Expr {
-        match self.wand {
-            Expr::MagicWand(box ref lhs, _, _) => lhs,
-            _ => unreachable!(),
-        }
-    }
-    /// Get the RHS of the magic wand.
-    pub fn rhs(&self) -> &Expr {
-        match self.wand {
-            Expr::MagicWand(_, box ref rhs, _) => rhs,
-            _ => unreachable!(),
-        }
-    }
-}
-*/
-
-/*
-/// The type of the reborrowing DAG node.
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub enum NodeKind {
-    /// See description of `NodeMove`.
-    Move(MoveNode),
-    /// See description of `MagicWandNode`.
-    MagicWand(MagicWandNode),
-}
-*/
-
 /// Node of the reborrowing DAG.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Node {
-    /// This borrow occurred iff `guard` is `true`.
+    /// The basic block at which the borrow occured was executed only
+    /// iff the `guard` is true.
     guard: Expr,
     pub borrow: Borrow,
     pub reborrowing_nodes: Vec<Borrow>,
     pub reborrowed_nodes: Vec<Borrow>,
     //pub kind: NodeKind,
     pub stmts: Vec<Stmt>,
-    /// Paths that were borrowed and should be kept in fold/unfold.
+    /// Places that were borrowed and should be kept in fold/unfold.
     pub borrowed_places: Vec<Expr>,
 }
 
 impl Node {
-    //pub fn new_move_node(
-        //guard: Expr,
-        //borrow: Borrow,
-        //reborrowing_nodes: Vec<Borrow>,
-        //reborrowed_nodes: Vec<Borrow>,
-        //src: Expr,
-        //dest: Expr,
-    //) -> Self {
-        //Self {
-            //guard,
-            //borrow,
-            //reborrowing_nodes,
-            //reborrowed_nodes,
-            //kind: NodeKind::Move(MoveNode {
-                //src: src,
-                //dest: dest,
-            //}),
-            //stmts: Vec::new(),  // TODO: Fix.
-        //}
-    //}
     pub fn new(
         guard: Expr,
         borrow: Borrow,
