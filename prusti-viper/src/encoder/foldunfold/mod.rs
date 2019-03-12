@@ -252,11 +252,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     incoming_bctxt.push(bctxt);
                 }
                 let incoming_bctxt_refs = incoming_bctxt.iter().collect();
-                let (actions, bctxt) = self.prepend_join(incoming_bctxt_refs);
+                let (actions, mut bctxt) = self.prepend_join(incoming_bctxt_refs);
                 for (&src_index, mut action) in curr_block.predecessors.iter().zip(&actions) {
                     assert!(src_index < curr_block_index);
                     if !action.is_empty() {
-                        let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
+                        //let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
+                        let mut stmts_to_add = Vec::new();
+                        for a in action {
+                            stmts_to_add.push(a.to_stmt());
+                            if let Action::Drop(perm) = a {
+                                if dag.in_borrowed_places(perm.get_place()) {
+                                    stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                                    bctxt.mut_state().restore_dropped_perm(perm.clone());
+                                }
+                            }
+                        }
                         let key = (src_index, curr_block_index);
                         assert!(!cfg.edges.contains_key(&key)); // Does this hold?
                         cfg.edges.insert(key, stmts_to_add);
@@ -299,7 +309,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     stmts_to_add.push(a.to_stmt());
                     if let Action::Drop(perm) = a {
                         if dag.in_borrowed_places(perm.get_place()) {
-                            // TODO: Do we need to do the same also in other places?
                             stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
                             final_bctxt.mut_state().restore_dropped_perm(perm.clone());
                         }
