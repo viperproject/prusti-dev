@@ -416,79 +416,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             }
 
             mir::TerminatorKind::Call { ref func, ref args, ref destination, .. } => {
-                if let mir::Operand::Constant(
-                    box mir::Constant {
-                        literal: mir::Literal::Value {
-                            value: ty::Const {
-                                ty: &ty::TyS {
-                                    sty: ty::TyFnDef(def_id, ref substs),
-                                    ..
-                                },
-                                ..
-                            }
-                        },
-                        ..
-                    }
-                ) = func {
-                    let proc_name: &str = &self.tcx.absolute_item_path_str(def_id);
-                    match proc_name {
-                        "std::rt::begin_panic" |
-                        "std::panicking::begin_panic" => {
-                            interesting!(self, "uses panics");
-                        }
-
-                        "<std::boxed::Box<T>>::new" => {
-                            for arg in args {
-                                self.check_operand(mir, arg);
-                            }
-                            if let Some((ref place, _)) = destination {
-                                self.check_place(mir, place);
-                            }
-                        }
-
-                        _ => {
-                            for arg in args {
-                                self.check_operand(mir, arg);
-                            }
-                            if let Some((ref place, _)) = destination {
-                                self.check_place(mir, place);
-                            }
-                            for kind in substs.iter() {
-                                match kind.unpack() {
-                                    ty::subst::UnpackedKind::Lifetime(..) => {} // OK
-
-                                    ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "function's type parameter"),
-                                }
-                            }
-                            /*
-                            let can_build_mir = match self.tcx.hir.as_local_node_id(def_id) {
-                                None => {
-                                    unsupported!(self, "calls functions from an external crate");
-                                    false
-                                }
-                                Some(node_id) => match self.tcx.hir.get(node_id) {
-                                    hir::map::NodeVariant(_) => { true } // OK
-                                    hir::map::NodeStructCtor(_) => { true } // OK
-                                    _ => match self.tcx.hir.maybe_body_owned_by(node_id) {
-                                        Some(_) => { true } // OK
-                                        None => {
-                                            unsupported!(self, "calls body-less functions");
-                                            false
-                                        }
-                                    }
-                                }
-                            };
-                            if can_build_mir {
-                                // Check that the contract of the called function is supported
-                                let procedure = Procedure::new(self.tcx, def_id);
-                                self.check_mir_signature(&procedure);
-                            }
-                            */
-                        }
-                    }
-                } else {
-                    unsupported!(self, "uses non explicit function calls");
-                }
+                self.check_terminator_call(mir, func, args, destination);
             }
 
             mir::TerminatorKind::Assert { ref cond, .. } => {
@@ -503,6 +431,63 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::TerminatorKind::FalseEdges {..} => {} // OK
 
             mir::TerminatorKind::FalseUnwind {..} => {} // OK
+        }
+    }
+
+    fn check_terminator_call(&mut self, mir: &mir::Mir<'tcx>, func: &mir::Operand<'tcx>,
+                             args: &Vec<mir::Operand<'tcx>>,
+                             destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>) {
+        if let mir::Operand::Constant(
+            box mir::Constant {
+                literal: mir::Literal::Value {
+                    value: ty::Const {
+                        ty: &ty::TyS {
+                            sty: ty::TyFnDef(def_id, ref substs),
+                            ..
+                        },
+                        ..
+                    }
+                },
+                ..
+            }
+        ) = func {
+            let proc_name: &str = &self.tcx.absolute_item_path_str(def_id);
+            match proc_name {
+                "std::rt::begin_panic" |
+                "std::panicking::begin_panic" => {
+                    interesting!(self, "uses panics");
+                }
+
+                "<std::boxed::Box<T>>::new" => {
+                    for arg in args {
+                        self.check_operand(mir, arg);
+                    }
+                    if let Some((ref place, _)) = destination {
+                        self.check_place(mir, place);
+                    }
+                }
+
+                _ => {
+                    for arg in args {
+                        self.check_operand(mir, arg);
+                        if let mir::Operand::Constant(_) = arg {
+                            partially!(self, "uses a constant in a function call");
+                        }
+                    }
+                    if let Some((ref place, _)) = destination {
+                        self.check_place(mir, place);
+                    }
+                    for kind in substs.iter() {
+                        match kind.unpack() {
+                            ty::subst::UnpackedKind::Lifetime(..) => {} // OK
+
+                            ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "function's type parameter"),
+                        }
+                    }
+                }
+            }
+        } else {
+            unsupported!(self, "uses non explicit function calls");
         }
     }
 
