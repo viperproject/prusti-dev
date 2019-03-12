@@ -114,30 +114,12 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
-            &vir::Stmt::EndFrame |
-            &vir::Stmt::StopExpiringLoans(_) => HashSet::new(),
+            &vir::Stmt::EndFrame => HashSet::new(),
 
             &vir::Stmt::TransferPerm(ref lhs, _) => {
                 let mut res = HashSet::new();
                 res.insert(Acc(lhs.clone(), Frac::new(1, 1000)));
                 res
-            }
-
-            &vir::Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
-                // TODO: Remove.
-                HashSet::new()
-                //let mut permissions = guard.get_required_permissions(predicates);
-                //// A little optimization
-                //if !then_stmts.is_empty() && !else_stmts.is_empty() {
-                    //permissions = union(
-                        //&permissions,
-                        //&intersection(
-                            //&then_stmts[0].get_required_permissions(predicates),
-                            //&else_stmts[0].get_required_permissions(predicates),
-                        //)
-                    //);
-                //}
-                //permissions
             }
 
             &vir::Stmt::PackageMagicWand(
@@ -182,8 +164,6 @@ impl vir::Stmt {
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
             &vir::Stmt::TransferPerm(_, _) |
-            &vir::Stmt::ExpireBorrowsIf(_, _, _) |
-            &vir::Stmt::StopExpiringLoans(_) |
             &vir::Stmt::PackageMagicWand(_, _, _, _) |
             &vir::Stmt::ApplyMagicWand(_, _) |
             &vir::Stmt::ExpireBorrows(_) |

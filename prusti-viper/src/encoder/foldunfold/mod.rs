@@ -549,53 +549,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
         // 3. Replace special statements
         stmt = match stmt {
-//          vir::Stmt::ExpireBorrowsIf(ref guard, ref then_branch, ref else_branch) => {
-//              // Do the special join for restoring permissions of expiring loans
-//              let mut then_bctxt = bctxt.clone();
-//              let mut else_bctxt = bctxt.clone();
-//              let mut new_then_stmts = vec![];
-//              let mut new_else_stmts = vec![];
-//              for then_stmt in then_branch.iter() {
-//                  new_then_stmts.extend(
-//                      self.replace_stmt(then_stmt, false, &mut then_bctxt)
-//                  );
-//              }
-//              for else_stmt in else_branch.iter() {
-//                  new_else_stmts.extend(
-//                      self.replace_stmt(else_stmt, false, &mut else_bctxt)
-//                  );
-//              }
-//              let final_moved = filter_with_prefix_in_other(
-//                  then_bctxt.state().moved(),
-//                  else_bctxt.state().moved()
-//              );
-//              let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
-//              let mut final_bctxt = then_bctxt;
-//              new_then_stmts.extend(
-//                  then_actions.iter().map(|a| a.to_stmt())
-//              );
-//              new_else_stmts.extend(
-//                  else_actions.iter().map(|a| a.to_stmt())
-//              );
-//              // Set moved paths
-//              final_bctxt.mut_state().set_moved(final_moved);
-//              // Restore dropped permissions
-//              for action in then_actions.iter() {
-//                  if let Action::Drop(ref perm) = action {
-//                      final_bctxt.mut_state().insert_perm(perm.clone());
-//                      final_bctxt.mut_state().insert_dropped(perm.clone()); // remove this??
-//                  }
-//              }
-//              for action in else_actions.iter() {
-//                  if let Action::Drop(ref perm) = action {
-//                      final_bctxt.mut_state().insert_perm(perm.clone());
-//                      final_bctxt.mut_state().insert_dropped(perm.clone()); // remove this??
-//                  }
-//              }
-//              *bctxt = final_bctxt;
-//              vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
-//          }
-
             vir::Stmt::PackageMagicWand(
                 vir::Expr::MagicWand(box ref lhs, box ref rhs, _),
                 ref old_package_stmts,
@@ -638,13 +591,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
         // 4. Add "unfolding" expressions in statement. This handles *old* requirements.
         debug!("Add unfoldings in stmt {}", stmt);
-        match stmt {
-// TODO: Remove
-//          vir::Stmt::ExpireBorrowsIf(..) => {} // Do nothing
-            _ => {
-                stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
-            }
-        }
+        stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
 
         // 5. Apply effect of statement on state
         bctxt.apply_stmt(&stmt);
