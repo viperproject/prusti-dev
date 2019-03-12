@@ -1137,6 +1137,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::borrows::Node::new(
                         guard, node.loan,
                         node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
+                        Vec::new(),
                         Vec::new())
                 }
                 ref x => unimplemented!("{:?}", x)
@@ -1166,6 +1167,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loan_location = self.polonius_info.get_loan_location(&loan);
         let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
         let (expiring, restored) = self.encode_loan_places(&loan_places);
+        let borrowed_places = vec![restored.clone()];
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
         if node.incoming_zombies {
@@ -1237,7 +1239,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vir::borrows::Node::new(
             guard, node.loan,
             node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-            stmts)
+            stmts, borrowed_places)
     }
 
     fn construct_vir_reborrowing_node_for_call(
@@ -1335,7 +1337,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vir::borrows::Node::new(
             guard, node.loan,
             node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-            stmts)
+            stmts, Vec::new())
     }
 
     /// Compute from which place to which the permissions should be transferred

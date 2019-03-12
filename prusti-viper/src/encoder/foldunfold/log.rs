@@ -42,8 +42,9 @@ impl EventLog {
             if let Some(actions) = self.prejoin_actions.get(curr_block_index) {
                 for action in actions {
                     if let Action::Drop(perm) = action {
-                        // TODO: Check if place is in DAG.
-                        dropped_permissions.push(perm.clone());
+                        if dag.in_borrowed_places(perm.get_place()) {
+                            dropped_permissions.push(perm.clone());
+                        }
                     }
                 }
             }

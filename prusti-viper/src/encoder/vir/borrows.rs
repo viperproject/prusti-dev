@@ -70,7 +70,9 @@ pub struct Node {
     pub reborrowing_nodes: Vec<Borrow>,
     pub reborrowed_nodes: Vec<Borrow>,
     //pub kind: NodeKind,
-    pub stmts: Vec<Stmt>
+    pub stmts: Vec<Stmt>,
+    /// Paths that were borrowed and should be kept in fold/unfold.
+    pub borrowed_places: Vec<Expr>,
 }
 
 impl Node {
@@ -100,6 +102,7 @@ impl Node {
         reborrowing_nodes: Vec<Borrow>,
         reborrowed_nodes: Vec<Borrow>,
         stmts: Vec<Stmt>,
+        borrowed_places: Vec<Expr>,
     ) -> Self {
         Self {
             guard,
@@ -107,6 +110,7 @@ impl Node {
             reborrowing_nodes,
             reborrowed_nodes,
             stmts,
+            borrowed_places,
         }
     }
 }
@@ -124,6 +128,7 @@ pub struct DAG {
     /// Mapping from borrows to their node indices.
     borrow_indices: HashMap<Borrow, usize>,
     nodes: Vec<Node>,
+    borrowed_places: Vec<Expr>,
 }
 
 impl DAG {
@@ -133,6 +138,12 @@ impl DAG {
     pub fn get_borrow_index(&self, borrow: Borrow) -> usize {
         trace!("get_borrow_index(borrow={:?})", borrow);
         self.borrow_indices[&borrow]
+    }
+    pub fn in_borrowed_places(&self, place: &Expr) -> bool {
+        self.borrowed_places.iter().any(
+            |borrowed_place| {
+                place.has_prefix(borrowed_place)
+            })
     }
     pub fn check_integrity(&self) {
         trace!("[enter] check_integrity dag=[{:?}]", self);
@@ -151,10 +162,12 @@ impl DAG {
             for borrow in &node.reborrowed_nodes {
                 assert!(self.borrow_indices.contains_key(borrow), "{:?}", borrow);
             }
+            for place in &node.borrowed_places {
+                debug!("{:?}: {}", node.borrow, place);
+            }
         }
         trace!("[exit] check_integrity dag=[{:?}]", self);
     }
-    //pub fn get_location(node: Node) -> Location { ... }
 }
 
 /// A struct for constructing the reborrowing DAG.
@@ -167,6 +180,7 @@ impl DAGBuilder {
         let dag = DAG {
             borrow_indices: HashMap::new(),
             nodes: Vec::new(),
+            borrowed_places: Vec::new(),
         };
         Self {
             dag: dag,
@@ -177,6 +191,9 @@ impl DAGBuilder {
         let new_index = self.dag.nodes.len();
         assert!(!self.dag.borrow_indices.contains_key(&borrow));
         self.dag.borrow_indices.insert(borrow, new_index);
+        for place in &node.borrowed_places {
+            self.dag.borrowed_places.push(place.clone());
+        }
         self.dag.nodes.push(node);
     }
     pub fn finish(self) -> DAG {
