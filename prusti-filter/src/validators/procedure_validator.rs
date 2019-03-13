@@ -11,6 +11,7 @@ use std::collections::HashSet;
 use prusti_interface::environment::Procedure;
 use rustc::mir::interpret::GlobalId;
 use rustc::middle::const_val::ConstVal;
+use rustc::ty::TypeFoldable;
 
 pub struct ProcedureValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
@@ -448,6 +449,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         ..
                     }
                 },
+                ty: op_ty,
                 ..
             }
         ) = func {
@@ -468,6 +470,11 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 }
 
                 _ => {
+                    // This should prevent calling functions of type `for<'a> ..` (see issue #144)
+                    // FIXME: use a better condition, without matching on the debug string
+                    if format!("{:?}", op_ty).starts_with("for<") {
+                        partially!(self, "calls function with universally quantified regions")
+                    }
                     for arg in args {
                         self.check_operand(mir, arg);
                     }

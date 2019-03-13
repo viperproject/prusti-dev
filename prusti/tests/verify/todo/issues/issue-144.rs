@@ -9,10 +9,11 @@ impl<'tcx> UnificationTable {
     fn unify_var_var(&mut self) {
         unimplemented!()
     }
+}
 
-    fn union(&mut self) {
-        self.unify_var_var();
-    }
+fn union(orig_this: UnificationTable) {
+    let mut this = orig_this;
+    this.unify_var_var();
 }
 
 #[trusted]
