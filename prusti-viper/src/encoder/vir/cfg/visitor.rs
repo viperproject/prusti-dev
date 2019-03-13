@@ -44,15 +44,15 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     /// package statement. The minimal example that illustrates the issue:
     ///
     /// ```rust
-    /// pub struct ListNode {
-    ///     next: Option<Box<ListNode>>,
-    /// }
-    /// pub fn test5(list: &mut ListNode) -> &mut ListNode {
-    ///     match list.next {
-    ///         Some(box ref mut node) => test5(node),
-    ///         None => list,
-    ///     }
-    /// }
+    /// // pub struct ListNode {
+    /// //     next: Option<Box<ListNode>>,
+    /// // }
+    /// // pub fn test5(list: &mut ListNode) -> &mut ListNode {
+    /// //     match list.next {
+    /// //         Some(box ref mut node) => test5(node),
+    /// //         None => list,
+    /// //     }
+    /// // }
     /// ```
     fn replace_stmt(
         &mut self,
