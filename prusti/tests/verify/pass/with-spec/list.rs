@@ -36,17 +36,6 @@ impl List {
     /// Returns the last node of the linked list. Recursive implementation.
     #[ensures="result.len() == 1"]
     #[ensures="result.value == old(self.lookup(self.len() - 1))"]
-    //#[ensures="
-        //after_expiry<result>(
-            //(forall i: usize :: {lookup(head, i)}
-                //(0 <= i && i < old(len(head)) - 1) ==>
-                //lookup(head, i) == old(lookup(head, i))) &&
-            //(forall i: usize :: {lookup(result, i)}
-                //(0 <= i && i < before_expiry(len(result))) ==>
-                //lookup(head, old(len(head)) - 1 + i) == before_expiry(lookup(result, i))) &&
-            //len(head) == old(len(head)) - 1 + before_expiry(len(result))
-        //)
-    //"]
     #[ensures="
         after_expiry<result>(
             self.len() == old(self.len()) - 1 + before_expiry(result.len()) &&
