@@ -141,6 +141,8 @@ impl<'a> Verifier<'a, state::Started> {
 
             let has_identifier_wrapper = silver::ast::HasIdentifier::with(self.env);
 
+            let error_reason_wrapper = silver::verifier::ErrorReason::with(self.env);
+
             for viper_error in viper_errors {
                 let is_verification_error = self.jni
                     .is_instance_of(viper_error, "viper/silver/verifier/VerificationError");
@@ -179,6 +181,27 @@ impl<'a> Verifier<'a, state::Started> {
                     panic!();
                 };
 
+                let reason = self.jni
+                    .unwrap_result(verification_error_wrapper.call_reason(viper_error));
+
+                let reason_pos = self.jni
+                    .unwrap_result(error_reason_wrapper.call_pos(reason));
+
+                let reason_pos_id = if self.jni.is_instance_of(
+                        reason_pos, "viper/silver/ast/HasIdentifier") {
+                    Some(
+                        self.jni.get_string(
+                            self.jni.unwrap_result(has_identifier_wrapper.call_id(reason_pos))
+                        )
+                    )
+                } else {
+                    debug!(
+                        "The verifier returned an error whose offending node position has no identifier: {:?}",
+                        self.jni.to_string(viper_error)
+                    );
+                    None
+                };
+
                 let error_full_id = self.jni.get_string(
                     self.jni
                         .unwrap_result(verification_error_wrapper.call_fullId(viper_error)),
@@ -207,7 +230,8 @@ impl<'a> Verifier<'a, state::Started> {
                     None
                 };
 
-                errors.push(VerificationError::new(error_full_id, pos_id, message))
+                errors.push(VerificationError::new(error_full_id, pos_id,
+                                                   reason_pos_id, message))
             }
 
             VerificationResult::Failure(errors)

@@ -141,16 +141,25 @@ impl<'tcx> ErrorManager<'tcx> {
     }
 
     pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {
-        let opt_error_ctxt = ver_error.pos_id.as_ref().and_then(
+        debug!("Verification error: {:?}", ver_error);
+        let pos_id = &ver_error.pos_id;
+        let opt_error_ctxt = pos_id.as_ref().and_then(
             |pos_id| self.error_contexts.get(pos_id)
         );
 
-        let (error_span, error_ctxt) = if let Some(x) = opt_error_ctxt {
-            x
+        let (error_span, error_ctxt) = if let Some((error_span, error_ctxt)) = opt_error_ctxt {
+            let opt_reason_ctxt = ver_error.reason_pos_id.as_ref().and_then(
+                |pos_id| self.error_contexts.get(pos_id)
+            );
+            if let Some((reason_span, _)) = opt_reason_ctxt {
+                (reason_span, error_ctxt)
+            } else {
+                (error_span, error_ctxt)
+            }
         } else {
             debug!("Unregistered verification error: {:?}", ver_error);
 
-            match ver_error.pos_id {
+            match pos_id {
                 Some(ref pos_id) => {
                     return CompilerError::new(
                         "P1001",

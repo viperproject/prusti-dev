@@ -606,6 +606,11 @@ fn main() {
                 method!("reason"),
                 method!("readableMessage", "()Ljava/lang/String;"),
             ]),
+            java_class!("viper.silver.verifier.ErrorReason", vec![
+                method!("id"),
+                method!("pos"),
+                method!("readableMessage", "()Ljava/lang/String;"),
+            ]),
             java_class!("viper.silver.verifier.ConsistencyError", vec![
                 constructor!(),
             ]),
