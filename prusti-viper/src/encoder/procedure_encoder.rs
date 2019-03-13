@@ -65,6 +65,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     magic_wand_apply_post: HashMap<mir::Location, Vec<vir::Stmt>>,
     /// Contracts of functions called at given locations with map for replacing fake expressions.
     procedure_contracts: HashMap<mir::Location, (ProcedureContract<'tcx>, HashMap<vir::Expr, vir::Expr>)>,
+    /// Mapping from MIR basic block indices to VIR basic block indices.
+    mir_to_vir_blocks: HashMap<BasicBlockIndex, vir::CfgBlockIndex>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -106,6 +108,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             magic_wand_at_location: HashMap::new(),
             magic_wand_apply_post: HashMap::new(),
             procedure_contracts: HashMap::new(),
+            mir_to_vir_blocks: HashMap::new(),
         }
     }
 
@@ -153,7 +156,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_formal_return(&name, vir::Type::TypedRef(type_name))
         }
 
-        let mut cfg_blocks: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
         let mut cfg_edges: HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>> = HashMap::new();
 
         // Initialize CFG blocks
@@ -168,7 +170,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let cfg_block = self.cfg_method.add_block(&format!("{:?}", bbi), vec![], vec![
                 vir::Stmt::comment(format!("========== {:?} ==========", bbi))
             ]);
-            cfg_blocks.insert(bbi, cfg_block);
+            self.mir_to_vir_blocks.insert(bbi, cfg_block);
         }
 
         for bbi in self.procedure.get_reachable_cfg_blocks() {
@@ -178,7 +180,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let cfg_edge = self.cfg_method.add_block(&format!("{:?}_{:?}", bbi, bbi_successor), vec![], vec![
                         vir::Stmt::comment(format!("========== {:?} --> {:?} ==========", bbi, bbi_successor))
                     ]);
-                    self.cfg_method.set_successor(cfg_edge, Successor::Goto(cfg_blocks[&bbi_successor]));
+                    self.cfg_method.set_successor(
+                        cfg_edge,
+                        Successor::Goto(self.mir_to_vir_blocks[&bbi_successor]));
                     cfg_successors.insert(bbi_successor, cfg_edge);
                 }
             }
@@ -195,7 +199,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.set_successor(
             start_cfg_block,
             Successor::Goto(
-                *cfg_blocks
+                *self.mir_to_vir_blocks
                     .get(&self.procedure.get_first_cfg_block())
                     .unwrap_or(&return_cfg_block)
             )
@@ -222,7 +226,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let bb_data = &self.mir.basic_blocks()[bbi];
             let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
-            let cfg_block = *cfg_blocks.get(&bbi).unwrap();
+            let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
             let bb_pos = self.mir_encoder.encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
 
             // Store a flag that becomes true the first time the block is executed
@@ -288,7 +292,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             // Encode terminators and set CFG edges
             if let Some(ref term) = bb_data.terminator {
                 trace!("Encode terminator of {:?}", bbi);
-                let cfg_block = *cfg_blocks.get(&bbi).unwrap();
+                let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
                 self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", term.kind)));
                 let location = mir::Location {
                     block: bbi,
@@ -445,7 +449,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Add fold/unfold
-        let method_with_fold_unfold = foldunfold::add_fold_unfold(self.encoder, self.cfg_method);
+        let loan_positions = self.polonius_info
+            .loan_locations()
+            .into_iter()
+            .map(|(loan, mir_location)| {
+                let vir_basic_block = self.mir_to_vir_blocks[&mir_location.block];
+                (loan, vir_basic_block)
+            })
+            .collect();
+        let method_with_fold_unfold = foldunfold::add_fold_unfold(
+            self.encoder, self.cfg_method, loan_positions);
 
         // Optimise encoding a bit
         let final_method = optimiser::rewrite(method_with_fold_unfold);
@@ -793,312 +806,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_expiration_of_reborrowing_dag_node(&mut self, dag: &ReborrowingDAG, node: &ReborrowingDAGNode) -> Vec<vir::Stmt> {
-        trace!("encode_expiration_of_reborrowing_dag_node '{:?}'", node);
-        let mut stmts: Vec<vir::Stmt> = vec![];
-        let node_is_leaf = node.reborrowed_loans.is_empty();
-
-        match node.kind {
-            ReborrowingKind::Assignment { ref loan } => {
-                let loan_location = self.polonius_info.get_loan_location(&loan);
-                let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
-                let (expiring, restored) = self.encode_loan_places(&loan_places);
-
-                // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
-                if node.incoming_zombies {
-                    let lhs_label = self.label_after_location.get(&loan_location).cloned().expect(
-                        &format!(
-                            "No label has been saved for location {:?} ({:?})",
-                            loan_location,
-                            self.label_after_location
-                        )
-                    );
-                    for &in_loan in node.reborrowing_loans.iter() {
-                        let in_location = self.polonius_info.get_loan_location(&in_loan);
-                        let in_node = dag.get_node(in_loan);
-                        let in_label = self.label_after_location.get(&in_location).cloned().expect(
-                            &format!(
-                                "No label has been saved for location {:?} ({:?})",
-                                in_location,
-                                self.label_after_location
-                            )
-                        );
-                        match in_node.guard {
-                            ReborrowingGuard::NoGuard => {
-                                stmts.extend(
-                                    self.encode_transfer_permissions(
-                                        expiring.clone().old(&in_label),
-                                        expiring.clone().old(&lhs_label),
-                                        loan_location
-                                    )
-                                )
-                            },
-                            ReborrowingGuard::MirBlock(ref bbi) => {
-                                let executed_flag_var = self.cfg_block_has_been_executed[bbi].clone();
-                                stmts.push(
-                                    vir::Stmt::ExpireBorrowsIf(
-                                        vir::Expr::local(executed_flag_var).into(),
-                                        self.encode_transfer_permissions(
-                                            expiring.clone().old(&in_label),
-                                            expiring.clone().old(&lhs_label),
-                                            loan_location
-                                        ),
-                                        vec![]
-                                    )
-                                )
-                            },
-                        }
-                    }
-                }
-
-                let lhs_place = if node.incoming_zombies {
-                    let lhs_label = self.label_after_location.get(&loan_location).expect(
-                        &format!(
-                            "No label has been saved for location {:?} ({:?})",
-                            loan_location,
-                            self.label_after_location
-                        )
-                    );
-                    expiring.clone().old(lhs_label)
-                } else {
-                    expiring.clone()
-                };
-                let rhs_place = match node.zombity {
-                    ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
-                        let rhs_label = self.label_after_location.get(&rhs_location).expect(
-                            &format!(
-                                "No label has been saved for location {:?} ({:?})",
-                                rhs_location,
-                                self.label_after_location
-                            )
-                        );
-                        restored.clone().old(rhs_label)
-                    }
-
-                    _ => {
-                        restored
-                    }
-                };
-
-                match node.guard {
-                    ReborrowingGuard::NoGuard => {
-                        stmts.extend(
-                            self.encode_transfer_permissions(
-                                lhs_place.clone(),
-                                rhs_place,
-                                loan_location
-                            )
-                        );
-                    }
-
-                    ReborrowingGuard::MirBlock(ref guard_bbi) => {
-                        let executed_flag_var = self.cfg_block_has_been_executed[guard_bbi].clone();
-                        stmts.extend(
-                            self.encode_transfer_permissions(
-                                lhs_place.clone(),
-                                rhs_place,
-                                loan_location
-                            )
-                        );
-                        let old_stmts = stmts.clone();
-                        stmts = vec![
-                            vir::Stmt::ExpireBorrowsIf(
-                                vir::Expr::local(executed_flag_var).into(),
-                                old_stmts,
-                                vec![]
-                            )
-                        ];
-                    }
-                }
-            }
-
-            ReborrowingKind::ArgumentMove { ref loan } => {
-                /*
-                let local = self.polonius_info.get_moved_variable(&node.kind);
-                trace!("Handle references moved into function calls var={:?}", local);
-
-                let loan_location = self.polonius_info.get_loan_location(&loan);
-                let loan_in_loop = self.loop_encoder.get_loop_depth(loan_location.block) > 0;
-                let encoded_local = self.mir_encoder.encode_local(local);
-                let local_ty = self.mir_encoder.get_local_ty(local);
-                let ref_field = self.encoder.encode_ref_field("val_ref", local_ty);
-                let encoded_ref = vir::Expr::local(encoded_local).field(ref_field);
-
-                let lhs_place = if node.incoming_zombies {
-                    let lhs_label = self.label_after_location.get(&loan_location).expect(
-                        &format!(
-                            "No label has been saved for location {:?} ({:?})",
-                            loan_location,
-                            self.label_after_location
-                        )
-                    );
-                    encoded_ref.clone().old(&lhs_label)
-                } else {
-                    encoded_ref.clone()
-                };
-                let rhs_place = if !node_is_leaf {
-                    assert_eq!(node.reborrowed_loans.len(), 1);
-                    let out_loan = &node.reborrowed_loans[0];
-                    let rhs_location = self.polonius_info.get_loan_location(out_loan);
-                    let rhs_label = self.label_after_location.get(&rhs_location).expect(
-                        &format!(
-                            "No label has been saved for location {:?} ({:?})",
-                            rhs_location,
-                            self.label_after_location
-                        )
-                    );
-                    encoded_ref.old(&rhs_label)
-                } else {
-                    encoded_ref
-                };
-                if lhs_place.is_curr() && loan_in_loop {
-                    // We reallocate when we expire because we want to have disjointed
-                    // permissions for the lhs and rhs when a borrow expires inside a loop
-                    stmts.extend(
-                        self.encode_havoc_and_allocation(lhs_place.get_place())
-                    );
-                }
-                stmts.extend(
-                    self.encode_transfer_permissions(
-                        lhs_place.clone(),
-                        rhs_place,
-                        loan_location
-                    )
-                );
-                */
-            }
-
-            ReborrowingKind::Call { ref loan, ref variable, ref region } => {
-
-                let loan_location = self.polonius_info.get_loan_location(&loan);
-
-                // Get the borrow information.
-                let (contract, fake_exprs) = self.procedure_contracts[&loan_location].clone();
-                let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
-                    for (fake_arg, arg_expr) in fake_exprs.iter() {
-                        expr = expr.replace_place(&fake_arg, arg_expr);
-                    }
-                    expr
-                };
-                let borrow_infos = &contract.borrow_infos;
-                assert_eq!(borrow_infos.len(), 1,
-                           "We can have at most one magic wand in the postcondition.");
-                let borrow_info = &borrow_infos[0];
-
-                // Get the magic wand info.
-                let (post_label, lhs, rhs) = self.magic_wand_at_location
-                    .get(&loan_location)
-                    .cloned()
-                    .unwrap();
-
-                // Obtain the LHS permission.
-                for path in &borrow_info.blocking_paths {
-                    let (encoded_place, _, _) = self.encode_generic_place(path);
-                    let encoded_place = replace_fake_exprs(encoded_place);
-
-                    // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
-                    if node.incoming_zombies {
-                        let lhs_label = self.label_after_location.get(&loan_location).cloned().expect(
-                            &format!(
-                                "No label has been saved for location {:?} ({:?})",
-                                loan_location,
-                                self.label_after_location
-                            )
-                        );
-                        for &in_loan in node.reborrowing_loans.iter() {
-                            let in_location = self.polonius_info.get_loan_location(&in_loan);
-                            let in_node = dag.get_node(in_loan);
-                            let in_label = self.label_after_location.get(&in_location).cloned().expect(
-                                &format!(
-                                    "No label has been saved for location {:?} ({:?})",
-                                    in_location,
-                                    self.label_after_location
-                                )
-                            );
-                            match in_node.guard {
-                                ReborrowingGuard::NoGuard => {
-                                    stmts.extend(
-                                        self.encode_transfer_permissions(
-                                            encoded_place.clone().old(&in_label),
-                                            encoded_place.clone().old(&post_label),
-                                            loan_location
-                                        )
-                                    )
-                                },
-                                ReborrowingGuard::MirBlock(ref bbi) => {
-                                    let executed_flag_var = self.cfg_block_has_been_executed[bbi].clone();
-                                    stmts.push(
-                                        vir::Stmt::ExpireBorrowsIf(
-                                            vir::Expr::local(executed_flag_var).into(),
-                                            self.encode_transfer_permissions(
-                                                encoded_place.clone().old(&in_label),
-                                                encoded_place.clone().old(&post_label),
-                                                loan_location
-                                            ),
-                                            vec![]
-                                        )
-                                    )
-                                },
-                            }
-                        }
-                    }
-                    if !node.incoming_zombies || node.reborrowing_loans.is_empty() {
-                        stmts.extend(
-                            self.encode_transfer_permissions(
-                                encoded_place.clone(),
-                                encoded_place.old(&post_label),
-                                loan_location
-                            )
-                        );
-                    }
-                }
-
-                // Emit the apply statement.
-                let pos = self.encoder.error_manager().register(
-                    //self.mir.span,
-                    // TODO change to where the loan expires?
-                    self.mir.source_info(loan_location).span, // the source of the ref
-                    ErrorCtxt::ApplyMagicWandOnExpiry
-                );
-                let statement = vir::Stmt::apply_magic_wand(lhs, rhs, pos);
-                debug!("{:?} at {:?}", statement, loan_location);
-
-                match node.guard {
-                    ReborrowingGuard::NoGuard => {
-                        stmts.push(statement);
-                    }
-
-                    ReborrowingGuard::MirBlock(ref guard_bbi) => {
-                        let executed_flag_var = self.cfg_block_has_been_executed[guard_bbi].clone();
-                        stmts.push(
-                            vir::Stmt::ExpireBorrowsIf(
-                                vir::Expr::local(executed_flag_var).into(),
-                                vec![statement],
-                                vec![]
-                            )
-                        );
-                    }
-                }
-
-                // Fix the permissions on rhs.
-                if let Some(post_stmts) = self.magic_wand_apply_post.get(&loan_location) {
-                    stmts.extend(post_stmts.iter().cloned());
-                }
-            }
-
-            ReborrowingKind::Loop { .. } => {
-                unimplemented!("handle magic wand(s) obtained from loops");
-            }
-        }
-
-        stmts.insert(
-            0,
-            vir::Stmt::comment(format!("Expire loan {:?}", node))
-        );
-
-        stmts
-    }
-
     fn construct_vir_reborrowing_dag(
         &mut self,
         loans: &[facts::Loan],
@@ -1107,19 +814,224 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> vir::borrows::DAG {
         let mir_dag = self.polonius_info.construct_reborrowing_dag(
             &loans, &zombie_loans, location);
+        debug!("construct_vir_reborrowing_dag mir_dag={}", mir_dag.to_string());
         let mut builder = vir::borrows::DAGBuilder::new();
         for node in mir_dag.iter() {
-            match node.kind {
+            let node = match node.kind {
                 ReborrowingKind::Assignment { loan } => {
-                    let (src, dest) = self.encode_assignment_borrow_expiration(
-                        &mir_dag, loan, node);
-                    builder.add_move_node(node.loan, &node.reborrowing_loans,
-                                          &node.reborrowed_loans, src, dest);
+                    self.construct_vir_reborrowing_node_for_assignment(
+                        &mir_dag, loan, node, location)
                 }
-                _ => {} // unimplemented!()
+                ReborrowingKind::Call { loan, .. } => {
+                    self.construct_vir_reborrowing_node_for_call(&mir_dag, loan, node, location)
+                }
+                ReborrowingKind::ArgumentMove { loan } => {
+                    let loan_location = self.polonius_info.get_loan_location(&loan);
+                    let guard = self.construct_location_guard(loan_location);
+                    vir::borrows::Node::new(
+                        guard, node.loan,
+                        node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
+                        Vec::new(),
+                        Vec::new())
+                }
+                ref x => unimplemented!("{:?}", x)
+            };
+            builder.add_node(node);
+        }
+        debug!("construct_vir_reborrowing_dag mir_dag={}", mir_dag.to_string());
+        builder.finish()
+    }
+
+    fn construct_location_guard(&self, location: mir::Location) -> vir::Expr {
+        let bbi = &location.block;
+        let executed_flag_var = self.cfg_block_has_been_executed[bbi].clone();
+        vir::Expr::local(executed_flag_var).into()
+    }
+
+    fn construct_vir_reborrowing_node_for_assignment(
+        &mut self,
+        mir_dag: &ReborrowingDAG,
+        loan: facts::Loan,
+        node: &ReborrowingDAGNode,
+        location: mir::Location
+    ) -> vir::borrows::Node {
+        let mut stmts: Vec<vir::Stmt> = Vec::new();
+        let node_is_leaf = node.reborrowed_loans.is_empty();
+
+        let loan_location = self.polonius_info.get_loan_location(&loan);
+        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
+        let (expiring, restored) = self.encode_loan_places(&loan_places);
+        let borrowed_places = vec![restored.clone()];
+
+        // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
+        if node.incoming_zombies {
+            let lhs_label = self.label_after_location.get(&loan_location).cloned().expect(
+                &format!(
+                    "No label has been saved for location {:?} ({:?})",
+                    loan_location,
+                    self.label_after_location
+                )
+            );
+            for &in_loan in node.reborrowing_loans.iter() {
+                let in_location = self.polonius_info.get_loan_location(&in_loan);
+                let in_node = mir_dag.get_node(in_loan);
+                let in_label = self.label_after_location.get(&in_location).cloned().expect(
+                    &format!(
+                        "No label has been saved for location {:?} ({:?})",
+                        in_location,
+                        self.label_after_location
+                    )
+                );
+                stmts.extend(
+                    self.encode_transfer_permissions(
+                        expiring.clone().old(&in_label),
+                        expiring.clone().old(&lhs_label),
+                        loan_location
+                    )
+                );
             }
         }
-        builder.finish()
+
+        let lhs_place = if node.incoming_zombies {
+            let lhs_label = self.label_after_location.get(&loan_location).expect(
+                &format!(
+                    "No label has been saved for location {:?} ({:?})",
+                    loan_location,
+                    self.label_after_location
+                )
+            );
+            expiring.clone().old(lhs_label)
+        } else {
+            expiring.clone()
+        };
+        let rhs_place = match node.zombity {
+            ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
+                let rhs_label = self.label_after_location.get(&rhs_location).expect(
+                    &format!(
+                        "No label has been saved for location {:?} ({:?})",
+                        rhs_location,
+                        self.label_after_location
+                    )
+                );
+                restored.clone().old(rhs_label)
+            }
+
+            _ => {
+                restored
+            }
+        };
+
+        stmts.extend(
+            self.encode_transfer_permissions(
+                lhs_place.clone(),
+                rhs_place,
+                loan_location
+            )
+        );
+
+        let guard = self.construct_location_guard(loan_location);
+        vir::borrows::Node::new(
+            guard, node.loan,
+            node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
+            stmts, borrowed_places)
+    }
+
+    fn construct_vir_reborrowing_node_for_call(
+        &mut self,
+        mir_dag: &ReborrowingDAG,
+        loan: facts::Loan,
+        node: &ReborrowingDAGNode,
+        location: mir::Location
+    ) -> vir::borrows::Node {
+
+        let mut stmts: Vec<vir::Stmt> = Vec::new();
+
+        let loan_location = self.polonius_info.get_loan_location(&loan);
+
+        // Get the borrow information.
+        let (contract, fake_exprs) = self.procedure_contracts[&loan_location].clone();
+        let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
+            for (fake_arg, arg_expr) in fake_exprs.iter() {
+                expr = expr.replace_place(&fake_arg, arg_expr);
+            }
+            expr
+        };
+        let borrow_infos = &contract.borrow_infos;
+        assert_eq!(borrow_infos.len(), 1,
+                   "We can have at most one magic wand in the postcondition.");
+        let borrow_info = &borrow_infos[0];
+
+        // Get the magic wand info.
+        let (post_label, lhs, rhs) = self.magic_wand_at_location
+            .get(&loan_location)
+            .cloned()
+            .unwrap();
+
+        // Obtain the LHS permission.
+        for path in &borrow_info.blocking_paths {
+            let (encoded_place, _, _) = self.encode_generic_place(path);
+            let encoded_place = replace_fake_exprs(encoded_place);
+
+            // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
+            if node.incoming_zombies {
+                let lhs_label = self.label_after_location.get(&loan_location).cloned().expect(
+                    &format!(
+                        "No label has been saved for location {:?} ({:?})",
+                        loan_location,
+                        self.label_after_location
+                    )
+                );
+                for &in_loan in node.reborrowing_loans.iter() {
+                    let in_location = self.polonius_info.get_loan_location(&in_loan);
+                    let in_node = mir_dag.get_node(in_loan);
+                    let in_label = self.label_after_location.get(&in_location).cloned().expect(
+                        &format!(
+                            "No label has been saved for location {:?} ({:?})",
+                            in_location,
+                            self.label_after_location
+                        )
+                    );
+                    stmts.extend(
+                        self.encode_transfer_permissions(
+                            encoded_place.clone().old(&in_label),
+                            encoded_place.clone().old(&post_label),
+                            loan_location
+                        )
+                    );
+                }
+            }
+            if !node.incoming_zombies || node.reborrowing_loans.is_empty() {
+                stmts.extend(
+                    self.encode_transfer_permissions(
+                        encoded_place.clone(),
+                        encoded_place.old(&post_label),
+                        loan_location
+                    )
+                );
+            }
+        }
+
+        // Emit the apply statement.
+        let pos = self.encoder.error_manager().register(
+            //self.mir.span,
+            // TODO change to where the loan expires?
+            self.mir.source_info(loan_location).span, // the source of the ref
+            ErrorCtxt::ApplyMagicWandOnExpiry
+        );
+        let statement = vir::Stmt::apply_magic_wand(lhs, rhs, pos);
+        debug!("{:?} at {:?}", statement, loan_location);
+        stmts.push(statement);
+
+        // Fix the permissions on rhs.
+        if let Some(post_stmts) = self.magic_wand_apply_post.get(&loan_location) {
+            stmts.extend(post_stmts.iter().cloned());
+        }
+
+        let guard = self.construct_location_guard(loan_location);
+        vir::borrows::Node::new(
+            guard, node.loan,
+            node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
+            stmts, Vec::new())
     }
 
     /// Compute from which place to which the permissions should be transferred
@@ -1144,38 +1056,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_loans '{:?}' '{:?}'", loans, zombie_loans);
         let mut stmts: Vec<vir::Stmt> = vec![];
-
         if loans.len() > 0 {
             let vir_reborrowing_dag = self.construct_vir_reborrowing_dag(
                 &loans, &zombie_loans, location);
             stmts.push(vir::Stmt::ExpireBorrows(vir_reborrowing_dag));
         }
-        let reborrowing_dag = self.polonius_info.construct_reborrowing_dag(&loans, &zombie_loans, location);
-        for node in reborrowing_dag.iter() {
-            stmts.extend(
-                self.encode_expiration_of_reborrowing_dag_node(&reborrowing_dag, node)
-            )
-        }
-
-        if stmts.len() > 0 {
-            let dag_leaves = reborrowing_dag.iter()
-                .filter(|node| node.reborrowed_loans.is_empty())
-                .collect::<Vec<_>>();
-
-            let restored_borrows = dag_leaves.into_iter().map(
-                |node| {
-                    let loan_location = self.polonius_info.get_loan_location(&node.loan);
-                    let loan_places = self.polonius_info.get_loan_places(&node.loan).unwrap();
-                    let (_, restored) = self.encode_loan_places(&loan_places);
-                    restored
-                }
-            ).collect::<Vec<_>>();
-
-            stmts.push(
-                vir::Stmt::StopExpiringLoans(restored_borrows)
-            );
-        }
-
         stmts
     }
 
@@ -1282,7 +1167,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     cfg_targets.push((viper_guard, *target_cfg_block))
                 }
                 let default_target = targets[values.len()];
-                let cfg_default_target = if let Some(cfg_target) = cfg_blocks.get(&default_target) {
+                let cfg_default_target = if let Some(cfg_target) =
+                        cfg_blocks.get(&default_target) {
                     *cfg_target
                 } else {
                     // Prepare a block that encodes the unreachable branch
@@ -2169,7 +2055,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.mir.span,
                 ErrorCtxt::PackageMagicWandForPostcondition
             );
-            stmts.push(vir::Stmt::package_magic_wand(lhs, rhs, package_stmts, pos));
+            stmts.push(vir::Stmt::package_magic_wand(lhs, rhs, package_stmts,
+                                                     post_label.clone(), pos));
 
             // We need to transfer all permissions from old[post](lhs) to lhs.
             let borrow_infos = &contract.borrow_infos;

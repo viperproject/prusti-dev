@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::vir::ast::*;
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::fmt;
 use std::iter::FromIterator;
 use uuid::Uuid;
@@ -129,6 +129,9 @@ impl CfgBlockIndex {
             method_uuid,
             ..self
         }
+    }
+    pub fn weak_eq(&self, other: &CfgBlockIndex) -> bool {
+        self.block_index == other.block_index
     }
 }
 
@@ -338,6 +341,44 @@ impl CfgMethod {
         }
 
         topo_sorted.push(self.block_index(curr_index))
+    }
+
+    /// Find some path from the `start_block` to the `end_block`.
+    pub fn find_path(
+        &self,
+        start_block: CfgBlockIndex,
+        end_block: CfgBlockIndex
+    ) -> Vec<CfgBlockIndex> {
+        trace!("[enter] find_path start={:?} end={:?}", start_block, end_block);
+        assert!(!start_block.weak_eq(&end_block));
+        let mut visited = vec![false; self.basic_blocks.len()];
+        let mut came_from = vec![None; self.basic_blocks.len()];
+        let mut to_visit = VecDeque::new();
+        to_visit.push_back(start_block);
+        visited[start_block.block_index] = true;
+        loop {
+            let curr_block_index = to_visit.pop_front().unwrap();
+            trace!("curr_block_index={:?}", curr_block_index);
+            let curr_block = &self.basic_blocks[curr_block_index.block_index];
+            for successor_block in curr_block.successor.get_following() {
+                if successor_block.weak_eq(&end_block) {
+                    debug!("came_from={:?}", came_from);
+                    let mut path = vec![successor_block, curr_block_index];
+                    let mut index = curr_block_index;
+                    while let Some(previous) = came_from[index.block_index] {
+                        path.push(previous);
+                        index = previous;
+                    }
+                    path.reverse();
+                    return path;
+                }
+                if !visited[successor_block.block_index] {
+                    visited[successor_block.block_index] = true;
+                    came_from[successor_block.block_index] = Some(curr_block_index);
+                    to_visit.push_back(successor_block);
+                }
+            }
+        }
     }
 }
 

@@ -289,15 +289,12 @@ impl vir::Stmt {
                 }
             }
 
-            &vir::Stmt::ExpireBorrowsIf(ref _guard, ref _then_stmts, ref _else_stmts) => {
-                // Do nothing here. The semantics is handled in `foldunfold/mod.rs`.
-            }
-
-            &vir::Stmt::StopExpiringLoans(ref places) => {
-                state.remove_dropped(places);
-            }
-
-            &vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _), ref _stmts, ref _pos) => {
+            &vir::Stmt::PackageMagicWand(
+                vir::Expr::MagicWand(ref lhs, ref rhs, _),
+                ref _stmts,
+                ref _label,
+                ref _pos
+            ) => {
                 // The semantics of the statements is handled in `foldunfold/mod.rs`.
                 //for stmt in package_stmts {
                 //    stmt.apply_on_state(state, predicates);

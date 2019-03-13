@@ -43,16 +43,10 @@ pub enum Stmt {
     /// Move permissions from a place to another.
     /// This is used to restore permissions in the fold/unfold state when a loan expires.
     TransferPerm(Expr, Expr),
-    /// An `if` statement: the guard, the 'then' branch, the 'else' branch
-    /// Note: this is only used to restore permissions of expiring loans, so the fold/unfold
-    /// algorithms threats this statement (and statements in the branches) in a very special way.
-    ExpireBorrowsIf(Expr, Vec<Stmt>, Vec<Stmt>),
-    /// A statement that informs the fold/unfold that we finished restoring a DAG of expiring loans
-    /// The argument is a list of the locations that are restored
-    StopExpiringLoans(Vec<Expr>),
     /// Package a Magic Wand
-    /// Arguments: the magic wand, then the package statements.
-    PackageMagicWand(Expr, Vec<Stmt>, Position),
+    /// Arguments: the magic wand, the package statement's body, and the
+    /// label just before the statement.
+    PackageMagicWand(Expr, Vec<Stmt>, String, Position),
     /// Apply a Magic Wand.
     /// Arguments: the magic wand.
     ApplyMagicWand(Expr, Position),
@@ -142,32 +136,13 @@ impl fmt::Display for Stmt {
 
             Stmt::TransferPerm(ref lhs, ref rhs) => write!(f, "transfer perm {} --> {}", lhs, rhs),
 
-            Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
-                write!(f, "expire borrows if {} {{", guard)?;
-                if !then_stmts.is_empty() {
-                    write!(f, "\n")?;
-                }
-                for stmt in then_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
-                }
-                write!(f, "}} else {{")?;
-                if !else_stmts.is_empty() {
-                    write!(f, "\n")?;
-                }
-                for stmt in else_stmts.iter() {
-                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
-                }
-                write!(f, "}}")
-            }
-
-            Stmt::StopExpiringLoans(ref restored) => write!(
-                f,
-                "stop expiring borrows {{{}}}",
-                restored.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", ")
-            ),
-
-            Stmt::PackageMagicWand(Expr::MagicWand(ref lhs, ref rhs, _), ref package_stmts, _position) => {
-                writeln!(f, "package {}", lhs)?;
+            Stmt::PackageMagicWand(
+                Expr::MagicWand(ref lhs, ref rhs, _),
+                ref package_stmts,
+                ref label,
+                _position
+            ) => {
+                writeln!(f, "package[{}] {}", label, lhs)?;
                 writeln!(f, "    --* {}", rhs)?;
                 write!(f, "{{")?;
                 if !package_stmts.is_empty() {
@@ -184,7 +159,18 @@ impl fmt::Display for Stmt {
             }
 
             Stmt::ExpireBorrows(dag) => {
-                writeln!(f, "expire_borrows {}", dag)
+                writeln!(f, "expire_borrows {:?}", dag)
+            }
+
+            Stmt::If(ref guard, ref then_stmts) => {
+                write!(f, "if {} {{", guard)?;
+                if !then_stmts.is_empty() {
+                    write!(f, "\n")?;
+                }
+                for stmt in then_stmts.iter() {
+                    writeln!(f, "    {}", stmt.to_string().replace("\n", "\n    "))?;
+                }
+                write!(f, "}}")
             }
 
             ref x => unimplemented!("{:?}", x),
@@ -247,10 +233,17 @@ impl Stmt {
         )
     }
 
-    pub fn package_magic_wand(lhs: Expr, rhs: Expr, stmts: Vec<Stmt>, pos: Position) -> Self {
+    pub fn package_magic_wand(
+        lhs: Expr,
+        rhs: Expr,
+        stmts: Vec<Stmt>,
+        label: String,
+        pos: Position
+    ) -> Self {
         Stmt::PackageMagicWand(
             Expr::MagicWand(box lhs, box rhs, pos.clone()),
             stmts,
+            label,
             pos
         )
     }
@@ -264,14 +257,14 @@ impl Stmt {
 
     pub fn pos(&self) -> Option<&Position> {
         match self {
-            Stmt::PackageMagicWand(_, _, ref p) => Some(p),
+            Stmt::PackageMagicWand(_, _, _, ref p) => Some(p),
             _ => None
         }
     }
 
     pub fn set_pos(self, pos: Position) -> Self {
         match self {
-            Stmt::PackageMagicWand(w, s, p) => Stmt::PackageMagicWand(w, s, pos),
+            Stmt::PackageMagicWand(w, s, l, p) => Stmt::PackageMagicWand(w, s, l, pos),
             x => x,
         }
     }
@@ -310,9 +303,7 @@ pub trait StmtFolder {
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::TransferPerm(a, b) => self.fold_transfer_perm(a, b),
-            Stmt::ExpireBorrowsIf(g, t, e) => self.fold_expire_borrows_if(g, t, e),
-            Stmt::StopExpiringLoans(a) => self.fold_stop_expiring_borrows(a),
-            Stmt::PackageMagicWand(w, s, p) => self.fold_package_magic_wand(w, s, p),
+            Stmt::PackageMagicWand(w, s, l, p) => self.fold_package_magic_wand(w, s, l, p),
             Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
             Stmt::NestedCFG { entry, exit, } => self.fold_nested_cfg(entry, exit),
@@ -384,24 +375,11 @@ pub trait StmtFolder {
         Stmt::TransferPerm(self.fold_expr(a), self.fold_expr(b))
     }
 
-    fn fold_expire_borrows_if(&mut self, g: Expr, t: Vec<Stmt>, e: Vec<Stmt>) -> Stmt {
-        Stmt::ExpireBorrowsIf(
-            self.fold_expr(g),
-            t.into_iter().map(|x| self.fold(x)).collect(),
-            e.into_iter().map(|x| self.fold(x)).collect()
-        )
-    }
-
-    fn fold_stop_expiring_borrows(&mut self, a: Vec<Expr>) -> Stmt {
-        Stmt::StopExpiringLoans(
-            a.into_iter().map(|x| self.fold_expr(x)).collect()
-        )
-    }
-
-    fn fold_package_magic_wand(&mut self, w: Expr, s: Vec<Stmt>, p: Position) -> Stmt {
+    fn fold_package_magic_wand(&mut self, w: Expr, s: Vec<Stmt>, l: String, p: Position) -> Stmt {
         Stmt::PackageMagicWand(
             self.fold_expr(w),
             s.into_iter().map(|x| self.fold(x)).collect(),
+            l,
             p
         )
     }
