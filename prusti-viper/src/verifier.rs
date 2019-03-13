@@ -266,11 +266,20 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 debug!("Verification error: {:?}", verification_error);
                 let compilation_error = error_manager.translate(&verification_error);
                 debug!("Compilation error: {:?}", compilation_error);
-                self.env.span_err_with_code(
-                    compilation_error.span,
-                    &compilation_error.message,
-                    compilation_error.id
-                )
+                if let Some(reason_span) = compilation_error.reason_span {
+                    self.env.span_err_with_code_with_reason(
+                        compilation_error.span,
+                        &compilation_error.message,
+                        compilation_error.id,
+                        reason_span
+                    )
+                } else {
+                    self.env.span_err_with_code(
+                        compilation_error.span,
+                        &compilation_error.message,
+                        compilation_error.id
+                    )
+                }
             }
             VerificationResult::Failure
         }

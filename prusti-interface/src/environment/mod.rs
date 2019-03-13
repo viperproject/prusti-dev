@@ -98,6 +98,21 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         self.span_err_with_code(MultiSpan::new(), msg, code);
     }
 
+    /// Emits an error message.
+    pub fn span_err_with_code_with_reason<S: Into<MultiSpan>>(
+        &self,
+        sp: S,
+        msg: &str,
+        code: String,
+        reason_sp: S,
+    ) {
+        let mut diagnostic = self.state.session.struct_err_with_code(
+            msg, DiagnosticId::Error(code));
+        diagnostic.set_span(sp);
+        diagnostic.span_note(reason_sp, "the failing assertion is this one");
+        diagnostic.emit();
+    }
+
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
         self.state.session.has_errors()
