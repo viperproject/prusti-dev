@@ -160,24 +160,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::ExpireBorrowsIf(ref guard, ref then_stmts, ref else_stmts) => {
-                ast.if_stmt(
-                    guard.to_viper(ast),
-                    ast.seqn(
-                        &then_stmts.to_viper(ast),
-                        &[],
-                    ),
-                    ast.seqn(
-                        &else_stmts.to_viper(ast),
-                        &[],
-                    ),
-                )
-            }
-            &Stmt::StopExpiringLoans(_) => {
-                // Skip
-                ast.comment(&self.to_string())
-            }
-            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref pos) => {
+            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref _label, ref pos) => {
                 ast.package(
                     wand.to_viper(ast),
                     ast.seqn(

@@ -44,15 +44,11 @@ impl CfgMethod {
                     writeln!(graph, "dag_{}_node_{:?} [shape=none,label=<",
                              label, node.borrow).unwrap();
                     writeln!(graph, "<table>").unwrap();
-                    writeln!(graph, "<tr><td colspan=\"2\">{:?}</td></tr>", node).unwrap();
-                    match node.kind {
-                        vir::borrows::NodeKind::Move(vir::borrows::MoveNode { ref src, ref dest, }) => {
-                            writeln!(graph, "<tr><td>src:</td><td>{}</td></tr>", escape_html(src)).unwrap();
-                            writeln!(graph, "<tr><td>dst:</td><td>{}</td></tr>", escape_html(dest)).unwrap();
-                        }
-                        _ => {
-                            unimplemented!();
-                        }
+                    writeln!(graph, "<tr><td colspan=\"2\">{:?} (guard: {})</td></tr>",
+                             node, escape_html(&dag.guard(node.borrow))).unwrap();
+                    for (i, stmt) in node.stmts.iter().enumerate() {
+                        writeln!(graph, "<tr><td>{}</td><td>{}</td></tr>", i, escape_html(stmt)).unwrap();
+
                     }
                     writeln!(graph, "</table>").unwrap();
                     writeln!(graph, ">];").unwrap();
@@ -133,27 +129,35 @@ impl CfgMethod {
                 lines.push("<br/>".to_string());
             }
             first_row = false;
-            if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
-                reborrowing_dags.push(dag);
-                lines.push(format!("ExpireBorrows({}) <br />", label));
+            match stmt {
+                vir::Stmt::ExpireBorrows(ref dag) => {
+                    reborrowing_dags.push(dag);
+                }
+                vir::Stmt::PackageMagicWand(_, ref stmts, _, _) => {
+                    for stmt in stmts {
+                        if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
+                            reborrowing_dags.push(dag);
+                        }
+                    }
+                }
+                _ => {}
+            }
+            let stmt_string = stmt.to_string();
+            let mut splitted_stmt_lines = vec![];
+            for stmt_line in stmt_string.lines() {
+                splitted_stmt_lines.push(
+                    sub_strings(stmt_line, 120, 116)
+                        .into_iter()
+                        .map(|x| escape_html(x))
+                        .collect::<Vec<_>>()
+                        .join(" \\ <br/>    ")
+                );
+            }
+            let stmt_html = splitted_stmt_lines.join("<br/>");
+            if stmt.is_comment() {
+                lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
             } else {
-                let stmt_string = stmt.to_string();
-                let mut splitted_stmt_lines = vec![];
-                for stmt_line in stmt_string.lines() {
-                    splitted_stmt_lines.push(
-                        sub_strings(stmt_line, 120, 116)
-                            .into_iter()
-                            .map(|x| escape_html(x))
-                            .collect::<Vec<_>>()
-                            .join(" \\ <br/>    ")
-                    );
-                }
-                let stmt_html = splitted_stmt_lines.join("<br/>");
-                if stmt.is_comment() {
-                    lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
-                } else {
-                    lines.push(stmt_html);
-                }
+                lines.push(stmt_html);
             }
         }
         lines.push("</td></tr>".to_string());

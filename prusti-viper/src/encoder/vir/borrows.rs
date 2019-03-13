@@ -5,75 +5,51 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::fmt;
-use std::collections::HashMap;
-use super::ast::Expr;
+use std::collections::{HashMap, VecDeque};
+use super::ast::{Expr, Stmt, ExprIterator};
 use prusti_interface::environment::borrowck;
 
 /// The method-unique borrow identifier.
 pub type Borrow = borrowck::facts::Loan;
 
-/// The borrow that moved permissions from one path to another. To undo it,
-/// we need to move all permissions associated with `src` to `dest`
-/// in the fold-unfold state.
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MoveNode {
-    pub src: Expr,
-    pub dest: Expr,
-}
-
-/// The borrow that crossed a verification boundary and requires a
-/// magic wand. To undo it, we need to apply the given magic wand.
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct MagicWandNode {
-    /// This must be a magic wand.
-    wand: Expr,
-}
-
-impl MagicWandNode {
-    /// Get the LHS of the magic wand.
-    pub fn lhs(&self) -> &Expr {
-        match self.wand {
-            Expr::MagicWand(box ref lhs, _, _) => lhs,
-            _ => unreachable!(),
-        }
-    }
-    /// Get the RHS of the magic wand.
-    pub fn rhs(&self) -> &Expr {
-        match self.wand {
-            Expr::MagicWand(_, box ref rhs, _) => rhs,
-            _ => unreachable!(),
-        }
-    }
-}
-
-/// The type of the reborrowing DAG node.
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub enum NodeKind {
-    /// See description of `NodeMove`.
-    Move(MoveNode),
-    /// See description of `MagicWandNode`.
-    MagicWand(MagicWandNode),
-}
-
 /// Node of the reborrowing DAG.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Node {
+    /// The basic block at which the borrow occured was executed only
+    /// iff the `guard` is true.
+    guard: Expr,
     pub borrow: Borrow,
     pub reborrowing_nodes: Vec<Borrow>,
     pub reborrowed_nodes: Vec<Borrow>,
-    pub kind: NodeKind,
+    //pub kind: NodeKind,
+    pub stmts: Vec<Stmt>,
+    /// Places that were borrowed and should be kept in fold/unfold.
+    pub borrowed_places: Vec<Expr>,
+}
+
+impl Node {
+    pub fn new(
+        guard: Expr,
+        borrow: Borrow,
+        reborrowing_nodes: Vec<Borrow>,
+        reborrowed_nodes: Vec<Borrow>,
+        stmts: Vec<Stmt>,
+        borrowed_places: Vec<Expr>,
+    ) -> Self {
+        Self {
+            guard,
+            borrow,
+            reborrowing_nodes,
+            reborrowed_nodes,
+            stmts,
+            borrowed_places,
+        }
+    }
 }
 
 impl fmt::Debug for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.kind {
-            NodeKind::Move(_) => {
-                write!(f, "Move({:?})", self.borrow)
-            }
-            NodeKind::MagicWand(_) => {
-                write!(f, "MagicWand({:?})", self.borrow)
-            }
-        }
+        write!(f, "{:?}", self.borrow)
     }
 }
 
@@ -84,13 +60,70 @@ pub struct DAG {
     /// Mapping from borrows to their node indices.
     borrow_indices: HashMap<Borrow, usize>,
     nodes: Vec<Node>,
+    borrowed_places: Vec<Expr>,
 }
 
 impl DAG {
     pub fn iter(&self) -> impl Iterator<Item=&Node> {
         self.nodes.iter()
     }
-    //pub fn get_location(node: Node) -> Location { ... }
+    pub fn get_borrow_index(&self, borrow: Borrow) -> usize {
+        trace!("get_borrow_index(borrow={:?})", borrow);
+        self.borrow_indices[&borrow]
+    }
+    pub fn in_borrowed_places(&self, place: &Expr) -> bool {
+        self.borrowed_places.iter().any(
+            |borrowed_place| {
+                place.has_prefix(borrowed_place)
+            })
+    }
+    pub fn check_integrity(&self) {
+        trace!("[enter] check_integrity dag=[{:?}]", self);
+        if let Some(first) = self.nodes.first() {
+            assert!(first.reborrowing_nodes.is_empty());
+        }
+        if let Some(last) = self.nodes.last() {
+            assert!(last.reborrowed_nodes.is_empty());
+        }
+        assert!(self.nodes.len() == self.borrow_indices.len());
+        for (i, node) in self.nodes.iter().enumerate() {
+            assert!(self.borrow_indices[&node.borrow] == i);
+            for borrow in &node.reborrowing_nodes {
+                assert!(self.borrow_indices.contains_key(borrow), "{:?}", borrow);
+            }
+            for borrow in &node.reborrowed_nodes {
+                assert!(self.borrow_indices.contains_key(borrow), "{:?}", borrow);
+            }
+            for place in &node.borrowed_places {
+                debug!("{:?}: {}", node.borrow, place);
+            }
+        }
+        trace!("[exit] check_integrity dag=[{:?}]", self);
+    }
+    /// Get the complete guard for the given node.
+    pub fn guard(&self, expiring_borrow: Borrow) -> Expr {
+        let index = self.get_borrow_index(expiring_borrow);
+        let mut guard_indices = vec![index];
+        let mut to_visit = VecDeque::new();
+        let mut visited = vec![false; self.nodes.len()];
+        to_visit.push_back(index);
+        visited[index] = true;
+        while let Some(curr_index) = to_visit.pop_front() {
+            let curr_node = &self.nodes[curr_index];
+            for borrow in &curr_node.reborrowing_nodes {
+                let borrow_index = self.borrow_indices[borrow];
+                if !visited[borrow_index] {
+                    to_visit.push_back(borrow_index);
+                    visited[borrow_index] = true;
+                    guard_indices.push(borrow_index);
+                }
+            }
+        }
+        guard_indices
+            .into_iter()
+            .map(|index| self.nodes[index].guard.clone())
+            .conjoin()
+    }
 }
 
 /// A struct for constructing the reborrowing DAG.
@@ -103,40 +136,35 @@ impl DAGBuilder {
         let dag = DAG {
             borrow_indices: HashMap::new(),
             nodes: Vec::new(),
+            borrowed_places: Vec::new(),
         };
         Self {
             dag: dag,
         }
     }
-    pub fn add_move_node(
-        &mut self,
-        borrow: Borrow,
-        reborrowing_nodes: &[Borrow],
-        reborrowed_nodes: &[Borrow],
-        src: Expr,
-        dest: Expr,
-    ) {
+    pub fn add_node(&mut self, node: Node) {
+        let borrow = node.borrow;
         let new_index = self.dag.nodes.len();
         assert!(!self.dag.borrow_indices.contains_key(&borrow));
-        let node = Node {
-            borrow: borrow,
-            reborrowing_nodes: reborrowing_nodes.into(),
-            reborrowed_nodes: reborrowed_nodes.into(),
-            kind: NodeKind::Move(MoveNode {
-                src: src,
-                dest: dest,
-            }),
-        };
+        self.dag.borrow_indices.insert(borrow, new_index);
+        for place in &node.borrowed_places {
+            self.dag.borrowed_places.push(place.clone());
+        }
         self.dag.nodes.push(node);
     }
     pub fn finish(self) -> DAG {
+        self.dag.check_integrity();
         self.dag
     }
 }
 
 impl fmt::Debug for DAG {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ReborrowingDAG")
+        write!(f, "ReborrowingDAG(")?;
+        for node in &self.nodes {
+            write!(f, "{:?},", node.borrow)?;
+        }
+        write!(f, ")")
     }
 }
 

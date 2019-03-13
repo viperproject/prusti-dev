@@ -37,7 +37,32 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     fn initial_context(&mut self) -> BranchCtxt;
 
     /// Replace some statements, mutating the branch context
-    fn replace_stmt(&mut self, stmt: &Stmt, is_last_before_return: bool, bctxt: &mut BranchCtxt) -> Vec<Stmt>;
+    ///
+    /// ``label`` is the label to be used for references when emitting
+    /// fold/unfold operations. This is a hacky work-around for Silicon
+    /// not being able to see that two locations are the same inside the
+    /// package statement. The minimal example that illustrates the issue:
+    ///
+    /// ```rust
+    /// // pub struct ListNode {
+    /// //     next: Option<Box<ListNode>>,
+    /// // }
+    /// // pub fn test5(list: &mut ListNode) -> &mut ListNode {
+    /// //     match list.next {
+    /// //         Some(box ref mut node) => test5(node),
+    /// //         None => list,
+    /// //     }
+    /// // }
+    /// ```
+    fn replace_stmt(
+        &mut self,
+        stmt: &Stmt,
+        is_last_before_return: bool,
+        bctxt: &mut BranchCtxt,
+        curr_block_index: CfgBlockIndex,
+        new_cfg: &CfgMethod,
+        label: Option<&str>,
+    ) -> Vec<Stmt>;
 
     /// Inject some statements and replace a successor, mutating the branch context
     fn replace_successor(&mut self, succ: &Successor, bctxt: &mut BranchCtxt) -> (Vec<Stmt>, Successor);
@@ -71,6 +96,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
         }
 
         // Find the blocks
+        //
         let to_visit: Vec<usize> = cfg.get_topological_sort().iter().map(|x| x.block_index).collect();
         let mut visited: Vec<bool> = vec![false; cfg.basic_blocks.len()];
         let mut reachable: Vec<bool> = vec![false; cfg.basic_blocks.len()];
@@ -157,8 +183,12 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
             // REPLACE statement
             for (stmt_index, stmt) in curr_block.stmts.iter().enumerate() {
                 self.current_cfg(&new_cfg);
-                let last_stmt_before_return = stmt_index == curr_block.stmts.len() - 1 && curr_block.successor.is_return();
-                let new_stmts = self.replace_stmt(stmt, last_stmt_before_return, &mut bctxt);
+                let last_stmt_before_return =
+                    stmt_index == curr_block.stmts.len() - 1 &&
+                    curr_block.successor.is_return();
+                let new_stmts = self.replace_stmt(stmt, last_stmt_before_return,
+                                                  &mut bctxt, curr_block_index,
+                                                  &new_cfg, None);
                 trace!("Replace stmt '{}' with [{}]", stmt, new_stmts.iter().to_string());
                 for new_stmt in new_stmts {
                     new_cfg.add_stmt(curr_block_index, new_stmt);

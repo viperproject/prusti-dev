@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::mem;
 use encoder::vir;
 use encoder::Encoder;
 use self::branch_ctxt::*;
@@ -29,6 +30,7 @@ mod semantics;
 mod places_utils;
 mod action;
 mod log;
+mod borrows;
 
 pub fn add_folding_unfolding_to_expr(expr: vir::Expr, bctxt: &BranchCtxt) -> vir::Expr {
     let bctxt_at_label = HashMap::new();
@@ -55,12 +57,13 @@ pub fn add_folding_unfolding_to_function(function: vir::Function, predicates: Ha
 
 pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    cfg: vir::CfgMethod
+    cfg: vir::CfgMethod,
+    borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
 ) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map();
     let initial_bctxt = BranchCtxt::new(cfg_vars, &predicates);
-    FoldUnfold::new(encoder, initial_bctxt, &cfg).replace_cfg(&cfg)
+    FoldUnfold::new(encoder, initial_bctxt, &cfg, borrow_positions).replace_cfg(&cfg)
 }
 
 #[derive(Clone)]
@@ -72,6 +75,7 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     check_foldunfold_state: bool,
     cfg: &'p vir::CfgMethod,
     log: EventLog,
+    borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
@@ -79,7 +83,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
         initial_bctxt: BranchCtxt<'p>,
-        cfg: &'p vir::CfgMethod
+        cfg: &'p vir::CfgMethod,
+        borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
     ) -> Self {
         FoldUnfold {
             encoder,
@@ -89,6 +94,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             check_foldunfold_state: config::check_foldunfold_state(),
             cfg,
             log: EventLog::new(),
+            borrow_positions,
         }
     }
 
@@ -142,10 +148,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     self.replace_old_expr(&rhs, &rhs_bctxt)
                 )
             }
-            vir::Stmt::PackageMagicWand(wand, stmts, pos) => {
+            vir::Stmt::PackageMagicWand(wand, stmts, label, pos) => {
                 vir::Stmt::PackageMagicWand(
                     self.replace_expr(&wand, bctxt),
                     stmts,
+                    label,
                     pos
                 )
             }
@@ -153,10 +160,240 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn process_expire_borrows(&mut self, dag: &vir::borrows::DAG) -> Vec<vir::Stmt> {
+    fn process_expire_borrows(
+        &mut self,
+        dag: &vir::borrows::DAG,
+        surrounding_bctxt: &mut BranchCtxt<'p>,
+        surrounding_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
+        label: Option<&str>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] process_expire_borrows dag=[{:?}]", dag);
+        let mut cfg = borrows::CFG::new();
         for node in dag.iter() {
+            trace!("process_expire_borrows construct cfg node={:?}", node);
+            let predecessors = node.reborrowing_nodes
+                .iter()
+                .map(|b| dag.get_borrow_index(*b))
+                .collect();
+            let successors = node.reborrowed_nodes
+                .iter()
+                .map(|b| dag.get_borrow_index(*b))
+                .collect();
+            let block = borrows::BasicBlock {
+                node: node,
+                guard: dag.guard(node.borrow),
+                predecessors: predecessors,
+                statements: vec![vir::Stmt::comment(format!("{:?}", node.borrow))],
+                successors: successors,
+            };
+            cfg.add_block(block);
         }
-        unimplemented!();
+
+        let mut initial_bctxt: Vec<Option<BranchCtxt>> = vec![None; cfg.basic_blocks.len()];
+        let mut final_bctxt: Vec<Option<BranchCtxt>> = vec![None; cfg.basic_blocks.len()];
+
+        for curr_block_index in 0..cfg.basic_blocks.len() {
+
+            if self.dump_debug_info {
+                let source_path = self.encoder.env().source_path();
+                let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+                report::log::report_with_writer(
+                    "graphviz_reborrowing_dag_during_foldunfold",
+                    format!("{}.{}.dot", source_filename, dag),
+                    |writer| cfg.to_graphviz(writer, curr_block_index)
+                );
+            }
+
+            let mut curr_block_pre_statements = Vec::new();
+
+            let curr_block = &cfg.basic_blocks[curr_block_index];
+            let curr_node = &curr_block.node;
+            let mut bctxt = if curr_block.predecessors.is_empty() {
+                let mut bctxt = surrounding_bctxt.clone();
+                let end_block = surrounding_block_index;
+                let start_block = self.borrow_positions[&curr_node.borrow];
+                if !start_block.weak_eq(&end_block) {
+                    let path = new_cfg.find_path(start_block, end_block);
+                    debug!("process_expire_borrows borrow={:?} path={:?}",
+                           curr_node.borrow, path);
+                    let dropped_permissions = self.log.collect_dropped_permissions(&path, dag);
+                    debug!("process_expire_borrows borrow={:?} dropped_permissions={:?}",
+                           curr_node.borrow, dropped_permissions);
+                    for perm in &dropped_permissions {
+                        let comment = format!("restored: {}", perm);
+                        curr_block_pre_statements.push(vir::Stmt::comment(comment));
+                    }
+                    bctxt.mut_state().restore_dropped_perms(dropped_permissions.into_iter());
+                    bctxt
+                } else {
+                    bctxt
+                }
+            } else {
+                let mut incoming_bctxt = Vec::new();
+                for &predecessor in &curr_block.predecessors {
+                    let mut bctxt = final_bctxt[predecessor].as_ref().unwrap().clone();
+                    let predecessor_node = &cfg.basic_blocks[predecessor].node;
+                    let end_block = self.borrow_positions[&predecessor_node.borrow];
+                    let start_block = self.borrow_positions[&curr_node.borrow];
+                    if start_block != end_block {
+                        let path = new_cfg.find_path(start_block, end_block);
+                        debug!("process_expire_borrows borrow={:?} path={:?}",
+                               curr_node.borrow, path);
+                        let dropped_permissions = self.log.collect_dropped_permissions(&path, dag);
+                        debug!("process_expire_borrows borrow={:?} dropped_permissions={:?}",
+                               curr_node.borrow, dropped_permissions);
+                        for perm in &dropped_permissions {
+                            let comment = format!("restored: {}", perm);
+                            let key = (predecessor, curr_block_index);
+                            let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                            entry.push(vir::Stmt::comment(comment));
+                        }
+                        bctxt.mut_state().restore_dropped_perms(dropped_permissions.into_iter());
+                    }
+                    incoming_bctxt.push(bctxt);
+                }
+                let incoming_bctxt_refs = incoming_bctxt.iter().collect();
+                let (actions, mut bctxt) = self.prepend_join(incoming_bctxt_refs);
+                for (&src_index, mut action) in curr_block.predecessors.iter().zip(&actions) {
+                    assert!(src_index < curr_block_index);
+                    if !action.is_empty() {
+                        //let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
+                        let mut stmts_to_add = Vec::new();
+                        for a in action {
+                            stmts_to_add.push(a.to_stmt());
+                            if let Action::Drop(perm) = a {
+                                if dag.in_borrowed_places(perm.get_place()) {
+                                    stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                                    bctxt.mut_state().restore_dropped_perm(perm.clone());
+                                }
+                            }
+                        }
+                        let key = (src_index, curr_block_index);
+                        assert!(!cfg.edges.contains_key(&key)); // Does this hold?
+                        cfg.edges.insert(key, stmts_to_add);
+                    }
+                }
+                bctxt
+            };
+            initial_bctxt[curr_block_index] = Some(bctxt.clone());
+
+            let curr_block = &mut cfg.basic_blocks[curr_block_index];
+            let curr_node = &curr_block.node;
+            curr_block.statements.extend(curr_block_pre_statements);
+            for stmt in &curr_node.stmts {
+                debug!("process_expire_borrows block={} ({:?}) stmt={}",
+                       curr_block_index, curr_node.borrow, stmt);
+                let new_stmts = self.replace_stmt(
+                    &stmt, false, &mut bctxt, surrounding_block_index, new_cfg, label);
+                curr_block.statements.extend(new_stmts);
+            }
+
+            final_bctxt[curr_block_index] = Some(bctxt);
+        }
+
+        // Merge all bctxts with reborrowed_nodes.is_empty() into one.
+        let final_blocks: Vec<_> = cfg.basic_blocks
+            .iter()
+            .enumerate()
+            .filter(|(_, block)| block.successors.is_empty())
+            .map(|(i, _)| i)
+            .collect();
+        let final_bctxts: Vec<_> = final_blocks
+            .iter()
+            .map(|i| final_bctxt[*i].as_ref().unwrap())
+            .collect();
+        let (actions, mut final_bctxt) = self.prepend_join(final_bctxts);
+        for (&i, mut action) in final_blocks.iter().zip(actions.iter()) {
+            if !action.is_empty() {
+                let mut stmts_to_add = Vec::new();
+                for a in action {
+                    stmts_to_add.push(a.to_stmt());
+                    if let Action::Drop(perm) = a {
+                        if dag.in_borrowed_places(perm.get_place()) {
+                            stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                            final_bctxt.mut_state().restore_dropped_perm(perm.clone());
+                        }
+                    }
+                }
+                //let stmts_to_add = action.iter().map(|a| a.to_stmt());
+                cfg.basic_blocks[i].statements.extend(stmts_to_add);
+            }
+        }
+        mem::swap(surrounding_bctxt, &mut final_bctxt);
+
+        let mut stmts = Vec::new();
+        for (i, block) in cfg.basic_blocks.iter().enumerate() {
+            stmts.push(vir::Stmt::If(block.guard.clone(),
+                                     self.patch_places(&block.statements, label)));
+            for ((from, to), statements) in &cfg.edges {
+                if *from == i {
+                    let condition = vir::Expr::and(
+                        block.guard.clone(),
+                        cfg.basic_blocks[*to].guard.clone(),
+                    );
+                    stmts.push(vir::Stmt::If(condition,
+                                             self.patch_places(statements, label)));
+                }
+            }
+        }
+        stmts
+    }
+
+    /// Wrap `_1.val_ref.f.g.` into `old[label](_1.val_ref).f.g`. This is needed
+    /// to make `_1.val_ref` reachable inside a package statement of a magic wand.
+    fn patch_places(&self, stmts: &Vec<vir::Stmt>, maybe_label: Option<&str>) -> Vec<vir::Stmt> {
+        if let Some(label) = maybe_label {
+            struct PlacePatcher<'a> {
+                label: &'a str,
+            }
+            impl<'a> vir::ExprFolder for PlacePatcher<'a> {
+                fn fold(&mut self, e: vir::Expr) -> vir::Expr {
+                    match e {
+                        vir::Expr::Field(box vir::Expr::Local(_, _), _, _) => {
+                            e.old(self.label)
+                        }
+                        _ => {
+                            vir::default_fold_expr(self, e)
+                        }
+                    }
+                }
+            }
+            fn patch_args(label: &str, args: &Vec<vir::Expr>) -> Vec<vir::Expr> {
+                args.iter()
+                    .cloned()
+                    .map(|arg| {
+                        assert!(arg.is_place());
+                        if arg.is_old() {
+                            arg
+                        } else {
+                            PlacePatcher { label }.fold(arg)
+                        }
+                    })
+                    .collect()
+            }
+            stmts
+                .iter()
+                .map(|stmt| {
+                    match stmt {
+                        vir::Stmt::Comment(_) |
+                        vir::Stmt::ApplyMagicWand(_, _) |
+                        vir::Stmt::TransferPerm(_, _) => {
+                            stmt.clone()
+                        },
+                        vir::Stmt::Fold(ref pred_name, ref args, frac) => {
+                            vir::Stmt::Fold(pred_name.clone(), patch_args(label, args), *frac)
+                        },
+                        vir::Stmt::Unfold(ref pred_name, ref args, frac) => {
+                            vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args), *frac)
+                        },
+                        x => unreachable!("{:?}", x),
+                    }
+                })
+                .collect()
+        } else {
+            stmts.clone()
+        }
     }
 }
 
@@ -202,13 +439,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         &mut self,
         stmt: &vir::Stmt,
         is_last_before_return: bool,
-        bctxt: &mut BranchCtxt<'p>
+        bctxt: &mut BranchCtxt<'p>,
+        curr_block_index: vir::CfgBlockIndex,
+        new_cfg: &vir::CfgMethod,
+        label: Option<&str>,
     ) -> Vec<vir::Stmt> {
         debug!("[enter] replace_stmt: ##### {} #####", stmt);
 
-        //if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
-            //return self.process_expire_borrows(dag);
-        //}
+        if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
+            return self.process_expire_borrows(dag, bctxt, curr_block_index, new_cfg, label);
+        }
 
         let mut stmt = stmt.clone();
 
@@ -309,59 +549,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
         // 3. Replace special statements
         stmt = match stmt {
-            vir::Stmt::ExpireBorrowsIf(ref guard, ref then_branch, ref else_branch) => {
-                // Do the special join for restoring permissions of expiring loans
-                let mut then_bctxt = bctxt.clone();
-                let mut else_bctxt = bctxt.clone();
-                let mut new_then_stmts = vec![];
-                let mut new_else_stmts = vec![];
-                for then_stmt in then_branch.iter() {
-                    new_then_stmts.extend(
-                        self.replace_stmt(then_stmt, false, &mut then_bctxt)
-                    );
-                }
-                for else_stmt in else_branch.iter() {
-                    new_else_stmts.extend(
-                        self.replace_stmt(else_stmt, false, &mut else_bctxt)
-                    );
-                }
-                let final_moved = filter_with_prefix_in_other(
-                    then_bctxt.state().moved(),
-                    else_bctxt.state().moved()
-                );
-                let (then_actions, else_actions) = then_bctxt.join(else_bctxt);
-                let mut final_bctxt = then_bctxt;
-                new_then_stmts.extend(
-                    then_actions.iter().map(|a| a.to_stmt())
-                );
-                new_else_stmts.extend(
-                    else_actions.iter().map(|a| a.to_stmt())
-                );
-                // Set moved paths
-                final_bctxt.mut_state().set_moved(final_moved);
-                // Restore dropped permissions
-                for action in then_actions.iter() {
-                    if let Action::Drop(ref perm) = action {
-                        final_bctxt.mut_state().insert_perm(perm.clone());
-                        final_bctxt.mut_state().insert_dropped(perm.clone()); // remove this??
-                    }
-                }
-                for action in else_actions.iter() {
-                    if let Action::Drop(ref perm) = action {
-                        final_bctxt.mut_state().insert_perm(perm.clone());
-                        final_bctxt.mut_state().insert_dropped(perm.clone()); // remove this??
-                    }
-                }
-                *bctxt = final_bctxt;
-                vir::Stmt::ExpireBorrowsIf(guard.clone(), new_then_stmts, new_else_stmts)
-            }
-
-            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, box ref rhs, _), ref old_package_stmts, ref position) => {
+            vir::Stmt::PackageMagicWand(
+                vir::Expr::MagicWand(box ref lhs, box ref rhs, _),
+                ref old_package_stmts,
+                ref label,
+                ref position
+            ) => {
                 let mut package_bctxt = bctxt.clone();
                 let mut package_stmts = vec![];
                 for stmt in old_package_stmts {
                     package_stmts.extend(
-                        self.replace_stmt(stmt, false, &mut package_bctxt)
+                        self.replace_stmt(stmt, false, &mut package_bctxt,
+                                          curr_block_index, new_cfg, Some(label))
                     );
                     if config::dump_debug_info() {
                         //package_stmts.push(
@@ -377,12 +576,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                                 lhs.clone(),
                                 rhs.clone(),
                                 package_stmts.clone(),
+                                label.clone(),
                                 position.clone()
                             )
                         );
                     }
                 }
-                vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts, position.clone())
+                vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts,
+                                              label.clone(), position.clone())
             }
 
             stmt => stmt,
@@ -390,12 +591,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
         // 4. Add "unfolding" expressions in statement. This handles *old* requirements.
         debug!("Add unfoldings in stmt {}", stmt);
-        match stmt {
-            vir::Stmt::ExpireBorrowsIf(..) => {} // Do nothing
-            _ => {
-                stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
-            }
-        }
+        stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
 
         // 5. Apply effect of statement on state
         bctxt.apply_stmt(&stmt);
