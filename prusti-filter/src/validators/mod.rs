@@ -2,6 +2,7 @@
 mod support_status;
 mod procedure_validator;
 mod pure_function_validator;
+mod unsafety_validator;
 
 pub use self::support_status::SupportStatus;
 pub use self::support_status::SupportKind;

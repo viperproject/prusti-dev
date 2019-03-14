@@ -79,9 +79,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
         self.check_fn_sig(sig.skip_binder());
 
-        if self.tcx.hir.as_local_node_id(def_id).is_some() {
+        if let Some(node_id) = self.tcx.hir.as_local_node_id(def_id) {
             let procedure = Procedure::new(self.tcx, def_id);
             self.check_mir(&procedure);
+            if super::unsafety_validator::contains_unsafe(self.tcx, node_id) {
+                unsupported!(self, "contains unsafe code")
+            }
         } else {
             unsupported!(self, "calls functions from outer crates")
         }
