@@ -262,20 +262,6 @@ fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
 fn build_reachable_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
-    let dominators = mir.dominators();
-    let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
-
-    for source in mir.basic_blocks().indices() {
-        let terminator = &mir[source].terminator;
-        if let Some(ref term) = *terminator {
-            for target in get_normal_targets(term) {
-                if dominators.is_dominated_by(source, target) {
-                    loop_heads.insert(target);
-                }
-            }
-        }
-    }
-
     let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
     let mut to_visit: Vec<BasicBlock> = vec![];
