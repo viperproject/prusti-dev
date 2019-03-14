@@ -596,22 +596,31 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 let num_variants = adt_def.variants.len();
                                 // Initialize `lhs.int_field`
                                 let discr_field = self.encoder.encode_discriminant_field();
-                                let discr_value: vir::Expr = if num_variants <= 1 {
-                                    0.into()
+                                if num_variants == 0 {
+                                    let pos = self.encoder.error_manager().register(
+                                        self.mir.source_info(location).span,
+                                        ErrorCtxt::Unexpected
+                                    );
+                                    stmts.push(vir::Stmt::Assert(false.into(), pos));
                                 } else {
-                                    self.translate_maybe_borrowed_place(
-                                        location,
-                                        encoded_src.field(discr_field)
-                                    ).into()
+
+                                    let discr_value: vir::Expr = if num_variants == 1 {
+                                        0.into()
+                                    } else {
+                                        self.translate_maybe_borrowed_place(
+                                            location,
+                                            encoded_src.field(discr_field)
+                                        ).into()
+                                    };
+                                    let int_field = self.encoder.encode_value_field(ty);
+                                    stmts.push(
+                                        vir::Stmt::Assign(
+                                            encoded_lhs.clone().field(int_field),
+                                            discr_value,
+                                            vir::AssignKind::Copy
+                                        )
+                                    );
                                 };
-                                let int_field = self.encoder.encode_value_field(ty);
-                                stmts.push(
-                                    vir::Stmt::Assign(
-                                        encoded_lhs.clone().field(int_field),
-                                        discr_value,
-                                        vir::AssignKind::Copy
-                                    )
-                                );
                                 stmts
                             }
 
@@ -1201,7 +1210,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::GotoSwitch(cfg_targets, cfg_default_target))
             }
 
-            TerminatorKind::Unreachable => unreachable!(),
+            TerminatorKind::Unreachable => {
+                let pos = self.encoder.error_manager().register(
+                    term.source_info.span,
+                    ErrorCtxt::UnreachableTerminator
+                );
+                stmts.push(
+                    vir::Stmt::Assert(false.into(), pos)
+                );
+                (stmts, Successor::Return)
+            }
 
             TerminatorKind::Abort => {
                 let pos = self.encoder.error_manager().register(
@@ -1631,8 +1649,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 if let &Some((_, target)) = destination {
-                    let target_cfg_block = cfg_blocks.get(&target).unwrap();
-                    (stmts, Successor::Goto(*target_cfg_block))
+                    if let Some(target_cfg_block) = cfg_blocks.get(&target) {
+                        (stmts, Successor::Goto(*target_cfg_block))
+                    } else {
+                        stmts.push(vir::Stmt::Assert(false.into(), vir::Position::default()));
+                        (stmts, Successor::Return)
+                    }
                 } else {
                     // Encode unreachability
                     //stmts.push(
