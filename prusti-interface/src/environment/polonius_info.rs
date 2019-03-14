@@ -411,14 +411,6 @@ fn add_fake_facts<'a, 'tcx:'a>(
                         x => unimplemented!("{:?}", x)
                     }
                 }
-                for &(region1, _region2) in &regions {
-                    let new_loan = facts::Loan::from(last_loan_id);
-                    borrow_region.push((*region1, new_loan, *point));
-                    argument_moves.push(new_loan);
-                    debug!("Adding call arg: {:?} {:?} {:?} {}",
-                           region1, _region2, location, last_loan_id);
-                    last_loan_id += 1;
-                }
             } else if is_assignment(&mir, location) {
                 let (_region1, region2) = regions.pop().unwrap();
                 let new_loan = facts::Loan::from(last_loan_id);
