@@ -372,11 +372,23 @@ fn add_fake_facts<'a, 'tcx:'a>(
     }
     last_loan_id += 1;
 
+    // Find the last region index.
+    let mut last_region_id = 0;
+    for (region1, region2, _) in all_facts.outlives.iter() {
+        if region1.index() > last_region_id {
+            last_region_id = region1.index();
+        }
+        if region2.index() > last_region_id {
+            last_region_id = region2.index();
+        }
+    }
+    last_region_id += 1;
+
     // Create a map from points to (region1, region2) vectors.
     let universal_region = &all_facts.universal_region;
     let mut outlives_at_point = HashMap::new();
-    for (region1, region2, point) in all_facts.outlives.iter() {
-        if !universal_region.contains(region1) && !universal_region.contains(region2) {
+    for &(region1, region2, point) in all_facts.outlives.iter() {
+        if !universal_region.contains(&region1) && !universal_region.contains(&region2) {
             let outlives = outlives_at_point.entry(point).or_insert(vec![]);
             outlives.push((region1, region2));
         }
@@ -386,8 +398,8 @@ fn add_fake_facts<'a, 'tcx:'a>(
     // fact and there is not a borrow_region fact already.
     let borrow_region = &mut all_facts.borrow_region;
     for (point, mut regions) in outlives_at_point {
-        if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
-            let location = interner.get_point(*point).location.clone();
+        if borrow_region.iter().all(|(_, _, loan_point)| *loan_point != point) {
+            let location = interner.get_point(point).location.clone();
             if is_call(&mir, location) {
                 let call_destination = get_call_destination(&mir, location);
                 if let Some(place) = call_destination {
@@ -403,7 +415,7 @@ fn add_fake_facts<'a, 'tcx:'a>(
                                 borrow_region.push(
                                     (*var_region,
                                      loan,
-                                     *point));
+                                     point));
                                 last_loan_id += 1;
                                 call_magic_wands.insert(loan, local);
                             }
@@ -411,10 +423,26 @@ fn add_fake_facts<'a, 'tcx:'a>(
                         x => unimplemented!("{:?}", x)
                     }
                 }
+                for &(region1, region2) in &regions {
+                    let new_loan = facts::Loan::from(last_loan_id);
+                    let new_region = facts::Region::from(last_region_id);
+                    borrow_region.push((new_region, new_loan, point));
+                    all_facts.outlives.push((region2, new_region, point));
+                    argument_moves.push(new_loan);
+                    debug!("Adding call arg: \
+                                borrow_region({:?}, {:?}, {:?}) \
+                                outlives({:?}, {:?}, {:?}) \
+                                from outlives({:?}, {:?}, {:?})",
+                           new_region, new_loan, point,
+                           region2, new_region, point,
+                           region1, region2, point);
+                    last_loan_id += 1;
+                    last_region_id += 1;
+                }
             } else if is_assignment(&mir, location) {
                 let (_region1, region2) = regions.pop().unwrap();
                 let new_loan = facts::Loan::from(last_loan_id);
-                borrow_region.push((*region2, new_loan, *point));
+                borrow_region.push((region2, new_loan, point));
                 reference_moves.push(new_loan);
                 debug!("Adding generic: {:?} {:?} {:?} {}", _region1, region2, location, last_loan_id);
                 last_loan_id += 1;
