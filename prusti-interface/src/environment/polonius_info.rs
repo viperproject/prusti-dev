@@ -375,8 +375,8 @@ fn add_fake_facts<'a, 'tcx:'a>(
     // Create a map from points to (region1, region2) vectors.
     let universal_region = &all_facts.universal_region;
     let mut outlives_at_point = HashMap::new();
-    for (region1, region2, point) in all_facts.outlives.iter() {
-        if !universal_region.contains(region1) && !universal_region.contains(region2) {
+    for &(region1, region2, point) in all_facts.outlives.iter() {
+        if !universal_region.contains(&region1) && !universal_region.contains(&region2) {
             let outlives = outlives_at_point.entry(point).or_insert(vec![]);
             outlives.push((region1, region2));
         }
@@ -386,9 +386,10 @@ fn add_fake_facts<'a, 'tcx:'a>(
     // fact and there is not a borrow_region fact already.
     let borrow_region = &mut all_facts.borrow_region;
     for (point, mut regions) in outlives_at_point {
-        if borrow_region.iter().all(|(_, _, loan_point)| loan_point != point) {
-            let location = interner.get_point(*point).location.clone();
+        if borrow_region.iter().all(|(_, _, loan_point)| *loan_point != point) {
+            let location = interner.get_point(point).location.clone();
             if is_call(&mir, location) {
+                // Add a fake loan for the returned reference.
                 let call_destination = get_call_destination(&mir, location);
                 if let Some(place) = call_destination {
                     debug!("Adding for call destination:");
@@ -403,7 +404,7 @@ fn add_fake_facts<'a, 'tcx:'a>(
                                 borrow_region.push(
                                     (*var_region,
                                      loan,
-                                     *point));
+                                     point));
                                 last_loan_id += 1;
                                 call_magic_wands.insert(loan, local);
                             }
@@ -411,18 +412,20 @@ fn add_fake_facts<'a, 'tcx:'a>(
                         x => unimplemented!("{:?}", x)
                     }
                 }
-                for &(region1, _region2) in &regions {
-                    let new_loan = facts::Loan::from(last_loan_id);
-                    borrow_region.push((*region1, new_loan, *point));
-                    argument_moves.push(new_loan);
-                    debug!("Adding call arg: {:?} {:?} {:?} {}",
-                           region1, _region2, location, last_loan_id);
-                    last_loan_id += 1;
+                // Add a fake loan for each reference argument passed into the call.
+                for arg in get_call_arguments(&mir, location) {
+                    if let Some(var_region) = variable_regions.get(&arg) {
+                        debug!("var_region = {:?} loan = {}", var_region, last_loan_id);
+                        let loan = facts::Loan::from(last_loan_id);
+                        borrow_region.push((*var_region, loan, point));
+                        last_loan_id += 1;
+                        argument_moves.push(loan);
+                    }
                 }
             } else if is_assignment(&mir, location) {
                 let (_region1, region2) = regions.pop().unwrap();
                 let new_loan = facts::Loan::from(last_loan_id);
-                borrow_region.push((*region2, new_loan, *point));
+                borrow_region.push((region2, new_loan, point));
                 reference_moves.push(new_loan);
                 debug!("Adding generic: {:?} {:?} {:?} {}", _region1, region2, location, last_loan_id);
                 last_loan_id += 1;
@@ -1486,6 +1489,34 @@ fn get_call_destination<'tcx>(mir: &mir::Mir<'tcx>,
         }
     }
 }
+
+/// Extract reference-typed arguments of the call at the given location.
+fn get_call_arguments<'tcx>(mir: &mir::Mir<'tcx>,
+                            location: mir::Location) -> Vec<mir::Local> {
+    let mir::BasicBlockData { ref statements, ref terminator, .. } = mir[location.block];
+    assert!(statements.len() == location.statement_index);
+    match terminator.as_ref().unwrap().kind {
+        mir::TerminatorKind::Call { ref args, .. } => {
+            let mut reference_args = Vec::new();
+            for arg in args {
+                match arg {
+                    mir::Operand::Copy(place) |
+                    mir::Operand::Move(place) => {
+                        if let mir::Place::Local(local) = place {
+                            reference_args.push(*local);
+                        }
+                    }
+                    mir::Operand::Constant(_) => {}
+                }
+            }
+            reference_args
+        }
+        ref x => {
+            panic!("Expected call, got {:?} at {:?}", x, location);
+        }
+    }
+}
+
 
 
 /// Additional facts derived from the borrow checker facts.
