@@ -372,18 +372,6 @@ fn add_fake_facts<'a, 'tcx:'a>(
     }
     last_loan_id += 1;
 
-    // Find the last region index.
-    let mut last_region_id = 0;
-    for (region1, region2, _) in all_facts.outlives.iter() {
-        if region1.index() > last_region_id {
-            last_region_id = region1.index();
-        }
-        if region2.index() > last_region_id {
-            last_region_id = region2.index();
-        }
-    }
-    last_region_id += 1;
-
     // Create a map from points to (region1, region2) vectors.
     let universal_region = &all_facts.universal_region;
     let mut outlives_at_point = HashMap::new();
@@ -401,6 +389,7 @@ fn add_fake_facts<'a, 'tcx:'a>(
         if borrow_region.iter().all(|(_, _, loan_point)| *loan_point != point) {
             let location = interner.get_point(point).location.clone();
             if is_call(&mir, location) {
+                // Add a fake loan for the returned reference.
                 let call_destination = get_call_destination(&mir, location);
                 if let Some(place) = call_destination {
                     debug!("Adding for call destination:");
@@ -423,21 +412,15 @@ fn add_fake_facts<'a, 'tcx:'a>(
                         x => unimplemented!("{:?}", x)
                     }
                 }
-                for &(region1, region2) in &regions {
-                    let new_loan = facts::Loan::from(last_loan_id);
-                    let new_region = facts::Region::from(last_region_id);
-                    borrow_region.push((new_region, new_loan, point));
-                    all_facts.outlives.push((region2, new_region, point));
-                    argument_moves.push(new_loan);
-                    debug!("Adding call arg: \
-                                borrow_region({:?}, {:?}, {:?}) \
-                                outlives({:?}, {:?}, {:?}) \
-                                from outlives({:?}, {:?}, {:?})",
-                           new_region, new_loan, point,
-                           region2, new_region, point,
-                           region1, region2, point);
-                    last_loan_id += 1;
-                    last_region_id += 1;
+                // Add a fake loan for each reference argument passed into the call.
+                for arg in get_call_arguments(&mir, location) {
+                    if let Some(var_region) = variable_regions.get(&arg) {
+                        debug!("var_region = {:?} loan = {}", var_region, last_loan_id);
+                        let loan = facts::Loan::from(last_loan_id);
+                        borrow_region.push((*var_region, loan, point));
+                        last_loan_id += 1;
+                        argument_moves.push(loan);
+                    }
                 }
             } else if is_assignment(&mir, location) {
                 let (_region1, region2) = regions.pop().unwrap();
@@ -1506,6 +1489,34 @@ fn get_call_destination<'tcx>(mir: &mir::Mir<'tcx>,
         }
     }
 }
+
+/// Extract reference-typed arguments of the call at the given location.
+fn get_call_arguments<'tcx>(mir: &mir::Mir<'tcx>,
+                            location: mir::Location) -> Vec<mir::Local> {
+    let mir::BasicBlockData { ref statements, ref terminator, .. } = mir[location.block];
+    assert!(statements.len() == location.statement_index);
+    match terminator.as_ref().unwrap().kind {
+        mir::TerminatorKind::Call { ref args, .. } => {
+            let mut reference_args = Vec::new();
+            for arg in args {
+                match arg {
+                    mir::Operand::Copy(place) |
+                    mir::Operand::Move(place) => {
+                        if let mir::Place::Local(local) = place {
+                            reference_args.push(*local);
+                        }
+                    }
+                    mir::Operand::Constant(_) => {}
+                }
+            }
+            reference_args
+        }
+        ref x => {
+            panic!("Expected call, got {:?} at {:?}", x, location);
+        }
+    }
+}
+
 
 
 /// Additional facts derived from the borrow checker facts.
