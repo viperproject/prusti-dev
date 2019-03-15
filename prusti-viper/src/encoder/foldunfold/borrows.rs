@@ -10,6 +10,7 @@ use std::io;
 
 pub(super) struct BasicBlock<'a> {
     pub guard: vir::Expr,
+    pub current_guard: vir::Expr,
     pub node: &'a vir::borrows::Node,
     pub predecessors: Vec<usize>,
     pub statements: Vec<vir::Stmt>,
