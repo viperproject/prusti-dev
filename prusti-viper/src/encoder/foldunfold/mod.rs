@@ -183,6 +183,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             let block = borrows::BasicBlock {
                 node: node,
                 guard: dag.guard(node.borrow),
+                current_guard: node.guard.clone(),
                 predecessors: predecessors,
                 statements: vec![vir::Stmt::comment(format!("{:?}", node.borrow))],
                 successors: successors,
@@ -330,7 +331,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 if *from == i {
                     let condition = vir::Expr::and(
                         block.guard.clone(),
-                        cfg.basic_blocks[*to].guard.clone(),
+                        cfg.basic_blocks[*to].current_guard.clone(),
                     );
                     stmts.push(vir::Stmt::If(condition,
                                              self.patch_places(statements, label)));

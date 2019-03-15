@@ -17,7 +17,7 @@ pub type Borrow = borrowck::facts::Loan;
 pub struct Node {
     /// The basic block at which the borrow occured was executed only
     /// iff the `guard` is true.
-    guard: Expr,
+    pub guard: Expr,
     pub borrow: Borrow,
     pub reborrowing_nodes: Vec<Borrow>,
     pub reborrowed_nodes: Vec<Borrow>,
