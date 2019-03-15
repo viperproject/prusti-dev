@@ -50,6 +50,8 @@ impl State {
                     false
                 };
                 if !contains_parent_pred {
+                    trace!("Acc state: {{\n{}\n}}", self.display_acc());
+                    trace!("Pred state: {{\n{}\n}}", self.display_pred());
                     panic!(
                         "Consistency error: state has pred {}, but not acc {}",
                         place,
@@ -542,6 +544,24 @@ impl State {
         }
     }
 
+    /// Restores the provided permission. It could be that the dropped
+    /// permission is already in the state, for example, if the variable
+    /// was assigned again as `x` in the following example:
+    ///
+    /// ```rust
+    /// // pub fn test2(cond1: bool, mut a: ListNode) {
+    /// //     let mut x = &mut a;
+    /// //     if cond1 {
+    /// //         x = match x.next {
+    /// //             Some(box ref mut node) => node,
+    /// //             None => x,
+    /// //         };
+    /// //     } // a.value is dropped during the merge.
+    /// //     x.value.g.f = 4;
+    /// // }
+    /// ```
+    /// In such a case, the function keeps the most generic variant of
+    /// permissions.
     pub fn restore_dropped_perm(&mut self, item: Perm) {
         trace!("[enter] restore_dropped_perm item={}", item);
         for moved_place in &self.moved {
@@ -550,20 +570,61 @@ impl State {
         match item {
             Perm::Acc(place, frac) => {
                 self.remove_moved_matching(|p| place.has_prefix(p));
-                self.insert_acc(place, frac);
+                self.restore_acc(place, frac);
             },
             Perm::Pred(place, frac) => {
                 self.remove_moved_matching(|p| place.has_prefix(p));
-                self.insert_pred(place, frac);
+                self.restore_pred(place, frac);
             },
         };
+        trace!("[exit] restore_dropped_perm");
+    }
+
+    fn restore_acc(&mut self, acc_place: vir::Expr, frac: Frac) {
+        trace!("restore_acc {}, {}", acc_place, frac);
+        if acc_place.is_simple_place() {
+            for pred_place in self.pred.keys() {
+                if  pred_place.is_simple_place() && acc_place.has_proper_prefix(&pred_place) {
+                    trace!("restore_acc {}: ignored (predicate already exists: {})",
+                           acc_place, pred_place);
+                    return;
+                }
+            }
+        }
+        if self.acc.contains_key(&acc_place) {
+            trace!("restore_acc {}: ignored (state already contains place)", acc_place);
+            return;
+        }
+        self.acc.insert(acc_place, frac);
+    }
+
+    fn restore_pred(&mut self, pred_place: vir::Expr, frac: Frac) {
+        trace!("restore_pred {}, {}", pred_place, frac);
+        if self.pred.contains_key(&pred_place) {
+            trace!("restore_pred {}: ignored (state already contains place)", pred_place);
+            return;
+        }
+        if pred_place.is_simple_place() {
+            self.acc.retain(|acc_place, _| {
+                if  acc_place.is_simple_place() && acc_place.has_proper_prefix(&pred_place) {
+                    trace!("restore_pred {}: drop conflicting acc {}",
+                           pred_place, acc_place);
+                    false
+                } else {
+                    true
+                }
+            });
+        }
+        self.pred.insert(pred_place, frac);
     }
 
     pub fn restore_dropped_perms<I>(&mut self, items: I) where I: Iterator<Item=Perm> {
+        trace!("[enter] restore_dropped_perms");
         for item in items {
             self.restore_dropped_perm(item);
         }
         self.check_consistency();
+        trace!("[exit] restore_dropped_perms");
     }
 
     pub fn as_vir_expr(&self) -> vir::Expr {
