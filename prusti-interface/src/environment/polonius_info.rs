@@ -225,9 +225,6 @@ pub enum ReborrowingZombity {
 pub struct ReborrowingDAGNode {
     /// The loan to be restored.
     pub loan: facts::Loan,
-    /// Should this loan be restored only if the specific basic block
-    /// was executed.
-    pub guard: ReborrowingGuard,
     /// How this loan should be restored: by fold-unfold algorithm, by
     /// applying call magic wand, or by applying the loop magic wand.
     pub kind: ReborrowingKind,
@@ -262,12 +259,6 @@ impl fmt::Debug for ReborrowingDAGNode {
                        magic_wand.region,
                        magic_wand.loop_id)?;
             }
-        }
-        match self.guard {
-            ReborrowingGuard::NoGuard => {},
-            ReborrowingGuard::MirBlock(bb) => {
-                write!(f, ",guard={:?}", bb)?;
-            },
         }
         match self.zombity {
             ReborrowingZombity::Real => {},
@@ -1013,7 +1004,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                   &mut permanent_mark, &mut temporary_mark);
         }
         sorted_loans.reverse();
-        let mut guards = HashMap::new();
         let nodes: Vec<_> = sorted_loans.iter().enumerate().map(|(n, &loan)| {
             let mut i = 0;
             let mut reborrowing_loans = Vec::new();
@@ -1064,16 +1054,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 i -= 1;
             }
             let kind = self.construct_reborrowing_kind(loan, representative_loan);
-            let guard = self.construct_reborrowing_guards(
-                loan,
-                location,
-                &reborrowed_loans,
-                &mut guards,
-                &kind,
-            );
             ReborrowingDAGNode {
                 loan: loan,
-                guard: guard,
                 kind: kind,
                 zombity: self.construct_reborrowing_zombity(loan, &loans, zombie_loans, location),
                 incoming_zombies: self.check_incoming_zombies(loan, &loans, zombie_loans, location),
@@ -1083,75 +1065,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }).collect();
         ReborrowingDAG {
             nodes: nodes,
-        }
-    }
-
-    /// Checks if restoration of the `loan` needs to be guarded at `location`.
-    ///
-    /// If the basic block that creates the loan dominates the location
-    /// basic block of the location, then guard is not necessary.
-    fn construct_reborrowing_guards(
-        &self,
-        loan: facts::Loan,
-        location: mir::Location,
-        reborrowed_loans: &Vec<facts::Loan>,
-        guards: &mut HashMap<facts::Loan, mir::BasicBlock>,
-        kind: &ReborrowingKind,
-    ) -> ReborrowingGuard {
-
-        let mut new_conflict = false;
-
-        // If the borrow is an assignment and it reborrows more than one loan, then it means that
-        // this loan joins conflicting borrowing paths.
-        // FIXME: We assume that if we have a conflict that the directly reborrowed loans are
-        // good identifiers of the paths.
-        if let ReborrowingKind::Assignment{ .. } = kind {
-            if reborrowed_loans.len() > 1 {
-                new_conflict = true;
-                debug!("conflict loan: {:?}", loan);
-                for &reborrowed_loan in reborrowed_loans {
-                    assert!(!guards.contains_key(&reborrowed_loan));
-                    let loan_location = self.loan_position[&reborrowed_loan];
-                    guards.insert(reborrowed_loan, loan_location.block);
-                    debug!("  marker loan={:?} at={:?}", reborrowed_loan, loan_location);
-                }
-            }
-        }
-        if let Some(&guard_block) = guards.get(&loan) {
-            assert!(!new_conflict);
-            if !new_conflict {
-                // TODO: Handle join.
-                for &reborrowed_loan in reborrowed_loans {
-                    assert!(!guards.contains_key(&reborrowed_loan));
-                    guards.insert(reborrowed_loan, guard_block);
-                    debug!("  propage guard={:?} from loan={:?} to loan={:?}",
-                           guard_block, loan, reborrowed_loan);
-                }
-            }
-            ReborrowingGuard::MirBlock(guard_block)
-        } else {
-            let loan_location = self.loan_position[&loan];
-            let dominators = self.mir.dominators();
-            if dominators.is_dominated_by(location.block, loan_location.block) {
-                ReborrowingGuard::NoGuard
-            } else {
-                ReborrowingGuard::MirBlock(loan_location.block)
-            }
-        }
-    }
-
-    /// Checks if restoration of the `loan` needs to be guarded at `location`.
-    ///
-    /// If the basic block that creates the loan dominates the location
-    /// basic block of the location, then guard is not necessary.
-    fn construct_reborrowing_guard(&self, loan: facts::Loan,
-                                   location: mir::Location) -> ReborrowingGuard {
-        let loan_location = self.loan_position[&loan];
-        let dominators = self.mir.dominators();
-        if dominators.is_dominated_by(location.block, loan_location.block) {
-            ReborrowingGuard::NoGuard
-        } else {
-            ReborrowingGuard::MirBlock(loan_location.block)
         }
     }
 
