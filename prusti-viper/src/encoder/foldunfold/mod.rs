@@ -271,8 +271,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                             }
                         }
                         let key = (src_index, curr_block_index);
-                        assert!(!cfg.edges.contains_key(&key)); // Does this hold?
-                        cfg.edges.insert(key, stmts_to_add);
+                        let entry = cfg.edges.entry(key).or_insert(Vec::new());
+                        entry.extend(stmts_to_add);
                     }
                 }
                 bctxt
