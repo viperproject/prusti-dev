@@ -664,10 +664,20 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
-    pub fn get_all_loans_dying_between(&self, initial_loc: mir::Location, final_loc: mir::Location) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
+    pub fn get_all_loans_dying_between(
+        &self,
+        initial_loc: mir::Location,
+        final_loc: mir::Location
+    ) -> (Vec<facts::Loan>,Vec<facts::Loan>) {
+        trace!("[enter] get_all_loans_dying_between initial_loc={:?} final_loc={:?}",
+               initial_loc, final_loc);
+
         let mut loans = self.get_loans_dying_between(initial_loc, final_loc, false);
         let zombie_loans = self.get_loans_dying_between(initial_loc, final_loc, true);
         loans.extend(zombie_loans.iter().cloned());
+        trace!("[exit] get_all_loans_dying_between \
+               initial_loc={:?} final_loc={:?} all={:?} zombie={:?}",
+               initial_loc, final_loc, loans, zombie_loans);
         (loans, zombie_loans)
     }
 
@@ -707,9 +717,12 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     /// Get loans that die between two consecutive locations
     pub fn get_loans_dying_between(
-            &self, initial_loc: mir::Location, final_loc: mir::Location,
-            zombie: bool) -> Vec<facts::Loan> {
-        trace!("get_loans_dying_between {:?}, {:?}, {}", initial_loc, final_loc, zombie);
+            &self,
+            initial_loc: mir::Location,
+            final_loc: mir::Location,
+            zombie: bool
+    ) -> Vec<facts::Loan> {
+        trace!("[enter] get_loans_dying_between {:?}, {:?}, {}", initial_loc, final_loc, zombie);
         debug_assert!(self.get_successors(initial_loc).contains(&final_loc));
         let mid_point = self.get_point(initial_loc, facts::PointType::Mid);
         let becoming_zombie_loans = self
@@ -718,13 +731,17 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             .get(&mid_point)
             .cloned()
             .unwrap_or(Vec::new());
-        self.get_active_loans(initial_loc, zombie)
-            .into_iter()
-            .filter(|loan| {
-                let point = self.get_point(final_loc, facts::PointType::Start);
+        trace!("becoming_zombie_loans={:?}", becoming_zombie_loans);
+        let final_loc_point = self.get_point(final_loc, facts::PointType::Start);
+        trace!("borrow_live_at final {:?}",
                 self.borrowck_out_facts
                     .borrow_live_at
-                    .get(&point)
+                    .get(&final_loc_point) );
+        let dying_loans = self.get_active_loans(initial_loc, zombie)
+            .into_iter()
+            .filter(|loan| {
+                self.get_borrow_live_at(zombie)
+                    .get(&final_loc_point)
                     .map_or(true, |successor_loans| {
                         !successor_loans.contains(loan)
                     })
@@ -732,7 +749,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             .filter(|loan| {
                 !becoming_zombie_loans.contains(loan)
             })
-            .collect()
+            .collect();
+        trace!("[exit] get_loans_dying_between {:?}, {:?}, {}, dying_loans={:?}",
+               initial_loc, final_loc, zombie, dying_loans);
+        dying_loans
     }
 
     /// Get loans including the zombies ``(all_loans, zombie_loans)``.
