@@ -788,11 +788,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                             ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
                                 let num_variants = adt_def.variants.len();
 
-                                let discr_value: vir::Expr = if num_variants <= 1 {
-                                    0.into()
+                                let discr_value: vir::Expr = if num_variants == 0 {
+                                    let pos = self.encoder.error_manager().register(
+                                        stmt.source_info.span,
+                                        ErrorCtxt::Unexpected
+                                    );
+                                    let function_name = self.encoder.encode_builtin_function_use(
+                                        BuiltinFunctionKind::Undefined(vir::Type::Int)
+                                    );
+                                    vir::Expr::func_app(function_name, vec![], vec![], vir::Type::Int, pos)
                                 } else {
-                                    let discr_field = self.encoder.encode_discriminant_field();
-                                    encoded_src.field(discr_field).into()
+                                    if num_variants == 1 {
+                                        0.into()
+                                    } else {
+                                        let discr_field = self.encoder.encode_discriminant_field();
+                                        encoded_src.field(discr_field).into()
+                                    }
                                 };
 
                                 // Substitute a place of a value with an expression
