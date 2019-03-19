@@ -18,7 +18,6 @@ use encoder::loop_encoder::LoopEncoder;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::spec_encoder::SpecEncoder;
 use encoder::vir::{self, CfgBlockIndex, Successor};
-use encoder::vir::{Zero, One};
 use encoder::vir::ExprIterator;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
@@ -376,7 +375,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let var_type = vir::Type::TypedRef(type_name.clone());
             let local_var = vir::LocalVar::new(var_name.clone(), var_type);
             let alloc_stmt = vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(local_var.clone().into(), vir::Frac::one()).unwrap()
+                self.mir_encoder.encode_place_predicate_permission(
+                    local_var.clone().into(), vir::PermAmount::Write).unwrap()
             );
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
@@ -1721,7 +1721,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
         self.mir_encoder.encode_place_predicate_permission(
             self.encode_prusti_local(local).into(),
-            vir::Frac::one()
+            vir::PermAmount::Write
         ).unwrap()
     }
 
@@ -1779,7 +1779,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (encoded_place, _, _) = self.encode_generic_place(place);
         vir::Expr::pred_permission(
             encoded_place.maybe_old(state_label),
-            vir::Frac::one(),
+            vir::PermAmount::Write,
         ).unwrap()
     }
 
@@ -1790,7 +1790,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (encoded_place, _, _) = self.encode_generic_place(place);
         vir::Expr::acc_permission(
             encoded_place,
-            vir::Frac::one(),
+            vir::PermAmount::Write,
         )
     }
 
@@ -2062,12 +2062,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         encoded_arg.into(), arg_ty);
                     let old_deref_place = deref_place.clone().old(&pre_label);
                     let deref_pred = vir::Expr::pred_permission(
-                        old_deref_place.clone(), vir::Frac::one()).unwrap();
+                        old_deref_place.clone(), vir::PermAmount::Write).unwrap();
                     package_stmts.extend(
                         self.encode_transfer_permissions(deref_place, old_deref_place.clone(), location)
                     );
                     let predicate = vir::Expr::pred_permission(
-                        old_deref_place, vir::Frac::one()).unwrap();
+                        old_deref_place, vir::PermAmount::Write).unwrap();
                     package_stmts.extend(self.encode_obtain(predicate));
                 }
             }
@@ -2140,7 +2140,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 // Fold argument.
                 let deref_pred = self.mir_encoder.encode_place_predicate_permission(
-                    encoded_deref.clone(), vir::Frac::one()).unwrap();
+                    encoded_deref.clone(), vir::PermAmount::Write).unwrap();
                 for stmt in self.encode_obtain(deref_pred).drain(..) {
                     self.cfg_method.add_stmt(return_cfg_block, stmt);
                 }
@@ -2190,10 +2190,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loop_depth = self.loop_encoder.get_loop_depth(loop_head) as u32;
         debug!("permissions_forest: {:?}", permissions_forest);
 
-        fn read_frac_by_loop_depth(loop_depth: u32) -> vir::Frac {
-            vir::Frac::new(1, 2) + vir::Frac::new(1, 2 * (1 + loop_depth))
-        }
-
         let mut permissions = vec![];
         for tree in permissions_forest.get_trees().iter() {
             for (kind, mir_place) in tree.get_permissions().into_iter() {
@@ -2210,7 +2206,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            read_frac_by_loop_depth(loop_depth)
+                            vir::PermAmount::Read,
                         )
                     }
 
@@ -2219,7 +2215,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            read_frac_by_loop_depth(loop_depth)
+                            vir::PermAmount::Read,
                         ).unwrap()
                     }
 
@@ -2227,7 +2223,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::WriteNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            vir::Frac::one()
+                            vir::PermAmount::Write
                         )
                     }
 
@@ -2236,7 +2232,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::WriteSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            vir::Frac::one()
+                            vir::PermAmount::Write
                         ).unwrap()
                     }
 
@@ -2663,7 +2659,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Allocate `dst`
         stmts.push(
             vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap()
+                self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write).unwrap()
             )
         );
         stmts
@@ -2673,7 +2669,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// The place itself (Viper reference) does not change.
     fn encode_havoc_content(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc content {:?}", dst);
-        let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap();
+        let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write).unwrap();
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,
@@ -2687,7 +2683,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_exhale(&mut self, dst: &vir::Expr) -> vir::Stmt {
         debug!("Encode exhale {:?}", dst);
-        let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap();
+        let type_predicate = self.mir_encoder.encode_place_predicate_permission(
+            dst.clone(), vir::PermAmount::Write).unwrap();
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,

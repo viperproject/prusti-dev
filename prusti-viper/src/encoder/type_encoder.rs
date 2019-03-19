@@ -10,7 +10,6 @@ use encoder::spec_encoder::SpecEncoder;
 use encoder::vir;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
-use encoder::vir::{Zero, One};
 use encoder::utils::range_extract;
 use prusti_interface::specifications::*;
 use rustc::middle::const_val::ConstVal;
@@ -140,7 +139,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     vir::Expr::from(self_local_var.clone()).field(
                         self.encoder.encode_value_field(self.ty)
                     ).into(),
-                    vir::Frac::one()
+                    vir::PermAmount::Write,
                 )
             ],
 
@@ -154,7 +153,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let mut body = vec![
                     vir::Expr::acc_permission(
                         val_field.clone(),
-                        vir::Frac::one()
+                        vir::PermAmount::Write,
                     )
                 ];
 
@@ -173,12 +172,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vec![
                     vir::Expr::acc_permission(
                         elem_loc.clone().into(),
-                        vir::Frac::one()
+                        vir::PermAmount::Write,
                     ),
                     vir::Expr::predicate_access_predicate(
                         predicate_name,
-                         elem_loc.into(),
-                        vir::Frac::one(),
+                        elem_loc.into(),
+                        vir::PermAmount::Write,
                     ),
                 ]
             }
@@ -192,12 +191,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     vec![
                         vir::Expr::acc_permission(
                             elem_loc.clone().into(),
-                            vir::Frac::one()
+                            vir::PermAmount::Write,
                         ),
                         vir::Expr::predicate_access_predicate(
                             predicate_name,
                             elem_loc.into(),
-                            vir::Frac::one(),
+                            vir::PermAmount::Write,
                         ),
                     ]
                 }).collect()
@@ -221,14 +220,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         perms.push(
                             vir::Expr::acc_permission(
                                 elem_loc.clone().into(),
-                                vir::Frac::one()
+                                vir::PermAmount::Write,
                             )
                         );
                         perms.push(
                             vir::Expr::predicate_access_predicate(
                                 predicate_name,
                                 elem_loc.into(),
-                                vir::Frac::one(),
+                                vir::PermAmount::Write,
                             )
                         )
                     }
@@ -240,7 +239,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     perms.push(
                         vir::Expr::acc_permission(
                             discriminan_loc.clone().into(),
-                            vir::Frac::one()
+                            vir::PermAmount::Write,
                         )
                     );
                     // 0 <= self.discriminant <= num_variants - 1
@@ -287,14 +286,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             variant_perms.push(
                                 vir::Expr::acc_permission(
                                     elem_loc.clone().into(),
-                                    vir::Frac::one()
+                                    vir::PermAmount::Write,
                                 )
                             );
                             variant_perms.push(
                                 vir::Expr::predicate_access_predicate(
                                     predicate_name,
                                     elem_loc.into(),
-                                    vir::Frac::one(),
+                                    vir::PermAmount::Write,
                                 )
                             )
                         }
@@ -322,14 +321,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 perms.push(
                     vir::Expr::acc_permission(
                         elem_loc.clone().into(),
-                        vir::Frac::one()
+                        vir::PermAmount::Write,
                     )
                 );
                 perms.push(
                     vir::Expr::predicate_access_predicate(
                         predicate_name,
                         elem_loc.into(),
-                        vir::Frac::one(),
+                        vir::PermAmount::Write,
                     )
                 );
                 perms
@@ -564,7 +563,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let precondition = vir::Expr::predicate_access_predicate(
             predicate_name,
             self_local_var.clone().into(),
-            vir::Frac::one(),
+            vir::PermAmount::Write,
         );
 
         let function = vir::Function {
@@ -604,7 +603,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         //let precondition = vir::Expr::PredicateAccessPredicate(
         //    predicate_name,
         //    vec![self_local_var.clone().into()],
-        //    vir::Frac::one(),
+        //    vir::PermAmount::Write,
         //);
 
         let function = vir::Function {

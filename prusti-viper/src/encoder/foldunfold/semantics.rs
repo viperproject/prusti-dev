@@ -10,7 +10,7 @@
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
-use encoder::vir::{Frac, One};
+use encoder::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -104,13 +104,13 @@ impl vir::Stmt {
                     // And we create permissions for the lhs
                     let new_acc_places = original_state.acc().iter()
                         .filter(|(p, _)| p.has_proper_prefix(&rhs))
-                        .map(|(p, frac)| (p.clone().replace_place(&rhs, lhs_place), *frac))
+                        .map(|(p, perm_amount)| (p.clone().replace_place(&rhs, lhs_place), *perm_amount))
                         .filter(|(p, _)| !p.is_local());
                     state.insert_all_acc(new_acc_places);
 
                     let new_pred_places = original_state.pred().iter()
                         .filter(|(p, _)| p.has_prefix(&rhs))
-                        .map(|(p, frac)| (p.clone().replace_place(&rhs, lhs_place), *frac));
+                        .map(|(p, perm_amount)| (p.clone().replace_place(&rhs, lhs_place), *perm_amount));
                     state.insert_all_pred(new_pred_places);
 
                     // Finally, mark the rhs as moved
@@ -123,7 +123,7 @@ impl vir::Stmt {
                 }
             }
 
-            &vir::Stmt::Fold(ref pred_name, ref args, frac) => {
+            &vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -138,9 +138,8 @@ impl vir::Stmt {
                 let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                     .map(
                         |perm| {
-                            perm.map_place( |p|
-                                p.replace_place(&pred_self_place, place)
-                            ) * frac
+                            perm.map_place(|p| p.replace_place(&pred_self_place, place))
+                                .init_perm_amount(perm_amount)
                         }
                     ).collect();
 
@@ -151,10 +150,10 @@ impl vir::Stmt {
 
                 // Simulate folding of `place`
                 state.remove_all_perms(places_in_pred.iter());
-                state.insert_pred(place.clone(), frac);
+                state.insert_pred(place.clone(), perm_amount);
             }
 
-            &vir::Stmt::Unfold(ref pred_name, ref args, frac) => {
+            &vir::Stmt::Unfold(ref pred_name, ref args, perm_amount) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -176,7 +175,7 @@ impl vir::Stmt {
                 }
 
                 // Simulate unfolding of `place`
-                state.remove_pred(place, frac);
+                state.remove_pred(place, perm_amount);
                 state.insert_all_perms(places_in_pred.into_iter());
             }
 
@@ -230,13 +229,13 @@ impl vir::Stmt {
                 // And we create permissions for the rhs
                 let new_acc_places: Vec<_> = original_state.acc().iter()
                     .filter(|(p, _)| p.has_proper_prefix(lhs_place))
-                    .map(|(p, frac)| (p.clone().replace_place(&lhs_place, rhs_place), *frac))
+                    .map(|(p, perm_amount)| (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount))
                     .filter(|(p, _)| !p.is_local())
                     .collect();
 
                 let new_pred_places: Vec<_> = original_state.pred().iter()
                     .filter(|(p, _)| p.has_prefix(lhs_place))
-                    .map(|(p, frac)| (p.clone().replace_place(&lhs_place, rhs_place), *frac))
+                    .map(|(p, perm_amount)| (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount))
                     .collect();
 
                 assert!(

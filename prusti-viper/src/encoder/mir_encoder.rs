@@ -6,7 +6,6 @@
 
 use encoder::Encoder;
 use encoder::vir;
-use encoder::vir::{Zero, One};
 use rustc::mir;
 use syntax::ast;
 use std;
@@ -518,10 +517,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_place_predicate_permission(&self, place: vir::Expr, frac: vir::Frac) -> Option<vir::Expr> {
+    pub fn encode_place_predicate_permission(
+        &self,
+        place: vir::Expr,
+        perm: vir::PermAmount
+    ) -> Option<vir::Expr> {
         vir::Expr::pred_permission(
             place,
-            frac,
+            perm,
         )
     }
 

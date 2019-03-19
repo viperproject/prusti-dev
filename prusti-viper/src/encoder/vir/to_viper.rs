@@ -86,7 +86,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 lhs.to_viper(ast),
                 rhs.to_viper(ast)
             ),
-            &Stmt::Fold(ref pred_name, ref args, frac) => {
+            &Stmt::Fold(ref pred_name, ref args, perm) => {
                 let mut stmts = Vec::new();
                 // FIXME: When packaging a magic wand, Silicon needs help in showing that it has
                 // access to the needed paths.
@@ -99,7 +99,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             add_asserts(stmts, base, ast);
                             let fake_position = Position::new(0, 0, "fold_assert".to_string());
                             let assert = Stmt::Assert(
-                                Expr::acc_permission(expr.clone(), Frac::new(1, 1000)),
+                                Expr::acc_permission(expr.clone(), PermAmount::Read),
                                 fake_position,
                             );
                             stmts.push(assert.to_viper(ast));
@@ -115,25 +115,19 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                                 &args.to_viper(ast),
                                 &pred_name
                             ),
-                            ast.fractional_perm(
-                                ast.int_lit(*frac.numer() as i64),
-                                ast.int_lit(*frac.denom() as i64),
-                            )
+                            perm.to_viper(ast)
                         )
                     )
                 );
                 ast.seqn(stmts.as_slice(), &[])
             },
-            &Stmt::Unfold(ref pred_name, ref args, frac) => ast.unfold(
+            &Stmt::Unfold(ref pred_name, ref args, perm) => ast.unfold(
                 ast.predicate_access_predicate(
                     ast.predicate_access(
                         &args.to_viper(ast),
                         &pred_name
                     ),
-                    ast.fractional_perm(
-                        ast.int_lit(*frac.numer() as i64),
-                        ast.int_lit(*frac.denom() as i64),
-                    )
+                    perm.to_viper(ast),
                 )
             ),
             &Stmt::Obtain(ref expr) => {
@@ -201,6 +195,26 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
     }
 }
 
+impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
+        match self {
+            PermAmount::Write => {
+                ast.full_perm()
+            },
+            PermAmount::Read => {
+                ast.func_app(
+                    "read$",
+                    &[],
+                    &[],
+                    ast.perm_type(),
+                    ast.no_position()
+                )
+            },
+            x => unreachable!("{:?}", x),
+        }
+    }
+}
+
 impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let expr = match self {
@@ -222,23 +236,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 rhs.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::PredicateAccessPredicate(ref predicate_name, ref args, frac, ref pos) => ast.predicate_access_predicate_with_pos(
+            &Expr::PredicateAccessPredicate(ref predicate_name, ref args, perm, ref pos) => ast.predicate_access_predicate_with_pos(
                 ast.predicate_access(
                     &args.to_viper(ast)[..],
                     &predicate_name
                 ),
-                ast.fractional_perm(
-                    ast.int_lit(*frac.numer() as i64),
-                    ast.int_lit(*frac.denom() as i64),
-                ),
+                perm.to_viper(ast),
                 pos.to_viper(ast),
             ),
-            &Expr::FieldAccessPredicate(ref loc, frac, ref pos) => ast.field_access_predicate_with_pos(
+            &Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast.field_access_predicate_with_pos(
                 loc.to_viper(ast),
-                ast.fractional_perm(
-                    ast.int_lit(*frac.numer() as i64),
-                    ast.int_lit(*frac.denom() as i64),
-                ),
+                perm.to_viper(ast),
                 pos.to_viper(ast),
             ),
             &Expr::UnaryOp(op, ref expr, ref pos) => {
@@ -264,16 +272,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     BinOpKind::Implies => ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast)),
                 }
             },
-            &Expr::Unfolding(ref predicate_name, ref args, ref expr, frac, ref pos) => ast.unfolding_with_pos(
+            &Expr::Unfolding(ref predicate_name, ref args, ref expr, perm, ref pos) => ast.unfolding_with_pos(
                 ast.predicate_access_predicate(
                     ast.predicate_access(
                         &args.to_viper(ast)[..],
                         &predicate_name
                     ),
-                    ast.fractional_perm(
-                        ast.int_lit(*frac.numer() as i64),
-                        ast.int_lit(*frac.denom() as i64),
-                    )
+                    perm.to_viper(ast),
                 ),
                 expr.to_viper(ast),
                 pos.to_viper(ast)

@@ -9,8 +9,7 @@ use encoder::foldunfold::permissions::*;
 use encoder::foldunfold::state::*;
 use encoder::foldunfold::action::*;
 use encoder::vir;
-use encoder::vir::Frac;
-use encoder::vir::{Zero, One};
+use encoder::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -29,7 +28,7 @@ impl<'a> BranchCtxt<'a> {
     pub fn new(local_vars: Vec<vir::LocalVar>, predicates: &'a HashMap<String, vir::Predicate>) -> Self {
         BranchCtxt {
             state: State::new(
-                HashMap::from_iter(local_vars.into_iter().map(|v| (vir::Expr::local(v), Frac::one()))),
+                HashMap::from_iter(local_vars.into_iter().map(|v| (vir::Expr::local(v), PermAmount::Write))),
                 HashMap::new(),
                 HashSet::new()
             ),
@@ -57,10 +56,11 @@ impl<'a> BranchCtxt<'a> {
     }
 
     /// Simulate an unfold
-    fn unfold(&mut self, pred_place: &vir::Expr, frac: Frac) -> Action {
-        debug!("We want to unfold {}", pred_place);
+    fn unfold(&mut self, pred_place: &vir::Expr, perm_amount: PermAmount) -> Action {
+        debug!("We want to unfold {} with {}", pred_place, perm_amount);
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
         assert!(self.state.contains_pred(pred_place), "missing pred({}) in {}", pred_place, self.state);
+        assert!(perm_amount.is_valid_for_specs(), "Invalid permission amount.");
 
         let predicate_name = pred_place.typed_ref_name().unwrap();
         let predicate = self.predicates.get(&predicate_name).unwrap();
@@ -69,16 +69,16 @@ impl<'a> BranchCtxt<'a> {
         let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
             .map(
                 |perm| {
-                    perm.map_place( |p|
-                        p.replace_place(&pred_self_place, pred_place)
-                    ) * frac
+                    perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
+                        .update_perm_amount(perm_amount)
                 }
-            ).collect();
+            )
+            .collect();
 
         trace!("Pred state before unfold: {{\n{}\n}}", self.state.display_pred());
 
         // Simulate unfolding of `pred_place`
-        self.state.remove_pred(&pred_place, frac);
+        self.state.remove_pred(&pred_place, perm_amount);
         self.state.insert_all_perms(places_in_pred.into_iter());
 
         debug!("We unfolded {}", pred_place);
@@ -86,7 +86,7 @@ impl<'a> BranchCtxt<'a> {
         trace!("Acc state after unfold: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state after unfold: {{\n{}\n}}", self.state.display_pred());
 
-        Action::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ], frac)
+        Action::Unfold(predicate_name.clone(), vec![ pred_place.clone().into() ], perm_amount)
     }
 
     /// left is self, right is other
@@ -127,11 +127,11 @@ impl<'a> BranchCtxt<'a> {
             trace!("left pred: {{\n{}\n}}", self.state.display_pred());
             trace!("right pred: {{\n{}\n}}", other.state.display_pred());
 
-            trace!("left acc_leafes: {:?}", self.state.acc_leafes());
-            trace!("right acc_leafes: {:?}", other.state.acc_leafes());
+            trace!("left acc_leaves: {:?}", self.state.acc_leaves());
+            trace!("right acc_leaves: {:?}", other.state.acc_leaves());
 
             // Compute which access permissions may be preserved
-            let potential_acc: HashSet<_> = filter_with_prefix_in_other(&self.state.acc_leafes(), &other.state.acc_leafes());
+            let potential_acc: HashSet<_> = filter_with_prefix_in_other(&self.state.acc_leaves(), &other.state.acc_leaves());
             debug!("potential_acc: {:?}", potential_acc);
 
             // Remove access permissions that can not be obtained due to a moved path
@@ -142,18 +142,18 @@ impl<'a> BranchCtxt<'a> {
             for acc_place in &actual_acc {
                 if !self.state.acc().contains_key(acc_place) {
                     debug!("The left branch needs to obtain an access permission: {}", acc_place);
-                    let frac = other.state.acc()[acc_place];
+                    let perm_amount = other.state.acc()[acc_place];
                     // Unfold something and get `acc_place`
                     left_actions.extend(
-                        self.obtain(&Perm::acc(acc_place.clone(), frac))
+                        self.obtain(&Perm::acc(acc_place.clone(), perm_amount))
                     );
                 }
                 if !other.state.acc().contains_key(acc_place) {
                     debug!("The right branch needs to obtain an access permission: {}", acc_place);
-                    let frac = self.state.acc()[acc_place];
+                    let perm_amount = self.state.acc()[acc_place];
                     // Unfold something and get `acc_place`
                     right_actions.extend(
-                        other.obtain(&Perm::acc(acc_place.clone(), frac))
+                        other.obtain(&Perm::acc(acc_place.clone(), perm_amount))
                     );
                 }
             }
@@ -162,17 +162,17 @@ impl<'a> BranchCtxt<'a> {
             for pred_place in &filter_proper_extensions_of(&self.state.pred_places(), &moved_paths) {
                 debug!("Drop pred {} in left branch (it is moved out in the other branch)", pred_place);
                 assert!(self.state.pred().contains_key(&pred_place));
-                let frac = self.state.remove_pred_place(&pred_place);
+                let perm_amount = self.state.remove_pred_place(&pred_place);
                 left_actions.push(
-                    Action::Drop(Perm::pred(pred_place.clone(), frac))
+                    Action::Drop(Perm::pred(pred_place.clone(), perm_amount))
                 );
             }
             for pred_place in &filter_proper_extensions_of(&other.state.pred_places(), &moved_paths) {
                 debug!("Drop pred {} in right branch (it is moved out in the other branch)", pred_place);
                 assert!(other.state.pred().contains_key(&pred_place));
-                let frac = other.state.remove_pred_place(&pred_place);
+                let perm_amount = other.state.remove_pred_place(&pred_place);
                 right_actions.push(
-                    Action::Drop(Perm::pred(pred_place.clone(), frac))
+                    Action::Drop(Perm::pred(pred_place.clone(), perm_amount))
                 );
             }
 
@@ -184,17 +184,17 @@ impl<'a> BranchCtxt<'a> {
             for pred_place in self.state.pred_places().difference(&preserved_preds) {
                 debug!("Drop pred {} in left branch (it is not in the other branch)", pred_place);
                 assert!(self.state.pred().contains_key(&pred_place));
-                let frac = self.state.remove_pred_place(&pred_place);
+                let perm_amount = self.state.remove_pred_place(&pred_place);
                 left_actions.push(
-                    Action::Drop(Perm::pred(pred_place.clone(), frac))
+                    Action::Drop(Perm::pred(pred_place.clone(), perm_amount))
                 );
             }
             for pred_place in other.state.pred_places().difference(&preserved_preds) {
                 debug!("Drop pred {} in right branch (it is not in the other branch)", pred_place);
                 assert!(other.state.pred().contains_key(&pred_place));
-                let frac = other.state.remove_pred_place(&pred_place);
+                let perm_amount = other.state.remove_pred_place(&pred_place);
                 right_actions.push(
-                    Action::Drop(Perm::pred(pred_place.clone(), frac))
+                    Action::Drop(Perm::pred(pred_place.clone(), perm_amount))
                 );
             }
 
@@ -202,17 +202,17 @@ impl<'a> BranchCtxt<'a> {
             for acc_place in &filter_proper_extensions_of(&self.state.acc_places(), &moved_paths) {
                 debug!("Drop acc {} in left branch (it is moved out in the other branch)", acc_place);
                 assert!(self.state.acc().contains_key(&acc_place));
-                let frac = self.state.remove_acc_place(&acc_place);
+                let perm_amount = self.state.remove_acc_place(&acc_place);
                 left_actions.push(
-                    Action::Drop(Perm::acc(acc_place.clone(), frac))
+                    Action::Drop(Perm::acc(acc_place.clone(), perm_amount))
                 );
             }
             for acc_place in &filter_proper_extensions_of(&other.state.acc_places(), &moved_paths) {
                 debug!("Drop acc {} in right branch (it is moved out in the other branch)", acc_place);
                 assert!(other.state.acc().contains_key(&acc_place));
-                let frac = other.state.remove_acc_place(&acc_place);
+                let perm_amount = other.state.remove_acc_place(&acc_place);
                 right_actions.push(
-                    Action::Drop(Perm::acc(acc_place.clone(), frac))
+                    Action::Drop(Perm::acc(acc_place.clone(), perm_amount))
                 );
             }
 
@@ -220,17 +220,17 @@ impl<'a> BranchCtxt<'a> {
             for acc_place in filter_not_extensions_of(&self.state.acc_places(), &other.state.acc_places()) {
                 debug!("Drop acc {} in left branch (it has no prefix in the other branch)", acc_place);
                 assert!(self.state.acc().contains_key(&acc_place));
-                let frac = self.state.remove_acc_place(&acc_place);
+                let perm_amount = self.state.remove_acc_place(&acc_place);
                 left_actions.push(
-                    Action::Drop(Perm::acc(acc_place.clone(), frac))
+                    Action::Drop(Perm::acc(acc_place.clone(), perm_amount))
                 );
             }
             for acc_place in filter_not_extensions_of(&other.state.acc_places(), &self.state.acc_places()) {
                 debug!("Drop acc {} in right branch (it has no prefix in the other branch)", acc_place);
                 assert!(other.state.acc().contains_key(&acc_place));
-                let frac = other.state.remove_acc_place(&acc_place);
+                let perm_amount = other.state.remove_acc_place(&acc_place);
                 left_actions.push(
-                    Action::Drop(Perm::acc(acc_place.clone(), frac))
+                    Action::Drop(Perm::acc(acc_place.clone(), perm_amount))
                 );
             }
 
@@ -253,7 +253,7 @@ impl<'a> BranchCtxt<'a> {
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
     fn obtain_all(&mut self, reqs: Vec<Perm>) -> Vec<Action> {
-        debug!("Obtain all: {{{}}}", reqs.iter().to_string());
+        debug!("[enter] obtain_all: {{{}}}", reqs.iter().to_string());
         reqs.iter()
             .flat_map(|perm| self.obtain(perm))
             .collect()
@@ -261,7 +261,7 @@ impl<'a> BranchCtxt<'a> {
 
     /// Obtain the required permission, changing the state inplace and returning the statements.
     fn obtain(&mut self, req: &Perm) -> Vec<Action> {
-        debug!("Obtain: {}", req);
+        trace!("[enter] obtain(req={})", req);
 
         let mut actions: Vec<Action> = vec![];
 
@@ -271,33 +271,16 @@ impl<'a> BranchCtxt<'a> {
         // 1. Check if the requirement is satisfied
         if self.state.contains_perm(req) {
             // `req` is satisfied, so we can remove it from `reqs`
-            debug!("Requirement {} is satisfied", req);
+            trace!("[exit] obtain: Requirement {} is satisfied", req);
             return actions;
         }
         if req.is_acc() && req.is_local() {
             // access permissions on local variables are always satisfied
-            debug!("Requirement {} is satisfied", req);
+            trace!("[exit] obtain: Requirement {} is satisfied", req);
             return actions;
         }
 
         debug!("Try to satisfy requirement {}", req);
-
-        /*
-        // 2. Obtain by restoring a borrowed path with a magic wand
-        let existing_prefix_borrowed_opt: Option<vir::Expr> = self.state.borrowed().iter()
-            .find(|p| req.has_prefix(p))
-            .cloned();
-        if let Some(existing_borrowed_to_restore) = existing_prefix_borrowed_opt {
-            debug!("We want to restore {}", existing_borrowed_to_restore);
-            let action = unimplemented!();
-            actions.push(action);
-            debug!("We restored {}", existing_borrowed_to_restore);
-
-            // Check if we are done
-            actions.extend(self.obtain(req));
-            return actions;
-        }
-        */
 
         // 3. Obtain with an unfold
         // Find a predicate on a proper prefix of req
@@ -305,15 +288,17 @@ impl<'a> BranchCtxt<'a> {
             .find(|p| req.has_proper_prefix(p))
             .cloned();
         if let Some(existing_pred_to_unfold) = existing_prefix_pred_opt {
-            let frac = self.state.pred()[&existing_pred_to_unfold];
-            debug!("We want to unfold {} with permission {} (we need at least {})", existing_pred_to_unfold, frac, req.get_frac());
-            assert!(frac >= req.get_frac());
-            let action = self.unfold(&existing_pred_to_unfold, frac);
+            let perm_amount = self.state.pred()[&existing_pred_to_unfold];
+            debug!("We want to unfold {} with permission {} (we need at least {})",
+                   existing_pred_to_unfold, perm_amount, req.get_perm_amount());
+            assert!(perm_amount >= req.get_perm_amount());
+            let action = self.unfold(&existing_pred_to_unfold, perm_amount);
             actions.push(action);
             debug!("We unfolded {}", existing_pred_to_unfold);
 
             // Check if we are done
             actions.extend(self.obtain(req));
+            trace!("[exit] obtain");
             return actions;
         }
 
@@ -348,28 +333,34 @@ impl<'a> BranchCtxt<'a> {
             };
 
             if can_fold {
-                // We want to fold using the maximum possible fraction
-                let frac = places_in_pred.iter().map(|p| {
-                    self.state.acc().iter()
-                        .chain(self.state.pred().iter())
-                        .filter(|(place, _)| place.has_prefix(p.get_place()))
-                        .map(|(place, frac)| {
-                            debug!("Place {} can offer {}", place, frac);
-                            *frac
-                        })
-                        .min().unwrap_or(Frac::one())
-                }).min().unwrap_or(Frac::one());
-                debug!("We want to fold {} with permission {} (we need at least {})", req, frac, req.get_frac());
-                assert!(frac >= req.get_frac());
+                let perm_amount = places_in_pred
+                    .iter()
+                    .map(|p| {
+                        self.state
+                            .acc().iter()
+                            .chain(self.state.pred().iter())
+                            .filter(|(place, _)| place.has_prefix(p.get_place()))
+                            .map(|(place, perm_amount)| {
+                                debug!("Place {} can offer {}", place, perm_amount);
+                                *perm_amount
+                            })
+                            .min()
+                            .unwrap_or(PermAmount::Write)
+                }).min().unwrap_or(PermAmount::Write);
+                debug!("We want to fold {} with permission {} (we need at least {})",
+                       req, perm_amount, req.get_perm_amount());
 
                 for fold_req_place in &places_in_pred {
-                    actions.extend(self.obtain(&(fold_req_place.clone() * frac)));
+                    actions.extend(self.obtain(&(fold_req_place.clone())));
                 }
 
-                let scaled_places_in_pred: Vec<_> = places_in_pred.into_iter().map(|p| p * frac).collect();
+                let scaled_places_in_pred: Vec<_> = places_in_pred
+                    .into_iter()
+                    .map(|perm| perm.update_perm_amount(perm_amount))
+                    .collect();
 
                 actions.push(
-                    Action::Fold(predicate_name.clone(), vec![ req.get_place().clone().into() ], frac)
+                    Action::Fold(predicate_name.clone(), vec![ req.get_place().clone().into() ], perm_amount)
                 );
 
                 // Simulate folding of `req`
@@ -382,10 +373,11 @@ impl<'a> BranchCtxt<'a> {
                 );
                 assert!(!self.state.contains_pred(req.get_place()));
                 self.state.remove_all_perms(scaled_places_in_pred.iter());
-                self.state.insert_pred(req.get_place().clone(), frac);
+                self.state.insert_pred(req.get_place().clone(), perm_amount);
 
                 // Done. Continue checking the remaining requirements
                 debug!("We folded {}", req);
+                trace!("[exit] obtain");
                 return actions;
             }
         } else {
@@ -442,7 +434,7 @@ Predicates: {{
     }
 
     pub fn obtain_permissions(&mut self, permissions: Vec<Perm>) -> Vec<Action> {
-        debug!("obtain_permissions: {}", permissions.iter().to_string());
+        trace!("[enter] obtain_permissions: {}", permissions.iter().to_string());
 
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
@@ -456,6 +448,7 @@ Predicates: {{
 
         self.state.check_consistency();
 
+        trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
         actions
     }
 }

@@ -382,11 +382,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         vir::Stmt::TransferPerm(_, _) => {
                             stmt.clone()
                         },
-                        vir::Stmt::Fold(ref pred_name, ref args, frac) => {
-                            vir::Stmt::Fold(pred_name.clone(), patch_args(label, args), *frac)
+                        vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {
+                            vir::Stmt::Fold(pred_name.clone(), patch_args(label, args), *perm_amount)
                         },
-                        vir::Stmt::Unfold(ref pred_name, ref args, frac) => {
-                            vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args), *frac)
+                        vir::Stmt::Unfold(ref pred_name, ref args, perm_amount) => {
+                            vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args), *perm_amount)
                         },
                         x => unreachable!("{:?}", x),
                     }
@@ -470,8 +470,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 let labelled_state = labelled_bctxt.mut_state();
                 labelled_state.remove_all();
                 vir::Stmt::Inhale(lhs.clone()).apply_on_state(labelled_state, bctxt.predicates());
-                if let vir::Expr::PredicateAccessPredicate(ref name, ref args, frac, _) = lhs {
-                    labelled_state.insert_acc(args[0].clone(), *frac);
+                if let vir::Expr::PredicateAccessPredicate(ref name, ref args, perm_amount, _) = lhs {
+                    labelled_state.insert_acc(args[0].clone(), *perm_amount);
                 }
                 labelled_state.replace_places(|place| place.old(&label));
                 self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
@@ -483,9 +483,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         // 0. Insert "unfolding in" inside old expressions. This handles *old* requirements.
+        debug!("[step.0] replace_stmt: {}", stmt);
         stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &bctxt);
 
         // 1. Obtain "preferred" permissions (i.e. due to "weak obtain" statements)
+        debug!("[step.1] replace_stmt: {}", stmt);
         let preferred_perms: Vec<_> = stmt
             .get_preferred_permissions(bctxt.predicates())
             .into_iter()
@@ -512,6 +514,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
+        debug!("[step.2] replace_stmt: {}", stmt);
         let all_perms = stmt.get_required_permissions(bctxt.predicates());
         let pred_permissions: Vec<_> = all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
         let acc_permissions: Vec<_> = all_perms
@@ -530,6 +533,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 }
             })
             .collect();
+
         let mut perms = acc_permissions;
         perms.extend(pred_permissions.into_iter());
         debug!("required permissions: {{\n{}\n}}", perms.iter().map(|x| format!("  {:?}", x)).collect::<Vec<_>>().join(",\n"));
@@ -549,6 +553,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
 
         // 3. Replace special statements
+        debug!("[step.3] replace_stmt: {}", stmt);
         stmt = match stmt {
             vir::Stmt::PackageMagicWand(
                 vir::Expr::MagicWand(box ref lhs, box ref rhs, _),
@@ -591,10 +596,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         };
 
         // 4. Add "unfolding" expressions in statement. This handles *old* requirements.
-        debug!("Add unfoldings in stmt {}", stmt);
+        debug!("[step.4] replace_stmt: Add unfoldings in stmt {}", stmt);
         stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
 
         // 5. Apply effect of statement on state
+        debug!("[step.5] replace_stmt: {}", stmt);
         bctxt.apply_stmt(&stmt);
         stmts.push(stmt);
 
@@ -775,16 +781,23 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         res
     }
 
-    fn fold_unfolding(&mut self, name: String, args: Vec<vir::Expr>, expr: Box<vir::Expr>, frac: vir::Frac, pos: vir::Position) -> vir::Expr {
-        debug!("[enter] fold_unfolding {}, {}, {}, {}", name, args[0], expr, frac);
+    fn fold_unfolding(
+        &mut self,
+        name: String,
+        args: Vec<vir::Expr>,
+        expr: Box<vir::Expr>,
+        perm: vir::PermAmount,
+        pos: vir::Position
+    ) -> vir::Expr {
+        debug!("[enter] fold_unfolding {}, {}, {}, {}", name, args[0], expr, perm);
 
         let res = if self.wait_old_expr {
-            vir::Expr::Unfolding(name, args, self.fold_boxed(expr), frac, pos)
+            vir::Expr::Unfolding(name, args, self.fold_boxed(expr), perm, pos)
         } else {
             // Compute inner state
             let mut inner_bctxt = self.curr_bctxt.clone();
             let inner_state = inner_bctxt.mut_state();
-            vir::Stmt::Unfold(name.clone(), args.clone(), frac).apply_on_state(inner_state, self.curr_bctxt.predicates());
+            vir::Stmt::Unfold(name.clone(), args.clone(), perm).apply_on_state(inner_state, self.curr_bctxt.predicates());
 
             // Store states
             let mut tmp_curr_bctxt = inner_bctxt;
@@ -795,7 +808,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             // Restore states
             std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
-            vir::Expr::Unfolding(name, args, inner_expr, frac, pos)
+            vir::Expr::Unfolding(name, args, inner_expr, perm, pos)
         };
 
         debug!("[exit] fold_unfolding = {}", res);
@@ -813,7 +826,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             lhs.get_permissions(self.curr_bctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
-                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
+                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p])
         );
         lhs_state.replace_places(|place| {
             let pos = place.pos().clone();
@@ -838,7 +851,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             new_lhs.get_permissions(self.curr_bctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
-                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
+                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p])
         );
         new_lhs_state.replace_places(|place| {
             let pos = place.pos().clone();
@@ -854,7 +867,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             rhs.get_permissions(self.curr_bctxt.predicates())
                 .into_iter()
                 .filter(|p| p.is_pred())
-                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_frac()), p])
+                .flat_map(|p| vec![Perm::acc(p.get_place().clone(), p.get_perm_amount()), p])
         );
         debug!("State of rhs of magic wand: {}", rhs_state);
 

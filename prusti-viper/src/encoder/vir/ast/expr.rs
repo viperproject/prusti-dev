@@ -22,13 +22,13 @@ pub enum Expr {
     LabelledOld(String, Box<Expr>, Position),
     Const(Const, Position),
     MagicWand(Box<Expr>, Box<Expr>, Position),
-    /// PredicateAccessPredicate: predicate_name, args, frac
-    PredicateAccessPredicate(String, Vec<Expr>, Frac, Position),
-    FieldAccessPredicate(Box<Expr>, Frac, Position),
+    /// PredicateAccessPredicate: predicate_name, args, permission amount
+    PredicateAccessPredicate(String, Vec<Expr>, PermAmount, Position),
+    FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
     // Unfolding: predicate name, predicate_args, in_expr
-    Unfolding(String, Vec<Expr>, Box<Expr>, Frac, Position),
+    Unfolding(String, Vec<Expr>, Box<Expr>, PermAmount, Position),
     // Cond: guard, then_expr, else_expr
     Cond(Box<Expr>, Box<Expr>, Box<Expr>, Position),
     // ForAll: variables, triggers, body
@@ -75,22 +75,13 @@ impl fmt::Display for Expr {
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => write!(f, "acc({}, {})", expr, perm),
             Expr::LabelledOld(ref label, ref expr, ref _pos) => write!(f, "old[{}]({})", label, expr),
             Expr::MagicWand(ref left, ref right, ref _pos) => write!(f, "({}) --* ({})", left, right),
-            Expr::Unfolding(ref pred_name, ref args, ref expr, frac, ref _pos) => if *frac == Frac::one() {
-                write!(
-                    f, "(unfolding {}({}) in {})",
-                    pred_name,
-                    args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
-                    expr
-                )
-            } else {
-                write!(
-                    f, "(unfolding acc({}({}), {}) in {})",
-                    pred_name,
-                    args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
-                    frac,
-                    expr
-                )
-            },
+            Expr::Unfolding(ref pred_name, ref args, ref expr, perm, ref _pos) => write!(
+                f, "(unfolding acc({}({}), {}) in {})",
+                pred_name,
+                args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                perm,
+                expr
+            ),
             Expr::Cond(ref guard, ref left, ref right, ref _pos) => write!(f, "({})?({}):({})", guard, left, right),
             Expr::ForAll(ref vars, ref triggers, ref body, ref _pos) => write!(
                 f, "forall {} {} :: {}",
@@ -186,7 +177,7 @@ impl Expr {
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
             Expr::BinOp(x, y, z, _) => Expr::BinOp(x, y, z, pos),
-            Expr::Unfolding(x, y, z, frac, _) => Expr::Unfolding(x, y, z, frac, pos),
+            Expr::Unfolding(x, y, z, perm, _) => Expr::Unfolding(x, y, z, perm, pos),
             Expr::Cond(x, y, z, _) => Expr::Cond(x, y, z, pos),
             Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
@@ -214,27 +205,27 @@ impl Expr {
         }.fold(self)
     }
 
-    pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, frac: Frac) -> Self {
+    pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
         Expr::PredicateAccessPredicate(
             name.to_string(),
             vec![ place ],
-            frac,
+            perm,
             Position::default(),
         )
     }
 
-    pub fn pred_permission(place: Expr, frac: Frac) -> Option<Self> {
+    pub fn pred_permission(place: Expr, perm: PermAmount) -> Option<Self> {
         place.typed_ref_name().map(
             |pred_name| {
-                Expr::predicate_access_predicate(pred_name, place, frac)
+                Expr::predicate_access_predicate(pred_name, place, perm)
             }
         )
     }
 
-    pub fn acc_permission(place: Expr, frac: Frac) -> Self {
+    pub fn acc_permission(place: Expr, perm: PermAmount) -> Self {
         Expr::FieldAccessPredicate(
             box place,
-            frac,
+            perm,
             Position::default(),
         )
     }
@@ -345,12 +336,12 @@ impl Expr {
         Expr::Cond(box guard, box left, box right, Position::default())
     }
 
-    pub fn unfolding(pred_name: String, args: Vec<Expr>, expr: Expr, frac: Frac) -> Self {
+    pub fn unfolding(pred_name: String, args: Vec<Expr>, expr: Expr, perm: PermAmount) -> Self {
         Expr::Unfolding(
             pred_name,
             args,
             box expr,
-            frac,
+            perm,
             Position::default()
         )
     }
@@ -445,7 +436,7 @@ impl Expr {
             &Expr::Field(box ref base, _, _) |
             &Expr::AddrOf(box ref base, _, _) => Some(base.clone()),
             &Expr::LabelledOld(_, _, _) => None,
-            &Expr::Unfolding(ref name, ref args, box ref base, frac, _) => None,
+            &Expr::Unfolding(ref name, ref args, box ref base, perm, _) => None,
             ref x => panic!("{}", x),
         }
     }
@@ -455,7 +446,7 @@ impl Expr {
             Expr::Field(box base, field, pos) => Expr::Field(box f(base), field, pos),
             Expr::AddrOf(box base, ty, pos) => Expr::AddrOf(box f(base), ty, pos),
             Expr::LabelledOld(label, box base, pos) => Expr::LabelledOld(label, box f(base), pos),
-            Expr::Unfolding(name, args, box base, frac, pos) => Expr::Unfolding(name, args, box f(base), frac, pos),
+            Expr::Unfolding(name, args, box base, perm, pos) => Expr::Unfolding(name, args, box f(base), perm, pos),
             _ => self,
         }
     }
@@ -567,10 +558,10 @@ impl Expr {
             non_pure: bool
         }
         impl ExprWalker for PurityFinder {
-            fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: Frac, p: &Position) {
+            fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: PermAmount, p: &Position) {
                 self.non_pure = true;
             }
-            fn walk_field_access_predicate(&mut self, x: &Expr, y: Frac, p: &Position) {
+            fn walk_field_access_predicate(&mut self, x: &Expr, y: PermAmount, p: &Position) {
                 self.non_pure = true;
             }
         }
@@ -946,13 +937,13 @@ impl PartialEq for Expr {
                 Expr::MagicWand(box ref other_lhs, box ref other_rhs, _)
             ) => (self_lhs, self_rhs) == (other_lhs, other_rhs),
             (
-                Expr::PredicateAccessPredicate(ref self_name, ref self_args, self_frac, _),
-                Expr::PredicateAccessPredicate(ref other_name, ref other_args, other_frac, _)
-            ) => (self_name, self_args, self_frac) == (other_name, other_args, other_frac),
+                Expr::PredicateAccessPredicate(ref self_name, ref self_args, self_perm, _),
+                Expr::PredicateAccessPredicate(ref other_name, ref other_args, other_perm, _)
+            ) => (self_name, self_args, self_perm) == (other_name, other_args, other_perm),
             (
-                Expr::FieldAccessPredicate(box ref self_base, self_frac, _),
-                Expr::FieldAccessPredicate(box ref other_base, other_frac, _)
-            ) => (self_base, self_frac) == (other_base, other_frac),
+                Expr::FieldAccessPredicate(box ref self_base, self_perm, _),
+                Expr::FieldAccessPredicate(box ref other_base, other_perm, _)
+            ) => (self_base, self_perm) == (other_base, other_perm),
             (
                 Expr::UnaryOp(self_op, box ref self_arg, _),
                 Expr::UnaryOp(other_op, box ref other_arg, _)
@@ -978,9 +969,9 @@ impl PartialEq for Expr {
                 Expr::FuncApp(ref other_name, ref other_args, _, _, _)
             ) => (self_name, self_args) == (other_name, other_args),
             (
-                Expr::Unfolding(ref self_name, ref self_args, box ref self_base, self_frac, _),
-                Expr::Unfolding(ref other_name, ref other_args, box ref other_base, other_frac, _)
-            ) => (self_name, self_args, self_base, self_frac) == (other_name, other_args, other_base, other_frac),
+                Expr::Unfolding(ref self_name, ref self_args, box ref self_base, self_perm, _),
+                Expr::Unfolding(ref other_name, ref other_args, box ref other_base, other_perm, _)
+            ) => (self_name, self_args, self_base, self_perm) == (other_name, other_args, other_base, other_perm),
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -1003,15 +994,15 @@ impl Hash for Expr {
             Expr::LabelledOld(ref label, box ref base, _) => (label, base).hash(state),
             Expr::Const(ref const_expr, _) => const_expr.hash(state),
             Expr::MagicWand(box ref lhs, box ref rhs, _) => (lhs, rhs).hash(state),
-            Expr::PredicateAccessPredicate(ref name, ref args, frac, _) => (name, args, frac).hash(state),
-            Expr::FieldAccessPredicate(box ref base, frac, _) => (base, frac).hash(state),
+            Expr::PredicateAccessPredicate(ref name, ref args, perm, _) => (name, args, perm).hash(state),
+            Expr::FieldAccessPredicate(box ref base, perm, _) => (base, perm).hash(state),
             Expr::UnaryOp(op, box ref arg, _) => (op, arg).hash(state),
             Expr::BinOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
             Expr::Cond(box ref cond, box ref then_expr, box ref else_expr, _) => (cond, then_expr, else_expr).hash(state),
             Expr::ForAll(ref vars, ref triggers, box ref expr, _) => (vars, triggers, expr).hash(state),
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
-            Expr::Unfolding(ref name, ref args, box ref base, frac, _) => (name, args, base, frac).hash(state),
+            Expr::Unfolding(ref name, ref args, box ref base, perm, _) => (name, args, base, perm).hash(state),
         }
     }
 }
@@ -1043,10 +1034,10 @@ pub trait ExprFolder : Sized {
     fn fold_magic_wand(&mut self, x: Box<Expr>, y: Box<Expr>, p: Position) -> Expr {
         Expr::MagicWand(self.fold_boxed(x), self.fold_boxed(y), p)
     }
-    fn fold_predicate_access_predicate(&mut self, x: String, y: Vec<Expr>, z: Frac, p: Position) -> Expr {
+    fn fold_predicate_access_predicate(&mut self, x: String, y: Vec<Expr>, z: PermAmount, p: Position) -> Expr {
         Expr::PredicateAccessPredicate(x, y.into_iter().map(|e| self.fold(e)).collect(), z, p)
     }
-    fn fold_field_access_predicate(&mut self, x: Box<Expr>, y: Frac, p: Position) -> Expr {
+    fn fold_field_access_predicate(&mut self, x: Box<Expr>, y: PermAmount, p: Position) -> Expr {
         Expr::FieldAccessPredicate(self.fold_boxed(x), y, p)
     }
     fn fold_unary_op(&mut self, x: UnaryOpKind, y: Box<Expr>, p: Position) -> Expr {
@@ -1055,8 +1046,8 @@ pub trait ExprFolder : Sized {
     fn fold_bin_op(&mut self, x: BinOpKind, y: Box<Expr>, z: Box<Expr>, p: Position) -> Expr {
         Expr::BinOp(x, self.fold_boxed(y), self.fold_boxed(z), p)
     }
-    fn fold_unfolding(&mut self, x: String, y: Vec<Expr>, z: Box<Expr>, frac: Frac, p: Position) -> Expr {
-        Expr::Unfolding(x, y.into_iter().map(|e| self.fold(e)).collect(), self.fold_boxed(z), frac, p)
+    fn fold_unfolding(&mut self, x: String, y: Vec<Expr>, z: Box<Expr>, perm: PermAmount, p: Position) -> Expr {
+        Expr::Unfolding(x, y.into_iter().map(|e| self.fold(e)).collect(), self.fold_boxed(z), perm, p)
     }
     fn fold_cond(&mut self, x: Box<Expr>, y: Box<Expr>, z: Box<Expr>, p: Position) -> Expr {
         Expr::Cond(self.fold_boxed(x), self.fold_boxed(y), self.fold_boxed(z), p)
@@ -1084,7 +1075,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fold_bin_op(x, y, z, p),
-        Expr::Unfolding(x, y, z, frac, p) => this.fold_unfolding(x, y, z, frac, p),
+        Expr::Unfolding(x, y, z, perm, p) => this.fold_unfolding(x, y, z, perm, p),
         Expr::Cond(x, y, z, p) => this.fold_cond(x, y, z, p),
         Expr::ForAll(x, y, z, p) => this.fold_forall(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
@@ -1115,12 +1106,12 @@ pub trait ExprWalker : Sized {
         self.walk(x);
         self.walk(y);
     }
-    fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: Frac, p: &Position) {
+    fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: PermAmount, p: &Position) {
         for e in y {
             self.walk(e);
         }
     }
-    fn walk_field_access_predicate(&mut self, x: &Expr, y: Frac, p: &Position) {
+    fn walk_field_access_predicate(&mut self, x: &Expr, y: PermAmount, p: &Position) {
         self.walk(x)
     }
     fn walk_unary_op(&mut self, x: UnaryOpKind, y: &Expr, p: &Position) {
@@ -1130,7 +1121,7 @@ pub trait ExprWalker : Sized {
         self.walk(y);
         self.walk(z);
     }
-    fn walk_unfolding(&mut self, x: &str, y: &Vec<Expr>, z: &Expr, frac: Frac, p: &Position) {
+    fn walk_unfolding(&mut self, x: &str, y: &Vec<Expr>, z: &Expr, perm: PermAmount, p: &Position) {
         for e in y {
             self.walk(e);
         }
@@ -1167,7 +1158,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
         Expr::BinOp(x, ref y, ref z, ref p) => this.walk_bin_op(x, y, z, p),
-        Expr::Unfolding(ref x, ref y, ref z, frac, ref p) => this.walk_unfolding(x, y, z, frac, p),
+        Expr::Unfolding(ref x, ref y, ref z, perm, ref p) => this.walk_unfolding(x, y, z, perm, p),
         Expr::Cond(ref x, ref y, ref z, ref p) => this.walk_cond(x, y, z, p),
         Expr::ForAll(ref x, ref y, ref z, ref p) => this.walk_forall(x, y, z, p),
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),
@@ -1175,24 +1166,19 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
     }
 }
 
-impl <'a> Mul<&'a Frac> for Box<Expr> {
-    type Output = Box<Expr>;
-
-    fn mul(self, frac: &'a Frac) -> Box<Expr> {
-        Box::new(*self * frac)
-    }
-}
-
-impl <'a> Mul<&'a Frac> for Expr {
-    type Output = Expr;
-
-    fn mul(self, frac: &'a Frac) -> Expr {
+impl Expr {
+    /// Set the permission amount for the access predicate.
+    fn init_perm_amount(self, perm: PermAmount) -> Expr {
+        assert!(perm.is_valid_for_specs());
         match self {
-            Expr::PredicateAccessPredicate(x, y, z, p) => Expr::PredicateAccessPredicate(x, y, z * frac, p),
-            Expr::FieldAccessPredicate(x, y, p) => Expr::FieldAccessPredicate(x, y * frac, p),
-            Expr::UnaryOp(x, y, p) => Expr::UnaryOp(x, y * frac, p),
-            Expr::BinOp(x, y, z, p) => Expr::BinOp(x, y * frac, z * frac, p),
-            Expr::Cond(x, y, z, p) => Expr::Cond(x, y * frac, z * frac, p),
+            Expr::PredicateAccessPredicate(name, args, PermAmount::Unset, pos) =>
+                Expr::PredicateAccessPredicate(name, args, perm, pos),
+            Expr::PredicateAccessPredicate(_, _, perm_amount, _) =>
+                unreachable!("An attempt to replace permission: {}", perm_amount),
+            Expr::FieldAccessPredicate(place, PermAmount::Unset, pos) =>
+                Expr::FieldAccessPredicate(place, perm, pos),
+            Expr::FieldAccessPredicate(_, perm_amount, _) =>
+                unreachable!("An attempt to replace permission: {}", perm_amount),
             _ => self
         }
     }
