@@ -52,7 +52,7 @@ impl State {
                 } else {
                     false
                 };
-                if !contains_parent_pred {
+                if !contains_parent_pred && self.pred[place] != PermAmount::Remaining {
                     trace!("Acc state: {{\n{}\n}}", self.display_acc());
                     trace!("Pred state: {{\n{}\n}}", self.display_pred());
                     panic!(
