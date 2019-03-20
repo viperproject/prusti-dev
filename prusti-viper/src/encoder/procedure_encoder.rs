@@ -314,6 +314,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 new_cfg_targets, cfg_default_target);
                             self.cfg_method.set_successor(cfg_block, new_successor);
                         },
+                        Successor::Goto(cfg_target) => {
+                            let new_successor = Successor::Goto(cfg_target);
+                            self.cfg_method.set_successor(cfg_block, new_successor);
+                        },
                         x => unreachable!("{:?}", x),
                     }
                 } else {
