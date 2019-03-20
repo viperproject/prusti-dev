@@ -183,7 +183,8 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 } else {
                     format!("note that procedure '{}' is not fully supported: {}", proc_name, reasons)
                 };
-                warn!("{}", message);
+                // NOTE: make the validator more precise before enabling the following messages
+                debug!("{}", message);
                 //self.env.warn(&message);
             } else if support_status.is_unsupported() {
                 let reasons = support_status.get_unsupported_reasons().join(", ");
@@ -193,7 +194,8 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 } else {
                     format!("note that procedure '{}' is not supported: {}", proc_name, reasons)
                 };
-                warn!("{}", message);
+                // NOTE: make the validator more precise before enabling the following messages
+                debug!("{}", message);
                 //self.env.warn(&message);
             }
         }

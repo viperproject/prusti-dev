@@ -44,7 +44,9 @@ fn force_increasing(r: &mut Route, min_x: i32) {
     r.current.x = max(r.current.x, min_x);
     if let Some(box ref mut rest) = r.rest {
         force_increasing(rest, r.current.x);
-    }
+    } else {
+	    assert!(length(r) == 1);
+	}
 }
 
 fn main(){}
