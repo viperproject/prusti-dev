@@ -112,7 +112,7 @@ impl ops::Add for PermAmount {
         match (self, other) {
             (PermAmount::Read, PermAmount::Remaining) |
             (PermAmount::Remaining, PermAmount::Read) => PermAmount::Write,
-            _ => unreachable!("Invalid addition: {} - {}", self, other)
+            _ => unreachable!("Invalid addition: {} + {}", self, other)
         }
     }
 }
