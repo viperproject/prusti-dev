@@ -224,7 +224,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode statements
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let bb_data = &self.mir.basic_blocks()[bbi];
-            let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
             let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
             let bb_pos = self.mir_encoder.encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
 
@@ -238,8 +237,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             // Inhale the loop invariant if this is a loop head
             if self.loop_encoder.is_loop_head(bbi) {
                 let stmts = self.encode_loop_invariant_inhale(bbi);
-                for stmt in stmts.into_iter() {
-                    self.cfg_method.add_stmt(cfg_block, stmt);
+                for cfg_successor in cfg_edges[&bbi].values() {
+                    for stmt in stmts.iter() {
+                        self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
+                    }
                 }
             }
 
@@ -259,22 +260,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Encode statements of the block, if this is not a "spec" block
             if !self.procedure.is_spec_block(bbi) {
-                let is_panic_block = self.procedure.is_panic_block(bbi);
-                for (stmt_index, stmt) in statements.iter().enumerate() {
-                    trace!("Encode statement {:?}:{}", bbi, stmt_index);
-                    self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
-                    let location = mir::Location {
-                        block: bbi,
-                        statement_index: stmt_index
-                    };
-                    if !is_panic_block {
-                        for stmt in self.encode_statement(stmt, location).drain(..) {
-                            self.cfg_method.add_stmt(cfg_block, stmt);
-                        }
+                if self.loop_encoder.is_loop_head(bbi) {
+                    for cfg_successor in cfg_edges[&bbi].values() {
+                        self.encode_block_statements(bbi, *cfg_successor);
                     }
-                    for stmt in self.encode_expiring_borrows_at(location).drain(..) {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
-                    }
+                } else {
+                    self.encode_block_statements(bbi, cfg_block);
                 }
             } else {
                 // Any spec block must be unreachable
@@ -304,24 +295,61 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     return_cfg_block,
                     &mut procedure_contract
                 );
-                for stmt in stmts.into_iter() {
-                    self.cfg_method.add_stmt(cfg_block, stmt);
-                }
-                if successor != vir::Successor::Return {
-                    for successor in self.procedure.successors(bbi) {
-                        if self.procedure.is_reachable_block(successor) {
-                            let succ_location = mir::Location {
-                                block: successor,
-                                statement_index: 0
-                            };
-                            let cfg_edge_block = cfg_edges[&bbi][&successor];
-                            for stmt in self.encode_expiring_borrows_between(location, succ_location).drain(..) {
-                                self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                if self.loop_encoder.is_loop_head(bbi) {
+                    for cfg_successor in cfg_edges[&bbi].values() {
+                        for stmt in stmts.iter() {
+                            self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
+                        }
+                    }
+                    match successor {
+                        Successor::GotoSwitch(cfg_targets, cfg_default_target) => {
+                            let mut new_cfg_targets = Vec::new();
+                            let mut default_condition_conjuncts = Vec::new();
+                            for (expr, cfg_target) in cfg_targets {
+
+                                // Make the jump non-deterministic.
+                                let new_local = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
+                                new_cfg_targets.push((new_local.into(), cfg_target));
+
+                                // Assume the condition under which the jump happened.
+                                let stmt = vir::Stmt::Inhale(expr.clone());
+                                default_condition_conjuncts.push(expr);
+                                self.cfg_method.add_stmt(cfg_target, stmt);
+                            }
+                            let default_condition = vir::Expr::UnaryOp(
+                                vir::UnaryOpKind::Not,
+                                box default_condition_conjuncts.into_iter().conjoin(),
+                                vir::Position::default(),
+                            );
+                            let stmt = vir::Stmt::Inhale(default_condition);
+                            self.cfg_method.add_stmt(cfg_default_target, stmt);
+                            let new_successor = Successor::GotoSwitch(
+                                new_cfg_targets, cfg_default_target);
+                            self.cfg_method.set_successor(cfg_block, new_successor);
+                        },
+                        x => unreachable!("{:?}", x),
+                    }
+                } else {
+                    for stmt in stmts.into_iter() {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
+                    if successor != vir::Successor::Return {
+                        for successor in self.procedure.successors(bbi) {
+                            if self.procedure.is_reachable_block(successor) {
+                                let succ_location = mir::Location {
+                                    block: successor,
+                                    statement_index: 0
+                                };
+                                let cfg_edge_block = cfg_edges[&bbi][&successor];
+                                for stmt in self.encode_expiring_borrows_between(
+                                        location, succ_location).drain(..) {
+                                    self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                                }
                             }
                         }
                     }
+                    self.cfg_method.set_successor(cfg_block, successor);
                 }
-                self.cfg_method.set_successor(cfg_block, successor);
             }
 
             // Exhale the loop invariant if the successor is a loop head
@@ -469,6 +497,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         final_method
+    }
+
+    fn encode_block_statements(&mut self, bbi: BasicBlockIndex, cfg_block: CfgBlockIndex) {
+        let bb_data = &self.mir.basic_blocks()[bbi];
+        let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
+        let is_panic_block = self.procedure.is_panic_block(bbi);
+        for (stmt_index, stmt) in statements.iter().enumerate() {
+            trace!("Encode statement {:?}:{}", bbi, stmt_index);
+            self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
+            let location = mir::Location {
+                block: bbi,
+                statement_index: stmt_index
+            };
+            if !is_panic_block {
+                for stmt in self.encode_statement(stmt, location).drain(..) {
+                    self.cfg_method.add_stmt(cfg_block, stmt);
+                }
+            }
+            for stmt in self.encode_expiring_borrows_at(location).drain(..) {
+                self.cfg_method.add_stmt(cfg_block, stmt);
+            }
+        }
     }
 
     fn encode_statement(&mut self, stmt: &mir::Statement<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
