@@ -236,25 +236,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Inhale the loop invariant if this is a loop head
             if self.loop_encoder.is_loop_head(bbi) {
-                let stmts = self.encode_loop_invariant_inhale(bbi);
-                for cfg_successor in cfg_edges[&bbi].values() {
+                for (successor, cfg_successor) in &cfg_edges[&bbi] {
+                    let after_loop = self.loop_encoder.get_loop_head(*successor) != Some(bbi);
+                    let stmts = self.encode_loop_invariant_inhale(bbi, after_loop);
                     for stmt in stmts.iter() {
                         self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
                     }
-                }
-            }
-
-            // Add an `EndFrame` statement if the incoming edge is an *out* edge from a loop
-            for predecessor in self.procedure.predecessors(bbi) {
-                let is_edge_out_loop = self.loop_encoder.get_loop_depth(predecessor) > self.loop_encoder.get_loop_depth(bbi);
-                if is_edge_out_loop {
-                    let cfg_edge_block = cfg_edges[&predecessor][&bbi];
-                    let loop_head = self.loop_encoder.get_loop_head(predecessor).unwrap();
-                    let stmts = self.encode_loop_invariant_obtain(loop_head);
-                    for stmt in stmts.into_iter() {
-                        self.cfg_method.add_stmt(cfg_edge_block, stmt);
-                    }
-                    self.cfg_method.add_stmt(cfg_edge_block, vir::Stmt::EndFrame);
                 }
             }
 
@@ -1641,7 +1628,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             );
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_func_spec), pos.clone()));
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_invs_spec), pos.clone()));
-                            stmts.push(vir::Stmt::Exhale(replace_fake_exprs(pre_type_spec.clone()), pos));
+                            let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
+                            stmts.push(vir::Stmt::Exhale(pre_perm_spec.remove_read_permissions(), pos));
 
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
@@ -1660,7 +1648,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let (post_type_spec, post_invs_spec, post_func_spec, magic_wands) = self.encode_postcondition_expr(
                                 &procedure_contract, &pre_label, &post_label,
                                 Some((location, &fake_exprs)), real_target.is_none());
-                            stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_type_spec)));
+                            let post_perm_spec = replace_fake_exprs(post_type_spec);
+                            stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
 
@@ -2379,12 +2368,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 format!("Restore the fold/unfold state of the loop invariant of {:?}", loop_head)
             ),
             vir::Stmt::Obtain(
-                permissions.into_iter().conjoin()
+                permissions.into_iter().conjoin().remove_read_permissions()
             )
         ]
     }
 
-    fn encode_loop_invariant_exhale(&self, loop_head: BasicBlockIndex, after_loop_iteration: bool) -> Vec<vir::Stmt> {
+    fn encode_loop_invariant_exhale(
+        &self,
+        loop_head: BasicBlockIndex,
+        after_loop_iteration: bool
+    ) -> Vec<vir::Stmt> {
         let permissions = self.encode_loop_invariant_permissions(loop_head);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
@@ -2411,6 +2404,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         );
 
+        let mut permission_expr = permissions.into_iter().conjoin();
+        if !after_loop_iteration {
+            permission_expr = permission_expr.remove_read_permissions();
+        }
+
         vec![
             vir::Stmt::comment(
                 format!("Assert and exhale the loop invariant of block {:?}", loop_head)
@@ -2420,27 +2418,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 assert_pos
             ),
             vir::Stmt::Exhale(
-                permissions.into_iter().conjoin(),
+                permission_expr,
                 exhale_pos
             )
         ]
     }
 
-    fn encode_loop_invariant_inhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+    fn encode_loop_invariant_inhale(
+        &self,
+        loop_head: BasicBlockIndex,
+        after_loop: bool
+    ) -> Vec<vir::Stmt> {
         let permissions = self.encode_loop_invariant_permissions(loop_head);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
-        vec![
+        let mut permission_expr = permissions.into_iter().conjoin();
+        if after_loop {
+            permission_expr = permission_expr.remove_read_permissions();
+        }
+
+        let mut stmts = vec![
             vir::Stmt::comment(
-                format!("Inhale the loop invariant of block {:?}", loop_head)
-            ),
-            vir::Stmt::Inhale(
-                permissions.into_iter().conjoin()
-            ),
-            vir::Stmt::Inhale(
-                func_spec.into_iter().conjoin(),
-            ),
-        ]
+                format!("Inhale the loop invariant of block {:?}", loop_head),
+            )
+        ];
+        if after_loop {
+            stmts.push(vir::Stmt::EndFrame);
+        }
+        stmts.push(vir::Stmt::Inhale(permission_expr));
+        stmts.push(vir::Stmt::Inhale(func_spec.into_iter().conjoin()));
+        stmts
     }
 
     // TODO: What is this?

@@ -1167,20 +1167,50 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
 }
 
 impl Expr {
-    /// Set the permission amount for the access predicate.
-    fn init_perm_amount(self, perm: PermAmount) -> Expr {
-        assert!(perm.is_valid_for_specs());
-        match self {
-            Expr::PredicateAccessPredicate(name, args, PermAmount::Unset, pos) =>
-                Expr::PredicateAccessPredicate(name, args, perm, pos),
-            Expr::PredicateAccessPredicate(_, _, perm_amount, _) =>
-                unreachable!("An attempt to replace permission: {}", perm_amount),
-            Expr::FieldAccessPredicate(place, PermAmount::Unset, pos) =>
-                Expr::FieldAccessPredicate(place, perm, pos),
-            Expr::FieldAccessPredicate(_, perm_amount, _) =>
-                unreachable!("An attempt to replace permission: {}", perm_amount),
-            _ => self
+    /// Remove read permissions. For example, if the expression is
+    /// `acc(x.f, read) && acc(P(x.f), write)`, then after the
+    /// transformation it will be: `acc(P(x.f), write)`.
+    pub fn remove_read_permissions(self) -> Self {
+        struct ReadPermRemover {};
+        impl ExprFolder for ReadPermRemover {
+            fn fold_predicate_access_predicate(
+                &mut self,
+                name: String,
+                args: Vec<Expr>,
+                perm_amount: PermAmount,
+                p: Position
+            ) -> Expr {
+                assert!(perm_amount.is_valid_for_specs());
+                match perm_amount {
+                    PermAmount::Write => {
+                        Expr::PredicateAccessPredicate(name, args, perm_amount, p)
+                    },
+                    PermAmount::Read => {
+                        true.into()
+                    },
+                    _ => unreachable!(),
+                }
+            }
+            fn fold_field_access_predicate(
+                &mut self,
+                reference: Box<Expr>,
+                perm_amount: PermAmount,
+                p: Position
+            ) -> Expr {
+                assert!(perm_amount.is_valid_for_specs());
+                match perm_amount {
+                    PermAmount::Write => {
+                        Expr::FieldAccessPredicate(reference, perm_amount, p)
+                    },
+                    PermAmount::Read => {
+                        true.into()
+                    },
+                    _ => unreachable!(),
+                }
+            }
         }
+        let mut remover = ReadPermRemover {};
+        remover.fold(self)
     }
 }
 
