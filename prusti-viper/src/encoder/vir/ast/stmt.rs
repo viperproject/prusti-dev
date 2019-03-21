@@ -9,7 +9,7 @@
 
 use std::fmt;
 use encoder::vir::ast::*;
-use super::super::borrows::{DAG as ReborrowingDAG};
+use super::super::borrows::{DAG as ReborrowingDAG, Borrow};
 use super::super::cfg::CfgBlockIndex;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,7 +71,10 @@ pub enum AssignKind {
     Move,
     /// Encodes the initialization of a mutable borrow.
     /// The permissions in the `rhs` move to the `lhs`, but they can be restored when the borrow dies.
-    MutableBorrow
+    MutableBorrow(Borrow),
+    /// Encodes the initialization of a shared borrow.
+    /// The permissions in the `rhs` are duplicated to the `lhs`.
+    SharedBorrow(Borrow),
 }
 
 impl fmt::Display for Stmt {
@@ -89,9 +92,18 @@ impl fmt::Display for Stmt {
                 args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
             ),
             Stmt::Assign(ref lhs, ref rhs, kind) => match kind {
-                AssignKind::Move => write!(f, "{} := move {}", lhs, rhs),
-                AssignKind::Copy => write!(f, "{} := copy {}", lhs, rhs),
-                AssignKind::MutableBorrow => write!(f, "{} := borrow {}", lhs, rhs),
+                AssignKind::Move => {
+                    write!(f, "{} := move {}", lhs, rhs)
+                },
+                AssignKind::Copy => {
+                    write!(f, "{} := copy {}", lhs, rhs)
+                },
+                AssignKind::MutableBorrow(borrow) => {
+                    write!(f, "{} := mut borrow {} // {:?}", lhs, rhs, borrow)
+                },
+                AssignKind::SharedBorrow(borrow) => {
+                    write!(f, "{} := borrow {} // {:?}", lhs, rhs, borrow)
+                },
             },
 
             Stmt::Fold(ref pred_name, ref args, perm) => write!(

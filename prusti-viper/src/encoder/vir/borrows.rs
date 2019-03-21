@@ -21,10 +21,15 @@ pub struct Node {
     pub borrow: Borrow,
     pub reborrowing_nodes: Vec<Borrow>,
     pub reborrowed_nodes: Vec<Borrow>,
-    //pub kind: NodeKind,
     pub stmts: Vec<Stmt>,
     /// Places that were borrowed and should be kept in fold/unfold.
     pub borrowed_places: Vec<Expr>,
+    /// Borrows that are borrowing the same place.
+    pub conflicting_borrows: Vec<Borrow>,
+    pub alive_conflicting_borrows: Vec<Borrow>,
+    /// The place (potentially old) through which the permissions can
+    /// still be accessed even if the loan was killed.
+    pub place: Option<Expr>,
 }
 
 impl Node {
@@ -35,6 +40,9 @@ impl Node {
         reborrowed_nodes: Vec<Borrow>,
         stmts: Vec<Stmt>,
         borrowed_places: Vec<Expr>,
+        conflicting_borrows: Vec<Borrow>,
+        alive_conflicting_borrows: Vec<Borrow>,
+        place: Option<Expr>,
     ) -> Self {
         Self {
             guard,
@@ -43,6 +51,9 @@ impl Node {
             reborrowed_nodes,
             stmts,
             borrowed_places,
+            conflicting_borrows,
+            alive_conflicting_borrows,
+            place,
         }
     }
 }

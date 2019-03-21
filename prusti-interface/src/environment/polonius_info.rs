@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::utils;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
@@ -322,6 +323,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) interner: facts::Interner,
     /// Position at which a specific loan was created.
     pub(crate) loan_position: HashMap<facts::Loan, mir::Location>,
+    pub(crate) loan_at_position: HashMap<mir::Location, facts::Loan>,
     pub(crate) call_magic_wands: HashMap<facts::Loan, mir::Local>,
     pub variable_regions: HashMap<mir::Local, facts::Region>,
     pub(crate) additional_facts: AdditionalFacts,
@@ -335,9 +337,11 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) reference_moves: Vec<facts::Loan>,
     /// Fake loans that were created due to arguments moved into calls.
     pub(crate) argument_moves: Vec<facts::Loan>,
-
     /// Facts without back edges.
     pub(crate) additional_facts_no_back: AdditionalFacts,
+    /// Two loans are conflicting if they borrow overlapping places and
+    /// are alive at overlapping regions.
+    pub(crate) loan_conflict_sets: HashMap<facts::Loan, Vec<facts::Loan>>,
 }
 
 /// Returns moves and argument moves that were turned into fake reborrows.
@@ -450,6 +454,72 @@ fn remove_back_edges(
     all_facts
 }
 
+/// Returns the place that is borrowed by the assignment. We assume that
+/// all shared references are created only via assignments and ignore
+/// all other cases.
+fn get_borrowed_place<'a, 'tcx: 'a>(
+    mir: &'a mir::Mir<'tcx>,
+    loan_position: &HashMap<facts::Loan, mir::Location>,
+    loan: facts::Loan
+) -> Option<&'a mir::Place<'tcx>> {
+    let location = loan_position[&loan];
+    let mir::BasicBlockData { ref statements, .. } = mir[location.block];
+    if statements.len() == location.statement_index {
+        None
+    } else {
+        let statement = &statements[location.statement_index];
+        match statement.kind {
+            mir::StatementKind::Assign(ref _lhs, ref rhs) => {
+                match rhs {
+                    &mir::Rvalue::Ref(ref _region, _mir_borrow_kind, ref place) => {
+                        Some(place)
+                    }
+                    &mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) |
+                    &mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
+                        Some(rhs_place)
+                    }
+                    &mir::Rvalue::Use(mir::Operand::Constant(_)) => {
+                        None
+                    }
+                    x => unreachable!("{:?}", x),
+                }
+            },
+            ref x => unreachable!("{:?}", x),
+        }
+    }
+}
+
+fn compute_loan_conflict_sets(
+    mir: &mir::Mir,
+    loan_position: &HashMap<facts::Loan, mir::Location>,
+    borrowck_in_facts: &facts::AllInputFacts,
+    borrowck_out_facts: &facts::AllOutputFacts
+) -> HashMap<facts::Loan, Vec<facts::Loan>> {
+    let mut loan_conflict_sets = HashMap::new();
+
+    for &(_r, loan, _) in &borrowck_in_facts.borrow_region {
+        loan_conflict_sets.insert(loan, Vec::new());
+    }
+
+    for &(_r, loan_created, point) in &borrowck_in_facts.borrow_region {
+        if let Some(borrowed_place) = get_borrowed_place(mir, loan_position, loan_created) {
+            if let Some(live_borrows) = borrowck_out_facts.borrow_live_at.get(&point) {
+                for loan_alive in live_borrows {
+                    if let Some(place) = get_borrowed_place(mir, loan_position, *loan_alive) {
+                        if utils::is_prefix(borrowed_place, place) ||
+                                utils::is_prefix(place, borrowed_place) {
+                            loan_conflict_sets.get_mut(&loan_created).unwrap().push(*loan_alive);
+                            loan_conflict_sets.get_mut(loan_alive).unwrap().push(loan_created);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    loan_conflict_sets
+}
+
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId, mir: &'a mir::Mir<'tcx>) -> Self {
         // Read Polonius facts.
@@ -490,12 +560,21 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 (loan, point.location)
             })
             .collect();
+        let loan_at_position = all_facts.borrow_region
+            .iter()
+            .map(|&(_, loan, point_index)| {
+                let point = interner.get_point(point_index);
+                (point.location, loan)
+            })
+            .collect();
 
         let additional_facts = AdditionalFacts::new(&all_facts, &output);
         let additional_facts_without_back_edges = AdditionalFacts::new(
             &all_facts_without_back_edges, &output_without_back_edges);
         let initialization = compute_definitely_initialized(&mir, tcx, def_path.clone());
         let liveness = compute_liveness(&mir);
+        let loan_conflict_sets = compute_loan_conflict_sets(
+            mir, &loan_position, &all_facts, &output);
 
         let mut info = Self {
             mir: mir,
@@ -503,6 +582,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             borrowck_out_facts: output,
             interner: interner,
             loan_position: loan_position,
+            loan_at_position: loan_at_position,
             call_magic_wands: call_magic_wands,
             variable_regions: variable_regions,
             additional_facts: additional_facts,
@@ -513,6 +593,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             argument_moves: argument_moves,
             initialization: initialization,
             liveness: liveness,
+            loan_conflict_sets: loan_conflict_sets,
         };
         info.compute_loop_magic_wands();
         info
@@ -790,8 +871,34 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         dying_before.map(|d| d.into_iter().collect()).unwrap_or(vec![])
     }
 
+    pub fn get_conflicting_loans(&self, loan: facts::Loan) -> Vec<facts::Loan> {
+        self.loan_conflict_sets.get(&loan).cloned().unwrap_or(Vec::new())
+    }
+
+    pub fn get_alive_conflicting_loans(
+        &self,
+        loan: facts::Loan,
+        location: mir::Location
+    ) -> Vec<facts::Loan> {
+        if let Some(all_conflicting_loans) = self.loan_conflict_sets.get(&loan) {
+            let point = self.get_point(location, facts::PointType::Mid);
+            if let Some(alive_loans) = self.borrowck_out_facts.borrow_live_at.get(&point) {
+                let alive_conflicting_loans = all_conflicting_loans.iter()
+                    .filter(|loan| alive_loans.contains(loan))
+                    .cloned()
+                    .collect();
+                return alive_conflicting_loans;
+            }
+        }
+        Vec::new()
+    }
+
     pub fn get_loan_location(&self, loan: &facts::Loan) -> mir::Location {
         self.loan_position[loan].clone()
+    }
+
+    pub fn get_loan_at_location(&self, location: mir::Location) -> facts::Loan {
+        self.loan_at_position[&location].clone()
     }
 
     pub fn loan_locations(&self) -> Vec<(facts::Loan, mir::Location)> {

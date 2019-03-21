@@ -690,15 +690,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
 
-                    &mir::Rvalue::Ref(ref _region, _, ref place) => {
+                    &mir::Rvalue::Ref(ref _region, mir_borrow_kind, ref place) => {
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
+                        let loan = self.polonius_info.get_loan_at_location(location);
+                        let vir_assign_kind = match mir_borrow_kind {
+                            mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan),
+                            mir::BorrowKind::Unique => unimplemented!(),
+                            mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan),
+                        };
                         // Initialize ref_var.ref_field
                         stmts.push(
                             vir::Stmt::Assign(
                                 encoded_lhs.clone().field(ref_field),
                                 encoded_value.into(),
-                                vir::AssignKind::MutableBorrow
+                                vir_assign_kind
                             )
                         );
                         // Store a label for this state
@@ -753,14 +759,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .iter()
             .flat_map(|p| self.polonius_info.get_loan_places(p))
             .filter(|loan_places| {
-                let (_, encoded_source) = self.encode_loan_places(loan_places);
+                let (_, encoded_source, _) = self.encode_loan_places(loan_places);
                 place.has_prefix(&encoded_source)
             })
             .collect();
         assert!(relevant_active_loan_places.len() <= 1);
         if !relevant_active_loan_places.is_empty() {
             let loan_places = &relevant_active_loan_places[0];
-            let (encoded_dest, encoded_source) = self.encode_loan_places(loan_places);
+            let (encoded_dest, encoded_source, _) = self.encode_loan_places(loan_places);
             // Recursive translation
             self.translate_maybe_borrowed_place(
                 loan_places.location,
@@ -772,25 +778,40 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr) {
+    fn encode_loan_places(
+        &self,
+        loan_places: &LoanPlaces<'tcx>
+    ) -> (vir::Expr, vir::Expr, bool) {
         debug!("encode_loan_rvalue '{:?}'", loan_places);
         let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest);
+        let encode = |rhs_place| {
+            let (restored, _, _) = self.mir_encoder.encode_place(rhs_place);
+            let ref_field = self.encoder.encode_value_field(expiring_ty);
+            let expiring = expiring_base.clone().field(ref_field.clone());
+            (expiring, restored, ref_field)
+        };
         match loan_places.source {
-            mir::Rvalue::Ref(_, _, ref rhs_place) => {
-                let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                let ref_field = self.encoder.encode_value_field(expiring_ty);
-                let expiring = expiring_base.clone().field(ref_field);
+            mir::Rvalue::Ref(_, mir_borrow_kind, ref rhs_place) => {
+                let (expiring, restored, _) = encode(rhs_place);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored)
+                let is_mut = match mir_borrow_kind {
+                    mir::BorrowKind::Shared => false,
+                    mir::BorrowKind::Unique => unimplemented!(),
+                    mir::BorrowKind::Mut { .. } => true,
+                };
+                (expiring, restored, is_mut)
             }
-
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                let (restored_base, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                let ref_field = self.encoder.encode_value_field(expiring_ty);
-                let expiring = expiring_base.clone().field(ref_field.clone());
+                let (expiring, restored_base, ref_field) = encode(rhs_place);
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored)
+                (expiring, restored, true)
+            }
+            mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
+                let (expiring, restored_base, ref_field) = encode(rhs_place);
+                let restored = restored_base.clone().field(ref_field);
+                assert_eq!(expiring.get_type(), restored.get_type());
+                (expiring, restored, false)
             }
 
             ref x => unreachable!("Borrow restores rvalue {:?}", x)
@@ -856,6 +877,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
+    /// A borrow is mutable if it was a MIR unique borrow or a move of
+    /// a borrow.
+    fn is_mutable_borrow(&self, location: mir::Location) -> bool {
+        let mir::BasicBlockData { ref statements, .. } = self.mir[location.block];
+        assert!(location.statement_index < statements.len());
+        let statement = &statements[location.statement_index];
+        match statement.kind {
+            mir::StatementKind::Assign(ref _lhs, ref rhs) => {
+                match rhs {
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, _) |
+                    &mir::Rvalue::Use(mir::Operand::Copy(_)) => {
+                        false
+                    }
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, _) |
+                    &mir::Rvalue::Use(mir::Operand::Move(_)) => {
+                        true
+                    }
+                    x => unreachable!("{:?}", x),
+                }
+            },
+            ref x => unreachable!("{:?}", x),
+        }
+    }
+
     fn construct_vir_reborrowing_dag(
         &mut self,
         loans: &[facts::Loan],
@@ -881,8 +926,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::borrows::Node::new(
                         guard, node.loan,
                         node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-                        Vec::new(),
-                        Vec::new())
+                        Vec::new(), Vec::new(), Vec::new(), Vec::new(), None,
+                    )
                 }
                 ref x => unimplemented!("{:?}", x)
             };
@@ -910,8 +955,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let loan_location = self.polonius_info.get_loan_location(&loan);
         let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
-        let (expiring, restored) = self.encode_loan_places(&loan_places);
+        let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places);
         let borrowed_places = vec![restored.clone()];
+
+        let mut used_lhs_label = false;
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
         if node.incoming_zombies {
@@ -932,17 +979,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         self.label_after_location
                     )
                 );
-                stmts.extend(
-                    self.encode_transfer_permissions(
-                        expiring.clone().old(&in_label),
-                        expiring.clone().old(&lhs_label),
-                        loan_location
-                    )
-                );
+                if self.is_mutable_borrow(in_location) {
+                    used_lhs_label = true;
+                    stmts.extend(
+                        self.encode_transfer_permissions(
+                            expiring.clone().old(&in_label),
+                            expiring.clone().old(&lhs_label),
+                            loan_location
+                        )
+                    );
+                }
             }
         }
 
-        let lhs_place = if node.incoming_zombies {
+        let lhs_place = if used_lhs_label {
             let lhs_label = self.label_after_location.get(&loan_location).expect(
                 &format!(
                     "No label has been saved for location {:?} ({:?})",
@@ -971,19 +1021,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         };
 
-        stmts.extend(
-            self.encode_transfer_permissions(
-                lhs_place.clone(),
-                rhs_place,
-                loan_location
-            )
-        );
+        if is_mut {
+            stmts.extend(
+                self.encode_transfer_permissions(
+                    lhs_place.clone(),
+                    rhs_place,
+                    loan_location
+                )
+            );
+        }
+
+        let conflicting_loans = self.polonius_info.get_conflicting_loans(node.loan);
+        let alive_conflicting_loans = self.polonius_info.get_alive_conflicting_loans(
+            node.loan, location);
 
         let guard = self.construct_location_guard(loan_location);
         vir::borrows::Node::new(
             guard, node.loan,
             node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-            stmts, borrowed_places)
+            stmts, borrowed_places, conflicting_loans, alive_conflicting_loans,
+            Some(lhs_place.clone()))
     }
 
     fn construct_vir_reborrowing_node_for_call(
@@ -1081,21 +1138,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vir::borrows::Node::new(
             guard, node.loan,
             node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-            stmts, Vec::new())
-    }
-
-    /// Compute from which place to which the permissions should be transferred
-    /// when expiring the `loan`.
-    fn encode_assignment_borrow_expiration(
-        &mut self,
-        dag: &ReborrowingDAG,
-        loan: facts::Loan,
-        node: &ReborrowingDAGNode,
-    ) -> (vir::Expr, vir::Expr) {
-        let loan_location = self.polonius_info.get_loan_location(&loan);
-        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
-        let (expiring, restored) = self.encode_loan_places(&loan_places);
-        (expiring, restored)
+            stmts, Vec::new(), Vec::new(), Vec::new(), None)
     }
 
     fn encode_expiration_of_loans(
@@ -2648,8 +2691,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             &mir::Operand::Copy(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
-                // Copy the values from `src` to `lhs`
-                self.encode_copy(src, lhs.clone(), ty, false, false, location)
+
+                let mut stmts = if self.mir_encoder.is_reference(ty) {
+                    let loan = self.polonius_info.get_loan_at_location(location);
+                    let ref_field = self.encoder.encode_value_field(ty);
+                    vec![
+                        vir::Stmt::Assign(
+                            lhs.clone().field(ref_field.clone()),
+                            src.field(ref_field),
+                            vir::AssignKind::SharedBorrow(loan)
+                        )
+                    ]
+                } else {
+                    // Copy the values from `src` to `lhs`
+                    self.encode_copy(src, lhs.clone(), ty, false, false, location)
+                };
+
+                // Store a label for this state
+                let label = self.cfg_method.get_fresh_label_name();
+                debug!("Current loc {:?} has label {}", location, label);
+                self.label_after_location.insert(location, label.clone());
+                stmts.push(vir::Stmt::Label(label.clone()));
+
+                stmts
             }
 
             &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
@@ -2764,8 +2828,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ///
     /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
     /// a Rust move assignment, and not a copy assignment.
-    fn encode_copy(&mut self, src: vir::Expr, dst: vir::Expr, self_ty: ty::Ty<'tcx>, is_move: bool, is_inner_ty: bool, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("Encode copy {:?}, {:?}, {:?}, is_move: {}, is_inner_ty: {}", src, dst, self_ty, is_move, is_inner_ty);
+    fn encode_copy(
+        &mut self,
+        src: vir::Expr,
+        dst: vir::Expr,
+        self_ty: ty::Ty<'tcx>,
+        is_move: bool,
+        is_inner_ty: bool,
+        location: mir::Location
+    ) -> Vec<vir::Stmt> {
+        debug!("Encode copy {:?}, {:?}, {:?}, is_move: {}, is_inner_ty: {}",
+               src, dst, self_ty, is_move, is_inner_ty);
 
         match self_ty.sty {
             ty::TypeVariants::TyBool |

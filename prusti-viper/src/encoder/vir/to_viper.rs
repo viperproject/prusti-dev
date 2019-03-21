@@ -210,6 +210,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
                     ast.no_position()
                 )
             },
+            PermAmount::Remaining => {
+                ast.perm_sub(
+                    PermAmount::Write.to_viper(ast),
+                    PermAmount::Read.to_viper(ast),
+                )
+            },
             x => unreachable!("{:?}", x),
         }
     }
