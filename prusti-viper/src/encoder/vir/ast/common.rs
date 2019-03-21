@@ -4,7 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::cmp::Ordering;
 use std::fmt;
+use std::ops;
 use std::mem::discriminant;
 use std::hash::{Hash, Hasher};
 use num_rational::Ratio;
@@ -65,7 +67,84 @@ mod tests {
     }
 }
 
-pub type Frac = Ratio<u32>;
+/// The permission amount.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PermAmount {
+    Read,
+    Write,
+    /// The permission remaining after ``Read`` was subtracted from ``Write``.
+    Remaining,
+    /// The permission amount was not initialised yet.
+    Unset,
+}
+
+impl PermAmount {
+    /// Can this permission amount be used in specifications?
+    pub fn is_valid_for_specs(&self) -> bool {
+        match self {
+            PermAmount::Read |
+            PermAmount::Write => {
+                true
+            }
+            PermAmount::Remaining |
+            PermAmount::Unset => {
+                false
+            }
+        }
+    }
+}
+
+impl fmt::Display for PermAmount {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            PermAmount::Read => write!(f, "read"),
+            PermAmount::Write => write!(f, "write"),
+            PermAmount::Remaining => write!(f, "write-read"),
+            PermAmount::Unset => write!(f, "unset"),
+        }
+    }
+}
+
+impl ops::Add for PermAmount {
+    type Output = PermAmount;
+
+    fn add(self, other: PermAmount) -> PermAmount {
+        match (self, other) {
+            (PermAmount::Read, PermAmount::Remaining) |
+            (PermAmount::Remaining, PermAmount::Read) => PermAmount::Write,
+            _ => unreachable!("Invalid addition: {} + {}", self, other)
+        }
+    }
+}
+
+impl ops::Sub for PermAmount {
+    type Output = PermAmount;
+
+    fn sub(self, other: PermAmount) -> PermAmount {
+        match (self, other) {
+            (PermAmount::Write, PermAmount::Read) => PermAmount::Remaining,
+            _ => unreachable!("Invalid subtraction: {} - {}", self, other)
+        }
+    }
+}
+
+impl Ord for PermAmount {
+    fn cmp(&self, other: &PermAmount) -> Ordering {
+        match (self, other) {
+            (PermAmount::Read, PermAmount::Write) => Ordering::Less,
+            (PermAmount::Read, PermAmount::Read) |
+            (PermAmount::Write, PermAmount::Write) => Ordering::Equal,
+            (PermAmount::Write, PermAmount::Read) => Ordering::Greater,
+            _ => unreachable!("self={} other={}", self, other),
+        }
+    }
+}
+
+impl PartialOrd for PermAmount {
+    fn partial_cmp(&self, other: &PermAmount) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Type {

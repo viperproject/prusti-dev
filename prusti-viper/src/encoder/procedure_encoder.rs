@@ -18,7 +18,6 @@ use encoder::loop_encoder::LoopEncoder;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::spec_encoder::SpecEncoder;
 use encoder::vir::{self, CfgBlockIndex, Successor};
-use encoder::vir::{Zero, One};
 use encoder::vir::ExprIterator;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
@@ -225,7 +224,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode statements
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let bb_data = &self.mir.basic_blocks()[bbi];
-            let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
             let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
             let bb_pos = self.mir_encoder.encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
 
@@ -238,44 +236,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Inhale the loop invariant if this is a loop head
             if self.loop_encoder.is_loop_head(bbi) {
-                let stmts = self.encode_loop_invariant_inhale(bbi);
-                for stmt in stmts.into_iter() {
-                    self.cfg_method.add_stmt(cfg_block, stmt);
-                }
-            }
-
-            // Add an `EndFrame` statement if the incoming edge is an *out* edge from a loop
-            for predecessor in self.procedure.predecessors(bbi) {
-                let is_edge_out_loop = self.loop_encoder.get_loop_depth(predecessor) > self.loop_encoder.get_loop_depth(bbi);
-                if is_edge_out_loop {
-                    let cfg_edge_block = cfg_edges[&predecessor][&bbi];
-                    let loop_head = self.loop_encoder.get_loop_head(predecessor).unwrap();
-                    let stmts = self.encode_loop_invariant_obtain(loop_head);
-                    for stmt in stmts.into_iter() {
-                        self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                for (successor, cfg_successor) in &cfg_edges[&bbi] {
+                    let after_loop = self.loop_encoder.get_loop_head(*successor) != Some(bbi);
+                    let stmts = self.encode_loop_invariant_inhale(bbi, after_loop);
+                    for stmt in stmts.iter() {
+                        self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
                     }
-                    self.cfg_method.add_stmt(cfg_edge_block, vir::Stmt::EndFrame);
                 }
             }
 
             // Encode statements of the block, if this is not a "spec" block
             if !self.procedure.is_spec_block(bbi) {
-                let is_panic_block = self.procedure.is_panic_block(bbi);
-                for (stmt_index, stmt) in statements.iter().enumerate() {
-                    trace!("Encode statement {:?}:{}", bbi, stmt_index);
-                    self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
-                    let location = mir::Location {
-                        block: bbi,
-                        statement_index: stmt_index
-                    };
-                    if !is_panic_block {
-                        for stmt in self.encode_statement(stmt, location).drain(..) {
-                            self.cfg_method.add_stmt(cfg_block, stmt);
-                        }
+                if self.loop_encoder.is_loop_head(bbi) {
+                    for cfg_successor in cfg_edges[&bbi].values() {
+                        self.encode_block_statements(bbi, *cfg_successor);
                     }
-                    for stmt in self.encode_expiring_borrows_at(location).drain(..) {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
-                    }
+                } else {
+                    self.encode_block_statements(bbi, cfg_block);
                 }
             } else {
                 // Any spec block must be unreachable
@@ -305,24 +282,65 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     return_cfg_block,
                     &mut procedure_contract
                 );
-                for stmt in stmts.into_iter() {
-                    self.cfg_method.add_stmt(cfg_block, stmt);
-                }
-                if successor != vir::Successor::Return {
-                    for successor in self.procedure.successors(bbi) {
-                        if self.procedure.is_reachable_block(successor) {
-                            let succ_location = mir::Location {
-                                block: successor,
-                                statement_index: 0
-                            };
-                            let cfg_edge_block = cfg_edges[&bbi][&successor];
-                            for stmt in self.encode_expiring_borrows_between(location, succ_location).drain(..) {
-                                self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                if self.loop_encoder.is_loop_head(bbi) {
+                    for cfg_successor in cfg_edges[&bbi].values() {
+                        for stmt in stmts.iter() {
+                            self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
+                        }
+                    }
+                    match successor {
+                        Successor::GotoSwitch(cfg_targets, cfg_default_target) => {
+                            let mut new_cfg_targets = Vec::new();
+                            let mut default_condition_conjuncts = Vec::new();
+                            for (expr, cfg_target) in cfg_targets {
+
+                                // Make the jump non-deterministic.
+                                let new_local = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
+                                new_cfg_targets.push((new_local.into(), cfg_target));
+
+                                // Assume the condition under which the jump happened.
+                                let stmt = vir::Stmt::Inhale(expr.clone());
+                                default_condition_conjuncts.push(expr);
+                                self.cfg_method.add_stmt(cfg_target, stmt);
+                            }
+                            let default_condition = vir::Expr::UnaryOp(
+                                vir::UnaryOpKind::Not,
+                                box default_condition_conjuncts.into_iter().conjoin(),
+                                vir::Position::default(),
+                            );
+                            let stmt = vir::Stmt::Inhale(default_condition);
+                            self.cfg_method.add_stmt(cfg_default_target, stmt);
+                            let new_successor = Successor::GotoSwitch(
+                                new_cfg_targets, cfg_default_target);
+                            self.cfg_method.set_successor(cfg_block, new_successor);
+                        },
+                        Successor::Goto(cfg_target) => {
+                            let new_successor = Successor::Goto(cfg_target);
+                            self.cfg_method.set_successor(cfg_block, new_successor);
+                        },
+                        x => unreachable!("{:?}", x),
+                    }
+                } else {
+                    for stmt in stmts.into_iter() {
+                        self.cfg_method.add_stmt(cfg_block, stmt);
+                    }
+                    if successor != vir::Successor::Return {
+                        for successor in self.procedure.successors(bbi) {
+                            if self.procedure.is_reachable_block(successor) {
+                                let succ_location = mir::Location {
+                                    block: successor,
+                                    statement_index: 0
+                                };
+                                let cfg_edge_block = cfg_edges[&bbi][&successor];
+                                for stmt in self.encode_expiring_borrows_between(
+                                        location, succ_location).drain(..) {
+                                    self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                                }
                             }
                         }
                     }
+                    self.cfg_method.set_successor(cfg_block, successor);
                 }
-                self.cfg_method.set_successor(cfg_block, successor);
             }
 
             // Exhale the loop invariant if the successor is a loop head
@@ -376,7 +394,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let var_type = vir::Type::TypedRef(type_name.clone());
             let local_var = vir::LocalVar::new(var_name.clone(), var_type);
             let alloc_stmt = vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(local_var.clone().into(), vir::Frac::one()).unwrap()
+                self.mir_encoder.encode_place_predicate_permission(
+                    local_var.clone().into(), vir::PermAmount::Write).unwrap()
             );
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
@@ -469,6 +488,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         final_method
+    }
+
+    fn encode_block_statements(&mut self, bbi: BasicBlockIndex, cfg_block: CfgBlockIndex) {
+        let bb_data = &self.mir.basic_blocks()[bbi];
+        let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
+        let is_panic_block = self.procedure.is_panic_block(bbi);
+        for (stmt_index, stmt) in statements.iter().enumerate() {
+            trace!("Encode statement {:?}:{}", bbi, stmt_index);
+            self.cfg_method.add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
+            let location = mir::Location {
+                block: bbi,
+                statement_index: stmt_index
+            };
+            if !is_panic_block {
+                for stmt in self.encode_statement(stmt, location).drain(..) {
+                    self.cfg_method.add_stmt(cfg_block, stmt);
+                }
+            }
+            for stmt in self.encode_expiring_borrows_at(location).drain(..) {
+                self.cfg_method.add_stmt(cfg_block, stmt);
+            }
+        }
     }
 
     fn encode_statement(&mut self, stmt: &mir::Statement<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
@@ -1591,7 +1632,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             );
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_func_spec), pos.clone()));
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_invs_spec), pos.clone()));
-                            stmts.push(vir::Stmt::Exhale(replace_fake_exprs(pre_type_spec.clone()), pos));
+                            let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
+                            stmts.push(vir::Stmt::Exhale(pre_perm_spec.remove_read_permissions(), pos));
 
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
@@ -1610,7 +1652,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let (post_type_spec, post_invs_spec, post_func_spec, magic_wands) = self.encode_postcondition_expr(
                                 &procedure_contract, &pre_label, &post_label,
                                 Some((location, &fake_exprs)), real_target.is_none());
-                            stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_type_spec)));
+                            let post_perm_spec = replace_fake_exprs(post_type_spec);
+                            stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
 
@@ -1721,7 +1764,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
         self.mir_encoder.encode_place_predicate_permission(
             self.encode_prusti_local(local).into(),
-            vir::Frac::one()
+            vir::PermAmount::Write
         ).unwrap()
     }
 
@@ -1779,7 +1822,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (encoded_place, _, _) = self.encode_generic_place(place);
         vir::Expr::pred_permission(
             encoded_place.maybe_old(state_label),
-            vir::Frac::one(),
+            vir::PermAmount::Write,
         ).unwrap()
     }
 
@@ -1790,7 +1833,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (encoded_place, _, _) = self.encode_generic_place(place);
         vir::Expr::acc_permission(
             encoded_place,
-            vir::Frac::one(),
+            vir::PermAmount::Write,
         )
     }
 
@@ -2062,12 +2105,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         encoded_arg.into(), arg_ty);
                     let old_deref_place = deref_place.clone().old(&pre_label);
                     let deref_pred = vir::Expr::pred_permission(
-                        old_deref_place.clone(), vir::Frac::one()).unwrap();
+                        old_deref_place.clone(), vir::PermAmount::Write).unwrap();
                     package_stmts.extend(
                         self.encode_transfer_permissions(deref_place, old_deref_place.clone(), location)
                     );
                     let predicate = vir::Expr::pred_permission(
-                        old_deref_place, vir::Frac::one()).unwrap();
+                        old_deref_place, vir::PermAmount::Write).unwrap();
                     package_stmts.extend(self.encode_obtain(predicate));
                 }
             }
@@ -2140,7 +2183,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 // Fold argument.
                 let deref_pred = self.mir_encoder.encode_place_predicate_permission(
-                    encoded_deref.clone(), vir::Frac::one()).unwrap();
+                    encoded_deref.clone(), vir::PermAmount::Write).unwrap();
                 for stmt in self.encode_obtain(deref_pred).drain(..) {
                     self.cfg_method.add_stmt(return_cfg_block, stmt);
                 }
@@ -2190,10 +2233,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loop_depth = self.loop_encoder.get_loop_depth(loop_head) as u32;
         debug!("permissions_forest: {:?}", permissions_forest);
 
-        fn read_frac_by_loop_depth(loop_depth: u32) -> vir::Frac {
-            vir::Frac::new(1, 2) + vir::Frac::new(1, 2 * (1 + loop_depth))
-        }
-
         let mut permissions = vec![];
         for tree in permissions_forest.get_trees().iter() {
             for (kind, mir_place) in tree.get_permissions().into_iter() {
@@ -2210,7 +2249,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            read_frac_by_loop_depth(loop_depth)
+                            vir::PermAmount::Read,
                         )
                     }
 
@@ -2219,7 +2258,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::ReadSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            read_frac_by_loop_depth(loop_depth)
+                            vir::PermAmount::Read,
                         ).unwrap()
                     }
 
@@ -2227,7 +2266,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::WriteNode => {
                         vir::Expr::acc_permission(
                             encoded_place,
-                            vir::Frac::one()
+                            vir::PermAmount::Write
                         )
                     }
 
@@ -2236,7 +2275,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     PermissionKind::WriteSubtree => {
                         vir::Expr::pred_permission(
                             encoded_place,
-                            vir::Frac::one()
+                            vir::PermAmount::Write
                         ).unwrap()
                     }
 
@@ -2333,12 +2372,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 format!("Restore the fold/unfold state of the loop invariant of {:?}", loop_head)
             ),
             vir::Stmt::Obtain(
-                permissions.into_iter().conjoin()
+                permissions.into_iter().conjoin().remove_read_permissions()
             )
         ]
     }
 
-    fn encode_loop_invariant_exhale(&self, loop_head: BasicBlockIndex, after_loop_iteration: bool) -> Vec<vir::Stmt> {
+    fn encode_loop_invariant_exhale(
+        &self,
+        loop_head: BasicBlockIndex,
+        after_loop_iteration: bool
+    ) -> Vec<vir::Stmt> {
         let permissions = self.encode_loop_invariant_permissions(loop_head);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
@@ -2365,6 +2408,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         );
 
+        let mut permission_expr = permissions.into_iter().conjoin();
+        if !after_loop_iteration {
+            permission_expr = permission_expr.remove_read_permissions();
+        }
+
         vec![
             vir::Stmt::comment(
                 format!("Assert and exhale the loop invariant of block {:?}", loop_head)
@@ -2374,27 +2422,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 assert_pos
             ),
             vir::Stmt::Exhale(
-                permissions.into_iter().conjoin(),
+                permission_expr,
                 exhale_pos
             )
         ]
     }
 
-    fn encode_loop_invariant_inhale(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+    fn encode_loop_invariant_inhale(
+        &self,
+        loop_head: BasicBlockIndex,
+        after_loop: bool
+    ) -> Vec<vir::Stmt> {
         let permissions = self.encode_loop_invariant_permissions(loop_head);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
-        vec![
+        let mut permission_expr = permissions.into_iter().conjoin();
+        if after_loop {
+            permission_expr = permission_expr.remove_read_permissions();
+        }
+
+        let mut stmts = vec![
             vir::Stmt::comment(
-                format!("Inhale the loop invariant of block {:?}", loop_head)
-            ),
-            vir::Stmt::Inhale(
-                permissions.into_iter().conjoin()
-            ),
-            vir::Stmt::Inhale(
-                func_spec.into_iter().conjoin(),
-            ),
-        ]
+                format!("Inhale the loop invariant of block {:?}", loop_head),
+            )
+        ];
+        if after_loop {
+            stmts.push(vir::Stmt::EndFrame);
+        }
+        stmts.push(vir::Stmt::Inhale(permission_expr));
+        stmts.push(vir::Stmt::Inhale(func_spec.into_iter().conjoin()));
+        stmts
     }
 
     // TODO: What is this?
@@ -2663,7 +2720,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Allocate `dst`
         stmts.push(
             vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap()
+                self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write).unwrap()
             )
         );
         stmts
@@ -2673,7 +2730,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// The place itself (Viper reference) does not change.
     fn encode_havoc_content(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc content {:?}", dst);
-        let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap();
+        let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write).unwrap();
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,
@@ -2687,7 +2744,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_exhale(&mut self, dst: &vir::Expr) -> vir::Stmt {
         debug!("Encode exhale {:?}", dst);
-        let type_predicate = self.mir_encoder.encode_place_predicate_permission(dst.clone(), vir::Frac::one()).unwrap();
+        let type_predicate = self.mir_encoder.encode_place_predicate_permission(
+            dst.clone(), vir::PermAmount::Write).unwrap();
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,

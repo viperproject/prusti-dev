@@ -215,7 +215,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             let domains = self.encoder.get_used_viper_domains();
             let fields = self.encoder.get_used_viper_fields().to_viper(ast);
             let unoptimized_functions = self.encoder.get_used_viper_functions();
-            let functions: Vec<_> = if config::simplify_functions() {
+            let mut functions: Vec<_> = if config::simplify_functions() {
                 optimisations::functions::inline_constant_functions(unoptimized_functions)
                     .into_iter()
                     .map(|mut f| { optimisations::functions::simplify(&mut f); f })
@@ -234,6 +234,22 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             info!(
                 "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
                 domains.len(), fields.len(), functions.len(), predicates.len(), methods.len()
+            );
+
+            // Add a function that represents the symbolic read permission amount.
+            functions.push(
+                ast.function(
+                    "read$",
+                    &[],
+                    ast.perm_type(),
+                    &[],
+                    &[
+                        ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
+                        ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm())
+                    ],
+                    ast.no_position(),
+                    None
+                )
             );
 
             ast.program(&domains, &fields, &functions, &predicates, &methods)

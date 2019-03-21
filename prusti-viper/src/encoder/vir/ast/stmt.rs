@@ -22,8 +22,8 @@ pub enum Stmt {
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Expr, Expr, AssignKind),
-    Fold(String, Vec<Expr>, Frac),
-    Unfold(String, Vec<Expr>, Frac),
+    Fold(String, Vec<Expr>, PermAmount),
+    Unfold(String, Vec<Expr>, PermAmount),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     Obtain(Expr),
@@ -94,35 +94,19 @@ impl fmt::Display for Stmt {
                 AssignKind::MutableBorrow => write!(f, "{} := borrow {}", lhs, rhs),
             },
 
-            Stmt::Fold(ref pred_name, ref args, frac) => if *frac == Frac::one() {
-                write!(
-                    f, "fold {}({})",
-                    pred_name,
-                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
-                )
-            } else {
-                write!(
-                    f, "fold acc({}({}), {})",
-                    pred_name,
-                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
-                    frac,
-                )
-            },
+            Stmt::Fold(ref pred_name, ref args, perm) => write!(
+                f, "fold acc({}({}), {})",
+                pred_name,
+                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                perm,
+            ),
 
-            Stmt::Unfold(ref pred_name, ref args, frac) => if *frac == Frac::one() {
-                write!(
-                    f, "unfold {}({})",
-                    pred_name,
-                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
-                )
-            } else {
-                write!(
-                    f, "unfold acc({}({}), {})",
-                    pred_name,
-                    args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
-                    frac,
-                )
-            },
+            Stmt::Unfold(ref pred_name, ref args, perm) => write!(
+                f, "unfold acc({}({}), {})",
+                pred_name,
+                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                perm,
+            ),
 
             Stmt::Obtain(ref expr) => write!(f, "obtain {}", expr),
 
@@ -195,7 +179,7 @@ impl Stmt {
         Stmt::Obtain(
             Expr::FieldAccessPredicate(
                 box place,
-                Frac::one(),
+                PermAmount::Write,
                 pos
             )
         )
@@ -207,29 +191,29 @@ impl Stmt {
             Expr::PredicateAccessPredicate(
                 predicate_name,
                 vec![ place ],
-                Frac::one(),
+                PermAmount::Write,
                 pos
             )
         )
     }
 
-    pub fn fold_pred(place: Expr, frac: Frac) -> Self {
+    pub fn fold_pred(place: Expr, perm: PermAmount) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Fold(
             predicate_name,
             vec![
                 place.into()
             ],
-            frac
+            perm
         )
     }
 
-    pub fn unfold_pred(place: Expr, frac: Frac) -> Self {
+    pub fn unfold_pred(place: Expr, perm: PermAmount) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Unfold(
             predicate_name,
             vec![ place ],
-            frac
+            perm
         )
     }
 
@@ -295,8 +279,8 @@ pub trait StmtFolder {
             Stmt::Assert(e, p) => self.fold_assert(e, p),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
-            Stmt::Fold(s, ve, frac) => self.fold_fold(s, ve, frac),
-            Stmt::Unfold(s, ve, frac) => self.fold_unfold(s, ve, frac),
+            Stmt::Fold(s, ve, perm) => self.fold_fold(s, ve, perm),
+            Stmt::Unfold(s, ve, perm) => self.fold_unfold(s, ve, perm),
             Stmt::Obtain(e) => self.fold_obtain(e),
             Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
             Stmt::Havoc => self.fold_havoc(),
@@ -343,12 +327,12 @@ pub trait StmtFolder {
         Stmt::Assign(self.fold_expr(p), self.fold_expr(e), k)
     }
 
-    fn fold_fold(&mut self, s: String, ve: Vec<Expr>, frac: Frac) -> Stmt {
-        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), frac)
+    fn fold_fold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount) -> Stmt {
+        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm)
     }
 
-    fn fold_unfold(&mut self, s: String, ve: Vec<Expr>, frac: Frac) -> Stmt {
-        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), frac)
+    fn fold_unfold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount) -> Stmt {
+        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm)
     }
 
     fn fold_obtain(&mut self, e: Expr) -> Stmt {

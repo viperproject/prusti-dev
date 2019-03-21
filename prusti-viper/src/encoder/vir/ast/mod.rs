@@ -12,9 +12,6 @@ pub use self::function::*;
 pub use self::bodyless_method::*;
 pub use self::common::*;
 
-pub use num_traits::One;
-pub use num_traits::Zero;
-
 mod expr;
 mod stmt;
 mod trigger;
