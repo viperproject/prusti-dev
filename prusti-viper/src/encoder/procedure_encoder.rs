@@ -101,7 +101,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             check_panics: config::check_panics(),
             check_fold_unfold_state: config::check_foldunfold_state(),
-            polonius_info: PoloniusInfo::new(tcx, def_id, mir),
+            polonius_info: PoloniusInfo::new(procedure),
             label_after_location: HashMap::new(),
             cfg_block_has_been_executed: HashMap::new(),
             magic_wand_at_location: HashMap::new(),

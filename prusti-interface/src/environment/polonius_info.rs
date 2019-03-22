@@ -14,6 +14,7 @@ use std::iter::FromIterator;
 use std::fmt;
 use super::loops;
 use super::borrowck::{facts, regions};
+use super::procedure::Procedure;
 use super::mir_analyses::initialization::{
     compute_definitely_initialized,
     DefinitelyInitializedAnalysisResult
@@ -490,18 +491,25 @@ fn get_borrowed_place<'a, 'tcx: 'a>(
 }
 
 fn compute_loan_conflict_sets(
-    mir: &mir::Mir,
+    procedure: &Procedure,
     loan_position: &HashMap<facts::Loan, mir::Location>,
     borrowck_in_facts: &facts::AllInputFacts,
     borrowck_out_facts: &facts::AllOutputFacts
 ) -> HashMap<facts::Loan, Vec<facts::Loan>> {
     let mut loan_conflict_sets = HashMap::new();
 
+    let mir = procedure.get_mir();
+
     for &(_r, loan, _) in &borrowck_in_facts.borrow_region {
         loan_conflict_sets.insert(loan, Vec::new());
     }
 
     for &(_r, loan_created, point) in &borrowck_in_facts.borrow_region {
+        let location = loan_position[&loan_created];
+        if !procedure.is_reachable_block(location.block) ||
+                procedure.is_spec_block(location.block) {
+            continue;
+        }
         if let Some(borrowed_place) = get_borrowed_place(mir, loan_position, loan_created) {
             if let Some(live_borrows) = borrowck_out_facts.borrow_live_at.get(&point) {
                 for loan_alive in live_borrows {
@@ -521,7 +529,11 @@ fn compute_loan_conflict_sets(
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
-    pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId, mir: &'a mir::Mir<'tcx>) -> Self {
+    pub fn new(procedure: &'a Procedure<'a, 'tcx>) -> Self {
+        let tcx = procedure.get_tcx();
+        let def_id = procedure.get_id();
+        let mir = procedure.get_mir();
+
         // Read Polonius facts.
         let def_path = tcx.hir.def_path(def_id);
         let dir_path = PathBuf::from("nll-facts").join(def_path.to_filename_friendly_no_crate());
@@ -535,8 +547,6 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             def_path.to_filename_friendly_no_crate()));
         debug!("Renumber path: {:?}", renumber_path);
         let variable_regions = regions::load_variable_regions(&renumber_path).unwrap();
-
-        //let mir = tcx.mir_validated(def_id).borrow();
 
         let mut call_magic_wands = HashMap::new();
 
@@ -574,7 +584,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let initialization = compute_definitely_initialized(&mir, tcx, def_path.clone());
         let liveness = compute_liveness(&mir);
         let loan_conflict_sets = compute_loan_conflict_sets(
-            mir, &loan_position, &all_facts, &output);
+            procedure, &loan_position, &all_facts, &output);
 
         let mut info = Self {
             mir: mir,
