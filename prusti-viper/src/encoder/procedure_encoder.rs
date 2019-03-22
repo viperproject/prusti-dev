@@ -881,23 +881,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// a borrow.
     fn is_mutable_borrow(&self, location: mir::Location) -> bool {
         let mir::BasicBlockData { ref statements, .. } = self.mir[location.block];
-        assert!(location.statement_index < statements.len());
-        let statement = &statements[location.statement_index];
-        match statement.kind {
-            mir::StatementKind::Assign(ref _lhs, ref rhs) => {
-                match rhs {
-                    &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, _) |
-                    &mir::Rvalue::Use(mir::Operand::Copy(_)) => {
-                        false
+        if location.statement_index == statements.len() {
+            // It is not an assignment, so we assume that the borrow is mutable.
+            true
+        } else {
+            let statement = &statements[location.statement_index];
+            match statement.kind {
+                mir::StatementKind::Assign(ref _lhs, ref rhs) => {
+                    match rhs {
+                        &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, _) |
+                        &mir::Rvalue::Use(mir::Operand::Copy(_)) => {
+                            false
+                        }
+                        &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, _) |
+                        &mir::Rvalue::Use(mir::Operand::Move(_)) => {
+                            true
+                        }
+                        x => unreachable!("{:?}", x),
                     }
-                    &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, _) |
-                    &mir::Rvalue::Use(mir::Operand::Move(_)) => {
-                        true
-                    }
-                    x => unreachable!("{:?}", x),
-                }
-            },
-            ref x => unreachable!("{:?}", x),
+                },
+                ref x => unreachable!("{:?}", x),
+            }
         }
     }
 
