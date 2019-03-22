@@ -11,6 +11,7 @@ use encoder::vir;
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::perm::Perm;
 use std::collections::HashMap;
+use std::cmp::Ordering;
 use std::iter;
 
 
@@ -33,7 +34,7 @@ pub(super) struct EventLog {
     /// A list of accessibility predicates for which we inhaled `Read`
     /// permission when creating a borrow and original places from which
     /// they borrow.
-    duplicated_reads: HashMap<vir::borrows::Borrow, Vec<(vir::Expr, vir::Expr)>>,
+    duplicated_reads: HashMap<vir::borrows::Borrow, Vec<(vir::Expr, vir::Expr, u32)>>,
 
     /// The place that is blocked by a given borrow.
     blocked_place: HashMap<vir::borrows::Borrow, vir::Expr>,
@@ -41,6 +42,9 @@ pub(super) struct EventLog {
     /// A list of accessibility predicates that were converted from
     /// `Write` to `Read` when creating a borrow.
     converted_to_read_places: HashMap<vir::borrows::Borrow, Vec<vir::Expr>>,
+
+    /// A generator of unique IDs.
+    id_generator: u32,
 }
 
 impl EventLog {
@@ -50,6 +54,7 @@ impl EventLog {
             duplicated_reads: HashMap::new(),
             blocked_place: HashMap::new(),
             converted_to_read_places: HashMap::new(),
+            id_generator: 0,
         }
     }
     pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
@@ -85,13 +90,42 @@ impl EventLog {
         original_place: vir::Expr,
     ) {
         let entry = self.duplicated_reads.entry(borrow).or_insert(Vec::new());
-        entry.push((perm, original_place));
+        entry.push((perm, original_place, self.id_generator));
+        self.id_generator += 1;
     }
     pub fn get_duplicated_read_permissions(
         &self,
         borrow: vir::borrows::Borrow
     ) -> Vec<(vir::Expr, vir::Expr)> {
-        self.duplicated_reads.get(&borrow).cloned().unwrap_or(Vec::new())
+        let mut result = self.duplicated_reads.get(&borrow).cloned().unwrap_or(Vec::new());
+        result.sort_by(|(access1, _, id1), (access2, _, id2)| {
+            match (access1, access2) {
+                (vir::Expr::PredicateAccessPredicate(_, _, _, _),
+                 vir::Expr::PredicateAccessPredicate(_, _, _, _)) => {
+                    Ordering::Equal
+                },
+                (vir::Expr::PredicateAccessPredicate(_, _, _, _),
+                 vir::Expr::FieldAccessPredicate(_, _, _)) => {
+                    Ordering::Less
+                },
+                (vir::Expr::FieldAccessPredicate(_, _, _),
+                 vir::Expr::PredicateAccessPredicate(_, _, _, _)) => {
+                    Ordering::Greater
+                },
+                (vir::Expr::FieldAccessPredicate(box ref place1, _, _),
+                 vir::Expr::FieldAccessPredicate(box ref place2, _, _)) => {
+                    if place1.has_prefix(place2) {
+                        Ordering::Less
+                    } else if place2.has_prefix(place1) {
+                        Ordering::Greater
+                    } else {
+                        id1.cmp(id2)
+                    }
+                },
+                x => unreachable!("{:?}", x),
+            }
+        });
+        result.into_iter().map(|(access, original_place, _)| (access, original_place)).collect()
     }
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     pub fn log_convertion_to_read(
