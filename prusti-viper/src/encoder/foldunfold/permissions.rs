@@ -113,9 +113,11 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame => HashSet::new(),
 
-            &vir::Stmt::TransferPerm(ref lhs, _) => {
+            &vir::Stmt::TransferPerm(ref lhs, _, unchecked) => {
                 let mut res = HashSet::new();
-                res.insert(Acc(lhs.clone(), PermAmount::Read));
+                if !unchecked {
+                    res.insert(Acc(lhs.clone(), PermAmount::Read));
+                }
                 res
             }
 
@@ -160,7 +162,7 @@ impl vir::Stmt {
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |
-            &vir::Stmt::TransferPerm(_, _) |
+            &vir::Stmt::TransferPerm(_, _, _) |
             &vir::Stmt::PackageMagicWand(_, _, _, _) |
             &vir::Stmt::ApplyMagicWand(_, _) |
             &vir::Stmt::ExpireBorrows(_) |
@@ -289,11 +291,26 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::FuncApp(ref name, ref args, ..) => {
                 args.iter().map(|arg| {
                     if arg.is_place() && arg.get_type().is_ref() {
-                        vir::Expr::predicate_access_predicate(
-                            arg.get_type().to_string(),
-                            arg.clone().into(),
-                            PermAmount::Read,
-                        )
+                        // FIXME: A hack: have unfolded Rust references in the precondition to
+                        // simplify our life. A proper solution would be to look up the
+                        // real function precondition.
+                        let mut predicate_name = arg.get_type().name();
+                        if predicate_name.starts_with("ref$") {
+                            let field_predicate_name = predicate_name.split_off(4);
+                            let field = vir::Field::new(
+                                "val_ref", vir::Type::TypedRef(field_predicate_name));
+                            let field_place = vir::Expr::from(arg.clone()).field(field);
+                            vir::Expr::and(
+                                vir::Expr::acc_permission(field_place.clone(), vir::PermAmount::Read),
+                                vir::Expr::pred_permission(field_place, vir::PermAmount::Read).unwrap(),
+                            )
+                        } else {
+                            vir::Expr::predicate_access_predicate(
+                                predicate_name.clone(),
+                                arg.clone().into(),
+                                PermAmount::Read,
+                            )
+                        }
                     } else {
                         debug!("arg {} is not a place with type ref", arg);
                         arg.clone()

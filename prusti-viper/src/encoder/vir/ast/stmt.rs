@@ -42,7 +42,11 @@ pub enum Stmt {
     EndFrame,
     /// Move permissions from a place to another.
     /// This is used to restore permissions in the fold/unfold state when a loan expires.
-    TransferPerm(Expr, Expr),
+    ///
+    /// The last argument indicates if the transfer is unchecked. Unchecked transfer is used for
+    /// encoding shared borrows which can be dangling and, therefore, we cannot use the safety
+    /// checks.
+    TransferPerm(Expr, Expr, bool),
     /// Package a Magic Wand
     /// Arguments: the magic wand, the package statement's body, and the
     /// label just before the statement.
@@ -130,7 +134,9 @@ impl fmt::Display for Stmt {
 
             Stmt::EndFrame => write!(f, "end frame"),
 
-            Stmt::TransferPerm(ref lhs, ref rhs) => write!(f, "transfer perm {} --> {}", lhs, rhs),
+            Stmt::TransferPerm(ref lhs, ref rhs, unchecked) => {
+                write!(f, "transfer perm {} --> {} // unchecked: {}", lhs, rhs, unchecked)
+            },
 
             Stmt::PackageMagicWand(
                 Expr::MagicWand(ref lhs, ref rhs, _),
@@ -298,7 +304,7 @@ pub trait StmtFolder {
             Stmt::Havoc => self.fold_havoc(),
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
-            Stmt::TransferPerm(a, b) => self.fold_transfer_perm(a, b),
+            Stmt::TransferPerm(a, b, c) => self.fold_transfer_perm(a, b, c),
             Stmt::PackageMagicWand(w, s, l, p) => self.fold_package_magic_wand(w, s, l, p),
             Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
@@ -367,8 +373,8 @@ pub trait StmtFolder {
         Stmt::EndFrame
     }
 
-    fn fold_transfer_perm(&mut self, a: Expr, b: Expr) -> Stmt {
-        Stmt::TransferPerm(self.fold_expr(a), self.fold_expr(b))
+    fn fold_transfer_perm(&mut self, a: Expr, b: Expr, unchecked: bool) -> Stmt {
+        Stmt::TransferPerm(self.fold_expr(a), self.fold_expr(b), unchecked)
     }
 
     fn fold_package_magic_wand(&mut self, w: Expr, s: Vec<Stmt>, l: String, p: Position) -> Stmt {

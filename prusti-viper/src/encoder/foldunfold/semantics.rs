@@ -200,7 +200,7 @@ impl vir::Stmt {
                 state.end_frame()
             }
 
-            &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place) => {
+            &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place, unchecked) => {
                 let original_state = state.clone();
 
                 debug_assert!(
@@ -290,7 +290,8 @@ impl vir::Stmt {
                 */
 
                 // Finally, mark the lhs as moved
-                if !lhs_place.has_prefix(rhs_place) { // Maybe this is always true?
+                if !lhs_place.has_prefix(rhs_place) &&   // Maybe this is always true?
+                        !unchecked {
                     state.insert_moved(lhs_place.clone());
                 }
             }

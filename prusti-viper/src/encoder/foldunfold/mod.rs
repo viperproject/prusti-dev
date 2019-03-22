@@ -131,7 +131,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 // Rewrite statement
                 vir::Stmt::Inhale(self.replace_expr(&expr, &inner_bctxt))
             }
-            vir::Stmt::TransferPerm(lhs, rhs) => {
+            vir::Stmt::TransferPerm(lhs, rhs, unchecked) => {
                 // Compute rhs state
                 let mut rhs_bctxt = bctxt.clone();
                 /*
@@ -142,11 +142,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         .filter(|p| p.is_pred())
                 );
                 */
+                let new_lhs = if unchecked {
+                    lhs
+                } else {
+                    self.replace_expr(&lhs, &bctxt)
+                };
 
                 // Rewrite statement
                 vir::Stmt::TransferPerm(
-                    self.replace_expr(&lhs, &bctxt),
-                    self.replace_old_expr(&rhs, &rhs_bctxt)
+                    new_lhs,
+                    self.replace_old_expr(&rhs, &rhs_bctxt),
+                    unchecked
                 )
             }
             vir::Stmt::PackageMagicWand(wand, stmts, label, pos) => {
@@ -308,7 +314,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 curr_block.statements.extend(new_stmts);
             }
             if let Some(original_place) = maybe_original_place {
-                bctxt.mut_state().insert_moved(original_place);
+                if bctxt.state().contains_acc(&original_place) {
+                    bctxt.mut_state().insert_moved(original_place);
+                }
             }
             // Restore write permissions.
             // Currently, we have a simplified version that restores write permissions only when
@@ -432,7 +440,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     match stmt {
                         vir::Stmt::Comment(_) |
                         vir::Stmt::ApplyMagicWand(_, _) |
-                        vir::Stmt::TransferPerm(_, _) => {
+                        vir::Stmt::TransferPerm(_, _, _) => {
                             stmt.clone()
                         },
                         vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {

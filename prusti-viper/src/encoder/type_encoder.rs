@@ -471,7 +471,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_invariant_def(self) -> vir::Function {
-        debug!("Encode type invariant '{:?}'", self.ty);
+        debug!("[enter] encode_invariant_def({:?})", self.ty);
 
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
         let self_local_var = vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
@@ -560,11 +560,25 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             _ => (vec![]),
         };
 
-        let precondition = vir::Expr::predicate_access_predicate(
-            predicate_name,
-            self_local_var.clone().into(),
-            vir::PermAmount::Write,
-        );
+        let precondition = match self.ty.sty {
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
+            ty::TypeVariants::TyRef(_, ref ty, _) => {
+                // This is a reference, so we need to have it already unfolded.
+                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
+                let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
+                vir::Expr::and(
+                    vir::Expr::acc_permission(elem_loc.clone(), vir::PermAmount::Read),
+                    vir::Expr::pred_permission(elem_loc, vir::PermAmount::Read).unwrap(),
+                )
+            },
+            _ => {
+                vir::Expr::predicate_access_predicate(
+                    predicate_name,
+                    self_local_var.clone().into(),
+                    vir::PermAmount::Read,
+                )
+            },
+        };
 
         let function = vir::Function {
             name: invariant_name,
@@ -576,10 +590,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         };
 
         // Add folding/unfolding
-        foldunfold::add_folding_unfolding_to_function(
+        let final_function = foldunfold::add_folding_unfolding_to_function(
             function,
             self.encoder.get_used_viper_predicates_map()
-        )
+        );
+        debug!("[exit] encode_invariant_def({:?}):\n{}", self.ty, final_function);
+        final_function
     }
 
     pub fn encode_invariant_use(self) -> String {

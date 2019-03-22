@@ -28,6 +28,7 @@ use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
 use prusti_interface::environment::polonius_info::{ReborrowingZombity, ReborrowingGuard, ReborrowingDAG, ReborrowingDAGNode, ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
 use prusti_interface::environment::borrowck::{facts};
 use prusti_interface::report::log;
+use rustc::hir::Mutability;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
 use rustc::mir::TerminatorKind;
@@ -823,7 +824,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loan_in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
 
         stmts.push(
-            vir::Stmt::TransferPerm(lhs.clone(), rhs.clone())
+            vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)
         );
 
         if self.check_fold_unfold_state {
@@ -877,8 +878,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    /// A borrow is mutable if it was a MIR unique borrow or a move of
-    /// a borrow.
+    /// A borrow is mutable if it was a MIR unique borrow, a move of
+    /// a borrow, or a argument of a function.
     fn is_mutable_borrow(&self, location: mir::Location) -> bool {
         let mir::BasicBlockData { ref statements, .. } = self.mir[location.block];
         if location.statement_index == statements.len() {
@@ -1696,11 +1697,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
-                            let (post_type_spec, post_invs_spec, post_func_spec, magic_wands) = self.encode_postcondition_expr(
-                                &procedure_contract, &pre_label, &post_label,
-                                Some((location, &fake_exprs)), real_target.is_none());
+                            let (post_type_spec, post_invs_spec, post_func_spec, magic_wands, read_transfer) =
+                                self.encode_postcondition_expr(
+                                    &procedure_contract, &pre_label, &post_label,
+                                    Some((location, &fake_exprs)), real_target.is_none());
                             let post_perm_spec = replace_fake_exprs(post_type_spec);
                             stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
+                            for (from_place, to_place) in read_transfer {
+                                stmts.push(vir::Stmt::TransferPerm(
+                                    replace_fake_exprs(from_place),
+                                    replace_fake_exprs(to_place),
+                                    true));
+                            }
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
 
@@ -1809,19 +1817,43 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode permissions that are implicitly carried by the given local variable.
     fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
-        self.mir_encoder.encode_place_predicate_permission(
-            self.encode_prusti_local(local).into(),
-            vir::PermAmount::Write
-        ).unwrap()
+        match self.locals.get_type(local).sty {
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl: mutability }) |
+            ty::TypeVariants::TyRef(_, ref ty, mutability) => {
+                // Use unfolded references.
+                let encoded_local = self.encode_prusti_local(local);
+                let field = self.encoder.encode_ref_field("val_ref", ty);
+                let place = vir::Expr::from(encoded_local).field(field);
+                let perm_amount = match mutability {
+                    Mutability::MutMutable => vir::PermAmount::Write,
+                    Mutability::MutImmutable => vir::PermAmount::Read,
+                };
+                vir::Expr::and(
+                    vir::Expr::acc_permission(place.clone(), vir::PermAmount::Write),
+                    vir::Expr::pred_permission(place, perm_amount).unwrap(),
+                )
+            }
+            _ => {
+                self.mir_encoder.encode_place_predicate_permission(
+                    self.encode_prusti_local(local).into(),
+                    vir::PermAmount::Write
+                ).unwrap()
+            }
+        }
     }
 
     /// Encode the precondition with three expressions:
     /// - one for the type encoding
     /// - one for the type invariants
     /// - one for the functional specification.
-    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> (vir::Expr, vir::Expr, vir::Expr) {
+    fn encode_precondition_expr(
+        &self,
+        contract: &ProcedureContract<'tcx>
+    ) -> (vir::Expr, vir::Expr, vir::Expr) {
+
         let type_spec = contract.args.iter()
-            .map(|&local| self.encode_local_variable_permission(local));
+            .map(|&local| self.encode_local_variable_permission(local))
+            .into_iter().conjoin();
 
         let mut invs_spec: Vec<vir::Expr> = vec![];
 
@@ -1848,7 +1880,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             func_spec.push(value);
         }
 
-        (type_spec.into_iter().conjoin(), invs_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
+        (type_spec, invs_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
     }
 
     /// Encode precondition inhale on the definition side.
@@ -1865,8 +1897,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode permissions that are implicitly carried by the given place.
     /// `state_label` – the label of the state in which the place should
     /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_pred_permission(&self, place: &Place<'tcx>, state_label: Option<&str>, ) -> vir::Expr {
-        let (encoded_place, _, _) = self.encode_generic_place(place);
+    fn encode_pred_permission(
+        &self,
+        place: &Place<'tcx>,
+        state_label: Option<&str>
+    ) -> vir::Expr {
+        let (encoded_place, ty, _) = self.encode_generic_place(place);
         vir::Expr::pred_permission(
             encoded_place.maybe_old(state_label),
             vir::PermAmount::Write,
@@ -2029,20 +2065,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
         diverging: bool
-    ) -> (vir::Expr, vir::Expr, vir::Expr, Vec<vir::Expr>) {
+    ) -> (vir::Expr, vir::Expr, vir::Expr, Vec<vir::Expr>, Vec<(vir::Expr, vir::Expr)>) {
         let mut type_spec = vec![];
         let mut invs_spec = vec![];
+        let mut read_transfer = vec![];     // Permissions taken as read
+                                            // references that need to
+                                            // be transfered to old.
 
         // Encode the permissions got back and invariants for the arguments of type reference
-        for place in contract.returned_refs.iter() {
+        for (place, mutability) in contract.returned_refs.iter() {
             debug!("Put permission {:?} in postcondition", place);
-            type_spec.push(self.encode_pred_permission(place, Some(pre_label)));
             let (place_expr, place_ty, _) = self.encode_generic_place(place);
-            let inv = self.encoder.encode_invariant_func_app(
-                place_ty,
-                place_expr.maybe_old(Some(pre_label))
-            );
-            invs_spec.push(inv);
+            let old_place_expr = place_expr.clone().old(pre_label);
+            match mutability {
+                Mutability::MutImmutable => {
+                    read_transfer.push((place_expr, old_place_expr));
+                }
+                Mutability::MutMutable => {
+
+                    let permissions = vir::Expr::pred_permission(
+                        old_place_expr.clone(),
+                        vir::PermAmount::Write,
+                    ).unwrap();
+                    type_spec.push(permissions);
+
+                    let inv = self.encoder.encode_invariant_func_app(
+                        place_ty,
+                        old_place_expr,
+                    );
+                    invs_spec.push(inv);
+                }
+            };
         }
 
         // Encode args and return.
@@ -2096,7 +2149,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         (type_spec.into_iter().conjoin(),
          invs_spec.into_iter().conjoin(),
          func_spec.into_iter().conjoin(),
-         magic_wands)
+         magic_wands,
+         read_transfer)
     }
 
     /// Encode the package statement of magic wands at the end of the method
@@ -2189,7 +2243,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
-        let (type_spec, invs_spec, func_spec, magic_wands) = self.encode_postcondition_expr(
+        let (type_spec, invs_spec, func_spec, magic_wands, _) = self.encode_postcondition_expr(
             contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false);
 
         // Find which arguments are blocked by the returned reference.
@@ -2224,7 +2278,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 continue;
             }
             let ty = self.locals.get_type(arg);
-            if self.mir_encoder.is_reference(ty) {
+            if self.mir_encoder.is_mut_reference(ty) {
                 let encoded_arg: vir::Expr = self.encode_prusti_local(arg).into();
                 let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
 
@@ -2239,7 +2293,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let old_expr = encoded_deref.clone().old(PRECONDITION_LABEL);
                 self.cfg_method.add_stmt(
                     return_cfg_block,
-                    vir::Stmt::TransferPerm(encoded_deref, old_expr)
+                    vir::Stmt::TransferPerm(encoded_deref, old_expr, false)
                 );
             }
         }
