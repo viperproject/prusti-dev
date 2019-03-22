@@ -34,6 +34,12 @@ pub(super) struct EventLog {
     /// A list of accessibility predicates for which we inhaled `Read`
     /// permission when creating a borrow and original places from which
     /// they borrow.
+    ///
+    /// The tuples values:
+    ///
+    /// 1.  The access predicate.
+    /// 2.  The rhs of the assignment that created this borrow.
+    /// 3.  A unique number.
     duplicated_reads: HashMap<vir::borrows::Borrow, Vec<(vir::Expr, vir::Expr, u32)>>,
 
     /// The place that is blocked by a given borrow.
@@ -127,7 +133,10 @@ impl EventLog {
                result.iter()
                     .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
                     .collect::<String>());
-        result.into_iter().map(|(access, original_place, _)| (access, original_place)).collect()
+        result
+            .into_iter()
+            .map(|(access, original_place, _)| (access, original_place))
+            .collect()
     }
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     pub fn log_convertion_to_read(

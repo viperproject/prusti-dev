@@ -294,16 +294,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
 
             // Remove read permissions.
             let duplicated_perms = self.log.get_duplicated_read_permissions(curr_node.borrow);
+            let mut maybe_original_place = None;
             for (mut read_access, original_place) in duplicated_perms {
                 if let Some(ref place) = curr_node.place {
                     debug!("place={} original_place={} read_access={}",
                            place, original_place, read_access);
                     read_access = read_access.replace_place(&original_place, place);
                 }
+                maybe_original_place = Some(original_place);
                 let stmt = vir::Stmt::Exhale(read_access, vir::Position::default());
                 let new_stmts = self.replace_stmt(
                     &stmt, false, &mut bctxt, surrounding_block_index, new_cfg, label);
                 curr_block.statements.extend(new_stmts);
+            }
+            if let Some(original_place) = maybe_original_place {
+                bctxt.mut_state().insert_moved(original_place);
             }
             // Restore write permissions.
             // Currently, we have a simplified version that restores write permissions only when
