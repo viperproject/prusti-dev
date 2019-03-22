@@ -893,7 +893,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         &mir::Rvalue::Use(mir::Operand::Copy(_)) => {
                             false
                         }
-                        &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, _) |
+                        &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, _) |
                         &mir::Rvalue::Use(mir::Operand::Move(_)) => {
                             true
                         }
