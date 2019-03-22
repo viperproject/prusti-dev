@@ -10,6 +10,7 @@ use encoder::Encoder;
 use self::branch_ctxt::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::cmp::Ordering;
 use encoder::vir::{CfgReplacer, CheckNoOpAction, CfgBlockIndex};
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::log::EventLog;
@@ -660,15 +661,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             // Check if in the state we have any write permissions
             // with the borrowed place as a prefix. If yes, change them
             // to read permissions and emit exhale acc(T(place), write-read).
-            let acc_perms: Vec<_> = bctxt.state().acc().iter()
+            let mut acc_perm_counter = 0;
+            let mut acc_perms: Vec<_> = bctxt.state().acc().iter()
                 .filter(|&(place, perm_amount)| {
                     assert!(perm_amount.is_valid_for_specs());
                     place.has_prefix(rhs_place) &&
                     !place.is_local()
                 })
-                .map(|(place, perm_amount)| (place.clone(), perm_amount.clone()))
+                .map(|(place, perm_amount)| {
+                    acc_perm_counter += 1;
+                    (place.clone(), perm_amount.clone(), acc_perm_counter)
+                })
                 .collect();
-            for (place, perm_amount) in acc_perms {
+            acc_perms.sort_by(
+                |(place1, _, id1), (place2, _, id2)| {
+                    let key1 = (place1.place_depth(), id1);
+                    let key2 = (place2.place_depth(), id2);
+                    key1.cmp(&key2)
+                });
+            trace!("acc_perms = {}",
+                   acc_perms.iter()
+                        .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
+                        .collect::<String>());
+            for (place, perm_amount, _) in acc_perms {
                 debug!("acc place: {} {}", place, perm_amount);
                 debug!("rhs_place={} {:?}", rhs_place, bctxt.state().acc().get(rhs_place));
                 debug!("lhs_place={} {:?}", lhs_place, bctxt.state().acc().get(lhs_place));

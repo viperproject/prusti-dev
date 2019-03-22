@@ -97,6 +97,7 @@ impl EventLog {
         &self,
         borrow: vir::borrows::Borrow
     ) -> Vec<(vir::Expr, vir::Expr)> {
+        trace!("[enter] get_duplicated_read_permissions({:?})", borrow);
         let mut result = self.duplicated_reads.get(&borrow).cloned().unwrap_or(Vec::new());
         result.sort_by(|(access1, _, id1), (access2, _, id2)| {
             match (access1, access2) {
@@ -114,17 +115,18 @@ impl EventLog {
                 },
                 (vir::Expr::FieldAccessPredicate(box ref place1, _, _),
                  vir::Expr::FieldAccessPredicate(box ref place2, _, _)) => {
-                    if place1.has_prefix(place2) {
-                        Ordering::Less
-                    } else if place2.has_prefix(place1) {
-                        Ordering::Greater
-                    } else {
-                        id1.cmp(id2)
-                    }
+                    let key1 = (place1.place_depth(), id1);
+                    let key2 = (place2.place_depth(), id2);
+                    key2.cmp(&key1)
                 },
                 x => unreachable!("{:?}", x),
             }
         });
+        trace!("[enter] get_duplicated_read_permissions({:?}) = {}",
+               borrow,
+               result.iter()
+                    .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
+                    .collect::<String>());
         result.into_iter().map(|(access, original_place, _)| (access, original_place)).collect()
     }
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.

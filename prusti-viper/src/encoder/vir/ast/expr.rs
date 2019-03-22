@@ -420,6 +420,18 @@ impl Expr {
         }
     }
 
+    /// How many parts this place has? Used for ordering places.
+    pub fn place_depth(&self) -> u32 {
+        match self {
+            &Expr::Local(_, _) => 1,
+            &Expr::Field(ref base, _, _) |
+            &Expr::AddrOf(ref base, _, _) |
+            &Expr::LabelledOld(_, ref base, _) |
+            &Expr::Unfolding(_, _, ref base, _, _) => base.place_depth() + 1,
+            x => unreachable!("{:?}", x),
+        }
+    }
+
     pub fn is_simple_place(&self) -> bool {
         match self {
             &Expr::Local(_, _) => true,
