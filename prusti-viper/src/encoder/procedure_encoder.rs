@@ -1700,7 +1700,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let (post_type_spec, post_invs_spec, post_func_spec, magic_wands, read_transfer) =
                                 self.encode_postcondition_expr(
                                     &procedure_contract, &pre_label, &post_label,
-                                    Some((location, &fake_exprs)), real_target.is_none());
+                                    Some((location, &fake_exprs)), real_target.is_none(), false);
                             let post_perm_spec = replace_fake_exprs(post_type_spec);
                             stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
                             for (from_place, to_place) in read_transfer {
@@ -2058,13 +2058,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - one for the type invariants
     /// - one for the functional specification.
     /// Also return the magic wands to be added to the postcondition.
+    ///
+    /// `function_end` – are we encoding the exhale of the postcondition
+    /// at the end of the method?
     fn encode_postcondition_expr(
         &mut self,
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
-        diverging: bool
+        diverging: bool,
+        function_end: bool
     ) -> (vir::Expr, vir::Expr, vir::Expr, Vec<vir::Expr>, Vec<(vir::Expr, vir::Expr)>) {
         let mut type_spec = vec![];
         let mut invs_spec = vec![];
@@ -2077,18 +2081,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             debug!("Put permission {:?} in postcondition", place);
             let (place_expr, place_ty, _) = self.encode_generic_place(place);
             let old_place_expr = place_expr.clone().old(pre_label);
+            let mut add_type_spec = |perm_amount| {
+                let permissions = vir::Expr::pred_permission(
+                    old_place_expr.clone(),
+                    perm_amount,
+                ).unwrap();
+                type_spec.push(permissions);
+            };
             match mutability {
                 Mutability::MutImmutable => {
+                    if function_end {
+                        add_type_spec(vir::PermAmount::Read);
+                    }
                     read_transfer.push((place_expr, old_place_expr));
                 }
                 Mutability::MutMutable => {
-
-                    let permissions = vir::Expr::pred_permission(
-                        old_place_expr.clone(),
-                        vir::PermAmount::Write,
-                    ).unwrap();
-                    type_spec.push(permissions);
-
+                    add_type_spec(vir::PermAmount::Write);
                     let inv = self.encoder.encode_invariant_func_app(
                         place_ty,
                         old_place_expr,
@@ -2244,7 +2252,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
         let (type_spec, invs_spec, func_spec, magic_wands, _) = self.encode_postcondition_expr(
-            contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false);
+            contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false, true);
 
         // Find which arguments are blocked by the returned reference.
         let blocked_args: Vec<usize> = {
@@ -2278,7 +2286,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 continue;
             }
             let ty = self.locals.get_type(arg);
-            if self.mir_encoder.is_mut_reference(ty) {
+            if self.mir_encoder.is_reference(ty) {
                 let encoded_arg: vir::Expr = self.encode_prusti_local(arg).into();
                 let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_arg.clone(), ty);
 
