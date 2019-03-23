@@ -234,6 +234,47 @@ impl<'a> BranchCtxt<'a> {
                 );
             }
 
+            // If we have `Read` and `Write`, make both `Read`.
+            for acc_place in self.state.acc_places() {
+                assert!(other.state.acc().contains_key(&acc_place));
+                let left_perm = self.state.acc()[&acc_place];
+                let right_perm = other.state.acc()[&acc_place];
+                if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
+                    self.state.remove_acc(&acc_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+                if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
+                    other.state.remove_acc(&acc_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+            }
+            for pred_place in self.state.pred_places() {
+                assert!(other.state.pred().contains_key(&pred_place));
+                let left_perm = self.state.pred()[&pred_place];
+                let right_perm = other.state.pred()[&pred_place];
+                if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
+                    self.state.remove_pred(&pred_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+                if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
+                    other.state.remove_pred(&pred_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+
+            }
+
             trace!(
                 "Actions in left branch: {}",
                 left_actions.iter().map(|a| a.to_string()).collect::<Vec<_>>().join(", ")
