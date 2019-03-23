@@ -395,9 +395,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     ) -> Vec<vir::Stmt> {
         let mut stmts = Vec::new();
         for access in self.log.get_converted_to_read_places(borrow) {
-            let stmt = vir::Stmt::Inhale(access);
-            bctxt.apply_stmt(&stmt);
-            stmts.push(stmt);
+            let perm = match access {
+                vir::Expr::PredicateAccessPredicate(_, ref args, perm_amount, _) => {
+                    assert!(args.len() == 1);
+                    Perm::pred(args[0].clone(), perm_amount)
+                },
+                vir::Expr::FieldAccessPredicate(box ref place, perm_amount, _) => {
+                    Perm::acc(place.clone(), perm_amount)
+                },
+                x => unreachable!("{:?}", x),
+            };
+            stmts.extend(
+                bctxt
+                    .obtain_permissions(vec![perm])
+                    .iter()
+                    .map(|a| a.to_stmt())
+            );
+            let inhale_stmt = vir::Stmt::Inhale(access);
+            bctxt.apply_stmt(&inhale_stmt);
+            stmts.push(inhale_stmt);
         }
         stmts
     }
