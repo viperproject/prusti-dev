@@ -453,6 +453,17 @@ impl Expr {
         }
     }
 
+    /// Is this place a MIR reference?
+    pub fn is_mir_reference(&self) -> bool {
+        debug_assert!(self.is_place());
+        if let Expr::Field(box Expr::Local(LocalVar{ typ, .. }, _), _, _) = self {
+            if let Type::TypedRef(ref name) = typ {
+                return name.starts_with("ref$");
+            }
+        }
+        false
+    }
+
     pub fn map_parent<F>(self, f: F) -> Expr where F: Fn(Expr) -> Expr {
         match self {
             Expr::Field(box base, field, pos) => Expr::Field(box f(base), field, pos),

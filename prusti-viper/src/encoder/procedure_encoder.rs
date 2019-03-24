@@ -1728,7 +1728,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     .map(|&local| self.encode_local_variable_permission(local))
                                     .into_iter().conjoin();
                                 debug_assert_eq!(type_spec, pre_type_spec);
-                                stmts.push(vir::Stmt::Inhale(replace_fake_exprs(pre_type_spec)));
+                                let inhaled_spec = replace_fake_exprs(pre_type_spec)
+                                    .remove_read_permissions();
+                                stmts.push(vir::Stmt::Inhale(inhaled_spec));
                             }
 
                             stmts.extend(stmts_after);
@@ -2337,7 +2339,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_loop_invariant_permissions(&self, loop_head: BasicBlockIndex) -> Vec<vir::Expr> {
+
+    /// `drop_read_references` – should we add permissions to read
+    /// references? We drop permissions of read references from the
+    /// exhale before the loop and inhale after the loop so that
+    /// the knowledge about their values is not havocked.
+    fn encode_loop_invariant_permissions(
+        &self,
+        loop_head: BasicBlockIndex,
+        drop_read_references: bool
+    ) -> Vec<vir::Expr> {
+        trace!("[enter] encode_loop_invariant_permissions \
+               loop_head={:?} drop_read_references={}",
+               loop_head, drop_read_references);
         let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
         let loop_depth = self.loop_encoder.get_loop_depth(loop_head) as u32;
         debug!("permissions_forest: {:?}", permissions_forest);
@@ -2349,55 +2363,95 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     continue;
                 }
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
+                debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 if let ty::TypeVariants::TyClosure(..) = ty.sty {
                     // Do not encode closures
                     continue;
                 }
-                let perm = match kind {
+                if drop_read_references {
+                    if let mir::Place::Projection(
+                        box mir::Projection { elem: mir::ProjectionElem::Deref, ref base }
+                        ) = mir_place {
+                        let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
+                        match ref_ty.sty {
+                            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl, .. }) |
+                            ty::TypeVariants::TyRef(_, _, mutbl) => {
+                                if mutbl == Mutability::MutImmutable {
+                                    continue;
+                                }
+                            }
+                            ref x => unreachable!("{:?}", x),
+                        }
+                    }
+                }
+                match kind {
                     /// Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
-                        vir::Expr::acc_permission(
+                        let perm = vir::Expr::acc_permission(
                             encoded_place,
                             vir::PermAmount::Read,
-                        )
-                    }
-
-                    /// Gives read permission to the entire subtree including this node.
-                    /// This must be a leaf node.
-                    PermissionKind::ReadSubtree => {
-                        vir::Expr::pred_permission(
-                            encoded_place,
-                            vir::PermAmount::Read,
-                        ).unwrap()
+                        );
+                        permissions.push(perm);
                     }
 
                     /// Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
-                        vir::Expr::acc_permission(
+                        let perm = vir::Expr::acc_permission(
                             encoded_place,
                             vir::PermAmount::Write
-                        )
+                        );
+                        permissions.push(perm);
                     }
 
-                    /// Gives read permission to the entire subtree including this node.
-                    /// This must be a leaf node.
+                    /// Gives read or write permission to the entire
+                    /// subtree including this node. This must be a leaf
+                    /// node.
+                    PermissionKind::ReadSubtree |
                     PermissionKind::WriteSubtree => {
-                        vir::Expr::pred_permission(
-                            encoded_place,
-                            vir::PermAmount::Write
-                        ).unwrap()
+                        let perm_amount = match kind {
+                            PermissionKind::WriteSubtree => vir::PermAmount::Write,
+                            PermissionKind::ReadSubtree => vir::PermAmount::Read,
+                            _ => unreachable!(),
+                        };
+                        match ty.sty {
+                            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl }) |
+                            ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
+                                debug!("encode_loop_invariant_permissions \
+                                        mir_place={:?} mutability={:?} \
+                                        drop_read_references={}",
+                                        mir_place, mutbl, drop_read_references);
+                                if mutbl == Mutability::MutImmutable && drop_read_references {
+                                    continue;
+                                }
+                                // Use unfolded references.
+                                let field = self.encoder.encode_ref_field("val_ref", ty);
+                                let field_place = vir::Expr::from(encoded_place).field(field);
+                                permissions.push(vir::Expr::acc_permission(
+                                    field_place.clone(), perm_amount));
+                                let def_init = self.loop_encoder.is_definitely_initialised(
+                                    &mir_place, loop_head);
+                                if def_init {
+                                    permissions.push(vir::Expr::pred_permission(
+                                        field_place, perm_amount).unwrap());
+                                }
+                            },
+                            _ => {
+                                permissions.push(vir::Expr::pred_permission(
+                                    encoded_place, perm_amount).unwrap());
+                            }
+                        }
                     }
-
                     /// Give no permission to this node and the entire subtree. This
                     /// must be a leaf node.
                     PermissionKind::None => {
                         unreachable!()
                     }
                 };
-                permissions.push(perm)
             }
         }
 
+        trace!("[exit] encode_loop_invariant_permissions permissions={}",
+               permissions.iter().map(|p| format!("{}, ", p)).collect::<String>());
         permissions
     }
 
@@ -2474,14 +2528,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_loop_invariant_obtain(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
-        let permissions = self.encode_loop_invariant_permissions(loop_head);
+        trace!("[enter] encode_loop_invariant_obtain loop_head={:?}", loop_head);
+        let permissions = self.encode_loop_invariant_permissions(loop_head, true);
 
         vec![
             vir::Stmt::comment(
                 format!("Restore the fold/unfold state of the loop invariant of {:?}", loop_head)
             ),
             vir::Stmt::Obtain(
-                permissions.into_iter().conjoin().remove_read_permissions()
+                permissions.into_iter().conjoin()
             )
         ]
     }
@@ -2491,7 +2546,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         loop_head: BasicBlockIndex,
         after_loop_iteration: bool
     ) -> Vec<vir::Stmt> {
-        let permissions = self.encode_loop_invariant_permissions(loop_head);
+        trace!("[enter] encode_loop_invariant_exhale loop_head={:?} \
+                after_loop_iteration={}",
+                loop_head, after_loop_iteration);
+        let permissions = self.encode_loop_invariant_permissions(
+            loop_head, !after_loop_iteration);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
         // TODO: use different positions, and generate different error messages, for the exhale
@@ -2517,10 +2576,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         );
 
-        let mut permission_expr = permissions.into_iter().conjoin();
-        if !after_loop_iteration {
-            permission_expr = permission_expr.remove_read_permissions();
-        }
+        let permission_expr = permissions.into_iter().conjoin();
 
         vec![
             vir::Stmt::comment(
@@ -2542,13 +2598,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         loop_head: BasicBlockIndex,
         after_loop: bool
     ) -> Vec<vir::Stmt> {
-        let permissions = self.encode_loop_invariant_permissions(loop_head);
+        trace!("[enter] encode_loop_invariant_inhale loop_head={:?} after_loop={}",
+                loop_head, after_loop);
+        let permissions = self.encode_loop_invariant_permissions(loop_head, after_loop);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
-        let mut permission_expr = permissions.into_iter().conjoin();
-        if after_loop {
-            permission_expr = permission_expr.remove_read_permissions();
-        }
+        let permission_expr = permissions.into_iter().conjoin();
 
         let mut stmts = vec![
             vir::Stmt::comment(

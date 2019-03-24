@@ -54,7 +54,9 @@ impl State {
                 };
                 if !contains_parent_pred &&
                     self.pred[place] != PermAmount::Remaining &&
-                    self.pred[place] != PermAmount::Read {
+                    self.pred[place] != PermAmount::Read &&
+                    !place.is_mir_reference() {
+                    trace!("place: {:?}", place);
                     trace!("Acc state: {{\n{}\n}}", self.display_acc());
                     trace!("Pred state: {{\n{}\n}}", self.display_pred());
                     panic!(
@@ -152,6 +154,7 @@ impl State {
         // Check moved
         for place in &self.moved {
             if place.is_simple_place() && !self.contains_acc(place) &&
+                !place.is_mir_reference() &&
                 !self.framing_stack.iter().any(|fs|
                     fs.contains(&Perm::Acc(place.clone(), PermAmount::Write))
                 ) {
