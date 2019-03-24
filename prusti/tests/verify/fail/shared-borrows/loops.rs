@@ -63,11 +63,11 @@ pub fn test3_1(n: &i32) {
 
 #[requires="*n >= 0"]
 #[ensures="*n == old(*n)"]
-pub fn test4(n: &i32) {
+pub fn test4(n: &i32) {  //~ ERROR loop invariant might not hold at the end of a loop iteration.
     let mut i = 0;
     let mut cond = i < *n;
     #[invariant="0 <= i && i <= *n"]
-    while cond { // ~ ERROR assert!(..) statement might not hold
+    while cond {
         i += 1;
         borrow(n);
         cond = i < *n;
@@ -106,4 +106,3 @@ pub fn test4_2(n: &i32) {
 
 fn main() {
 }
-
