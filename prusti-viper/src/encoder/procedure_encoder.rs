@@ -2368,22 +2368,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     // Do not encode closures
                     continue;
                 }
-                if drop_read_references {
-                    if let mir::Place::Projection(
-                        box mir::Projection { elem: mir::ProjectionElem::Deref, ref base }
-                        ) = mir_place {
-                        let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
-                        match ref_ty.sty {
-                            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl, .. }) |
-                            ty::TypeVariants::TyRef(_, _, mutbl) => {
-                                if mutbl == Mutability::MutImmutable {
-                                    continue;
-                                }
-                            }
-                            ref x => unreachable!("{:?}", x),
-                        }
-                    }
-                }
                 match kind {
                     /// Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
@@ -2408,6 +2392,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     /// node.
                     PermissionKind::ReadSubtree |
                     PermissionKind::WriteSubtree => {
+                        if drop_read_references {
+                            if let mir::Place::Projection(
+                                box mir::Projection { elem: mir::ProjectionElem::Deref, ref base }
+                                ) = mir_place {
+                                let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
+                                match ref_ty.sty {
+                                    ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl, .. }) |
+                                    ty::TypeVariants::TyRef(_, _, mutbl) => {
+                                        if mutbl == Mutability::MutImmutable {
+                                            continue;
+                                        }
+                                    }
+                                    ref x => unreachable!("{:?}", x),
+                                }
+                            }
+                        }
                         let perm_amount = match kind {
                             PermissionKind::WriteSubtree => vir::PermAmount::Write,
                             PermissionKind::ReadSubtree => vir::PermAmount::Read,
@@ -2420,9 +2420,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         mir_place={:?} mutability={:?} \
                                         drop_read_references={}",
                                         mir_place, mutbl, drop_read_references);
-                                if mutbl == Mutability::MutImmutable && drop_read_references {
-                                    continue;
-                                }
                                 // Use unfolded references.
                                 let field = self.encoder.encode_ref_field("val_ref", ty);
                                 let field_place = vir::Expr::from(encoded_place).field(field);
@@ -2430,7 +2427,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     field_place.clone(), perm_amount));
                                 let def_init = self.loop_encoder.is_definitely_initialised(
                                     &mir_place, loop_head);
-                                if def_init {
+                                if def_init &&
+                                    !(mutbl == Mutability::MutImmutable && drop_read_references) {
                                     permissions.push(vir::Expr::pred_permission(
                                         field_place, perm_amount).unwrap());
                                 }
