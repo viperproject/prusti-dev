@@ -469,7 +469,7 @@ impl Expr {
         if let Type::TypedRef(ref predicate_name) = self.get_type() {
             // FIXME: We should not rely on string names for type conversions.
             if predicate_name.starts_with("ref$") {
-                let field_predicate_name = predicate_name[0..4].to_string();
+                let field_predicate_name = predicate_name[4..predicate_name.len()].to_string();
                 let field = Field::new(
                     "val_ref", Type::TypedRef(field_predicate_name));
                 let field_place = Expr::from(self.clone()).field(field);
