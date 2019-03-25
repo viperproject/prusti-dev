@@ -229,7 +229,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     debug!("process_expire_borrows borrow={:?} dropped_permissions={:?}",
                            curr_node.borrow, dropped_permissions);
                     for perm in &dropped_permissions {
-                        let comment = format!("restored: {}", perm);
+                        let comment = format!("restored (from log): {}", perm);
                         curr_block_pre_statements.push(vir::Stmt::comment(comment));
                     }
                     bctxt.mut_state().restore_dropped_perms(dropped_permissions.into_iter());
@@ -252,7 +252,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("process_expire_borrows borrow={:?} dropped_permissions={:?}",
                                curr_node.borrow, dropped_permissions);
                         for perm in &dropped_permissions {
-                            let comment = format!("restored: {}", perm);
+                            let comment = format!("restored (from log): {}", perm);
                             let key = (predecessor, curr_block_index);
                             let entry = cfg.edges.entry(key).or_insert(Vec::new());
                             entry.push(vir::Stmt::comment(comment));
@@ -271,8 +271,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         for a in action {
                             stmts_to_add.push(a.to_stmt());
                             if let Action::Drop(perm) = a {
-                                if dag.in_borrowed_places(perm.get_place()) {
-                                    stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                                if dag.in_borrowed_places(perm.get_place()) &&
+                                        perm.get_perm_amount() != vir::PermAmount::Read {
+                                    stmts_to_add.push(vir::Stmt::comment(
+                                            format!("restored (in branch merge): {}", perm)));
                                     bctxt.mut_state().restore_dropped_perm(perm.clone());
                                 }
                             }
@@ -357,8 +359,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 for a in action {
                     stmts_to_add.push(a.to_stmt());
                     if let Action::Drop(perm) = a {
-                        if dag.in_borrowed_places(perm.get_place()) {
-                            stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                        if dag.in_borrowed_places(perm.get_place()) &&
+                                perm.get_perm_amount() != vir::PermAmount::Read {
+                            stmts_to_add.push(vir::Stmt::comment(
+                                    format!("restored (in branch merge): {}", perm)));
                             final_bctxt.mut_state().restore_dropped_perm(perm.clone());
                         }
                     }
