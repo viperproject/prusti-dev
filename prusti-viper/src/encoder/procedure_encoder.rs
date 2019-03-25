@@ -1717,16 +1717,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // call. We do this after inhaling the functional spec, so that the
                             // user can not inhale equalities and trigger unsoundness by mistake.
                             // This is only needed inside loops.
-                            let inside_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
-                            if inside_loop {
-                                let type_spec = procedure_contract.args.iter()
-                                    .map(|&local| self.encode_local_variable_permission(local))
-                                    .into_iter().conjoin();
-                                debug_assert_eq!(type_spec, pre_type_spec);
-                                let inhaled_spec = replace_fake_exprs(pre_type_spec)
-                                    .remove_read_permissions();
-                                stmts.push(vir::Stmt::Inhale(inhaled_spec));
-                            }
+                            let type_spec = procedure_contract.args.iter()
+                                .map(|&local| self.encode_local_variable_permission(local))
+                                .into_iter().conjoin();
+                            debug_assert_eq!(type_spec, pre_type_spec);
+                            let inhaled_spec = replace_fake_exprs(pre_type_spec)
+                                .remove_read_permissions();
+                            stmts.push(vir::Stmt::Inhale(inhaled_spec));
 
                             stmts.extend(stmts_after);
 
