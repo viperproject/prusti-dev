@@ -67,6 +67,9 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     procedure_contracts: HashMap<mir::Location, (ProcedureContract<'tcx>, HashMap<vir::Expr, vir::Expr>)>,
     /// Mapping from MIR basic block indices to VIR basic block indices.
     mir_to_vir_blocks: HashMap<BasicBlockIndex, vir::CfgBlockIndex>,
+    /// A map that stores local variables used to preserve the value of a place accross the loop
+    /// when we cannot do that by using permissions.
+    pure_var_for_preserving_value_map: HashMap<BasicBlockIndex, HashMap<vir::Expr, vir::LocalVar>>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -109,6 +112,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             magic_wand_apply_post: HashMap::new(),
             procedure_contracts: HashMap::new(),
             mir_to_vir_blocks: HashMap::new(),
+            pure_var_for_preserving_value_map: HashMap::new(),
         }
     }
 
@@ -821,7 +825,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_transfer_permissions(&mut self, lhs: vir::Expr, rhs: vir::Expr, location: mir::Location) -> Vec<vir::Stmt> {
         let mut stmts = vec![];
-        let loan_in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
 
         stmts.push(
             vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)
@@ -843,13 +846,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             );
         }
 
-        // We reallocate when we expire because we want to have disjointed
-        // permissions for the lhs and rhs when a borrow expires inside a loop
-        if lhs.is_curr() && loan_in_loop {
-            stmts.extend(
-                self.encode_havoc_and_allocation(&lhs)
-            );
-        }
 
         stmts
     }
@@ -2339,13 +2335,54 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
+    fn get_pure_var_for_preserving_value(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        place: &vir::Expr
+    ) -> vir::LocalVar {
+        let loop_map = self.pure_var_for_preserving_value_map.get_mut(&loop_head).unwrap();
+        if let Some(local_var) = loop_map.get(place) {
+            local_var.clone()
+        } else {
+            let mut counter = 0;
+            let mut name = format!("_preserve${}", counter);
+            while self.auxiliar_local_vars.contains_key(&name) {
+                counter += 1;
+                name = format!("_preserve${}", counter);
+            }
+            let vir_type = vir::Type::TypedRef(String::from("AuxRef"));
+            self.cfg_method.add_local_var(&name, vir_type.clone());
+            self.auxiliar_local_vars.insert(name.clone(), vir_type.clone());
+            let var = vir::LocalVar::new(name, vir_type);
+            loop_map.insert(place.clone(), var.clone());
+            var
+        }
+    }
+
+    /// Since the loop invariant is taking all permission from the
+    /// outer context, we need to preserve values of references by
+    /// saving them in local variables.
+    fn construct_value_preserving_equality(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        place: &vir::Expr
+    ) -> vir::Expr {
+        let tmp_var = self.get_pure_var_for_preserving_value(
+            loop_head, place);
+        vir::Expr::BinOp(
+            vir::BinOpKind::EqCmp,
+            box tmp_var.into(),
+            box place.clone(),
+            vir::Position::default(),
+        )
+    }
 
     /// `drop_read_references` – should we add permissions to read
     /// references? We drop permissions of read references from the
     /// exhale before the loop and inhale after the loop so that
     /// the knowledge about their values is not havocked.
     fn encode_loop_invariant_permissions(
-        &self,
+        &mut self,
         loop_head: BasicBlockIndex,
         drop_read_references: bool
     ) -> Vec<vir::Expr> {
@@ -2392,27 +2429,35 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     /// node.
                     PermissionKind::ReadSubtree |
                     PermissionKind::WriteSubtree => {
-                        if drop_read_references {
-                            if let mir::Place::Projection(
-                                box mir::Projection { elem: mir::ProjectionElem::Deref, ref base }
-                                ) = mir_place {
-                                let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
-                                match ref_ty.sty {
-                                    ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl, .. }) |
-                                    ty::TypeVariants::TyRef(_, _, mutbl) => {
-                                        if mutbl == Mutability::MutImmutable {
-                                            continue;
-                                        }
-                                    }
-                                    ref x => unreachable!("{:?}", x),
-                                }
-                            }
-                        }
                         let perm_amount = match kind {
                             PermissionKind::WriteSubtree => vir::PermAmount::Write,
                             PermissionKind::ReadSubtree => vir::PermAmount::Read,
                             _ => unreachable!(),
                         };
+                        let def_init = self.loop_encoder.is_definitely_initialised(
+                            &mir_place, loop_head);
+                        debug!("    perm_amount={} def_init={}", perm_amount, def_init);
+                        if let mir::Place::Projection(
+                            box mir::Projection { elem: mir::ProjectionElem::Deref, ref base }
+                            ) = mir_place {
+                            let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
+                            match ref_ty.sty {
+                                ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl, .. }) |
+                                ty::TypeVariants::TyRef(_, _, mutbl) => {
+                                    if def_init {
+                                        permissions.push(
+                                            self.construct_value_preserving_equality(
+                                                loop_head, &encoded_place));
+                                    }
+                                    if drop_read_references {
+                                        if mutbl == Mutability::MutImmutable {
+                                            continue;
+                                        }
+                                    }
+                                }
+                                ref x => unreachable!("{:?}", x),
+                            }
+                        }
                         match ty.sty {
                             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl }) |
                             ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
@@ -2425,8 +2470,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 let field_place = vir::Expr::from(encoded_place).field(field);
                                 permissions.push(vir::Expr::acc_permission(
                                     field_place.clone(), perm_amount));
-                                let def_init = self.loop_encoder.is_definitely_initialised(
-                                    &mir_place, loop_head);
+                                if def_init {
+                                    permissions.push(
+                                        self.construct_value_preserving_equality(
+                                            loop_head, &field_place));
+                                }
                                 if def_init &&
                                     !(mutbl == Mutability::MutImmutable && drop_read_references) {
                                     permissions.push(vir::Expr::pred_permission(
@@ -2525,7 +2573,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_specs
     }
 
-    fn encode_loop_invariant_obtain(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+    fn encode_loop_invariant_obtain(&mut self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
         trace!("[enter] encode_loop_invariant_obtain loop_head={:?}", loop_head);
         let permissions = self.encode_loop_invariant_permissions(loop_head, true);
 
@@ -2540,13 +2588,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn encode_loop_invariant_exhale(
-        &self,
+        &mut self,
         loop_head: BasicBlockIndex,
         after_loop_iteration: bool
     ) -> Vec<vir::Stmt> {
         trace!("[enter] encode_loop_invariant_exhale loop_head={:?} \
                 after_loop_iteration={}",
                 loop_head, after_loop_iteration);
+        if !after_loop_iteration {
+            self.pure_var_for_preserving_value_map.insert(loop_head, HashMap::new());
+        }
         let permissions = self.encode_loop_invariant_permissions(
             loop_head, !after_loop_iteration);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
@@ -2576,23 +2627,39 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let permission_expr = permissions.into_iter().conjoin();
 
-        vec![
+        let mut stmts = vec![
             vir::Stmt::comment(
                 format!("Assert and exhale the loop invariant of block {:?}", loop_head)
             ),
+        ];
+        if !after_loop_iteration {
+            for (place, field) in &self.pure_var_for_preserving_value_map[&loop_head] {
+                stmts.push(
+                    vir::Stmt::Assign(
+                        field.into(),
+                        place.clone(),
+                        vir::AssignKind::Ghost,
+                    )
+                );
+            }
+        }
+        stmts.push(
             vir::Stmt::Assert(
                 func_spec.into_iter().conjoin(),
                 assert_pos
-            ),
+            )
+        );
+        stmts.push(
             vir::Stmt::Exhale(
                 permission_expr,
                 exhale_pos
             )
-        ]
+        );
+        stmts
     }
 
     fn encode_loop_invariant_inhale(
-        &self,
+        &mut self,
         loop_head: BasicBlockIndex,
         after_loop: bool
     ) -> Vec<vir::Stmt> {

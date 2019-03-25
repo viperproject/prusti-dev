@@ -59,7 +59,7 @@ impl vir::Stmt {
                 state.remove_acc_matching(|p| p.is_curr() && !p.is_local() && targets.contains(&p.get_base()));
             }
 
-            &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
+            &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) if kind != vir::AssignKind::Ghost => {
                 debug_assert!(lhs_place.is_place());
                 let original_state = state.clone();
 
@@ -120,6 +120,7 @@ impl vir::Stmt {
                             state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
                             state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place) && !p.is_local());
                         }
+                        vir::AssignKind::Ghost |
                         vir::AssignKind::Copy => {
                             unreachable!();
                         }
@@ -128,6 +129,10 @@ impl vir::Stmt {
                     // This is not move assignemnt or the creation of a borrow
                     assert!(match kind { vir::AssignKind::Copy => true, _ => false }, "Unexpected assignment kind: {:?}", kind);
                 }
+            }
+
+            &vir::Stmt::Assign(ref _lhs_place, ref _rhs, vir::AssignKind::Ghost) => {
+                // Do nothing.
             }
 
             &vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {

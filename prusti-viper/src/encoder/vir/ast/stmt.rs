@@ -79,6 +79,9 @@ pub enum AssignKind {
     /// Encodes the initialization of a shared borrow.
     /// The permissions in the `rhs` are duplicated to the `lhs`.
     SharedBorrow(Borrow),
+    /// Used to mark that the assignment is to a ghost variable and should be ignored by
+    /// the fold-unfold algorithm.
+    Ghost,
 }
 
 impl fmt::Display for Stmt {
@@ -107,6 +110,9 @@ impl fmt::Display for Stmt {
                 },
                 AssignKind::SharedBorrow(borrow) => {
                     write!(f, "{} := borrow {} // {:?}", lhs, rhs, borrow)
+                },
+                AssignKind::Ghost => {
+                    write!(f, "{} := ghost {}", lhs, rhs)
                 },
             },
 
