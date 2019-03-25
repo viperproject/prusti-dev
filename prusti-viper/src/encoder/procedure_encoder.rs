@@ -383,7 +383,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Allocate stack frame: formal return and local variables
         // (formal arguments are already inhaled by the precondition)
-        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Allocate formal return and local variables"));
+        self.cfg_method.add_stmt(start_cfg_block,
+                                 vir::Stmt::comment("Allocate formal return and local variables"));
         let local_vars_and_return: Vec<_> = self.locals
             .iter()
             .filter(|local| !self.locals.is_formal_arg(self.mir, *local))
@@ -397,11 +398,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let type_name = self.encoder.encode_type_predicate_use(local_ty);
             let var_name = self.locals.get_name(*local);
             let var_type = vir::Type::TypedRef(type_name.clone());
-            let local_var = vir::LocalVar::new(var_name.clone(), var_type);
-            let alloc_stmt = vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(
-                    local_var.clone().into(), vir::PermAmount::Write).unwrap()
-            );
+            let local_var: vir::Expr = vir::LocalVar::new(var_name.clone(), var_type).into();
+            let alloc_access = self.encode_spec_place_permission(&local_var);
+            let alloc_stmt = vir::Stmt::Inhale(alloc_access);
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
 
@@ -1682,7 +1681,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
                                 stmts.push(
-                                    self.encode_exhale(target_place)
+                                    self.encode_target_exhale(target_place)
                                 );
                             }
 
@@ -2992,16 +2991,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ]
     }
 
-    fn encode_exhale(&mut self, dst: &vir::Expr) -> vir::Stmt {
-        debug!("Encode exhale {:?}", dst);
-        let type_predicate = self.mir_encoder.encode_place_predicate_permission(
-            dst.clone(), vir::PermAmount::Write).unwrap();
+    fn encode_spec_place_permission(&self, place: &vir::Expr) -> vir::Expr {
+        if let Some(field_place) = place.try_deref() {
+            vir::Expr::acc_permission(field_place, vir::PermAmount::Write)
+        } else {
+            self.mir_encoder.encode_place_predicate_permission(
+                place.clone(), vir::PermAmount::Write).unwrap()
+        }
+    }
+
+    fn encode_target_exhale(&mut self, dst: &vir::Expr) -> vir::Stmt {
+        trace!("[enter] encode_target_exhale({})", dst);
+        let access = self.encode_spec_place_permission(dst);
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,
             ErrorCtxt::Unexpected
         );
-        vir::Stmt::Exhale(type_predicate.clone(), pos)
+        let stmt = vir::Stmt::Exhale(access, pos);
+        trace!("[enter] encode_target_exhale({}) = {}", dst, stmt);
+        stmt
     }
 
     /// Encodes the copy of a structure, reading from a source `src` and using `dst` as target.

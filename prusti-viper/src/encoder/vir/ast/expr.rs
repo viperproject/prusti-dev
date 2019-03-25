@@ -464,6 +464,21 @@ impl Expr {
         false
     }
 
+    /// If self is a MIR reference, dereference it.
+    pub fn try_deref(&self) -> Option<Self> {
+        if let Type::TypedRef(ref predicate_name) = self.get_type() {
+            // FIXME: We should not rely on string names for type conversions.
+            if predicate_name.starts_with("ref$") {
+                let field_predicate_name = predicate_name[0..4].to_string();
+                let field = Field::new(
+                    "val_ref", Type::TypedRef(field_predicate_name));
+                let field_place = Expr::from(self.clone()).field(field);
+                return Some(field_place);
+            }
+        }
+        None
+    }
+
     pub fn map_parent<F>(self, f: F) -> Expr where F: Fn(Expr) -> Expr {
         match self {
             Expr::Field(box base, field, pos) => Expr::Field(box f(base), field, pos),

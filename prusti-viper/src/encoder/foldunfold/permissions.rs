@@ -294,17 +294,13 @@ impl RequiredPermissionsGetter for vir::Expr {
                         // FIXME: A hack: have unfolded Rust references in the precondition to
                         // simplify our life. A proper solution would be to look up the
                         // real function precondition.
-                        let mut predicate_name = arg.get_type().name();
-                        if predicate_name.starts_with("ref$") {
-                            let field_predicate_name = predicate_name.split_off(4);
-                            let field = vir::Field::new(
-                                "val_ref", vir::Type::TypedRef(field_predicate_name));
-                            let field_place = vir::Expr::from(arg.clone()).field(field);
+                        if let Some(field_place) = arg.try_deref() {
                             vir::Expr::and(
                                 vir::Expr::acc_permission(field_place.clone(), vir::PermAmount::Read),
                                 vir::Expr::pred_permission(field_place, vir::PermAmount::Read).unwrap(),
                             )
                         } else {
+                            let mut predicate_name = arg.get_type().name();
                             vir::Expr::predicate_access_predicate(
                                 predicate_name.clone(),
                                 arg.clone().into(),
