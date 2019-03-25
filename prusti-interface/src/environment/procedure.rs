@@ -135,6 +135,11 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         &self.mir
     }
 
+    /// Get the typing context.
+    pub fn get_tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
+        self.tcx
+    }
+
     /// Get an absolute path to this procedure
     pub fn get_def_path(&self) -> String {
         let def_path = self.tcx.def_path(self.proc_def_id);

@@ -28,6 +28,7 @@ use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
 use prusti_interface::environment::polonius_info::{ReborrowingZombity, ReborrowingGuard, ReborrowingDAG, ReborrowingDAGNode, ReborrowingForest, ReborrowingTree, ReborrowingNode, ReborrowingKind, ReborrowingBranching};
 use prusti_interface::environment::borrowck::{facts};
 use prusti_interface::report::log;
+use rustc::hir::Mutability;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
 use rustc::mir::TerminatorKind;
@@ -66,6 +67,9 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     procedure_contracts: HashMap<mir::Location, (ProcedureContract<'tcx>, HashMap<vir::Expr, vir::Expr>)>,
     /// Mapping from MIR basic block indices to VIR basic block indices.
     mir_to_vir_blocks: HashMap<BasicBlockIndex, vir::CfgBlockIndex>,
+    /// A map that stores local variables used to preserve the value of a place accross the loop
+    /// when we cannot do that by using permissions.
+    pure_var_for_preserving_value_map: HashMap<BasicBlockIndex, HashMap<vir::Expr, vir::LocalVar>>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -101,13 +105,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
             check_panics: config::check_panics(),
             check_fold_unfold_state: config::check_foldunfold_state(),
-            polonius_info: PoloniusInfo::new(tcx, def_id, mir),
+            polonius_info: PoloniusInfo::new(procedure),
             label_after_location: HashMap::new(),
             cfg_block_has_been_executed: HashMap::new(),
             magic_wand_at_location: HashMap::new(),
             magic_wand_apply_post: HashMap::new(),
             procedure_contracts: HashMap::new(),
             mir_to_vir_blocks: HashMap::new(),
+            pure_var_for_preserving_value_map: HashMap::new(),
         }
     }
 
@@ -378,7 +383,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Allocate stack frame: formal return and local variables
         // (formal arguments are already inhaled by the precondition)
-        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Allocate formal return and local variables"));
+        self.cfg_method.add_stmt(start_cfg_block,
+                                 vir::Stmt::comment("Allocate formal return and local variables"));
         let local_vars_and_return: Vec<_> = self.locals
             .iter()
             .filter(|local| !self.locals.is_formal_arg(self.mir, *local))
@@ -392,11 +398,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let type_name = self.encoder.encode_type_predicate_use(local_ty);
             let var_name = self.locals.get_name(*local);
             let var_type = vir::Type::TypedRef(type_name.clone());
-            let local_var = vir::LocalVar::new(var_name.clone(), var_type);
-            let alloc_stmt = vir::Stmt::Inhale(
-                self.mir_encoder.encode_place_predicate_permission(
-                    local_var.clone().into(), vir::PermAmount::Write).unwrap()
-            );
+            let local_var: vir::Expr = vir::LocalVar::new(var_name.clone(), var_type).into();
+            let alloc_access = self.encode_spec_place_permission(&local_var);
+            let alloc_stmt = vir::Stmt::Inhale(alloc_access);
             self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
         }
 
@@ -690,15 +694,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                     }
 
-                    &mir::Rvalue::Ref(ref _region, _, ref place) => {
+                    &mir::Rvalue::Ref(ref _region, mir_borrow_kind, ref place) => {
                         let ref_field = self.encoder.encode_value_field(ty);
                         let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
+                        let loan = self.polonius_info.get_loan_at_location(location);
+                        let vir_assign_kind = match mir_borrow_kind {
+                            mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan),
+                            mir::BorrowKind::Unique => unimplemented!(),
+                            mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan),
+                        };
                         // Initialize ref_var.ref_field
                         stmts.push(
                             vir::Stmt::Assign(
                                 encoded_lhs.clone().field(ref_field),
                                 encoded_value.into(),
-                                vir::AssignKind::MutableBorrow
+                                vir_assign_kind
                             )
                         );
                         // Store a label for this state
@@ -753,14 +763,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .iter()
             .flat_map(|p| self.polonius_info.get_loan_places(p))
             .filter(|loan_places| {
-                let (_, encoded_source) = self.encode_loan_places(loan_places);
+                let (_, encoded_source, _) = self.encode_loan_places(loan_places);
                 place.has_prefix(&encoded_source)
             })
             .collect();
         assert!(relevant_active_loan_places.len() <= 1);
         if !relevant_active_loan_places.is_empty() {
             let loan_places = &relevant_active_loan_places[0];
-            let (encoded_dest, encoded_source) = self.encode_loan_places(loan_places);
+            let (encoded_dest, encoded_source, _) = self.encode_loan_places(loan_places);
             // Recursive translation
             self.translate_maybe_borrowed_place(
                 loan_places.location,
@@ -772,25 +782,40 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
-    fn encode_loan_places(&self, loan_places: &LoanPlaces<'tcx>) -> (vir::Expr, vir::Expr) {
+    fn encode_loan_places(
+        &self,
+        loan_places: &LoanPlaces<'tcx>
+    ) -> (vir::Expr, vir::Expr, bool) {
         debug!("encode_loan_rvalue '{:?}'", loan_places);
         let (expiring_base, expiring_ty, _) = self.mir_encoder.encode_place(&loan_places.dest);
+        let encode = |rhs_place| {
+            let (restored, _, _) = self.mir_encoder.encode_place(rhs_place);
+            let ref_field = self.encoder.encode_value_field(expiring_ty);
+            let expiring = expiring_base.clone().field(ref_field.clone());
+            (expiring, restored, ref_field)
+        };
         match loan_places.source {
-            mir::Rvalue::Ref(_, _, ref rhs_place) => {
-                let (restored, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                let ref_field = self.encoder.encode_value_field(expiring_ty);
-                let expiring = expiring_base.clone().field(ref_field);
+            mir::Rvalue::Ref(_, mir_borrow_kind, ref rhs_place) => {
+                let (expiring, restored, _) = encode(rhs_place);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored)
+                let is_mut = match mir_borrow_kind {
+                    mir::BorrowKind::Shared => false,
+                    mir::BorrowKind::Unique => unimplemented!(),
+                    mir::BorrowKind::Mut { .. } => true,
+                };
+                (expiring, restored, is_mut)
             }
-
             mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => {
-                let (restored_base, _, _) = self.mir_encoder.encode_place(&rhs_place);
-                let ref_field = self.encoder.encode_value_field(expiring_ty);
-                let expiring = expiring_base.clone().field(ref_field.clone());
+                let (expiring, restored_base, ref_field) = encode(rhs_place);
                 let restored = restored_base.clone().field(ref_field);
                 assert_eq!(expiring.get_type(), restored.get_type());
-                (expiring, restored)
+                (expiring, restored, true)
+            }
+            mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place)) => {
+                let (expiring, restored_base, ref_field) = encode(rhs_place);
+                let restored = restored_base.clone().field(ref_field);
+                assert_eq!(expiring.get_type(), restored.get_type());
+                (expiring, restored, false)
             }
 
             ref x => unreachable!("Borrow restores rvalue {:?}", x)
@@ -799,10 +824,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_transfer_permissions(&mut self, lhs: vir::Expr, rhs: vir::Expr, location: mir::Location) -> Vec<vir::Stmt> {
         let mut stmts = vec![];
-        let loan_in_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
 
         stmts.push(
-            vir::Stmt::TransferPerm(lhs.clone(), rhs.clone())
+            vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)
         );
 
         if self.check_fold_unfold_state {
@@ -821,13 +845,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             );
         }
 
-        // We reallocate when we expire because we want to have disjointed
-        // permissions for the lhs and rhs when a borrow expires inside a loop
-        if lhs.is_curr() && loan_in_loop {
-            stmts.extend(
-                self.encode_havoc_and_allocation(&lhs)
-            );
-        }
 
         stmts
     }
@@ -856,6 +873,34 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
+    /// A borrow is mutable if it was a MIR unique borrow, a move of
+    /// a borrow, or a argument of a function.
+    fn is_mutable_borrow(&self, location: mir::Location) -> bool {
+        let mir::BasicBlockData { ref statements, .. } = self.mir[location.block];
+        if location.statement_index == statements.len() {
+            // It is not an assignment, so we assume that the borrow is mutable.
+            true
+        } else {
+            let statement = &statements[location.statement_index];
+            match statement.kind {
+                mir::StatementKind::Assign(ref _lhs, ref rhs) => {
+                    match rhs {
+                        &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, _) |
+                        &mir::Rvalue::Use(mir::Operand::Copy(_)) => {
+                            false
+                        }
+                        &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, _) |
+                        &mir::Rvalue::Use(mir::Operand::Move(_)) => {
+                            true
+                        }
+                        x => unreachable!("{:?}", x),
+                    }
+                },
+                ref x => unreachable!("{:?}", x),
+            }
+        }
+    }
+
     fn construct_vir_reborrowing_dag(
         &mut self,
         loans: &[facts::Loan],
@@ -881,8 +926,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::borrows::Node::new(
                         guard, node.loan,
                         node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-                        Vec::new(),
-                        Vec::new())
+                        Vec::new(), Vec::new(), Vec::new(), Vec::new(), None,
+                    )
                 }
                 ref x => unimplemented!("{:?}", x)
             };
@@ -910,8 +955,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let loan_location = self.polonius_info.get_loan_location(&loan);
         let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
-        let (expiring, restored) = self.encode_loan_places(&loan_places);
+        let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places);
         let borrowed_places = vec![restored.clone()];
+
+        let mut used_lhs_label = false;
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
         if node.incoming_zombies {
@@ -932,17 +979,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         self.label_after_location
                     )
                 );
-                stmts.extend(
-                    self.encode_transfer_permissions(
-                        expiring.clone().old(&in_label),
-                        expiring.clone().old(&lhs_label),
-                        loan_location
-                    )
-                );
+                if self.is_mutable_borrow(in_location) {
+                    used_lhs_label = true;
+                    stmts.extend(
+                        self.encode_transfer_permissions(
+                            expiring.clone().old(&in_label),
+                            expiring.clone().old(&lhs_label),
+                            loan_location
+                        )
+                    );
+                }
             }
         }
 
-        let lhs_place = if node.incoming_zombies {
+        let lhs_place = if used_lhs_label {
             let lhs_label = self.label_after_location.get(&loan_location).expect(
                 &format!(
                     "No label has been saved for location {:?} ({:?})",
@@ -971,19 +1021,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         };
 
-        stmts.extend(
-            self.encode_transfer_permissions(
-                lhs_place.clone(),
-                rhs_place,
-                loan_location
-            )
-        );
+        if is_mut {
+            stmts.extend(
+                self.encode_transfer_permissions(
+                    lhs_place.clone(),
+                    rhs_place,
+                    loan_location
+                )
+            );
+        }
+
+        let conflicting_loans = self.polonius_info.get_conflicting_loans(node.loan);
+        let alive_conflicting_loans = self.polonius_info.get_alive_conflicting_loans(
+            node.loan, location);
 
         let guard = self.construct_location_guard(loan_location);
         vir::borrows::Node::new(
             guard, node.loan,
             node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-            stmts, borrowed_places)
+            stmts, borrowed_places, conflicting_loans, alive_conflicting_loans,
+            Some(lhs_place.clone()))
     }
 
     fn construct_vir_reborrowing_node_for_call(
@@ -1081,21 +1138,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vir::borrows::Node::new(
             guard, node.loan,
             node.reborrowing_loans.clone(), node.reborrowed_loans.clone(),
-            stmts, Vec::new())
-    }
-
-    /// Compute from which place to which the permissions should be transferred
-    /// when expiring the `loan`.
-    fn encode_assignment_borrow_expiration(
-        &mut self,
-        dag: &ReborrowingDAG,
-        loan: facts::Loan,
-        node: &ReborrowingDAGNode,
-    ) -> (vir::Expr, vir::Expr) {
-        let loan_location = self.polonius_info.get_loan_location(&loan);
-        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
-        let (expiring, restored) = self.encode_loan_places(&loan_places);
-        (expiring, restored)
+            stmts, Vec::new(), Vec::new(), Vec::new(), None)
     }
 
     fn encode_expiration_of_loans(
@@ -1638,7 +1681,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
                                 stmts.push(
-                                    self.encode_exhale(target_place)
+                                    self.encode_target_exhale(target_place)
                                 );
                             }
 
@@ -1649,11 +1692,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
-                            let (post_type_spec, post_invs_spec, post_func_spec, magic_wands) = self.encode_postcondition_expr(
-                                &procedure_contract, &pre_label, &post_label,
-                                Some((location, &fake_exprs)), real_target.is_none());
+                            let (post_type_spec, post_invs_spec, post_func_spec, magic_wands, read_transfer) =
+                                self.encode_postcondition_expr(
+                                    &procedure_contract, &pre_label, &post_label,
+                                    Some((location, &fake_exprs)), real_target.is_none(), false);
                             let post_perm_spec = replace_fake_exprs(post_type_spec);
                             stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
+                            for (from_place, to_place) in read_transfer {
+                                stmts.push(vir::Stmt::TransferPerm(
+                                    replace_fake_exprs(from_place),
+                                    replace_fake_exprs(to_place),
+                                    true));
+                            }
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
 
@@ -1667,14 +1717,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // call. We do this after inhaling the functional spec, so that the
                             // user can not inhale equalities and trigger unsoundness by mistake.
                             // This is only needed inside loops.
-                            let inside_loop = self.loop_encoder.get_loop_depth(location.block) > 0;
-                            if inside_loop {
-                                let type_spec = procedure_contract.args.iter()
-                                    .map(|&local| self.encode_local_variable_permission(local))
-                                    .into_iter().conjoin();
-                                debug_assert_eq!(type_spec, pre_type_spec);
-                                stmts.push(vir::Stmt::Inhale(replace_fake_exprs(pre_type_spec)));
-                            }
+                            let type_spec = procedure_contract.args.iter()
+                                .map(|&local| self.encode_local_variable_permission(local))
+                                .into_iter().conjoin();
+                            debug_assert_eq!(type_spec, pre_type_spec);
+                            let inhaled_spec = replace_fake_exprs(pre_type_spec)
+                                .remove_read_permissions();
+                            stmts.push(vir::Stmt::Inhale(inhaled_spec));
 
                             stmts.extend(stmts_after);
 
@@ -1762,19 +1811,43 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Encode permissions that are implicitly carried by the given local variable.
     fn encode_local_variable_permission(&self, local: Local) -> vir::Expr {
-        self.mir_encoder.encode_place_predicate_permission(
-            self.encode_prusti_local(local).into(),
-            vir::PermAmount::Write
-        ).unwrap()
+        match self.locals.get_type(local).sty {
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl: mutability }) |
+            ty::TypeVariants::TyRef(_, ref ty, mutability) => {
+                // Use unfolded references.
+                let encoded_local = self.encode_prusti_local(local);
+                let field = self.encoder.encode_ref_field("val_ref", ty);
+                let place = vir::Expr::from(encoded_local).field(field);
+                let perm_amount = match mutability {
+                    Mutability::MutMutable => vir::PermAmount::Write,
+                    Mutability::MutImmutable => vir::PermAmount::Read,
+                };
+                vir::Expr::and(
+                    vir::Expr::acc_permission(place.clone(), vir::PermAmount::Write),
+                    vir::Expr::pred_permission(place, perm_amount).unwrap(),
+                )
+            }
+            _ => {
+                self.mir_encoder.encode_place_predicate_permission(
+                    self.encode_prusti_local(local).into(),
+                    vir::PermAmount::Write
+                ).unwrap()
+            }
+        }
     }
 
     /// Encode the precondition with three expressions:
     /// - one for the type encoding
     /// - one for the type invariants
     /// - one for the functional specification.
-    fn encode_precondition_expr(&self, contract: &ProcedureContract<'tcx>) -> (vir::Expr, vir::Expr, vir::Expr) {
+    fn encode_precondition_expr(
+        &self,
+        contract: &ProcedureContract<'tcx>
+    ) -> (vir::Expr, vir::Expr, vir::Expr) {
+
         let type_spec = contract.args.iter()
-            .map(|&local| self.encode_local_variable_permission(local));
+            .map(|&local| self.encode_local_variable_permission(local))
+            .into_iter().conjoin();
 
         let mut invs_spec: Vec<vir::Expr> = vec![];
 
@@ -1801,7 +1874,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             func_spec.push(value);
         }
 
-        (type_spec.into_iter().conjoin(), invs_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
+        (type_spec, invs_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
     }
 
     /// Encode precondition inhale on the definition side.
@@ -1818,8 +1891,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode permissions that are implicitly carried by the given place.
     /// `state_label` – the label of the state in which the place should
     /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_pred_permission(&self, place: &Place<'tcx>, state_label: Option<&str>, ) -> vir::Expr {
-        let (encoded_place, _, _) = self.encode_generic_place(place);
+    fn encode_pred_permission(
+        &self,
+        place: &Place<'tcx>,
+        state_label: Option<&str>
+    ) -> vir::Expr {
+        let (encoded_place, ty, _) = self.encode_generic_place(place);
         vir::Expr::pred_permission(
             encoded_place.maybe_old(state_label),
             vir::PermAmount::Write,
@@ -1975,27 +2052,52 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - one for the type invariants
     /// - one for the functional specification.
     /// Also return the magic wands to be added to the postcondition.
+    ///
+    /// `function_end` – are we encoding the exhale of the postcondition
+    /// at the end of the method?
     fn encode_postcondition_expr(
         &mut self,
         contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
-        diverging: bool
-    ) -> (vir::Expr, vir::Expr, vir::Expr, Vec<vir::Expr>) {
+        diverging: bool,
+        function_end: bool
+    ) -> (vir::Expr, vir::Expr, vir::Expr, Vec<vir::Expr>, Vec<(vir::Expr, vir::Expr)>) {
         let mut type_spec = vec![];
         let mut invs_spec = vec![];
+        let mut read_transfer = vec![];     // Permissions taken as read
+                                            // references that need to
+                                            // be transfered to old.
 
         // Encode the permissions got back and invariants for the arguments of type reference
-        for place in contract.returned_refs.iter() {
+        for (place, mutability) in contract.returned_refs.iter() {
             debug!("Put permission {:?} in postcondition", place);
-            type_spec.push(self.encode_pred_permission(place, Some(pre_label)));
             let (place_expr, place_ty, _) = self.encode_generic_place(place);
-            let inv = self.encoder.encode_invariant_func_app(
-                place_ty,
-                place_expr.maybe_old(Some(pre_label))
-            );
-            invs_spec.push(inv);
+            let old_place_expr = place_expr.clone().old(pre_label);
+            let mut add_type_spec = |perm_amount| {
+                let permissions = vir::Expr::pred_permission(
+                    old_place_expr.clone(),
+                    perm_amount,
+                ).unwrap();
+                type_spec.push(permissions);
+            };
+            match mutability {
+                Mutability::MutImmutable => {
+                    if function_end {
+                        add_type_spec(vir::PermAmount::Read);
+                    }
+                    read_transfer.push((place_expr, old_place_expr));
+                }
+                Mutability::MutMutable => {
+                    add_type_spec(vir::PermAmount::Write);
+                    let inv = self.encoder.encode_invariant_func_app(
+                        place_ty,
+                        old_place_expr,
+                    );
+                    invs_spec.push(inv);
+                }
+            };
         }
 
         // Encode args and return.
@@ -2049,7 +2151,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         (type_spec.into_iter().conjoin(),
          invs_spec.into_iter().conjoin(),
          func_spec.into_iter().conjoin(),
-         magic_wands)
+         magic_wands,
+         read_transfer)
     }
 
     /// Encode the package statement of magic wands at the end of the method
@@ -2142,8 +2245,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
-        let (type_spec, invs_spec, func_spec, magic_wands) = self.encode_postcondition_expr(
-            contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false);
+        let (type_spec, invs_spec, func_spec, magic_wands, _) = self.encode_postcondition_expr(
+            contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false, true);
 
         // Find which arguments are blocked by the returned reference.
         let blocked_args: Vec<usize> = {
@@ -2192,7 +2295,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let old_expr = encoded_deref.clone().old(PRECONDITION_LABEL);
                 self.cfg_method.add_stmt(
                     return_cfg_block,
-                    vir::Stmt::TransferPerm(encoded_deref, old_expr)
+                    vir::Stmt::TransferPerm(encoded_deref, old_expr, false)
                 );
             }
         }
@@ -2228,7 +2331,60 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn encode_loop_invariant_permissions(&self, loop_head: BasicBlockIndex) -> Vec<vir::Expr> {
+    fn get_pure_var_for_preserving_value(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        place: &vir::Expr
+    ) -> vir::LocalVar {
+        let loop_map = self.pure_var_for_preserving_value_map.get_mut(&loop_head).unwrap();
+        if let Some(local_var) = loop_map.get(place) {
+            local_var.clone()
+        } else {
+            let mut counter = 0;
+            let mut name = format!("_preserve${}", counter);
+            while self.auxiliar_local_vars.contains_key(&name) {
+                counter += 1;
+                name = format!("_preserve${}", counter);
+            }
+            let vir_type = vir::Type::TypedRef(String::from("AuxRef"));
+            self.cfg_method.add_local_var(&name, vir_type.clone());
+            self.auxiliar_local_vars.insert(name.clone(), vir_type.clone());
+            let var = vir::LocalVar::new(name, vir_type);
+            loop_map.insert(place.clone(), var.clone());
+            var
+        }
+    }
+
+    /// Since the loop invariant is taking all permission from the
+    /// outer context, we need to preserve values of references by
+    /// saving them in local variables.
+    fn construct_value_preserving_equality(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        place: &vir::Expr
+    ) -> vir::Expr {
+        let tmp_var = self.get_pure_var_for_preserving_value(
+            loop_head, place);
+        vir::Expr::BinOp(
+            vir::BinOpKind::EqCmp,
+            box tmp_var.into(),
+            box place.clone(),
+            vir::Position::default(),
+        )
+    }
+
+    /// `drop_read_references` – should we add permissions to read
+    /// references? We drop permissions of read references from the
+    /// exhale before the loop and inhale after the loop so that
+    /// the knowledge about their values is not havocked.
+    fn encode_loop_invariant_permissions(
+        &mut self,
+        loop_head: BasicBlockIndex,
+        drop_read_references: bool
+    ) -> Vec<vir::Expr> {
+        trace!("[enter] encode_loop_invariant_permissions \
+               loop_head={:?} drop_read_references={}",
+               loop_head, drop_read_references);
         let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
         let loop_depth = self.loop_encoder.get_loop_depth(loop_head) as u32;
         debug!("permissions_forest: {:?}", permissions_forest);
@@ -2240,55 +2396,104 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     continue;
                 }
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
+                debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 if let ty::TypeVariants::TyClosure(..) = ty.sty {
                     // Do not encode closures
                     continue;
                 }
-                let perm = match kind {
+                match kind {
                     /// Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
-                        vir::Expr::acc_permission(
+                        let perm = vir::Expr::acc_permission(
                             encoded_place,
                             vir::PermAmount::Read,
-                        )
-                    }
-
-                    /// Gives read permission to the entire subtree including this node.
-                    /// This must be a leaf node.
-                    PermissionKind::ReadSubtree => {
-                        vir::Expr::pred_permission(
-                            encoded_place,
-                            vir::PermAmount::Read,
-                        ).unwrap()
+                        );
+                        permissions.push(perm);
                     }
 
                     /// Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
-                        vir::Expr::acc_permission(
+                        let perm = vir::Expr::acc_permission(
                             encoded_place,
                             vir::PermAmount::Write
-                        )
+                        );
+                        permissions.push(perm);
                     }
 
-                    /// Gives read permission to the entire subtree including this node.
-                    /// This must be a leaf node.
+                    /// Gives read or write permission to the entire
+                    /// subtree including this node. This must be a leaf
+                    /// node.
+                    PermissionKind::ReadSubtree |
                     PermissionKind::WriteSubtree => {
-                        vir::Expr::pred_permission(
-                            encoded_place,
-                            vir::PermAmount::Write
-                        ).unwrap()
+                        let perm_amount = match kind {
+                            PermissionKind::WriteSubtree => vir::PermAmount::Write,
+                            PermissionKind::ReadSubtree => vir::PermAmount::Read,
+                            _ => unreachable!(),
+                        };
+                        let def_init = self.loop_encoder.is_definitely_initialised(
+                            &mir_place, loop_head);
+                        debug!("    perm_amount={} def_init={}", perm_amount, def_init);
+                        if let mir::Place::Projection(
+                            box mir::Projection { elem: mir::ProjectionElem::Deref, ref base }
+                            ) = mir_place {
+                            let (_, ref_ty, _) = self.mir_encoder.encode_place(base);
+                            match ref_ty.sty {
+                                ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl, .. }) |
+                                ty::TypeVariants::TyRef(_, _, mutbl) => {
+                                    if def_init {
+                                        permissions.push(
+                                            self.construct_value_preserving_equality(
+                                                loop_head, &encoded_place));
+                                    }
+                                    if drop_read_references {
+                                        if mutbl == Mutability::MutImmutable {
+                                            continue;
+                                        }
+                                    }
+                                }
+                                ref x => unreachable!("{:?}", x),
+                            }
+                        }
+                        match ty.sty {
+                            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl }) |
+                            ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
+                                debug!("encode_loop_invariant_permissions \
+                                        mir_place={:?} mutability={:?} \
+                                        drop_read_references={}",
+                                        mir_place, mutbl, drop_read_references);
+                                // Use unfolded references.
+                                let field = self.encoder.encode_ref_field("val_ref", ty);
+                                let field_place = vir::Expr::from(encoded_place).field(field);
+                                permissions.push(vir::Expr::acc_permission(
+                                    field_place.clone(), perm_amount));
+                                if def_init {
+                                    permissions.push(
+                                        self.construct_value_preserving_equality(
+                                            loop_head, &field_place));
+                                }
+                                if def_init &&
+                                    !(mutbl == Mutability::MutImmutable && drop_read_references) {
+                                    permissions.push(vir::Expr::pred_permission(
+                                        field_place, perm_amount).unwrap());
+                                }
+                            },
+                            _ => {
+                                permissions.push(vir::Expr::pred_permission(
+                                    encoded_place, perm_amount).unwrap());
+                            }
+                        }
                     }
-
                     /// Give no permission to this node and the entire subtree. This
                     /// must be a leaf node.
                     PermissionKind::None => {
                         unreachable!()
                     }
                 };
-                permissions.push(perm)
             }
         }
 
+        trace!("[exit] encode_loop_invariant_permissions permissions={}",
+               permissions.iter().map(|p| format!("{}, ", p)).collect::<String>());
         permissions
     }
 
@@ -2364,25 +2569,33 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_specs
     }
 
-    fn encode_loop_invariant_obtain(&self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
-        let permissions = self.encode_loop_invariant_permissions(loop_head);
+    fn encode_loop_invariant_obtain(&mut self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_loop_invariant_obtain loop_head={:?}", loop_head);
+        let permissions = self.encode_loop_invariant_permissions(loop_head, true);
 
         vec![
             vir::Stmt::comment(
                 format!("Restore the fold/unfold state of the loop invariant of {:?}", loop_head)
             ),
             vir::Stmt::Obtain(
-                permissions.into_iter().conjoin().remove_read_permissions()
+                permissions.into_iter().conjoin()
             )
         ]
     }
 
     fn encode_loop_invariant_exhale(
-        &self,
+        &mut self,
         loop_head: BasicBlockIndex,
         after_loop_iteration: bool
     ) -> Vec<vir::Stmt> {
-        let permissions = self.encode_loop_invariant_permissions(loop_head);
+        trace!("[enter] encode_loop_invariant_exhale loop_head={:?} \
+                after_loop_iteration={}",
+                loop_head, after_loop_iteration);
+        if !after_loop_iteration {
+            self.pure_var_for_preserving_value_map.insert(loop_head, HashMap::new());
+        }
+        let permissions = self.encode_loop_invariant_permissions(
+            loop_head, !after_loop_iteration);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
         // TODO: use different positions, and generate different error messages, for the exhale
@@ -2408,38 +2621,50 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         );
 
-        let mut permission_expr = permissions.into_iter().conjoin();
-        if !after_loop_iteration {
-            permission_expr = permission_expr.remove_read_permissions();
-        }
+        let permission_expr = permissions.into_iter().conjoin();
 
-        vec![
+        let mut stmts = vec![
             vir::Stmt::comment(
                 format!("Assert and exhale the loop invariant of block {:?}", loop_head)
             ),
+        ];
+        if !after_loop_iteration {
+            for (place, field) in &self.pure_var_for_preserving_value_map[&loop_head] {
+                stmts.push(
+                    vir::Stmt::Assign(
+                        field.into(),
+                        place.clone(),
+                        vir::AssignKind::Ghost,
+                    )
+                );
+            }
+        }
+        stmts.push(
             vir::Stmt::Assert(
                 func_spec.into_iter().conjoin(),
                 assert_pos
-            ),
+            )
+        );
+        stmts.push(
             vir::Stmt::Exhale(
                 permission_expr,
                 exhale_pos
             )
-        ]
+        );
+        stmts
     }
 
     fn encode_loop_invariant_inhale(
-        &self,
+        &mut self,
         loop_head: BasicBlockIndex,
         after_loop: bool
     ) -> Vec<vir::Stmt> {
-        let permissions = self.encode_loop_invariant_permissions(loop_head);
+        trace!("[enter] encode_loop_invariant_inhale loop_head={:?} after_loop={}",
+                loop_head, after_loop);
+        let permissions = self.encode_loop_invariant_permissions(loop_head, after_loop);
         let func_spec = self.encode_loop_invariant_specs(loop_head);
 
-        let mut permission_expr = permissions.into_iter().conjoin();
-        if after_loop {
-            permission_expr = permission_expr.remove_read_permissions();
-        }
+        let permission_expr = permissions.into_iter().conjoin();
 
         let mut stmts = vec![
             vir::Stmt::comment(
@@ -2648,8 +2873,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             &mir::Operand::Copy(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
-                // Copy the values from `src` to `lhs`
-                self.encode_copy(src, lhs.clone(), ty, false, false, location)
+
+                let mut stmts = if self.mir_encoder.is_reference(ty) {
+                    let loan = self.polonius_info.get_loan_at_location(location);
+                    let ref_field = self.encoder.encode_value_field(ty);
+                    vec![
+                        vir::Stmt::Assign(
+                            lhs.clone().field(ref_field.clone()),
+                            src.field(ref_field),
+                            vir::AssignKind::SharedBorrow(loan)
+                        )
+                    ]
+                } else {
+                    // Copy the values from `src` to `lhs`
+                    self.encode_copy(src, lhs.clone(), ty, false, false, location)
+                };
+
+                // Store a label for this state
+                let label = self.cfg_method.get_fresh_label_name();
+                debug!("Current loc {:?} has label {}", location, label);
+                self.label_after_location.insert(location, label.clone());
+                stmts.push(vir::Stmt::Label(label.clone()));
+
+                stmts
             }
 
             &mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
@@ -2742,16 +2988,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ]
     }
 
-    fn encode_exhale(&mut self, dst: &vir::Expr) -> vir::Stmt {
-        debug!("Encode exhale {:?}", dst);
-        let type_predicate = self.mir_encoder.encode_place_predicate_permission(
-            dst.clone(), vir::PermAmount::Write).unwrap();
+    fn encode_spec_place_permission(&self, place: &vir::Expr) -> vir::Expr {
+        if let Some(field_place) = place.try_deref() {
+            vir::Expr::acc_permission(field_place, vir::PermAmount::Write)
+        } else {
+            self.mir_encoder.encode_place_predicate_permission(
+                place.clone(), vir::PermAmount::Write).unwrap()
+        }
+    }
+
+    fn encode_target_exhale(&mut self, dst: &vir::Expr) -> vir::Stmt {
+        trace!("[enter] encode_target_exhale({})", dst);
+        let access = self.encode_spec_place_permission(dst);
         let pos = self.encoder.error_manager().register(
             // TODO: choose a better error span
             self.mir.span,
             ErrorCtxt::Unexpected
         );
-        vir::Stmt::Exhale(type_predicate.clone(), pos)
+        let stmt = vir::Stmt::Exhale(access, pos);
+        trace!("[enter] encode_target_exhale({}) = {}", dst, stmt);
+        stmt
     }
 
     /// Encodes the copy of a structure, reading from a source `src` and using `dst` as target.
@@ -2764,8 +3020,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ///
     /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
     /// a Rust move assignment, and not a copy assignment.
-    fn encode_copy(&mut self, src: vir::Expr, dst: vir::Expr, self_ty: ty::Ty<'tcx>, is_move: bool, is_inner_ty: bool, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("Encode copy {:?}, {:?}, {:?}, is_move: {}, is_inner_ty: {}", src, dst, self_ty, is_move, is_inner_ty);
+    fn encode_copy(
+        &mut self,
+        src: vir::Expr,
+        dst: vir::Expr,
+        self_ty: ty::Ty<'tcx>,
+        is_move: bool,
+        is_inner_ty: bool,
+        location: mir::Location
+    ) -> Vec<vir::Stmt> {
+        debug!("Encode copy {:?}, {:?}, {:?}, is_move: {}, is_inner_ty: {}",
+               src, dst, self_ty, is_move, is_inner_ty);
 
         match self_ty.sty {
             ty::TypeVariants::TyBool |

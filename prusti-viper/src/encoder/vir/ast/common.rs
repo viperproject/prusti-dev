@@ -123,6 +123,7 @@ impl ops::Sub for PermAmount {
     fn sub(self, other: PermAmount) -> PermAmount {
         match (self, other) {
             (PermAmount::Write, PermAmount::Read) => PermAmount::Remaining,
+            (PermAmount::Write, PermAmount::Remaining) => PermAmount::Read,
             _ => unreachable!("Invalid subtraction: {} - {}", self, other)
         }
     }

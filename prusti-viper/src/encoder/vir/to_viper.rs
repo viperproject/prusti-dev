@@ -150,7 +150,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::TransferPerm(ref expiring, ref restored) => {
+            &Stmt::TransferPerm(ref _expiring, ref _restored, _unchecked) => {
                 // Skip
                 ast.comment(&self.to_string())
             }
@@ -208,6 +208,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
                     &[],
                     ast.perm_type(),
                     ast.no_position()
+                )
+            },
+            PermAmount::Remaining => {
+                ast.perm_sub(
+                    PermAmount::Write.to_viper(ast),
+                    PermAmount::Read.to_viper(ast),
                 )
             },
             x => unreachable!("{:?}", x),

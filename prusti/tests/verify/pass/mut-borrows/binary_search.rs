@@ -161,4 +161,19 @@ fn borrow_test3(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     result
 }
 
+fn borrow_test4(arr: &mut VecWrapperI32, elem: &mut i32) {
+    let mut size = arr.len();
+
+    let mut continue_loop = size > 2;
+
+    #[invariant="0 <= size"]
+    #[invariant="size <= arr.len()"]
+    #[invariant="continue_loop ==> size > 2"]
+    while continue_loop {
+        size /= 2;
+        let mid_element = arr.borrow(size);
+        continue_loop = size > 2;
+    }
+}
+
 fn main() {}

@@ -26,6 +26,9 @@ impl<'tcx> PlaceSet<'tcx> {
             places: HashSet::new(),
         }
     }
+    pub fn contains(&self, place: &mir::Place) -> bool {
+        self.places.contains(place)
+    }
     pub fn check_invariant(&self) {
         for place1 in self.places.iter() {
             for place2 in self.places.iter() {

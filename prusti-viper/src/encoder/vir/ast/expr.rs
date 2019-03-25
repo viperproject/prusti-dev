@@ -420,6 +420,18 @@ impl Expr {
         }
     }
 
+    /// How many parts this place has? Used for ordering places.
+    pub fn place_depth(&self) -> u32 {
+        match self {
+            &Expr::Local(_, _) => 1,
+            &Expr::Field(ref base, _, _) |
+            &Expr::AddrOf(ref base, _, _) |
+            &Expr::LabelledOld(_, ref base, _) |
+            &Expr::Unfolding(_, _, ref base, _, _) => base.place_depth() + 1,
+            x => unreachable!("{:?}", x),
+        }
+    }
+
     pub fn is_simple_place(&self) -> bool {
         match self {
             &Expr::Local(_, _) => true,
@@ -439,6 +451,32 @@ impl Expr {
             &Expr::Unfolding(ref name, ref args, box ref base, perm, _) => None,
             ref x => panic!("{}", x),
         }
+    }
+
+    /// Is this place a MIR reference?
+    pub fn is_mir_reference(&self) -> bool {
+        debug_assert!(self.is_place());
+        if let Expr::Field(box Expr::Local(LocalVar{ typ, .. }, _), _, _) = self {
+            if let Type::TypedRef(ref name) = typ {
+                return name.starts_with("ref$");
+            }
+        }
+        false
+    }
+
+    /// If self is a MIR reference, dereference it.
+    pub fn try_deref(&self) -> Option<Self> {
+        if let Type::TypedRef(ref predicate_name) = self.get_type() {
+            // FIXME: We should not rely on string names for type conversions.
+            if predicate_name.starts_with("ref$") {
+                let field_predicate_name = predicate_name[4..predicate_name.len()].to_string();
+                let field = Field::new(
+                    "val_ref", Type::TypedRef(field_predicate_name));
+                let field_place = Expr::from(self.clone()).field(field);
+                return Some(field_place);
+            }
+        }
+        None
     }
 
     pub fn map_parent<F>(self, f: F) -> Expr where F: Fn(Expr) -> Expr {

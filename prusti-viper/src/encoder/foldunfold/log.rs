@@ -11,6 +11,18 @@ use encoder::vir;
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::perm::Perm;
 use std::collections::HashMap;
+use std::cmp::Ordering;
+use std::iter;
+
+
+/// The type of the access permission.
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
+enum PermType {
+    /// Field access predicate.
+    FieldAccess,
+    /// Predicate access predicate.
+    PredicateAccess,
+}
 
 #[derive(Clone)]
 pub(super) struct EventLog {
@@ -18,12 +30,37 @@ pub(super) struct EventLog {
     /// CfgBlockIndex because fold-unfold algorithms generates a new basic block for dropped
     /// permissions.
     prejoin_actions: HashMap<vir::CfgBlockIndex, Vec<Action>>,
+
+    /// A list of accessibility predicates for which we inhaled `Read`
+    /// permission when creating a borrow and original places from which
+    /// they borrow.
+    ///
+    /// The tuples values:
+    ///
+    /// 1.  The access predicate.
+    /// 2.  The rhs of the assignment that created this borrow.
+    /// 3.  A unique number.
+    duplicated_reads: HashMap<vir::borrows::Borrow, Vec<(vir::Expr, vir::Expr, u32)>>,
+
+    /// The place that is blocked by a given borrow.
+    blocked_place: HashMap<vir::borrows::Borrow, vir::Expr>,
+
+    /// A list of accessibility predicates that were converted from
+    /// `Write` to `Read` when creating a borrow.
+    converted_to_read_places: HashMap<vir::borrows::Borrow, Vec<vir::Expr>>,
+
+    /// A generator of unique IDs.
+    id_generator: u32,
 }
 
 impl EventLog {
     pub fn new() -> Self {
         Self {
             prejoin_actions: HashMap::new(),
+            duplicated_reads: HashMap::new(),
+            blocked_place: HashMap::new(),
+            converted_to_read_places: HashMap::new(),
+            id_generator: 0,
         }
     }
     pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
@@ -50,5 +87,74 @@ impl EventLog {
             }
         }
         dropped_permissions
+    }
+    /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
+    pub fn log_read_permission_duplication(
+        &mut self,
+        borrow: vir::borrows::Borrow,
+        perm: vir::Expr,
+        original_place: vir::Expr,
+    ) {
+        let entry = self.duplicated_reads.entry(borrow).or_insert(Vec::new());
+        entry.push((perm, original_place, self.id_generator));
+        self.id_generator += 1;
+    }
+    pub fn get_duplicated_read_permissions(
+        &self,
+        borrow: vir::borrows::Borrow
+    ) -> Vec<(vir::Expr, vir::Expr)> {
+        trace!("[enter] get_duplicated_read_permissions({:?})", borrow);
+        let mut result = self.duplicated_reads.get(&borrow).cloned().unwrap_or(Vec::new());
+        result.sort_by(|(access1, _, id1), (access2, _, id2)| {
+            match (access1, access2) {
+                (vir::Expr::PredicateAccessPredicate(_, _, _, _),
+                 vir::Expr::PredicateAccessPredicate(_, _, _, _)) => {
+                    Ordering::Equal
+                },
+                (vir::Expr::PredicateAccessPredicate(_, _, _, _),
+                 vir::Expr::FieldAccessPredicate(_, _, _)) => {
+                    Ordering::Less
+                },
+                (vir::Expr::FieldAccessPredicate(_, _, _),
+                 vir::Expr::PredicateAccessPredicate(_, _, _, _)) => {
+                    Ordering::Greater
+                },
+                (vir::Expr::FieldAccessPredicate(box ref place1, _, _),
+                 vir::Expr::FieldAccessPredicate(box ref place2, _, _)) => {
+                    let key1 = (place1.place_depth(), id1);
+                    let key2 = (place2.place_depth(), id2);
+                    key2.cmp(&key1)
+                },
+                x => unreachable!("{:?}", x),
+            }
+        });
+        trace!("[enter] get_duplicated_read_permissions({:?}) = {}",
+               borrow,
+               result.iter()
+                    .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
+                    .collect::<String>());
+        result
+            .into_iter()
+            .map(|(access, original_place, _)| (access, original_place))
+            .collect()
+    }
+    /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
+    pub fn log_convertion_to_read(
+        &mut self,
+        borrow: vir::borrows::Borrow,
+        perm: vir::Expr
+    ) {
+        let entry = self.converted_to_read_places.entry(borrow).or_insert(Vec::new());
+        entry.push(perm);
+    }
+    pub fn get_converted_to_read_places(
+        &self,
+        borrow: vir::borrows::Borrow
+    ) -> Vec<vir::Expr> {
+        if let Some(accesses) = self.converted_to_read_places.get(&borrow) {
+            accesses.clone()
+        } else {
+            Vec::new()
+        }
     }
 }

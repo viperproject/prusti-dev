@@ -6,7 +6,7 @@
 
 use encoder::places;
 use prusti_interface::data::ProcedureDefId;
-use rustc::hir;
+use rustc::hir::{self, Mutability};
 use rustc::mir;
 use rustc::ty::{self, Ty, TyCtxt};
 use rustc_data_structures::indexed_vec::Idx;
@@ -82,8 +82,9 @@ pub struct ProcedureContractGeneric<L, P>
     /// Borrowed arguments that are directly returned to the caller (not via
     /// a magic wand). For example, if `*(_2.1).0` is in the vector, this
     /// means that we have `T(old[precondition](_2.1.ref.0))` in the
-    /// postcondition.
-    pub returned_refs: Vec<P>,
+    /// postcondition. It also includes information about the mutability
+    /// of the original reference.
+    pub returned_refs: Vec<(P, Mutability)>,
     /// The returned value for which we should have permission in
     /// the postcondition.
     pub returned_value: L,
@@ -191,7 +192,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             .collect();
         ProcedureContract {
             args: self.args.iter().map(|&a| a.into()).collect(),
-            returned_refs: self.returned_refs.iter().map(|r| r.into()).collect(),
+            returned_refs: self.returned_refs.iter().map(|(r, m)| (r.into(), *m)).collect(),
             returned_value: self.returned_value.into(),
             borrow_infos,
             specification: self.specification.clone(),
@@ -224,9 +225,13 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
                 }
             })
             .collect();
+        let returned_refs = self.returned_refs
+            .iter()
+            .map(|(place, mutability)| (substitute(place), *mutability))
+            .collect();
         let result = ProcedureContract {
             args: args.clone(),
-            returned_refs: self.returned_refs.iter().map(&substitute).collect(),
+            returned_refs: returned_refs,
             returned_value: target,
             borrow_infos,
             specification: self.specification.clone(),
@@ -240,7 +245,7 @@ pub struct BorrowInfoCollectingVisitor<'a, 'tcx: 'a> {
     borrow_infos: Vec<BorrowInfo<mir::Place<'tcx>>>,
     /// References that were passed as arguments. We are interested only in
     /// references that can be blocked.
-    references_in: Vec<mir::Place<'tcx>>,
+    references_in: Vec<(mir::Place<'tcx>, Mutability)>,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     /// Can the currently analysed path block other paths? For return
     /// type this is initially true, and for parameters it is true below
@@ -325,7 +330,7 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
             borrow_info.blocking_paths.push(current_path);
         } else {
             borrow_info.blocked_paths.push(current_path.clone());
-            self.references_in.push(current_path);
+            self.references_in.push((current_path, mutability));
         }
         self.is_path_blocking = true;
         //type_visitor::walk_ref(self, region, ty, mutability);
@@ -343,7 +348,8 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
-    specification: TypedSpecificationSet) -> ProcedureContractMirDef<'tcx>
+    specification: TypedSpecificationSet
+) -> ProcedureContractMirDef<'tcx>
     where
         'a: 'p,
         'tcx: 'a
@@ -383,7 +389,7 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     let returned_refs: Vec<_> = visitor
         .references_in
         .into_iter()
-        .filter(is_not_blocked)
+        .filter(|(place, _)| is_not_blocked(place))
         .collect();
     let contract = ProcedureContractGeneric {
         args: fake_mir_args,

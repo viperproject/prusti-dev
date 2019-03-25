@@ -59,28 +59,24 @@ impl vir::Stmt {
                 state.remove_acc_matching(|p| p.is_curr() && !p.is_local() && targets.contains(&p.get_base()));
             }
 
-            &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) => {
+            &vir::Stmt::Assign(ref lhs_place, ref rhs, kind) if kind != vir::AssignKind::Ghost => {
                 debug_assert!(lhs_place.is_place());
                 let original_state = state.clone();
 
-                // Mark the `rhs` as moved or borrowed
-                match kind {
-                    vir::AssignKind::Move |
-                    vir::AssignKind::MutableBorrow => {
-                        debug_assert!(rhs.is_place());
-                        assert!(rhs.get_type().is_ref());
+                // Check the state of rhs.
+                if kind != vir::AssignKind::Copy {
+                    assert!(rhs.is_place());
+                    assert!(rhs.get_type().is_ref());
 
                         // Check that the rhs contains no moved paths
-                        assert!(
-                            !state.is_prefix_of_some_moved(&rhs),
-                            "The rhs place of statement '{}' is currently moved-out or blocked due to a borrow",
-                            self
-                        );
-                        for prefix in rhs.all_proper_prefixes() {
-                            assert!(!state.contains_pred(&prefix));
-                        }
+                    assert!(
+                        !state.is_prefix_of_some_moved(&rhs),
+                        "The rhs place of statement '{}' is currently moved-out or blocked due to a borrow",
+                        self
+                    );
+                    for prefix in rhs.all_proper_prefixes() {
+                        assert!(!state.contains_pred(&prefix));
                     }
-                    _ => {}
                 }
 
                 // Remove places that will not have a name
@@ -90,37 +86,53 @@ impl vir::Stmt {
 
                 // In case of move or borrowing, move permissions from the `rhs` to the `lhs`
                 if rhs.is_place() && rhs.get_type().is_ref() {
-                    // This is a move assignemnt or the creation of a mutable borrow
-                    assert!(match kind { vir::AssignKind::Copy => false, _ => true }, "Unexpected assignment kind: {:?}", kind);
+                    // This is a move assignemnt or the creation of a borrow
+                    match kind {
+                        vir::AssignKind::Move |
+                        vir::AssignKind::MutableBorrow(_) => {
+                            // In Prusti, we lose permission on the rhs
+                            state.remove_pred_matching( |p| p.has_prefix(&rhs));
+                            state.remove_acc_matching( |p| p.has_proper_prefix(&rhs) && !p.is_local());
 
-                    // In Prusti, we lose permission on the rhs
-                    state.remove_pred_matching( |p| p.has_prefix(&rhs));
-                    state.remove_acc_matching( |p| p.has_proper_prefix(&rhs) && !p.is_local());
+                            // We also lose permission on the lhs
+                            state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
+                            state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place) && !p.is_local());
 
-                    // We also lose permission on the lhs
-                    state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
-                    state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place) && !p.is_local());
+                            // And we create permissions for the lhs
+                            let new_acc_places = original_state.acc().iter()
+                                .filter(|(p, _)| p.has_proper_prefix(&rhs))
+                                .map(|(p, perm_amount)| (p.clone().replace_place(&rhs, lhs_place), *perm_amount))
+                                .filter(|(p, _)| !p.is_local());
+                            state.insert_all_acc(new_acc_places);
 
-                    // And we create permissions for the lhs
-                    let new_acc_places = original_state.acc().iter()
-                        .filter(|(p, _)| p.has_proper_prefix(&rhs))
-                        .map(|(p, perm_amount)| (p.clone().replace_place(&rhs, lhs_place), *perm_amount))
-                        .filter(|(p, _)| !p.is_local());
-                    state.insert_all_acc(new_acc_places);
+                            let new_pred_places = original_state.pred().iter()
+                                .filter(|(p, _)| p.has_prefix(&rhs))
+                                .map(|(p, perm_amount)| (p.clone().replace_place(&rhs, lhs_place), *perm_amount));
+                            state.insert_all_pred(new_pred_places);
 
-                    let new_pred_places = original_state.pred().iter()
-                        .filter(|(p, _)| p.has_prefix(&rhs))
-                        .map(|(p, perm_amount)| (p.clone().replace_place(&rhs, lhs_place), *perm_amount));
-                    state.insert_all_pred(new_pred_places);
-
-                    // Finally, mark the rhs as moved
-                    if !rhs.has_prefix(lhs_place) {
-                        state.insert_moved(rhs.clone());
+                            // Finally, mark the rhs as moved
+                            if !rhs.has_prefix(lhs_place) {
+                                state.insert_moved(rhs.clone());
+                            }
+                        }
+                        vir::AssignKind::SharedBorrow(_) => {
+                            // We lose permission on the lhs
+                            state.remove_pred_matching( |p| p.has_prefix(&lhs_place));
+                            state.remove_acc_matching( |p| p.has_proper_prefix(&lhs_place) && !p.is_local());
+                        }
+                        vir::AssignKind::Ghost |
+                        vir::AssignKind::Copy => {
+                            unreachable!();
+                        }
                     }
                 } else {
-                    // This is not move assignemnt or the creation of a mutable borrow
+                    // This is not move assignemnt or the creation of a borrow
                     assert!(match kind { vir::AssignKind::Copy => true, _ => false }, "Unexpected assignment kind: {:?}", kind);
                 }
+            }
+
+            &vir::Stmt::Assign(ref _lhs_place, ref _rhs, vir::AssignKind::Ghost) => {
+                // Do nothing.
             }
 
             &vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {
@@ -193,7 +205,7 @@ impl vir::Stmt {
                 state.end_frame()
             }
 
-            &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place) => {
+            &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place, unchecked) => {
                 let original_state = state.clone();
 
                 debug_assert!(
@@ -283,7 +295,8 @@ impl vir::Stmt {
                 */
 
                 // Finally, mark the lhs as moved
-                if !lhs_place.has_prefix(rhs_place) { // Maybe this is always true?
+                if !lhs_place.has_prefix(rhs_place) &&   // Maybe this is always true?
+                        !unchecked {
                     state.insert_moved(lhs_place.clone());
                 }
             }
