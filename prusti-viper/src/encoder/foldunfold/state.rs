@@ -52,7 +52,11 @@ impl State {
                 } else {
                     false
                 };
-                if !contains_parent_pred && self.pred[place] != PermAmount::Remaining {
+                if !contains_parent_pred &&
+                    self.pred[place] != PermAmount::Remaining &&
+                    self.pred[place] != PermAmount::Read &&
+                    !place.is_mir_reference() {
+                    trace!("place: {:?}", place);
                     trace!("Acc state: {{\n{}\n}}", self.display_acc());
                     trace!("Pred state: {{\n{}\n}}", self.display_pred());
                     panic!(
@@ -65,7 +69,14 @@ impl State {
         }
         for place in self.acc.keys() {
             if place.is_simple_place() && !place.is_local() {
-                if !self.contains_acc(&place.clone().get_parent().unwrap()) {
+                let parent = place.clone().get_parent().unwrap();
+                if !self.contains_acc(&parent) {
+                    if self.acc[place] == PermAmount::Read {
+                        let grand_parent = parent.clone().get_parent().unwrap();
+                        if grand_parent.is_local() {
+                            continue;
+                        }
+                    }
                     panic!(
                         "Consistency error: state has acc {}, but not acc {}",
                         place,
@@ -143,6 +154,7 @@ impl State {
         // Check moved
         for place in &self.moved {
             if place.is_simple_place() && !self.contains_acc(place) &&
+                !place.is_mir_reference() &&
                 !self.framing_stack.iter().any(|fs|
                     fs.contains(&Perm::Acc(place.clone(), PermAmount::Write))
                 ) {

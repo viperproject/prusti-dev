@@ -6,11 +6,11 @@ fn sum(n: i32) -> i32 {
     let mut res = 0;
     let mut i = 0;
     // Note: here we use `n`, not `old(n)`
-    #[invariant="i <= (n + 1)"]
-    #[invariant="res == (i - 1) * i / 2"]
-    while i <= n {
-        res = res + i;
+    #[invariant="i <= n"]
+    #[invariant="res == i * (i + 1) / 2"]
+    while i < n {
         i = i + 1;
+        res = res + i;
     }
     res
 }

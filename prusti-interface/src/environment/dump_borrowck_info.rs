@@ -17,6 +17,7 @@ use super::mir_analyses::liveness::{
     LivenessAnalysisResult
 };
 use super::polonius_info::PoloniusInfo;
+use super::procedure::Procedure;
 use std::cell;
 use std::env;
 use std::collections::{HashSet, BTreeMap, BTreeSet};
@@ -70,6 +71,8 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
             _ => {},
         };*/
 
+        let procedure = Procedure::new(self.tcx, def_id);
+
         self.tcx.mir_borrowck(def_id);
 
         // Read Polonius facts.
@@ -97,7 +100,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
             loops: loop_info,
             initialization: initialization,
             liveness: liveness,
-            polonius_info: PoloniusInfo::new(self.tcx, def_id, &mir),
+            polonius_info: PoloniusInfo::new(&procedure),
         };
         mir_info_printer.print_info().unwrap();
 

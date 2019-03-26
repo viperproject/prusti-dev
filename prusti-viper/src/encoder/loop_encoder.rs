@@ -95,4 +95,10 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
         forest
     }
+
+    /// Is the ``place`` definitely initialised at the beginning of ``bbi``?
+    pub fn is_definitely_initialised(&self, place: &mir::Place, bbi: BasicBlockIndex) -> bool {
+        self.initialization.get_before_block(bbi).iter()
+            .any(|def_init_place| utils::is_prefix(place, def_init_place))
+    }
 }

@@ -10,6 +10,7 @@ use encoder::Encoder;
 use self::branch_ctxt::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::cmp::Ordering;
 use encoder::vir::{CfgReplacer, CheckNoOpAction, CfgBlockIndex};
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::log::EventLog;
@@ -130,7 +131,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 // Rewrite statement
                 vir::Stmt::Inhale(self.replace_expr(&expr, &inner_bctxt))
             }
-            vir::Stmt::TransferPerm(lhs, rhs) => {
+            vir::Stmt::TransferPerm(lhs, rhs, unchecked) => {
                 // Compute rhs state
                 let mut rhs_bctxt = bctxt.clone();
                 /*
@@ -141,11 +142,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         .filter(|p| p.is_pred())
                 );
                 */
+                let new_lhs = if unchecked {
+                    lhs
+                } else {
+                    self.replace_expr(&lhs, &bctxt)
+                };
 
                 // Rewrite statement
                 vir::Stmt::TransferPerm(
-                    self.replace_expr(&lhs, &bctxt),
-                    self.replace_old_expr(&rhs, &rhs_bctxt)
+                    new_lhs,
+                    self.replace_old_expr(&rhs, &rhs_bctxt),
+                    unchecked
                 )
             }
             vir::Stmt::PackageMagicWand(wand, stmts, label, pos) => {
@@ -222,7 +229,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     debug!("process_expire_borrows borrow={:?} dropped_permissions={:?}",
                            curr_node.borrow, dropped_permissions);
                     for perm in &dropped_permissions {
-                        let comment = format!("restored: {}", perm);
+                        let comment = format!("restored (from log): {}", perm);
                         curr_block_pre_statements.push(vir::Stmt::comment(comment));
                     }
                     bctxt.mut_state().restore_dropped_perms(dropped_permissions.into_iter());
@@ -245,7 +252,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("process_expire_borrows borrow={:?} dropped_permissions={:?}",
                                curr_node.borrow, dropped_permissions);
                         for perm in &dropped_permissions {
-                            let comment = format!("restored: {}", perm);
+                            let comment = format!("restored (from log): {}", perm);
                             let key = (predecessor, curr_block_index);
                             let entry = cfg.edges.entry(key).or_insert(Vec::new());
                             entry.push(vir::Stmt::comment(comment));
@@ -264,8 +271,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         for a in action {
                             stmts_to_add.push(a.to_stmt());
                             if let Action::Drop(perm) = a {
-                                if dag.in_borrowed_places(perm.get_place()) {
-                                    stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                                if dag.in_borrowed_places(perm.get_place()) &&
+                                        perm.get_perm_amount() != vir::PermAmount::Read {
+                                    stmts_to_add.push(vir::Stmt::comment(
+                                            format!("restored (in branch merge): {}", perm)));
                                     bctxt.mut_state().restore_dropped_perm(perm.clone());
                                 }
                             }
@@ -282,12 +291,51 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             let curr_block = &mut cfg.basic_blocks[curr_block_index];
             let curr_node = &curr_block.node;
             curr_block.statements.extend(curr_block_pre_statements);
+
             for stmt in &curr_node.stmts {
                 debug!("process_expire_borrows block={} ({:?}) stmt={}",
                        curr_block_index, curr_node.borrow, stmt);
                 let new_stmts = self.replace_stmt(
                     &stmt, false, &mut bctxt, surrounding_block_index, new_cfg, label);
                 curr_block.statements.extend(new_stmts);
+            }
+
+            // Remove read permissions.
+            let duplicated_perms = self.log.get_duplicated_read_permissions(curr_node.borrow);
+            let mut maybe_original_place = None;
+            for (mut read_access, original_place) in duplicated_perms {
+                if let Some(ref place) = curr_node.place {
+                    debug!("place={} original_place={} read_access={}",
+                           place, original_place, read_access);
+                    read_access = read_access.replace_place(&original_place, place);
+                }
+                maybe_original_place = Some(original_place);
+                let stmt = vir::Stmt::Exhale(read_access, vir::Position::default());
+                let new_stmts = self.replace_stmt(
+                    &stmt, false, &mut bctxt, surrounding_block_index, new_cfg, label);
+                curr_block.statements.extend(new_stmts);
+            }
+            if let Some(original_place) = maybe_original_place {
+                if bctxt.state().contains_acc(&original_place) {
+                    bctxt.mut_state().insert_moved(original_place);
+                }
+            }
+            // Restore write permissions.
+            // Currently, we have a simplified version that restores write permissions only when
+            // all borrows in the conflict set are dead. This is sound, but less complete.
+            // TODO: Implement properly so that we can restore write permissions to the prefix only
+            // when there is still alive conflicting borrown. For example, when the currently expiring
+            // borrow borrowed `x.f`, but we still have a conflicting borrow that borrowed `x.f.g`, we
+            // would need to restore write permissions to `x.f` without doing the same for `x.f.g`.
+            // This would require making sure that we are unfolded up to `x.f.g` and emit
+            // restoration for each place segment separately.
+            if curr_node.alive_conflicting_borrows.is_empty() {
+                for &borrow in &curr_node.conflicting_borrows {
+                    curr_block.statements.extend(
+                        self.restore_write_permissions(borrow, &mut bctxt));
+                }
+                curr_block.statements.extend(
+                    self.restore_write_permissions(curr_node.borrow, &mut bctxt));
             }
 
             final_bctxt[curr_block_index] = Some(bctxt);
@@ -311,8 +359,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 for a in action {
                     stmts_to_add.push(a.to_stmt());
                     if let Action::Drop(perm) = a {
-                        if dag.in_borrowed_places(perm.get_place()) {
-                            stmts_to_add.push(vir::Stmt::comment(format!("restored: {}", perm)));
+                        if dag.in_borrowed_places(perm.get_place()) &&
+                                perm.get_perm_amount() != vir::PermAmount::Read {
+                            stmts_to_add.push(vir::Stmt::comment(
+                                    format!("restored (in branch merge): {}", perm)));
                             final_bctxt.mut_state().restore_dropped_perm(perm.clone());
                         }
                     }
@@ -337,6 +387,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                                              self.patch_places(statements, label)));
                 }
             }
+        }
+        stmts
+    }
+
+    /// Restore `Write` permissions that were converted to `Read` due to borrowing.
+    fn restore_write_permissions(
+        &self,
+        borrow: vir::borrows::Borrow,
+        bctxt: &mut BranchCtxt
+    ) -> Vec<vir::Stmt> {
+        let mut stmts = Vec::new();
+        for access in self.log.get_converted_to_read_places(borrow) {
+            let perm = match access {
+                vir::Expr::PredicateAccessPredicate(_, ref args, perm_amount, _) => {
+                    assert!(args.len() == 1);
+                    Perm::pred(args[0].clone(), perm_amount)
+                },
+                vir::Expr::FieldAccessPredicate(box ref place, perm_amount, _) => {
+                    Perm::acc(place.clone(), perm_amount)
+                },
+                x => unreachable!("{:?}", x),
+            };
+            stmts.extend(
+                bctxt
+                    .obtain_permissions(vec![perm])
+                    .iter()
+                    .map(|a| a.to_stmt())
+            );
+            let inhale_stmt = vir::Stmt::Inhale(access);
+            bctxt.apply_stmt(&inhale_stmt);
+            stmts.push(inhale_stmt);
         }
         stmts
     }
@@ -379,7 +460,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     match stmt {
                         vir::Stmt::Comment(_) |
                         vir::Stmt::ApplyMagicWand(_, _) |
-                        vir::Stmt::TransferPerm(_, _) => {
+                        vir::Stmt::TransferPerm(_, _, _) => {
                             stmt.clone()
                         },
                         vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {
@@ -591,7 +672,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts,
                                               label.clone(), position.clone())
             }
-
             stmt => stmt,
         };
 
@@ -602,7 +682,101 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         // 5. Apply effect of statement on state
         debug!("[step.5] replace_stmt: {}", stmt);
         bctxt.apply_stmt(&stmt);
-        stmts.push(stmt);
+        stmts.push(stmt.clone());
+
+        // 6. Handle shared borrows.
+        debug!("[step.6] replace_stmt: {}", stmt);
+        if let vir::Stmt::Assign(
+                ref lhs_place,
+                ref rhs_place,
+                vir::AssignKind::SharedBorrow(borrow)
+        ) = stmt {
+            // Check if in the state we have any write permissions
+            // with the borrowed place as a prefix. If yes, change them
+            // to read permissions and emit exhale acc(T(place), write-read).
+            let mut acc_perm_counter = 0;
+            let mut acc_perms: Vec<_> = bctxt.state().acc().iter()
+                .filter(|&(place, perm_amount)| {
+                    assert!(perm_amount.is_valid_for_specs());
+                    place.has_prefix(rhs_place) &&
+                    !place.is_local()
+                })
+                .map(|(place, perm_amount)| {
+                    acc_perm_counter += 1;
+                    (place.clone(), perm_amount.clone(), acc_perm_counter)
+                })
+                .collect();
+            acc_perms.sort_by(
+                |(place1, _, id1), (place2, _, id2)| {
+                    let key1 = (place1.place_depth(), id1);
+                    let key2 = (place2.place_depth(), id2);
+                    key1.cmp(&key2)
+                });
+            trace!("acc_perms = {}",
+                   acc_perms.iter()
+                        .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
+                        .collect::<String>());
+            for (place, perm_amount, _) in acc_perms {
+                debug!("acc place: {} {}", place, perm_amount);
+                debug!("rhs_place={} {:?}", rhs_place, bctxt.state().acc().get(rhs_place));
+                debug!("lhs_place={} {:?}", lhs_place, bctxt.state().acc().get(lhs_place));
+                if *rhs_place == place {
+                    if Some(&vir::PermAmount::Write) == bctxt.state().acc().get(lhs_place) {
+                        // We are copying a shared reference, so we do not need to change
+                        // the root of rhs.
+                        debug!("Copy of a shared reference. Ignore.");
+                        continue;
+                    }
+                }
+                if perm_amount == vir::PermAmount::Write {
+                    let access = vir::Expr::FieldAccessPredicate(
+                        box place.clone(), vir::PermAmount::Remaining, vir::Position::default());
+                    self.log.log_convertion_to_read(borrow, access.clone());
+                    let stmt = vir::Stmt::Exhale(access, vir::Position::default());
+                    bctxt.apply_stmt(&stmt);
+                    stmts.push(stmt);
+                }
+                let new_place = place.replace_place(rhs_place, lhs_place);
+                debug!("    new place: {}", new_place);
+                let lhs_read_access = vir::Expr::FieldAccessPredicate(
+                    box new_place, vir::PermAmount::Read, vir::Position::default());
+                self.log.log_read_permission_duplication(
+                    borrow, lhs_read_access.clone(), lhs_place.clone());
+                let stmt = vir::Stmt::Inhale(lhs_read_access);
+                bctxt.apply_stmt(&stmt);
+                stmts.push(stmt);
+            }
+            let pred_perms: Vec<_> = bctxt.state().pred().iter()
+                .filter(|&(place, perm_amount)| {
+                    assert!(perm_amount.is_valid_for_specs());
+                    place.has_prefix(rhs_place)
+                })
+                .map(|(place, perm_amount)| (place.clone(), perm_amount.clone()))
+                .collect();
+            for (place, perm_amount) in pred_perms {
+                debug!("pred place: {} {}", place, perm_amount);
+                let predicate_name = place.typed_ref_name().unwrap();
+                if perm_amount == vir::PermAmount::Write {
+                    let access = vir::Expr::PredicateAccessPredicate(
+                        predicate_name.clone(), vec![place.clone()],
+                        vir::PermAmount::Remaining, vir::Position::default());
+                    self.log.log_convertion_to_read(borrow, access.clone());
+                    let stmt = vir::Stmt::Exhale(access, vir::Position::default());
+                    bctxt.apply_stmt(&stmt);
+                    stmts.push(stmt);
+                }
+                let new_place = place.replace_place(rhs_place, lhs_place);
+                debug!("    new place: {}", new_place);
+                let lhs_read_access = vir::Expr::PredicateAccessPredicate(
+                    predicate_name, vec![new_place],
+                    vir::PermAmount::Read, vir::Position::default());
+                self.log.log_read_permission_duplication(
+                    borrow, lhs_read_access.clone(), lhs_place.clone());
+                let stmt = vir::Stmt::Inhale(lhs_read_access);
+                bctxt.apply_stmt(&stmt);
+                stmts.push(stmt);
+            }
+        }
 
         // Delete lhs state
         self.bctxt_at_label.remove("lhs");

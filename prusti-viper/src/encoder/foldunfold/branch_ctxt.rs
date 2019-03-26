@@ -140,21 +140,40 @@ impl<'a> BranchCtxt<'a> {
 
             // Obtain access permissions
             for acc_place in &actual_acc {
+                let mut dropped_place = false;
                 if !self.state.acc().contains_key(acc_place) {
                     debug!("The left branch needs to obtain an access permission: {}", acc_place);
                     let perm_amount = other.state.acc()[acc_place];
                     // Unfold something and get `acc_place`
-                    left_actions.extend(
-                        self.obtain(&Perm::acc(acc_place.clone(), perm_amount))
-                    );
+                    let (new_actions, places_to_drop) = self.obtain(
+                        &Perm::acc(acc_place.clone(), perm_amount), true);
+                    left_actions.extend(new_actions);
+                    for perm in places_to_drop {
+                        // This vector should have at most one element, which must be
+                        // ``acc_place``.
+                        assert!(perm.get_place() == acc_place);
+                        other.state.remove_perm(&perm);
+                        right_actions.push(Action::Drop(perm));
+                        dropped_place = true;
+                    }
+                }
+                if dropped_place {
+                    continue;
                 }
                 if !other.state.acc().contains_key(acc_place) {
                     debug!("The right branch needs to obtain an access permission: {}", acc_place);
                     let perm_amount = self.state.acc()[acc_place];
                     // Unfold something and get `acc_place`
-                    right_actions.extend(
-                        other.obtain(&Perm::acc(acc_place.clone(), perm_amount))
-                    );
+                    let (new_actions, places_to_drop) = other.obtain(
+                        &Perm::acc(acc_place.clone(), perm_amount), true);
+                    right_actions.extend(new_actions);
+                    for perm in places_to_drop {
+                        // This vector should have at most one element, which must be
+                        // ``acc_place``.
+                        assert!(perm.get_place() == acc_place);
+                        self.state.remove_perm(&perm);
+                        left_actions.push(Action::Drop(perm));
+                    }
                 }
             }
 
@@ -234,6 +253,47 @@ impl<'a> BranchCtxt<'a> {
                 );
             }
 
+            // If we have `Read` and `Write`, make both `Read`.
+            for acc_place in self.state.acc_places() {
+                assert!(other.state.acc().contains_key(&acc_place));
+                let left_perm = self.state.acc()[&acc_place];
+                let right_perm = other.state.acc()[&acc_place];
+                if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
+                    self.state.remove_acc(&acc_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+                if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
+                    other.state.remove_acc(&acc_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+            }
+            for pred_place in self.state.pred_places() {
+                assert!(other.state.pred().contains_key(&pred_place));
+                let left_perm = self.state.pred()[&pred_place];
+                let right_perm = other.state.pred()[&pred_place];
+                if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
+                    self.state.remove_pred(&pred_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+                if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
+                    other.state.remove_pred(&pred_place, PermAmount::Remaining);
+                    // TODO: We probably should log the removed
+                    // permissions and restore them in
+                    // process_expire_borrows together with other
+                    // dropped permissions.
+                }
+
+            }
+
             trace!(
                 "Actions in left branch: {}",
                 left_actions.iter().map(|a| a.to_string()).collect::<Vec<_>>().join(", ")
@@ -255,15 +315,22 @@ impl<'a> BranchCtxt<'a> {
     fn obtain_all(&mut self, reqs: Vec<Perm>) -> Vec<Action> {
         debug!("[enter] obtain_all: {{{}}}", reqs.iter().to_string());
         reqs.iter()
-            .flat_map(|perm| self.obtain(perm))
+            .flat_map(|perm| {
+                let (actions, places_to_drop) = self.obtain(perm, false);
+                assert!(places_to_drop.is_empty());
+                actions
+            })
             .collect()
     }
 
     /// Obtain the required permission, changing the state inplace and returning the statements.
-    fn obtain(&mut self, req: &Perm) -> Vec<Action> {
+    ///
+    /// ``in_join`` – are we currently trying to join branches?
+    fn obtain(&mut self, req: &Perm, in_join: bool) -> (Vec<Action>, Vec<Perm>) {
         trace!("[enter] obtain(req={})", req);
 
         let mut actions: Vec<Action> = vec![];
+        let mut places_to_drop = Vec::new();
 
         trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
@@ -272,12 +339,12 @@ impl<'a> BranchCtxt<'a> {
         if self.state.contains_perm(req) {
             // `req` is satisfied, so we can remove it from `reqs`
             trace!("[exit] obtain: Requirement {} is satisfied", req);
-            return actions;
+            return (actions, places_to_drop);
         }
         if req.is_acc() && req.is_local() {
             // access permissions on local variables are always satisfied
             trace!("[exit] obtain: Requirement {} is satisfied", req);
-            return actions;
+            return (actions, places_to_drop);
         }
 
         debug!("Try to satisfy requirement {}", req);
@@ -297,9 +364,11 @@ impl<'a> BranchCtxt<'a> {
             debug!("We unfolded {}", existing_pred_to_unfold);
 
             // Check if we are done
-            actions.extend(self.obtain(req));
+            let (new_actions, new_places_to_drop) = self.obtain(req, false);
+            actions.extend(new_actions);
+            assert!(new_places_to_drop.is_empty());
             trace!("[exit] obtain");
-            return actions;
+            return (actions, places_to_drop);
         }
 
         // 4. Obtain with a fold
@@ -351,7 +420,10 @@ impl<'a> BranchCtxt<'a> {
                        req, perm_amount, req.get_perm_amount());
 
                 for fold_req_place in &places_in_pred {
-                    actions.extend(self.obtain(&(fold_req_place.clone())));
+                    let (new_actions, new_places_to_drop) = self.obtain(
+                        &(fold_req_place.clone()), false);
+                    actions.extend(new_actions);
+                    assert!(new_places_to_drop.is_empty());
                 }
 
                 let scaled_places_in_pred: Vec<_> = places_in_pred
@@ -378,8 +450,13 @@ impl<'a> BranchCtxt<'a> {
                 // Done. Continue checking the remaining requirements
                 debug!("We folded {}", req);
                 trace!("[exit] obtain");
-                return actions;
+                return (actions, places_to_drop);
             }
+        } else if in_join && req.get_perm_amount() == vir::PermAmount::Read {
+            // Permissions held by shared references can be dropped
+            // without being explicitly moved becauce &T implements Copy.
+            places_to_drop.push(req.clone());
+            return (actions, places_to_drop);
         } else {
             // We have no predicate to obtain the access permission `req`
             unreachable!(

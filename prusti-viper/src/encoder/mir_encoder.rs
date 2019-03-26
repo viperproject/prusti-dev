@@ -11,6 +11,7 @@ use syntax::ast;
 use std;
 use rustc::ty;
 use rustc::hir::def_id::DefId;
+use rustc::hir::Mutability;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use std::collections::HashMap;
@@ -205,6 +206,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(..) |
             ty::TypeVariants::TyRef(..) => true,
 
+            _ => false,
+        }
+    }
+
+    pub fn is_mut_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
+        trace!("is_mut_reference {}", base_ty);
+        match base_ty.sty {
+            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { mutbl: Mutability::MutMutable, .. }) |
+            ty::TypeVariants::TyRef(_, _, Mutability::MutMutable) => {
+                true
+            }
             _ => false,
         }
     }
