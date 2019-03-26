@@ -414,3 +414,117 @@ pub trait StmtFolder {
         )
     }
 }
+
+pub trait StmtWalker {
+    fn walk(&mut self, e: &Stmt) {
+        match e {
+            Stmt::Comment(s) => self.walk_comment(s),
+            Stmt::Label(s) => self.walk_label(s),
+            Stmt::Inhale(e) => self.walk_inhale(e),
+            Stmt::Exhale(e, p) => self.walk_exhale(e, p),
+            Stmt::Assert(e, p) => self.walk_assert(e, p),
+            Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
+            Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
+            Stmt::Fold(s, ve, perm) => self.walk_fold(s, ve, perm),
+            Stmt::Unfold(s, ve, perm) => self.walk_unfold(s, ve, perm),
+            Stmt::Obtain(e) => self.walk_obtain(e),
+            Stmt::WeakObtain(e) => self.walk_weak_obtain(e),
+            Stmt::Havoc => self.walk_havoc(),
+            Stmt::BeginFrame => self.walk_begin_frame(),
+            Stmt::EndFrame => self.walk_end_frame(),
+            Stmt::TransferPerm(a, b, c) => self.walk_transfer_perm(a, b, c),
+            Stmt::PackageMagicWand(w, s, l, p) => self.walk_package_magic_wand(w, s, l, p),
+            Stmt::ApplyMagicWand(w, p) => self.walk_apply_magic_wand(w, p),
+            Stmt::ExpireBorrows(d) => self.walk_expire_borrows(d),
+            Stmt::NestedCFG { entry, exit, } => self.walk_nested_cfg(entry, exit),
+            Stmt::If(g, t) => self.walk_if(g, t),
+        }
+    }
+
+    fn walk_expr(&mut self, e: &Expr) {}
+
+    fn walk_local_var(&mut self, local_var: &LocalVar) {}
+
+    fn walk_comment(&mut self, s: &str) {}
+
+    fn walk_label(&mut self, s: &str) {}
+
+    fn walk_inhale(&mut self, e: &Expr) {
+        self.walk_expr(e);
+    }
+
+    fn walk_exhale(&mut self, e: &Expr, p: &Position) {
+        self.walk_expr(e);
+    }
+
+    fn walk_assert(&mut self, e: &Expr, p: &Position) {
+        self.walk_expr(e);
+    }
+
+    fn walk_method_call(&mut self, s: &str, ve: &Vec<Expr>, vv: &Vec<LocalVar>) {
+        for a in ve {
+            self.walk_expr(a);
+        }
+        for t in vv {
+            self.walk_local_var(t);
+        }
+    }
+
+    fn walk_assign(&mut self, p: &Expr, e: &Expr, k: &AssignKind) {
+        self.walk_expr(p);
+        self.walk_expr(e);
+    }
+
+    fn walk_fold(&mut self, s: &str, ve: &Vec<Expr>, perm: &PermAmount) {
+        for a in ve {
+            self.walk_expr(a);
+        }
+    }
+
+    fn walk_unfold(&mut self, s: &str, ve: &Vec<Expr>, perm: &PermAmount) {
+        for a in ve {
+            self.walk_expr(a);
+        }
+    }
+
+    fn walk_obtain(&mut self, e: &Expr) {
+        self.walk_expr(e);
+    }
+
+    fn walk_weak_obtain(&mut self, e: &Expr) {
+        self.walk_expr(e);
+    }
+
+    fn walk_havoc(&mut self) {}
+
+    fn walk_begin_frame(&mut self) {}
+
+    fn walk_end_frame(&mut self) {}
+
+    fn walk_transfer_perm(&mut self, a: &Expr, b: &Expr, unchecked: &bool) {
+        self.walk_expr(a);
+        self.walk_expr(b);
+    }
+
+    fn walk_package_magic_wand(&mut self, w: &Expr, b: &Vec<Stmt>, l: &str, _p: &Position) {
+        self.walk_expr(w);
+        for s in b {
+            self.walk(s);
+        }
+    }
+
+    fn walk_apply_magic_wand(&mut self, w: &Expr, _p: &Position) {
+        self.walk_expr(w);
+    }
+
+    fn walk_expire_borrows(&mut self, dag: &ReborrowingDAG) {}
+
+    fn walk_nested_cfg(&mut self, entry: &CfgBlockIndex, exit: &CfgBlockIndex) {}
+
+    fn walk_if(&mut self, g: &Expr, t: &Vec<Stmt>) {
+        self.walk_expr(g);
+        for s in t {
+            self.walk(s);
+        }
+    }
+}

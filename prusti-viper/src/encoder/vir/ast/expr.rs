@@ -1126,7 +1126,11 @@ pub trait ExprWalker : Sized {
         default_walk_expr(self, e);
     }
 
-    fn walk_local(&mut self, x: &LocalVar, p: &Position) {}
+    fn walk_local_var(&mut self, v: &LocalVar) {}
+
+    fn walk_local(&mut self, x: &LocalVar, p: &Position) {
+        self.walk_local_var(x);
+    }
     fn walk_field(&mut self, e: &Expr, f: &Field, p: &Position) {
         self.walk(e);
     }
@@ -1171,15 +1175,22 @@ pub trait ExprWalker : Sized {
         self.walk(z);
     }
     fn walk_forall(&mut self, x: &Vec<LocalVar>, y: &Vec<Trigger>, z: &Expr, p: &Position) {
+        for a in x {
+            self.walk_local_var(a);
+        }
         self.walk(z);
     }
     fn walk_let_expr(&mut self, x: &LocalVar, y: &Expr, z: &Expr, p: &Position) {
+        self.walk_local_var(x);
         self.walk(y);
         self.walk(z);
     }
     fn walk_func_app(&mut self, x: &str, y: &Vec<Expr>, z: &Vec<LocalVar>, k: &Type, p: &Position) {
         for e in y {
             self.walk(e)
+        }
+        for p in z {
+            self.walk_local_var(p);
         }
     }
 }

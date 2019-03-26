@@ -19,6 +19,7 @@ use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::spec_encoder::SpecEncoder;
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::vir::ExprIterator;
+use encoder::vir::optimisations;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::BasicBlockIndex;
@@ -484,7 +485,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.encoder, self.cfg_method, loan_positions);
 
         // Optimise encoding a bit
-        let final_method = optimiser::rewrite(method_with_fold_unfold);
+        let method_without_unused_vars = optimisations::methods::remove_unused_vars(
+            method_with_fold_unfold);
+        let final_method = optimiser::rewrite(method_without_unused_vars);
 
         // Dump final CFG
         if config::dump_debug_info() {
