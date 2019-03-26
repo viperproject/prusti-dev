@@ -175,9 +175,6 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::NestedCFG { entry, exit } => {
-                unimplemented!();
-            }
             &Stmt::If(ref guard, ref then_stmts) => {
                 ast.if_stmt(
                     guard.to_viper(ast),

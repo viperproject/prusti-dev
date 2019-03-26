@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//! A module that contains various VIR optimisations.
+//! A module that contains optimisations for methods.
 
-pub mod functions;
-pub mod methods;
+mod var_remover;
+
+pub use self::var_remover::remove_unused_vars;

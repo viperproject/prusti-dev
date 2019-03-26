@@ -280,7 +280,7 @@ pub trait SuccessorFolder {
 }
 
 impl CfgMethod {
-    pub fn walk_statements<F>(&self, walker: F) where F: Fn(&Stmt) {
+    pub fn walk_statements<F>(&self, mut walker: F) where F: FnMut(&Stmt) {
         for block in self.basic_blocks.iter() {
             for stmt in block.stmts.iter() {
                 walker(stmt);
@@ -288,7 +288,7 @@ impl CfgMethod {
         }
     }
 
-    pub fn walk_successors<F>(&self, walker: F) where F: Fn(&Successor) {
+    pub fn walk_successors<F>(&self, mut walker: F) where F: FnMut(&Successor) {
         for block in self.basic_blocks.iter() {
             walker(&block.successor);
         }

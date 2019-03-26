@@ -18,7 +18,7 @@ pub struct CfgMethod {
     pub(super) method_name: String,
     pub(super) formal_args: Vec<LocalVar>,
     pub(super) formal_returns: Vec<LocalVar>,
-    pub(super) local_vars: Vec<LocalVar>,
+    pub(in super::super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     pub(super) reserved_labels: HashSet<String>,
     pub basic_blocks: Vec<CfgBlock>,    // FIXME: Hack, should be pub(super).

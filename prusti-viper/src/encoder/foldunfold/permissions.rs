@@ -169,8 +169,6 @@ impl vir::Stmt {
             &vir::Stmt::If(_, _) => HashSet::new(),
 
             &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
-            &vir::Stmt::NestedCFG { .. } =>
-                unreachable!("TODO: Check if this cannot be reached by unfolding expression generation.")
         }
     }
 }
