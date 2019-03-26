@@ -459,6 +459,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 .map(|stmt| {
                     match stmt {
                         vir::Stmt::Comment(_) |
+                        vir::Stmt::Inhale(_) |
+                        vir::Stmt::Exhale(_, _) |
                         vir::Stmt::ApplyMagicWand(_, _) |
                         vir::Stmt::TransferPerm(_, _, _) => {
                             stmt.clone()
