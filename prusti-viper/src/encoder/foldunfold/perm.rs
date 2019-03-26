@@ -122,13 +122,13 @@ impl Perm {
     }
 
     pub fn init_perm_amount(self, new_perm: PermAmount) -> Self {
+        trace!("[enter] init_perm_amount({}, {})", self, new_perm);
         assert!(new_perm.is_valid_for_specs());
         match self {
-            Perm::Acc(expr, PermAmount::Unset) => Perm::Acc(expr, new_perm),
-            Perm::Pred(expr, PermAmount::Unset) => Perm::Pred(expr, new_perm),
-            Perm::Acc(_, perm) if perm == new_perm => self,
-            Perm::Pred(_, perm) if perm == new_perm => self,
-            x => unreachable!("{} new_perm={}", x, new_perm),
+            Perm::Acc(expr, PermAmount::Remaining) => unreachable!(),
+            Perm::Pred(expr, PermAmount::Remaining) => unreachable!(),
+            Perm::Acc(expr, _) => Perm::Acc(expr, new_perm),
+            Perm::Pred(expr, _) => Perm::Pred(expr, new_perm),
         }
     }
 

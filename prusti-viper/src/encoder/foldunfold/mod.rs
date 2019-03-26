@@ -440,17 +440,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         }
                     }
                 }
+                fn fold_labelled_old(
+                    &mut self,
+                    label: String,
+                    expr: Box<vir::Expr>,
+                    pos: vir::Position
+                ) -> vir::Expr {
+                    // Do not replace places that are already old.
+                    vir::Expr::LabelledOld(label, expr, pos)
+                }
+            }
+            fn patch_expr(label: &str, expr: &vir::Expr) -> vir::Expr {
+                PlacePatcher { label }.fold(expr.clone())
             }
             fn patch_args(label: &str, args: &Vec<vir::Expr>) -> Vec<vir::Expr> {
                 args.iter()
-                    .cloned()
                     .map(|arg| {
                         assert!(arg.is_place());
-                        if arg.is_old() {
-                            arg
-                        } else {
-                            PlacePatcher { label }.fold(arg)
-                        }
+                        patch_expr(label, arg)
                     })
                     .collect()
             }
@@ -459,12 +466,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 .map(|stmt| {
                     match stmt {
                         vir::Stmt::Comment(_) |
-                        vir::Stmt::Inhale(_) |
-                        vir::Stmt::Exhale(_, _) |
                         vir::Stmt::ApplyMagicWand(_, _) |
                         vir::Stmt::TransferPerm(_, _, _) => {
                             stmt.clone()
                         },
+                        vir::Stmt::Inhale(expr) => {
+                            vir::Stmt::Inhale(patch_expr(label, expr))
+                        },
+                        vir::Stmt::Exhale(expr, pos) => {
+                            vir::Stmt::Exhale(patch_expr(label, expr), pos.clone())
+                        }
                         vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {
                             vir::Stmt::Fold(pred_name.clone(), patch_args(label, args), *perm_amount)
                         },

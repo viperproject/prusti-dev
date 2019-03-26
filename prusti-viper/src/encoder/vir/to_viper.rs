@@ -87,39 +87,15 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 rhs.to_viper(ast)
             ),
             &Stmt::Fold(ref pred_name, ref args, perm) => {
-                let mut stmts = Vec::new();
-                // FIXME: When packaging a magic wand, Silicon needs help in showing that it has
-                // access to the needed paths.
-                assert_eq!(args.len(), 1);
-                let place = &args[0];
-                assert!(place.is_place());
-                fn add_asserts<'v>(stmts: &mut Vec<viper::Stmt<'v>>, expr: &Expr, ast: &AstFactory<'v>) {
-                    match expr {
-                        Expr::Field(ref base, _, _) => {
-                            add_asserts(stmts, base, ast);
-                            let fake_position = Position::new(0, 0, "fold_assert".to_string());
-                            let assert = Stmt::Assert(
-                                Expr::acc_permission(expr.clone(), PermAmount::Read),
-                                fake_position,
-                            );
-                            stmts.push(assert.to_viper(ast));
-                        }
-                        _ => {}
-                    }
-                }
-                add_asserts(&mut stmts, place, ast);
-                stmts.push(
-                    ast.fold(
-                        ast.predicate_access_predicate(
-                            ast.predicate_access(
-                                &args.to_viper(ast),
-                                &pred_name
-                            ),
-                            perm.to_viper(ast)
-                        )
+                ast.fold(
+                    ast.predicate_access_predicate(
+                        ast.predicate_access(
+                            &args.to_viper(ast),
+                            &pred_name
+                        ),
+                        perm.to_viper(ast)
                     )
-                );
-                ast.seqn(stmts.as_slice(), &[])
+                )
             },
             &Stmt::Unfold(ref pred_name, ref args, perm) => ast.unfold(
                 ast.predicate_access_predicate(
@@ -155,10 +131,72 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ast.comment(&self.to_string())
             }
             &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref _label, ref pos) => {
+                // FIXME: When packaging a magic wand, Silicon needs help in showing that it has
+                // access to the needed paths.
+                fn stmt_to_viper_in_packge<'v>(
+                    stmt: &Stmt,
+                    ast: &AstFactory<'v>
+                ) -> viper::Stmt<'v> {
+                    let create_footprint_asserts = |expr: &Expr, perm| -> Vec<viper::Stmt> {
+                        expr.compute_footprint(perm)
+                            .into_iter()
+                            .map(|access| {
+                                let fake_position = Position::new(0, 0, "fold_assert".to_string());
+                                let assert = Stmt::Assert(access, fake_position);
+                                assert.to_viper(ast)
+                            })
+                            .collect()
+                    };
+                    match stmt {
+                        Stmt::Exhale(ref expr, ref pos) => {
+                            let mut stmts = create_footprint_asserts(expr, PermAmount::Read);
+                            stmts.push(ast.exhale(expr.to_viper(ast), pos.to_viper(ast)));
+                            ast.seqn(stmts.as_slice(), &[])
+                        }
+                        &Stmt::Fold(ref pred_name, ref args, perm) => {
+                            assert_eq!(args.len(), 1);
+                            let place = &args[0];
+                            assert!(place.is_place());
+                            let mut stmts = create_footprint_asserts(place, PermAmount::Read);
+                            stmts.push(
+                                ast.fold(
+                                    ast.predicate_access_predicate(
+                                        ast.predicate_access(
+                                            &args.to_viper(ast),
+                                            &pred_name
+                                        ),
+                                        perm.to_viper(ast)
+                                    )
+                                )
+                            );
+                            ast.seqn(stmts.as_slice(), &[])
+                        }
+                        &Stmt::If(ref guard, ref then_stmts) => {
+                            let mut stmts: Vec<_> = then_stmts
+                                .iter()
+                                .map(|stmt| {
+                                    stmt_to_viper_in_packge(stmt, ast)
+                                })
+                                .collect();
+                            ast.if_stmt(
+                                guard.to_viper(ast),
+                                ast.seqn(&stmts, &[]),
+                                ast.seqn(&[], &[]),
+                            )
+                        }
+                        _ => stmt.to_viper(ast)
+                    }
+                };
+                let mut stmts: Vec<_> = package_stmts
+                    .iter()
+                    .map(|stmt| {
+                        stmt_to_viper_in_packge(stmt, ast)
+                    })
+                    .collect();
                 ast.package(
                     wand.to_viper(ast),
                     ast.seqn(
-                        &package_stmts.to_viper(ast),
+                        &stmts,
                         &[],
                     ),
                     pos.to_viper(ast)

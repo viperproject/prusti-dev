@@ -1731,7 +1731,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 .map(|&local| self.encode_local_variable_permission(local))
                                 .into_iter().conjoin();
                             //debug_assert_eq!(type_spec, pre_type_spec);
-                            let inhaled_spec = replace_fake_exprs(pre_type_spec)
+                            let inhaled_spec = replace_fake_exprs(type_spec)
                                 .remove_read_permissions();
                             stmts.push(vir::Stmt::Inhale(inhaled_spec));
 
