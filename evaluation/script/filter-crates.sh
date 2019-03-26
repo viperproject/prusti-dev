@@ -67,7 +67,15 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	start_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 
 	rm -f "$CRATE_ROOT/prusti-filter-results.json"
-	cargoclean
+
+	exit_status="0"
+	cargoclean || exit_status="$?"
+	if [[ "$exit_status" != "0" ]]; then
+		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
+		info "Cargo clean failed with exit status $exit_status"
+		echo "$crate_name,false,0,$exit_status,$start_crate,$end_crate" >> "$filtering_report"
+		continue
+	fi
 
 	exit_status="0"
 	SECONDS=0
