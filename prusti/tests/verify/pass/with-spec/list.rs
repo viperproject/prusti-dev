@@ -54,6 +54,30 @@ impl List {
         }
     }
 
+    /// Appends a value at the end of a linked list
+    #[ensures="self.len() == old(self.len()) + 1"]
+    #[ensures="value == self.lookup(self.len() - 1)"]
+    #[ensures="forall i: usize ::
+                (0 <= i && i < old(self.len())) ==>
+                self.lookup(i) == old(self.lookup(i))"]
+    fn append(&mut self, value: u32) {
+        let len = self.len();
+        let last = self.recursive_get_last();
+        match last.next {
+            Some(_) => unreachable!(),
+            None => {},
+        }
+        last.next = Some(box List {
+            next: None,
+            value: value,
+        });
+        let old_last_value = last.value;
+        assert!(last.lookup(1) == value);
+        assert!(last.lookup(0) == old_last_value);
+        assert!(self.lookup(len-1) == old_last_value);
+        assert!(self.lookup(len) == value);
+    }
+
 }
 
 fn main() {}
