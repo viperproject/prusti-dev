@@ -47,10 +47,20 @@ impl List {
                 self.lookup(old(self.len()) - 1 + i) == before_expiry(result.lookup(i)))
         )
     "]
-    fn recursive_get_last(&mut self) -> &mut List {
+    fn recursive_get_last_mut(&mut self) -> &mut List {
         match self.next {
             None => self,
-            Some(box ref mut next) => next.recursive_get_last()
+            Some(box ref mut next) => next.recursive_get_last_mut()
+        }
+    }
+
+    /// Returns the last node of the linked list. Recursive implementation.
+    #[ensures="result.len() == 1"]
+    #[ensures="result.value == old(self.lookup(self.len() - 1))"]
+    fn recursive_get_last(&self) -> &List {
+        match self.next {
+            None => self,
+            Some(box ref next) => next.recursive_get_last()
         }
     }
 
@@ -62,7 +72,7 @@ impl List {
                 self.lookup(i) == old(self.lookup(i))"]
     fn append(&mut self, value: u32) {
         let len = self.len();
-        let last = self.recursive_get_last();
+        let last = self.recursive_get_last_mut();
         match last.next {
             Some(_) => unreachable!(),
             None => {},

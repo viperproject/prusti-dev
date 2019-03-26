@@ -932,6 +932,35 @@ impl Expr {
             _ => panic!("expected Expr::Local"),
         }
     }
+
+    /// Compute the permissions that are needed for this expression to
+    /// be successfully evaluated. This is method is used for `fold` and
+    /// `exhale` statements inside `package` statements because Silicon
+    /// fails to compute which permissions it should take into the magic
+    /// wand.
+    pub fn compute_footprint(&self, perm_amount: PermAmount) -> Vec<Expr> {
+        struct Collector {
+            perm_amount: PermAmount,
+            perms: Vec<Expr>,
+        }
+        impl ExprWalker for Collector {
+            fn walk_field(&mut self, e: &Expr, f: &Field, p: &Position) {
+                self.walk(e);
+                let expr = Expr::Field(box e.clone(), f.clone(), p.clone());
+                let perm = Expr::acc_permission(expr, self.perm_amount);
+                self.perms.push(perm);
+            }
+            fn walk_labelled_old(&mut self, _label: &str, _expr: &Expr, _pos: &Position) {
+                // Stop recursion.
+            }
+        }
+        let mut collector = Collector {
+            perm_amount: perm_amount,
+            perms: Vec::new(),
+        };
+        collector.walk(self);
+        collector.perms
+    }
 }
 
 impl Const {

@@ -26,8 +26,8 @@ pub struct BorrowInfo<P>
 {
     /// Region of this borrow.
     pub region: ty::BoundRegion,
-    pub blocking_paths: Vec<P>,
-    pub blocked_paths: Vec<P>,
+    pub blocking_paths: Vec<(P, Mutability)>,
+    pub blocked_paths: Vec<(P, Mutability)>,
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
 }
 
@@ -185,8 +185,10 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             .map(|info| {
                 BorrowInfo {
                     region: info.region,
-                    blocking_paths: info.blocking_paths.iter().map(|p| p.into()).collect(),
-                    blocked_paths: info.blocked_paths.iter().map(|p| p.into()).collect(),
+                    blocking_paths: info.blocking_paths
+                        .iter().map(|(p, m)| (p.into(), *m)).collect(),
+                    blocked_paths: info.blocked_paths
+                        .iter().map(|(p, m)| (p.into(), *m)).collect(),
                 }
             })
             .collect();
@@ -208,12 +210,13 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
         for (from, to) in self.args.iter().zip(args) {
             substitutions.insert(*from, *to);
         }
-        let substitute = |place| {
+        let substitute = |(place, mutability): &(_, Mutability)| {
             let root = &get_place_root(place);
-            places::Place::SubstitutedPlace {
+            let substitute_place = places::Place::SubstitutedPlace {
                 substituted_root: *substitutions.get(root).unwrap(),
                 place: place.clone(),
-            }
+            };
+            (substitute_place, *mutability)
         };
         let borrow_infos = self.borrow_infos
             .iter()
@@ -227,7 +230,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
             .collect();
         let returned_refs = self.returned_refs
             .iter()
-            .map(|(place, mutability)| (substitute(place), *mutability))
+            .map(&substitute)
             .collect();
         let result = ProcedureContract {
             args: args.clone(),
@@ -327,9 +330,9 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.current_path = Some(current_path.clone());
         let borrow_info = self.get_or_create_borrow_info(bound_region);
         if is_path_blocking {
-            borrow_info.blocking_paths.push(current_path);
+            borrow_info.blocking_paths.push((current_path, mutability));
         } else {
-            borrow_info.blocked_paths.push(current_path.clone());
+            borrow_info.blocked_paths.push((current_path.clone(), mutability));
             self.references_in.push((current_path, mutability));
         }
         self.is_path_blocking = true;
@@ -384,7 +387,9 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     let is_not_blocked = |place: &mir::Place<'tcx>| {
         !borrow_infos
             .iter()
-            .any(|info| info.blocked_paths.contains(place))
+            .any(|info| {
+                info.blocked_paths.iter().any(|(blocked_place, _)| blocked_place == place)
+            })
     };
     let returned_refs: Vec<_> = visitor
         .references_in

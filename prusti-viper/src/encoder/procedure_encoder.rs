@@ -1078,7 +1078,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .unwrap();
 
         // Obtain the LHS permission.
-        for path in &borrow_info.blocking_paths {
+        for (path, _) in &borrow_info.blocking_paths {
             let (encoded_place, _, _) = self.encode_generic_place(path);
             let encoded_place = replace_fake_exprs(encoded_place);
 
@@ -1671,7 +1671,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let pre_label = self.cfg_method.get_fresh_label_name();
                             stmts.push(vir::Stmt::Label(pre_label.clone()));
 
-                            let (pre_type_spec, pre_invs_spec, pre_func_spec) = self.encode_precondition_expr(&procedure_contract);
+                            let (pre_type_spec, pre_mandatory_type_spec, pre_invs_spec, pre_func_spec) =
+                                self.encode_precondition_expr(&procedure_contract);
                             let pos = self.encoder.error_manager().register(
                                 term.source_info.span,
                                 ErrorCtxt::ExhaleMethodPrecondition
@@ -1679,7 +1680,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_func_spec), pos.clone()));
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_invs_spec), pos.clone()));
                             let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
-                            stmts.push(vir::Stmt::Exhale(pre_perm_spec.remove_read_permissions(), pos));
+                            let pre_mandatory_perm_spec = replace_fake_exprs(pre_mandatory_type_spec);
+                            stmts.push(vir::Stmt::Exhale(pre_perm_spec.remove_read_permissions(), pos.clone()));
+                            stmts.push(vir::Stmt::Exhale(pre_mandatory_perm_spec, pos));
 
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
@@ -1695,12 +1698,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
-                            let (post_type_spec, post_invs_spec, post_func_spec, magic_wands, read_transfer) =
+                            let (post_type_spec, return_type_spec, post_invs_spec,
+                                 post_func_spec, magic_wands, read_transfer) =
                                 self.encode_postcondition_expr(
                                     &procedure_contract, &pre_label, &post_label,
                                     Some((location, &fake_exprs)), real_target.is_none(), false);
                             let post_perm_spec = replace_fake_exprs(post_type_spec);
                             stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
+                            if let Some(access) = return_type_spec {
+                                stmts.push(vir::Stmt::Inhale(replace_fake_exprs(access)));
+                            }
                             for (from_place, to_place) in read_transfer {
                                 stmts.push(vir::Stmt::TransferPerm(
                                     replace_fake_exprs(from_place),
@@ -1723,8 +1730,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let type_spec = procedure_contract.args.iter()
                                 .map(|&local| self.encode_local_variable_permission(local))
                                 .into_iter().conjoin();
-                            debug_assert_eq!(type_spec, pre_type_spec);
-                            let inhaled_spec = replace_fake_exprs(pre_type_spec)
+                            //debug_assert_eq!(type_spec, pre_type_spec);
+                            let inhaled_spec = replace_fake_exprs(type_spec)
                                 .remove_read_permissions();
                             stmts.push(vir::Stmt::Inhale(inhaled_spec));
 
@@ -1846,11 +1853,39 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>
-    ) -> (vir::Expr, vir::Expr, vir::Expr) {
+    ) -> (vir::Expr, vir::Expr, vir::Expr, vir::Expr) {
 
-        let type_spec = contract.args.iter()
-            .map(|&local| self.encode_local_variable_permission(local))
-            .into_iter().conjoin();
+        let borrow_infos = &contract.borrow_infos;
+        let maybe_blocked_paths = if !borrow_infos.is_empty() {
+            assert_eq!(borrow_infos.len(), 1,
+                       "We can have at most one magic wand in the postcondition.");
+            let borrow_info = &borrow_infos[0];
+            Some(&borrow_info.blocked_paths)
+        } else {
+            None
+        };
+        // Type spec in which read permissions can be removed.
+        let mut type_spec = Vec::new();
+        // Type spec in which read permissions must not be removed.
+        let mut mandatory_type_spec = Vec::new();
+        fn is_blocked(maybe_blocked_paths: Option<&Vec<(Place, Mutability)>>, arg: Local) -> bool{
+            if let Some(blocked_paths) = maybe_blocked_paths {
+                for (blocked_place, _) in blocked_paths {
+                    if blocked_place.is_root(arg) {
+                        return true;
+                    }
+                }
+            }
+            false
+        }
+        for local in &contract.args {
+            let access = self.encode_local_variable_permission(*local);
+            if is_blocked(maybe_blocked_paths, *local) {
+                mandatory_type_spec.push(access);
+            } else {
+                type_spec.push(access);
+            }
+        }
 
         let mut invs_spec: Vec<vir::Expr> = vec![];
 
@@ -1877,15 +1912,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             func_spec.push(value);
         }
 
-        (type_spec, invs_spec.into_iter().conjoin(), func_spec.into_iter().conjoin())
+        (type_spec.into_iter().conjoin(),
+         mandatory_type_spec.into_iter().conjoin(),
+         invs_spec.into_iter().conjoin(),
+         func_spec.into_iter().conjoin())
     }
 
     /// Encode precondition inhale on the definition side.
     fn encode_preconditions(&mut self, start_cfg_block: CfgBlockIndex,
                             contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let (type_spec, invs_spec, func_spec) = self.encode_precondition_expr(contract);
+        let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
+            self.encode_precondition_expr(contract);
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(type_spec));
+        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(mandatory_type_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(invs_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(func_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Label(PRECONDITION_LABEL.to_string()));
@@ -1942,29 +1982,32 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             assert!(pledges.len() <= 1,
                     "There can be at most one pledge in the function postcondition.");
             debug!("borrow_info {:?}", borrow_info);
-            let mut lhs: Vec<_> = borrow_info.blocking_paths
-                .iter()
-                .map(|place| {
-                    debug!("place {:?}", place);
-                    let typ = self.encode_pred_permission(place, Some(post_label));
+            let encode_place_perm = |place, mutability, label| {
+                    let perm_amount = match mutability {
+                        Mutability::MutImmutable => vir::PermAmount::Read,
+                        Mutability::MutMutable => vir::PermAmount::Write,
+                    };
                     let (place_expr, place_ty, _) = self.encode_generic_place(place);
+                    let vir_access = vir::Expr::pred_permission(
+                        place_expr.clone().old(label),
+                        perm_amount,
+                    ).unwrap();
                     let inv = self.encoder.encode_invariant_func_app(
                         place_ty,
-                        place_expr.maybe_old(Some(post_label))
+                        place_expr.old(label)
                     );
-                    vir::Expr::and(typ, inv)
+                    vir::Expr::and(vir_access, inv)
+            };
+            let mut lhs: Vec<_> = borrow_info.blocking_paths
+                .iter()
+                .map(|(place, mutability)| {
+                    encode_place_perm(place, *mutability, post_label)
                 })
                 .collect();
             let mut rhs: Vec<_> = borrow_info.blocked_paths
                 .iter()
-                .map(|place| {
-                    let typ = self.encode_pred_permission(place, Some(pre_label));
-                    let (place_expr, place_ty, _) = self.encode_generic_place(place);
-                    let inv = self.encoder.encode_invariant_func_app(
-                        place_ty,
-                        place_expr.maybe_old(Some(pre_label))
-                    );
-                    vir::Expr::and(typ, inv)
+                .map(|(place, mutability)| {
+                    encode_place_perm(place, *mutability, pre_label)
                 })
                 .collect();
             if let Some((reference, body_lhs, body_rhs)) = pledges.pop() {
@@ -2066,7 +2109,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
         diverging: bool,
         function_end: bool
-    ) -> (vir::Expr, vir::Expr, vir::Expr, Vec<vir::Expr>, Vec<(vir::Expr, vir::Expr)>) {
+    ) -> (
+        vir::Expr,                  // Returned permissions from types.
+        Option<vir::Expr>,          // Permission of the return value.
+        vir::Expr,                  // Invariants.
+        vir::Expr,                  // Functional specification.
+        Vec<vir::Expr>,             // Magic wands.
+        Vec<(vir::Expr, vir::Expr)> // Read permissions that need to be transferred to a new place.
+    ) {
         let mut type_spec = vec![];
         let mut invs_spec = vec![];
         let mut read_transfer = vec![];     // Permissions taken as read
@@ -2111,7 +2161,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
 
         let mut magic_wands = Vec::new();
-        if let Some((mut lhs, mut rhs)) = self.encode_postcondition_magic_wand(contract, pre_label, post_label) {
+        if let Some((mut lhs, mut rhs)) = self.encode_postcondition_magic_wand(
+                contract, pre_label, post_label) {
             if let Some((location, fake_exprs)) = magic_wand_store_info {
                 let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
                     for (fake_arg, arg_expr) in fake_exprs.iter() {
@@ -2129,9 +2180,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Encode permissions for return type
-        if !diverging {
-            type_spec.push(self.encode_local_variable_permission(contract.returned_value));
-        }
+        let return_perm = if !diverging {
+            Some(self.encode_local_variable_permission(contract.returned_value))
+        } else {
+            None
+        };
 
         // Encode invariant for return value
         // TODO put this in the above if?
@@ -2152,6 +2205,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         (type_spec.into_iter().conjoin(),
+         return_perm,
          invs_spec.into_iter().conjoin(),
          func_spec.into_iter().conjoin(),
          magic_wands,
@@ -2233,7 +2287,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let borrow_infos = &contract.borrow_infos;
             assert_eq!(borrow_infos.len(), 1,
                        "We can have at most one magic wand in the postcondition.");
-            for path in &borrow_infos[0].blocking_paths {
+            for (path, _) in &borrow_infos[0].blocking_paths {
                 let (mut encoded_place, _, _) = self.encode_generic_place(path);
                 let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
@@ -2248,7 +2302,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
-        let (type_spec, invs_spec, func_spec, magic_wands, _) = self.encode_postcondition_expr(
+        let (type_spec, return_type_spec, invs_spec, func_spec,
+             magic_wands, _) = self.encode_postcondition_expr(
             contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false, true);
 
         // Find which arguments are blocked by the returned reference.
@@ -2258,7 +2313,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 assert_eq!(borrow_infos.len(), 1,
                            "We can have at most one magic wand in the postcondition.");
                 let mut blocked_args = Vec::new();
-                for blocked_place in &borrow_infos[0].blocked_paths {
+                for (blocked_place, _) in &borrow_infos[0].blocked_paths {
                     for (i, arg) in contract.args.iter().enumerate() {
                         debug!("blocked_place={:?} i={:?} arg={:?}", blocked_place, i, arg);
                         if blocked_place.is_root(*arg) {
@@ -2329,6 +2384,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::ExhaleMethodPostcondition
         );
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos.clone()));
+        if let Some(access) = return_type_spec {
+            self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(access, pos.clone()));
+        }
         for magic_wand in magic_wands {
             self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(magic_wand, pos.clone()));
         }
