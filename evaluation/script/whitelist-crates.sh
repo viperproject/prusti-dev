@@ -31,7 +31,7 @@ fi
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 whitelist_report="$CRATE_DOWNLOAD_DIR/whitelist-report-$start_date.csv"
 whitelist_report_final="$CRATE_DOWNLOAD_DIR/whitelist-report.csv"
-echo "'Crate name', 'Number of procedures', 'Number of supported procedures', 'Number of supported procedures using assertions'" > "$whitelist_report"
+echo "Crate name,Number of procedures,Number of supported procedures,Number of supported procedures using assertions" > "$whitelist_report"
 info "Report: '$whitelist_report'"
 
 info "Generate whitelist for $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -64,7 +64,7 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	info "Number of supported procedures: $num_supported_procedures"
 	info "Number of supported procedures with panics: $num_supported_procedures_with_assertions"
 
-	echo "'$crate_name', $num_procedures, $num_supported_procedures, $num_supported_procedures_with_assertions" >> "$whitelist_report"
+	echo "$crate_name,$num_procedures,$num_supported_procedures,$num_supported_procedures_with_assertions" >> "$whitelist_report"
 done
 
 cp "$whitelist_report" "$whitelist_report_final"

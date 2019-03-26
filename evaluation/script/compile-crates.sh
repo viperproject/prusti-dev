@@ -30,7 +30,7 @@ compilation_report="$CRATE_DOWNLOAD_DIR/compilation-report-$start_date.csv"
 supported_crates="$CRATE_DOWNLOAD_DIR/supported-crates-$start_date.csv"
 compilation_report_final="$CRATE_DOWNLOAD_DIR/compilation-report.csv"
 supported_crates_final="$CRATE_DOWNLOAD_DIR/supported-crates.csv"
-echo "'Crate name', 'Successful cleanup', 'Successful compilation', 'Duration (s)', 'Exit status', 'Start', 'End'" > "$compilation_report"
+echo "Crate name,Successful cleanup,Successful compilation,Duration (s),Exit status,Start,End" > "$compilation_report"
 info "Report: '$compilation_report'"
 
 info "Run standard compilation"
@@ -56,7 +56,7 @@ ls -d "$CRATE_DOWNLOAD_DIR"/*/ | while read crate_path; do
 	if [[ "$exit_status" != "0" ]]; then
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Cargo clean failed with exit status $exit_status"
-		echo "'$crate_name', false, false, 0, $exit_status, '$start_crate', '$end_crate'" >> "$compilation_report"
+		echo "$crate_name,false,false,0,$exit_status,$start_crate,$end_crate" >> "$compilation_report"
 		continue
 	fi
 
@@ -67,12 +67,12 @@ ls -d "$CRATE_DOWNLOAD_DIR"/*/ | while read crate_path; do
 	if [[ "$exit_status" == "0" ]]; then
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Successful compilation"
-		echo "'$crate_name', true, true, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$compilation_report"
+		echo "$crate_name,true,true,$duration,$exit_status,$start_crate,$end_crate" >> "$compilation_report"
 		echo "$crate_name" >> "$supported_crates"
 	else
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Cargo build failed with exit status $exit_status"
-		echo "'$crate_name', true, false, $duration, $exit_status, '$start_crate', '$end_crate'" >> "$compilation_report"
+		echo "$crate_name,true,false,$duration,$exit_status,$start_crate,$end_crate" >> "$compilation_report"
 	fi
 done
 
