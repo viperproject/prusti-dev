@@ -47,7 +47,7 @@ evaluation_log_file_final="$CRATE_DOWNLOAD_DIR/full-evaluation-log.log"
 info "Using evaluation_log_file='$evaluation_log_file'"
 
 (
-	"$DIR/compile-crates.sh" "$CRATE_DOWNLOAD_DIR" "$TIMEOUT"
+	# "$DIR/compile-crates.sh" "$CRATE_DOWNLOAD_DIR" "$TIMEOUT"
 
 	"$DIR/filter-crates.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" "$((TIMEOUT * 2))"
 
@@ -56,6 +56,9 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 	"$DIR/verify-crates-coarse-grained.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
 		"supported-procedures.csv" "$((TIMEOUT * 2))"
 
+	# PRUSTI_CHECK_PANICS=true PRUSTI_CHECK_BINARY_OPERATIONS=true \
+	# "$DIR/verify-crates-fine-grained.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
+	# 	"supported-procedures-with-assertions.csv" "$((TIMEOUT * 2))"
 ) 2>&1 | tee "$evaluation_log_file"
 
 cp "$evaluation_log_file" "$evaluation_log_file_final"
