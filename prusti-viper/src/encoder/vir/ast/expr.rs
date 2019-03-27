@@ -591,6 +591,14 @@ impl Expr {
         }
     }
 
+    pub fn get_perm_amount(&self) -> PermAmount {
+        match self {
+            Expr::PredicateAccessPredicate(_, _, perm_amount, _) => *perm_amount,
+            Expr::FieldAccessPredicate(_, perm_amount, _) => *perm_amount,
+            x => unreachable!("{}", x),
+        }
+    }
+
     pub fn is_pure(&self) -> bool {
         struct PurityFinder {
             non_pure: bool

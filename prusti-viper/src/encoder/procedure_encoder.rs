@@ -1680,9 +1680,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_func_spec), pos.clone()));
                             stmts.push(vir::Stmt::Assert(replace_fake_exprs(pre_invs_spec), pos.clone()));
                             let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
-                            let pre_mandatory_perm_spec = replace_fake_exprs(pre_mandatory_type_spec);
                             stmts.push(vir::Stmt::Exhale(pre_perm_spec.remove_read_permissions(), pos.clone()));
-                            stmts.push(vir::Stmt::Exhale(pre_mandatory_perm_spec, pos));
+
+                            // Move all read permissions that are taken by magic wands into pre
+                            // state and exhale only before the magic wands are inhaled. In this
+                            // way we can have specifications that link shared reference arguments
+                            // and shared reference result.
+                            let pre_mandatory_perms: Vec<_> = pre_mandatory_type_spec
+                                .into_iter()
+                                .map(&replace_fake_exprs)
+                                .collect();
+                            let mut pre_mandatory_perms_old = Vec::new();
+                            for perm in pre_mandatory_perms {
+                                let from_place = perm.get_place().unwrap().clone();
+                                let to_place = from_place.clone().old(pre_label.clone());
+                                let old_perm = perm.replace_place(&from_place, &to_place);
+                                stmts.push(vir::Stmt::TransferPerm(from_place, to_place, true));
+                                pre_mandatory_perms_old.push(old_perm);
+                            }
+                            let pre_mandatory_perm_spec = pre_mandatory_perms_old.into_iter().conjoin();
 
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
@@ -1716,6 +1732,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
+
+                            // Exhale the permissions that were moved into magic wands.
+                            stmts.push(vir::Stmt::Exhale(pre_mandatory_perm_spec, pos));
 
                             // Emit the label and magic wands
                             stmts.push(vir::Stmt::Label(post_label.clone()));
@@ -1853,7 +1872,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>
-    ) -> (vir::Expr, vir::Expr, vir::Expr, vir::Expr) {
+    ) -> (vir::Expr, Vec<vir::Expr>, vir::Expr, vir::Expr) {
 
         let borrow_infos = &contract.borrow_infos;
         let maybe_blocked_paths = if !borrow_infos.is_empty() {
@@ -1866,7 +1885,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         };
         // Type spec in which read permissions can be removed.
         let mut type_spec = Vec::new();
-        // Type spec in which read permissions must not be removed.
+        // Type spec containing the read permissions that must be exhaled because they were
+        // moved into a magic wand.
         let mut mandatory_type_spec = Vec::new();
         fn is_blocked(maybe_blocked_paths: Option<&Vec<(Place, Mutability)>>, arg: Local) -> bool{
             if let Some(blocked_paths) = maybe_blocked_paths {
@@ -1879,12 +1899,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             false
         }
         for local in &contract.args {
+            let mut add = |access: vir::Expr| {
+                if is_blocked(maybe_blocked_paths, *local) &&
+                        access.get_perm_amount() == vir::PermAmount::Read {
+                    mandatory_type_spec.push(access);
+                } else {
+                    type_spec.push(access);
+                }
+            };
             let access = self.encode_local_variable_permission(*local);
-            if is_blocked(maybe_blocked_paths, *local) {
-                mandatory_type_spec.push(access);
-            } else {
-                type_spec.push(access);
-            }
+            match access {
+                vir::Expr::BinOp(vir::BinOpKind::And, box access1, box access2, _) => {
+                    add(access1);
+                    add(access2);
+                },
+                _ => add(access),
+            };
         }
 
         let mut invs_spec: Vec<vir::Expr> = vec![];
@@ -1913,7 +1943,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         (type_spec.into_iter().conjoin(),
-         mandatory_type_spec.into_iter().conjoin(),
+         mandatory_type_spec,
          invs_spec.into_iter().conjoin(),
          func_spec.into_iter().conjoin())
     }
@@ -1925,7 +1955,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
             self.encode_precondition_expr(contract);
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(type_spec));
-        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(mandatory_type_spec));
+        self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(mandatory_type_spec.into_iter().conjoin()));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(invs_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Inhale(func_spec));
         self.cfg_method.add_stmt(start_cfg_block, vir::Stmt::Label(PRECONDITION_LABEL.to_string()));
