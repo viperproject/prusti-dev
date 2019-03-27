@@ -79,7 +79,7 @@ pub struct VecWrapper<T>{
     v: Vec<T>
 }
 
-impl<T: PartialEq> VecWrapper<T> {
+impl<T> VecWrapper<T> {
 
     #[trusted]
     #[pure]
