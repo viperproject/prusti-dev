@@ -258,7 +258,6 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => self.check_inner_ty(inner_ty, pos),
 
             ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) => {
-                partially_pos!(self, pos, "uses shared references");
                 self.check_inner_ty(inner_ty, pos);
             }
 
@@ -591,7 +590,6 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             mir::Rvalue::Repeat(..) => unsupported!(self, "uses `repeat` operations"),
 
             mir::Rvalue::Ref(_, mir::BorrowKind::Shared, ref place) => {
-                partially!(self, "uses shared references");
                 self.check_place(mir, place);
             }
 
