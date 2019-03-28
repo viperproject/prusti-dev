@@ -1219,7 +1219,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
 
                     ty::TypeVariants::TyInt(_) |
-                    ty::TypeVariants::TyUint(_) => {
+                    ty::TypeVariants::TyUint(_) |
+                    ty::TypeVariants::TyChar => {
                         self.cfg_method.add_fresh_local_var(vir::Type::Int)
                     }
 
@@ -1253,7 +1254,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
 
                         ty::TypeVariants::TyInt(_) |
-                        ty::TypeVariants::TyUint(_) => {
+                        ty::TypeVariants::TyUint(_) |
+                        ty::TypeVariants::TyChar => {
                             vir::Expr::eq_cmp(
                                 discr_var.clone().into(),
                                 self.encoder.encode_int_cast(value, switch_ty)

@@ -565,6 +565,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(ast::UintTy::U64) => (value as u64).into(),
             ty::TypeVariants::TyUint(ast::UintTy::U128) => (value as u128).into(),
             ty::TypeVariants::TyUint(ast::UintTy::Usize) => (value as usize).into(),
+            ty::TypeVariants::TyChar => value.into(),
             ref x => unimplemented!("{:?}", x)
         };
         debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);
