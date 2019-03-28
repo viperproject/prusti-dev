@@ -289,6 +289,7 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
             // TODO: is this correct?!
             &ty::RegionKind::ReLateBound(_, bound_region) => bound_region,
             &ty::RegionKind::ReEarlyBound(early_region) => early_region.to_bound_region(),
+            &ty::RegionKind::ReStatic => unimplemented!("Unhandled ty::RegionKind::ReStatic"),
             x => unimplemented!("{:?}", x),
         }
     }

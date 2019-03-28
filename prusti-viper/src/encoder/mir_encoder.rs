@@ -290,7 +290,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 // Generate a function call that leaves the expression undefined.
                 let encoded_type = self.encoder.encode_value_type(ty);
                 let function_name = self.encoder.encode_builtin_function_use(
-                    BuiltinFunctionKind::Undefined(encoded_type.clone())
+                    BuiltinFunctionKind::Unreachable(encoded_type.clone())
                 );
                 let pos = self.encoder.error_manager().register(
                     // TODO: use a proper span

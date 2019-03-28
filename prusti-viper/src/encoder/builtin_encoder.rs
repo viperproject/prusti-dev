@@ -20,6 +20,8 @@ pub enum BuiltinMethodKind {
 #[derive(Clone,Debug,Hash,Eq,PartialEq)]
 pub enum BuiltinFunctionKind {
     /// type
+    Unreachable(vir::Type),
+    /// type
     Undefined(vir::Type),
 }
 
@@ -52,6 +54,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_builtin_function_name(&self, function: &BuiltinFunctionKind) -> String {
         match function {
+            BuiltinFunctionKind::Unreachable(vir::Type::Int) => format!("builtin$unreach_int"),
+            BuiltinFunctionKind::Unreachable(vir::Type::Bool) => format!("builtin$unreach_bool"),
+            BuiltinFunctionKind::Unreachable(vir::Type::TypedRef(_)) => format!("builtin$unreach_ref"),
             BuiltinFunctionKind::Undefined(vir::Type::Int) => format!("builtin$undef_int"),
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
@@ -61,12 +66,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_builtin_function_def(&self, function: BuiltinFunctionKind) -> vir::Function {
         let fn_name = self.encode_builtin_function_name(&function);
         match function {
-            BuiltinFunctionKind::Undefined(typ) => vir::Function {
+            BuiltinFunctionKind::Unreachable(typ) => vir::Function {
                 name: fn_name,
                 formal_args: vec![],
                 return_type: typ,
                 // Precondition is false, because we want to be sure that this function is never used
                 pres: vec![ false.into() ],
+                posts: vec![],
+                body: None,
+            },
+            BuiltinFunctionKind::Undefined(typ) => vir::Function {
+                name: fn_name,
+                formal_args: vec![],
+                return_type: typ,
+                pres: vec![],
                 posts: vec![],
                 body: None,
             },

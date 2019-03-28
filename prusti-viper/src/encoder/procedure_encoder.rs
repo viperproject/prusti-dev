@@ -648,11 +648,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 // Initialize `lhs.int_field`
                                 let discr_field = self.encoder.encode_discriminant_field();
                                 if num_variants == 0 {
-                                    let pos = self.encoder.error_manager().register(
-                                        self.mir.source_info(location).span,
-                                        ErrorCtxt::Unexpected
-                                    );
-                                    stmts.push(vir::Stmt::Assert(false.into(), pos));
+                                    // Asserting `false here is curerntly wrong. See issue #156
+                                    //let pos = self.encoder.error_manager().register(
+                                    //    self.mir.source_info(location).span,
+                                    //    ErrorCtxt::Unexpected
+                                    //);
+                                    //stmts.push(vir::Stmt::Assert(false.into(), pos));
                                 } else {
 
                                     let discr_value: vir::Expr = if num_variants == 1 {
@@ -1285,16 +1286,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vir::Stmt::comment(format!("========== {} ==========", &unreachable_label)),
                         vir::Stmt::comment(format!("Block marked as 'unreachable' by the compiler")),
                     ]);
-                    if config::check_unreachable_terminators() {
-                        let pos = self.encoder.error_manager().register(
-                            term.source_info.span,
-                            ErrorCtxt::UnreachableTerminator
-                        );
-                        self.cfg_method.add_stmt(
-                            unreachable_block,
-                            vir::Stmt::Assert(false.into(), pos)
-                        );
-                    }
+                    // Asserting `false` here does not work. See issue #158
+                    //if config::check_unreachable_terminators() {
+                    //    let pos = self.encoder.error_manager().register(
+                    //        term.source_info.span,
+                    //        ErrorCtxt::UnreachableTerminator
+                    //    );
+                    //    self.cfg_method.add_stmt(
+                    //        unreachable_block,
+                    //        vir::Stmt::Assert(false.into(), pos)
+                    //    );
+                    //}
                     self.cfg_method.set_successor(unreachable_block, Successor::Return);
                     unreachable_block
                 };
@@ -1303,13 +1305,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             TerminatorKind::Unreachable => {
-                let pos = self.encoder.error_manager().register(
-                    term.source_info.span,
-                    ErrorCtxt::UnreachableTerminator
-                );
-                stmts.push(
-                    vir::Stmt::Assert(false.into(), pos)
-                );
+                // Asserting `false` here does not work. See issue #158
+                //let pos = self.encoder.error_manager().register(
+                //    term.source_info.span,
+                //    ErrorCtxt::UnreachableTerminator
+                //);
+                //stmts.push(
+                //    vir::Stmt::Inhale(false.into())
+                //);
                 (stmts, Successor::Return)
             }
 
@@ -1778,6 +1781,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     if let Some(target_cfg_block) = cfg_blocks.get(&target) {
                         (stmts, Successor::Goto(*target_cfg_block))
                     } else {
+                        unreachable!();
                         stmts.push(vir::Stmt::Assert(false.into(), vir::Position::default()));
                         (stmts, Successor::Return)
                     }

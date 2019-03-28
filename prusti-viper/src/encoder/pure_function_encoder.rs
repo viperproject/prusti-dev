@@ -302,6 +302,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
         use rustc::mir::TerminatorKind;
 
         // Generate a function call that leaves the expression undefined.
+        let unreachable_expr = |pos| {
+            let encoded_type = self.encoder.encode_value_type(self.mir.return_ty());
+            let function_name = self.encoder.encode_builtin_function_use(
+                BuiltinFunctionKind::Unreachable(encoded_type.clone())
+            );
+            vir::Expr::func_app(function_name, vec![], vec![], encoded_type, pos)
+        };
+
+        // Generate a function call that leaves the expression undefined.
         let undef_expr = |pos| {
             let encoded_type = self.encoder.encode_value_type(self.mir.return_ty());
             let function_name = self.encoder.encode_builtin_function_use(
@@ -311,7 +320,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
         };
 
         match term.kind {
-            TerminatorKind::Unreachable |
+            TerminatorKind::Unreachable => {
+                assert!(states.is_empty());
+                let pos = self.encoder.error_manager().register(
+                    term.source_info.span,
+                    ErrorCtxt::Unexpected
+                );
+                MultiExprBackwardInterpreterState::new_single(undef_expr(pos))
+            }
+
             TerminatorKind::Abort |
             TerminatorKind::Resume{..} => {
                 assert!(states.is_empty());
@@ -319,7 +336,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                     term.source_info.span,
                     ErrorCtxt::Unexpected
                 );
-                MultiExprBackwardInterpreterState::new_single(undef_expr(pos))
+                MultiExprBackwardInterpreterState::new_single(unreachable_expr(pos))
             }
 
             TerminatorKind::Drop{ ref target, .. } => {
@@ -567,7 +584,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         term.source_info.span,
                         error_ctxt
                     );
-                    MultiExprBackwardInterpreterState::new_single(undef_expr(pos))
+                    MultiExprBackwardInterpreterState::new_single(unreachable_expr(pos))
                 }
             }
 
@@ -599,7 +616,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                             } else {
                                 // We are encoding a pure function, so all failures should
                                 // be unreachable.
-                                undef_expr(pos.clone())
+                                unreachable_expr(pos.clone())
                             };
                             vir::Expr::ite(
                                 viper_guard.clone(),
@@ -792,7 +809,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                         ErrorCtxt::Unexpected
                                     );
                                     let function_name = self.encoder.encode_builtin_function_use(
-                                        BuiltinFunctionKind::Undefined(vir::Type::Int)
+                                        BuiltinFunctionKind::Unreachable(vir::Type::Int)
                                     );
                                     vir::Expr::func_app(function_name, vec![], vec![], vir::Type::Int, pos)
                                 } else {

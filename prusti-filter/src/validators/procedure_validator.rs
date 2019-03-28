@@ -255,9 +255,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 self.check_inner_ty(inner_ty, pos);
             }
 
-            ty::TypeVariants::TyRef(_, inner_ty, hir::MutMutable) => self.check_inner_ty(inner_ty, pos),
-
-            ty::TypeVariants::TyRef(_, inner_ty, hir::MutImmutable) => {
+            ty::TypeVariants::TyRef(_, inner_ty, _) => {
                 self.check_inner_ty(inner_ty, pos);
             }
 

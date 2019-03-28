@@ -251,6 +251,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         discriminant_loc: vir::Expr,
                         discr_values: Vec<T>
                     ) -> vir::Expr {
+                        if discr_values.is_empty() {
+                            // A `false` here is unsound. See issues #38 and #158.
+                            return true.into()
+                        }
                         range_extract(discr_values).into_iter().map(
                             |(from, to)| {
                                 if from == to {
@@ -568,7 +572,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
                 if num_variants == 0 {
                     debug!("ADT {:?} has no variant", adt_def);
-                    exprs.push(false.into()); // TODO: See issue #146.
+                    // `false` here is currently unsound. See issue #158
+                    //exprs.push(false.into()); // TODO: See issue #146
                 } else if num_variants == 1 {
                     debug!("ADT {:?} has only one variant", adt_def);
 
