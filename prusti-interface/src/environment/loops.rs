@@ -270,6 +270,24 @@ impl ProcedureLoops {
         self.loop_head_depths[&bbi]
     }
 
+    /// Does this edge exit a loop?
+    pub fn is_out_edge(&self, from: BasicBlockIndex, to: BasicBlockIndex) -> bool {
+        if let Some(from_loop_head) = self.get_loop_head(from) {
+            if let Some(to_loop_head) = self.get_loop_head(to) {
+                if from_loop_head == to_loop_head || to == to_loop_head {
+                    false
+                } else {
+                    !self.enclosing_loop_heads[&to].contains(&from_loop_head)
+                }
+            }
+            else {
+                true
+            }
+        } else {
+            false
+        }
+    }
+
     /// Compute what paths that come from the outside of the loop are accessed
     /// inside the loop.
     fn compute_used_paths<'a, 'tcx: 'a>(&self, loop_head: BasicBlockIndex,

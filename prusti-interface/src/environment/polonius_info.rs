@@ -1034,6 +1034,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         &self, loans: &[facts::Loan], zombie_loans: &[facts::Loan],
         location: mir::Location, reborrows_direct: &Vec<(facts::Loan, facts::Loan)>,
     ) -> ReborrowingDAG {
+        trace!("[enter] construct_reborrowing_dag_custom_reborrows\
+               (loans={:?}, zombie_loans={:?}, location={:?})",
+               loans, zombie_loans, location);
 
         let mut loans: Vec<_> = loans.iter().cloned().collect();
 

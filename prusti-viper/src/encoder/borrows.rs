@@ -24,8 +24,8 @@ pub struct BorrowInfo<P>
     where
         P: fmt::Debug
 {
-    /// Region of this borrow.
-    pub region: ty::BoundRegion,
+    /// Region of this borrow. None means static.
+    pub region: Option<ty::BoundRegion>,
     pub blocking_paths: Vec<(P, Mutability)>,
     pub blocked_paths: Vec<(P, Mutability)>,
     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
@@ -33,7 +33,7 @@ pub struct BorrowInfo<P>
 
 impl<P: fmt::Debug> BorrowInfo<P> {
 
-    fn new(region: ty::BoundRegion) -> Self {
+    fn new(region: Option<ty::BoundRegion>) -> Self {
         BorrowInfo {
             region,
             blocking_paths: Vec::new(),
@@ -47,8 +47,9 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
-            ty::BoundRegion::BrAnon(id) => format!("#{}", id),
-            ty::BoundRegion::BrNamed(_, name) => name.to_string(),
+            None => format!("static"),
+            Some(ty::BoundRegion::BrAnon(id)) => format!("#{}", id),
+            Some(ty::BoundRegion::BrNamed(_, name)) => name.to_string(),
             _ => unimplemented!(),
         };
         writeln!(f, "BorrowInfo<{}> {{", lifetime)?;
@@ -283,19 +284,21 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
         self.current_path = None;
     }
 
-    fn extract_bound_region(&self, region: ty::Region<'tcx>) -> ty::BoundRegion {
+    fn extract_bound_region(&self, region: ty::Region<'tcx>) -> Option<ty::BoundRegion> {
         match region {
-            &ty::RegionKind::ReFree(free_region) => free_region.bound_region,
+            &ty::RegionKind::ReFree(free_region) => Some(free_region.bound_region),
             // TODO: is this correct?!
-            &ty::RegionKind::ReLateBound(_, bound_region) => bound_region,
-            &ty::RegionKind::ReEarlyBound(early_region) => early_region.to_bound_region(),
-            &ty::RegionKind::ReStatic => unimplemented!("Unhandled ty::RegionKind::ReStatic"),
+            &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
+            &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
+            &ty::RegionKind::ReStatic => None,
             x => unimplemented!("{:?}", x),
         }
     }
 
-    fn get_or_create_borrow_info(&mut self,
-                                 region: ty::BoundRegion) -> &mut BorrowInfo<mir::Place<'tcx>> {
+    fn get_or_create_borrow_info(
+        &mut self,
+        region: Option<ty::BoundRegion>
+    ) -> &mut BorrowInfo<mir::Place<'tcx>> {
         if let Some(index) = self.borrow_infos.iter().position(|info| info.region == region) {
             &mut self.borrow_infos[index]
         } else {

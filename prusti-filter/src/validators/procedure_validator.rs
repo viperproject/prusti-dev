@@ -14,7 +14,7 @@ use rustc::ty::subst::Substs;
 use validators::SupportStatus;
 use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
-use prusti_interface::environment::Procedure;
+use prusti_interface::environment::{ProcedureLoops, Procedure};
 use rustc::mir::interpret::GlobalId;
 use rustc::middle::const_val::ConstVal;
 
@@ -320,6 +320,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
     fn check_mir(&mut self, procedure: &Procedure<'a, 'tcx>) {
         self.check_mir_signature(procedure);
+        self.check_loops(procedure);
 
         let mir = procedure.get_mir();
 
@@ -354,6 +355,22 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 mir::Mutability::Not => {} // OK
             }
             self.check_mir_arg(arg);
+        }
+    }
+
+    fn check_loops(&mut self, procedure: &Procedure<'a, 'tcx>) {
+        let mir = procedure.get_mir();
+        let loops = ProcedureLoops::new(mir);
+
+        for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
+            if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
+                continue;
+            }
+            for successor in basic_block_data.terminator().successors() {
+                if loops.is_out_edge(bbi, *successor) && !loops.is_loop_head(bbi) {
+                    unsupported!(self, "uses loops with non-trivial loop heads")
+                }
+            }
         }
     }
 
