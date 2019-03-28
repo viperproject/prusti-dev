@@ -174,6 +174,18 @@ impl From<u128> for Expr {
     }
 }
 
+impl From<char> for Const {
+    fn from(val: char) -> Self {
+        Const::BigInt((val as u128).to_string())
+    }
+}
+
+impl From<char> for Expr {
+    fn from(val: char) -> Self {
+        Expr::Const(val.into(), Position::default())
+    }
+}
+
 impl From<u128> for Const {
     fn from(val: u128) -> Self {
         Const::BigInt(val.to_string())
