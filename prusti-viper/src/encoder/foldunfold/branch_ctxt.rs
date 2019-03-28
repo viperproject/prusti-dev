@@ -279,17 +279,15 @@ impl<'a> BranchCtxt<'a> {
                 let right_perm = other.state.pred()[&pred_place];
                 if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
                     self.state.remove_pred(&pred_place, PermAmount::Remaining);
-                    // TODO: We probably should log the removed
-                    // permissions and restore them in
-                    // process_expire_borrows together with other
-                    // dropped permissions.
+                    left_actions.push(
+                        Action::Drop(Perm::pred(pred_place.clone(), PermAmount::Remaining))
+                    );
                 }
                 if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
                     other.state.remove_pred(&pred_place, PermAmount::Remaining);
-                    // TODO: We probably should log the removed
-                    // permissions and restore them in
-                    // process_expire_borrows together with other
-                    // dropped permissions.
+                    right_actions.push(
+                        Action::Drop(Perm::pred(pred_place.clone(), PermAmount::Remaining))
+                    );
                 }
 
             }
