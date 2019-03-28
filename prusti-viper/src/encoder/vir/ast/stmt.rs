@@ -517,3 +517,10 @@ pub trait StmtWalker {
         }
     }
 }
+
+pub fn stmts_to_str(stmts: &[Stmt]) -> String {
+    stmts
+        .iter()
+        .map(|stmt| format!("{}\n", stmt))
+        .collect::<String>()
+}

@@ -1,23 +1,35 @@
-use std::cmp::Ordering;
-
 #[derive(Eq, PartialEq)]
-struct T {
+pub struct T {
     val: u32,
 }
 
 #[trusted]
-fn cmp(l: &T, r: &T) -> bool {
+fn cmp(_l: &T, _r: &T) -> bool {
     unimplemented!();
 }
 
-struct P {
+pub struct P {
     f: T,
 }
 
-fn should_timeout(s: &mut P, now: T) {
+pub fn test1(s: &mut P, now: T) {
     if cmp(&now, &s.f) {
         s.f = now;
     }
+}
+
+pub struct Pair<T> {
+    pub first: T,
+    pub second: T,
+}
+
+#[trusted]
+pub fn foo<T>(_a: T, _b: T) -> T {
+    unimplemented!();
+}
+
+pub fn test2<T: Copy>(x: &Pair<T>) -> T {
+    foo(x.first, x.second)
 }
 
 fn main() {}

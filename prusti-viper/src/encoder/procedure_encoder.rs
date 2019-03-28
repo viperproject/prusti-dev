@@ -2886,72 +2886,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     /// Return type:
     /// - `Vec<vir::Stmt>`: the statements that encode the assignment of `operand` to `lhs`
-    fn encode_assign_operand(&mut self, lhs: &vir::Expr, operand: &mir::Operand<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("Encode assign operand {:?}", operand);
-        match operand {
-            /*
-            &mir::Operand::Move(ref rhs_place) => {
-                let (encoded_rhs, ty, _) = self.mir_encoder.encode_place(rhs_place);
-                // Move the values from `encoded_rhs` to `lhs`
-                let mut stmts = vec![
-                    vir::Stmt::Assign(lhs.clone(), encoded_rhs.clone().into(), vir::AssignKind::Move)
-                ];
-                // Store a label for this state
-                let label = self.cfg_method.get_fresh_label_name();
-                debug!("Current loc {:?} has label {}", location, label);
-                self.label_after_location.insert(location, label.clone());
-                stmts.push(vir::Stmt::Label(label.clone()));
-                /*
-                // Require the deref of reference arguments to be folded (see issue #47)
-                if let mir::Place::Projection(box mir::Projection {
-                    base: mir::Place::Local(local),
-                    elem: mir::ProjectionElem::Deref
-                }) = rhs_place {
-                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
-                        let rhs_pred = self.mir_encoder.encode_place_predicate_permission(
-                            encoded_rhs.clone(),
-                            vir::Frac::new(1, 1000)
-                        ).unwrap();
-                        stmts.extend(self.encode_obtain(rhs_pred));
-                    }
-                }
-                // Require the deref of reference arguments to be folded (see issue #47)
-                if let mir::Place::Local(local) = rhs_place {
-                    if let mir::LocalKind::Arg = self.mir.local_kind(*local) {
-                        if self.mir_encoder.is_reference(ty) {
-                            let (deref_place, ..) = self.mir_encoder.encode_deref(
-                                encoded_rhs.clone(),
-                                ty
-                            );
-                            let deref_pred = self.mir_encoder.encode_place_predicate_permission(
-                                deref_place,
-                                vir::Frac::new(1, 1000)
-                            ).unwrap();
-                            stmts.extend(self.encode_obtain(deref_pred));
-                        }
-                    }
-                }
-                */
-                // Re-allocate the rhs, if it's not an argument
-                let havoc_rhs = if let mir::Place::Local(rhs_local) = rhs_place {
-                    if let mir::LocalKind::Arg = self.mir.local_kind(*rhs_local) {
-                        false
-                    } else {
-                        true
-                    }
-                } else {
-                    true
-                };
-                if havoc_rhs {
-                    stmts.extend(
-                        self.encode_havoc_and_allocation(&encoded_rhs)
-                    );
-                } else {
-                    debug!("Do not havoc rhs of '{:?}'", operand);
-                }
-                stmts
-            }
-            */
+    fn encode_assign_operand(
+        &mut self,
+        lhs: &vir::Expr,
+        operand: &mir::Operand<'tcx>,
+        location: mir::Location
+    ) -> Vec<vir::Stmt> {
+        debug!("[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
+               lhs, operand, location);
+        let stmts = match operand {
 
             &mir::Operand::Move(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
@@ -3021,7 +2964,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
                 stmts
             }
-        }
+        };
+        debug!("[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?}) = {}",
+               lhs, operand, location, vir::stmts_to_str(&stmts));
+        stmts
     }
 
     pub fn get_auxiliar_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {
@@ -3129,10 +3075,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         is_inner_ty: bool,
         location: mir::Location
     ) -> Vec<vir::Stmt> {
-        debug!("Encode copy {:?}, {:?}, {:?}, is_move: {}, is_inner_ty: {}",
-               src, dst, self_ty, is_move, is_inner_ty);
+        trace!("[enter] encode_copy(src={}, dst={}, self_ty={:?}, is_move={}, \
+                is_inner_ty={}, location={:?})",
+               src, dst, self_ty, is_move, is_inner_ty, location);
 
-        match self_ty.sty {
+        let stmts = match self_ty.sty {
             ty::TypeVariants::TyBool |
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) |
@@ -3255,13 +3202,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ty::TypeVariants::TyParam(_) => {
-                self.encode_havoc_and_allocation(
-                    &src.clone()
-                )
+                let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
+                if is_move {
+                    stmts.extend(self.encode_havoc_and_allocation(&src.clone()));
+                }
+                stmts
             }
 
             ref x => unimplemented!("{:?}", x),
-        }
+        };
+
+        trace!("[exit] encode_copy(src={}, dst={}, self_ty={:?}, is_move={}, \
+                is_inner_ty={}, location={:?}) = {}",
+               src, dst, self_ty, is_move, is_inner_ty, location, vir::stmts_to_str(&stmts));
+        stmts
     }
 
     fn encode_assign_aggregate(
