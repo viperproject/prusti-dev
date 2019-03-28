@@ -43,6 +43,9 @@ use syntax::ast;
 use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{PRECONDITION_LABEL, POSTCONDITION_LABEL};
 use prusti_interface::utils::get_attr_value;
+use rustc::ty::layout;
+use rustc::ty::layout::IntegerExt;
+use syntax::attr::SignedInt;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -3288,11 +3291,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 if num_variants > 1 {
                     let tcx = self.encoder.env().tcx();
                     let discr_field = self.encoder.encode_discriminant_field();
-                    let discr_value = adt_def.discriminant_for_variant(tcx, variant_index).val;
+                    // Handle *signed* discriminats
+                    let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr.discr_type() {
+                        let bit_size = layout::Integer::from_attr(
+                            self.encoder.env().tcx(),
+                            SignedInt(ity)
+                        ).size().bits();
+                        let shift = 128 - bit_size;
+                        let unsigned_discr = adt_def.discriminant_for_variant(tcx, variant_index).val;
+                        let casted_discr = unsigned_discr as i128;
+                        // sign extend the raw representation to be an i128
+                        ((casted_discr << shift) >> shift).into()
+                    } else {
+                        adt_def.discriminant_for_variant(tcx, variant_index).val.into()
+                    };
                     stmts.push(
                         vir::Stmt::Assign(
                             dst.clone().field(discr_field).into(),
-                            discr_value.into(),
+                            discr_value,
                             vir::AssignKind::Copy
                         )
                     );

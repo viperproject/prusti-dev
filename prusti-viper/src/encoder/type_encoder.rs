@@ -11,6 +11,7 @@ use encoder::vir;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
 use encoder::utils::range_extract;
+use encoder::utils::PlusOne;
 use prusti_interface::specifications::*;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
@@ -18,8 +19,11 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use rustc_data_structures::indexed_vec::Idx;
 use syntax::ast;
+use syntax::attr::SignedInt;
 use std;
 use prusti_interface::config;
+use rustc::ty::layout;
+use rustc::ty::layout::IntegerExt;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -234,45 +238,73 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 } else {
                     debug!("ADT {:?} has {} variants", adt_def, num_variants);
                     let discriminant_field = self.encoder.encode_discriminant_field();
-                    let discriminan_loc = vir::Expr::from(self_local_var.clone()).field(discriminant_field);
+                    let discriminant_loc = vir::Expr::from(self_local_var.clone()).field(discriminant_field);
                     // acc(self.discriminant)
                     perms.push(
                         vir::Expr::acc_permission(
-                            discriminan_loc.clone().into(),
+                            discriminant_loc.clone().into(),
                             vir::PermAmount::Write,
                         )
                     );
-                    // 0 <= self.discriminant <= num_variants - 1
-                    let mut discr_values = vec![];
-                    for (variant_index, _) in adt_def.variants.iter().enumerate() {
-                        discr_values.push(
-                            adt_def.discriminant_for_variant(tcx, variant_index).val
+                    // Encode values of discriminant
+                    fn build_discr_range_expr<T: Ord + PartialEq + Eq + Copy + Into<vir::Expr> + PlusOne>(
+                        discriminant_loc: vir::Expr,
+                        discr_values: Vec<T>
+                    ) -> vir::Expr {
+                        range_extract(discr_values).into_iter().map(
+                            |(from, to)| {
+                                if from == to {
+                                    vir::Expr::eq_cmp(
+                                        discriminant_loc.clone().into(),
+                                        from.into()
+                                    )
+                                } else {
+                                    vir::Expr::and(
+                                        vir::Expr::le_cmp(
+                                            from.into(),
+                                            discriminant_loc.clone().into()
+                                        ),
+                                        vir::Expr::le_cmp(
+                                            discriminant_loc.clone().into(),
+                                            to.into()
+                                        )
+                                    )
+                                }
+                            }
+                        ).disjoin()
+                    }
+                    // Handle *signed* discriminats
+                    if let SignedInt(ity) = adt_def.repr.discr_type() {
+                        let bit_size = layout::Integer::from_attr(
+                            self.encoder.env().tcx(),
+                            SignedInt(ity)
+                        ).size().bits();
+                        let shift = 128 - bit_size;
+                        let mut discr_values: Vec<i128> = vec![];
+                        for (variant_index, _) in adt_def.variants.iter().enumerate() {
+                            let unsigned_discr = adt_def.discriminant_for_variant(tcx, variant_index).val;
+                            let casted_discr = unsigned_discr as i128;
+                            // sign extend the raw representation to be an i128
+                            let signed_discr = (casted_discr << shift) >> shift;
+                            discr_values.push(
+                                signed_discr
+                            );
+                        }
+                        perms.push(
+                            build_discr_range_expr(discriminant_loc, discr_values)
+                        );
+                    } else {
+                        let mut discr_values: Vec<u128> = vec![];
+                        for (variant_index, _) in adt_def.variants.iter().enumerate() {
+                            discr_values.push(
+                                adt_def.discriminant_for_variant(tcx, variant_index).val
+                            );
+                        }
+                        perms.push(
+                            build_discr_range_expr(discriminant_loc, discr_values)
                         );
                     }
-                    let mut discr_exprs = range_extract(discr_values).into_iter().map(
-                        |(from, to)| {
-                            if from == to {
-                                vir::Expr::eq_cmp(
-                                    discriminan_loc.clone().into(),
-                                    from.into()
-                                )
-                            } else {
-                                vir::Expr::and(
-                                    vir::Expr::le_cmp(
-                                        from.into(),
-                                        discriminan_loc.clone().into()
-                                    ),
-                                    vir::Expr::le_cmp(
-                                        discriminan_loc.clone().into(),
-                                        to.into()
-                                    )
-                                )
-                            }
-                        }
-                    );
-                    perms.push(
-                        discr_exprs.disjoin()
-                    );
+
                     for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
                         debug!("Encoding variant {:?}", variant_def);
                         let mut variant_perms: Vec<vir::Expr> = vec![];
