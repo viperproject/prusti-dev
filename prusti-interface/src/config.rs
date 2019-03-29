@@ -30,7 +30,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
         settings.set_default("SIMPLIFY_FUNCTIONS", true).unwrap();
         settings.set_default("QUIET", false).unwrap();
-        settings.set_default("ASSERT_TIMEOUT", 1000).unwrap();
+        settings.set_default("ASSERT_TIMEOUT", 10000).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
