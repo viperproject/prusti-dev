@@ -79,6 +79,8 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
                 "--enableMoreCompleteExhale".to_string(), // Buggy :(
+                "--assertTimeout".to_string(),
+                config::assert_timeout().to_string(),
                 "--tempDirectory".to_string(), "./log/viper_tmp".to_string(),
                 //"--logLevel".to_string(), "WARN".to_string(),
             ]);

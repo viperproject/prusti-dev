@@ -30,6 +30,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
         settings.set_default("SIMPLIFY_FUNCTIONS", true).unwrap();
         settings.set_default("QUIET", false).unwrap();
+        settings.set_default("ASSERT_TIMEOUT", 10000).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -134,4 +135,9 @@ pub fn simplify_functions() -> bool {
 /// Should we hide user messages?
 pub fn quiet() -> bool {
     SETTINGS.read().unwrap().get::<bool>("QUIET").unwrap()
+}
+
+/// The assert timeout (in miliseonds) passed to Silicon.
+pub fn assert_timeout() -> u64 {
+    SETTINGS.read().unwrap().get::<u64>("ASSERT_TIMEOUT").unwrap()
 }
