@@ -705,7 +705,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let proc_def_id = self.encoding_queue.borrow_mut().pop().unwrap();
-            debug!("Encoding {:?}", proc_def_id);
+            let proc_name = self.env.get_item_name(proc_def_id);
+            let proc_def_path = self.env.get_item_def_path(proc_def_id);
+            let proc_span = self.env.get_item_span(proc_def_id);
+            info!("Encoding: {} from {:?} ({})", proc_name, proc_span, proc_def_path);
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
             if is_pure_function {
                 self.encode_pure_function_def(proc_def_id);
