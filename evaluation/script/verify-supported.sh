@@ -26,6 +26,12 @@ if [[ ! -r "$CRATE_ROOT/Cargo.toml" ]]; then
 fi
 
 
+GLOBAL_BLACKLIST="$DIR/../crates/global_blacklist.csv"
+if [[ ! -r "$GLOBAL_BLACKLIST" ]]; then
+	error "Could not read file '$GLOBAL_BLACKLIST' (global blacklist)"
+	exit 1
+fi
+
 EVALUATION_TIMEOUT="${EVALUATION_TIMEOUT:-900}"
 info "Using EVALUATION_TIMEOUT=$EVALUATION_TIMEOUT seconds"
 
@@ -94,7 +100,10 @@ if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILT
 fi
 
 # Collect supported procedures
-supported_procedures="$(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json" )"
+supported_procedures="$(
+    jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json" \
+    | diff --new-line-format="" --unchanged-line-format="" - "$GLOBAL_BLACKLIST"
+)"
 num_supported_procedures="$(echo "$supported_procedures" | grep . | wc -l || true)"
 info "Number of supported procedures in crate: $num_supported_procedures"
 #info "Supported procedures in crate:\n$supported_procedures"
