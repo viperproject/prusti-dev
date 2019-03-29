@@ -1672,8 +1672,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 expr
                             };
 
-                            let procedure_contract = self.encoder
-                                .get_procedure_contract_for_call(def_id, &fake_vars, fake_target_local);
+                            let procedure_contract = {
+                                self.encoder.get_procedure_contract_for_call(
+                                    def_id, &fake_vars, fake_target_local)
+                            };
 
                             // Store a label for the pre state
                             let pre_label = self.cfg_method.get_fresh_label_name();
@@ -2164,7 +2166,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Encode the permissions got back and invariants for the arguments of type reference
         for (place, mutability) in contract.returned_refs.iter() {
-            debug!("Put permission {:?} in postcondition", place);
+            debug!("Put permission {:?} ({:?}) in postcondition", place, mutability);
             let (place_expr, place_ty, _) = self.encode_generic_place(place);
             let old_place_expr = place_expr.clone().old(pre_label);
             let mut add_type_spec = |perm_amount| {

@@ -203,8 +203,11 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
     }
 
     /// Specialize to the call site contract.
-    pub fn to_call_site_contract(&self, args: &Vec<places::Local>, target: places::Local
-                                 ) -> ProcedureContract<'tcx> {
+    pub fn to_call_site_contract(
+        &self,
+        args: &Vec<places::Local>,
+        target: places::Local
+    ) -> ProcedureContract<'tcx> {
         assert_eq!(self.args.len(), args.len());
         let mut substitutions = HashMap::new();
         substitutions.insert(self.returned_value, target);
@@ -291,6 +294,7 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
             &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
             &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
             &ty::RegionKind::ReStatic => None,
+            &ty::RegionKind::ReScope(scope) => None, //  FIXME: This is incorrect.
             x => unimplemented!("{:?}", x),
         }
     }
@@ -356,7 +360,8 @@ impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
-    specification: TypedSpecificationSet
+    specification: TypedSpecificationSet,
+    maybe_tymap: Option<&HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
 ) -> ProcedureContractMirDef<'tcx>
     where
         'a: 'p,
@@ -373,7 +378,14 @@ pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     // FIXME; "skip_binder" is most likely wrong
     for i in 0usize..fn_sig.inputs().skip_binder().len() {
         fake_mir_args.push(mir::Local::new(i+1));
-        fake_mir_args_ty.push(fn_sig.input(i).skip_binder().clone());
+        let arg_ty = fn_sig.input(i);
+        let arg_ty = arg_ty.skip_binder();
+        let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
+            replaced_arg_ty.clone()
+        } else {
+            arg_ty.clone()
+        };
+        fake_mir_args_ty.push(ty);
     }
     let return_ty = fn_sig.output().skip_binder().clone();
 
