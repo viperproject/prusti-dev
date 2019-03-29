@@ -54,15 +54,19 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
     # `diff` is used to filter out procedures that are in `$GLOBAL_BLACKLIST`
     # Source: https://stackoverflow.com/a/18205289/2491528
-	jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' \
-		"$CRATE_ROOT/prusti-filter-results.json" \
-		| diff --new-line-format="" --unchanged-line-format="" - "$GLOBAL_BLACKLIST" \
+    diff --new-line-format="" --unchanged-line-format="" \
+	    <(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' \
+	        "$CRATE_ROOT/prusti-filter-results.json" | sort) \
+		<(sort "$GLOBAL_BLACKLIST") \
 		> "$CRATE_DIR/supported-procedures.csv" \
 		|| true
 
-	jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions")) | .node_path' \
-		"$CRATE_ROOT/prusti-filter-results.json" \
-		| diff --new-line-format="" --unchanged-line-format="" - "$GLOBAL_BLACKLIST" \
+    # `diff` is used to filter out procedures that are in `$GLOBAL_BLACKLIST`
+    # Source: https://stackoverflow.com/a/18205289/2491528
+    diff --new-line-format="" --unchanged-line-format="" \
+	    <(jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions")) | .node_path' \
+		    "$CRATE_ROOT/prusti-filter-results.json") \
+		<(sort "$GLOBAL_BLACKLIST") \
 		> "$CRATE_DIR/supported-procedures-with-assertions.csv" \
 		|| true
 

@@ -100,9 +100,13 @@ if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILT
 fi
 
 # Collect supported procedures
+# `diff` is used to filter out procedures that are in `$GLOBAL_BLACKLIST`
+# Source: https://stackoverflow.com/a/18205289/2491528
 supported_procedures="$(
-    jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json" \
-    | diff --new-line-format="" --unchanged-line-format="" - "$GLOBAL_BLACKLIST"
+    diff --new-line-format="" --unchanged-line-format="" \
+        <(jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' "$CRATE_ROOT/prusti-filter-results.json" | sort) \
+        <(sort "$GLOBAL_BLACKLIST") \
+    || true
 )"
 num_supported_procedures="$(echo "$supported_procedures" | grep . | wc -l || true)"
 info "Number of supported procedures in crate: $num_supported_procedures"
