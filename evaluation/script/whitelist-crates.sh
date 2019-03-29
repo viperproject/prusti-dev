@@ -28,6 +28,12 @@ if [[ ! -r "$CRATES_LIST_PATH" ]]; then
 	exit 1
 fi
 
+GLOBAL_BLACKLIST="$DIR/../crates/global_blacklist.csv"
+if [[ ! -r "$GLOBAL_BLACKLIST" ]]; then
+	error "Could not read file '$GLOBAL_BLACKLIST' (global blacklist)"
+	exit 1
+fi
+
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
 whitelist_report="$CRATE_DOWNLOAD_DIR/whitelist-report-$start_date.csv"
 whitelist_report_final="$CRATE_DOWNLOAD_DIR/whitelist-report.csv"
@@ -46,13 +52,17 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		> "$CRATE_DIR/procedures.csv" \
 		|| true
 
+    # `diff` is used to filter out procedures that are in `$GLOBAL_BLACKLIST`
+    # Source: https://stackoverflow.com/a/18205289/2491528
 	jq '.functions[] | select(.procedure.restrictions | length == 0) | .node_path' \
 		"$CRATE_ROOT/prusti-filter-results.json" \
+		| diff --new-line-format="" --unchanged-line-format="" - "$GLOBAL_BLACKLIST" \
 		> "$CRATE_DIR/supported-procedures.csv" \
 		|| true
 
 	jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions")) | .node_path' \
 		"$CRATE_ROOT/prusti-filter-results.json" \
+		| diff --new-line-format="" --unchanged-line-format="" - "$GLOBAL_BLACKLIST" \
 		> "$CRATE_DIR/supported-procedures-with-assertions.csv" \
 		|| true
 
