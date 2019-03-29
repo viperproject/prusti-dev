@@ -635,11 +635,12 @@ impl State {
         self.acc.insert(acc_place, perm);
     }
 
-    fn restore_pred(&mut self, pred_place: vir::Expr, perm: PermAmount) {
+    fn restore_pred(&mut self, pred_place: vir::Expr, mut perm: PermAmount) {
         trace!("restore_pred {}, {}", pred_place, perm);
-        if self.pred.contains_key(&pred_place) {
-            trace!("restore_pred {}: ignored (state already contains place)", pred_place);
-            return;
+        if let Some(curr_perm_amount) = self.pred.get(&pred_place) {
+            perm = perm + *curr_perm_amount;
+            //trace!("restore_pred {}: ignored (state already contains place)", pred_place);
+            //return;
         }
         if pred_place.is_simple_place() {
             self.acc.retain(|acc_place, _| {

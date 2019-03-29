@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
+use encoder::borrows::{
+    compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::builtin_encoder::BuiltinFunctionKind;
@@ -279,7 +280,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 SpecificationSet::Procedure(vec![], vec![])
             }
         };
-        compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec)
+        compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, None)
     }
 
     pub fn get_procedure_contract_for_def(&self, proc_def_id: ProcedureDefId
@@ -291,14 +292,24 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             .to_def_site_contract()
     }
 
-    pub fn get_procedure_contract_for_call(&self, proc_def_id: ProcedureDefId,
-                                           args: &Vec<places::Local>, target: places::Local
-                                           ) -> ProcedureContract<'tcx> {
-        self.procedure_contracts
-            .borrow_mut()
-            .entry(proc_def_id)
-            .or_insert_with(|| self.get_procedure_contract(proc_def_id))
-            .to_call_site_contract(args, target)
+    pub fn get_procedure_contract_for_call(
+        &self,
+        proc_def_id: ProcedureDefId,
+        args: &Vec<places::Local>,
+        target: places::Local
+    ) -> ProcedureContract<'tcx> {
+        let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
+        let fun_spec = match opt_fun_spec {
+            Some(fun_spec) => fun_spec.clone(),
+            None => {
+                debug!("Procedure {:?} has no specification", proc_def_id);
+                SpecificationSet::Procedure(vec![], vec![])
+            }
+        };
+        let tymap = self.typaram_repl.borrow_mut();
+        let contract = compute_procedure_contract(
+            proc_def_id, self.env().tcx(), fun_spec, Some(&tymap));
+        contract.to_call_site_contract(args, target)
     }
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
