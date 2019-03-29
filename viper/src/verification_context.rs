@@ -34,7 +34,7 @@ impl<'a> VerificationContext<'a> {
         self.new_verifier_with_args(backend, vec![])
     }
 
-    pub fn new_verifier_with_args(&self, backend: VerificationBackend, args: Vec<&str>) -> Verifier<state::Started> {
+    pub fn new_verifier_with_args(&self, backend: VerificationBackend, args: Vec<String>) -> Verifier<state::Started> {
         let z3_path = vec![
             env::var("Z3_PATH").ok(),
             env::var("Z3_EXE").ok(),
@@ -62,20 +62,20 @@ impl<'a> VerificationContext<'a> {
         debug!("Using BOOGIE path: '{}'", &boogie_path);
         debug!("Verification backend: '{}'", backend);
 
-        let mut verifier_args = vec![];
+        let mut verifier_args: Vec<String> = vec![];
         if let VerificationBackend::Carbon = backend {
             verifier_args.extend(vec![
-                "--boogieExe",
-                &boogie_path,
+                "--boogieExe".to_string(),
+                boogie_path,
             ]);
         }
         verifier_args.extend(vec![
-            "--z3Exe",
-            &z3_path,
+            "--z3Exe".to_string(),
+            z3_path,
         ]);
         verifier_args.extend(args);
         verifier_args.push(
-            "dummy-program.sil"
+            "dummy-program.sil".to_string()
         );
 
         debug!("Verifier arguments: '{}'", verifier_args.iter().cloned().collect::<Vec<_>>().join(" "));

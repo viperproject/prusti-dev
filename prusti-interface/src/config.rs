@@ -26,7 +26,8 @@ lazy_static! {
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
-        settings.set_default::<Vec<String>>("JVM_ARGS", vec![]).unwrap();
+        settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
+        settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
         settings.set_default("SIMPLIFY_FUNCTIONS", true).unwrap();
         settings.set_default("QUIET", false).unwrap();
 
@@ -116,8 +117,13 @@ pub fn contracts_lib() -> String {
 }
 
 /// Get extra JVM arguments
-pub fn jvm_args() -> Vec<String> {
-    SETTINGS.read().unwrap().get::<Vec<String>>("JVM_ARGS").unwrap()
+pub fn extra_jvm_args() -> Vec<String> {
+    SETTINGS.read().unwrap().get::<Vec<String>>("EXTRA_JVM_ARGS").unwrap()
+}
+
+/// Get extra arguments for the verifier
+pub fn extra_verifier_args() -> Vec<String> {
+    SETTINGS.read().unwrap().get::<Vec<String>>("EXTRA_VERIFIER_ARGS").unwrap()
 }
 
 /// Should we simplify functions?

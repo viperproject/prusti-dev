@@ -28,7 +28,7 @@ impl VerifierBuilder {
     pub fn new() -> Self {
         VerifierBuilder {
             viper: Viper::new_with_args(
-                config::jvm_args()
+                config::extra_jvm_args()
             ),
         }
     }
@@ -75,32 +75,33 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
     fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Verifier<'v, 'r, 'a, 'tcx> {
         let backend = VerificationBackend::from_str(&config::viper_backend());
 
-        let mut verifier_args = vec![];
+        let mut verifier_args: Vec<String> = vec![];
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
-                "--enableMoreCompleteExhale", // Buggy :(
-                "--tempDirectory", "./log/viper_tmp",
-                //"--logLevel", "WARN",
+                "--enableMoreCompleteExhale".to_string(), // Buggy :(
+                "--tempDirectory".to_string(), "./log/viper_tmp".to_string(),
+                //"--logLevel".to_string(), "WARN".to_string(),
             ]);
         } else {
             verifier_args.extend(vec![
-                "--disableAllocEncoding",
-                "--boogieOpt", "/logPrefix ./log/viper_tmp"
+                "--disableAllocEncoding".to_string(),
+                "--boogieOpt".to_string(), "/logPrefix ./log/viper_tmp".to_string()
             ]);
         }
         if config::dump_debug_info() {
             if let VerificationBackend::Silicon = backend {
                 verifier_args.extend(vec![
-                    "--printMethodCFGs",
-                    "--logLevel", "INFO",
-                    //"--printTranslatedProgram",
+                    "--printMethodCFGs".to_string(),
+                    "--logLevel".to_string(), "INFO".to_string(),
+                    //"--printTranslatedProgram".to_string(),
                 ]);
             } else {
-                verifier_args.extend::<Vec<&str>>(vec![
-                    //"--print", "./log/boogie_program/program.bpl",
+                verifier_args.extend::<Vec<_>>(vec![
+                    //"--print".to_string(), "./log/boogie_program/program.bpl".to_string(),
                 ]);
             }
         }
+        verifier_args.extend(config::extra_verifier_args());
         Verifier::new(
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
