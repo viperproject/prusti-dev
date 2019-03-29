@@ -216,6 +216,22 @@ fn generate(
     }
 
     code.push(format!(") -> JNIResult<{}> {{", return_type));
+
+    // Load the class of the arguments
+    // For some reason, this seems to avoid `java.lang.IncompatibleClassChangeError` exceptions
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if par_sign.chars().next() == Some('L') {
+            let par_class = &par_sign[1..(par_sign.len()-1)];
+            code.push(format!(
+                "    let _class_{} = self.env.find_class(\"{}\")?;",
+                par_name,
+                par_class
+            ));
+        }
+    }
+
     code.push(format!(
         "    let class = self.env.find_class(\"{}\")?;",
         class.path()
@@ -343,6 +359,21 @@ fn generate_static(
     }
 
     code.push(format!(") -> JNIResult<{}> {{", return_type));
+
+    // Load the class of the arguments
+    // For some reason, this seems to avoid `java.lang.IncompatibleClassChangeError` exceptions
+    for i in 0..parameter_names.len() {
+        let par_name = &parameter_names[i];
+        let par_sign = &parameter_signatures[i];
+        if par_sign.chars().next() == Some('L') {
+            let par_class = &par_sign[1..(par_sign.len()-1)];
+            code.push(format!(
+                "    let _class_{} = self.env.find_class(\"{}\")?;",
+                par_name,
+                par_class
+            ));
+        }
+    }
 
     // Generate dynamic type check for the arguments
     /*for i in 0..parameter_names.len() {

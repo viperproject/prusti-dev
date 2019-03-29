@@ -95,7 +95,6 @@ impl<'a> AstFactory<'a> {
             typ.to_jobject(),
             self.jni.new_seq(&map_to_jobjects!(pres)),
             self.jni.new_seq(&map_to_jobjects!(posts)),
-            self.jni.new_option(None), // decs: Option[DecClause]
             match body {
                 None => self.jni.new_option(None),
                 Some(x) => self.jni.new_option(Some(x.to_jobject())),
