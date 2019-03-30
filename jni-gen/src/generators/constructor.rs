@@ -173,7 +173,7 @@ fn generate(
         "    let method_id = self.env.get_method_id(class, \"<init>\", method_signature)?;"
             .to_string(),
     );
-    code.push("    self.env.new_object_by_id(".to_string());
+    code.push("    let result = self.env.new_object_unchecked(".to_string());
     code.push("        class,".to_string());
     code.push("        method_id,".to_string());
     code.push("        &[".to_string());
@@ -186,7 +186,9 @@ fn generate(
     }
 
     code.push("        ]".to_string());
-    code.push("    )".to_string());
+    code.push("    );".to_string());
+
+    code.push("    result".to_string());
     code.push("}".to_string());
 
     code.join("\n") + "\n"

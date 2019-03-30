@@ -217,25 +217,24 @@ fn generate(
 
     code.push(format!(") -> JNIResult<{}> {{", return_type));
 
+    code.push(format!(
+        "    let class = self.env.find_class(\"{}\")?;",
+        class.path()
+    ));
+
     // Load the class of the arguments
-    // For some reason, this seems to avoid `java.lang.IncompatibleClassChangeError` exceptions
-    for i in 0..parameter_names.len() {
+    /*for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         if par_sign.chars().next() == Some('L') {
             let par_class = &par_sign[1..(par_sign.len()-1)];
             code.push(format!(
-                "    let _class_{} = self.env.find_class(\"{}\")?;",
+                "    let class_{} = self.env.find_class(\"{}\")?;",
                 par_name,
                 par_class
             ));
         }
-    }
-
-    code.push(format!(
-        "    let class = self.env.find_class(\"{}\")?;",
-        class.path()
-    ));
+    }*/
 
     // Generate dynamic type check for `receiver`
     /*code.push("    debug_assert!(".to_string());
@@ -272,8 +271,8 @@ fn generate(
             .to_string(),
     );
     code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
-    code.push("    let result = unsafe {".to_string());
-    code.push("        self.env.call_method_unsafe(".to_string());
+    code.push("    let result = {".to_string());
+    code.push("        self.env.call_method_unchecked(".to_string());
     code.push("            receiver,".to_string());
     code.push("            method_id,".to_string());
     code.push("            return_type,".to_string());
@@ -361,8 +360,7 @@ fn generate_static(
     code.push(format!(") -> JNIResult<{}> {{", return_type));
 
     // Load the class of the arguments
-    // For some reason, this seems to avoid `java.lang.IncompatibleClassChangeError` exceptions
-    for i in 0..parameter_names.len() {
+    /*for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         if par_sign.chars().next() == Some('L') {
@@ -373,7 +371,7 @@ fn generate_static(
                 par_class
             ));
         }
-    }
+    }*/
 
     // Generate dynamic type check for the arguments
     /*for i in 0..parameter_names.len() {
@@ -409,8 +407,8 @@ fn generate_static(
             .to_string(),
     );
     code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
-    code.push("    let result = unsafe {".to_string());
-    code.push("        self.env.call_static_method_unsafe(".to_string());
+    code.push("    let result = {".to_string());
+    code.push("        self.env.call_static_method_unchecked(".to_string());
     code.push("            class,".to_string());
     code.push("            method_id,".to_string());
     code.push("            return_type,".to_string());
