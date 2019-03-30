@@ -46,7 +46,7 @@ impl Viper {
             .version(JNIVersion::V8)
             .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
             // maximum heap size
-            .option("-Xmx4096m")
+            .option("-Xmx12288m")
             // stack size
             .option("-Xss1024m");
             //.option("-Xdebug")
