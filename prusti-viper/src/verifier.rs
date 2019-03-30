@@ -258,7 +258,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             ast.program(&domains, &fields, &functions, &predicates, &methods)
         };
 
-        if config::dump_debug_info() {
+        if config::dump_viper_program() {
             // Dump Viper program
             let source_path = self.env.source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
