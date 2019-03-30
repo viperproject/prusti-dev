@@ -79,6 +79,8 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
                 "--enableMoreCompleteExhale".to_string(), // Buggy :(
+                "--assertTimeout".to_string(),
+                config::assert_timeout().to_string(),
                 "--tempDirectory".to_string(), "./log/viper_tmp".to_string(),
                 //"--logLevel".to_string(), "WARN".to_string(),
             ]);
@@ -256,10 +258,14 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             ast.program(&domains, &fields, &functions, &predicates, &methods)
         };
 
-        // Dump Viper program
-        let source_path = self.env.source_path();
-        let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-        log::report("viper_program", format!("{}.vpr", source_filename), self.ast_utils.pretty_print(program));
+        if config::dump_debug_info() {
+            // Dump Viper program
+            let source_path = self.env.source_path();
+            let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+            log::report("viper_program",
+                        format!("{}.vpr", source_filename),
+                        self.ast_utils.pretty_print(program));
+        }
 
         let duration = start.elapsed();
         info!("Construction of JVM objects successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
