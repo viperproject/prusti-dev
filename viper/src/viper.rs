@@ -29,6 +29,7 @@ impl Viper {
 
     pub fn new_with_args(java_args: Vec<String>) -> Self {
         let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
+        let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "4096".to_string());
 
         debug!("Using Viper home: '{}'", &viper_home);
 
@@ -46,7 +47,7 @@ impl Viper {
             .version(JNIVersion::V8)
             .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
             // maximum heap size
-            .option("-Xmx12288m")
+            .option(&format!("-Xmx{}m", heap_size))
             // stack size
             .option("-Xss1024m");
             //.option("-Xdebug")
