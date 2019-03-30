@@ -217,30 +217,6 @@ fn generate(
 
     code.push(format!(") -> JNIResult<{}> {{", return_type));
 
-    code.push(format!(
-        "    let class = self.env.find_class(\"{}\")?;",
-        class.path()
-    ));
-
-    // Load the class of the arguments
-    /*for i in 0..parameter_names.len() {
-        let par_name = &parameter_names[i];
-        let par_sign = &parameter_signatures[i];
-        if par_sign.chars().next() == Some('L') {
-            let par_class = &par_sign[1..(par_sign.len()-1)];
-            code.push(format!(
-                "    let class_{} = self.env.find_class(\"{}\")?;",
-                par_name,
-                par_class
-            ));
-        }
-    }*/
-
-    // Generate dynamic type check for `receiver`
-    /*code.push("    debug_assert!(".to_string());
-    code.push("        self.env.is_instance_of(receiver, class)?".to_string());
-    code.push("    );".to_string());*/
-
     // Generate dynamic type check for the arguments
     /*for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -257,6 +233,16 @@ fn generate(
         }
     }*/
 
+    code.push(format!(
+        "    let class = self.env.find_class(\"{}\")?;",
+        class.path()
+    ));
+
+    // Generate dynamic type check for `receiver`
+    /*code.push("    debug_assert!(".to_string());
+    code.push("        self.env.is_instance_of(receiver, class)?".to_string());
+    code.push("    );".to_string());*/
+
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(
         "    let method_signature = \"{}\";",
@@ -271,26 +257,24 @@ fn generate(
             .to_string(),
     );
     code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
-    code.push("    let result = {".to_string());
-    code.push("        self.env.call_method_unchecked(".to_string());
-    code.push("            receiver,".to_string());
-    code.push("            method_id,".to_string());
-    code.push("            return_type,".to_string());
-    code.push("            &[".to_string());
+    code.push("    self.env.call_method_unchecked(".to_string());
+    code.push("        receiver,".to_string());
+    code.push("        method_id,".to_string());
+    code.push("        return_type,".to_string());
+    code.push("        &[".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("                {},", par_jvalue));
+        code.push(format!("            {},", par_jvalue));
     }
 
-    code.push("            ]".to_string());
+    code.push("        ]".to_string());
     code.push(format!(
-        "        ).and_then(|x| x.{}())?",
+        "    ).and_then(|x| x.{}())",
         generate_jni_type_char(&return_signature)
     ));
-    code.push("    };".to_string());
 
     // Generate dynamic type check for the result
     /*if return_signature.chars().next() == Some('L') {
@@ -303,7 +287,6 @@ fn generate(
         code.push("    );".to_string());
     }*/
 
-    code.push("    Ok(result)".to_string());
     code.push("}".to_string());
 
     code.join("\n") + "\n"
@@ -359,20 +342,6 @@ fn generate_static(
 
     code.push(format!(") -> JNIResult<{}> {{", return_type));
 
-    // Load the class of the arguments
-    /*for i in 0..parameter_names.len() {
-        let par_name = &parameter_names[i];
-        let par_sign = &parameter_signatures[i];
-        if par_sign.chars().next() == Some('L') {
-            let par_class = &par_sign[1..(par_sign.len()-1)];
-            code.push(format!(
-                "    let _class_{} = self.env.find_class(\"{}\")?;",
-                par_name,
-                par_class
-            ));
-        }
-    }*/
-
     // Generate dynamic type check for the arguments
     /*for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
@@ -407,26 +376,24 @@ fn generate_static(
             .to_string(),
     );
     code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
-    code.push("    let result = {".to_string());
-    code.push("        self.env.call_static_method_unchecked(".to_string());
-    code.push("            class,".to_string());
-    code.push("            method_id,".to_string());
-    code.push("            return_type,".to_string());
-    code.push("            &[".to_string());
+    code.push("    self.env.call_static_method_unchecked(".to_string());
+    code.push("        class,".to_string());
+    code.push("        method_id,".to_string());
+    code.push("        return_type,".to_string());
+    code.push("        &[".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("                {},", par_jvalue));
+        code.push(format!("            {},", par_jvalue));
     }
 
-    code.push("            ]".to_string());
+    code.push("        ]".to_string());
     code.push(format!(
-        "        ).and_then(|x| x.{}())?",
+        "    ).and_then(|x| x.{}())",
         generate_jni_type_char(&return_signature)
     ));
-    code.push("    };".to_string());
 
     // Generate dynamic type check for the result
     /*if return_signature.chars().next() == Some('L') {
@@ -439,7 +406,6 @@ fn generate_static(
         code.push("    );".to_string());
     }*/
 
-    code.push("    Ok(result)".to_string());
     code.push("}".to_string());
 
     code.join("\n") + "\n"
