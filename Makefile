@@ -33,7 +33,6 @@ release:
 
 test-deep:
 	$(SET_ENV_VARS) \
-	PRUSTI_CHECK_UNREACHABLE_TERMINATORS=1 \
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
 	cargo test --all
 

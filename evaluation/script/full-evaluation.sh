@@ -20,6 +20,7 @@ if [[ ! -d "$CRATE_DOWNLOAD_DIR/000_libc" ]]; then
 	error "It looks like CRATE_DOWNLOAD_DIR is wrong: '$CRATE_DOWNLOAD_DIR'"
 	exit 1
 fi
+info "Using CRATE_DOWNLOAD_DIR=$CRATE_DOWNLOAD_DIR"
 
 # Timeout
 TIMEOUT="${2:-900}"

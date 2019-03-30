@@ -19,16 +19,16 @@ lazy_static! {
         settings.set_default("CHECK_BINARY_OPERATIONS", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
-        settings.set_default("CHECK_UNREACHABLE_TERMINATORS", false).unwrap();
+        settings.set_default("SIMPLIFY_FUNCTIONS", true).unwrap();
         settings.set_default("ENABLE_WHITELIST", false).unwrap();
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
+        settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
-        settings.set_default("SIMPLIFY_FUNCTIONS", true).unwrap();
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10000).unwrap();
 
@@ -76,12 +76,6 @@ pub fn simplify_expressions() -> bool {
     SETTINGS.read().unwrap().get::<bool>("SIMPLIFY_EXPRESSIONS").unwrap()
 }
 
-/// Should we check that "Unreachable" terminators are actually unreachable?
-/// It should be guaranteed by the compiler.
-pub fn check_unreachable_terminators() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("CHECK_UNREACHABLE_TERMINATORS").unwrap()
-}
-
 /// Whether to use the verifiation whitelist
 pub fn enable_whitelist() -> bool {
     SETTINGS.read().unwrap().get::<bool>("ENABLE_WHITELIST").unwrap()
@@ -100,6 +94,11 @@ pub fn dump_debug_info() -> bool {
 /// Should we dump borrowck info?
 pub fn dump_borrowck_info() -> bool {
     SETTINGS.read().unwrap().get::<bool>("DUMP_BORROWCK_INFO").unwrap()
+}
+
+/// Should we dump the Viper program?
+pub fn dump_viper_program() -> bool {
+    SETTINGS.read().unwrap().get::<bool>("DUMP_VIPER_PROGRAM").unwrap()
 }
 
 /// In which folder should we sore log/dumps?

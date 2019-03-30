@@ -60,6 +60,7 @@ impl<'a> ClassGenerator<'a> {
             "use jni::errors::Result as JNIResult;",
             "use jni::sys::*;",
             "use jni::signature::*;",
+            "use std::str::FromStr;",
         ].join("\n") + "\n"
     }
 

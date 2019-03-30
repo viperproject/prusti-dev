@@ -46,6 +46,7 @@ use prusti_interface::utils::get_attr_value;
 use rustc::ty::layout;
 use rustc::ty::layout::IntegerExt;
 use syntax::attr::SignedInt;
+use encoder::vir::optimisations::methods::{remove_unused_vars, remove_trivial_assertions};
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -488,9 +489,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.encoder, self.cfg_method, loan_positions);
 
         // Optimise encoding a bit
-        let method_without_unused_vars = optimisations::methods::remove_unused_vars(
-            method_with_fold_unfold);
-        let final_method = optimiser::rewrite(method_without_unused_vars);
+        let method_without_unused_vars = remove_unused_vars(method_with_fold_unfold);
+        let method_without_trivial_assertions = remove_trivial_assertions(method_without_unused_vars);
+        let final_method = optimiser::rewrite(method_without_trivial_assertions);
 
         // Dump final CFG
         if config::dump_debug_info() {
@@ -1780,13 +1781,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 if let &Some((_, target)) = destination {
-                    if let Some(target_cfg_block) = cfg_blocks.get(&target) {
-                        (stmts, Successor::Goto(*target_cfg_block))
-                    } else {
-                        unreachable!();
-                        stmts.push(vir::Stmt::Assert(false.into(), vir::Position::default()));
-                        (stmts, Successor::Return)
-                    }
+                    let target_cfg_block = cfg_blocks.get(&target).unwrap();
+                    (stmts, Successor::Goto(*target_cfg_block))
                 } else {
                     // Encode unreachability
                     //stmts.push(
