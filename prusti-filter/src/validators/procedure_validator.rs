@@ -113,6 +113,26 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
         self.check_ty(sig.output(), "return type");
         self.check_return_ty(sig.output());
+
+        self.check_reborrowing(sig);
+    }
+
+    /// Check what type of reborrowing relation is potentially used.
+    /// This check is conservative because it does not take into accound
+    /// lifetimes.
+    fn check_reborrowing(&mut self, sig: &ty::FnSig<'tcx>) {
+        match sig.output().sty {
+            ty::TypeVariants::TyRef(_, _, hir::MutImmutable) => {
+                // Immutable reborrowing, we should not have arguments
+                // that are mutable references.
+                for input_ty in sig.inputs() {
+                    if let ty::TypeVariants::TyRef(_, _, hir::MutMutable) = input_ty.sty {
+                        unsupported!(self, "reborrowing a mutable reference into an imutable one");
+                    }
+                }
+            }
+            _ => {}
+        }
     }
 
     /// Just used to look for "interesting" info
@@ -504,6 +524,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                             ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, "function's type parameter"),
                         }
                     }
+                    let sig = self.tcx.fn_sig(def_id);
+                    self.check_reborrowing(sig.skip_binder());
                 }
             }
         } else {
