@@ -43,6 +43,13 @@ impl State {
         }
     }
 
+    // Skip consistency checks in release mode
+    #[cfg(not(debug_assertions))]
+    pub fn check_consistency(&self) {
+        // Nothing
+    }
+
+    #[cfg(debug_assertions)]
     pub fn check_consistency(&self) {
         // Check access permissions
         for place in self.pred.keys() {
