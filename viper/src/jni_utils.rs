@@ -12,6 +12,8 @@ use jni::sys::jsize;
 use jni::strings::JNIString;
 use viper_sys::wrappers::*;
 use error_chain::ChainedError;
+use std::process::Command;
+use std::process;
 
 #[derive(Clone, Copy)]
 pub struct JniUtils<'a> {
@@ -60,6 +62,18 @@ impl<'a> JniUtils<'a> {
                     panic!();
                 });
                 error!("Exception stack trace:\n{}", stack_trace);*/
+
+                // Dump JVM heap
+                // Same command as `jmap -dump:format=b,file=viper_heap_dump.bin <pid>`
+                // let pid = process::id().to_string();
+                // let dump_name = format!("viper_heap_dump_{}.bin", pid);
+                // let _ = Command::new("jcmd")
+                //     .arg(&pid)
+                //     .arg("GC.heap_dump")
+                //     .arg(&dump_name)
+                //     .output()
+                //     .unwrap();
+                // debug!("A heap dump has been saved to '{}'.", dump_name);
             }
             panic!();
         })

@@ -293,4 +293,11 @@ impl CfgMethod {
             walker(&block.successor);
         }
     }
+
+    /// Remove all statements `s` such that `f(&s)` returns `false`
+    pub fn retain_stmts<F>(&mut self, f: F) where F: Fn(&Stmt) -> bool {
+        for block in &mut self.basic_blocks {
+            block.stmts.retain(|stmt| f(stmt))
+        }
+    }
 }

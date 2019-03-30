@@ -24,7 +24,7 @@ if [[ ! -r "$CRATE_ROOT/Cargo.toml" ]]; then
 	error "Path '$CRATE_ROOT' does not look like the source of a crate"
 	exit 1
 fi
-
+info "Using CRATE_ROOT=$CRATE_ROOT"
 
 GLOBAL_BLACKLIST="$DIR/../crates/global_blacklist.csv"
 if [[ ! -r "$GLOBAL_BLACKLIST" ]]; then

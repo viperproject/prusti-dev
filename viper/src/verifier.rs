@@ -162,15 +162,6 @@ impl<'a> Verifier<'a, state::Started> {
                             "The verification aborted due to the following exception: {}",
                             stack_trace
                         );
-                        // Dump JVM heap
-                        // Same command as `jmap -dump:format=b,file=viper_heap_dump.bin <pid>`
-                        // let pid = process::id().to_string();
-                        // let _ = Command::new("jcmd")
-                        //     .arg(&pid)
-                        //     .arg("GC.heap_dump")
-                        //     .arg(&format!("viper_heap_dump_{}.bin", pid))
-                        //     .output()
-                        //     .unwrap();
                     } else {
                         error!(
                             "The verifier returned an unhandled error of type {}: {}",
