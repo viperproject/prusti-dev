@@ -1323,10 +1323,13 @@ impl<T> ExprIterator for T
     }
 
     fn disjoin(&mut self) -> Expr {
-        if let Some(init) = self.next() {
-            self.fold(init, |acc, conjunct| Expr::or(acc, conjunct))
-        } else {
-            false.into()
+        fn rfold<T>(s: &mut T) -> Expr where T: Iterator<Item = Expr> {
+            if let Some(conjunct) = s.next() {
+                Expr::or(conjunct, rfold(s))
+            } else {
+                false.into()
+            }
         }
+        rfold(self)
     }
 }
