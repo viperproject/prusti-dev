@@ -3,6 +3,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use jni::objects::JObject;
+use jni::JNIEnv;
+use std::mem;
+
+copyable_jobject_wrapper!(Program);
 
 jobject_wrapper!(Type);
 jobject_wrapper!(Expr);
@@ -12,7 +16,6 @@ jobject_wrapper!(Domain);
 jobject_wrapper!(DomainFunc);
 jobject_wrapper!(DomainAxiom);
 jobject_wrapper!(Function);
-jobject_wrapper!(Program);
 jobject_wrapper!(Method);
 jobject_wrapper!(Field);
 jobject_wrapper!(Predicate);

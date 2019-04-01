@@ -45,4 +45,8 @@ impl<'a> AstUtils<'a> {
     pub fn to_string(&self, program: Program) -> String {
         self.jni.to_string(program.to_jobject())
     }
+
+    pub fn ensure_local_capacity(&self, capacity: i32) {
+        self.env.ensure_local_capacity(capacity);
+    }
 }

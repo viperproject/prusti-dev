@@ -29,6 +29,13 @@ pub fn generate_jni_type(signature: &str) -> String {
     }
 }
 
+pub fn is_object(signature: &str) -> bool {
+    match signature.chars().nth(0).unwrap() {
+        '[' | 'L' => true,
+        _ => false
+    }
+}
+
 pub fn generate_return_jni_type(signature: &str) -> String {
     match signature.chars().nth(0).unwrap() {
         '[' | 'L' => "JObject<'a>".to_string(),

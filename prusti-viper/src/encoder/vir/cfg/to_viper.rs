@@ -103,10 +103,10 @@ fn successor_to_viper<'a>(
         Successor::Return => ast.goto(RETURN_LABEL),
         Successor::Goto(target) => ast.goto(&basic_block_labels[target.block_index]),
         Successor::GotoSwitch(ref successors, ref default_target) => {
-            let skip = ast.seqn(&[], &[]);
             let mut stmts: Vec<viper::Stmt<'a>> = vec![];
             for (test, target) in successors {
                 let goto = ast.goto(&basic_block_labels[target.block_index]);
+                let skip = ast.seqn(&[], &[]);
                 let conditional_goto = ast.if_stmt(test.to_viper(ast), goto, skip);
                 stmts.push(conditional_goto);
             }
@@ -134,7 +134,7 @@ fn block_to_viper<'a>(
         ast.label(label, &block.invs.to_viper(ast))
     );
     stmts.extend(
-        &block.stmts.to_viper(ast)
+        block.stmts.to_viper(ast)
     );
     stmts.push(
         successor_to_viper(ast, index, basic_block_labels, &block.successor)

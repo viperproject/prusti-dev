@@ -5,6 +5,22 @@
 #[macro_export]
 macro_rules! jobject_wrapper {
     ($name:ident) => (
+        pub struct $name<'a> { obj: JObject<'a> }
+
+        impl<'a> $name<'a> {
+            pub(crate) fn new(obj: JObject<'a>) -> Self {
+                $name { obj }
+            }
+            pub(crate) fn to_jobject(&self) -> JObject<'a> {
+                self.obj
+            }
+        }
+    );
+}
+
+#[macro_export]
+macro_rules! copyable_jobject_wrapper {
+    ($name:ident) => (
         #[derive(Copy, Clone)]
         pub struct $name<'a> { obj: JObject<'a> }
 
@@ -51,11 +67,15 @@ macro_rules! map_to_jobject_pairs {
 macro_rules! build_ast_node_with_pos {
     ($self:expr, $wrapper:ident, $($java_class:ident)::+, $($args:expr),+) => {
          {
-            let obj = $self.jni.unwrap_result($($java_class)::+::with($self.env).new(
-                $($args),+ ,
-                $self.no_info(),
-                $self.no_trafos(),
-            ));
+            let obj = $self.jni.unwrap_result(
+                $self.env.with_local_frame(16, || {
+                    $($java_class)::+::with($self.env).new(
+                        $($args),+ ,
+                        $self.no_info(),
+                        $self.no_trafos(),
+                    )
+                })
+            );
             $wrapper::new(obj)
         }
     };
