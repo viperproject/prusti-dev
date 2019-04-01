@@ -8,6 +8,7 @@
 #![allow(deprecated)]
 
 use encoder::vir::ast::*;
+use encoder::vir::borrows::borrow_id;
 use viper;
 use viper::AstFactory;
 use prusti_interface::config;
@@ -203,10 +204,30 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             }
             &Stmt::ApplyMagicWand(ref wand, ref pos) => {
+                let inhale = if let Expr::MagicWand(_, _, Some(borrow), _) = wand {
+                    let borrow: usize = borrow_id(*borrow);
+                    let borrow: Expr = borrow.into();
+                    ast.inhale(
+                        ast.predicate_access_predicate(
+                            ast.predicate_access(
+                                &[borrow.to_viper(ast)],
+                                "DeadBorrowToken$",
+                            ),
+                            ast.full_perm(),
+                        ),
+                        pos.to_viper(ast),
+                    )
+                } else {
+                    unreachable!()
+                };
                 let position = ast.identifier_position(pos.line(), pos.column(), &pos.id());
-                ast.apply(
+                let apply = ast.apply(
                     wand.to_viper(ast),
                     position
+                );
+                ast.seqn(
+                    &[inhale, apply],
+                    &[],
                 )
             }
             &Stmt::ExpireBorrows(_) => {
@@ -272,11 +293,26 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 old_label,
                 pos.to_viper(ast),
             ),
-            &Expr::MagicWand(ref lhs, ref rhs, ref pos) => ast.magic_wand_with_pos(
-                lhs.to_viper(ast),
-                rhs.to_viper(ast),
-                pos.to_viper(ast),
-            ),
+            &Expr::MagicWand(ref lhs, ref rhs, maybe_borrow, ref pos) => {
+                let borrow_id = if let Some(borrow) = maybe_borrow {
+                    borrow_id(borrow) as isize
+                } else {
+                    -1
+                };
+                let borrow: Expr = borrow_id.into();
+                let token = ast.predicate_access_predicate(
+                    ast.predicate_access(
+                        &[borrow.to_viper(ast)],
+                        "DeadBorrowToken$",
+                    ),
+                    ast.full_perm(),
+                );
+                ast.magic_wand_with_pos(
+                    ast.and_with_pos(token, lhs.to_viper(ast), pos.to_viper(ast)),
+                    rhs.to_viper(ast),
+                    pos.to_viper(ast),
+                )
+            }
             &Expr::PredicateAccessPredicate(ref predicate_name, ref args, perm, ref pos) => ast.predicate_access_predicate_with_pos(
                 ast.predicate_access(
                     &args.to_viper(ast)[..],

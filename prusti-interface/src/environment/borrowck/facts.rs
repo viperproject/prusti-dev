@@ -64,6 +64,10 @@ index_type!(Loan, L);
 /// A unique identifier of a region.
 index_type!(Region, R);
 
+pub fn loan_id(loan: Loan) -> usize {
+    loan.into()
+}
+
 impl FromStr for Region {
 
     type Err = ();

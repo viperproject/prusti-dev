@@ -562,8 +562,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
             }
 
-            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _, _), ..) |
-            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _, _), ..) => {
+            vir::Stmt::PackageMagicWand(vir::Expr::MagicWand(box ref lhs, _, _, _), ..) |
+            vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(box ref lhs, _, _, _), ..) => {
                 // TODO: This should be done also for magic wand expressions inside inhale/exhale.
                 let label = "lhs".to_string();
                 let mut labelled_bctxt = bctxt.clone();
@@ -656,7 +656,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         debug!("[step.3] replace_stmt: {}", stmt);
         stmt = match stmt {
             vir::Stmt::PackageMagicWand(
-                vir::Expr::MagicWand(box ref lhs, box ref rhs, _),
+                vir::Expr::MagicWand(box ref lhs, box ref rhs, _, _),
                 ref old_package_stmts,
                 ref label,
                 ref position
@@ -1008,7 +1008,13 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         res
     }
 
-    fn fold_magic_wand(&mut self, lhs: Box<vir::Expr>, rhs: Box<vir::Expr>, pos: vir::Position) -> vir::Expr {
+    fn fold_magic_wand(
+        &mut self,
+        lhs: Box<vir::Expr>,
+        rhs: Box<vir::Expr>,
+        borrow: Option<vir::borrows::Borrow>,
+        pos: vir::Position
+    ) -> vir::Expr {
         debug!("[enter] fold_magic_wand {}, {}", lhs, rhs);
 
         // Compute lhs state
@@ -1076,7 +1082,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         std::mem::swap(&mut self.curr_bctxt, &mut rhs_bctxt);
 
         // Rewrite lhs and build magic wand
-        let res = vir::Expr::MagicWand(new_lhs, new_rhs, pos);
+        let res = vir::Expr::MagicWand(new_lhs, new_rhs, borrow, pos);
 
         debug!("[enter] fold_magic_wand = {}", res);
         res

@@ -122,7 +122,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
             }
 
             &vir::Stmt::PackageMagicWand(
-                vir::Expr::MagicWand(ref _lhs, ref _rhs, ref _pos),
+                vir::Expr::MagicWand(ref _lhs, ref _rhs, ref _borrow, ref _pos),
                 ref _package_stmts,
                 ref _label,
                 ref _position
@@ -131,7 +131,10 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 HashSet::new()
             }
 
-            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref _rhs, ref _wand_pos), ref _apply_pos) => {
+            &vir::Stmt::ApplyMagicWand(
+                vir::Expr::MagicWand(ref lhs, ref _rhs, ref _borrow, ref _wand_pos),
+                ref _apply_pos
+            ) => {
                 // We model the magic wand as "assert lhs; inhale rhs"
                 lhs.get_required_permissions(predicates)
             }
@@ -281,7 +284,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 Some(Acc(self.clone(), PermAmount::Read)).into_iter().collect()
             },
 
-            vir::Expr::MagicWand(ref lhs, ref _rhs, _) => {
+            vir::Expr::MagicWand(ref lhs, ref _rhs, ref _borrow, _) => {
                 // Not exactly Viper's semantics
                 HashSet::new()
             }
@@ -412,7 +415,7 @@ impl vir::Expr {
                 Some(perm).into_iter().collect()
             }
 
-            vir::Expr::MagicWand(ref lhs, ref _rhs, _) => {
+            vir::Expr::MagicWand(ref _lhs, ref _rhs, _borrow, _) => {
                 // We don't track magic wands resources
                 HashSet::new()
             }

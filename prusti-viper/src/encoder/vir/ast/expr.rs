@@ -10,6 +10,7 @@ use std::mem::discriminant;
 use encoder::vir::ast::*;
 use std::ops::Mul;
 use std::hash::{Hash, Hasher};
+use super::super::borrows::Borrow;
 
 #[derive(Debug, Clone)]
 pub enum Expr {
@@ -21,7 +22,8 @@ pub enum Expr {
     AddrOf(Box<Expr>, Type, Position),
     LabelledOld(String, Box<Expr>, Position),
     Const(Const, Position),
-    MagicWand(Box<Expr>, Box<Expr>, Position),
+    /// lhs, rhs, borrow, position
+    MagicWand(Box<Expr>, Box<Expr>, Option<Borrow>, Position),
     /// PredicateAccessPredicate: predicate_name, args, permission amount
     PredicateAccessPredicate(String, Vec<Expr>, PermAmount, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
@@ -74,7 +76,8 @@ impl fmt::Display for Expr {
             ),
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => write!(f, "acc({}, {})", expr, perm),
             Expr::LabelledOld(ref label, ref expr, ref _pos) => write!(f, "old[{}]({})", label, expr),
-            Expr::MagicWand(ref left, ref right, ref _pos) => write!(f, "({}) --* ({})", left, right),
+            Expr::MagicWand(ref left, ref right, ref borrow, ref _pos) => write!(
+                f, "({}) {:?} --* ({})", left, borrow, right),
             Expr::Unfolding(ref pred_name, ref args, ref expr, perm, ref _pos) => write!(
                 f, "(unfolding acc({}({}), {}) in {})",
                 pred_name,
@@ -152,7 +155,7 @@ impl Expr {
             Expr::AddrOf(_, _, ref p) => p,
             Expr::Const(_, ref p) => p,
             Expr::LabelledOld(_, _, ref p) => p,
-            Expr::MagicWand(_, _, ref p) => p,
+            Expr::MagicWand(_, _, _, ref p) => p,
             Expr::PredicateAccessPredicate(_, _, _, ref p) => p,
             Expr::FieldAccessPredicate(_, _, ref p) => p,
             Expr::UnaryOp(_, _, ref p) => p,
@@ -172,7 +175,7 @@ impl Expr {
             Expr::AddrOf(e, t, _) => Expr::AddrOf(e, t, pos),
             Expr::Const(x, _) => Expr::Const(x, pos),
             Expr::LabelledOld(x, y, _) => Expr::LabelledOld(x, y, pos),
-            Expr::MagicWand(x, y, _) => Expr::MagicWand(x, y, pos),
+            Expr::MagicWand(x, y, b, _) => Expr::MagicWand(x, y, b, pos),
             Expr::PredicateAccessPredicate(x, y, z, _) => Expr::PredicateAccessPredicate(x, y, z, pos),
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
@@ -356,8 +359,8 @@ impl Expr {
         )
     }
 
-    pub fn magic_wand(lhs: Expr, rhs: Expr) -> Self {
-        Expr::MagicWand(box lhs, box rhs, Position::default())
+    pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {
+        Expr::MagicWand(box lhs, box rhs, borrow, Position::default())
     }
 
     pub fn find(&self, sub_target: &Expr) -> bool {
@@ -1008,9 +1011,9 @@ impl PartialEq for Expr {
                 Expr::Const(ref other_const, _)
             ) => self_const == other_const,
             (
-                Expr::MagicWand(box ref self_lhs, box ref self_rhs, _),
-                Expr::MagicWand(box ref other_lhs, box ref other_rhs, _)
-            ) => (self_lhs, self_rhs) == (other_lhs, other_rhs),
+                Expr::MagicWand(box ref self_lhs, box ref self_rhs, self_borrow, _),
+                Expr::MagicWand(box ref other_lhs, box ref other_rhs, other_borrow, _)
+            ) => (self_lhs, self_rhs, self_borrow) == (other_lhs, other_rhs, other_borrow),
             (
                 Expr::PredicateAccessPredicate(ref self_name, ref self_args, self_perm, _),
                 Expr::PredicateAccessPredicate(ref other_name, ref other_args, other_perm, _)
@@ -1068,7 +1071,7 @@ impl Hash for Expr {
             Expr::AddrOf(box ref base, ref typ, _) => (base, typ).hash(state),
             Expr::LabelledOld(ref label, box ref base, _) => (label, base).hash(state),
             Expr::Const(ref const_expr, _) => const_expr.hash(state),
-            Expr::MagicWand(box ref lhs, box ref rhs, _) => (lhs, rhs).hash(state),
+            Expr::MagicWand(box ref lhs, box ref rhs, b, _) => (lhs, rhs, b).hash(state),
             Expr::PredicateAccessPredicate(ref name, ref args, perm, _) => (name, args, perm).hash(state),
             Expr::FieldAccessPredicate(box ref base, perm, _) => (base, perm).hash(state),
             Expr::UnaryOp(op, box ref arg, _) => (op, arg).hash(state),
@@ -1106,8 +1109,8 @@ pub trait ExprFolder : Sized {
     fn fold_labelled_old(&mut self, x: String, y: Box<Expr>, p: Position) -> Expr {
         Expr::LabelledOld(x, self.fold_boxed(y), p)
     }
-    fn fold_magic_wand(&mut self, x: Box<Expr>, y: Box<Expr>, p: Position) -> Expr {
-        Expr::MagicWand(self.fold_boxed(x), self.fold_boxed(y), p)
+    fn fold_magic_wand(&mut self, x: Box<Expr>, y: Box<Expr>, b: Option<Borrow>, p: Position) -> Expr {
+        Expr::MagicWand(self.fold_boxed(x), self.fold_boxed(y), b, p)
     }
     fn fold_predicate_access_predicate(&mut self, x: String, y: Vec<Expr>, z: PermAmount, p: Position) -> Expr {
         Expr::PredicateAccessPredicate(x, y.into_iter().map(|e| self.fold(e)).collect(), z, p)
@@ -1145,7 +1148,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::AddrOf(e, t, p) => this.fold_addr_of(e, t, p),
         Expr::Const(x, p) => this.fold_const(x, p),
         Expr::LabelledOld(x, y, p) => this.fold_labelled_old(x, y, p),
-        Expr::MagicWand(x, y, p) => this.fold_magic_wand(x, y, p),
+        Expr::MagicWand(x, y, b, p) => this.fold_magic_wand(x, y, b, p),
         Expr::PredicateAccessPredicate(x, y, z, p) => this.fold_predicate_access_predicate(x, y, z, p),
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
@@ -1181,7 +1184,7 @@ pub trait ExprWalker : Sized {
     fn walk_labelled_old(&mut self, x: &str, y: &Expr, p: &Position) {
         self.walk(y);
     }
-    fn walk_magic_wand(&mut self, x: &Expr, y: &Expr, p: &Position) {
+    fn walk_magic_wand(&mut self, x: &Expr, y: &Expr, b: &Option<Borrow>, p: &Position) {
         self.walk(x);
         self.walk(y);
     }
@@ -1239,7 +1242,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::AddrOf(ref e, ref t, ref p) => this.walk_addr_of(e, t, p),
         Expr::Const(ref x, ref p) => this.walk_const(x, p),
         Expr::LabelledOld(ref x, ref y, ref p) => this.walk_labelled_old(x, y, p),
-        Expr::MagicWand(ref x, ref y, ref p) => this.walk_magic_wand(x, y, p),
+        Expr::MagicWand(ref x, ref y, ref b, ref p) => this.walk_magic_wand(x, y, b, p),
         Expr::PredicateAccessPredicate(ref x, ref y, z, ref p) => this.walk_predicate_access_predicate(x, y, z, p),
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),

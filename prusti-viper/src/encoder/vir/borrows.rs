@@ -8,6 +8,7 @@ use std::fmt;
 use std::collections::{HashMap, VecDeque};
 use super::ast::{Expr, Stmt, ExprIterator};
 use prusti_interface::environment::borrowck;
+pub use prusti_interface::environment::borrowck::facts::loan_id as borrow_id;
 
 /// The method-unique borrow identifier.
 pub type Borrow = borrowck::facts::Loan;

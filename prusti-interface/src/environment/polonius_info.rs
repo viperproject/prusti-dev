@@ -325,6 +325,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     /// Position at which a specific loan was created.
     pub(crate) loan_position: HashMap<facts::Loan, mir::Location>,
     pub(crate) loan_at_position: HashMap<mir::Location, facts::Loan>,
+    pub(crate) call_loan_at_position: HashMap<mir::Location, facts::Loan>,
     pub(crate) call_magic_wands: HashMap<facts::Loan, mir::Local>,
     pub variable_regions: HashMap<mir::Local, facts::Region>,
     pub(crate) additional_facts: AdditionalFacts,
@@ -584,6 +585,14 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 (point.location, loan)
             })
             .collect();
+        let call_loan_at_position = all_facts.borrow_region
+            .iter()
+            .filter(|&(_, loan, _)| call_magic_wands.contains_key(loan))
+            .map(|&(_, loan, point_index)| {
+                let point = interner.get_point(point_index);
+                (point.location, loan)
+            })
+            .collect();
 
         let additional_facts = AdditionalFacts::new(&all_facts, &output);
         let additional_facts_without_back_edges = AdditionalFacts::new(
@@ -600,6 +609,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             interner: interner,
             loan_position: loan_position,
             loan_at_position: loan_at_position,
+            call_loan_at_position: call_loan_at_position,
             call_magic_wands: call_magic_wands,
             variable_regions: variable_regions,
             additional_facts: additional_facts,
@@ -919,6 +929,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     pub fn get_loan_at_location(&self, location: mir::Location) -> facts::Loan {
         self.loan_at_position[&location].clone()
+    }
+
+    pub fn get_call_loan_at_location(&self, location: mir::Location) -> Option<facts::Loan> {
+        self.call_loan_at_position.get(&location).cloned()
     }
 
     pub fn loan_locations(&self) -> Vec<(facts::Loan, mir::Location)> {

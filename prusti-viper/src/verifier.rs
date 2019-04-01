@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::Encoder;
-use encoder::vir::ToViper;
-use encoder::vir::optimisations;
+use encoder::vir::{self, ToViper, ToViperDecl, optimisations};
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
@@ -230,7 +229,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     .map(|f| f.to_viper(ast))
                     .collect()
             };
-            let predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
+            let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
             let methods = self.encoder.get_used_viper_methods().into_iter()
                 .map(|m| m.to_viper(ast)).collect::<Vec<_>>();
 
@@ -252,6 +251,18 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     ],
                     ast.no_position(),
                     None
+                )
+            );
+
+            // Add a predicate that represents the dead loan token.
+            predicates.push(
+                ast.predicate(
+                    "DeadBorrowToken$",
+                    &[vir::LocalVar {
+                        name: "borrow".to_string(),
+                        typ: vir::Type::Int,
+                    }.to_viper_decl(ast)],
+                    None,
                 )
             );
 

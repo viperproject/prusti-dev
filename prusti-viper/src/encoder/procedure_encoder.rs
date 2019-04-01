@@ -1133,7 +1133,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.mir.source_info(loan_location).span, // the source of the ref
             ErrorCtxt::ApplyMagicWandOnExpiry
         );
-        let statement = vir::Stmt::apply_magic_wand(lhs, rhs, pos);
+        let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan, pos);
         debug!("{:?} at {:?}", statement, loan_location);
         stmts.push(statement);
 
@@ -1725,11 +1725,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
+                            let loan = self.polonius_info.get_call_loan_at_location(location);
                             let (post_type_spec, return_type_spec, post_invs_spec,
                                  post_func_spec, magic_wands, read_transfer) =
                                 self.encode_postcondition_expr(
                                     &procedure_contract, &pre_label, &post_label,
-                                    Some((location, &fake_exprs)), real_target.is_none(), false);
+                                    Some((location, &fake_exprs)), real_target.is_none(), loan, false);
                             let post_perm_spec = replace_fake_exprs(post_type_spec);
                             stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
                             if let Some(access) = return_type_spec {
@@ -2145,6 +2146,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
         diverging: bool,
+        loan: Option<facts::Loan>,
         function_end: bool
     ) -> (
         vir::Expr,                  // Returned permissions from types.
@@ -2213,7 +2215,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.magic_wand_at_location.insert(
                     location, (post_label.to_string(), lhs.clone(), rhs.clone()));
             }
-            magic_wands.push(vir::Expr::magic_wand(lhs, rhs));
+            magic_wands.push(vir::Expr::magic_wand(lhs, rhs, loan));
         }
 
         // Encode permissions for return type
@@ -2341,7 +2343,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let (type_spec, return_type_spec, invs_spec, func_spec,
              magic_wands, _) = self.encode_postcondition_expr(
-            contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false, true);
+            contract, PRECONDITION_LABEL, POSTCONDITION_LABEL, None, false, None, true);
 
         // Find which arguments are blocked by the returned reference.
         let blocked_args: Vec<usize> = {

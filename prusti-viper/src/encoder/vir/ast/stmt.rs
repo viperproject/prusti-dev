@@ -140,7 +140,7 @@ impl fmt::Display for Stmt {
             },
 
             Stmt::PackageMagicWand(
-                Expr::MagicWand(ref lhs, ref rhs, _),
+                Expr::MagicWand(ref lhs, ref rhs, None, _),
                 ref package_stmts,
                 ref label,
                 _position
@@ -157,8 +157,8 @@ impl fmt::Display for Stmt {
                 write!(f, "}}")
             }
 
-            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs, _), _) => {
-                writeln!(f, "apply {} --* {}", lhs, rhs)
+            Stmt::ApplyMagicWand(Expr::MagicWand(ref lhs, ref rhs, Some(borrow), _), _) => {
+                writeln!(f, "apply[{:?}] {} --* {}", borrow, lhs, rhs)
             }
 
             Stmt::ExpireBorrows(dag) => {
@@ -244,16 +244,16 @@ impl Stmt {
         pos: Position
     ) -> Self {
         Stmt::PackageMagicWand(
-            Expr::MagicWand(box lhs, box rhs, pos.clone()),
+            Expr::MagicWand(box lhs, box rhs, None, pos.clone()),
             stmts,
             label,
             pos
         )
     }
 
-    pub fn apply_magic_wand(lhs: Expr, rhs: Expr, pos: Position) -> Self {
+    pub fn apply_magic_wand(lhs: Expr, rhs: Expr, borrow: Borrow, pos: Position) -> Self {
         Stmt::ApplyMagicWand(
-            Expr::magic_wand(lhs, rhs),
+            Expr::magic_wand(lhs, rhs, Some(borrow)),
             pos
         )
     }

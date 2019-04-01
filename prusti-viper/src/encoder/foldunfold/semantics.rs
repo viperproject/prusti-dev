@@ -302,7 +302,7 @@ impl vir::Stmt {
             }
 
             &vir::Stmt::PackageMagicWand(
-                vir::Expr::MagicWand(ref lhs, ref rhs, _),
+                vir::Expr::MagicWand(ref lhs, ref rhs, _, _),
                 ref _stmts,
                 ref _label,
                 ref _pos
@@ -315,7 +315,7 @@ impl vir::Stmt {
                 inhale_expr(lhs, state, predicates);
             }
 
-            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _), _) => {
+            &vir::Stmt::ApplyMagicWand(vir::Expr::MagicWand(ref lhs, ref rhs, _, _), _) => {
                 exhale_expr(lhs, state, predicates);
                 inhale_expr(rhs, state, predicates);
             }
