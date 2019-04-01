@@ -342,7 +342,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) additional_facts_no_back: AdditionalFacts,
     /// Two loans are conflicting if they borrow overlapping places and
     /// are alive at overlapping regions.
-    pub(crate) loan_conflict_sets: HashMap<facts::Loan, Vec<facts::Loan>>,
+    pub(crate) loan_conflict_sets: HashMap<facts::Loan, HashSet<facts::Loan>>,
 }
 
 /// Returns moves and argument moves that were turned into fake reborrows.
@@ -495,13 +495,15 @@ fn compute_loan_conflict_sets(
     loan_position: &HashMap<facts::Loan, mir::Location>,
     borrowck_in_facts: &facts::AllInputFacts,
     borrowck_out_facts: &facts::AllOutputFacts
-) -> HashMap<facts::Loan, Vec<facts::Loan>> {
+) -> HashMap<facts::Loan, HashSet<facts::Loan>> {
+    trace!("[enter] compute_loan_conflict_sets");
+
     let mut loan_conflict_sets = HashMap::new();
 
     let mir = procedure.get_mir();
 
     for &(_r, loan, _) in &borrowck_in_facts.borrow_region {
-        loan_conflict_sets.insert(loan, Vec::new());
+        loan_conflict_sets.insert(loan, HashSet::new());
     }
 
     for &(_r, loan_created, point) in &borrowck_in_facts.borrow_region {
@@ -513,17 +515,22 @@ fn compute_loan_conflict_sets(
         if let Some(borrowed_place) = get_borrowed_place(mir, loan_position, loan_created) {
             if let Some(live_borrows) = borrowck_out_facts.borrow_live_at.get(&point) {
                 for loan_alive in live_borrows {
+                    if loan_created == *loan_alive {
+                        continue;
+                    }
                     if let Some(place) = get_borrowed_place(mir, loan_position, *loan_alive) {
                         if utils::is_prefix(borrowed_place, place) ||
                                 utils::is_prefix(place, borrowed_place) {
-                            loan_conflict_sets.get_mut(&loan_created).unwrap().push(*loan_alive);
-                            loan_conflict_sets.get_mut(loan_alive).unwrap().push(loan_created);
+                            loan_conflict_sets.get_mut(&loan_created).unwrap().insert(*loan_alive);
+                            loan_conflict_sets.get_mut(loan_alive).unwrap().insert(loan_created);
                         }
                     }
                 }
             }
         }
     }
+
+    trace!("[exit] compute_loan_conflict_sets = {:?}", loan_conflict_sets);
 
     loan_conflict_sets
 }
@@ -882,7 +889,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     pub fn get_conflicting_loans(&self, loan: facts::Loan) -> Vec<facts::Loan> {
-        self.loan_conflict_sets.get(&loan).cloned().unwrap_or(Vec::new())
+        self.loan_conflict_sets
+            .get(&loan)
+            .map(|set| set.iter().cloned().collect())
+            .unwrap_or(Vec::new())
     }
 
     pub fn get_alive_conflicting_loans(

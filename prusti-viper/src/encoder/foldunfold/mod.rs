@@ -329,6 +329,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             // would need to restore write permissions to `x.f` without doing the same for `x.f.g`.
             // This would require making sure that we are unfolded up to `x.f.g` and emit
             // restoration for each place segment separately.
+            debug!("curr_node.alive_conflicting_borrows={:?}", curr_node.alive_conflicting_borrows);
+            debug!("curr_node.conflicting_borrows={:?}", curr_node.conflicting_borrows);
             if curr_node.alive_conflicting_borrows.is_empty() {
                 for &borrow in &curr_node.conflicting_borrows {
                     curr_block.statements.extend(
@@ -337,6 +339,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 curr_block.statements.extend(
                     self.restore_write_permissions(curr_node.borrow, &mut bctxt));
             }
+            debug!("curr_node.alive_conflicting_borrows={:?}", curr_node.alive_conflicting_borrows);
+            debug!("curr_node.conflicting_borrows={:?}", curr_node.conflicting_borrows);
 
             final_bctxt[curr_block_index] = Some(bctxt);
         }
@@ -397,6 +401,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         borrow: vir::borrows::Borrow,
         bctxt: &mut BranchCtxt
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] restore_write_permissions({:?})", borrow);
         let mut stmts = Vec::new();
         for access in self.log.get_converted_to_read_places(borrow) {
             let perm = match access {
@@ -419,6 +424,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             bctxt.apply_stmt(&inhale_stmt);
             stmts.push(inhale_stmt);
         }
+        trace!("[exit] restore_write_permissions({:?}) = {}", borrow, vir::stmts_to_str(&stmts));
         stmts
     }
 

@@ -34,17 +34,32 @@ pub fn is_equal(v: &Vector, index: usize, e: &u32) -> bool {
     }
 }
 
-#[trusted]
+
+#[requires="0 <= index && index < 2"]
+pub fn index_test(v: &Vector, index: usize) -> &u32 {
+    if index == 0 {
+        &v.f
+    } else if index == 1 {
+        &v.g
+    } else {
+        unreachable!()
+    }
+}
+
+#[requires="0 <= index && index < 2"]
 #[ensures="is_equal(v, index, result)"]
+#[trusted]  // TODO: Find a way to support the is_equal postcondition or
+            // reject it.
+            // The problem with it is that v and index are from the
+            // pre-state while result is from the post state.
 pub fn index(v: &Vector, index: usize) -> &u32 {
-    unimplemented!("TODO");  // TODO: Find a way to support the implementation below.
-    //if index == 0 {
-        //&v.f
-    //} else if index == 1 {
-        //&v.g
-    //} else {
-        //unreachable!()
-    //}
+    if index == 0 {
+        &v.f
+    } else if index == 1 {
+        &v.g
+    } else {
+        unreachable!()
+    }
 }
 
 #[ensures="match result {
@@ -59,6 +74,15 @@ pub fn test9(v: &Vector, e: &u32) -> Option<usize> {
     } else {
         None
     }
+}
+
+pub fn convert(s: &mut u32) -> &u32 {
+    s
+}
+
+pub fn convert2(s: &mut u32) -> &u32 {
+    let x = &*s;
+    x
 }
 
 fn main() {
