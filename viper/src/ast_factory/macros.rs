@@ -68,7 +68,7 @@ macro_rules! build_ast_node_with_pos {
     ($self:expr, $wrapper:ident, $($java_class:ident)::+, $($args:expr),+) => {
          {
             let obj = $self.jni.unwrap_result(
-                $self.env.with_local_frame(16, || {
+                $self.env.with_local_frame(16, move || {
                     $($java_class)::+::with($self.env).new(
                         $($args),+ ,
                         $self.no_info(),
