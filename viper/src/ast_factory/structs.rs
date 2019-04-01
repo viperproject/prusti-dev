@@ -6,8 +6,7 @@ use jni::objects::JObject;
 use jni::JNIEnv;
 use std::mem;
 
-copyable_jobject_wrapper!(Program);
-
+jobject_wrapper!(Program);
 jobject_wrapper!(Type);
 jobject_wrapper!(Expr);
 jobject_wrapper!(Trigger);

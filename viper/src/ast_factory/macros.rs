@@ -5,22 +5,6 @@
 #[macro_export]
 macro_rules! jobject_wrapper {
     ($name:ident) => (
-        pub struct $name<'a> { obj: JObject<'a> }
-
-        impl<'a> $name<'a> {
-            pub(crate) fn new(obj: JObject<'a>) -> Self {
-                $name { obj }
-            }
-            pub(crate) fn to_jobject(&self) -> JObject<'a> {
-                self.obj
-            }
-        }
-    );
-}
-
-#[macro_export]
-macro_rules! copyable_jobject_wrapper {
-    ($name:ident) => (
         #[derive(Copy, Clone)]
         pub struct $name<'a> { obj: JObject<'a> }
 
