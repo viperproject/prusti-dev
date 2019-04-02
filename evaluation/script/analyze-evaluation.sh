@@ -181,7 +181,7 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 space
 
 info "Functions that have assertions but not an overflow verification error"
-for line in $(cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep true); do
+cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep true | while read line; do
     crate="$(echo "$line" | cut -d',' -f1)"
     f="$(echo "$line" | cut -d',' -f2)"
     echo "$crate, $f";
@@ -189,7 +189,7 @@ for line in $(cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-support
 done
 
 info "Functions that have an overflow verification error"
-for line in $(cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep false); do
+cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep false | while read line; do
     crate="$(echo "$line" | cut -d',' -f1)"
     f="$(echo "$line" | cut -d',' -f2)"
     echo "$crate, $f";
