@@ -189,8 +189,8 @@ impl Type {
     /// substitution.
     pub fn patch(self, substs: &HashMap<String, String>) -> Self {
         match self {
-            Type::Bool => unreachable!(),
-            Type::Int => unreachable!(),
+            Type::Bool => Type::Bool,
+            Type::Int => Type::Int,
             Type::TypedRef(mut predicate_name) => {
                 for (typ, subst) in substs {
                     predicate_name = predicate_name.replace(typ, subst);

@@ -485,7 +485,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
-                                    sty: ty::TyFnDef(def_id, ..),
+                                    sty: ty::TyFnDef(def_id, substs),
                                     ..
                                 },
                                 ..
@@ -497,7 +497,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 ..
             } => {
                 let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
-                if destination.is_some() {
+
+                let own_substs = ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
+
+                {
+                    // FIXME; hideous monstrosity...
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
+
+                    for (kind1, kind2) in own_substs.iter().zip(substs) {
+                        if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) =
+                                (kind1.unpack(), kind2.unpack()) {
+                            tymap.insert(ty1, ty2);
+                        }
+                    }
+                }
+
+                let state = if destination.is_some() {
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
                     let lhs_value = encoded_lhs.clone().field(self.encoder.encode_value_field(ty));
@@ -614,7 +630,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         error_ctxt
                     );
                     MultiExprBackwardInterpreterState::new_single(unreachable_expr(pos))
+                };
+
+                // FIXME; hideous monstrosity...
+                {
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
                 }
+                state
             }
 
             TerminatorKind::Call { .. } => {
