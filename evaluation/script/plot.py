@@ -62,13 +62,15 @@ clean_verification_time_data = list(map(
 ))
 
 #print(clean_verification_time_data[0].head())
+data = clean_verification_time_data[0]
+print(data[data["Verification duration"] > 125])
 
 for a in (0, 1, 2):
     assert list(clean_prusti_data[a]["Crate name"]) == list(successful_compilation_data[a]["Crate name"])
 
 for a in (0, 1, 2):
-    print(set(clean_verification_time_data[a]["Crate name"]) - set(successful_compilation_data[a]["Crate name"]))
-    print(set(successful_compilation_data[a]["Crate name"]) - set(clean_verification_time_data[a]["Crate name"]))
+    #print(set(clean_verification_time_data[a]["Crate name"]) - set(successful_compilation_data[a]["Crate name"]))
+    #print(set(successful_compilation_data[a]["Crate name"]) - set(clean_verification_time_data[a]["Crate name"]))
     assert list(clean_verification_time_data[a]["Crate name"]) == list(successful_compilation_data[a]["Crate name"])
 
 crate_names = successful_compilation_data[0]["Crate name"]
