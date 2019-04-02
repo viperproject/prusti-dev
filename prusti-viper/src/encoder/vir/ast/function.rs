@@ -61,8 +61,26 @@ impl Function {
     }
 }
 
+pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Type) -> String {
+    let mut identifier = name.to_string();
+    identifier.push_str("__$TY$__");
+    fn type_name(typ: &Type) -> &str {
+        match typ {
+            Type::Int => "$int$",
+            Type::Bool => "$bool$",
+            Type::TypedRef(ref name) => name,
+        }
+    }
+    for arg in formal_args {
+        identifier.push_str(type_name(&arg.typ));
+        identifier.push_str("$");
+    }
+    identifier.push_str(type_name(return_type));
+    identifier
+}
+
 impl WithIdentifier for Function {
     fn get_identifier(&self) -> String {
-        self.name.clone()
+        compute_identifier(&self.name, &self.formal_args, &self.return_type)
     }
 }

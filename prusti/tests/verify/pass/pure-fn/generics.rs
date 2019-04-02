@@ -51,5 +51,17 @@ pub fn test3<T>() -> Option<T> {
     opt
 }
 
+pub fn test4() {
+    let my = MyOption::Some(5);
+    assert!(!my_is_none(&my));
+}
+
+pub fn test5() {
+    let my_int = MyOption::Some(5);
+    let my_bool = MyOption::Some(true);
+    assert!(!my_is_none(&my_int));
+    assert!(!my_is_none(&my_bool));
+}
+
 fn main() {
 }

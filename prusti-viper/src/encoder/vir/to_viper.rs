@@ -379,8 +379,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 pos.to_viper(ast)
             ),
             &Expr::FuncApp(ref function_name, ref args, ref formal_args, ref return_type, ref pos) => {
+                let identifier = compute_identifier(function_name, formal_args, return_type);
                 ast.func_app(
-                    &function_name,
+                    &identifier,
                     &args.to_viper(ast),
                     &formal_args.to_viper_decl(ast)[..],
                     return_type.to_viper(ast),
@@ -456,7 +457,7 @@ impl<'v> ToViper<'v, viper::Function<'v>> for Function {
 impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Function<'v> {
         ast.function(
-            &self.name,
+            &self.get_identifier(),
             &self.formal_args.to_viper_decl(ast),
             self.return_type.to_viper(ast),
             &self.pres.to_viper(ast),
