@@ -122,6 +122,17 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 
 space
 
+inlineinfo "Number of supported functions that have a reference in the return type"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | select(.procedure.restrictions | length == 0) | .node_path' | wc -l
+
+info "Supported functions with a reference in the return type: distribution by lines of code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | select(.procedure.restrictions | length == 0) | .lines_of_code' | sort | uniq -c | sort -k 2 -n
+
+info "Supported functions with a reference in the return type: distribution by number of encoded basic blocks"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | select(.procedure.restrictions | length == 0) | .num_encoded_basic_blocks' | sort | uniq -c | sort -k 2 -n
+
+space
+
 inlineinfo "Number of functions from all the crates, excluded macro expansions"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .node_path' | wc -l
 
@@ -147,11 +158,11 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 info "Supported functions: distribution by number of encoded basic blocks"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0)| .num_encoded_basic_blocks' | sort | uniq -c | sort -k 2 -n
 
-info "Source code of supported functions with >= 13 lines of code"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.lines_of_code >= 13) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
+info "Source code of supported functions with >= 20 lines of code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.lines_of_code >= 20) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
 
-info "Source code of supported functions with >= 12 encoded basic blocks"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.num_encoded_basic_blocks >= 12) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
+info "Source code of supported functions with >= 20 encoded basic blocks"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.num_encoded_basic_blocks >= 20) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
 
 info "Source code of supported functions with a reference in the return type"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
