@@ -122,6 +122,17 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 
 space
 
+inlineinfo "Number of supported functions that have a reference in the return type"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | select(.procedure.restrictions | length == 0) | .node_path' | wc -l
+
+info "Supported functions with a reference in the return type: distribution by lines of code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | select(.procedure.restrictions | length == 0) | .lines_of_code' | sort | uniq -c | sort -k 2 -n
+
+info "Supported functions with a reference in the return type: distribution by number of encoded basic blocks"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | select(.procedure.restrictions | length == 0) | .num_encoded_basic_blocks' | sort | uniq -c | sort -k 2 -n
+
+space
+
 inlineinfo "Number of functions from all the crates, excluded macro expansions"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.from_macro_expansion == false) | .node_path' | wc -l
 
@@ -147,11 +158,11 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 info "Supported functions: distribution by number of encoded basic blocks"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0)| .num_encoded_basic_blocks' | sort | uniq -c | sort -k 2 -n
 
-info "Source code of supported functions with >= 13 lines of code"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.lines_of_code >= 13) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
+info "Source code of supported functions with >= 20 lines of code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.lines_of_code >= 20) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
 
-info "Source code of supported functions with >= 12 encoded basic blocks"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.num_encoded_basic_blocks >= 12) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
+info "Source code of supported functions with >= 20 encoded basic blocks"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.num_encoded_basic_blocks >= 20) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
 
 info "Source code of supported functions with a reference in the return type"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "has mutable reference in return type" or . == "has immutable reference in return type")) | .source_code' | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'
@@ -170,10 +181,22 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[]
 space
 
 info "Functions that have assertions but not an overflow verification error"
-for f in $(cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep true | cut -d',' -f2); do echo "$f" ; cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq ".functions[] | select(.node_path == $f) | .source_code" | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'; done
+cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep true | while read line; do
+    crate="$(echo "$line" | cut -d',' -f1)"
+    f="$(echo "$line" | cut -d',' -f2)"
+    echo "$crate, $f";
+    cat "$CRATE_DOWNLOAD_DIR"/"$crate"/source/prusti-filter-results.json | jq ".functions[] | select(.node_path == $f) | .source_code" | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g';
+done
 
 info "Functions that have an overflow verification error"
-for f in $(cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep false | cut -d',' -f2); do echo "$f" ; cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq ".functions[] | select(.node_path == $f) | .source_code" | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g'; done
+cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-with-assertions.csv.csv | grep false | while read line; do
+    crate="$(echo "$line" | cut -d',' -f1)"
+    f="$(echo "$line" | cut -d',' -f2)"
+    echo "$crate, $f";
+    cat "$CRATE_DOWNLOAD_DIR"/"$crate"/source/prusti-filter-results.json | jq ".functions[] | select(.node_path == $f) | .source_code" | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g';
+done
+
+space
 
 inlineinfo "Lines of generated Viper code"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$' | wc -l
@@ -192,3 +215,23 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//
 
 inlineinfo "Cleaned lines of generated Viper code that are due to inhale/exhale/assert acc"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l
+
+space
+
+inlineinfo "Lines of generated VIR code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$' | wc -l
+
+inlineinfo "Lines of generated VIR code that are fold/unfold/package/apply"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$' | grep " fold\| unfold\| package\| apply" | wc -l
+
+inlineinfo "Lines of generated VIR code that are due to inhale/exhale/assert acc"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l
+
+inlineinfo "Cleaned lines of generated VIR code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | wc -l
+
+inlineinfo "Cleaned lines of generated VIR code that are fold/unfold/package/apply"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " fold\| unfold\| package\| apply" | wc -l
+
+inlineinfo "Cleaned lines of generated VIR code that are due to inhale/exhale/assert acc"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l

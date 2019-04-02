@@ -70,9 +70,9 @@ for a in (0, 1, 2):
 for a in (0, 1, 2):
     for index, row in clean_prusti_data[a].iterrows():
         name = row["Crate name"]
-        assert row["Successful verification"], "Verification of {} failed".format(name)
-        assert row["Whitelist items"] == row["Verified items"], "error in row {}".format(name)
-        assert row["Verified items"] == row["Successful items"], "error in row {}".format(name)
+        #assert row["Successful verification"], "Verification of {} failed".format(name)
+        #assert row["Whitelist items"] == row["Verified items"], "error in row {}".format(name)
+        #assert row["Verified items"] == row["Successful items"], "error in row {}".format(name)
 
 for a in (0, 1, 2):
     #print(set(clean_verification_time_data[a]["Crate name"]) - set(successful_compilation_data[a]["Crate name"]))
@@ -96,17 +96,13 @@ average_prusti_verification = sum([df["Duration (s)"] for df in clean_prusti_dat
 average_prusti_verification.reset_index(drop=True, inplace=True)
 
 #Incorrect: average_viper_verification = sum([df["Verification duration"] for df in clean_verification_time_data]) / 3
-average_viper_verification = sum([df["Verification duration"] for df in clean_verification_time_data]) / 3
-average_viper_verification.reset_index(drop=True, inplace=True)
-average_viper_verification = average_viper_verification / num_dependencies
+average_verification_per_function = sum([df["Verification duration"] for df in clean_verification_time_data]) / 3
+average_verification_per_function.reset_index(drop=True, inplace=True)
+average_verification_per_function = average_verification_per_function / num_verified_functions
 
 average_prusti_overhead = average_prusti_verification - average_compilation
 
-data = pd.concat([crate_names, average_compilation, average_prusti_verification, average_prusti_overhead], axis=1)
-
-print("Total:", compilation_data[2]["Duration (s)"].sum() * 3 + average_prusti_verification.sum() * 3)
-#print(data)
-print(data[data.ix[:,3] > 125])
+print(average_verification_per_function.head())
 
 width = 3.5
 height = 1.5
@@ -140,16 +136,25 @@ ax = plt.subplot(1, 1, 1)
 #plt.scatter(average_compilation, average_prusti_overhead, s=1, c="#0E47AE", marker="o", zorder=10)
 #plt.scatter(average_compilation, average_viper_verification, c="#FF8649", s=1, marker="x", zorder=20)
 #plt.scatter(average_compilation, average_viper_verification, c="#003284", s=1, marker="x", zorder=20)  # FF8649
-plt.scatter(average_compilation, average_prusti_overhead, c="#003693", s=1, marker=".", zorder=20)  # FF8649
+#plt.scatter(average_compilation, average_prusti_overhead, c="#003693", s=1, marker=".", zorder=20)  # FF8649
 #plt.legend(['Prusti overhead', 'Viper verification time'], loc='upper center', bbox_to_anchor=(0.5, 1))
-plt.plot(x, x, color='k', ls='--', linewidth=1, zorder=0, alpha=0.3)
-plt.plot(x, x/2, color='k', ls='--', linewidth=1, zorder=0, alpha=0.3)
-plt.plot(x, x/10, color='k', ls='--', linewidth=1, zorder=0, alpha=0.3)
+#plt.plot(x, x, color='k', ls='--', linewidth=1, zorder=0, alpha=0.3)
+#plt.plot(x, x/2, color='k', ls='--', linewidth=1, zorder=0, alpha=0.3)
+#plt.plot(x, x/10, color='k', ls='--', linewidth=1, zorder=0, alpha=0.3)
 #plt.xlabel('Baseline compilation time (s)')
 #plt.ylabel('Time (s)')
-plt.annotate('100\%', xy=(50, 115), rotation=55, color='k', alpha=0.8, fontfamily='serif', fontsize='small')
-plt.annotate("50\%", xy=(155, 118), rotation=36.7, color='k', alpha=0.8, fontfamily='serif', fontsize='small')
-plt.annotate("10\%", xy=(215, 33), rotation=8, color='k', alpha=0.8, fontfamily='serif', fontsize='small')
+#plt.annotate('100\%', xy=(50, 115), rotation=55, color='k', alpha=0.8, fontfamily='serif', fontsize='small')
+#plt.annotate("50\%", xy=(155, 118), rotation=36.7, color='k', alpha=0.8, fontfamily='serif', fontsize='small')
+#plt.annotate("10\%", xy=(215, 33), rotation=8, color='k', alpha=0.8, fontfamily='serif', fontsize='small')
+
+split=5
+plt.hist(
+    average_verification_per_function[average_verification_per_function > 0],
+    weights=num_verified_functions[average_verification_per_function > 0],
+    bins=[x/split for x in range(35*(split)+1)],
+    log=True,
+    color="#003693"
+)
 
 #for spine in ['top', 'right']:
 #    ax.spines[spine].set_visible(False)
@@ -161,8 +166,8 @@ plt.annotate("10\%", xy=(215, 33), rotation=8, color='k', alpha=0.8, fontfamily=
 #for axis in [ax.xaxis, ax.yaxis]:
 #    axis.set_tick_params(direction='out', color='lightgray')
 
-plt.xlim(left=0, right=None)
-plt.ylim(bottom=0, top=None) #125)
+#plt.xlim(left=0, right=None)
+#plt.ylim(bottom=0, top=None) #125)
 #plt.rc('text', usetex=True)
 plt.tight_layout()
 plt.grid(color='lightgray', linestyle='--', linewidth=1)
