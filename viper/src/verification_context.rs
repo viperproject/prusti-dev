@@ -58,9 +58,8 @@ impl<'a> VerificationContext<'a> {
             "No valid Boogie path has been found. Please set BOOGIE_EXE."
         );
 
-        debug!("Using Z3 path: '{}'", &z3_path);
-        debug!("Using BOOGIE path: '{}'", &boogie_path);
-        debug!("Verification backend: '{}'", backend);
+        info!("Using Z3 path: '{}'", &z3_path);
+        info!("Using BOOGIE path: '{}'", &boogie_path);
 
         let mut verifier_args: Vec<String> = vec![];
         if let VerificationBackend::Carbon = backend {

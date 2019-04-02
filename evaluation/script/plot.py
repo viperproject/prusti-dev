@@ -62,11 +62,17 @@ clean_verification_time_data = list(map(
 ))
 
 #print(clean_verification_time_data[0].head())
-data = clean_verification_time_data[0]
-print(data[data["Verification duration"] > 125])
+print(clean_verification_time_data[0][clean_verification_time_data[0]["Verification duration"] > 125])
 
 for a in (0, 1, 2):
     assert list(clean_prusti_data[a]["Crate name"]) == list(successful_compilation_data[a]["Crate name"])
+
+for a in (0, 1, 2):
+    for index, row in clean_prusti_data[a].iterrows():
+        name = row["Crate name"]
+        #assert row["Successful verification"], "Verification of {} failed".format(name)
+        #assert row["Whitelist items"] == row["Verified items"], "error in row {}".format(name)
+        #assert row["Verified items"] == row["Successful items"], "error in row {}".format(name)
 
 for a in (0, 1, 2):
     #print(set(clean_verification_time_data[a]["Crate name"]) - set(successful_compilation_data[a]["Crate name"]))
@@ -85,6 +91,7 @@ num_verified_functions.reset_index(drop=True, inplace=True)
 num_dependencies = sum([df["Number of dependencies"] for df in clean_verification_time_data]) / 3
 num_dependencies.reset_index(drop=True, inplace=True)
 
+print(clean_prusti_data[0].head())
 average_prusti_verification = sum([df["Duration (s)"] for df in clean_prusti_data]) / 3
 average_prusti_verification.reset_index(drop=True, inplace=True)
 
@@ -99,7 +106,7 @@ data = pd.concat([crate_names, average_compilation, average_prusti_verification,
 
 print("Total:", compilation_data[2]["Duration (s)"].sum() * 3 + average_prusti_verification.sum() * 3)
 #print(data)
-
+print(data[data.ix[:,3] > 125])
 
 width = 3.5
 height = 1.5
@@ -116,8 +123,8 @@ pgf_with_latex = {                      # setup matplotlib to use latex for outp
     "xtick.labelsize": 8,               # a little smaller
     "ytick.labelsize": 8,
     "pgf.preamble": [
-        r"\usepackage[utf8]{inputenc}",    # use utf8 input and T1 fonts
-        r"\usepackage[T1]{fontenc}",        # plots will be generated
+        r"\usepackage[utf8]{inputenc}", # use utf8 input and T1 fonts
+        r"\usepackage[T1]{fontenc}",    # plots will be generated
     ]                                   # using this preamble
 }
 #mpl.use("pgf")
@@ -155,14 +162,13 @@ plt.annotate("10\%", xy=(215, 33), rotation=8, color='k', alpha=0.8, fontfamily=
 #    axis.set_tick_params(direction='out', color='lightgray')
 
 plt.xlim(left=0, right=None)
-plt.ylim(bottom=0, top=125)
+plt.ylim(bottom=0, top=None) #125)
 #plt.rc('text', usetex=True)
 plt.tight_layout()
 plt.grid(color='lightgray', linestyle='--', linewidth=1)
 
 #ax.set_axis_off()
-plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
-                hspace=0, wspace=0)
+plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
 plt.margins(0, 0)
 #ax.xaxis.set_major_locator(NullLocator())
 #ax.yaxis.set_major_locator(NullLocator())

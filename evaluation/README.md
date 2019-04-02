@@ -259,3 +259,56 @@ Verify supported functions from top 500 crates (option B)
 	```bash
 	evaluation/script/full-evaluation.sh ../crates
 	```
+
+Verify supported functions from top 500 crates (option C)
+---------------------------------------------------------
+
+(from the `prusti-dev` folder)
+
+2. Set variables
+
+    ```bash
+    export VIPER_HOME="$(realpath ../viper)"
+    export Z3_EXE="$(realpath ../z3/bin/z3)"
+    export RUSTC_TIMEOUT=900
+    export PRUSTI_TIMEOUT=3600
+    export CRATE_DOWNLOAD_DIR="$(realpath ../crates)"
+    ```
+
+2.  Download most popular 500 crates:
+
+    ```bash
+    evaluation/script/download-top-500.sh "$CRATE_DOWNLOAD_DIR"
+    evaluation/script/set-cargo-lock.sh "$CRATE_DOWNLOAD_DIR"
+    ```
+
+3.  Compile crates:
+
+    ```bash
+	evaluation/script/compile-crates.sh" "$CRATE_DOWNLOAD_DIR" "$RUSTC_TIMEOUT"
+    ```
+
+4.  Filter crates:
+
+    ```bash
+	evaluation/script/filter-crates.sh "$CRATE_DOWNLOAD_DIR" \
+        "$CRATE_DOWNLOAD_DIR/supported-crates.csv" "$PRUSTI_TIMEOUT"
+	evaluation/script/whitelist-crates.sh "$CRATE_DOWNLOAD_DIR" \
+        "$CRATE_DOWNLOAD_DIR/supported-crates.csv" "$PRUSTI_TIMEOUT"
+    ```
+
+5.  Verify all supported functions in crates:
+
+    ```bash
+    evaluation/script/verify-crates-coarse-grained.sh "$CRATE_DOWNLOAD_DIR" \
+        "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
+		"supported-procedures.csv" "$PRUSTI_TIMEOUT"
+    ```
+
+6.  Individually verify each supported functions with assertions:
+
+    ```bash
+    evaluation/script/verify-crates-coarse-grained.sh "$CRATE_DOWNLOAD_DIR" \
+        "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
+		"supported-procedures.csv" "$PRUSTI_TIMEOUT"
+    ```
