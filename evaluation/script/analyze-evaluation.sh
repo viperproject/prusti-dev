@@ -196,6 +196,8 @@ cat "$CRATE_DOWNLOAD_DIR"/fine-grained-verification-report-supported-procedures-
     cat "$CRATE_DOWNLOAD_DIR"/"$crate"/source/prusti-filter-results.json | jq ".functions[] | select(.node_path == $f) | .source_code" | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g';
 done
 
+space
+
 inlineinfo "Lines of generated Viper code"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$' | wc -l
 
@@ -213,3 +215,23 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//
 
 inlineinfo "Cleaned lines of generated Viper code that are due to inhale/exhale/assert acc"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/log/viper_program/*.vpr | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l
+
+space
+
+inlineinfo "Lines of generated VIR code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$' | wc -l
+
+inlineinfo "Lines of generated VIR code that are fold/unfold/package/apply"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$' | grep " fold\| unfold\| package\| apply" | wc -l
+
+inlineinfo "Lines of generated VIR code that are due to inhale/exhale/assert acc"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l
+
+inlineinfo "Cleaned lines of generated VIR code"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | wc -l
+
+inlineinfo "Cleaned lines of generated VIR code that are fold/unfold/package/apply"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " fold\| unfold\| package\| apply" | wc -l
+
+inlineinfo "Cleaned lines of generated VIR code that are due to inhale/exhale/assert acc"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l
