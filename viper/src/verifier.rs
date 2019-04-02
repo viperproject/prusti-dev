@@ -37,7 +37,12 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         let jni = JniUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let verifier_instance = jni.unwrap_result(match backend {
-            VerificationBackend::Silicon => silicon::Silicon::with(env).new(),
+            VerificationBackend::Silicon => {
+                let reporter = silver::reporter::CSVReporter::with(env).new().unwrap();
+                let utils = JniUtils::new(env);
+                let debug_info = utils.new_seq(&[]);
+                silicon::Silicon::with(env).new(reporter, debug_info)
+            },
             VerificationBackend::Carbon => carbon::CarbonVerifier::with(env).new(),
         });
 
