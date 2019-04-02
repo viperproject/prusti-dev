@@ -55,7 +55,9 @@ fn verify_empty_program() {
         .expect("failed to attach jvm thread");
 
     env.with_local_frame(32, || {
-        let silicon = viper::silicon::Silicon::with(&env).new()?;
+        let reporter = viper::silver::reporter::CSVReporter::with(&env).new().unwrap();
+        let debug_info = scala::collection::mutable::ArraySeq::with(&env).new(0).unwrap();
+        let silicon = viper::silicon::Silicon::with(&env).new(reporter, debug_info)?;
         let verifier = viper::silver::verifier::Verifier::with(&env);
 
         let silicon_args_array =
