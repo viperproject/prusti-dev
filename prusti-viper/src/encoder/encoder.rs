@@ -807,6 +807,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn type_substitution_key(&self) -> String {
         let mut substs: Vec<_> = self.type_substitution_strings()
             .into_iter()
+            .filter(|(typ, subst)| {
+                typ != subst
+            })
             .map(|(typ, subst)| {
                 format!("({},{})", typ, subst)
             })
