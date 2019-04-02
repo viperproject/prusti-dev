@@ -9,21 +9,30 @@ from matplotlib.ticker import NullLocator
 from matplotlib2tikz import save as tikz_save
 
 compilation_reports = [
-    "compilation-report-2018-11-12-104249.csv",
-    "compilation-report-2018-11-13-182045.csv",
-    "compilation-report-2018-11-14-042009.csv"
+    #"compilation-report-2018-11-12-104249.csv",
+    #"compilation-report-2018-11-13-182045.csv",
+    #"compilation-report-2018-11-14-042009.csv"
+    "compilation-report-2019-04-01-103700.csv",
+    "compilation-report-2019-04-01-103700.csv",
+    "compilation-report-2019-04-01-103700.csv"
 ]
 
 prusti_reports = [
-    "coarse-grained-verification-report-supported-procedures.csv-2018-11-15-184514.csv",
-    "coarse-grained-verification-report-supported-procedures.csv-2018-11-15-230441.csv",
-    "coarse-grained-verification-report-supported-procedures.csv-2018-11-16-032438.csv"
+    #"coarse-grained-verification-report-supported-procedures.csv-2018-11-15-184514.csv",
+    #"coarse-grained-verification-report-supported-procedures.csv-2018-11-15-230441.csv",
+    #"coarse-grained-verification-report-supported-procedures.csv-2018-11-16-032438.csv"
+    "coarse-grained-verification-report-supported-procedures.csv-2019-04-01-214824.csv",
+    "coarse-grained-verification-report-supported-procedures.csv-2019-04-01-214824.csv",
+    "coarse-grained-verification-report-supported-procedures.csv-2019-04-01-214824.csv"
 ]
 
 verification_time_reports = [
-    "verification-time-report-2018-11-15-184514.csv",
-    "verification-time-report-2018-11-15-230441.csv",
-    "verification-time-report-2018-11-16-032438.csv"
+    #"verification-time-report-2018-11-15-184514.csv",
+    #"verification-time-report-2018-11-15-230441.csv",
+    #"verification-time-report-2018-11-16-032438.csv"
+    "verification-time-report-2019-04-01-214824.csv",
+    "verification-time-report-2019-04-01-214824.csv",
+    "verification-time-report-2019-04-01-214824.csv"
 ]
 
 compilation_data = list(map(lambda x: pd.read_csv(x), compilation_reports))
@@ -58,8 +67,8 @@ for a in (0, 1, 2):
     assert list(clean_prusti_data[a]["Crate name"]) == list(successful_compilation_data[a]["Crate name"])
 
 for a in (0, 1, 2):
-    #print(set(clean_verification_time_data[a]["Crate name"]) - set(successful_compilation_data[a]["Crate name"]))
-    #print(set(successful_compilation_data[a]["Crate name"]) - set(clean_verification_time_data[a]["Crate name"]))
+    print(set(clean_verification_time_data[a]["Crate name"]) - set(successful_compilation_data[a]["Crate name"]))
+    print(set(successful_compilation_data[a]["Crate name"]) - set(clean_verification_time_data[a]["Crate name"]))
     assert list(clean_verification_time_data[a]["Crate name"]) == list(successful_compilation_data[a]["Crate name"])
 
 crate_names = successful_compilation_data[0]["Crate name"]
