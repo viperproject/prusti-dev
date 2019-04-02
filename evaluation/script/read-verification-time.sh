@@ -65,8 +65,8 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	type_checking_duration="$( (egrep 'Type-checking of annotations successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	encoding_duration="$( (egrep 'Encoding to Viper successful \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 9 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
 	verification_duration="$( (egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 7 | sed 's/(//' | tr '\n' '+' ; echo 0) | bc )"
-	verified_items="$( (egrep 'Successful verification of \([0-9]*\) items' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 4 | tr '\n' '+' ; echo 0) | bc )"
-	num_dependencies="$( egrep 'Successful verification of \([0-9]*\) items' "$VERIFICATION_LOG_FILE" | wc -l || true )"
+	verified_items="$( (egrep 'Successful verification of [0-9]* items' "$VERIFICATION_LOG_FILE" | cut -d ' ' -f 4 | tr '\n' '+' ; echo 0) | bc )"
+	num_dependencies="$( egrep 'Successful verification of [0-9]* items' "$VERIFICATION_LOG_FILE" | wc -l || true )"
 	num_verified_dependencies="$( egrep 'Verification complete \(.* seconds\)' "$VERIFICATION_LOG_FILE" | wc -l || true )"
 
 	info "Verification runs: $num_dependencies, verified items $verified_items in $verification_duration s"
