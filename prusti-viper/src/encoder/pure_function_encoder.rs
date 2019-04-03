@@ -21,7 +21,8 @@ use std::collections::HashSet;
 use syntax::ast;
 use prusti_interface::report::log;
 use prusti_interface::config;
-use encoder::borrows::ProcedureContract;
+use prusti_interface::specifications::SpecificationSet;
+use encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use encoder::places;
 use encoder::vir::ExprIterator;
 use std::fmt;
@@ -40,7 +41,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     pub fn new(
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
         proc_def_id: DefId, mir: &'p mir::Mir<'tcx>,
-        is_encoding_assertion: bool
+        is_encoding_assertion: bool,
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
         let interpreter = PureFunctionBackwardInterpreter::new(
@@ -113,15 +114,41 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             debug!("Encode pure function {} given body Some({})", function_name, body.as_ref().unwrap());
         }
 
-        let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
-        let precondition = self.encode_precondition_expr(&contract);
-        let mut precondition = vec![precondition.0, precondition.1];
+        // TODO: Clean up code duplication:
+        //let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id);
+        let contract = {
+            let opt_fun_spec = self.encoder.get_spec_by_def_id(self.proc_def_id);
+            let fun_spec = match opt_fun_spec {
+                Some(fun_spec) => fun_spec.clone(),
+                None => {
+                    debug!("Procedure {:?} has no specification", self.proc_def_id);
+                    SpecificationSet::Procedure(vec![], vec![])
+                }
+            };
+            let tymap = self.encoder.typaram_repl.borrow_mut();
+            let contract = compute_procedure_contract(
+                self.proc_def_id, self.encoder.env().tcx(), fun_spec, Some(&tymap));
+            contract.to_def_site_contract()
+        };
+        let subst_strings = self.encoder.type_substitution_strings();
+
+        let (type_precondition, func_precondition) = self.encode_precondition_expr(&contract);
+        let patched_type_precondition = type_precondition.patch_types(&subst_strings);
+        let mut precondition = vec![patched_type_precondition, func_precondition];
         let mut postcondition = vec![self.encode_postcondition_expr(&contract)];
 
         let formal_args: Vec<_> = self.mir.args_iter().map(
-            |local| self.encode_local(local)
+            |local| {
+                let var_name = self.interpreter.mir_encoder().encode_local_var_name(local);
+                let mir_type = self.interpreter.mir_encoder().get_local_ty(local);
+                let var_type = self.encoder.encode_value_type(self.encoder.resolve_typaram(mir_type));
+                let var_type = var_type.patch(&subst_strings);
+                vir::LocalVar::new(var_name, var_type)
+            }
         ).collect();
         let return_type = self.encode_function_return_type();
+
+        let body = body.map(|b| b.patch_types(&subst_strings));
 
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_binary_operations() {
@@ -150,7 +177,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             }
         }
 
-        debug_assert!(!postcondition.iter().any(|p| p.pos().is_default()), "Some postcondition has no position: {:?}", postcondition);
+        debug_assert!(!postcondition.iter().any(|p| p.pos().is_default()),
+                      "Some postcondition has no position: {:?}", postcondition);
 
         let function = vir::Function {
             name: function_name.clone(),
@@ -243,7 +271,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     }
 
     pub fn encode_function_return_type(&self) -> vir::Type {
-        self.encoder.encode_value_type(self.mir.return_ty())
+        let ty = self.encoder.resolve_typaram(self.mir.return_ty());
+        self.encoder.encode_value_type(ty)
     }
 }
 
@@ -456,7 +485,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         literal: mir::Literal::Value {
                             value: ty::Const {
                                 ty: &ty::TyS {
-                                    sty: ty::TyFnDef(def_id, ..),
+                                    sty: ty::TyFnDef(def_id, substs),
                                     ..
                                 },
                                 ..
@@ -468,7 +497,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                 ..
             } => {
                 let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
-                if destination.is_some() {
+
+                let own_substs = ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
+
+                {
+                    // FIXME; hideous monstrosity...
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
+
+                    for (kind1, kind2) in own_substs.iter().zip(substs) {
+                        if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) =
+                                (kind1.unpack(), kind2.unpack()) {
+                            tymap.insert(ty1, ty2);
+                        }
+                    }
+                }
+
+                let state = if destination.is_some() {
                     let (ref lhs_place, target_block) = destination.as_ref().unwrap();
                     let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs_place);
                     let lhs_value = encoded_lhs.clone().field(self.encoder.encode_value_field(ty));
@@ -585,7 +630,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         error_ctxt
                     );
                     MultiExprBackwardInterpreterState::new_single(unreachable_expr(pos))
+                };
+
+                // FIXME; hideous monstrosity...
+                {
+                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
+                    tymap.clear();
                 }
+                state
             }
 
             TerminatorKind::Call { .. } => {

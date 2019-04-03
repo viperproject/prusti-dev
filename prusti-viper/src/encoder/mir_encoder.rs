@@ -321,11 +321,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         trace!("Encode operand expr {:?}", operand);
         match operand {
             &mir::Operand::Constant(box mir::Constant { ty, .. }) => {
+                let ty = self.encoder.resolve_typaram(ty);
                 self.encoder.encode_value_type(ty)
             }
             &mir::Operand::Copy(ref place) |
             &mir::Operand::Move(ref place) => {
-                let val_place = self.eval_place(&place);
+                let (encoded_place, place_ty, _) = self.encode_place(place);
+                let place_ty = self.encoder.resolve_typaram(place_ty);
+                let value_field = self.encoder.encode_value_field(place_ty);
+                let val_place = encoded_place.field(value_field);
                 val_place.get_type().clone()
             }
         }

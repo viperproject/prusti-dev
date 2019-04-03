@@ -12,10 +12,12 @@ RUSTUP_TOOLCHAIN = $(shell cat ../rust-toolchain)
 RUST_VERSION=${RUSTUP_TOOLCHAIN}-x86_64-unknown-linux-gnu
 COMPILER_PATH=$$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/debug:../target/debug/deps
+RELEASE_LIB_PATH = ${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:../target/release:../target/release/deps
 PRUSTI_DRIVER=../target/debug/prusti-driver
 PRUSTI_DRIVER_RELEASE=../target/release/prusti-driver
 
 SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
+SET_RELEASE_ENV_VARS = LD_LIBRARY_PATH=$(RELEASE_LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
 
 run:
 	@echo "The best way to run Prusti is with `./docker/prusti`"
@@ -28,7 +30,7 @@ run:
 
 run_release:
 	@echo "The best way to run Prusti is with `./docker/prusti`"
-	$(SET_ENV_VARS) \
+	$(SET_RELEASE_ENV_VARS) \
 	RUST_LOG=${LOG_LEVEL} \
 	${PRUSTI_DRIVER_RELEASE} \
 		-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \

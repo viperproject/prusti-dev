@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::collections::HashMap;
 use std::cmp::Ordering;
 use std::fmt;
 use std::ops;
@@ -181,6 +182,21 @@ impl Type {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
+        }
+    }
+
+    /// FIXME: A hack. Replaces all generic types with their instantiations by using string
+    /// substitution.
+    pub fn patch(self, substs: &HashMap<String, String>) -> Self {
+        match self {
+            Type::Bool => Type::Bool,
+            Type::Int => Type::Int,
+            Type::TypedRef(mut predicate_name) => {
+                for (typ, subst) in substs {
+                    predicate_name = predicate_name.replace(typ, subst);
+                }
+                Type::TypedRef(predicate_name)
+            }
         }
     }
 }

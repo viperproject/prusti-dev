@@ -1381,7 +1381,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     tymap.clear();
 
                     for (kind1, kind2) in own_substs.iter().zip(substs) {
-                        if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) = (kind1.unpack(), kind2.unpack()) {
+                        if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) =
+                                (kind1.unpack(), kind2.unpack()) {
                             tymap.insert(ty1, ty2);
                         }
                     }

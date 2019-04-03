@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::collections::HashMap;
 use std::fmt;
 use std::mem;
 use std::mem::discriminant;
@@ -98,10 +99,12 @@ impl fmt::Display for Expr {
                 expr.to_string(),
                 body.to_string()
             ),
-            Expr::FuncApp(ref name, ref args, ..) => write!(
-                f, "{}({})",
+            Expr::FuncApp(ref name, ref args, ref params, ref typ, ref _pos) => write!(
+                f, "{}<{},{}>({})",
                 name,
-                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", ")
+                params.iter().map(|p| p.typ.to_string()).collect::<Vec<String>>().join(", "),
+                typ.to_string(),
+                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
             ),
         }
     }
@@ -971,6 +974,37 @@ impl Expr {
         };
         collector.walk(self);
         collector.perms
+    }
+
+    /// FIXME: A hack. Replaces all generic types with their instantiations by using string
+    /// substitution.
+    pub fn patch_types(self, substs: &HashMap<String, String>) -> Self {
+        struct TypePatcher<'a> {
+            substs: &'a HashMap<String, String>
+        }
+        impl<'a> ExprFolder for TypePatcher<'a> {
+            fn fold_predicate_access_predicate(
+                &mut self,
+                mut predicate_name: String,
+                args: Vec<Expr>,
+                perm_amount: PermAmount,
+                pos: Position
+            ) -> Expr {
+                for (typ, subst) in self.substs {
+                    predicate_name = predicate_name.replace(typ, subst);
+                }
+                Expr::PredicateAccessPredicate(
+                    predicate_name,
+                    args.into_iter().map(|e| self.fold(e)).collect(),
+                    perm_amount, pos)
+            }
+            fn fold_local(&mut self, mut var: LocalVar, pos: Position) -> Expr {
+                var.typ = var.typ.patch(self.substs);
+                Expr::Local(var, pos)
+            }
+        }
+        let mut patcher = TypePatcher { substs: substs };
+        patcher.fold(self)
     }
 }
 

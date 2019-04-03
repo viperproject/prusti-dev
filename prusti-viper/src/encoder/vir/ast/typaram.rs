@@ -22,7 +22,7 @@ impl Substs {
     /// This function will compute what is the type substitution needed to go from `from` to `to`.
     pub fn learn(from: &str, to: &str) -> Self {
         lazy_static! {
-            static ref typaram_re: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
+            static ref TYPARAM_RE: Regex = Regex::new("(__TYPARAM__\\$(.*?)\\$__)").unwrap();
         }
 
         // Start with an empty `repls_regex`
@@ -32,7 +32,7 @@ impl Substs {
         // Extract the name of type parameters from the `from` string
         let mut found_typarams = Vec::new();
         let mut last = 0;
-        for matched_item in typaram_re.find_iter(from) {
+        for matched_item in TYPARAM_RE.find_iter(from) {
             repls_regex_str.push_str(&escape_dollars(&from[last..matched_item.start()]));
             repls_regex_str.push_str("(.*?)");
             found_typarams.push(matched_item.as_str().to_string());
@@ -46,7 +46,7 @@ impl Substs {
         // Early return for simple case
         if from == to {
             return Substs {
-                regex: typaram_re.clone(),
+                regex: TYPARAM_RE.clone(),
                 repls: found_typarams.into_iter().map(|x| (x.clone(), x)).collect(),
             };
         }
@@ -73,7 +73,7 @@ impl Substs {
             }
         }
         Substs {
-            regex: typaram_re.clone(),
+            regex: TYPARAM_RE.clone(),
             repls,
         }
     }
