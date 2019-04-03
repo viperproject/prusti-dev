@@ -65,7 +65,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     use_whitelist: bool,
     whitelist: HashSet<String>,
-    pub typaram_repl: RefCell<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>,
+    pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -103,7 +103,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir_program_before_viper_writer,
             use_whitelist: config::enable_whitelist(),
             whitelist: HashSet::from_iter(config::verification_whitelist()),
-            typaram_repl: RefCell::new(HashMap::new()),
+            typaram_repl: RefCell::new(Vec::new()),
         }
     }
 
@@ -309,8 +309,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             }
         };
         let tymap = self.typaram_repl.borrow_mut();
+        assert!(tymap.len() == 1);
         let contract = compute_procedure_contract(
-            proc_def_id, self.env().tcx(), fun_spec, Some(&tymap));
+            proc_def_id, self.env().tcx(), fun_spec, Some(&tymap[0]));
         contract.to_call_site_contract(args, target)
     }
 
@@ -660,11 +661,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
         {
             // FIXME; hideous monstrosity...
-            let mut tymap = self.typaram_repl.borrow_mut();
-            assert!(tymap.is_empty());
+            let mut tymap_stack = self.typaram_repl.borrow_mut();
+            assert!(tymap_stack.is_empty());
+            let mut tymap = HashMap::new();
             for (typ, subst) in substs {
                 tymap.insert(typ, subst);
             }
+            tymap_stack.push(tymap);
         }
 
         // FIXME: Using substitutions as a key is most likely wrong.
@@ -691,8 +694,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
         // FIXME; hideous monstrosity...
         {
-            let mut tymap = self.typaram_repl.borrow_mut();
-            tymap.clear();
+            let mut tymap_stack = self.typaram_repl.borrow_mut();
+            tymap_stack.pop();
         }
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
     }
@@ -732,13 +735,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn queue_pure_function_encoding(&self, proc_def_id: ProcedureDefId) {
-        let substs = self.typaram_repl
-            .borrow()
-            .iter()
-            .map(|(typ, subst)| {
-                (typ.clone(), subst.clone())
-            })
-            .collect();
+        let substs = self.current_tymap().into_iter().collect();
         self.encoding_queue.borrow_mut().push((proc_def_id, substs));
     }
 
@@ -775,18 +772,38 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-        if let Some(replaced_ty) = self.typaram_repl.borrow().get(&ty) {
-            replaced_ty.clone()
-        } else {
-            ty
+        // FIXME: This should use current_tymap.
+        if let Some(last) = self.typaram_repl.borrow().last() {
+            if let Some(replaced_ty) = last.get(&ty) {
+                return replaced_ty.clone()
+            }
         }
+        ty
+    }
+
+    /// Merges the stack of type maps into a single map.
+    pub fn current_tymap(&self) -> HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {
+        let mut map = HashMap::new();
+        for map_frame in self.typaram_repl.borrow().iter().rev() {
+            for (typ, subst) in map_frame {
+                map.insert(typ.clone(), subst.clone());
+                let additional_substs: Vec<_> = map
+                    .iter()
+                    .filter(|(typ1, typ2)| typ2 == &typ)
+                    .map(|(typ1, typ2)| (typ1.clone(), typ2.clone()))
+                    .collect();
+                for (typ, subst) in additional_substs {
+                    map.insert(typ, subst);
+                }
+            }
+        }
+        map
     }
 
     /// TODO: This is a hack, it generates strings that can be used to instantiate generic pure
     /// functions.
     pub fn type_substitution_strings(&self) -> HashMap<String, String> {
-        self.typaram_repl
-            .borrow()
+        self.current_tymap()
             .iter()
             .map(|(typ, subst)| {
                 let encoded_typ = match self.encode_type(typ) {

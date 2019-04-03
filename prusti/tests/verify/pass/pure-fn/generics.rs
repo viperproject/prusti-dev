@@ -63,5 +63,24 @@ pub fn test5() {
     assert!(!my_is_none(&my_bool));
 }
 
+#[requires="my_is_none(&x)"]
+#[ensures="my_is_none(&result)"]
+pub fn test6(x: MyOption<bool>) -> MyOption<bool> {
+    x
+}
+
+impl<T> MyOption<T> {
+    #[trusted]
+    #[ensures="my_is_none(&result)"]
+    fn new() -> Self {
+        MyOption::None
+    }
+}
+
+#[ensures="my_is_none(&result)"]
+pub fn test7() -> MyOption<bool> {
+    MyOption::new()
+}
+
 fn main() {
 }

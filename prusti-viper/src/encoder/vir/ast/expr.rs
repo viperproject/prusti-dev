@@ -1002,6 +1002,27 @@ impl Expr {
                 var.typ = var.typ.patch(self.substs);
                 Expr::Local(var, pos)
             }
+            fn fold_func_app(
+                &mut self,
+                name: String,
+                args: Vec<Expr>,
+                formal_args: Vec<LocalVar>,
+                return_type: Type,
+                pos: Position
+            ) -> Expr {
+                let formal_args = formal_args
+                    .into_iter()
+                    .map(|mut var| {
+                        var.typ = var.typ.patch(self.substs);
+                        var
+                    })
+                    .collect();
+                // FIXME: We do not patch the return_type because pure functions cannot return
+                // generic values.
+                Expr::FuncApp(
+                    name, args.into_iter().map(|e| self.fold(e)).collect(),
+                    formal_args, return_type, pos)
+            }
         }
         let mut patcher = TypePatcher { substs: substs };
         patcher.fold(self)
