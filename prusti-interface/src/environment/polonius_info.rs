@@ -917,6 +917,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     .filter(|loan| alive_loans.contains(loan))
                     .cloned()
                     .collect();
+                trace!("get_alive_conflicting_loans({:?}, {:?}) = {:?}",
+                       loan, location, alive_conflicting_loans);
                 return alive_conflicting_loans;
             }
         }
