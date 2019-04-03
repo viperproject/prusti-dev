@@ -1377,8 +1377,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 {
                     // FIXME; hideous monstrosity...
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    let mut tymap = HashMap::new();
 
                     for (kind1, kind2) in own_substs.iter().zip(substs) {
                         if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) =
@@ -1386,6 +1386,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             tymap.insert(ty1, ty2);
                         }
                     }
+                    tymap_stack.push(tymap);
                 }
 
                 match func_proc_name {
@@ -1778,8 +1779,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 // FIXME; hideous monstrosity...
                 {
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    tymap_stack.pop();
                 }
 
                 if let &Some((_, target)) = destination {

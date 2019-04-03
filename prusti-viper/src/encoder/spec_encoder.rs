@@ -355,18 +355,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 )
             }
             box AssertionKind::TypeCond(ref vars, ref assertion) => {
-                {
-                    let x = self.encoder.typaram_repl.borrow();
-                    //warn!("typaram_repl at TypeCond: {:?}", x);
-                }
                 let enc = |hir_id: hir::HirId| -> vir::Expr {
                     let mut ty = self.encoder.env().hir_id_to_type(hir_id);
                     // FIXME oh dear...
                     {
-                        let x = self.encoder.typaram_repl.borrow();
-                        if let Some(repl_ty) = x.get(ty) {
-                            ty = repl_ty;
-                        }
+                        ty = self.encoder.resolve_typaram(ty);
                     }
                     self.encoder.encode_tag_func_app(ty)
                 };

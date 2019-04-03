@@ -69,7 +69,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         let body_expr = state.into_expressions().remove(0);
         debug!("Pure function {} has been encoded with expr: {}", function_name, body_expr);
         let subst_strings = self.encoder.type_substitution_strings();
-        body_expr.patch_types(&subst_strings)
+        let patched_body_expr = body_expr.patch_types(&subst_strings);
+        patched_body_expr
     }
 
     pub fn encode_function(&self) -> vir::Function {
@@ -126,7 +127,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                     SpecificationSet::Procedure(vec![], vec![])
                 }
             };
-            let tymap = self.encoder.typaram_repl.borrow_mut();
+            let tymap = self.encoder.current_tymap();
             let contract = compute_procedure_contract(
                 self.proc_def_id, self.encoder.env().tcx(), fun_spec, Some(&tymap));
             contract.to_def_site_contract()
@@ -502,8 +503,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                 {
                     // FIXME; hideous monstrosity...
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    let mut tymap = HashMap::new();
 
                     for (kind1, kind2) in own_substs.iter().zip(substs) {
                         if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) =
@@ -511,6 +512,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                             tymap.insert(ty1, ty2);
                         }
                     }
+                    tymap_stack.push(tymap);
                 }
 
                 let state = if destination.is_some() {
@@ -634,8 +636,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                 // FIXME; hideous monstrosity...
                 {
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    tymap_stack.pop();
                 }
                 state
             }
