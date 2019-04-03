@@ -68,7 +68,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .expect(&format!("Procedure {:?} contains a loop", self.proc_def_id));
         let body_expr = state.into_expressions().remove(0);
         debug!("Pure function {} has been encoded with expr: {}", function_name, body_expr);
-        body_expr
+        let subst_strings = self.encoder.type_substitution_strings();
+        body_expr.patch_types(&subst_strings)
     }
 
     pub fn encode_function(&self) -> vir::Function {
@@ -148,7 +149,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         ).collect();
         let return_type = self.encode_function_return_type();
 
-        let body = body.map(|b| b.patch_types(&subst_strings));
 
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_binary_operations() {
