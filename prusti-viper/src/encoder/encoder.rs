@@ -48,7 +48,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
-    pure_function_bodies: RefCell<HashMap<ProcedureDefId, vir::Expr>>,
+    pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
     pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_invariant_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
@@ -636,7 +636,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         proc_def_id: ProcedureDefId,
         is_encoding_assertion: bool
     ) -> vir::Expr {
-        if !self.pure_function_bodies.borrow().contains_key(&proc_def_id) {
+        let substs_key = self.type_substitution_key();
+        let key = (proc_def_id, substs_key);
+        if !self.pure_function_bodies.borrow().contains_key(&key) {
             let procedure = self.env.get_procedure(proc_def_id);
             let pure_function_encoder = PureFunctionEncoder::new(
                 self,
@@ -645,9 +647,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 is_encoding_assertion,
             );
             let body = pure_function_encoder.encode_body();
-            self.pure_function_bodies.borrow_mut().insert(proc_def_id, body);
+            self.pure_function_bodies.borrow_mut().insert(key.clone(), body);
         }
-        self.pure_function_bodies.borrow()[&proc_def_id].clone()
+        self.pure_function_bodies.borrow()[&key].clone()
     }
 
     pub fn encode_pure_function_def(
@@ -773,8 +775,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
         // FIXME: This should use current_tymap.
-        if let Some(last) = self.typaram_repl.borrow().last() {
-            if let Some(replaced_ty) = last.get(&ty) {
+        if let Some(first) = self.typaram_repl.borrow().first() {
+            if let Some(replaced_ty) = first.get(&ty) {
                 return replaced_ty.clone()
             }
         }
