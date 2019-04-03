@@ -235,3 +235,11 @@ cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v 
 
 inlineinfo "Cleaned lines of generated VIR code that are due to inhale/exhale/assert acc"
 cat "$CRATE_DOWNLOAD_DIR"/*/source/log/vir_program_before_viper/*.vir | grep -v '^$\|^\s*//\|^.$\| inhale true$\| exhale true$\| assert true$' | grep " inhale acc\| exhale acc\| assert acc" | wc -l
+
+space
+
+info "Blacklisted functions"
+cat "$DIR"/../crates/global_blacklist.csv | while read f; do
+    echo "$f";
+    cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq ".functions[] | select(.node_path == $f) | .source_code" | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g';
+done
