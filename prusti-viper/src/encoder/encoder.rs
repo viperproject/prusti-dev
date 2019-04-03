@@ -785,7 +785,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn current_tymap(&self) -> HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {
         let mut map = HashMap::new();
         for map_frame in self.typaram_repl.borrow().iter().rev() {
-            error!("map_frame = {:?}", map_frame);
             for (typ, subst) in map_frame {
                 map.insert(typ.clone(), subst.clone());
                 let additional_substs: Vec<_> = map
