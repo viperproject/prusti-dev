@@ -55,6 +55,22 @@ long-test: build
 		echo "$$run_file $$DIFF" >> timings; \
 	done
 
+long-test-overflow: build
+	find prusti/tests/verify/long-pass-overflow/ -name '*.rs' | while read run_file; do \
+		echo "Testing '$$run_file'..."; \
+		START=$$(date +%s); \
+		$(SET_ENV_VARS) RUST_BACKTRACE=1 \
+		PRUSTI_CHECK_BINARY_OPERATIONS=1 \
+		$(PRUSTI_DRIVER) \
+			-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
+			--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
+			"$$run_file" \
+			|| exit 1; \
+		END=$$(date +%s); \
+		DIFF=$$(( $$END - $$START )); \
+		echo "$$run_file $$DIFF" >> timings; \
+	done
+
 bench:
 	$(SET_ENV_VARS) cargo bench --all
 
