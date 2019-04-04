@@ -4,8 +4,9 @@
 /// which was created by Matsakis to show-case NLL in his blog:
 /// http://smallcultfollowing.com/babysteps/blog/2018/10/31/mir-based-borrowck-is-almost-here/
 ///
-/// This example illustrates the differences between lexical borrow checker and the new non-lexical
-/// borrow checker that is going to be part of Rust 2018 edition.
+/// This example illustrates the differences between the lexical borrow
+/// checker from Rust 2015 edition and the new non-lexical borrow
+/// checker that was shipped as part of the Rust 2018 edition.
 ///
 /// Changes:
 ///
@@ -103,8 +104,7 @@ fn router(
     #[invariant="is_some ==> message_option.is_some()"]
     while is_some {
         let mut message = message_option.take();
-        message_option = rx.recv();
-        match &mut message {
+        match &message {
             Message::Letter { recipient, data } => {
                 if recipient.equals(me) {
                     tx.send(message);
@@ -113,10 +113,11 @@ fn router(
                 }
             }
         }
+        message_option = rx.recv();
         is_some = message_option.is_some();
     }
 }
 
-fn process(_data: &mut StringWrapper) {}
+fn process(_data: &StringWrapper) {}
 
 fn main() { }
