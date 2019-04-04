@@ -9,6 +9,8 @@ import time
 import re
 import statistics
 
+from benchmark import MANUAL_EVALUATION
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(ROOT, 'bench.csv')
 
@@ -25,16 +27,30 @@ def main():
             if key not in examples:
                 examples[key] = []
             examples[key].append((total, verification))
+    example_stats = {}
     for ((name, overflow), values) in examples.items():
         print(name, overflow)
         totals = [float(total) for (total, _) in values]
         verifications = [float(verification) for (_, verification) in values]
         for (total, verification) in values:
             print("  ", total, verification)
-        print("  total={:.1f}  ({:.1f})  verification={:.1f}  ({:.1f})".format(
+        stats = ("  total={:.1f}  ({:.1f})  verification={:.1f}  ({:.1f})".format(
             statistics.mean(totals), statistics.pstdev(totals),
             statistics.mean(verifications), statistics.pstdev(verifications)
         ))
+        print(stats)
+        assert name not in example_stats
+        f = lambda x: "{:.1f}".format(x)
+        example_stats[name] = (
+            name,
+            f(statistics.mean(totals)),
+            f(statistics.pstdev(totals)),
+            f(statistics.mean(verifications)),
+            f(statistics.pstdev(verifications))
+        )
+    for example in MANUAL_EVALUATION:
+        name = os.path.basename(example)
+        print('{:40} {:5} {:5} {:5} {:5}'.format(*example_stats[name]))
 
 
 if __name__ == '__main__':

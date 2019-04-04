@@ -18,14 +18,34 @@ import time
 import re
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-TOML_FILE = os.path.join(ROOT, 'Prusti.toml')
+REPOSITORY_ROOT = os.path.join(ROOT, '..', '..')
+TOML_FILE = os.path.join(REPOSITORY_ROOT, 'Prusti.toml')
 LOG_FILE = os.path.join(ROOT, 'bench.csv')
 MAKE_FLAGS = [] # ["JAVA_HOME=/usr/lib/jvm/jdk-11.0.1/"]
 ENV_VARS = dict(os.environ,
     # Z3_EXE='/home/software/z3/z3-4.8.3.74db2f250907-x64-ubuntu-14.04/bin/z3',
-    Z3_EXE=os.path.abspath(os.path.join(ROOT, '../../z3/bin/z3')),
-    VIPER_HOME=os.path.abspath(os.path.join(ROOT, '../../viper')),
+    # Z3_EXE=os.path.abspath(os.path.join(ROOT, '../../z3/bin/z3')),
+    # VIPER_HOME=os.path.abspath(os.path.join(ROOT, '../../viper')),
 )
+
+MANUAL_EVALUATION="""
+prusti/tests/verify/pass-overflow/rosetta/100_doors_generic.rs
+prusti/tests/verify/pass-overflow/rosetta/Binary_search_shared.rs
+prusti/tests/verify/pass-overflow/rosetta/Heapsort_generic.rs
+prusti/tests/verify/pass-overflow/rosetta/Knights_tour_generic.rs
+prusti/tests/verify/long-pass-overflow/rosetta/Knuth_shuffle.rs
+prusti/tests/verify/pass-overflow/rosetta/Langtons_ant.rs
+prusti/tests/verify/pass-overflow/rosetta/Towers_of_Hanoi.rs
+prusti/tests/verify/pass-overflow/rosetta/Selection_sort_generic.rs
+
+prusti/tests/verify/pass/rosetta/Ackermann_function.rs
+prusti/tests/verify/pass-overflow/rosetta/Binary_search_shared_monomorphised.rs
+prusti/tests/verify/pass/rosetta/Fibonacci_sequence.rs
+prusti/tests/verify/pass-overflow/rosetta/Selection_sort.rs
+
+prusti/tests/verify/pass/nll-rfc/message.rs
+prusti/tests/verify/pass-overflow/nll-rfc/borrow_first.rs
+""".strip().split()
 
 
 def create_configuration_file(check_binary):
@@ -83,17 +103,18 @@ def get_benchmarks():
             # list(glob.glob(evaluation_glob)) +
             # list(glob.glob(evaluation_overflow_glob)) +
             # list(glob.glob(nll_glob)))
-    return (list(glob.glob(evaluation_glob)) +
-            list(glob.glob(evaluation_overflow_glob)))
+    # return (list(glob.glob(evaluation_glob)) +
+            # list(glob.glob(evaluation_overflow_glob)))
+    return [os.path.join(REPOSITORY_ROOT, path) for path in  MANUAL_EVALUATION]
 
 
 def run_benchmarks():
     benchmarks = get_benchmarks()
-    print('\n'.join(sorted(benchmarks)), len(benchmarks))
+    print('\n'.join(benchmarks), len(benchmarks))
     with open(LOG_FILE, 'a') as fp:
         writer = csv.writer(fp)
         for benchmark in benchmarks:
-            if 'overflows' in benchmark:
+            if 'overflow' in benchmark:
                 check_overflow = 'true'
             else:
                 check_overflow = 'false'
@@ -108,13 +129,15 @@ def run_benchmark(file_path):
     timestamp = datetime.datetime.now().strftime("%y-%m-%d %H:%M:%S")
     print(timestamp, file_path)
     start_time = time.time()
-    result = subprocess.run(
-        [
-            "make", "run_release",
+    cmd = [
+            "make", "run-release",
             "LOG_LEVEL=prusti_viper=info",
             "RUN_FILE=" + file_path,
-            ] + MAKE_FLAGS,
-        cwd=ROOT,
+            ] + MAKE_FLAGS
+    print(' '.join(cmd))
+    result = subprocess.run(
+        cmd,
+        cwd=REPOSITORY_ROOT,
         check=True,
         stderr=subprocess.PIPE,
         env=ENV_VARS,
