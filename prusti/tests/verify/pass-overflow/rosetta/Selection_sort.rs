@@ -145,7 +145,7 @@ fn print_sorted_array(array: &mut VecWrapperI32) {
     println!(" The sorted array is {:?}", array.v);
 }
  
-fn main() {
+pub fn test() {
     let mut array = VecWrapperI32::new();
     array.push(9);
     array.push(4);
@@ -162,3 +162,5 @@ fn main() {
 
     print_sorted_array(&mut array);
 }
+
+fn main() { }
