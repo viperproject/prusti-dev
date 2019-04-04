@@ -10,6 +10,7 @@
 //! Verified properties:
 //!
 //! +   Absence of panics.
+//! +   Absence of overflows.
 //! +   The resulting vector is sorted.
 
 extern crate prusti_contracts;
@@ -41,12 +42,22 @@ impl VecWrapperI32 {
 
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
-    #[ensures="self.lookup(index) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
-    pub fn store(&mut self, index: usize, value: i32) {
-        self.v[index] = value;
+    #[ensures="*result == old(self.lookup(index))"]
+    pub fn index(&self, index: usize) -> &i32 {
+        &self.v[index]
+    }
+
+    #[trusted]
+    #[requires="0 <= index && index < self.len()"]
+    #[ensures="*result == old(self.lookup(index))"]
+    #[ensures="after_expiry(
+        self.len() == old(self.len()) &&
+        self.lookup(index) == before_expiry(*result) &&
+        forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
+                    self.lookup(i) == old(self.lookup(i))
+        )"]
+    pub fn index_mut(&mut self, index: usize) -> &mut i32 {
+        &mut self.v[index]
     }
 
     #[trusted]
@@ -101,17 +112,19 @@ fn selection_sort(array: &mut VecWrapperI32) {
                      (i <= k && k < j && k < array.len()) ==>
                      array.lookup(min) <= array.lookup(k)"]
         while continue_loop_2 {
-            if array.lookup(j) < array.lookup(min) {
+            if *array.index(j) < *array.index(min) {
                 min = j;
             }
             j += 1;
             continue_loop_2 = j < array.len();
         }
 
-        let tmp = array.lookup(i);
-        let min_value = array.lookup(min);
-        array.store(i, min_value);
-        array.store(min, tmp);
+        let tmp = *array.index(i);
+        let min_value = *array.index(min);
+        let p = array.index_mut(i);
+        *p = min_value;
+        let p = array.index_mut(min);
+        *p = tmp;
 
         i += 1;
 
