@@ -15,6 +15,7 @@ use encoder::utils::PlusOne;
 use prusti_interface::specifications::*;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
+use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use rustc_data_structures::indexed_vec::Idx;
@@ -529,14 +530,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
                 {
                     // FIXME; hideous monstrosity...
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    let mut tymap = HashMap::new();
 
                     for (kind1, kind2) in own_substs.iter().zip(*subst) {
                         if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) = (kind1.unpack(), kind2.unpack()) {
                             tymap.insert(ty1, ty2);
                         }
                     }
+                    tymap_stack.push(tymap);
                 }
 
                 let mut exprs: Vec<vir::Expr> = vec![];
@@ -566,8 +568,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
                 // FIXME; hideous monstrosity...
                 {
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    tymap_stack.pop();
                 }
 
                 if num_variants == 0 {

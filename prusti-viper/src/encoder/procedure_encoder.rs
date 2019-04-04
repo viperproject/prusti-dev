@@ -913,7 +913,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         loans: &[facts::Loan],
         zombie_loans: &[facts::Loan],
-        location: mir::Location
+        location: mir::Location,
+        end_location: Option<mir::Location>,
     ) -> vir::borrows::DAG {
         let mir_dag = self.polonius_info.construct_reborrowing_dag(
             &loans, &zombie_loans, location);
@@ -923,7 +924,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let node = match node.kind {
                 ReborrowingKind::Assignment { loan } => {
                     self.construct_vir_reborrowing_node_for_assignment(
-                        &mir_dag, loan, node, location)
+                        &mir_dag, loan, node, location, end_location)
                 }
                 ReborrowingKind::Call { loan, .. } => {
                     self.construct_vir_reborrowing_node_for_call(&mir_dag, loan, node, location)
@@ -956,7 +957,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         mir_dag: &ReborrowingDAG,
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
-        location: mir::Location
+        location: mir::Location,
+        end_location: Option<mir::Location>,
     ) -> vir::borrows::Node {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let node_is_leaf = node.reborrowed_loans.is_empty();
@@ -1040,8 +1042,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         let conflicting_loans = self.polonius_info.get_conflicting_loans(node.loan);
+        let deaf_location = if let Some(end_location) = end_location {
+            end_location
+        } else {
+            location
+        };
         let alive_conflicting_loans = self.polonius_info.get_alive_conflicting_loans(
-            node.loan, location);
+            node.loan, deaf_location);
 
         let guard = self.construct_location_guard(loan_location);
         vir::borrows::Node::new(
@@ -1153,13 +1160,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         loans: Vec<facts::Loan>,
         zombie_loans: &[facts::Loan],
-        location: mir::Location
+        location: mir::Location,
+        end_location: Option<mir::Location>,
     ) -> Vec<vir::Stmt> {
         trace!("encode_expiration_of_loans '{:?}' '{:?}'", loans, zombie_loans);
         let mut stmts: Vec<vir::Stmt> = vec![];
         if loans.len() > 0 {
             let vir_reborrowing_dag = self.construct_vir_reborrowing_dag(
-                &loans, &zombie_loans, location);
+                &loans, &zombie_loans, location, end_location);
             stmts.push(vir::Stmt::ExpireBorrows(vir_reborrowing_dag));
         }
         stmts
@@ -1169,19 +1177,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("encode_expiring_borrows_beteewn '{:?}' '{:?}'", begin_loc, end_loc);
         let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
     }
 
     fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_before '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_before(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
     }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_at(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location)
+        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
     }
 
     fn encode_terminator(&mut self,
@@ -1377,8 +1385,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 {
                     // FIXME; hideous monstrosity...
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    let mut tymap = HashMap::new();
 
                     for (kind1, kind2) in own_substs.iter().zip(substs) {
                         if let (ty::subst::UnpackedKind::Type(ty1), ty::subst::UnpackedKind::Type(ty2)) =
@@ -1386,6 +1394,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             tymap.insert(ty1, ty2);
                         }
                     }
+                    tymap_stack.push(tymap);
                 }
 
                 match func_proc_name {
@@ -1778,8 +1787,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 // FIXME; hideous monstrosity...
                 {
-                    let mut tymap = self.encoder.typaram_repl.borrow_mut();
-                    tymap.clear();
+                    let mut tymap_stack = self.encoder.typaram_repl.borrow_mut();
+                    tymap_stack.pop();
                 }
 
                 if let &Some((_, target)) = destination {
@@ -2271,7 +2280,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let mut package_stmts = if let Some(region) = self.polonius_info.variable_regions.get(&blocker) {
                 let (all_loans, zombie_loans) = self.polonius_info.get_all_loans_kept_alive_by(
                     start_point, *region);
-                self.encode_expiration_of_loans(all_loans, &zombie_loans, location)
+                self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)
             } else {
                 unreachable!(); // Really?
             };
