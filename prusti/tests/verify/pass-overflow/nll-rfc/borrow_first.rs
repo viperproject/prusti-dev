@@ -14,75 +14,73 @@
 
 extern crate prusti_contracts;
 
-pub struct VecWrapperI32{
-    v: Vec<i32>
+pub struct VecWrapper<T>{
+    v: Vec<T>
 }
 
-impl VecWrapperI32 {
-    // Encoded as body-less Viper function
+impl<T> VecWrapper<T> {
+
+    #[trusted]
+    #[ensures="result.len() == 0"]
+    pub fn new() -> Self {
+        VecWrapper{ v: Vec::new() }
+    }
+
+    #[trusted]
+    #[ensures="self.len() == old(self.len()) + 1"]
+    pub fn push(&mut self, value: T) {
+        self.v.push(value);
+    }
+
     #[trusted]
     #[pure]
     pub fn len(&self) -> usize {
         self.v.len()
     }
 
-    // Encoded as body-less Viper method
     #[trusted]
-    #[ensures="result.len() == 0"]
-    pub fn new() -> Self {
-        VecWrapperI32{ v: Vec::new() }
-    }
-
-    // Encoded as body-less Viper function
-    #[trusted]
-    #[pure]
     #[requires="0 <= index && index < self.len()"]
-    pub fn lookup(&self, index: usize) -> i32 {
-        self.v[index]
+    pub fn index(&self, index: usize) -> &T {
+        &self.v[index]
     }
 
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
-    pub fn borrow(&mut self, index: usize) -> &mut i32 {
+    #[ensures="after_expiry(self.len() == old(self.len()))"]
+    pub fn index_mut(&mut self, index: usize) -> &mut T {
         &mut self.v[index]
     }
 
-    // Encoded as body-less Viper method
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
+    #[requires="0 <= index_a && index_a < self.len()"]
+    #[requires="0 <= index_b && index_b < self.len()"]
     #[ensures="self.len() == old(self.len())"]
-    #[ensures="self.lookup(index) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < self.len() && i != index) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
-    pub fn store(&mut self, index: usize, value: i32) {
-        self.v[index] = value;
-    }
-
-    #[trusted]
-    #[ensures="self.len() == old(self.len()) + 1"]
-    #[ensures="self.lookup(old(self.len())) == value"]
-    #[ensures="forall i: usize :: (0 <= i && i < old(self.len())) ==>
-                    self.lookup(i) == old(self.lookup(i))"]
-    pub fn push(&mut self, value: i32) {
-        self.v.push(value);
+    pub fn swap(&mut self, index_a: usize, index_b: usize) {
+        self.v.swap(index_a, index_b);
     }
 }
 
 #[pure]
-fn some_condition(r: &i32) -> bool {
-    *r > 0
+#[trusted]
+fn some_condition<T>(r: &T) -> bool {
+    unimplemented!();
+}
+
+#[trusted]
+fn default<T>() -> T {
+    unimplemented!();
 }
 
 
 #[requires="vec.len() > 0"]
-fn foo(vec: &mut VecWrapperI32) -> &mut i32 {
-    let r = vec.borrow(0);
+fn foo<T>(vec: &mut VecWrapper<T>) -> &T {
+    let r = vec.index(0);
     if some_condition(r) {
         r
     } else {
-        vec.push(5);
+        vec.push(default());
         let last = vec.len()-1;
-        vec.borrow(last)
+        vec.index(last)
     }
 }
 
