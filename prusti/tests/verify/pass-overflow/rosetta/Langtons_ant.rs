@@ -12,6 +12,8 @@
 //! Verified properties (for fixed version):
 //!
 //! +   Absence of panics.
+//! +   Absence of overflows.
+//! +   Grid is always in a valid state: contains only 0s and 1s.
 //!
 //! Found bug:
 //!
@@ -49,7 +51,7 @@ impl Matrix {
     #[ensures="result.x_size() == x_size"]
     #[ensures="forall y: isize, x: isize ::
                 (0 <= x && x < result.x_size() && 0 <= y && y < result.y_size()) ==>
-                result.lookup(y, x) == 0 || result.lookup(y, x) == 1"]
+                result.lookup(y, x) == 0"]
     fn new(y_size: isize, x_size: isize) -> Self {
         Self {
             _ghost_y_size: y_size as usize,
@@ -87,7 +89,7 @@ impl Matrix {
             self.lookup(i, j) == old(self.lookup(i, j))
         )
         )"]
-    fn borrow(&mut self, y: isize, x: isize) -> &mut u8 {
+    fn index_mut(&mut self, y: isize, x: isize) -> &mut u8 {
         &mut self.vec[y as usize][x as usize]
     }
 
@@ -127,7 +129,7 @@ impl Ant {
     #[ensures="vec.y_size() == old(vec.y_size())"]
     #[ensures="vec.x_size() == old(vec.x_size())"]
     fn mv(&mut self, vec: &mut Matrix) {
-        let pointer = vec.borrow(self.y, self.x);
+        let pointer = vec.index_mut(self.y, self.x);
         //change direction
         match *pointer {
             0 => self.dir = self.dir.clone().right(),
