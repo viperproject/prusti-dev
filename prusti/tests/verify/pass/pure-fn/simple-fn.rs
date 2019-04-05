@@ -1,6 +1,11 @@
 extern crate prusti_contracts;
 
 #[pure]
+fn max(x: i32, y: i32) -> i32 {
+    if x < y { y } else { x }
+}
+
+#[pure]
 #[requires="0 <= n && n <= 2"]
 fn magic(n: i32) -> i32 {
     match n {
