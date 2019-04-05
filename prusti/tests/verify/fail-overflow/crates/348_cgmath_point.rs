@@ -28,7 +28,7 @@ impl Div<Point3<isize>> for isize {
     fn div(self, other: Point3<isize>) -> Point3<isize> {
         let (scalar, point) = (self, other);
         Point3::new(
-            scalar / point.x, scalar / point.y, scalar / point.z, //~ ERROR overflow
+            scalar / point.x, scalar / point.y, scalar / point.z, //~ ERROR
         )
     }
 }
@@ -53,7 +53,7 @@ impl Div<Vector1<u64>> for u64 {
     fn div(self, other: Vector1<u64>) -> Vector1<u64> {
         let (scalar, point) = (self, other);
         Vector1::new(
-            scalar / point.x, //~ ERROR overflow
+            scalar / point.x, //~ ERROR
         )
     }
 }
