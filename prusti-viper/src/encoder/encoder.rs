@@ -541,14 +541,22 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
         let usize_bits = mem::size_of::<usize>() * 8;
 
+        fn with_sign(unsigned_val: u128, bit_size: u64) -> i128 {
+            // Handle *signed* integers
+            let shift = 128 - bit_size;
+            let casted_val = unsigned_val as i128;
+            // sign extend the raw representation to be an i128
+            ((casted_val << shift) >> shift).into()
+        }
+
         let expr = match value.ty.sty {
             ty::TypeVariants::TyBool => scalar_value.to_bool().ok().unwrap().into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I8) => (scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap() as i8).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I16) => (scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap() as i16).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I32) => (scalar_value.to_bits(ty::layout::Size::from_bits(32)).ok().unwrap() as i32).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I64) => (scalar_value.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap() as i64).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I128) => (scalar_value.to_bits(ty::layout::Size::from_bits(128)).ok().unwrap() as i128).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::Isize) => (scalar_value.to_bits(ty::layout::Size::from_bits(usize_bits as u64)).ok().unwrap() as i128).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I8) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap(), 8) as i8).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I16) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap(), 16) as i16).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I32) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(32)).ok().unwrap(), 32) as i32).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I64) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap(), 64) as i64).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I128) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(128)).ok().unwrap(), 128) as i128).into(),
+            ty::TypeVariants::TyInt(ast::IntTy::Isize) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(usize_bits as u64)).ok().unwrap(), usize_bits as u64) as i128).into(),
             ty::TypeVariants::TyUint(ast::UintTy::U8) => (scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap() as u8).into(),
             ty::TypeVariants::TyUint(ast::UintTy::U16) => (scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap() as u16).into(),
             ty::TypeVariants::TyChar |

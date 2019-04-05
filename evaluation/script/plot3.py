@@ -38,9 +38,13 @@ print("There are {} verified supported functions".format(len(clean_filtered_data
 
 mean_data = clean_filtered_data.groupby("name").mean()
 
+data_run1 = clean_filtered_data.groupby("name").nth(0)
+data_run2 = clean_filtered_data.groupby("name").nth(1)
+data_run3 = clean_filtered_data.groupby("name").nth(2)
+
 #width = 2.42
 #height = 1.5
-width = 3.5
+width = 2.42
 height = 1.5
 pgf_with_latex = {                      # setup matplotlib to use latex for output
     "pgf.texsystem": "pdflatex",        # change this if using xetex or lautex
@@ -88,15 +92,21 @@ ax.set_axisbelow(True)
 
 plt.grid(color='lightgray', linestyle='--', linewidth=1)
 
-sorted_data = np.sort(mean_data["duration"] / 1000)
-plt.step(
-    np.concatenate([sorted_data, sorted_data[[-1]]]),
-    np.arange(sorted_data.size+1) / sorted_data.size,
-    c="#003693",
-    #marker='o',
-    #linewidth=0,
-    #markersize=1,
-)
+def plot(this_data, c="#003693"):
+    sorted_data = np.sort(this_data["duration"] / 1000)
+    plt.step(
+        np.concatenate([sorted_data, sorted_data[[-1]]]),
+        np.arange(sorted_data.size+1) / sorted_data.size,
+        c=c,
+        #marker='o',
+        #linewidth=0.1,
+        #markersize=1,
+    )
+
+plot(mean_data)
+#plot(data_run1, c="red")
+#plot(data_run2, c="green")
+#plot(data_run3, c="blue")
 
 ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 
@@ -122,7 +132,7 @@ ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 #for axis in [ax.xaxis, ax.yaxis]:
 #    axis.set_tick_params(direction='out', color='lightgray')
 
-plt.xlim(left=0, right=5)
+plt.xlim(left=0, right=10)
 plt.ylim(bottom=0, top=1)
 #plt.rc('text', usetex=True)
 plt.tight_layout()
@@ -139,8 +149,43 @@ plt.savefig("plot3.pgf", bbox_inches='tight', pad_inches=0)
 tikz_save("plot3.tex")
 
 
-print("Functions that are slow to verify")
+print("Functions that are fast to verify (<=10s)")
+print(len(mean_data[mean_data.duration <= 10*1000]) / len(mean_data) * 100)
+
+print("Functions that are slow to verify (>10s)")
 print(len(mean_data[mean_data.duration > 10*1000]))
+
+print("Functions that are slow to verify (>30s)")
+print(len(mean_data[mean_data.duration > 30*1000]))
+
+print("Functions that are slow to verify (>120s)")
+print(len(mean_data[mean_data.duration > 120*1000]))
+print(mean_data[mean_data.duration > 120*1000])
+
+print("Functions that are slow to verify (>180s)")
+print(len(mean_data[mean_data.duration > 180*1000]))
+
+print("Functions that are slow to verify (>240s)")
+print(len(mean_data[mean_data.duration > 240*1000]))
 
 print("Maximum verification duration")
 print(mean_data.duration.max())
+
+
+print("Mean duration")
+print(mean_data.duration.mean())
+print(data_run1.duration.mean())
+print(data_run2.duration.mean())
+print(data_run3.duration.mean())
+
+print("Median duration")
+print(mean_data.duration.median())
+print(data_run1.duration.median())
+print(data_run2.duration.median())
+print(data_run3.duration.median())
+
+print("Max duration")
+print(mean_data.duration.max())
+print(data_run1.duration.max())
+print(data_run2.duration.max())
+print(data_run3.duration.max())
