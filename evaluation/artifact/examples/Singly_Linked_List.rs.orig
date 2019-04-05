@@ -1,0 +1,58 @@
+https://rosettacode.org/wiki/Singly-linked_list/Element_definition#Rust
+
+type Link<T> = Option<Box<Node<T>>>; // Type alias
+pub struct List<T> { // User-facing interface for list
+    head: Link<T>,
+}
+ 
+struct Node<T> { // Private implementation of Node
+    elem: T,
+    next: Link<T>,
+}
+ 
+impl<T> List<T> {
+    #[inline]
+    pub fn new() -> Self { // List constructor
+        List { head: None }
+    // Add other methods here
+}
+
+fn main() {
+    let list = List::new();
+    // Do stuff
+}
+
+https://rosettacode.org/wiki/Singly-linked_list/Traversal#Rust
+
+// 
+//
+// Iteration by value (simply empties the list as the caller now owns all values)
+//
+//
+pub struct IntoIter<T>(List<T>);
+ 
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.head.take().map(|node| { 
+            let node = *node;
+            self.0.head = node.next;
+            node.elem
+        })
+    }
+}
+
+https://rosettacode.org/wiki/Singly-linked_list/Element_insertion#Rust
+
+impl<T> List<T> {
+    pub fn new() -> Self {
+        List { head: None }
+    }
+ 
+    pub fn push(&mut self, elem: T) {
+    let new_node = Box::new(Node {
+        elem: elem,
+        next: self.head.take(),
+    });
+    self.head = Some(new_node);
+}
