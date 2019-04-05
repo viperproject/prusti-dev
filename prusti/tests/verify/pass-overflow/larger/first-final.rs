@@ -9,6 +9,7 @@
 //! +   Wrapped built-in types and functions.
 //! +   Add additional functions for capturing functional specification.
 //! +   Change the loop into the supported shape.
+//! +   Replace `assert_eq!` with supported ones.
 //!
 //! Verified properties:
 //!
