@@ -43,21 +43,6 @@ impl<T> VecWrapper<T> {
     pub fn index(&self, index: usize) -> &T {
         &self.v[index]
     }
-
-    #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="after_expiry(self.len() == old(self.len()))"]
-    pub fn index_mut(&mut self, index: usize) -> &mut T {
-        &mut self.v[index]
-    }
-
-    #[trusted]
-    #[requires="0 <= index_a && index_a < self.len()"]
-    #[requires="0 <= index_b && index_b < self.len()"]
-    #[ensures="self.len() == old(self.len())"]
-    pub fn swap(&mut self, index_a: usize, index_b: usize) {
-        self.v.swap(index_a, index_b);
-    }
 }
 
 #[pure]
@@ -73,7 +58,7 @@ fn default<T>() -> T {
 
 
 #[requires="vec.len() > 0"]
-fn foo<T>(vec: &mut VecWrapper<T>) -> &T {
+pub fn foo<T>(vec: &mut VecWrapper<T>) -> &T {
     let r = vec.index(0);
     if some_condition(r) {
         r
