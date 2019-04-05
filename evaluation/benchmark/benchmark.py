@@ -43,7 +43,7 @@ prusti/tests/verify/pass-overflow/rosetta/Binary_search_shared_monomorphised.rs
 prusti/tests/verify/pass/rosetta/Fibonacci_sequence.rs
 prusti/tests/verify/pass-overflow/rosetta/Selection_sort.rs
 
-prusti/tests/verify/pass/nll-rfc/message.rs
+prusti/tests/verify/fail/nll-rfc/message.rs
 prusti/tests/verify/pass-overflow/nll-rfc/borrow_first.rs
 
 prusti/tests/verify/pass-overflow/rosetta/Singly_Linked_List.rs

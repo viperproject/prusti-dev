@@ -57,9 +57,31 @@ struct Sender {
     //sender: mpsc::Sender<Message>,
 }
 
+enum Result<T> {
+    Ok(T),
+    Err,
+}
+
+impl<T> Result<T> {
+    #[pure]
+    fn is_ok(&self) -> bool {
+        match self {
+            Result::Ok(_) => true,
+            Result::Err => false,
+        }
+    }
+    #[requires="self.is_ok()"]
+    fn unwrap(self) -> T {
+        match self {
+            Result::Ok(v) => v,
+            Result::Err => unreachable!(),
+        }
+    }
+}
+
 impl Sender {
     #[trusted]
-    pub fn send(&mut self, t: Message) {
+    pub fn send(&mut self, t: Message) -> Result<()> {
         unimplemented!();
         //tx.send(message).unwrap();
     }
@@ -107,7 +129,8 @@ fn router(
         match &message {
             Message::Letter { recipient, data } => {
                 if recipient.equals(me) {
-                    tx.send(message);
+                    // We cannot verify that this does not panic…
+                    tx.send(message).unwrap();  //~ ERROR precondition might not hold.
                 } else {
                     process(data);
                 }
