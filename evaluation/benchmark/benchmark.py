@@ -45,6 +45,8 @@ prusti/tests/verify/pass-overflow/rosetta/Selection_sort.rs
 
 prusti/tests/verify/pass/nll-rfc/message.rs
 prusti/tests/verify/pass-overflow/nll-rfc/borrow_first.rs
+
+prusti/tests/verify/pass-overflow/rosetta/Singly_Linked_List.rs
 """.strip().split()
 
 
