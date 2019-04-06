@@ -40,7 +40,7 @@ prusti/tests/verify/pass-overflow/rosetta/Selection_sort_generic.rs
 prusti/tests/verify/pass/rosetta/Ackermann_function.rs
 prusti/tests/verify/pass-overflow/rosetta/Binary_search_shared_monomorphised.rs
 prusti/tests/verify/pass/rosetta/Fibonacci_sequence.rs
-prusti/tests/verify/pass-overflow/rosetta/Knapsack_Problem.rs
+prusti/tests/verify/pass/rosetta/Knapsack_Problem.rs
 prusti/tests/verify/pass/larger/first-final.rs
 prusti/tests/verify/pass-overflow/rosetta/Selection_sort.rs
 prusti/tests/verify/pass-overflow/rosetta/Towers_of_Hanoi_spec.rs
