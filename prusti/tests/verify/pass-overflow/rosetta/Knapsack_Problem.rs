@@ -10,6 +10,11 @@
 //!
 //! Verified properties:
 //!
+//! +   Absence of panics.
+//! +   The implementation computes the values of the function `m` given in
+//!     https://en.wikipedia.org/wiki/Knapsack_problem#0/1_knapsack_problem
+//! +   We could not express the postcondition that the result is
+//!     correct because that requires support for comprehensions.
 
 extern crate prusti_contracts;
 
@@ -31,24 +36,6 @@ impl Items {
         self.v.len()
     }
 
-    /// An upper bound on the maximum value of an item, so that we do not overflow.
-    #[pure]
-    fn max_value(&self) -> usize {
-        if self.len() == 0 {
-            std::usize::MAX
-        } else {
-            std::usize::MAX / self.len()
-        }
-    }
-
-    #[trusted]
-    #[pure]
-    #[requires="0 <= index && index < self.len()"]
-    #[ensures="result >= 0"]
-    pub fn lookup_name(&self, index: usize) -> usize {
-        self.v[index].name
-    }
-
     #[trusted]
     #[pure]
     #[requires="0 <= index && index < self.len()"]
@@ -67,7 +54,6 @@ impl Items {
 
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
-    #[ensures="self.lookup_name(index) == result.name"]
     #[ensures="self.lookup_weight(index) == result.weight"]
     #[ensures="self.lookup_value(index) == result.value"]
     pub fn index(&self, index: usize) -> &Item {
@@ -200,8 +186,6 @@ fn m(items: &Items, i: usize, w: usize, max_weight: usize) -> usize {
 
 #[requires="items.len() < std::usize::MAX"]
 #[requires="2 <= max_weight && max_weight < std::usize::MAX"]
-#[requires="forall k: usize :: (0 <= k && k < items.len()) ==>
-                items.lookup_value(k) < items.max_value()"]
 pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
     let mut best_value = BestValues::new(0, max_weight + 1, items.len() + 1);
     let mut i = 0;
