@@ -95,10 +95,8 @@ impl ItemIndices {
     }
 
     #[trusted]
-    #[requires="0 <= index && index < self.len()"]
-    //#[ensures="self.lookup(index) == *result"]
-    pub fn index(&self, index: usize) -> &usize {
-        &self.v[index]
+    pub fn push(&mut self, value: usize) {
+        self.v.push(value);
     }
 }
 
@@ -210,7 +208,7 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
     let mut continue_loop_1 = i < items.len();
     #[invariant="items.len() + 1 == best_value.item_len()"]
     #[invariant="max_weight + 1 == best_value.weight_len()"]
-    #[invariant="continue_loop_1 ==> (i < items.len())"]
+    #[invariant="continue_loop_1 == (i < items.len())"]
     #[invariant="0 <= i && i <= items.len()"]
     #[invariant="2 <= max_weight && max_weight < std::usize::MAX"]
     #[invariant="forall ii: usize, wi: usize ::
@@ -260,16 +258,25 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
         continue_loop_1 = i < items.len();
     }
  
-//let mut result = Vec::with_capacity(items.len());
     let mut result = ItemIndices::with_capacity(items.len());
-    //let mut left_weight = max_weight;
+    let mut left_weight = max_weight;
  
-    //for (i, it) in items.iter().enumerate().rev() {
-        //if best_value[i + 1][left_weight] != best_value[i][left_weight] {
-            //result.push(it);
-            //left_weight -= it.weight;
-        //}
-    //}
+    let mut i = items.len();
+    #[invariant="0 <= i && i <= items.len()"]
+    #[invariant="items.len() + 1 == best_value.item_len()"]
+    #[invariant="max_weight + 1 == best_value.weight_len()"]
+    #[invariant="0 <= left_weight && left_weight <= max_weight"]
+    #[invariant="forall ii: usize, wi: usize ::
+                    (0 <= ii && ii < best_value.item_len() && 0 <= wi && wi < best_value.weight_len()) ==>
+                    m(items, ii, wi, max_weight) == best_value.lookup(ii, wi)"]
+    while 0 < i {
+        i -= 1;
+        let it = items.index(i);
+        if *best_value.index(i+1, left_weight) != *best_value.index(i, left_weight) {
+            result.push(i);
+            left_weight -= it.weight;
+        }
+    }
  
     result
 }
