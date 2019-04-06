@@ -137,10 +137,11 @@ def run_benchmark(file_path):
             "RUN_FILE=" + file_path,
             ] + MAKE_FLAGS
     print(' '.join(cmd))
+    check_exit_status = 'verify/fail' not in file_path
     result = subprocess.run(
         cmd,
         cwd=REPOSITORY_ROOT,
-        check=True,
+        check=check_exit_status,
         stderr=subprocess.PIPE,
         env=ENV_VARS,
     )
