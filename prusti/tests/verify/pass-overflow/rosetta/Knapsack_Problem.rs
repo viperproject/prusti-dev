@@ -94,13 +94,6 @@ impl ItemIndices {
         self.v.len()
     }
 
-//  #[trusted]
-//  #[pure]
-//  #[requires="0 <= index && index < self.len()"]
-//  pub fn lookup(&self, index: usize) -> i32 {
-//      self.v[index]
-//  }
-
     #[trusted]
     #[requires="0 <= index && index < self.len()"]
     //#[ensures="self.lookup(index) == *result"]
@@ -173,28 +166,9 @@ impl BestValues {
     pub fn index_mut(&mut self, item_index: usize, weight_index: usize) -> &mut usize {
         &mut self.v[item_index][weight_index]
     }
-
-//  #[requires="0 <= item_index && item_index < self.item_len()"]
-//  #[requires="0 <= weight_index && weight_index < self.weight_len()"]
-//  #[requires="self.lookup(item_index, weight_index) >= 0"]
-//  #[requires="
-//      (forall ii: usize, wi: usize ::
-//          (0 <= ii && ii < self.item_len() &&
-//           0 <= wi && wi < self.weight_len() &&
-//           ii != item_index && wi != weight_index) ==>
-//          self.lookup(ii, wi) >= 0)
-//      "]
-//  #[requires="
-//      (forall ii: usize, wi: usize ::
-//          (0 <= ii && ii < self.item_len() &&
-//           0 <= wi && wi < self.weight_len()) ==>
-//          self.lookup(ii, wi) >= 0)
-//      "]
-//  pub fn check(&self, item_index: usize, weight_index: usize) {}
 }
 
 #[pure]
-//#[requires="a >= 0 && b >= 0"]
 fn max(a: usize, b: usize) -> usize {
     if a < b {
         b
@@ -202,33 +176,6 @@ fn max(a: usize, b: usize) -> usize {
         a
     }
 }
-
-/*
- *
-/// Check that values stored in ``best_value`` correspond to the function ``m`` from
-/// https://en.wikipedia.org/wiki/Knapsack_problem#0/1_knapsack_problem
-///
-/// *   $m[0,\,w]=0$
-/// *   $m[i,\,w]=m[i-1,\,w]$ if $w_i > w\,\!$ (the new item is more than the current weight limit)
-/// *   $m[i,\,w]=\max(m[i-1,\,w],\,m[i-1,w-w_i]+v_i)$ if $w_i \leqslant w$.
-#[pure]
-#[requires="items.len() + 1 == best_value.item_len()"]
-#[requires="0 <= i && i < best_value.item_len()"]
-#[requires="0 <= w && w < best_value.weight_len()"]
-fn m(items: &Items, best_value: &BestValues, i: usize, w: usize) -> usize {
-    match (i, w) {
-        (0, _w) => 0,
-        (i, w) => {
-            if items.lookup_weight(i-1) > w {
-                best_value.lookup(i-1, w)
-            } else {
-                max(best_value.lookup(i-1, w),
-                    best_value.lookup(i-1, w-items.lookup_weight(i-1)) + items.lookup_value(i-1))
-            }
-        }
-    }
-}
-*/
 
 /// Check that values stored in ``best_value`` correspond to the function ``m`` from
 /// https://en.wikipedia.org/wiki/Knapsack_problem#0/1_knapsack_problem
@@ -253,44 +200,11 @@ fn m(items: &Items, i: usize, w: usize, max_weight: usize) -> usize {
     }
 }
 
-#[pure]
-#[requires="items.len() + 1 == best_value.item_len()"]
-#[requires="0 <= i && i < best_value.item_len()"]
-#[requires="0 <= w && w < best_value.weight_len()"]
-fn is_best_value(items: &Items, best_value: &BestValues, i: usize, w: usize) -> bool {
-    best_value.lookup(i, w) == m(items, i, w, best_value.weight_len()-1)
-}
-
-//#[trusted]
-//#[ensures="false"]
-//fn assume_false() {}
-
-//#[requires="items.len() + 1 == best_value.item_len()"]
-//#[requires="2 <= best_value.weight_len()"]
-//#[requires="0 <= i && i < best_value.item_len()"]
-//#[ensures="forall ii: usize :: (0 <= ii && ii <= i) ==> m(items, ii, 0, best_value.weight_len()) == 0"]
-//fn lemma(items: &Items, best_value: &BestValues, i: usize) {
-    //if i == 0 {
-    //} else {
-        //lemma(items, best_value, i-1);
-    //}
-//}
-
-//#[requires="items.len() + 1 == best_value.item_len()"]
-//#[requires="2 <= best_value.weight_len()"]
-//#[ensures="forall ii: usize :: (0 <= ii && ii < best_value.item_len()) ==>
-            //m(items, ii, 0, best_value.weight_len()-1) == 0"]
-//fn lemma2(items: &Items, best_value: &BestValues) {
-    //lemma(items, best_value, )
-    //assume_false();
-//}
- 
 #[requires="items.len() < std::usize::MAX"]
 #[requires="2 <= max_weight && max_weight < std::usize::MAX"]
 #[requires="forall k: usize :: (0 <= k && k < items.len()) ==>
                 items.lookup_value(k) < items.max_value()"]
 pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
-//  let mut best_value = vec![vec![0; max_weight + 1]; items.len() + 1];
     let mut best_value = BestValues::new(0, max_weight + 1, items.len() + 1);
     let mut i = 0;
     let mut continue_loop_1 = i < items.len();
@@ -308,18 +222,8 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
     #[invariant="forall ii: usize, wi: usize ::
                     (0 <= ii && ii <= i && 0 <= wi && wi < best_value.weight_len()) ==>
                     m(items, ii, wi, max_weight) == best_value.lookup(ii, wi)"]
-//  #[invariant="forall ii: usize, wi: usize ::
-//                  (0 <= ii && ii <= i && 0 <= wi && wi < best_value.weight_len()) ==>
-//                  is_best_value(items, &best_value, ii, wi)"]
-//  #[invariant="forall k: usize :: (0 <= k && k < items.len()) ==>
-//                  items.lookup_value(k) < items.max_value()"]
-//  #[invariant="forall ii: usize, wi: usize ::
-//                  (0 <= ii && ii < best_value.item_len() && 0 <= wi && wi < best_value.weight_len()) ==>
-//                  best_value.lookup(ii, wi) <= items.max_value() * ii"]
     while continue_loop_1 {
         let it = items.index(i);
-
-        //lemma2(items, &best_value);
 
         let mut w = 1;
         #[invariant="items.len() + 1 == best_value.item_len()"]
@@ -332,9 +236,6 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
         #[invariant="forall ii: usize, wi: usize ::
                         (0 <= ii && ii < best_value.item_len() && 0 <= wi && wi < best_value.weight_len()) ==>
                         best_value.lookup(ii, wi) >= 0"]
-//      #[invariant="forall ii: usize, wi: usize ::
-//                      (0 <= ii && ii <= i && 0 <= wi && wi < best_value.weight_len()) ==>
-//                      is_best_value(items, &best_value, ii, wi)"]
         #[invariant="forall ii: usize, wi: usize ::
                         (0 <= ii && ii <= i && 0 <= wi && wi < best_value.weight_len()) ==>
                         m(items, ii, wi, max_weight) == best_value.lookup(ii, wi)"]
@@ -343,11 +244,6 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
         #[invariant="forall ii: usize ::
                         (0 <= ii && ii < best_value.item_len()) ==>
                         best_value.lookup(ii, 0) == 0"]
-//      #[invariant="forall k: usize :: (0 <= k && k < items.len()) ==>
-//                      items.lookup_value(k) < items.max_value()"]
-//      #[invariant="forall ii: usize, wi: usize ::
-//                      (0 <= ii && ii < best_value.item_len() && 0 <= wi && wi < best_value.weight_len()) ==>
-//                      best_value.lookup(ii, wi) <= items.max_value() * ii"]
         while w <= max_weight {
             let new_best_value = if it.weight > w {
                 *best_value.index(i, w)
@@ -357,23 +253,12 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
             };
             let val = best_value.index_mut(i+1, w);
             *val = new_best_value;
-            //best_value.check(i+1, w);
             w += 1;
         }
 
         i += 1;
         continue_loop_1 = i < items.len();
     }
-//  for (i, it) in items.iter().enumerate() {
-//      for w in 1 .. max_weight + 1 {
-//          best_value[i + 1][w] =
-//              if it.weight > w {
-//                  best_value[i][w]
-//              } else {
-//                  cmp::max(best_value[i][w], best_value[i][w - it.weight] + it.value)
-//              }
-//      }
-//  }
  
 //let mut result = Vec::with_capacity(items.len());
     let mut result = ItemIndices::with_capacity(items.len());
