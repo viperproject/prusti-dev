@@ -35,18 +35,18 @@ prusti/tests/verify/pass-overflow/rosetta/Heapsort_generic.rs
 prusti/tests/verify/pass-overflow/rosetta/Knights_tour_generic.rs
 prusti/tests/verify/long-pass-overflow/rosetta/Knuth_shuffle.rs
 prusti/tests/verify/pass-overflow/rosetta/Langtons_ant.rs
-prusti/tests/verify/pass-overflow/rosetta/Towers_of_Hanoi.rs
 prusti/tests/verify/pass-overflow/rosetta/Selection_sort_generic.rs
 
 prusti/tests/verify/pass/rosetta/Ackermann_function.rs
 prusti/tests/verify/pass-overflow/rosetta/Binary_search_shared_monomorphised.rs
 prusti/tests/verify/pass/rosetta/Fibonacci_sequence.rs
+prusti/tests/verify/pass-overflow/rosetta/Knapsack_Problem.rs
+prusti/tests/verify/pass/larger/first-final.rs
 prusti/tests/verify/pass-overflow/rosetta/Selection_sort.rs
+prusti/tests/verify/pass-overflow/rosetta/Towers_of_Hanoi_spec.rs
 
-prusti/tests/verify/fail/nll-rfc/message.rs
 prusti/tests/verify/pass-overflow/nll-rfc/borrow_first.rs
-
-prusti/tests/verify/pass-overflow/rosetta/Singly_Linked_List.rs
+prusti/tests/verify/fail/nll-rfc/message.rs
 """.strip().split()
 
 
