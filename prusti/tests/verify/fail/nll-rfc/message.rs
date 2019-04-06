@@ -129,8 +129,10 @@ fn router(
         match &message {
             Message::Letter { recipient, data } => {
                 if recipient.equals(me) {
-                    // We cannot verify that this does not panic…
-                    tx.send(message).unwrap();  //~ ERROR precondition might not hold.
+                    // The program does not handle the case in which `send()` fails, so the
+                    // `unwrap()` might panic.
+                    tx.send(message)
+                        .unwrap(); //~ ERROR precondition might not hold.
                 } else {
                     process(data);
                 }
