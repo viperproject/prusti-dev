@@ -131,8 +131,7 @@ fn router(
                 if recipient.equals(me) {
                     // The program does not handle the case in which `send()` fails, so the
                     // `unwrap()` might panic.
-                    tx.send(message)
-                        .unwrap(); //~ ERROR precondition might not hold.
+                    tx.send(message).unwrap(); //~ ERROR precondition might not hold.
                 } else {
                     process(data);
                 }
