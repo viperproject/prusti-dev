@@ -7,6 +7,7 @@
 use std::env;
 use compiler_calls::PrustiCompilerCalls;
 use prusti_interface::config;
+use prusti_interface::report::user;
 use rustc_driver;
 use rustc::session::Session;
 use rustc::session::CompileResult;

@@ -15,7 +15,7 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
 use rustc_driver::driver;
 use prusti_interface::environment::EnvironmentImpl as Environment;
-use prusti_interface::report;
+use prusti_interface::report::user;
 
 /// Verify a (typed) specification on compiler state.
 pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
@@ -35,6 +35,8 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         let annotated_procedures = env.get_annotated_procedures();
         let verification_task = VerificationTask { procedures: annotated_procedures };
         debug!("Verification task: {:?}", &verification_task);
+
+        user::message(format!("Verification of {} items...", verification_task.procedures.len()));
 
         let verification_result = if verification_task.procedures.is_empty() {
             VerificationResult::Success
@@ -56,10 +58,10 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
         match verification_result {
             VerificationResult::Success => {
-                report::user::message(format!("Successful verification of {} items", verification_task.procedures.len()));
+                user::message(format!("Successful verification of {} items", verification_task.procedures.len()));
             }
             VerificationResult::Failure => {
-                report::user::message("Verification failed");
+                user::message("Verification failed");
                 assert!(env.has_errors());
             }
         };
