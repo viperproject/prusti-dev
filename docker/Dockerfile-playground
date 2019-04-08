@@ -13,10 +13,6 @@ RUN cd /tmp/prusti-dev && \
 	cp target/release/libprusti_contracts.rlib /usr/local/prusti/libprusti_contracts.rlib
 ADD docker/prusti /usr/local/bin/prusti
 ADD docker/cargo-prusti /usr/local/bin/cargo-prusti
-ENV RUSTC_WRAPPER /usr/local/bin/prusti
-
-# Continue compilation after the verification succeeds
-ENV PRUSTI_FULL_COMPILATION true
 
 ADD docker/entrypoint.sh /root/
 ENTRYPOINT ["/root/entrypoint.sh"]
@@ -33,3 +29,12 @@ WORKDIR /playground
 RUN cargo build
 RUN cargo build --release
 RUN rm src/*.rs
+
+# Prepare env variables to run Prusti
+ENV RUSTC_WRAPPER /usr/local/bin/prusti
+
+# Continue compilation after the verification succeeds
+ENV PRUSTI_FULL_COMPILATION true
+
+# Reduce log level
+ENV RUST_LOG warn
