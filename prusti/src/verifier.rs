@@ -36,6 +36,10 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         let verification_task = VerificationTask { procedures: annotated_procedures };
         debug!("Verification task: {:?}", &verification_task);
 
+        user::message(r"  __          __        __  ___             ");
+        user::message(r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ");
+        user::message(r" |      /\   |  \ \__/ .__/  |       /\   | ");
+        user::message(r"");
         user::message(format!("Verification of {} items...", verification_task.procedures.len()));
 
         let verification_result = if verification_task.procedures.is_empty() {
