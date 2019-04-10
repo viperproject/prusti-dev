@@ -648,20 +648,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 let num_variants = adt_def.variants.len();
                                 // Initialize `lhs.int_field`
                                 let discr_field = self.encoder.encode_discriminant_field();
-                                if num_variants == 0 {
-                                    // Asserting `false here is curerntly wrong. See issue #156
-                                    //let pos = self.encoder.error_manager().register(
-                                    //    self.mir.source_info(location).span,
-                                    //    ErrorCtxt::Unexpected
-                                    //);
-                                    //stmts.push(vir::Stmt::Assert(false.into(), pos));
-                                } else {
-
-                                    let discr_value: vir::Expr = if num_variants == 1 {
-                                        0.into()
-                                    } else {
-                                        encoded_src.field(discr_field)
-                                    };
+                                // Note: in our encoding an enumeration with just one variant has
+                                // no discriminant
+                                if num_variants > 1 {
+                                    let discr_value: vir::Expr = encoded_src.field(discr_field);
                                     let int_field = self.encoder.encode_value_field(ty);
                                     stmts.push(
                                         vir::Stmt::Assign(
