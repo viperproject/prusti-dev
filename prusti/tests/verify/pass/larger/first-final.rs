@@ -181,10 +181,6 @@ pub mod test {
     use super::{List, TrustedOption};
 
     pub fn basics() {
-        // We do not support promoted constants. Assigning the constant
-        // to a variable prevents this optimisation of the Rust compiler.
-        let none = TrustedOption::None;
-
         let mut list = List::new();
 
         // Check empty list behaves right
