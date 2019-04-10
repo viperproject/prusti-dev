@@ -135,7 +135,9 @@ EOF
     cd rust-playground
     git checkout f103d06cfb4c96ca6055ae9f4b16ca5cca03c852
     cd ui
-    sed -e 's/"256m"/"2048m"/g' -i src/sandbox.rs
+    sed -e 's/"256m"/"2048m"/g' \
+        -e 's/"320m"/"2100m"/g' \
+        -i src/sandbox.rs
     sed -e 's/println!("Hello, world!");/unreachable!();/g' \
         -e 's/fn main/extern crate prusti_contracts;\npub fn main/g' \
         -i frontend/reducers/code.ts
