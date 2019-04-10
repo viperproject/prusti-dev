@@ -92,11 +92,35 @@ Vagrant.configure("2") do |config|
     apt-get update
     apt-get install -y docker-ce docker-ce-cli containerd.io
 
+    # 1. Configure Docker.
+    # Ensure Docker can control the PID limit
+    mount | grep cgroup/pids
+
+    # Ensure Docker can control swap limit.
+    # https://docs.docker.com/engine/installation/linux/linux-postinstall/#your-kernel-does-not-support-cgroup-swap-limit-capabilities
+    sed -e 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"/g' \
+        -i /etc/default/grub
+    update-grub
+
+    fallocate -l 1G /swap.fs
+    chmod 0600 /swap.fs
+    mkswap /swap.fs
+
+    # Set aside disk space.
+    fallocate -l 512M /playground.fs
+    device=$(losetup -f --show /playground.fs)
+    mkfs -t ext3 -m 1 -v $device
+    mkdir /mnt/playground
+    cat >>/etc/fstab <<EOF
+/swap.fs        none            swap   sw       0   0
+/playground.fs /mnt/playground  ext3   loop     0   0
+EOF
+
     # Install Rust.
     curl https://sh.rustup.rs -sSf | sh -s -- -y
     source $HOME/.cargo/env
 
-    # 1. Build Prusti
+    # 2. Build Prusti
     cd "$PRUSTI_DEMO_DIR"
     git clone /vagrant prusti
     cd prusti
@@ -105,7 +129,7 @@ Vagrant.configure("2") do |config|
     rustup toolchain install ${RUSTUP_TOOLCHAIN}
     rustup default ${RUSTUP_TOOLCHAIN}
 
-    # 2. Build `rust-playground`
+    # 3. Build `rust-playground`
     cd "$PRUSTI_DEMO_DIR"
     git clone https://github.com/integer32llc/rust-playground.git
     cd rust-playground
@@ -113,17 +137,19 @@ Vagrant.configure("2") do |config|
     cd ui
     sed -e 's/"256m"/"2048m"/g' -i src/sandbox.rs
     sed -e 's/println!("Hello, world!");/unreachable!();/g' \
-        -e 's/fn main/extern crate prusti_contracts;\nfn main/g' \
+        -e 's/fn main/extern crate prusti_contracts;\npub fn main/g' \
         -i frontend/reducers/code.ts
     cargo build --release
     cd frontend
     yarn
     yarn run build:production
 
-    # 3. Create service.
+    # 4. Create service.
     cp /vagrant/playground.service /etc/systemd/system/playground.service
     service playground start
     systemctl enable playground.service
 
+    # 5. Reboot.
+    reboot
   SHELL
 end
