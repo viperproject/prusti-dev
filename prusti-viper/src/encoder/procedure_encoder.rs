@@ -660,10 +660,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     let discr_value: vir::Expr = if num_variants == 1 {
                                         0.into()
                                     } else {
-                                        self.translate_maybe_borrowed_place(
-                                            location,
-                                            encoded_src.field(discr_field)
-                                        ).into()
+                                        encoded_src.field(discr_field)
                                     };
                                     let int_field = self.encoder.encode_value_field(ty);
                                     stmts.push(
@@ -680,10 +677,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             ty::TypeVariants::TyInt(_) |
                             ty::TypeVariants::TyUint(_) => {
                                 let value_field = self.encoder.encode_value_field(src_ty);
-                                let discr_value: vir::Expr = self.translate_maybe_borrowed_place(
-                                    location,
-                                    encoded_src.field(value_field)
-                                ).into();
+                                let discr_value: vir::Expr = encoded_src.field(value_field);
                                 let int_field = self.encoder.encode_value_field(ty);
                                 stmts.push(
                                     vir::Stmt::Assign(
@@ -762,31 +756,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             }
         ).collect()
-    }
-
-    /// Translate a borrowed place to a place that is currently usable
-    fn translate_maybe_borrowed_place(&self, location: mir::Location, place: vir::Expr) -> vir::Expr {
-        let (all_active_loans, _) = self.polonius_info.get_all_active_loans(location);
-        let relevant_active_loan_places: Vec<_> = all_active_loans
-            .iter()
-            .flat_map(|p| self.polonius_info.get_loan_places(p))
-            .filter(|loan_places| {
-                let (_, encoded_source, _) = self.encode_loan_places(loan_places);
-                place.has_prefix(&encoded_source)
-            })
-            .collect();
-        assert!(relevant_active_loan_places.len() <= 1);
-        if !relevant_active_loan_places.is_empty() {
-            let loan_places = &relevant_active_loan_places[0];
-            let (encoded_dest, encoded_source, _) = self.encode_loan_places(loan_places);
-            // Recursive translation
-            self.translate_maybe_borrowed_place(
-                loan_places.location,
-                place.replace_place(&encoded_source, &encoded_dest)
-            )
-        } else {
-            place
-        }
     }
 
     /// Encode the lhs and the rhs of the assignment that create the loan
@@ -1240,11 +1209,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 stmts.push(
                     vir::Stmt::Assign(
                         discr_var.clone().into(),
-                        if encoded_discr.is_place() {
-                            self.translate_maybe_borrowed_place(location, encoded_discr)
-                        } else{
-                            encoded_discr
-                        },
+                        encoded_discr,
                         vir::AssignKind::Copy
                     )
                 );
