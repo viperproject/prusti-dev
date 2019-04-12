@@ -144,6 +144,7 @@ impl EventLog {
         borrow: vir::borrows::Borrow,
         perm: vir::Expr
     ) {
+        assert!(perm.get_perm_amount() == vir::PermAmount::Remaining);
         let entry = self.converted_to_read_places.entry(borrow).or_insert(Vec::new());
         entry.push(perm);
     }

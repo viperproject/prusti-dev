@@ -404,13 +404,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         trace!("[enter] restore_write_permissions({:?})", borrow);
         let mut stmts = Vec::new();
         for access in self.log.get_converted_to_read_places(borrow) {
+            trace!("restore_write_permissions access={}", access);
             let perm = match access {
                 vir::Expr::PredicateAccessPredicate(_, ref args, perm_amount, _) => {
                     assert!(args.len() == 1);
-                    Perm::pred(args[0].clone(), perm_amount)
+                    assert!(perm_amount == vir::PermAmount::Remaining);
+                    Perm::pred(args[0].clone(), vir::PermAmount::Read)
                 },
                 vir::Expr::FieldAccessPredicate(box ref place, perm_amount, _) => {
-                    Perm::acc(place.clone(), perm_amount)
+                    assert!(perm_amount == vir::PermAmount::Remaining);
+                    Perm::acc(place.clone(), vir::PermAmount::Read)
                 },
                 x => unreachable!("{:?}", x),
             };

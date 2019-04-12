@@ -10,12 +10,13 @@ use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::error_manager::{ErrorManager, ErrorCtxt};
+use encoder::foldunfold;
 use encoder::mir_encoder::MirEncoder;
 use encoder::spec_encoder::SpecEncoder;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
-use encoder::type_encoder::TypeEncoder;
+use encoder::type_encoder::{compute_discriminant_values, TypeEncoder};
 use encoder::vir;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
@@ -57,6 +58,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     type_predicates: RefCell<HashMap<String, vir::Predicate>>,
     type_invariants: RefCell<HashMap<String, vir::Function>>,
     type_tags: RefCell<HashMap<String, vir::Function>>,
+    type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     fields: RefCell<HashMap<String, vir::Field>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, mir::BasicBlock, usize, Vec<mir::Operand<'tcx>>)>>,
@@ -96,6 +98,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             type_predicates: RefCell::new(HashMap::new()),
             type_invariants: RefCell::new(HashMap::new()),
             type_tags: RefCell::new(HashMap::new()),
+            type_discriminant_funcs: RefCell::new(HashMap::new()),
             fields: RefCell::new(HashMap::new()),
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
@@ -159,6 +162,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             functions.push(function.clone());
         }
         for function in self.type_tags.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.type_discriminant_funcs.borrow().values() {
             functions.push(function.clone());
         }
         functions.sort_by_key(|f| f.get_identifier());
@@ -336,6 +342,50 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let field = vir::Field::new(name, vir::Type::Int);
         self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| field.clone());
         field
+    }
+
+    pub fn encode_discriminant_func_app(
+        &self,
+        place: vir::Expr,
+        adt_def: &ty::AdtDef
+    ) -> vir::Expr {
+        let typ = place.get_type().clone();
+        let mut name = typ.name();
+        name.push_str("$$discriminant$$");
+        let self_local_var = vir::LocalVar::new("self", typ);
+        self.type_discriminant_funcs.borrow_mut().entry(name.clone()).or_insert_with(|| {
+            let predicate_name = place.get_type().name();
+            let precondition = vir::Expr::predicate_access_predicate(
+                predicate_name,
+                self_local_var.clone().into(),
+                vir::PermAmount::Read,
+            );
+            let result = vir::LocalVar::new("__result", vir::Type::Int);
+            let postcondition = compute_discriminant_values(
+                adt_def, self.env.tcx(), result.into());
+            let discr_field = self.encode_discriminant_field();
+            let self_local_var_expr: vir::Expr = self_local_var.clone().into();
+            let function = vir::Function {
+                name: name.clone(),
+                formal_args: vec![self_local_var.clone()],
+                return_type: vir::Type::Int,
+                pres: vec![precondition],
+                posts: vec![postcondition],
+                body: Some(self_local_var_expr.field(discr_field)),
+            };
+            let final_function = foldunfold::add_folding_unfolding_to_function(
+                function,
+                self.get_used_viper_predicates_map()
+            );
+            final_function
+        });
+        vir::Expr::FuncApp(
+            name,
+            vec![place],
+            vec![self_local_var],
+            vir::Type::Int,
+            vir::Position::default(),
+        )
     }
 
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
