@@ -123,6 +123,19 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         diagnostic.emit();
     }
 
+    /// Emits an error message.
+    pub fn span_err_with_reason<S: Into<MultiSpan>>(
+        &self,
+        sp: S,
+        msg: &str,
+        reason_sp: S,
+    ) {
+        let mut diagnostic = self.state.session.struct_err(msg);
+        diagnostic.set_span(sp);
+        diagnostic.span_note(reason_sp, "the failing assertion is this one");
+        diagnostic.emit();
+    }
+
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
         self.state.session.has_errors()

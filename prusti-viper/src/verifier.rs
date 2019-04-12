@@ -301,17 +301,15 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 let compilation_error = error_manager.translate(&verification_error);
                 debug!("Compilation error: {:?}", compilation_error);
                 if let Some(reason_span) = compilation_error.reason_span {
-                    self.env.span_err_with_code_with_reason(
+                    self.env.span_err_with_reason(
                         compilation_error.span,
-                        &compilation_error.message,
-                        compilation_error.id,
+                        &format!("[Prusti] {}", compilation_error.message),
                         reason_span
                     )
                 } else {
-                    self.env.span_err_with_code(
+                    self.env.span_err(
                         compilation_error.span,
-                        &compilation_error.message,
-                        compilation_error.id
+                        &format!("[Prusti] {}", compilation_error.message)
                     )
                 }
             }
