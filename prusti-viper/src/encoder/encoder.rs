@@ -370,7 +370,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 function,
                 self.get_used_viper_predicates_map()
             );
-            error!("final_function = {}", final_function);
             final_function
         });
         vir::Expr::FuncApp(
