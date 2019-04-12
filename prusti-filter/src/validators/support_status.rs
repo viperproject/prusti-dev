@@ -9,7 +9,7 @@ use syntax::codemap::Span;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use std::hash::Hash;
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Reason {
     /// The reason must be a valid continuation of the sentence
     /// "The following code span is not supported because it..."

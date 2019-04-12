@@ -128,7 +128,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
             // variables. This happens when the `TyAdt` corresponds to an ADT
             // definition and not a concrete use of it.
             ty::TypeVariants::TyAdt(adt_def, substs) => {
-                self.check_ty_adt(adt_def, substs);
+                self.check_ty_adt(adt_def, substs, span);
                 for kind in substs.iter() {
                     match kind.unpack() {
                         ty::subst::UnpackedKind::Lifetime(..) => {
@@ -194,8 +194,9 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn check_inner_ty(&mut self, ty: ty::Ty<'tcx>, span: Span);
 
-    fn check_ty_adt(&mut self, adt_def: &ty::AdtDef, substs: &Substs<'tcx>) {
-        let span = self.tcx().def_span(adt_def.did);
+    fn check_ty_adt(&mut self, adt_def: &ty::AdtDef, substs: &Substs<'tcx>, span: Span) {
+        // Do not use this, because the span is often outside the current crate
+        //let span = self.tcx().def_span(adt_def.did);
 
         if adt_def.is_union() {
             unsupported!(self, span, "uses union types");

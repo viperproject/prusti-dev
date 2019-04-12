@@ -170,10 +170,13 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         for &proc_id in &task.procedures {
             // Do some checks
             let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
+            let extra_msg: &str;
 
             let support_status = if is_pure_function {
+                extra_msg = " in pure functions";
                 validator.pure_function_support_status(proc_id)
             } else {
+                extra_msg = "";
                 validator.procedure_support_status(proc_id)
             };
 
@@ -181,8 +184,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 let reasons = support_status.get_partially_supported_reasons();
                 let proc_name = self.env.get_item_name(proc_id);
                 for reason in &reasons {
+                    debug!("Partially supported reason: {:?}", reason);
                     let message = format!(
-                        "[Prusti] the following code is only partially supported, because it {}",
+                        "[Prusti] the following is only partially supported{}, because it {}",
+                        extra_msg,
                         reason.reason
                     );
                     self.env.span_warn(reason.position, &message);
@@ -191,8 +196,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 let reasons = support_status.get_unsupported_reasons();
                 let proc_name = self.env.get_item_name(proc_id);
                 for reason in &reasons {
+                    debug!("Unsupported reason: {:?}", reason);
                     let message = format!(
-                        "[Prusti] the following code is unsupported, because it {}",
+                        "[Prusti] the following is unsupported{}, because it {}",
+                        extra_msg,
                         reason.reason
                     );
                     self.env.span_err(reason.position, &message);
