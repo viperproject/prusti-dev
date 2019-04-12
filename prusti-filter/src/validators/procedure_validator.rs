@@ -218,6 +218,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 continue;
             }
             for successor in basic_block_data.terminator().successors() {
+                if !procedure.is_reachable_block(*successor) || procedure.is_spec_block(*successor) {
+                    continue;
+                }
                 if loops.is_out_edge(bbi, *successor) && !loops.is_loop_head(bbi) {
                     let span = basic_block_data.terminator.as_ref().unwrap().source_info.span;
                     unsupported!(self, span, "uses abrupt loop terminations");
