@@ -23,13 +23,13 @@ pub struct CrateVisitor<'tcx: 'a, 'a>
     pub source_map: &'tcx CodeMap,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct CrateStatus {
     pub crate_name: String,
     pub functions: Vec<FunctionStatus>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct FunctionStatus {
     pub crate_name: String,
     pub node_path: String,
@@ -54,8 +54,8 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
         let node_path = procedure.get_def_path();
         debug!("Checking {}", node_path);
 
-        let procedure_support_status = self.validator.procedure_support_status(fk, fd, b, s, id);
-        let pure_function_support_status = self.validator.pure_function_support_status(fk, fd, b, s, id);
+        let procedure_support_status = self.validator.procedure_support_status(def_id);
+        let pure_function_support_status = self.validator.pure_function_support_status(def_id);
 
         let num_basic_blocks = procedure.get_all_cfg_blocks().len();
         let num_encoded_basic_blocks = procedure.get_reachable_nonspec_cfg_blocks().len();

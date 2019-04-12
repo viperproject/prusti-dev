@@ -172,33 +172,31 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
 
             let support_status = if is_pure_function {
-                validator.pure_function_item_support_status(proc_id)
+                validator.pure_function_support_status(proc_id)
             } else {
-                validator.procedure_item_support_status(proc_id)
+                validator.procedure_support_status(proc_id)
             };
 
             if support_status.is_partially_supported() {
-                let reasons = support_status.get_partially_supported_reasons().join(", ");
+                let reasons = support_status.get_partially_supported_reasons();
                 let proc_name = self.env.get_item_name(proc_id);
-                let message = if is_pure_function {
-                    format!("note that pure function '{}' is not fully supported: {}", proc_name, reasons)
-                } else {
-                    format!("note that procedure '{}' is not fully supported: {}", proc_name, reasons)
-                };
-                // NOTE: make the validator more precise before enabling the following messages
-                debug!("{}", message);
-                //self.env.warn(&message);
+                for reason in &reasons {
+                    let message = format!(
+                        "[Prusti] the following code is only partially supported, because it {}",
+                        reason.reason
+                    );
+                    self.env.span_warn(reason.position, &message);
+                }
             } else if support_status.is_unsupported() {
-                let reasons = support_status.get_unsupported_reasons().join(", ");
+                let reasons = support_status.get_unsupported_reasons();
                 let proc_name = self.env.get_item_name(proc_id);
-                let message = if is_pure_function {
-                    format!("note that pure function '{}' is not supported: {}", proc_name, reasons)
-                } else {
-                    format!("note that procedure '{}' is not supported: {}", proc_name, reasons)
-                };
-                // NOTE: make the validator more precise before enabling the following messages
-                debug!("{}", message);
-                //self.env.warn(&message);
+                for reason in &reasons {
+                    let message = format!(
+                        "[Prusti] the following code is unsupported, because it {}",
+                        reason.reason
+                    );
+                    self.env.span_err(reason.position, &message);
+                }
             }
         }
 

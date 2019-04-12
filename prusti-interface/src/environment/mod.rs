@@ -83,9 +83,19 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         self.state.session.warn(msg);
     }
 
+    /// Emits an warning message.
+    pub fn span_warn<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
+        self.state.session.span_warn(sp, msg);
+    }
+
     /// Emits an error message.
     pub fn err(&self, msg: &str) {
         self.state.session.err(msg);
+    }
+
+    /// Emits an error message.
+    pub fn span_err<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
+        self.state.session.span_err(sp, msg);
     }
 
     /// Emits an error message.
