@@ -654,7 +654,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     stmts.push(
                                         vir::Stmt::Assign(
                                             encoded_lhs.clone().field(int_field),
-                                            self.encoder.encode_discriminant_func_app(encoded_src),
+                                            self.encoder.encode_discriminant_func_app(
+                                                encoded_src, adt_def),
                                             vir::AssignKind::Copy
                                         )
                                     );

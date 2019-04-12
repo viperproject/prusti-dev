@@ -16,7 +16,7 @@ use encoder::spec_encoder::SpecEncoder;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
-use encoder::type_encoder::TypeEncoder;
+use encoder::type_encoder::{compute_discriminant_values, TypeEncoder};
 use encoder::vir;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
@@ -344,7 +344,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         field
     }
 
-    pub fn encode_discriminant_func_app(&self, place: vir::Expr) -> vir::Expr {
+    pub fn encode_discriminant_func_app(
+        &self,
+        place: vir::Expr,
+        adt_def: &ty::AdtDef
+    ) -> vir::Expr {
         let typ = place.get_type().clone();
         let mut name = typ.name();
         name.push_str("$$discriminant$$");
@@ -356,6 +360,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 self_local_var.clone().into(),
                 vir::PermAmount::Read,
             );
+            let result = vir::LocalVar::new("__result", vir::Type::Int);
+            let postcondition = compute_discriminant_values(
+                adt_def, self.env.tcx(), result.into());
             let discr_field = self.encode_discriminant_field();
             let self_local_var_expr: vir::Expr = self_local_var.clone().into();
             let function = vir::Function {
@@ -363,7 +370,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 formal_args: vec![self_local_var.clone()],
                 return_type: vir::Type::Int,
                 pres: vec![precondition],
-                posts: Vec::new(),
+                posts: vec![postcondition],
                 body: Some(self_local_var_expr.field(discr_field)),
             };
             let final_function = foldunfold::add_folding_unfolding_to_function(
