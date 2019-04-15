@@ -186,7 +186,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 for reason in &reasons {
                     debug!("Partially supported reason: {:?}", reason);
                     let message = format!(
-                        "[Prusti] the following is only partially supported{}, because it {}",
+                        "[Prusti] the following is partially supported{}, because it {}",
                         extra_msg,
                         reason.reason
                     );
