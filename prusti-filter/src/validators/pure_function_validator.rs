@@ -56,7 +56,7 @@ impl<'a, 'tcx: 'a> CommonValidator<'a, 'tcx> for PureFunctionValidator<'a, 'tcx>
         self.check_ty(ty, span);
 
         match ty.sty {
-            ty::TypeVariants::TyRef(..) => unsupported!(self, span, "uses reference-typed fields"),
+            //ty::TypeVariants::TyRef(..) => unsupported!(self, span, "uses reference-typed fields"),
 
             _ => {} // OK
         }
