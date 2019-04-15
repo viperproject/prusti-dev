@@ -4,7 +4,7 @@ use std::process::Command;
 use chrono::prelude::Utc;
 
 fn main() {
-    let output = Command::new("git").args(&["rev-parse", "--short", "HEAD"]).output()
+    let output = Command::new("git").args(&["rev-parse", "--short=19", "HEAD"]).output()
         .expect("Failed to obtain git hash");
     let git_hash = String::from_utf8(output.stdout)
         .expect("Failed to parse git hash");

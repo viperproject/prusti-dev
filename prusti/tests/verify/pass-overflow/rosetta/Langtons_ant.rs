@@ -210,7 +210,7 @@ fn main(){
         ant.mv(&mut grid);
         continue_loop = 0 <= ant.x && ant.x < 100 && 0 <= ant.y && ant.y < 100;
         if continue_loop {
-            assert!(ant.valid(grid.y_size(), grid.x_size()));
+            //assert!(ant.valid(grid.y_size(), grid.x_size()));
         }
     }
     print_grid(&mut grid);

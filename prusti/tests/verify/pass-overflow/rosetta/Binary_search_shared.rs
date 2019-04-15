@@ -152,7 +152,8 @@ fn binary_search<T: Ord>(arr: &VecWrapper<T>, elem: &T) -> UsizeOption {
             Greater => {
                 base
             },
-            Equal   => {
+            // Equal
+            _   => {
                 result = UsizeOption::Some(mid);
                 base   // Just return anything because we are finished.
             }
