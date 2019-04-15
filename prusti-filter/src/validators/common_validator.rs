@@ -155,7 +155,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
             }
 
             ty::TypeVariants::TyRawPtr(..) => {
-                unsupported!(self, span, "uses raw pointers");
+                partially!(self, span, "uses raw pointers");
             }
 
             ty::TypeVariants::TyRef(_, inner_ty, _) => self.check_inner_ty(inner_ty, span),
