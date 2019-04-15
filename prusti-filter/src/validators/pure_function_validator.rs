@@ -136,12 +136,14 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
         }
 
         // TODO: check only blocks that may lead to a `Return` terminator
-        for (index, basic_block_data) in mir.basic_blocks().iter_enumerated() {
-            if !procedure.is_reachable_block(index) || procedure.is_spec_block(index) {
+        for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
+            if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
                 continue;
             }
-            for stmt in &basic_block_data.statements {
-                self.check_mir_stmt(mir, stmt);
+            if !procedure.is_panic_block(bbi) {
+                for stmt in &basic_block_data.statements {
+                    self.check_mir_stmt(mir, stmt);
+                }
             }
             self.check_mir_terminator(mir, basic_block_data.terminator.as_ref().unwrap());
         }
