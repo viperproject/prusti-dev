@@ -174,7 +174,8 @@ fn main() {
                 let i = iter.counter();
                 print_fib(i, n);
             }
-            UsizeOption::None => {
+            // UsizeOption::None
+            _ => {
                 continue_iteration = false;
             }
         }
