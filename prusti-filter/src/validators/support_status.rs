@@ -5,49 +5,82 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::collections::HashSet;
+use syntax::codemap::Span;
+use serde::ser::{Serialize, Serializer, SerializeStruct};
+use std::hash::Hash;
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-/// The support status, with a short explanation that will be displayed to the user.
-pub enum SupportKind {
-    PartiallySupported(String),
-    Unsupported(String),
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
+pub struct Reason {
+    /// The reason must be a valid continuation of the sentence
+    /// "The following code span is not supported because it..."
+    /// E.g. "uses iterators", "is a C-variadic function"
+    pub reason: String,
+    pub position: Span,
 }
 
-impl SupportKind {
-    pub fn partially(reason: String) -> Self {
-        SupportKind::PartiallySupported(reason)
+impl Reason {
+    pub fn new<T: ToString>(reason: T, position: Span) -> Self {
+        Reason {
+            reason: reason.to_string(),
+            position,
+        }
+    }
+}
+
+impl Serialize for Reason {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut rgb = serializer.serialize_struct("Reason", 2)?;
+        rgb.serialize_field("reason", &self.reason)?;
+        rgb.serialize_field("position", &format!("{:?}", self.position))?;
+        rgb.end()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Hash, Serialize)]
+/// The restriction kind, with a short explanation that will be displayed to the user.
+pub enum Restriction<T: Clone + Eq + PartialEq + Hash + Serialize> {
+    PartiallySupported(T),
+    Unsupported(T),
+}
+
+impl<T: Clone + Eq + PartialEq + Hash + Serialize> Restriction<T> {
+    pub fn partially(reason: T) -> Self {
+        Restriction::PartiallySupported(reason)
     }
 
-    pub fn unsupported(reason: String) -> Self {
-        SupportKind::Unsupported(reason)
+    pub fn unsupported(reason: T) -> Self {
+        Restriction::Unsupported(reason)
     }
 
     pub fn is_partially_supported(&self) -> bool {
         match self {
-            SupportKind::PartiallySupported(_) => true,
+            Restriction::PartiallySupported(_) => true,
             _ => false
         }
     }
 
     pub fn is_unsupported(&self) -> bool {
         match self {
-            SupportKind::Unsupported(_) => true,
+            Restriction::Unsupported(_) => true,
             _ => false
         }
     }
 
-    pub fn reason(&self) -> &str {
+    pub fn reason(&self) -> &T {
         match self {
-            SupportKind::Unsupported(ref reason) |
-            SupportKind::PartiallySupported(ref reason) => reason,
+            Restriction::Unsupported(ref reason) |
+            Restriction::PartiallySupported(ref reason) => reason,
         }
     }
 }
 
-
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct SupportStatus {
-    restrictions: HashSet<SupportKind>,
+    /// Reasons why the implementation item is unsupported or partially supported
+    restrictions: HashSet<Restriction<String>>,
+    /// Like restrictions, with with the offending code span
+    precise_restrictions: HashSet<Restriction<Reason>>,
+    /// Interesting features (e.g. "returns a reference")
     interestings: HashSet<String>,
 }
 
@@ -56,133 +89,62 @@ impl SupportStatus {
         SupportStatus {
             restrictions: HashSet::new(),
             interestings: HashSet::new(),
+            precise_restrictions: HashSet::new(),
         }
     }
 
-    pub fn partially(&mut self, reason: String) {
+    pub fn partially(&mut self, reason: Reason) {
         self.restrictions.insert(
-            SupportKind::partially(reason)
+            Restriction::PartiallySupported(reason.reason.clone())
+        );
+        self.precise_restrictions.insert(
+            Restriction::PartiallySupported(reason)
         );
     }
 
     #[allow(dead_code)]
-    pub fn unsupported(&mut self, reason: String) {
+    pub fn unsupported(&mut self, reason: Reason) {
         self.restrictions.insert(
-            SupportKind::unsupported(reason)
+            Restriction::Unsupported(reason.reason.clone())
+        );
+        self.precise_restrictions.insert(
+            Restriction::Unsupported(reason)
         );
     }
 
     #[allow(dead_code)]
-    pub fn interesting(&mut self, reason: String) {
-        self.interestings.insert(reason);
+    pub fn interesting<T: ToString>(&mut self, reason: T) {
+        self.interestings.insert(reason.to_string());
     }
 
     pub fn is_supported(&self) -> bool {
-        self.restrictions.is_empty()
+        self.precise_restrictions.is_empty()
     }
 
     pub fn is_partially_supported(&self) -> bool {
-        !self.restrictions.is_empty() &&
-        self.restrictions.iter()
+        !self.precise_restrictions.is_empty() &&
+        self.precise_restrictions.iter()
             .all(|s| s.is_partially_supported())
     }
 
     #[allow(dead_code)]
     pub fn is_unsupported(&self) -> bool {
-        self.restrictions.iter()
+        self.precise_restrictions.iter()
             .any(|s| s.is_unsupported())
     }
 
-    pub fn get_partially_supported_reasons(&self) -> Vec<String> {
-        self.restrictions.iter()
+    pub fn get_partially_supported_reasons(&self) -> Vec<Reason> {
+        self.precise_restrictions.iter()
             .filter(|s| s.is_partially_supported())
-            .map(|s| s.reason().to_string())
+            .map(|s| s.reason().clone())
             .collect()
     }
 
     #[allow(dead_code)]
-    pub fn get_unsupported_reasons(&self) -> Vec<String> {
-        self.restrictions.iter()
+    pub fn get_unsupported_reasons(&self) -> Vec<Reason> {
+        self.precise_restrictions.iter()
             .filter(|s| s.is_unsupported())
-            .map(|s| s.reason().to_string())
+            .map(|s| s.reason().clone())
             .collect()
     }
-}
-
-#[macro_export]
-macro_rules! requires {
-    ($self:expr, $e:expr, $reason:expr) => {
-        if !$e {
-            unsupported!($self, $reason);
-        }
-    };
-
-    ($self:expr, $e:expr, $reason:expr, $($args:expr),*) => {
-        if !$e {
-            unsupported!($self, $reason, $($args:expr),*);
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! unsupported_pos {
-    ($self:expr, $position:expr, $reason:expr) => {
-        $self.support.unsupported(
-            format!("{} ({})", $reason, $position)
-        );
-    };
-}
-
-#[macro_export]
-macro_rules! unsupported {
-    ($self:expr, $reason:expr) => {
-        $self.support.unsupported(
-            format!($reason)
-        );
-    };
-
-    ($self:expr, $reason:expr, $($args:expr),*) => {
-        $self.support.unsupported(
-            format!($reason, $($args:expr),*)
-        );
-    };
-}
-
-#[macro_export]
-macro_rules! partially_pos {
-    ($self:expr, $position:expr, $reason:expr) => {
-        $self.support.partially(
-            format!("{} ({})", $reason, $position)
-        );
-    };
-}
-
-#[macro_export]
-macro_rules! partially {
-    ($self:expr, $reason:expr) => {
-        $self.support.partially(
-            format!($reason)
-        );
-    };
-
-    ($self:expr, $reason:expr, $($args:expr),*) => {
-        $self.support.partially(
-            format!($reason, $($args:expr),*)
-        );
-    };
-}
-
-#[macro_export]
-macro_rules! interesting {
-    ($self:expr, $reason:expr) => {
-        $self.support.interesting(
-            format!($reason)
-        );
-    };
-
-    ($self:expr, $reason:expr, $($args:expr),*) => {
-        $self.support.interesting(
-            format!($reason, $($args:expr),*)
-        );
-    };
 }

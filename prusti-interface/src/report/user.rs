@@ -8,10 +8,11 @@
 
 use config;
 
-/// Print to stdout a message that is only meant to be read by the user.
-/// Note: this does nothing if `config::quiet()` is true.
+/// Print to stderr a message that is only meant to be read by the user.
+/// The output goes to *stderr*, to be displayed in the "compiler output" area in rust-playground.
+/// Note: this function does nothing if `config::quiet()` is true.
 pub fn message<S: ToString>(msg: S) {
     if !config::quiet() {
-        println!("{}", msg.to_string())
+        eprintln!("{}", msg.to_string())
     }
 }

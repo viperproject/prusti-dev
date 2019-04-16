@@ -36,9 +36,22 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         let verification_task = VerificationTask { procedures: annotated_procedures };
         debug!("Verification task: {:?}", &verification_task);
 
-        user::message(r"  __          __        __  ___             ");
-        user::message(r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ");
-        user::message(r" |      /\   |  \ \__/ .__/  |       /\   | ");
+        let header = vec![
+            r"  __          __        __  ___             ",
+            r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ",
+            r" |      /\   |  \ \__/ .__/  |       /\   | ",
+        ];
+        user::message(header[0]);
+        user::message(format!(
+            "{} Hash:  {}",
+            header[1],
+            option_env!("GIT_HASH").unwrap_or("<unknown>")
+        ));
+        user::message(format!(
+            "{} Build: {}",
+            header[2],
+            option_env!("BUILD_TIME").unwrap_or("<unknown>")
+        ));
         user::message(r"");
         user::message(format!("Verification of {} items...", verification_task.procedures.len()));
 

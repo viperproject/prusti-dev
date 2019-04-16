@@ -18,7 +18,7 @@ use rustc::session::{config, Session};
 use std::panic;
 use rustc::session::CompileResult;
 
-static PRUSTI_BUG_REPORT_URL: &str = "<redacted URL>";
+static PRUSTI_BUG_REPORT_URL: &str = "<URL placeholder>";
 
 /// Run a procedure which will detect panics in the compiler and print nicer
 /// error messages rather than just failing the test.
@@ -56,8 +56,11 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
                 "the compiler or Prusti unexpectedly panicked.".to_string(),
                 "possible reasons include the usage of Rust features that are not supported by Prusti.".to_string(),
                 format!("we would appreciate a bug report for Prusti: {}", PRUSTI_BUG_REPORT_URL),
+                format!("Prusti hash {} built on {}",
+                        option_env!("GIT_HASH").unwrap_or("<unknown>"),
+                        option_env!("BUILD_TIME").unwrap_or("<unknown>"),),
                 format!("rustc {} running on {}",
-                        option_env!("CFG_VERSION").unwrap_or("unknown_version"),
+                        option_env!("CFG_VERSION").unwrap_or("<unknown>"),
                         config::host_triple()),
             ];
 

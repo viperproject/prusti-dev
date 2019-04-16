@@ -170,35 +170,40 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         for &proc_id in &task.procedures {
             // Do some checks
             let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
+            let extra_msg: &str;
 
             let support_status = if is_pure_function {
-                validator.pure_function_item_support_status(proc_id)
+                extra_msg = " in pure functions";
+                validator.pure_function_support_status(proc_id)
             } else {
-                validator.procedure_item_support_status(proc_id)
+                extra_msg = "";
+                validator.procedure_support_status(proc_id)
             };
 
             if support_status.is_partially_supported() {
-                let reasons = support_status.get_partially_supported_reasons().join(", ");
+                let reasons = support_status.get_partially_supported_reasons();
                 let proc_name = self.env.get_item_name(proc_id);
-                let message = if is_pure_function {
-                    format!("note that pure function '{}' is not fully supported: {}", proc_name, reasons)
-                } else {
-                    format!("note that procedure '{}' is not fully supported: {}", proc_name, reasons)
-                };
-                // NOTE: make the validator more precise before enabling the following messages
-                debug!("{}", message);
-                //self.env.warn(&message);
+                for reason in &reasons {
+                    debug!("Partially supported reason: {:?}", reason);
+                    let message = format!(
+                        "[Prusti] the following is partially supported{}, because it {}",
+                        extra_msg,
+                        reason.reason
+                    );
+                    self.env.span_warn(reason.position, &message);
+                }
             } else if support_status.is_unsupported() {
-                let reasons = support_status.get_unsupported_reasons().join(", ");
+                let reasons = support_status.get_unsupported_reasons();
                 let proc_name = self.env.get_item_name(proc_id);
-                let message = if is_pure_function {
-                    format!("note that pure function '{}' is not supported: {}", proc_name, reasons)
-                } else {
-                    format!("note that procedure '{}' is not supported: {}", proc_name, reasons)
-                };
-                // NOTE: make the validator more precise before enabling the following messages
-                debug!("{}", message);
-                //self.env.warn(&message);
+                for reason in &reasons {
+                    debug!("Unsupported reason: {:?}", reason);
+                    let message = format!(
+                        "[Prusti] the following is unsupported{}, because it {}",
+                        extra_msg,
+                        reason.reason
+                    );
+                    self.env.span_err(reason.position, &message);
+                }
             }
         }
 
@@ -303,17 +308,15 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 let compilation_error = error_manager.translate(&verification_error);
                 debug!("Compilation error: {:?}", compilation_error);
                 if let Some(reason_span) = compilation_error.reason_span {
-                    self.env.span_err_with_code_with_reason(
+                    self.env.span_err_with_reason(
                         compilation_error.span,
-                        &compilation_error.message,
-                        compilation_error.id,
+                        &format!("[Prusti] {}", compilation_error.message),
                         reason_span
                     )
                 } else {
-                    self.env.span_err_with_code(
+                    self.env.span_err(
                         compilation_error.span,
-                        &compilation_error.message,
-                        compilation_error.id
+                        &format!("[Prusti] {}", compilation_error.message)
                     )
                 }
             }

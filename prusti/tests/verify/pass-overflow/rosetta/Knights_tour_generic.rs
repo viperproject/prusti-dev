@@ -305,7 +305,8 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
             Some((_, adj)) => {// move to next square
                 p = adj;
             }
-            None =>            // can't move
+            // None
+            _ =>            // can't move
                 failed = true,
         };
         let board_cell = board.field.index_mut(p.x, p.y);

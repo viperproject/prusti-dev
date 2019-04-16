@@ -198,7 +198,8 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
             Greater => {
                 base
             },
-            Equal   => {
+            // Equal
+            _   => {
                 result = UsizeOption::Some(mid);
                 base   // Just return anything because we are finished.
             }

@@ -83,9 +83,19 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         self.state.session.warn(msg);
     }
 
+    /// Emits an warning message.
+    pub fn span_warn<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
+        self.state.session.span_warn(sp, msg);
+    }
+
     /// Emits an error message.
     pub fn err(&self, msg: &str) {
         self.state.session.err(msg);
+    }
+
+    /// Emits an error message.
+    pub fn span_err<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
+        self.state.session.span_err(sp, msg);
     }
 
     /// Emits an error message.
@@ -108,6 +118,19 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
     ) {
         let mut diagnostic = self.state.session.struct_err_with_code(
             msg, DiagnosticId::Error(code));
+        diagnostic.set_span(sp);
+        diagnostic.span_note(reason_sp, "the failing assertion is this one");
+        diagnostic.emit();
+    }
+
+    /// Emits an error message.
+    pub fn span_err_with_reason<S: Into<MultiSpan>>(
+        &self,
+        sp: S,
+        msg: &str,
+        reason_sp: S,
+    ) {
+        let mut diagnostic = self.state.session.struct_err(msg);
         diagnostic.set_span(sp);
         diagnostic.span_note(reason_sp, "the failing assertion is this one");
         diagnostic.emit();

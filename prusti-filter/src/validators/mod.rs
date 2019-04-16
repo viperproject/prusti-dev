@@ -4,14 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#[macro_use]
 mod support_status;
+#[macro_use]
+mod common_validator;
 mod procedure_validator;
 mod pure_function_validator;
 mod unsafety_validator;
 
 pub use self::support_status::SupportStatus;
-pub use self::support_status::SupportKind;
+pub use self::support_status::Reason;
+use self::common_validator::CommonValidator;
 use self::procedure_validator::*;
 use self::pure_function_validator::*;
 use syntax::ast::NodeId;
@@ -33,30 +35,16 @@ impl<'a, 'tcx: 'a> Validator<'a, 'tcx> {
     }
 
     #[allow(dead_code)]
-    pub fn procedure_support_status(&self, fk: FnKind<'tcx>, fd: &hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) -> SupportStatus {
+    pub fn procedure_support_status(&self, def_id: DefId) -> SupportStatus {
         let mut procedure_validator = ProcedureValidator::new(self.tcx);
-        procedure_validator.check_fn(fk, fd, b, s, id);
+        procedure_validator.check(def_id);
         procedure_validator.get_support_status()
     }
 
     #[allow(dead_code)]
-    pub fn pure_function_support_status(&self, fk: FnKind<'tcx>, fd: &hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) -> SupportStatus {
+    pub fn pure_function_support_status(&self, def_id: DefId) -> SupportStatus {
         let mut pure_function_validator = PureFunctionValidator::new(self.tcx);
-        pure_function_validator.check_fn(fk, fd, b, s, id);
-        pure_function_validator.get_support_status()
-    }
-
-    #[allow(dead_code)]
-    pub fn procedure_item_support_status(&self, def_id: DefId) -> SupportStatus {
-        let mut procedure_validator = ProcedureValidator::new(self.tcx);
-        procedure_validator.check_fn_item(def_id);
-        procedure_validator.get_support_status()
-    }
-
-    #[allow(dead_code)]
-    pub fn pure_function_item_support_status(&self, def_id: DefId) -> SupportStatus {
-        let mut pure_function_validator = PureFunctionValidator::new(self.tcx);
-        pure_function_validator.check_fn_item(def_id);
+        pure_function_validator.check(def_id);
         pure_function_validator.get_support_status()
     }
 }
