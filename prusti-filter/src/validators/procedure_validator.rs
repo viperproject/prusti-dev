@@ -231,7 +231,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 //}
                 if loops.is_out_edge(bbi, *successor) && !loops.is_loop_head(bbi) {
                     let span = basic_block_data.terminator.as_ref().unwrap().source_info.span;
-                    unsupported!(self, span, "causes abrupt loop terminations");
+                    partially!(self, span, "causes abrupt loop terminations");
                 }
             }
         }

@@ -766,8 +766,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 place.has_prefix(&encoded_source)
             })
             .collect();
-        assert!(relevant_active_loan_places.len() <= 1);
-        if !relevant_active_loan_places.is_empty() {
+        if relevant_active_loan_places.len() == 1 {
             let loan_places = &relevant_active_loan_places[0];
             let (encoded_dest, encoded_source, _) = self.encode_loan_places(loan_places);
             // Recursive translation

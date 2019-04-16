@@ -81,7 +81,7 @@ fn run_verification(group_name: &str) {
     config.link_deps();
 
     // Disable warnings
-    config.target_rustcflags = Some("-A warnings");
+    config.target_rustcflags = Some("-A warnings".to_string());
 
     // Filter the tests to run
     if let Ok(name) = var::<&str>("TESTNAME") {
