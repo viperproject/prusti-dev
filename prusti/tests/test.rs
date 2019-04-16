@@ -80,6 +80,9 @@ fn run_verification(group_name: &str) {
     config.rustc_path = get_driver_path();
     config.link_deps();
 
+    // Disable warnings
+    config.target_rustcflags = Some("-A warnings");
+
     // Filter the tests to run
     if let Ok(name) = var::<&str>("TESTNAME") {
         let s: String = name.to_owned();

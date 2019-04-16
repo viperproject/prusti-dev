@@ -23,12 +23,14 @@ impl<X> Number<X> {
     }
 }
 
-fn test1(mut n: Number<Neg>) {
+fn test1(n: Number<Neg>) {
+    let mut n = n;
     n.to_sign();
     assert!(n.i == -1); //~ ERROR assert!(..) statement might not hold
 }
 
-fn test2(mut n: Number<Pos>) {
+fn test2(n: Number<Pos>) {
+    let mut n = n;
     n.to_sign();
     assert!(n.i == 1);
 }
