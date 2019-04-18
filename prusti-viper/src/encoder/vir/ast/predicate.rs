@@ -45,16 +45,13 @@ impl Predicate {
     ) -> Predicate {
         let predicate_name = typ.name();
         let this = Self::construct_this(typ);
-        let perm = Expr::acc_permission(
-            Expr::from(this.clone()).field(field).into(),
-            PermAmount::Write,
-        );
+        let val_field = Expr::from(this.clone()).field(field);
+        let perm = Expr::acc_permission(val_field.clone(), PermAmount::Write);
         let body = if let Some((lower, upper)) = bounds {
-            let this_place: Expr = this.clone().into();
             vec![
                 perm,
-                Expr::le_cmp(lower, this_place.clone()),
-                Expr::le_cmp(this_place, upper),
+                Expr::le_cmp(lower, val_field.clone()),
+                Expr::le_cmp(val_field, upper),
             ].into_iter().conjoin()
         } else {
             perm
