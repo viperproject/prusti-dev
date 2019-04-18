@@ -158,14 +158,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
-                vec![vir::Predicate::new_struct(typ, vec![self.encoder.encode_ref_field("val_ref", ty)])]
-
+                vec![vir::Predicate::new_struct(
+                    typ, vec![self.encoder.encode_dereference_field(ty)])]
             }
 
             ty::TypeVariants::TyTuple(elems) => {
                 let fields = elems.iter().enumerate().map(|(field_num, ty)| {
                     let field_name = format!("tuple_{}", field_num);
-                    self.encoder.encode_ref_field(&field_name, ty)
+                    self.encoder.encode_raw_ref_field(field_name, ty)
                 }).collect();
                 vec![vir::Predicate::new_struct(typ, fields)]
             },
@@ -179,7 +179,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("Encoding field {:?}", field);
                         let field_name = field.ident.to_string();
                         let field_ty = field.ty(tcx, subst);
-                        self.encoder.encode_ref_field(&field_name, field_ty)
+                        self.encoder.encode_struct_field(&field_name, field_ty)
                     }).collect();
                     vec![vir::Predicate::new_struct(typ, fields)]
                 } else {
@@ -196,9 +196,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         .map(|(variant_index, variant_def)| {
                             let fields = variant_def.fields.iter().map(|field| {
                                 debug!("Encoding field {:?}", field);
-                                let field_name = field.ident.to_string();
+                                let field_name = &field.ident.as_str();
                                 let field_ty = field.ty(tcx, subst);
-                                self.encoder.encode_ref_field(&field_name, field_ty)
+                                self.encoder.encode_struct_field(field_name, field_ty)
                             }).collect();
                             let variant_name = &variant_def.name.as_str();
                             let variant_typ = typ.clone().variant(variant_name);
@@ -228,7 +228,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 assert_eq!(num_variants, 1);
                 let field_ty = self.ty.boxed_ty();
                 vec![vir::Predicate::new_struct(
-                    typ, vec![self.encoder.encode_ref_field("val_ref", field_ty)])]
+                    typ, vec![self.encoder.encode_dereference_field(field_ty)])]
             },
 
             ty::TypeVariants::TyNever => {
@@ -369,7 +369,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
                 let elem_invariant_name = self.encoder.encode_type_invariant_use(ty);
-                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
+                let elem_field = self.encoder.encode_dereference_field(ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 vec![self.encoder.encode_invariant_func_app(ty, elem_loc)]
             }
@@ -432,7 +432,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("Encoding field {:?}", field);
                         let field_name = &field.ident.as_str();
                         let field_ty = field.ty(tcx, subst);
-                        let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                        let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
                         let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                         exprs.push(self.encoder.encode_invariant_func_app(field_ty, elem_loc));
                     }
@@ -452,7 +452,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
                 // This is a reference, so we need to have it already unfolded.
-                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
+                let elem_field = self.encoder.encode_dereference_field(ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 vir::Expr::and(
                     vir::Expr::acc_permission(elem_loc.clone(), vir::PermAmount::Read),

@@ -580,9 +580,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), operand_ty);
                         let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
-                        let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
+                        let value_field = self.encoder.encode_raw_ref_field(
+                            "tuple_0".to_string(), field_types[0]);
                         let value_field_value = self.encoder.encode_value_field(field_types[0]);
-                        let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
+                        let check_field = self.encoder.encode_raw_ref_field(
+                            "tuple_1".to_string(), field_types[1]);
                         let check_field_value = self.encoder.encode_value_field(field_types[1]);
                         // Initialize lhs.field
                         stmts.push(
@@ -625,7 +627,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         match op {
                             mir::NullOp::Box => {
                                 assert_eq!(op_ty, &ty.boxed_ty());
-                                let ref_field = self.encoder.encode_ref_field("val_ref", op_ty);
+                                let ref_field = self.encoder.encode_dereference_field(op_ty);
 
                                 let box_content = encoded_lhs.clone().field(ref_field);
 
@@ -1452,7 +1454,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let &(ref target_place, _) = destination.as_ref().unwrap();
                         let (dst, dest_ty, _) = self.mir_encoder.encode_place(target_place);
                         let boxed_ty = dest_ty.boxed_ty();
-                        let ref_field = self.encoder.encode_ref_field("val_ref", boxed_ty);
+                        let ref_field = self.encoder.encode_dereference_field(boxed_ty);
 
                         let box_content = dst.clone().field(ref_field);
 
@@ -1541,7 +1543,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 match (operand_place, &operand_ty.sty) {
                                     (Some(ref place), ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty: ref inner_ty, .. })) |
                                     (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
-                                        let ref_field = self.encoder.encode_ref_field("val_ref", inner_ty);
+                                        let ref_field = self.encoder.encode_dereference_field(inner_ty);
                                         let ref_place = place.clone().field(ref_field);
                                         stmts.extend(
                                             self.encode_transfer_permissions(
@@ -1851,7 +1853,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ty::TypeVariants::TyRef(_, ref ty, mutability) => {
                 // Use unfolded references.
                 let encoded_local = self.encode_prusti_local(local);
-                let field = self.encoder.encode_ref_field("val_ref", ty);
+                let field = self.encoder.encode_dereference_field(ty);
                 let place = vir::Expr::from(encoded_local).field(field);
                 let perm_amount = match mutability {
                     Mutability::MutMutable => vir::PermAmount::Write,
@@ -2560,7 +2562,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         drop_read_references={}",
                                         mir_place, mutbl, drop_read_references);
                                 // Use unfolded references.
-                                let field = self.encoder.encode_ref_field("val_ref", ty);
+                                let field = self.encoder.encode_dereference_field(ty);
                                 let field_place = vir::Expr::from(encoded_place).field(field);
                                 permissions.push(vir::Expr::acc_permission(
                                     field_place.clone(), perm_amount));
@@ -2806,7 +2808,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     ty::TypeVariants::TyTuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()];
-                        let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
                         let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -2828,7 +2830,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         };
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
-                        let encoded_field = self.encoder.encode_ref_field(&field.ident.as_str(), field_ty);
+                        let encoded_field = self.encoder.encode_struct_field(&field.ident.as_str(), field_ty);
                         let encoded_projection = encoded_variant.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -3102,7 +3104,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut stmts: Vec<vir::Stmt> = vec![];
                 for (field_num, ty) in elems.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
-                    let field = self.encoder.encode_ref_field(&field_name, ty);
+                    let field = self.encoder.encode_raw_ref_field(field_name, ty);
                     stmts.extend(
                         // Copy fields
                         self.encode_copy(
@@ -3128,7 +3130,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     for field in &variant_def.fields {
                         let field_name = &field.ident.as_str();
                         let field_ty = field.ty(tcx, subst);
-                        let elem_field = self.encoder.encode_ref_field(field_name, field_ty);
+                        let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
                         stmts.extend(
                             // Copy fields
                             self.encode_copy(
@@ -3157,7 +3159,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         for field in &variant_def.fields {
                             let field_name = &field.ident.as_str();
                             let field_ty = field.ty(tcx, subst);
-                            let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                            let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
                             stmts.extend(
                                 // Copy fields
                                 self.encode_copy(
@@ -3180,7 +3182,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Ensure that we are encoding a move, not a copy (enforced byt the Rust typesystem)
                 // Hack: we encode *copy* of shared references as a *move*
                 //assert!(is_move);
-                let ref_field = self.encoder.encode_ref_field("val_ref", ty);
+                let ref_field = self.encoder.encode_dereference_field(ty);
                 let mut stmts = vec![
                     // Move the reference to the boxed value
                     vir::Stmt::Assign(
@@ -3205,7 +3207,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Ensure that we are encoding a move, not a copy (enforced byt the Rust typesystem)
                 assert!(is_move);
                 let field_ty = self_ty.boxed_ty();
-                let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
+                let ref_field = self.encoder.encode_dereference_field(field_ty);
                 assert_eq!(adt_def.variants.len(), 1);
                 let mut stmts = vec![
                     // Move the reference to the boxed value
@@ -3262,7 +3264,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
                 for (field_num, operand) in operands.iter().enumerate() {
                     let field_name = format!("tuple_{}", field_num);
-                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_types[field_num]);
+                    let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_types[field_num]);
                     stmts.extend(
                         self.encode_assign_operand(&dst.clone().field(encoded_field), operand, location)
                     );
@@ -3307,7 +3309,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let field_name = &field.ident.as_str();
                     let tcx = self.encoder.env().tcx();
                     let field_ty = field.ty(tcx, subst);
-                    let encoded_field = self.encoder.encode_ref_field(field_name, field_ty);
+                    let encoded_field = self.encoder.encode_struct_field(field_name, field_ty);
                     stmts.extend(
                         self.encode_assign_operand(&dst_base.clone().field(encoded_field), operand, location)
                     );

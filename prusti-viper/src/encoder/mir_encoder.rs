@@ -136,7 +136,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ty::TypeVariants::TyTuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
                         let field_ty = elems[field.index()];
-                        let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
                         let encoded_projection = encoded_base.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -158,7 +158,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         };
                         let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
-                        let encoded_field = self.encoder.encode_ref_field(&field.ident.as_str(), field_ty);
+                        let encoded_field = self.encoder.encode_struct_field(&field.ident.as_str(), field_ty);
                         let encoded_projection = encoded_variant.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
@@ -172,7 +172,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         let mut encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
                             let freevar = &freevars[field.index()];
                             let field_name = format!("closure_{}", field.index());
-                            let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                            let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
                             let res = encoded_base.field(encoded_field);
                             let var_name = tcx.hir.name(freevar.var_id()).to_string();
                             trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
@@ -250,7 +250,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     match encoded_base {
                         vir::Expr::AddrOf(box base_base_place, _, _) => base_base_place,
                         _ => {
-                            let ref_field = self.encoder.encode_ref_field("val_ref", ty);
+                            let ref_field = self.encoder.encode_dereference_field(ty);
                             encoded_base.field(ref_field)
                         }
                     }
@@ -262,7 +262,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     encoded_base.get_parent().unwrap()
                 } else {
                     let field_ty = base_ty.boxed_ty();
-                    let ref_field = self.encoder.encode_ref_field("val_ref", field_ty);
+                    let ref_field = self.encoder.encode_dereference_field(field_ty);
                     encoded_base.field(ref_field)
                 };
                 (access, base_ty.boxed_ty(), None)

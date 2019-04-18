@@ -750,7 +750,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                 for (field_num, operand) in operands.iter().enumerate() {
                                     let field_name = format!("tuple_{}", field_num);
                                     let field_ty = field_types[field_num];
-                                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                                    let encoded_field = self.encoder.encode_raw_ref_field(
+                                        field_name, field_ty);
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
                                     match self.mir_encoder.encode_operand_place(operand) {
@@ -786,7 +787,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                     let field_name = &field.ident.as_str();
                                     let tcx = self.encoder.env().tcx();
                                     let field_ty = field.ty(tcx, subst);
-                                    let encoded_field = self.encoder.encode_ref_field(field_name, field_ty);
+                                    let encoded_field = self.encoder.encode_struct_field(field_name, field_ty);
 
                                     let field_place = encoded_lhs_variant.clone().field(encoded_field);
                                     match self.mir_encoder.encode_operand_place(operand) {
@@ -831,9 +832,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
 
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
-                        let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
+                        let value_field = self.encoder.encode_raw_ref_field(
+                            "tuple_0".to_string(), field_types[0]);
                         let value_field_value = self.encoder.encode_value_field(field_types[0]);
-                        let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
+                        let check_field = self.encoder.encode_raw_ref_field(
+                            "tuple_1".to_string(), field_types[1]);
                         let check_field_value = self.encoder.encode_value_field(field_types[1]);
 
                         let lhs_value = encoded_lhs.clone()

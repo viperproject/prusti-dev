@@ -483,7 +483,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let inner_captured_places: Vec<_> = captured_tys.iter().enumerate().map(
                 |(index, &captured_ty)| {
                     let field_name = format!("closure_{}", index);
-                    let encoded_field = self.encoder.encode_ref_field(&field_name, captured_ty);
+                    let encoded_field = self.encoder.encode_raw_ref_field(field_name, captured_ty);
                     deref_closure_var.clone().field(encoded_field)
                 }
             ).collect();

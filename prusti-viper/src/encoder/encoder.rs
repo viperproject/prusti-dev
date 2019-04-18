@@ -328,18 +328,22 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         field
     }
 
-    pub fn encode_ref_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
-        let viper_field_name = if field_name.chars().next().unwrap().is_numeric() {
-            format!("f${}", field_name)
-        } else {
-            field_name.to_string()
-        };
+    pub fn encode_raw_ref_field(&self, viper_field_name: String, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_name = self.encode_type_predicate_use(ty);
         self.fields.borrow_mut().entry(viper_field_name.clone()).or_insert_with(|| {
             // Do not store the name of the type in self.fields
             vir::Field::new(viper_field_name.clone(), vir::Type::TypedRef("".to_string()))
         });
         vir::Field::new(viper_field_name, vir::Type::TypedRef(type_name))
+    }
+
+    pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
+        self.encode_raw_ref_field("val_ref".to_string(), ty)
+    }
+
+    pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
+        let viper_field_name = format!("f${}", field_name);
+        self.encode_raw_ref_field(viper_field_name, ty)
     }
 
     /// Creates a field that corresponds to the enum variant ``index``.
