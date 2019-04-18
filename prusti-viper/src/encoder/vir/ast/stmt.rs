@@ -209,7 +209,7 @@ impl Stmt {
         Stmt::Obtain(
             Expr::PredicateAccessPredicate(
                 predicate_name,
-                vec![ place ],
+                box place,
                 PermAmount::Write,
                 pos
             )

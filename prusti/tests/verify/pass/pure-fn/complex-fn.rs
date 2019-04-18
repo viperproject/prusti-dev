@@ -25,5 +25,17 @@ fn negative(n: i32) -> i32 {
     (new_t.a.0).0
 }
 
+#[pure]
+fn test1() -> i32 {
+    let x = (1, 2);
+    x.0
+}
+
+#[pure]
+fn test2() -> i32 {
+    let x = (A(1), 2);
+    (x.0).0
+}
+
 #[ensures="forall i: i32 :: ( -1000 < i && i < 1000 ) ==> negative(i) == -i"]
 fn main() {}

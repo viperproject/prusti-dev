@@ -150,11 +150,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             0
                         });
                         let tcx = self.encoder.env().tcx();
-                        let field = &adt_def.variants[variant_index].fields[field.index()];
-                        let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
+                        let variant_def = &adt_def.variants[variant_index];
+                        let encoded_variant = if num_variants != 1 {
+                            encoded_base.variant(&variant_def.name.as_str())
+                        } else {
+                            encoded_base
+                        };
+                        let field = &variant_def.fields[field.index()];
                         let field_ty = field.ty(tcx, subst);
-                        let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        let encoded_projection = encoded_base.field(encoded_field);
+                        let encoded_field = self.encoder.encode_ref_field(&field.ident.as_str(), field_ty);
+                        let encoded_projection = encoded_variant.field(encoded_field);
                         (encoded_projection, field_ty, None)
                     }
 
@@ -520,19 +525,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_unfolded_place_predicate_permission(&self, place: vir::Expr) -> vir::Expr {
-        let predicate_name = place.typed_ref_name().unwrap();
-        let predicates = self.encoder.get_used_viper_predicates_map();
-        let predicate = predicates.get(&predicate_name).unwrap();
-        match predicate.body {
-            Some(ref body) => {
-                let self_expr = &predicate.args[0];
-                body.clone().replace_place(&self_expr.clone().into(), &place) // * &frac
-            },
-            None => true.into()
-        }
-    }
-
     pub fn encode_place_predicate_permission(
         &self,
         place: vir::Expr,
@@ -552,13 +544,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_old_expr(&self, mut expr: vir::Expr, label: &str) -> vir::Expr {
         debug!("encode_old_expr {}, {}", expr, label);
         vir::Expr::labelled_old(label, expr)
-    }
-
-    pub fn encode_place_predicate_body(&self, place: vir::Expr) -> vir::Expr {
-        let predicate_name = place.typed_ref_name().unwrap();
-        let predicate = self.encoder.get_type_predicate_by_name(&predicate_name).unwrap();
-        let pred_self_place = &predicate.args[0];
-        predicate.body.unwrap().replace_place(&pred_self_place.into(), &place)
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {

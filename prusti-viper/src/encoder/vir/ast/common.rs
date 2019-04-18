@@ -185,6 +185,17 @@ impl Type {
         }
     }
 
+    /// Construct a new VIR type that corresponds to an enum variant.
+    pub fn variant(self, variant: &str) -> Self {
+        match self {
+            Type::TypedRef(mut name) => {
+                name.push_str(variant);
+                Type::TypedRef(name)
+            },
+            _ => unreachable!(),
+        }
+    }
+
     /// FIXME: A hack. Replaces all generic types with their instantiations by using string
     /// substitution.
     pub fn patch(self, substs: &HashMap<String, String>) -> Self {

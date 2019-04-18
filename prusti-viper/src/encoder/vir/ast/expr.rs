@@ -17,6 +17,8 @@ use super::super::borrows::Borrow;
 pub enum Expr {
     /// A local var
     Local(LocalVar, Position),
+    /// An enum variant: base, variant index.
+    Variant(Box<Expr>, Field, Position),
     /// A field access
     Field(Box<Expr>, Field, Position),
     /// The inverse of a `val_ref` field access
@@ -25,8 +27,8 @@ pub enum Expr {
     Const(Const, Position),
     /// lhs, rhs, borrow, position
     MagicWand(Box<Expr>, Box<Expr>, Option<Borrow>, Position),
-    /// PredicateAccessPredicate: predicate_name, args, permission amount
-    PredicateAccessPredicate(String, Vec<Expr>, PermAmount, Position),
+    /// PredicateAccessPredicate: predicate_name, arg, permission amount
+    PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
@@ -40,6 +42,13 @@ pub enum Expr {
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
+}
+
+/// A component that can be used to represent a place as a vector.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum PlaceComponent {
+    Field(Field, Position),
+    Variant(Field, Position),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -64,15 +73,18 @@ impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Expr::Local(ref v, ref _pos) => write!(f, "{}", v),
+            Expr::Variant(ref base, ref variant_index, ref _pos) => {
+                write!(f, "{}[{}]", base, variant_index)
+            },
             Expr::Field(ref base, ref field, ref _pos) => write!(f, "{}.{}", base, field),
             Expr::AddrOf(ref base, _, ref _pos) => write!(f, "&({})", base),
             Expr::Const(ref value, ref _pos) => write!(f, "{}", value),
             Expr::BinOp(op, ref left, ref right, ref _pos) => write!(f, "({}) {} ({})", left, op, right),
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{}({})", op, expr),
-            Expr::PredicateAccessPredicate(ref pred_name, ref args, perm, ref _pos) => write!(
+            Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => write!(
                 f, "acc({}({}), {})",
                 pred_name,
-                args.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(", "),
+                arg,
                 perm
             ),
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => write!(f, "acc({}, {})", expr, perm),
@@ -154,6 +166,7 @@ impl Expr {
     pub fn pos(&self) -> &Position {
         match self {
             Expr::Local(_, ref p) => p,
+            Expr::Variant(_, _, ref p) => p,
             Expr::Field(_, _, ref p) => p,
             Expr::AddrOf(_, _, ref p) => p,
             Expr::Const(_, ref p) => p,
@@ -174,6 +187,7 @@ impl Expr {
     pub fn set_pos(self, pos: Position) -> Self {
         match self {
             Expr::Local(v, _) => Expr::Local(v, pos),
+            Expr::Variant(base, variant_index, _) => Expr::Variant(base, variant_index, pos),
             Expr::Field(e, f, _) => Expr::Field(e, f, pos),
             Expr::AddrOf(e, t, _) => Expr::AddrOf(e, t, pos),
             Expr::Const(x, _) => Expr::Const(x, pos),
@@ -214,7 +228,7 @@ impl Expr {
     pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
         Expr::PredicateAccessPredicate(
             name.to_string(),
-            vec![ place ],
+            box place,
             perm,
             Position::default(),
         )
@@ -389,21 +403,51 @@ impl Expr {
         finder.found
     }
 
-    pub fn explode_place(&self) -> (Expr, Vec<Field>) {
+    /// Split place into place components.
+    pub fn explode_place(&self) -> (Expr, Vec<PlaceComponent>) {
         match self {
+            Expr::Variant(ref base, ref variant, ref pos) => {
+                let (base_base, mut components) = base.explode_place();
+                components.push(PlaceComponent::Variant(variant.clone(), pos.clone()));
+                (base_base, components)
+            }
             Expr::Field(ref base, ref field, ref pos) => {
-                let (base_base, mut fields) = base.explode_place();
-                fields.push(field.clone());
-                (base_base, fields)
+                let (base_base, mut components) = base.explode_place();
+                components.push(PlaceComponent::Field(field.clone(), pos.clone()));
+                (base_base, components)
             }
             _ => (self.clone(), vec![])
         }
+    }
+
+    /// Reconstruct place from the place components.
+    pub fn reconstruct_place(self, components: Vec<PlaceComponent>) -> Expr {
+        components
+            .into_iter()
+            .fold(self, |acc, component| {
+                match component {
+                    PlaceComponent::Variant(variant, pos) => {
+                        Expr::Variant(box acc, variant, pos)
+                    }
+                    PlaceComponent::Field(field, pos) => {
+                        Expr::Field(box acc, field, pos)
+                    }
+                }
+            })
     }
 
     // Methods from the old `Place` structure
 
     pub fn local(local: LocalVar) -> Self {
         Expr::Local(local, Position::default())
+    }
+
+    pub fn variant(self, index: &str) -> Self {
+        assert!(self.is_place());
+        let field_name = format!("enum_{}", index);
+        let typ = self.get_type();
+        let variant = Field::new(field_name, typ.clone().variant(index));
+        Expr::Variant(box self, variant, Position::default())
     }
 
     pub fn field(self, field: Field) -> Self {
@@ -418,6 +462,7 @@ impl Expr {
     pub fn is_place(&self) -> bool {
         match self {
             &Expr::Local(_, _) => true,
+            &Expr::Variant(ref base, _, _) |
             &Expr::Field(ref base, _, _) |
             &Expr::AddrOf(ref base, _, _) |
             &Expr::LabelledOld(_, ref base, _) |
@@ -430,6 +475,7 @@ impl Expr {
     pub fn place_depth(&self) -> u32 {
         match self {
             &Expr::Local(_, _) => 1,
+            &Expr::Variant(ref base, _, _) |
             &Expr::Field(ref base, _, _) |
             &Expr::AddrOf(ref base, _, _) |
             &Expr::LabelledOld(_, ref base, _) |
@@ -441,6 +487,7 @@ impl Expr {
     pub fn is_simple_place(&self) -> bool {
         match self {
             &Expr::Local(_, _) => true,
+            &Expr::Variant(ref base, _, _) |
             &Expr::Field(ref base, _, _) => base.is_simple_place(),
             _ => false
         }
@@ -451,6 +498,7 @@ impl Expr {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(_, _) => None,
+            &Expr::Variant(box ref base, _, _) |
             &Expr::Field(box ref base, _, _) |
             &Expr::AddrOf(box ref base, _, _) => Some(base.clone()),
             &Expr::LabelledOld(_, _, _) => None,
@@ -464,6 +512,7 @@ impl Expr {
         debug_assert!(self.is_place());
         if let Expr::Field(box Expr::Local(LocalVar{ typ, .. }, _), _, _) = self {
             if let Type::TypedRef(ref name) = typ {
+                // FIXME: We should not rely on string names for detecting types.
                 return name.starts_with("ref$");
             }
         }
@@ -487,6 +536,7 @@ impl Expr {
 
     pub fn map_parent<F>(self, f: F) -> Expr where F: Fn(Expr) -> Expr {
         match self {
+            Expr::Variant(box base, variant_index, pos) => Expr::Variant(box f(base), variant_index, pos),
             Expr::Field(box base, field, pos) => Expr::Field(box f(base), field, pos),
             Expr::AddrOf(box base, ty, pos) => Expr::AddrOf(box f(base), ty, pos),
             Expr::LabelledOld(label, box base, pos) => Expr::LabelledOld(label, box f(base), pos),
@@ -509,12 +559,6 @@ impl Expr {
         }
     }
 
-    pub fn is_field(&self) -> bool {
-        match self {
-            &Expr::Field(..) => true,
-            _ => false,
-        }
-    }
 
     pub fn is_addr_of(&self) -> bool {
         match self {
@@ -591,7 +635,7 @@ impl Expr {
 
     pub fn get_place(&self) -> Option<&Expr> {
         match self {
-            Expr::PredicateAccessPredicate(_, ref args, _, _) => Some(&args[0]),
+            Expr::PredicateAccessPredicate(_, ref arg, _, _) => Some(arg),
             Expr::FieldAccessPredicate(box ref arg, _, _) => Some(arg),
             _ => None,
         }
@@ -610,7 +654,7 @@ impl Expr {
             non_pure: bool
         }
         impl ExprWalker for PurityFinder {
-            fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: PermAmount, p: &Position) {
+            fn walk_predicate_access_predicate(&mut self,x: &str, y: &Expr, z: PermAmount, p: &Position) {
                 self.non_pure = true;
             }
             fn walk_field_access_predicate(&mut self, x: &Expr, y: PermAmount, p: &Position) {
@@ -713,6 +757,7 @@ impl Expr {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(LocalVar { ref typ, .. }, _) |
+            &Expr::Variant(_, Field { ref typ, .. }, _) |
             &Expr::Field(_, Field { ref typ, .. }, _) |
             &Expr::AddrOf(_, ref typ, _) => &typ,
             &Expr::LabelledOld(_, box ref base, _) |
@@ -874,6 +919,7 @@ impl Expr {
                     Expr::UnaryOp(..) |
                     Expr::Const(..) |
                     Expr::Local(..) |
+                    Expr::Variant(..) |
                     Expr::Field(..) |
                     Expr::AddrOf(..) |
                     Expr::LabelledOld(..) |
@@ -958,6 +1004,12 @@ impl Expr {
             perms: Vec<Expr>,
         }
         impl ExprWalker for Collector {
+            fn walk_variant(&mut self, e: &Expr, v: &Field, p: &Position) {
+                self.walk(e);
+                let expr = Expr::Variant(box e.clone(), v.clone(), p.clone());
+                let perm = Expr::acc_permission(expr, self.perm_amount);
+                self.perms.push(perm);
+            }
             fn walk_field(&mut self, e: &Expr, f: &Field, p: &Position) {
                 self.walk(e);
                 let expr = Expr::Field(box e.clone(), f.clone(), p.clone());
@@ -986,7 +1038,7 @@ impl Expr {
             fn fold_predicate_access_predicate(
                 &mut self,
                 mut predicate_name: String,
-                args: Vec<Expr>,
+                arg: Box<Expr>,
                 perm_amount: PermAmount,
                 pos: Position
             ) -> Expr {
@@ -995,7 +1047,7 @@ impl Expr {
                 }
                 Expr::PredicateAccessPredicate(
                     predicate_name,
-                    args.into_iter().map(|e| self.fold(e)).collect(),
+                    self.fold_boxed(arg),
                     perm_amount, pos)
             }
             fn fold_local(&mut self, mut var: LocalVar, pos: Position) -> Expr {
@@ -1050,6 +1102,10 @@ impl PartialEq for Expr {
                 Expr::Local(ref other_var, _)
             ) => self_var == other_var,
             (
+                Expr::Variant(box ref self_base, ref self_variant, _),
+                Expr::Variant(box ref other_base, ref other_variant, _)
+            ) => (self_base, self_variant) == (other_base, other_variant),
+            (
                 Expr::Field(box ref self_base, ref self_field, _),
                 Expr::Field(box ref other_base, ref other_field, _)
             ) => (self_base, self_field) == (other_base, other_field),
@@ -1070,9 +1126,9 @@ impl PartialEq for Expr {
                 Expr::MagicWand(box ref other_lhs, box ref other_rhs, other_borrow, _)
             ) => (self_lhs, self_rhs, self_borrow) == (other_lhs, other_rhs, other_borrow),
             (
-                Expr::PredicateAccessPredicate(ref self_name, ref self_args, self_perm, _),
-                Expr::PredicateAccessPredicate(ref other_name, ref other_args, other_perm, _)
-            ) => (self_name, self_args, self_perm) == (other_name, other_args, other_perm),
+                Expr::PredicateAccessPredicate(ref self_name, ref self_arg, self_perm, _),
+                Expr::PredicateAccessPredicate(ref other_name, ref other_arg, other_perm, _)
+            ) => (self_name, self_arg, self_perm) == (other_name, other_arg, other_perm),
             (
                 Expr::FieldAccessPredicate(box ref self_base, self_perm, _),
                 Expr::FieldAccessPredicate(box ref other_base, other_perm, _)
@@ -1122,12 +1178,13 @@ impl Hash for Expr {
         discriminant(self).hash(state);
         match self {
             Expr::Local(ref var, _) => var.hash(state),
+            Expr::Variant(box ref base, variant_index, _) => (base, variant_index).hash(state),
             Expr::Field(box ref base, ref field, _) => (base, field).hash(state),
             Expr::AddrOf(box ref base, ref typ, _) => (base, typ).hash(state),
             Expr::LabelledOld(ref label, box ref base, _) => (label, base).hash(state),
             Expr::Const(ref const_expr, _) => const_expr.hash(state),
             Expr::MagicWand(box ref lhs, box ref rhs, b, _) => (lhs, rhs, b).hash(state),
-            Expr::PredicateAccessPredicate(ref name, ref args, perm, _) => (name, args, perm).hash(state),
+            Expr::PredicateAccessPredicate(ref name, ref arg, perm, _) => (name, arg, perm).hash(state),
             Expr::FieldAccessPredicate(box ref base, perm, _) => (base, perm).hash(state),
             Expr::UnaryOp(op, box ref arg, _) => (op, arg).hash(state),
             Expr::BinOp(op, box ref left, box ref right, _) => (op, left, right).hash(state),
@@ -1152,6 +1209,9 @@ pub trait ExprFolder : Sized {
     fn fold_local(&mut self, v: LocalVar, p: Position) -> Expr {
         Expr::Local(v, p)
     }
+    fn fold_variant(&mut self, base: Box<Expr>, variant: Field, p: Position) -> Expr {
+        Expr::Variant(self.fold_boxed(base), variant, p)
+    }
     fn fold_field(&mut self, e: Box<Expr>, f: Field, p: Position) -> Expr {
         Expr::Field(self.fold_boxed(e), f, p)
     }
@@ -1167,8 +1227,8 @@ pub trait ExprFolder : Sized {
     fn fold_magic_wand(&mut self, x: Box<Expr>, y: Box<Expr>, b: Option<Borrow>, p: Position) -> Expr {
         Expr::MagicWand(self.fold_boxed(x), self.fold_boxed(y), b, p)
     }
-    fn fold_predicate_access_predicate(&mut self, x: String, y: Vec<Expr>, z: PermAmount, p: Position) -> Expr {
-        Expr::PredicateAccessPredicate(x, y.into_iter().map(|e| self.fold(e)).collect(), z, p)
+    fn fold_predicate_access_predicate(&mut self, x: String, y: Box<Expr>, z: PermAmount, p: Position) -> Expr {
+        Expr::PredicateAccessPredicate(x, self.fold_boxed(y), z, p)
     }
     fn fold_field_access_predicate(&mut self, x: Box<Expr>, y: PermAmount, p: Position) -> Expr {
         Expr::FieldAccessPredicate(self.fold_boxed(x), y, p)
@@ -1199,6 +1259,7 @@ pub trait ExprFolder : Sized {
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
     match e {
         Expr::Local(v, p) => this.fold_local(v, p),
+        Expr::Variant(base, variant, p) => this.fold_variant(base, variant, p),
         Expr::Field(e, f, p) => this.fold_field(e, f, p),
         Expr::AddrOf(e, t, p) => this.fold_addr_of(e, t, p),
         Expr::Const(x, p) => this.fold_const(x, p),
@@ -1226,6 +1287,9 @@ pub trait ExprWalker : Sized {
     fn walk_local(&mut self, x: &LocalVar, p: &Position) {
         self.walk_local_var(x);
     }
+    fn walk_variant(&mut self, base: &Expr, variant: &Field, p: &Position) {
+        self.walk(base);
+    }
     fn walk_field(&mut self, e: &Expr, f: &Field, p: &Position) {
         self.walk(e);
     }
@@ -1243,10 +1307,8 @@ pub trait ExprWalker : Sized {
         self.walk(x);
         self.walk(y);
     }
-    fn walk_predicate_access_predicate(&mut self,x: &str, y: &Vec<Expr>, z: PermAmount, p: &Position) {
-        for e in y {
-            self.walk(e);
-        }
+    fn walk_predicate_access_predicate(&mut self,x: &str, y: &Expr, z: PermAmount, p: &Position) {
+        self.walk(y)
     }
     fn walk_field_access_predicate(&mut self, x: &Expr, y: PermAmount, p: &Position) {
         self.walk(x)
@@ -1293,6 +1355,7 @@ pub trait ExprWalker : Sized {
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
     match *e {
         Expr::Local(ref v, ref p) => this.walk_local(v, p),
+        Expr::Variant(ref base, ref variant, ref p) => this.walk_variant(base, variant, p),
         Expr::Field(ref e, ref f, ref p) => this.walk_field(e, f, p),
         Expr::AddrOf(ref e, ref t, ref p) => this.walk_addr_of(e, t, p),
         Expr::Const(ref x, ref p) => this.walk_const(x, p),
@@ -1320,14 +1383,14 @@ impl Expr {
             fn fold_predicate_access_predicate(
                 &mut self,
                 name: String,
-                args: Vec<Expr>,
+                arg: Box<Expr>,
                 perm_amount: PermAmount,
                 p: Position
             ) -> Expr {
                 assert!(perm_amount.is_valid_for_specs());
                 match perm_amount {
                     PermAmount::Write => {
-                        Expr::PredicateAccessPredicate(name, args, perm_amount, p)
+                        Expr::PredicateAccessPredicate(name, arg, perm_amount, p)
                     },
                     PermAmount::Read => {
                         true.into()

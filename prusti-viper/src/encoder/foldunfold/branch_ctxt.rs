@@ -65,7 +65,7 @@ impl<'a> BranchCtxt<'a> {
         let predicate_name = pred_place.typed_ref_name().unwrap();
         let predicate = self.predicates.get(&predicate_name).unwrap();
 
-        let pred_self_place: vir::Expr = predicate.args[0].clone().into();
+        let pred_self_place: vir::Expr = predicate.self_place();
         let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
             .map(
                 |perm| {
@@ -376,7 +376,7 @@ impl<'a> BranchCtxt<'a> {
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
-            let pred_self_place: vir::Expr = predicate.args[0].clone().into();
+            let pred_self_place: vir::Expr = predicate.self_place();
             let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                 .map(
                     |perm| {
