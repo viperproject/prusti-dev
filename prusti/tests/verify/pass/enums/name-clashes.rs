@@ -22,5 +22,21 @@ pub fn test1(e: E) {
     x.enum_0 = 4;
 }
 
+pub enum Int {
+    Ref,
+    val_int(u32),
+    int_val,
+    null
+}
+
+pub fn test2(x: Int) -> u32 {
+    match x {
+        Int::Ref => 0,
+        Int::val_int(x) => x,
+        Int::int_val => 2,
+        Int::null => 3,
+    }
+}
+
 fn main() {}
 
