@@ -146,7 +146,7 @@ impl vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Expr = predicate.args[0].clone().into();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<Perm> = predicate.get_permissions().into_iter()
                     .map(
                         |perm| {
@@ -176,7 +176,7 @@ impl vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Expr = predicate.args[0].clone().into();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate.get_permissions().into_iter()
                     .map( |aop| aop.map_place( |p|
                         p.replace_place(&pred_self_place, place)

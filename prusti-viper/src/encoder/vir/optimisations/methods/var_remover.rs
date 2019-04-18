@@ -71,7 +71,7 @@ impl ast::ExprWalker for UsedVarCollector {
     fn walk_predicate_access_predicate(
         &mut self,
         _predicate_name: &str,
-        _args: &Vec<ast::Expr>,
+        _arg: &ast::Expr,
         _perm_amount: ast::PermAmount,
         _pos: &ast::Position
     ) {}
@@ -100,21 +100,19 @@ impl ast::ExprFolder for UnusedVarRemover {
     fn fold_predicate_access_predicate(
         &mut self,
         predicate_name: String,
-        args: Vec<ast::Expr>,
+        arg: Box<ast::Expr>,
         perm_amount: ast::PermAmount,
         pos: ast::Position
     ) -> ast::Expr {
-        if args.len() == 1 {
-            match args[0] {
-                ast::Expr::Local(ref var, _) => {
-                    if self.unused_vars.contains(var) {
-                        return true.into();
-                    }
-                },
-                _ => {},
-            }
+        match arg {
+            box ast::Expr::Local(ref var, _) => {
+                if self.unused_vars.contains(var) {
+                    return true.into();
+                }
+            },
+            _ => {},
         }
-        ast::Expr::PredicateAccessPredicate(predicate_name, args, perm_amount, pos)
+        ast::Expr::PredicateAccessPredicate(predicate_name, arg, perm_amount, pos)
     }
     fn fold_field_access_predicate(
         &mut self,

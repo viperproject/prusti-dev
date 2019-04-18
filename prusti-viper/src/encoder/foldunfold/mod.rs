@@ -406,10 +406,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         for access in self.log.get_converted_to_read_places(borrow) {
             trace!("restore_write_permissions access={}", access);
             let perm = match access {
-                vir::Expr::PredicateAccessPredicate(_, ref args, perm_amount, _) => {
-                    assert!(args.len() == 1);
+                vir::Expr::PredicateAccessPredicate(_, box ref arg, perm_amount, _) => {
                     assert!(perm_amount == vir::PermAmount::Remaining);
-                    Perm::pred(args[0].clone(), vir::PermAmount::Read)
+                    Perm::pred(arg.clone(), vir::PermAmount::Read)
                 },
                 vir::Expr::FieldAccessPredicate(box ref place, perm_amount, _) => {
                     assert!(perm_amount == vir::PermAmount::Remaining);
@@ -573,8 +572,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 let labelled_state = labelled_bctxt.mut_state();
                 labelled_state.remove_all();
                 vir::Stmt::Inhale(lhs.clone()).apply_on_state(labelled_state, bctxt.predicates());
-                if let vir::Expr::PredicateAccessPredicate(ref name, ref args, perm_amount, _) = lhs {
-                    labelled_state.insert_acc(args[0].clone(), *perm_amount);
+                if let vir::Expr::PredicateAccessPredicate(ref name, box ref arg, perm_amount, _) = lhs {
+                    labelled_state.insert_acc(arg.clone(), *perm_amount);
                 }
                 labelled_state.replace_places(|place| place.old(&label));
                 self.bctxt_at_label.insert(label.to_string(), labelled_bctxt);
@@ -780,7 +779,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 let predicate_name = place.typed_ref_name().unwrap();
                 if perm_amount == vir::PermAmount::Write {
                     let access = vir::Expr::PredicateAccessPredicate(
-                        predicate_name.clone(), vec![place.clone()],
+                        predicate_name.clone(), box place.clone(),
                         vir::PermAmount::Remaining, vir::Position::default());
                     self.log.log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, vir::Position::default());
@@ -790,7 +789,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 let new_place = place.replace_place(rhs_place, lhs_place);
                 debug!("    new place: {}", new_place);
                 let lhs_read_access = vir::Expr::PredicateAccessPredicate(
-                    predicate_name, vec![new_place],
+                    predicate_name, box new_place,
                     vir::PermAmount::Read, vir::Position::default());
                 self.log.log_read_permission_duplication(
                     borrow, lhs_read_access.clone(), lhs_place.clone());
@@ -958,19 +957,15 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             vir::Expr::Field(self.fold_boxed(expr), field, pos)
         } else {
             // FIXME: we lose positions
-            let (base, mut fields) = expr.explode_place();
-            fields.push(field);
+            let (base, mut components) = expr.explode_place();
+            components.push(vir::PlaceComponent::Field(field, pos));
             let new_base = self.fold(base);
             debug_assert!(match new_base {
                 vir::Expr::Local(..) |
                 vir::Expr::LabelledOld(..) => true,
                 _ => false
-            });
-            fields.into_iter()
-                .fold(
-                    new_base,
-                    |res, f| res.field(f).set_pos(pos.clone())
-                )
+            }, "new_base = {}", new_base);
+            new_base.reconstruct_place(components)
         };
 
         debug!("[exit] fold_unfolding = {}", res);

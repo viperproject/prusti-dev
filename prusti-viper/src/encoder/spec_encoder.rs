@@ -91,7 +91,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_hir_field(&self, field_expr: &hir::Expr) -> vir::Field {
+    fn encode_hir_field(&self, base_place: vir::Expr, field_expr: &hir::Expr) -> vir::Expr {
         trace!("encode_hir_field: {:?}", field_expr);
         assert!(match field_expr.node { hir::Expr_::ExprField(..) => true, _ => false });
 
@@ -107,29 +107,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let field_index = tcx.field_index(field_expr.id, typeck_tables);
         let base_expr_ty = typeck_tables.expr_ty(base_expr);
 
-        let field_name = match base_expr_ty.ty_adt_def() {
+        let field_ty = typeck_tables.expr_ty(field_expr);
+        let encoded_type = self.encoder.encode_type(field_ty);
+        match base_expr_ty.ty_adt_def() {
             Some(adt) => {
                 match tcx.hir.describe_def(base_expr.id) {
                     Some(def) => {
-                        let variant_def = tcx.expect_variant_def(def);
-                        let def_id = tcx.adt_def_id_of_variant(variant_def);
-                        let variant_index = adt.variant_index_with_id(def_id);
-                        // TODO: do we want the variant_index or the discriminant?
-                        format!("enum_{}_{:?}", variant_index, field_id.name)
+                        let num_variants = adt.variants.len();
+                        let place = if num_variants != 1 {
+                            let variant_def = tcx.expect_variant_def(def);
+                            base_place.variant(&variant_def.name.as_str())
+                        } else {
+                            base_place
+                        };
+                        let field = vir::Field::new(
+                            field_id.name.as_str().to_string(), encoded_type);
+                        place.field(field)
                     }
                     None => {
-                        format!("enum_0_{:?}", field_id.name)
+                        let field = vir::Field::new(
+                            field_id.name.as_str().to_string(), encoded_type);
+                        base_place.field(field)
                     }
                 }
             }
             None => {
-                format!("tuple_{}", field_index)
+                let field_name = format!("tuple_{}", field_index);
+                let field = vir::Field::new(field_name, encoded_type);
+                base_place.field(field)
             }
-        };
-
-        let field_ty = typeck_tables.expr_ty(field_expr);
-        let encoded_type = self.encoder.encode_type(field_ty);
-        vir::Field::new(field_name, encoded_type)
+        }
     }
 
     fn encode_hir_arg(&self, arg: &hir::Arg) -> vir::LocalVar {
@@ -223,8 +230,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             hir::Expr_::ExprField(ref expr, field_id) => {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
-                let field = self.encode_hir_field(base_expr);
-                place.field(field)
+                self.encode_hir_field(place, base_expr)
             }
 
             hir::Expr_::ExprUnary(hir::UnOp::UnDeref, ref expr) => {
@@ -477,7 +483,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
             let inner_captured_places: Vec<_> = captured_tys.iter().enumerate().map(
                 |(index, &captured_ty)| {
                     let field_name = format!("closure_{}", index);
-                    let encoded_field = self.encoder.encode_ref_field(&field_name, captured_ty);
+                    let encoded_field = self.encoder.encode_raw_ref_field(field_name, captured_ty);
                     deref_closure_var.clone().field(encoded_field)
                 }
             ).collect();

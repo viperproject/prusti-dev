@@ -328,13 +328,32 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         field
     }
 
-    pub fn encode_ref_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
+    pub fn encode_raw_ref_field(&self, viper_field_name: String, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_name = self.encode_type_predicate_use(ty);
-        self.fields.borrow_mut().entry(field_name.to_string()).or_insert_with(|| {
+        self.fields.borrow_mut().entry(viper_field_name.clone()).or_insert_with(|| {
             // Do not store the name of the type in self.fields
-            vir::Field::new(field_name, vir::Type::TypedRef("".to_string()))
+            vir::Field::new(viper_field_name.clone(), vir::Type::TypedRef("".to_string()))
         });
-        vir::Field::new(field_name, vir::Type::TypedRef(type_name))
+        vir::Field::new(viper_field_name, vir::Type::TypedRef(type_name))
+    }
+
+    pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
+        self.encode_raw_ref_field("val_ref".to_string(), ty)
+    }
+
+    pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
+        let viper_field_name = format!("f${}", field_name);
+        self.encode_raw_ref_field(viper_field_name, ty)
+    }
+
+    /// Creates a field that corresponds to the enum variant ``index``.
+    pub fn encode_enum_variant_field(&self, index: &str) {
+        let name = format!("enum_{}", index);
+        let mut fields = self.fields.borrow_mut();
+        if !fields.contains_key(&name) {
+            let field = vir::Field::new(name.clone(), vir::Type::TypedRef("".to_string()));
+            fields.insert(name, field);
+        }
     }
 
     pub fn encode_discriminant_field(&self) -> vir::Field {
@@ -362,7 +381,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             );
             let result = vir::LocalVar::new("__result", vir::Type::Int);
             let postcondition = compute_discriminant_values(
-                adt_def, self.env.tcx(), result.into());
+                adt_def, self.env.tcx(), &result.into());
             let discr_field = self.encode_discriminant_field();
             let self_local_var_expr: vir::Expr = self_local_var.clone().into();
             let function = vir::Function {
@@ -504,9 +523,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let predicate_name = self.encode_type_predicate_use(ty);
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
             let type_encoder = TypeEncoder::new(self, ty);
-            let predicate = type_encoder.encode_predicate_def();
-            self.log_vir_program_before_viper(predicate.to_string());
-            self.type_predicates.borrow_mut().insert(predicate_name.clone(), predicate);
+            let predicates = type_encoder.encode_predicate_def();
+            for predicate in predicates {
+                self.log_vir_program_before_viper(predicate.to_string());
+                let predicate_name = predicate.name();
+                self.type_predicates.borrow_mut().insert(predicate_name.to_string(), predicate);
+            }
         }
         self.type_predicates.borrow()[&predicate_name].clone()
     }

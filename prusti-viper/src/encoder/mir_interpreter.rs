@@ -9,8 +9,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::marker::Sized;
 use std::iter::FromIterator;
-use std::fmt::Debug;
-use std::fmt::Display;
+use std::fmt::{self, Debug, Display};
 use encoder::vir;
 
 /// Backward interpreter for a loop-less MIR
@@ -315,6 +314,12 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
 #[derive(Clone, Debug)]
 pub struct MultiExprBackwardInterpreterState {
     exprs: Vec<vir::Expr>
+}
+
+impl Display for MultiExprBackwardInterpreterState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "exprs={}", self.exprs.iter().map(|e| format!("{},", e)).collect::<String>())
+    }
 }
 
 impl MultiExprBackwardInterpreterState {

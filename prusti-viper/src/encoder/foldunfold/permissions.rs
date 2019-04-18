@@ -81,7 +81,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Expr = predicate.args[0].clone().into();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
                     .map(
                         |perm| {
@@ -192,7 +192,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Expr = predicate.args[0].clone().into();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
                     .map(
                         |aop| {
@@ -214,9 +214,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 HashSet::new()
             }
 
-            vir::Expr::PredicateAccessPredicate(_, args, _perm_amount, _) => {
-                assert_eq!(args.len(), 1);
-                let place = &args[0];
+            vir::Expr::PredicateAccessPredicate(_, box place, _perm_amount, _) => {
                 debug_assert!(place.is_place());
                 let epsilon = PermAmount::Read;
                 let result = match place.get_label() {
@@ -280,6 +278,10 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::AddrOf(..) => unreachable!(),
 
+            vir::Expr::Variant(..) => {
+                Some(Acc(self.clone(), PermAmount::Read)).into_iter().collect()
+            },
+
             vir::Expr::Field(..) => {
                 Some(Acc(self.clone(), PermAmount::Read)).into_iter().collect()
             },
@@ -328,6 +330,7 @@ impl vir::Expr {
         match self {
             vir::Expr::Local(_, _) |
             vir::Expr::Field(_, _, _) |
+            vir::Expr::Variant(_, _, _) |
             vir::Expr::AddrOf(_, _, _) |
             vir::Expr::LabelledOld(_, _, _) |
             vir::Expr::Const(_, _) |
@@ -342,7 +345,7 @@ impl vir::Expr {
                 let predicate_name = place.typed_ref_name().unwrap();
                 let predicate = predicates.get(&predicate_name).unwrap();
 
-                let pred_self_place: vir::Expr = predicate.args[0].clone().into();
+                let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate.get_permissions().into_iter()
                     .map(
                         |aop| {
@@ -387,10 +390,7 @@ impl vir::Expr {
                 perm_difference(body.get_permissions(predicates), vars_places)
             }
 
-            vir::Expr::PredicateAccessPredicate(_, ref args, perm_amount, _) => {
-                assert_eq!(args.len(), 1);
-                let arg = &args[0];
-
+            vir::Expr::PredicateAccessPredicate(_, box ref arg, perm_amount, _) => {
                 let opt_perm = if arg.is_place() {
                     Some(
                         match arg.get_label() {
@@ -430,6 +430,18 @@ impl vir::Expr {
 impl vir::Predicate {
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
     pub fn get_permissions(&self) -> HashSet<Perm> {
+        let perms = match self {
+            vir::Predicate::Struct(p) => p.get_permissions(),
+            vir::Predicate::Enum(p) => p.get_permissions(),
+        };
+        //error!("perms {}: {:?}", self, perms);
+        perms
+    }
+}
+
+impl vir::StructPredicate {
+    /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
+    pub fn get_permissions(&self) -> HashSet<Perm> {
         match self.body {
             Some(ref body) => {
                 // A predicate body should not contain unfolding expression
@@ -438,5 +450,21 @@ impl vir::Predicate {
             },
             None => HashSet::new()
         }
+    }
+}
+
+impl vir::EnumPredicate {
+    /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
+    pub fn get_permissions(&self) -> HashSet<Perm> {
+        // A predicate body should not contain unfolding expression
+        let predicates = HashMap::new();
+        let mut perms = self.discriminant.get_required_permissions(&predicates);
+        // TODO: We should unfold only the intendent variant, not all of them.
+        let this: vir::Expr = self.this.clone().into();
+        for (_guard, variant_name, _variant_predicate) in &self.variants {
+            perms.insert(Perm::Acc(this.clone().variant(&variant_name), PermAmount::Write));
+            perms.insert(Perm::Pred(this.clone().variant(&variant_name), PermAmount::Write));
+        }
+        perms
     }
 }

@@ -687,8 +687,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
         }
     }
 
-    fn apply_statement(&self, bb: mir::BasicBlock, stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State) {
-        trace!("apply_statement {:?}, state: {:?}", stmt, state);
+    fn apply_statement(
+        &self,
+        bb: mir::BasicBlock,
+        stmt_index: usize,
+        stmt: &mir::Statement<'tcx>,
+        state: &mut Self::State
+    ) {
+        trace!("apply_statement {:?}, state: {}", stmt, state);
 
         match stmt.kind {
             mir::StatementKind::StorageLive(..) |
@@ -744,7 +750,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                                 for (field_num, operand) in operands.iter().enumerate() {
                                     let field_name = format!("tuple_{}", field_num);
                                     let field_ty = field_types[field_num];
-                                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                                    let encoded_field = self.encoder.encode_raw_ref_field(
+                                        field_name, field_ty);
                                     let field_place = encoded_lhs.clone().field(encoded_field);
 
                                     match self.mir_encoder.encode_operand_place(operand) {
@@ -764,22 +771,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
 
                             &mir::AggregateKind::Adt(adt_def, variant_index, subst, _) => {
                                 let num_variants = adt_def.variants.len();
-                                if num_variants > 1 {
+                                let variant_def = &adt_def.variants[variant_index];
+                                let mut encoded_lhs_variant = encoded_lhs.clone();
+                                if num_variants != 1 {
                                     let discr_field = self.encoder.encode_discriminant_field();
                                     state.substitute_value(
                                         &encoded_lhs.clone().field(discr_field),
                                         variant_index.into()
                                     );
+                                    encoded_lhs_variant = encoded_lhs_variant.variant(
+                                        &variant_def.name.as_str());
                                 }
-                                let variant_def = &adt_def.variants[variant_index];
                                 for (field_index, field) in variant_def.fields.iter().enumerate() {
                                     let operand = &operands[field_index];
-                                    let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
+                                    let field_name = &field.ident.as_str();
                                     let tcx = self.encoder.env().tcx();
                                     let field_ty = field.ty(tcx, subst);
-                                    let encoded_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                                    let encoded_field = self.encoder.encode_struct_field(field_name, field_ty);
 
-                                    let field_place = encoded_lhs.clone().field(encoded_field);
+                                    let field_place = encoded_lhs_variant.clone().field(encoded_field);
                                     match self.mir_encoder.encode_operand_place(operand) {
                                         Some(encoded_rhs) => {
                                             // Substitute a place
@@ -822,9 +832,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx> for Pure
                         let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
 
                         let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
-                        let value_field = self.encoder.encode_ref_field("tuple_0", field_types[0]);
+                        let value_field = self.encoder.encode_raw_ref_field(
+                            "tuple_0".to_string(), field_types[0]);
                         let value_field_value = self.encoder.encode_value_field(field_types[0]);
-                        let check_field = self.encoder.encode_ref_field("tuple_1", field_types[1]);
+                        let check_field = self.encoder.encode_raw_ref_field(
+                            "tuple_1".to_string(), field_types[1]);
                         let check_field_value = self.encoder.encode_value_field(field_types[1]);
 
                         let lhs_value = encoded_lhs.clone()

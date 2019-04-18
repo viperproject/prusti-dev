@@ -133,211 +133,120 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_predicate_def(self) -> vir::Predicate {
+    pub fn encode_predicate_def(self) -> Vec<vir::Predicate> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
-        let self_local_var = vir::LocalVar::new("self", vir::Type::TypedRef(predicate_name.clone()));
+        let typ = vir::Type::TypedRef(predicate_name.clone());
 
-        let field_predicates = match self.ty.sty {
-            ty::TypeVariants::TyBool => vec![
-                vir::Expr::acc_permission(
-                    vir::Expr::from(self_local_var.clone()).field(
-                        self.encoder.encode_value_field(self.ty)
-                    ).into(),
-                    vir::PermAmount::Write,
-                )
-            ],
+        match self.ty.sty {
+            ty::TypeVariants::TyBool => {
+                vec![vir::Predicate::new_primitive_value(
+                    typ, self.encoder.encode_value_field(self.ty), None)]
+            },
 
             ty::TypeVariants::TyInt(_) |
             ty::TypeVariants::TyUint(_) |
             ty::TypeVariants::TyChar => {
-                let val_field: vir::Expr = vir::Expr::from(self_local_var.clone()).field(
-                    self.encoder.encode_value_field(self.ty)
-                ).into();
-
-                let mut body = vec![
-                    vir::Expr::acc_permission(
-                        val_field.clone(),
-                        vir::PermAmount::Write,
-                    )
-                ];
-
-                if config::check_binary_operations() {
-                    body.extend(self.encode_bounds(&val_field));
-                }
-
-                body
+                let bounds = if config::check_binary_operations() {
+                    self.get_integer_bounds()
+                } else {
+                    None
+                };
+                vec![vir::Predicate::new_primitive_value(
+                    typ, self.encoder.encode_value_field(self.ty), bounds)]
             }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let predicate_name = self.encoder.encode_type_predicate_use(ty);
-                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
-                let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
-                vec![
-                    vir::Expr::acc_permission(
-                        elem_loc.clone().into(),
-                        vir::PermAmount::Write,
-                    ),
-                    vir::Expr::predicate_access_predicate(
-                        predicate_name,
-                        elem_loc.into(),
-                        vir::PermAmount::Write,
-                    ),
-                ]
+                vec![vir::Predicate::new_struct(
+                    typ, vec![self.encoder.encode_dereference_field(ty)])]
             }
 
             ty::TypeVariants::TyTuple(elems) => {
-                elems.iter().enumerate().flat_map(|(field_num, ty)| {
+                let fields = elems.iter().enumerate().map(|(field_num, ty)| {
                     let field_name = format!("tuple_{}", field_num);
-                    let elem_field = self.encoder.encode_ref_field(&field_name, ty);
-                    let predicate_name = self.encoder.encode_type_predicate_use(ty);
-                    let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
-                    vec![
-                        vir::Expr::acc_permission(
-                            elem_loc.clone().into(),
-                            vir::PermAmount::Write,
-                        ),
-                        vir::Expr::predicate_access_predicate(
-                            predicate_name,
-                            elem_loc.into(),
-                            vir::PermAmount::Write,
-                        ),
-                    ]
-                }).collect()
+                    self.encoder.encode_raw_ref_field(field_name, ty)
+                }).collect();
+                vec![vir::Predicate::new_struct(typ, fields)]
             },
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
-                let mut perms: Vec<vir::Expr> = vec![];
                 let num_variants = adt_def.variants.len();
                 let tcx = self.encoder.env().tcx();
-                if num_variants == 0 {
-                    debug!("ADT {:?} has no variant", adt_def);
-                } else if num_variants == 1 {
+                if num_variants == 1 {
                     debug!("ADT {:?} has only one variant", adt_def);
-                    for field in &adt_def.variants[0].fields {
+                    let fields = adt_def.variants[0].fields.iter().map(|field| {
                         debug!("Encoding field {:?}", field);
-                        let field_name = format!("enum_0_{}", field.ident.as_str());
+                        let field_name = field.ident.to_string();
                         let field_ty = field.ty(tcx, subst);
-                        let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                        let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                        let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
-                        perms.push(
-                            vir::Expr::acc_permission(
-                                elem_loc.clone().into(),
-                                vir::PermAmount::Write,
-                            )
-                        );
-                        perms.push(
-                            vir::Expr::predicate_access_predicate(
-                                predicate_name,
-                                elem_loc.into(),
-                                vir::PermAmount::Write,
-                            )
-                        )
-                    }
+                        self.encoder.encode_struct_field(&field_name, field_ty)
+                    }).collect();
+                    vec![vir::Predicate::new_struct(typ, fields)]
                 } else {
                     debug!("ADT {:?} has {} variants", adt_def, num_variants);
                     let discriminant_field = self.encoder.encode_discriminant_field();
-                    let discriminant_loc = vir::Expr::from(self_local_var.clone()).field(discriminant_field);
-                    // acc(self.discriminant)
-                    perms.push(
-                        vir::Expr::acc_permission(
-                            discriminant_loc.clone().into(),
-                            vir::PermAmount::Write,
-                        )
-                    );
+                    let this = vir::Predicate::construct_this(typ.clone());
+                    let discriminant_loc = vir::Expr::from(this.clone()).field(discriminant_field);
+                    let discriminant_bounds = compute_discriminant_values(
+                        adt_def, tcx, &discriminant_loc);
 
-                    perms.push(compute_discriminant_values(adt_def, tcx, discriminant_loc));
-
-                    for (variant_index, variant_def) in adt_def.variants.iter().enumerate() {
-                        debug!("Encoding variant {:?}", variant_def);
-                        let mut variant_perms: Vec<vir::Expr> = vec![];
-                        for field in &variant_def.fields {
-                            debug!("Encoding field {:?}", field);
-                            let field_name = format!("enum_{}_{}", variant_index, field.ident.as_str());
-                            let field_ty = field.ty(tcx, subst);
-                            let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
-                            let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                            let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
-                            variant_perms.push(
-                                vir::Expr::acc_permission(
-                                    elem_loc.clone().into(),
-                                    vir::PermAmount::Write,
-                                )
-                            );
-                            variant_perms.push(
-                                vir::Expr::predicate_access_predicate(
-                                    predicate_name,
-                                    elem_loc.into(),
-                                    vir::PermAmount::Write,
-                                )
-                            )
-                        }
-                        if variant_perms.is_empty() {
-                            debug!("Variant {} of '{:?}' is empty", variant_index, self.ty)
-                        } else {
-                            perms.push(
-                                variant_perms.into_iter().conjoin()
-                            )
-                        }
+                    let variants: Vec<_> = adt_def.variants
+                        .iter()
+                        .enumerate()
+                        .map(|(variant_index, variant_def)| {
+                            let fields = variant_def.fields.iter().map(|field| {
+                                debug!("Encoding field {:?}", field);
+                                let field_name = &field.ident.as_str();
+                                let field_ty = field.ty(tcx, subst);
+                                self.encoder.encode_struct_field(field_name, field_ty)
+                            }).collect();
+                            let variant_name = &variant_def.name.as_str();
+                            let variant_typ = typ.clone().variant(variant_name);
+                            // TODO: Implement guards.
+                            (
+                                true.into(),
+                                variant_name.to_string(),
+                                vir::StructPredicate::new(variant_typ, fields))
+                        })
+                        .collect();
+                    for (_, name, _) in &variants {
+                        self.encoder.encode_enum_variant_field(name);
                     }
+                    let mut predicates: Vec<_> = variants
+                        .iter()
+                        .map(|(_, _, predicate)| vir::Predicate::Struct(predicate.clone()))
+                        .collect();
+                    let enum_predicate = vir::Predicate::new_enum(
+                        this, discriminant_loc, discriminant_bounds, variants);
+                    predicates.push(enum_predicate);
+                    predicates
                 }
-                perms
             },
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
-                let mut perms: Vec<vir::Expr> = vec![];
                 let num_variants = adt_def.variants.len();
-                let tcx = self.encoder.env().tcx();
                 assert_eq!(num_variants, 1);
                 let field_ty = self.ty.boxed_ty();
-                let elem_field = self.encoder.encode_ref_field("val_ref", field_ty);
-                let predicate_name = self.encoder.encode_type_predicate_use(field_ty);
-                let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
-                perms.push(
-                    vir::Expr::acc_permission(
-                        elem_loc.clone().into(),
-                        vir::PermAmount::Write,
-                    )
-                );
-                perms.push(
-                    vir::Expr::predicate_access_predicate(
-                        predicate_name,
-                        elem_loc.into(),
-                        vir::PermAmount::Write,
-                    )
-                );
-                perms
+                vec![vir::Predicate::new_struct(
+                    typ, vec![self.encoder.encode_dereference_field(field_ty)])]
             },
 
             ty::TypeVariants::TyNever => {
-                vec![
-                    // A `false` here is unsound. See issue #38.
-                    true.into()
-                ]
+                // FIXME: This should be a predicate with the body `false`. See issue #38.
+                vec![vir::Predicate::new_abstract(typ)]
+
             },
 
             ty::TypeVariants::TyParam(_) => {
                 // special case: type parameters shall be encoded as *abstract* predicates
-                return vir::Predicate::new(predicate_name, vec![self_local_var], None);
+                vec![vir::Predicate::new_abstract(typ)]
             }
 
             ref ty_variant => {
                 debug!("Encoding of type '{}' is incomplete", ty_variant);
-                vec![
-                    true.into()
-                ]
+                vec![vir::Predicate::new_abstract(typ)]
             },
-        };
-
-        vir::Predicate::new(
-            predicate_name,
-            vec![ self_local_var ],
-            Some(
-                field_predicates.into_iter().conjoin()
-            )
-        )
+        }
     }
 
     pub fn encode_predicate_use(self) -> String {
@@ -460,7 +369,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
                 let elem_invariant_name = self.encoder.encode_type_invariant_use(ty);
-                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
+                let elem_field = self.encoder.encode_dereference_field(ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 vec![self.encoder.encode_invariant_func_app(ty, elem_loc)]
             }
@@ -521,9 +430,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
                     for field in &adt_def.variants[0].fields {
                         debug!("Encoding field {:?}", field);
-                        let field_name = format!("enum_0_{}", field.ident.as_str());
+                        let field_name = &field.ident.as_str();
                         let field_ty = field.ty(tcx, subst);
-                        let elem_field = self.encoder.encode_ref_field(&field_name, field_ty);
+                        let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
                         let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                         exprs.push(self.encoder.encode_invariant_func_app(field_ty, elem_loc));
                     }
@@ -543,7 +452,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
             ty::TypeVariants::TyRef(_, ref ty, _) => {
                 // This is a reference, so we need to have it already unfolded.
-                let elem_field = self.encoder.encode_ref_field("val_ref", ty);
+                let elem_field = self.encoder.encode_dereference_field(ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 vir::Expr::and(
                     vir::Expr::acc_permission(elem_loc.clone(), vir::PermAmount::Read),
@@ -628,12 +537,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 pub fn compute_discriminant_values(
     adt_def: &ty::AdtDef,
     tcx: ty::TyCtxt,
-    discriminant_loc: vir::Expr
+    discriminant_loc: &vir::Expr
 ) -> vir::Expr {
 
     /// Try to produce the minimal disjunction.
     fn build_discr_range_expr<T: Ord + PartialEq + Eq + Copy + Into<vir::Expr> + PlusOne>(
-        discriminant_loc: vir::Expr,
+        discriminant_loc: &vir::Expr,
         discr_values: Vec<T>
     ) -> vir::Expr {
         if discr_values.is_empty() {

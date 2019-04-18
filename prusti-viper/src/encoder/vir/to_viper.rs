@@ -281,6 +281,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         let expr = match self {
             &Expr::Local(ref local_var, ref pos) => (local_var, pos).to_viper(ast),
+            &Expr::Variant(ref base, ref field, ref pos) => {
+                ast.field_access_with_pos(
+                    base.to_viper(ast),
+                    field.to_viper(ast),
+                    pos.to_viper(ast),
+                )
+            },
             &Expr::Field(ref base, ref field, ref pos) => ast.field_access_with_pos(
                 base.to_viper(ast),
                 field.to_viper(ast),
@@ -313,14 +320,16 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }
-            &Expr::PredicateAccessPredicate(ref predicate_name, ref args, perm, ref pos) => ast.predicate_access_predicate_with_pos(
-                ast.predicate_access(
-                    &args.to_viper(ast)[..],
-                    &predicate_name
-                ),
-                perm.to_viper(ast),
-                pos.to_viper(ast),
-            ),
+            &Expr::PredicateAccessPredicate(ref predicate_name, ref arg, perm, ref pos) => {
+                ast.predicate_access_predicate_with_pos(
+                    ast.predicate_access(
+                        &[arg.to_viper(ast)],
+                        &predicate_name
+                    ),
+                    perm.to_viper(ast),
+                    pos.to_viper(ast),
+                )
+            },
             &Expr::FieldAccessPredicate(ref loc, perm, ref pos) => ast.field_access_predicate_with_pos(
                 loc.to_viper(ast),
                 perm.to_viper(ast),
@@ -420,11 +429,29 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
 
 impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
+        match self {
+            Predicate::Struct(p) => p.to_viper(ast),
+            Predicate::Enum(p) => p.to_viper(ast),
+        }
+    }
+}
+
+impl<'v> ToViper<'v, viper::Predicate<'v>> for StructPredicate {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
         ast.predicate(
             &self.name,
-            &self.args.to_viper_decl(ast)[..],
-            self.body.as_ref()
-                .map(|b| b.to_viper(ast))
+            &[self.this.to_viper_decl(ast)],
+            self.body.as_ref().map(|b| b.to_viper(ast))
+        )
+    }
+}
+
+impl<'v> ToViper<'v, viper::Predicate<'v>> for EnumPredicate {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Predicate<'v> {
+        ast.predicate(
+            &self.name,
+            &[self.this.to_viper_decl(ast)],
+            Some(self.body().to_viper(ast))
         )
     }
 }
