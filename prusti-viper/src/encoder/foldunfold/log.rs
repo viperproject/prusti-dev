@@ -13,6 +13,7 @@ use encoder::foldunfold::perm::Perm;
 use std::collections::HashMap;
 use std::cmp::Ordering;
 use std::iter;
+use utils::to_string::ToString;
 
 
 /// The type of the access permission.
@@ -64,8 +65,10 @@ impl EventLog {
         }
     }
     pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
+        trace!("[enter] log_prejoin_action(block_index={}, action={})", block_index, action);
         let entry = self.prejoin_actions.entry(block_index).or_insert(Vec::new());
         entry.push(action);
+        trace!("[exit] log_prejoin_action {}", entry.iter().to_string());
     }
     pub fn collect_dropped_permissions(
         &self,
@@ -78,8 +81,8 @@ impl EventLog {
         for curr_block_index in relevant_path {
             if let Some(actions) = self.prejoin_actions.get(curr_block_index) {
                 for action in actions {
-                    if let Action::Drop(perm) = action {
-                        if dag.in_borrowed_places(perm.get_place()) {
+                    if let Action::Drop(perm, missing_perm) = action {
+                        if dag.in_borrowed_places(missing_perm.get_place()) {
                             dropped_permissions.push(perm.clone());
                         }
                     }

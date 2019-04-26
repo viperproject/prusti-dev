@@ -18,6 +18,7 @@ use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
+use utils::to_string::ToString;
 use prusti_interface::config;
 use prusti_interface::report;
 use std;
@@ -249,8 +250,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("process_expire_borrows borrow={:?} path={:?}",
                                curr_node.borrow, path);
                         let dropped_permissions = self.log.collect_dropped_permissions(&path, dag);
-                        debug!("process_expire_borrows borrow={:?} dropped_permissions={:?}",
-                               curr_node.borrow, dropped_permissions);
+                        debug!("process_expire_borrows borrow={:?} dropped_permissions={}",
+                               curr_node.borrow, dropped_permissions.iter().to_string());
                         for perm in &dropped_permissions {
                             let comment = format!("restored (from log): {}", perm);
                             let key = (predecessor, curr_block_index);
@@ -270,11 +271,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         let mut stmts_to_add = Vec::new();
                         for a in action {
                             stmts_to_add.push(a.to_stmt());
-                            if let Action::Drop(perm) = a {
-                                if dag.in_borrowed_places(perm.get_place()) &&
+                            if let Action::Drop(perm, missing_perm) = a {
+                                if dag.in_borrowed_places(missing_perm.get_place()) &&
                                         perm.get_perm_amount() != vir::PermAmount::Read {
-                                    stmts_to_add.push(vir::Stmt::comment(
-                                            format!("restored (in branch merge): {}", perm)));
+                                    let comment = vir::Stmt::comment(
+                                        format!("restored (in branch merge): {} ({})",
+                                        perm, missing_perm));
+                                    stmts_to_add.push(comment);
                                     bctxt.mut_state().restore_dropped_perm(perm.clone());
                                 }
                             }
@@ -362,11 +365,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 let mut stmts_to_add = Vec::new();
                 for a in action {
                     stmts_to_add.push(a.to_stmt());
-                    if let Action::Drop(perm) = a {
-                        if dag.in_borrowed_places(perm.get_place()) &&
+                    if let Action::Drop(perm, missing_perm) = a {
+                        if dag.in_borrowed_places(missing_perm.get_place()) &&
                                 perm.get_perm_amount() != vir::PermAmount::Read {
-                            stmts_to_add.push(vir::Stmt::comment(
-                                    format!("restored (in branch merge): {}", perm)));
+                            let comment = format!("restored (in branch merge): {} ({})",
+                                                  perm, missing_perm);
+                            stmts_to_add.push(vir::Stmt::comment(comment));
                             final_bctxt.mut_state().restore_dropped_perm(perm.clone());
                         }
                     }
@@ -911,7 +915,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 branch_actions_vec.push(right_actions);
             }
 
-            trace!("[exit] prepend_join(..{}): {:?}", &bcs.len(), &branch_actions_vec);
+            trace!("[exit] prepend_join(..{}): {}",
+                   &bcs.len(),
+                   branch_actions_vec.iter()
+                    .map(|v| format!("[{}]", v.iter().to_sorted_multiline_string()))
+                    .to_string());
             (branch_actions_vec, merge_bc)
         }
     }

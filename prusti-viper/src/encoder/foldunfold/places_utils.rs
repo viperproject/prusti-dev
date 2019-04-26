@@ -236,14 +236,19 @@ pub fn filter_not_prefix_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr
 pub fn filter_not_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
-        let mut keep: bool = true;
-        for right_item in right.iter() {
-            if left_item.has_prefix(right_item) {
-                keep = false;
-                break;
-            }
-        }
-        if keep {
+        let mut remove = if let Some(parent) = left_item.get_parent() {
+            right.contains(&parent)
+            // TODO: Check which version we should use here.
+            //for right_item in right.iter() {
+                //if left_item.has_prefix(right_item) {
+                    //keep = false;
+                    //break;
+                //}
+            //}
+        } else {
+            true
+        };
+        if remove {
             res.insert(left_item.clone());
         }
     }
