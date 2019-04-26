@@ -95,8 +95,8 @@ impl<'a> BranchCtxt<'a> {
         let mut right_actions: Vec<Action> = vec![];
 
         debug!("Join branches");
-        trace!("Left branch: {:?}", self.state);
-        trace!("Right branch: {:?}", other.state);
+        trace!("Left branch: {}", self.state);
+        trace!("Right branch: {}", other.state);
         self.state.check_consistency();
 
         // If they are already the same, avoid unnecessary operations
@@ -119,7 +119,7 @@ impl<'a> BranchCtxt<'a> {
             );
             self.state.set_moved(moved_paths.clone());
             other.state.set_moved(moved_paths.clone());
-            debug!("moved_paths: {:?}", moved_paths);
+            debug!("moved_paths: {}", moved_paths.iter().to_string());
 
             trace!("left acc: {{\n{}\n}}", self.state.display_acc());
             trace!("right acc: {{\n{}\n}}", other.state.display_acc());
@@ -127,19 +127,52 @@ impl<'a> BranchCtxt<'a> {
             trace!("left pred: {{\n{}\n}}", self.state.display_pred());
             trace!("right pred: {{\n{}\n}}", other.state.display_pred());
 
-            trace!("left acc_leaves: {:?}", self.state.acc_leaves());
-            trace!("right acc_leaves: {:?}", other.state.acc_leaves());
+            trace!("left acc_leaves: {}",
+                   self.state.acc_leaves().iter().to_sorted_multiline_string());
+            trace!("right acc_leaves: {}",
+                   other.state.acc_leaves().iter().to_sorted_multiline_string());
 
             // Compute which access permissions may be preserved
-            let potential_acc: HashSet<_> = filter_with_prefix_in_other(&self.state.acc_leaves(), &other.state.acc_leaves());
-            debug!("potential_acc: {:?}", potential_acc);
+            let (unfold_potential_acc, fold_potential_pred) = compute_fold_target(
+                &self.state.acc_leaves(),
+                &other.state.acc_leaves());
+            debug!("unfold_potential_acc: {}",
+                   unfold_potential_acc.iter().to_sorted_multiline_string());
+            debug!("fold_potential_pred: {}",
+                   fold_potential_pred.iter().to_sorted_multiline_string());
 
             // Remove access permissions that can not be obtained due to a moved path
-            let actual_acc: HashSet<_> = filter_not_proper_extensions_of(&potential_acc, &moved_paths);
-            debug!("actual_acc: {:?}", actual_acc);
+            let unfold_actual_acc = filter_not_proper_extensions_of(
+                &unfold_potential_acc, &moved_paths);
+            debug!("unfold_actual_acc: {}",
+                   unfold_actual_acc.iter().to_sorted_multiline_string());
+            let fold_actual_pred = filter_not_proper_extensions_of(
+                &fold_potential_pred, &moved_paths);
+            debug!("fold_actual_pred: {}",
+                   fold_actual_pred.iter().to_sorted_multiline_string());
 
-            // Obtain access permissions
-            for acc_place in &actual_acc {
+            // Obtain predicates by folding.
+            for pred_place in fold_actual_pred {
+                let (_, &perm_amount) = self.state
+                    .acc()
+                    .iter()
+                    .find(|(place, _)| {
+                        place.has_proper_prefix(&pred_place)
+                    })
+                    .unwrap();
+
+                let (new_actions, places_to_drop) = self.obtain(
+                    &Perm::pred(pred_place.clone(), perm_amount), true);
+                assert!(places_to_drop.is_empty());
+                left_actions.extend(new_actions);
+
+                let (new_actions, places_to_drop) = other.obtain(
+                    &Perm::pred(pred_place, perm_amount), true);
+                assert!(places_to_drop.is_empty());
+                right_actions.extend(new_actions);
+            }
+            // Obtain access permissions by unfolding
+            for acc_place in &unfold_actual_acc {
                 let mut dropped_place = false;
                 if !self.state.acc().contains_key(acc_place) {
                     debug!("The left branch needs to obtain an access permission: {}", acc_place);
@@ -196,8 +229,9 @@ impl<'a> BranchCtxt<'a> {
             }
 
             // Compute preserved predicate permissions
-            let preserved_preds: HashSet<_> = intersection(&self.state.pred_places(), &other.state.pred_places());
-            debug!("preserved_preds: {:?}", preserved_preds);
+            let preserved_preds: HashSet<_> = intersection(
+                &self.state.pred_places(), &other.state.pred_places());
+            debug!("preserved_preds: {}", preserved_preds.iter().to_string());
 
             // Drop predicate permissions that are not in the other branch
             for pred_place in self.state.pred_places().difference(&preserved_preds) {
@@ -526,4 +560,58 @@ Predicates: {{
         trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
         actions
     }
+}
+
+/// Computes a pair of sets of places that should be obtained. The first
+/// element of the pair is the set of places that should be obtained by
+/// unfolding while the second element should be obtained by folding.
+///
+/// The first set is computed by taking the elements that have a prefix
+/// in another set. For example:
+///
+/// ```plain
+///   { a, b.c, d.e.f, d.g },
+///   { a, b.c.d, b.c.e, d.e,h }
+/// ```
+///
+/// becomes:
+///
+/// ```plain
+/// { a, b.c.d, b.c.e, d.e.f }
+/// ```
+///
+/// The second set is the set of enums that are unfolded differently in
+/// input sets.
+///
+/// The elements from the first set that have any element in the second
+/// set as a prefix are dropped.
+pub fn compute_fold_target(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>
+) -> (HashSet<vir::Expr>, HashSet<vir::Expr>) {
+    // If we have a different variant of an enum unfolded in left and
+    // right, then we add that enum to conflicting places.
+    let mut conflicting_base = HashSet::new();
+    let mut places = HashSet::new();
+    let mut check = |first: &vir::Expr, second| {
+        if first.has_prefix(second) {
+            places.insert(first.clone());
+        } else if let vir::Expr::Variant(box ref base, _, _) = second {
+            if first.has_prefix(base) {
+                conflicting_base.insert(base.clone());
+            }
+        }
+    };
+    for left_item in left.iter() {
+        for right_item in right.iter() {
+            check(right_item, left_item);
+            check(left_item, right_item);
+        }
+    }
+    let mut result: HashSet<_> = places.into_iter()
+        .filter(|place| {
+            !conflicting_base.iter().any(|base| place.has_prefix(base))
+        })
+        .collect();
+    (result, conflicting_base)
 }

@@ -8,10 +8,16 @@ use std;
 
 pub trait ToString {
     fn to_string(&self) -> String;
+    fn to_sorted_multiline_string(&self) -> String;
 }
 
 impl<T, U> ToString for T where T: Clone + Iterator<Item = U>, U: std::string::ToString {
     fn to_string(&self) -> String {
         self.clone().map(|x| x.to_string()).collect::<Vec<String>>().join(", ")
+    }
+    fn to_sorted_multiline_string(&self) -> String {
+        let mut strings = self.clone().map(|x| x.to_string()).collect::<Vec<String>>();
+        strings.sort();
+        strings.join(",\n")
     }
 }
