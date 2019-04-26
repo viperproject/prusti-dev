@@ -153,12 +153,17 @@ impl<'a> BranchCtxt<'a> {
 
             // Obtain predicates by folding.
             for pred_place in fold_actual_pred {
-                let (_, &perm_amount) = self.state
-                    .acc()
-                    .iter()
-                    .find(|(place, _)| {
-                        place.has_proper_prefix(&pred_place)
-                    })
+                let get_perm_amount = |ctxt: &BranchCtxt| {
+                    ctxt.state
+                        .acc()
+                        .iter()
+                        .find(|(place, _)| {
+                            place.has_proper_prefix(&pred_place)
+                        })
+                        .map(|(_, &perm_amount)| perm_amount)
+                };
+                let perm_amount = get_perm_amount(self)
+                    .or_else(|| get_perm_amount(&other))
                     .unwrap();
 
                 let (new_actions, places_to_drop) = self.obtain(
