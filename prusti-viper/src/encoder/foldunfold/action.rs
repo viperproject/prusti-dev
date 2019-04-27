@@ -9,14 +9,15 @@ use encoder::vir::PermAmount;
 use std::fmt;
 use std::iter::FlatMap;
 use std::collections::HashMap;
-use utils::to_string::ToString;
 use encoder::foldunfold::perm::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Action {
     Fold(String, Vec<vir::Expr>, PermAmount),
     Unfold(String, Vec<vir::Expr>, PermAmount),
-    Drop(Perm),
+    /// The dropped perm and the missing permission that caused this
+    /// perm to be dropped.
+    Drop(Perm, Perm),
 }
 
 impl Action {
@@ -26,7 +27,7 @@ impl Action {
                 vir::Stmt::Fold(pred.clone(), args.clone(), *perm_amount),
             Action::Unfold(ref pred, ref args, perm_amount) =>
                 vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount),
-            Action::Drop(perm) =>
+            Action::Drop(..) =>
                 vir::Stmt::comment(self.to_string()),
         }
     }
@@ -42,7 +43,7 @@ impl Action {
                 vir::Expr::unfolding(pred.clone(), args.clone(), inner_expr, *perm)
             }
 
-            Action::Drop(_) => {
+            Action::Drop(..) => {
                 inner_expr
             }
         }
@@ -53,9 +54,12 @@ impl fmt::Display for Action {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Action::Fold(..) |
-            Action::Unfold(..) => write!(f, "{}", self.to_stmt().to_string()),
-
-            Action::Drop(ref perm) => write!(f, "drop {}", perm),
+            Action::Unfold(..) => {
+                write!(f, "{}", self.to_stmt().to_string())
+            },
+            Action::Drop(ref perm, ref missing_perm) => {
+                write!(f, "drop {} ({})", perm, missing_perm)
+            },
         }
     }
 }
