@@ -609,22 +609,27 @@ pub fn compute_fold_target(
     right: &HashSet<vir::Expr>
 ) -> (HashSet<vir::Expr>, HashSet<vir::Expr>) {
     // If we have a different variant of an enum unfolded in left and
-    // right, then we add that enum to conflicting places.
+    // right, but not both, then we add that enum to conflicting places.
     let mut conflicting_base = HashSet::new();
     let mut places = HashSet::new();
-    let mut check = |first: &vir::Expr, second| {
+    let mut check = |first: &vir::Expr, second, second_set: &HashSet<vir::Expr>| {
         if first.has_prefix(second) {
             places.insert(first.clone());
         } else if let vir::Expr::Variant(box ref base, _, _) = second {
             if first.has_prefix(base) {
-                conflicting_base.insert(base.clone());
+                if !second_set.iter().any(|s| first.has_prefix(s)) {
+                    // The second does not have any place that would a
+                    // prefix of first. Therefore, ``base`` is the
+                    // conflicting base.
+                    conflicting_base.insert(base.clone());
+                }
             }
         }
     };
     for left_item in left.iter() {
         for right_item in right.iter() {
-            check(right_item, left_item);
-            check(left_item, right_item);
+            check(right_item, left_item, left);
+            check(left_item, right_item, right);
         }
     }
     let mut result: HashSet<_> = places.into_iter()
