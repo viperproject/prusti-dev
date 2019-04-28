@@ -153,6 +153,7 @@ impl<'a> BranchCtxt<'a> {
 
             // Obtain predicates by folding.
             for pred_place in fold_actual_pred {
+                debug!("try to obtain predicate: {}", pred_place);
                 let get_perm_amount = |ctxt: &BranchCtxt| {
                     ctxt.state
                         .acc()
@@ -632,12 +633,19 @@ pub fn compute_fold_target(
             check(left_item, right_item, right);
         }
     }
-    let mut result: HashSet<_> = places.into_iter()
+    let acc_places: HashSet<_> = places.into_iter()
         .filter(|place| {
             !conflicting_base.iter().any(|base| place.has_prefix(base))
         })
         .collect();
-    (result, conflicting_base)
+    let pred_places = conflicting_base
+        .iter()
+        .filter(|place| {
+            !conflicting_base.iter().any(|base| place.has_proper_prefix(base))
+        })
+        .cloned()
+        .collect();
+    (acc_places, pred_places)
 }
 
 
