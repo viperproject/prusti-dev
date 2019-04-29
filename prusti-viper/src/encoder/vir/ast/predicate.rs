@@ -36,6 +36,13 @@ impl Predicate {
             body: None,
         })
     }
+    /// Is this predicate abstract.
+    pub fn is_abstract(&self) -> bool {
+        match self {
+            Predicate::Struct(StructPredicate { body: None, .. }) => true,
+            _ => false,
+        }
+    }
     /// Construct a new predicate that represents a type that models a primitive
     /// value such as an integer or a boolean.
     pub fn new_primitive_value(
