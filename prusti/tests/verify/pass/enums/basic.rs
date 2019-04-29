@@ -30,4 +30,16 @@ pub fn test2(e: E2) -> E2 {
     e
 }
 
+pub enum E3<T> {
+    V1(T),
+    V2(T),
+}
+
+pub fn test3<T>(e: &mut E3<T>) -> &mut T {
+    match e {
+        E3::V1(ref mut b) => b,
+        E3::V2(ref mut b) => b,
+    }
+}
+
 fn main() {}

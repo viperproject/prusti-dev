@@ -445,7 +445,7 @@ impl<'a> BranchCtxt<'a> {
             // predicates in the body.
             let can_fold = match existing_proper_perm_extension_opt {
                 Some(_) => true,
-                None => places_in_pred.is_empty(),
+                None => places_in_pred.is_empty() && !predicate.is_abstract(),
             };
 
             if can_fold {
