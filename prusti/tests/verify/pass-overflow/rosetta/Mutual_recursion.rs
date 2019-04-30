@@ -3,13 +3,16 @@
 
 extern crate prusti_contracts;
 
+#[ensures="n == 0 ==> result == 1"]
+#[ensures="n >= 1 ==> n >= result"]
 fn f(n: u32) -> u32 {
     match n {
         0 => 1,
         _ => n - m(f(n - 1))
     }
 }
- 
+
+#[ensures="n >= result"]
 fn m(n: u32) -> u32 {
     match n {
         0 => 0,
@@ -26,7 +29,7 @@ fn print_u32(number: u32) {
 fn print_newline() {
     println!("");
 }
- 
+
 fn main() {
     let mut i = 0;
     while i < 20 {
