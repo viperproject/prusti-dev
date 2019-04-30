@@ -111,29 +111,29 @@ fn heap_sort(array: &mut VecWrapperI32)
 {
     let len = array.len();
 
-    let mut start = len/2-1;
-    let mut continue_loop = start >= 0;
+    let mut start = len/2;
+    let mut continue_loop = start > 0;
     // Create heap
     #[invariant="len == array.len()"]
-    #[invariant="start < len"]
-    #[invariant="continue_loop ==> start >= 0"]
+    #[invariant="start <= len/2"]
+    #[invariant="continue_loop ==> start > 0"]
     while continue_loop {
-        shift_down(array, start, len - 1);
         start -= 1;
-        continue_loop = start >= 0;
+        shift_down(array, start, len - 1);
+        continue_loop = start > 0;
     }
 
-    let mut end = len-1;
-    let mut continue_loop = end >= 1;
+    let mut end = len;
+    let mut continue_loop = end > 1;
     #[invariant="len == array.len()"]
-    #[invariant="end < len"]
-    #[invariant="continue_loop ==> end >= 1"]
+    #[invariant="end <= len"]
+    #[invariant="continue_loop ==> end > 1"]
     while continue_loop {
+        end -= 1;
         let start = 0;
         array.swap(start, end);
         shift_down(array, start, end - 1);
-        end -= 1;
-        continue_loop = end >= 1;
+        continue_loop = end > 1;
     }
 }
 
