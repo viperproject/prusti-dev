@@ -2815,6 +2815,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})",
+               op, left, right);
         let encoded_left = self.mir_encoder.encode_operand_expr(left);
         let encoded_right = self.mir_encoder.encode_operand_expr(right);
         let field = self.encoder.encode_value_field(ty);
@@ -2838,6 +2840,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})",
+               op, left, right);
         let operand_ty = if let ty::TypeVariants::TyTuple(ref types) = ty.sty {
             types[0].clone()
         } else {
@@ -2886,6 +2890,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_unary_op(op={:?}, operand={:?})", op, operand);
         let encoded_val = self.mir_encoder.encode_operand_expr(operand);
         let field = self.encoder.encode_value_field(ty);
         let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
@@ -2906,6 +2911,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_nullary_op(op={:?}, op_ty={:?})", op, op_ty);
         match op {
             mir::NullOp::Box => {
                 assert_eq!(op_ty, ty.boxed_ty());
@@ -2929,6 +2935,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_discriminant(src={:?}, location={:?})", src, location);
         let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
         match src_ty.sty {
             ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
@@ -2988,6 +2995,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})",
+               mir_borrow_kind, place, location);
         let ref_field = self.encoder.encode_value_field(ty);
         let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
         let loan = self.polonius_info.get_loan_at_location(location);
@@ -3017,6 +3026,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_cast(operand={:?}, dst_ty={:?})", operand, dst_ty);
         let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
 
         // Initialize `lhs.field`
@@ -3307,7 +3317,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         operands: &Vec<mir::Operand<'tcx>>,
         location: mir::Location
     ) -> Vec<vir::Stmt> {
-        debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
+        debug!("[enter] encode_assign_aggregate({:?}, {:?})", aggregate, operands);
         let mut stmts: Vec<vir::Stmt> = vec![];
         // TODO: do we really need to allocate?
         // stmts.extend(
