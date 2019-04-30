@@ -50,10 +50,10 @@ Build for local development
 	curl https://sh.rustup.rs -sSf | sh
 	```
 
-- Install the Rust compiler
+- Install the Rust compiler (the exact compiler version is stored in the rust-toolchain file)
 
     ```bash
-    rustup toolchain install nightly-2018-06-27
+    rustup toolchain install $(cat rust-toolchain)
     ```
 
 - Install the dependencies required by some Rust libraries

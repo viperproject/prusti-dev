@@ -8,6 +8,7 @@ import subprocess
 
 
 ROOT = os.path.abspath('.')
+RUST_VERSION_PATH = os.path.join(ROOT, '../../rust-toolchain')
 ROSETTA_PATH = os.path.join(ROOT, 'rosetta')
 TASKS_PATH = os.path.join(ROSETTA_PATH, 'tasks.json')
 ROSETTA_ANALYSE_SCRIPT = os.path.join(ROSETTA_PATH, 'analyse.sh')
@@ -26,6 +27,8 @@ def check_json():
         break
 
 def main(working_dir):
+    with open(RUST_VERSION_PATH, "r") as fp:
+        rust_version = f.read().strip()
     working_dir = os.path.abspath(working_dir)
     rosetta_repo_local = os.path.join(working_dir, 'rust-rosetta')
     if not os.path.exists(rosetta_repo_local):
@@ -44,8 +47,8 @@ def main(working_dir):
             fp.write(s.format(*args, **kwargs))
         write("#!/bin/bash\n")
         write("\n")
-        write("rustup toolchain install nightly-2018-06-27\n")
-        write("rustup default nightly-2018-06-27\n")
+        write("rustup toolchain install {}\n".format(rust_version))
+        write("rustup default {}\n".format(rust_version))
         write("cargo build\n")
         write("\n")
         write("rm -f '{}/Cargo.toml'\n", rosetta_repo_local)
