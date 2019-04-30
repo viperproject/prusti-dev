@@ -141,7 +141,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         match self.ty.sty {
             ty::TypeVariants::TyBool => {
                 vec![vir::Predicate::new_primitive_value(
-                    typ, self.encoder.encode_value_field(self.ty), None)]
+                    typ, self.encoder.encode_value_field(self.ty), None, false)]
             },
 
             ty::TypeVariants::TyInt(_) |
@@ -152,8 +152,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 } else {
                     None
                 };
+                let unsigned = if let ty::TypeVariants::TyUint(_) = self.ty.sty {
+                    true
+                } else {
+                    false
+                };
                 vec![vir::Predicate::new_primitive_value(
-                    typ, self.encoder.encode_value_field(self.ty), bounds)]
+                    typ, self.encoder.encode_value_field(self.ty), bounds, unsigned)]
             }
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) |
