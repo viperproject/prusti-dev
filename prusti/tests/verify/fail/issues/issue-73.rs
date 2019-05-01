@@ -47,7 +47,7 @@ impl VecWrapperusize {
 // binary search using recursion
 pub fn binary_search_rec(arr: VecWrapperusize, target: usize) -> Option<usize> {
     let len = arr.len();
-    return binary_search_help(arr, 0, len - 1, target);
+    return binary_search_help(arr, 0, len - 1, target); //~ ERROR type invariant expected by the function call might not hold.
 }
 
 // Here the precondition is missing
