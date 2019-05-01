@@ -14,7 +14,7 @@ fn u32_foo() -> u32 {
 
 fn u32_foo_call_1() {
     let n = u32_foo();
-    assert!(0 <= n); //~ ERROR
+    assert!(0 <= n);
 }
 
 fn u32_foo_call_2() {
@@ -23,7 +23,7 @@ fn u32_foo_call_2() {
 }
 
 fn u32_foo_call_3() {
-    assert!(0 <= u32_foo()); //~ ERROR
+    assert!(0 <= u32_foo());
 }
 
 fn u32_foo_call_4() {
@@ -31,7 +31,7 @@ fn u32_foo_call_4() {
 }
 
 #[ensures="0 <= u32_foo()"]
-fn u32_foo_call_5() { //~ ERROR postcondition
+fn u32_foo_call_5() {
 }
 
 #[ensures="u32_foo() <= 4294967295"]

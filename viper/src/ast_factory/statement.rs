@@ -133,6 +133,16 @@ impl<'a> AstFactory<'a> {
         build_ast_node!(self, Stmt, ast::Fold, acc.to_jobject())
     }
 
+    pub fn fold_with_pos(&self, acc: Expr, pos: Position) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Fold::with(self.env).new(
+            acc.to_jobject(),
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
+    }
+
     pub fn unfold(&self, acc: Expr) -> Stmt<'a> {
         build_ast_node!(self, Stmt, ast::Unfold, acc.to_jobject())
     }

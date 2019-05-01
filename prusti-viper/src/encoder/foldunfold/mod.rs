@@ -488,11 +488,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                         vir::Stmt::Exhale(expr, pos) => {
                             vir::Stmt::Exhale(patch_expr(label, expr), pos.clone())
                         }
-                        vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {
-                            vir::Stmt::Fold(pred_name.clone(), patch_args(label, args), *perm_amount)
+                        vir::Stmt::Fold(ref pred_name, ref args, perm_amount, pos) => {
+                            vir::Stmt::Fold(pred_name.clone(), patch_args(label, args),
+                                            *perm_amount, pos.clone())
                         },
                         vir::Stmt::Unfold(ref pred_name, ref args, perm_amount) => {
-                            vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args), *perm_amount)
+                            vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args),
+                                              *perm_amount)
                         },
                         x => unreachable!("{:?}", x),
                     }
@@ -784,7 +786,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 if perm_amount == vir::PermAmount::Write {
                     let access = vir::Expr::PredicateAccessPredicate(
                         predicate_name.clone(), box place.clone(),
-                        vir::PermAmount::Remaining, vir::Position::default());
+                        vir::PermAmount::Remaining, place.pos().clone());
                     self.log.log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, vir::Position::default());
                     bctxt.apply_stmt(&stmt);

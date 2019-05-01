@@ -245,6 +245,12 @@ impl<'tcx> ErrorManager<'tcx> {
                 reason_span,
             ),
 
+            ("fold.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => CompilerError::new(
+                format!("type invariant expected by the function call might not hold."),
+                error_span,
+                reason_span,
+            ),
+
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => CompilerError::new(
                 format!("postcondition might not hold."),
                 error_span,
@@ -253,6 +259,12 @@ impl<'tcx> ErrorManager<'tcx> {
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => CompilerError::new(
                 format!("loop invariant might not hold on entry."),
+                error_span,
+                reason_span,
+            ),
+
+            ("fold.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => CompilerError::new(
+                format!("type invariant of a variable might not hold on loop entry."),
                 error_span,
                 reason_span,
             ),

@@ -483,9 +483,13 @@ impl<'a> BranchCtxt<'a> {
                     .map(|perm| perm.update_perm_amount(perm_amount))
                     .collect();
 
-                actions.push(
-                    Action::Fold(predicate_name.clone(), vec![ req.get_place().clone().into() ], perm_amount)
-                );
+                let pos = req.get_place().pos().clone();
+                let fold_action = Action::Fold(
+                    predicate_name.clone(),
+                    vec![ req.get_place().clone().into() ],
+                    perm_amount,
+                    pos);
+                actions.push(fold_action);
 
                 // Simulate folding of `req`
                 assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
