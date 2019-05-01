@@ -87,15 +87,18 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 lhs.to_viper(ast),
                 rhs.to_viper(ast)
             ),
-            &Stmt::Fold(ref pred_name, ref args, perm) => {
-                ast.fold(
-                    ast.predicate_access_predicate(
-                        ast.predicate_access(
+            &Stmt::Fold(ref pred_name, ref args, perm, ref pos) => {
+                ast.fold_with_pos(
+                    ast.predicate_access_predicate_with_pos(
+                        ast.predicate_access_with_pos(
                             &args.to_viper(ast),
-                            &pred_name
+                            &pred_name,
+                            pos.to_viper(ast),
                         ),
-                        perm.to_viper(ast)
-                    )
+                        perm.to_viper(ast),
+                        pos.to_viper(ast),
+                    ),
+                    pos.to_viper(ast),
                 )
             },
             &Stmt::Unfold(ref pred_name, ref args, perm) => ast.unfold(
@@ -154,20 +157,23 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             stmts.push(ast.exhale(expr.to_viper(ast), pos.to_viper(ast)));
                             ast.seqn(stmts.as_slice(), &[])
                         }
-                        &Stmt::Fold(ref pred_name, ref args, perm) => {
+                        &Stmt::Fold(ref pred_name, ref args, perm, ref pos) => {
                             assert_eq!(args.len(), 1);
                             let place = &args[0];
                             assert!(place.is_place());
                             let mut stmts = create_footprint_asserts(place, PermAmount::Read);
                             stmts.push(
-                                ast.fold(
-                                    ast.predicate_access_predicate(
-                                        ast.predicate_access(
+                                ast.fold_with_pos(
+                                    ast.predicate_access_predicate_with_pos(
+                                        ast.predicate_access_with_pos(
                                             &args.to_viper(ast),
-                                            &pred_name
+                                            &pred_name,
+                                            pos.to_viper(ast),
                                         ),
-                                        perm.to_viper(ast)
-                                    )
+                                        perm.to_viper(ast),
+                                        pos.to_viper(ast),
+                                    ),
+                                    pos.to_viper(ast),
                                 )
                             );
                             ast.seqn(stmts.as_slice(), &[])

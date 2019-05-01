@@ -22,7 +22,7 @@ pub enum Stmt {
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Expr, Expr, AssignKind),
-    Fold(String, Vec<Expr>, PermAmount),
+    Fold(String, Vec<Expr>, PermAmount, Position),
     Unfold(String, Vec<Expr>, PermAmount),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
@@ -111,7 +111,7 @@ impl fmt::Display for Stmt {
                 },
             },
 
-            Stmt::Fold(ref pred_name, ref args, perm) => write!(
+            Stmt::Fold(ref pred_name, ref args, perm, _) => write!(
                 f, "fold acc({}({}), {})",
                 pred_name,
                 args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
@@ -216,14 +216,15 @@ impl Stmt {
         )
     }
 
-    pub fn fold_pred(place: Expr, perm: PermAmount) -> Self {
+    pub fn fold_pred(place: Expr, perm: PermAmount, pos: Position) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
         Stmt::Fold(
             predicate_name,
             vec![
                 place.into()
             ],
-            perm
+            perm,
+            pos
         )
     }
 
@@ -298,7 +299,7 @@ pub trait StmtFolder {
             Stmt::Assert(e, p) => self.fold_assert(e, p),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
-            Stmt::Fold(s, ve, perm) => self.fold_fold(s, ve, perm),
+            Stmt::Fold(s, ve, perm, p) => self.fold_fold(s, ve, perm, p),
             Stmt::Unfold(s, ve, perm) => self.fold_unfold(s, ve, perm),
             Stmt::Obtain(e) => self.fold_obtain(e),
             Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
@@ -345,8 +346,8 @@ pub trait StmtFolder {
         Stmt::Assign(self.fold_expr(p), self.fold_expr(e), k)
     }
 
-    fn fold_fold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount) -> Stmt {
-        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm)
+    fn fold_fold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount, p: Position) -> Stmt {
+        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm, p)
     }
 
     fn fold_unfold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount) -> Stmt {
@@ -415,7 +416,7 @@ pub trait StmtWalker {
             Stmt::Assert(e, p) => self.walk_assert(e, p),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
-            Stmt::Fold(s, ve, perm) => self.walk_fold(s, ve, perm),
+            Stmt::Fold(s, ve, perm, pos) => self.walk_fold(s, ve, perm, pos),
             Stmt::Unfold(s, ve, perm) => self.walk_unfold(s, ve, perm),
             Stmt::Obtain(e) => self.walk_obtain(e),
             Stmt::WeakObtain(e) => self.walk_weak_obtain(e),
@@ -464,7 +465,7 @@ pub trait StmtWalker {
         self.walk_expr(e);
     }
 
-    fn walk_fold(&mut self, s: &str, ve: &Vec<Expr>, perm: &PermAmount) {
+    fn walk_fold(&mut self, s: &str, ve: &Vec<Expr>, perm: &PermAmount, p: &Position) {
         for a in ve {
             self.walk_expr(a);
         }

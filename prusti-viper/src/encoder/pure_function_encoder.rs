@@ -150,20 +150,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         ).collect();
         let return_type = self.encode_function_return_type();
 
-
+        let res_value_range_pos = self.encoder.error_manager().register(
+            self.mir.span,
+            ErrorCtxt::PureFunctionPostconditionValueRangeOfResult
+        );
+        let pure_fn_return_variable = vir::LocalVar::new(
+            "__result",
+            self.encode_function_return_type());
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_binary_operations() {
-            let res_value_range_pos = self.encoder.error_manager().register(
-                self.mir.span,
-                ErrorCtxt::PureFunctionPostconditionValueRangeOfResult
-            );
-            let pure_fn_return_variable = vir::LocalVar::new(
-                "__result",
-                self.encode_function_return_type());
             let return_bounds: Vec<_> = self.encoder.encode_type_bounds(
-                &vir::Expr::local(pure_fn_return_variable),
-                self.mir.return_ty()
-            ).into_iter()
+                    &vir::Expr::local(pure_fn_return_variable),
+                    self.mir.return_ty()
+                )
+                .into_iter()
                 .map(|p| p.set_default_pos(res_value_range_pos.clone()))
                 .collect();
             postcondition.extend(return_bounds);
@@ -175,6 +175,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                     &typ
                 );
                 precondition.extend(bounds);
+            }
+        } else {
+            if let ty::TypeVariants::TyUint(_) = self.mir.return_ty().sty {
+                let expr = vir::Expr::le_cmp(0.into(), pure_fn_return_variable.into());
+                postcondition.push(expr.set_default_pos(res_value_range_pos));
+            }
+            for (formal_arg, local) in formal_args.iter().zip(self.mir.args_iter()) {
+                let typ = self.interpreter.mir_encoder().get_local_ty(local);
+                if let ty::TypeVariants::TyUint(_) = typ.sty {
+                    precondition.push(vir::Expr::le_cmp(0.into(), formal_arg.into()));
+                }
             }
         }
 

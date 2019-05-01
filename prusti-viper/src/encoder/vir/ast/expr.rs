@@ -226,11 +226,12 @@ impl Expr {
     }
 
     pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
+        let pos = place.pos().clone();
         Expr::PredicateAccessPredicate(
             name.to_string(),
             box place,
             perm,
-            Position::default(),
+            pos,
         )
     }
 

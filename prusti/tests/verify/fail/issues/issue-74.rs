@@ -45,6 +45,7 @@ impl VecWrapperusize {
 }
 
 // binary search using iteration
+#[requires="arr.len() > 0"]
 pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> {
     let len = arr.len();
     let mut left = 0;

@@ -479,6 +479,17 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn predicate_access_with_pos(&self, args: &[Expr], predicate_name: &str, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::PredicateAccess,
+            self.jni.new_seq(&map_to_jobjects!(args)),
+            self.jni.new_string(predicate_name),
+            pos.to_jobject()
+        )
+    }
+
     pub fn cond_exp_with_pos(&self, cond: Expr, then_expr: Expr, else_expr: Expr, pos: Position) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,

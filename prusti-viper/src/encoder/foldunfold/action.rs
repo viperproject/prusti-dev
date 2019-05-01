@@ -13,7 +13,7 @@ use encoder::foldunfold::perm::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Action {
-    Fold(String, Vec<vir::Expr>, PermAmount),
+    Fold(String, Vec<vir::Expr>, PermAmount, vir::Position),
     Unfold(String, Vec<vir::Expr>, PermAmount),
     /// The dropped perm and the missing permission that caused this
     /// perm to be dropped.
@@ -23,8 +23,8 @@ pub enum Action {
 impl Action {
     pub fn to_stmt(&self) -> vir::Stmt {
         match self {
-            Action::Fold(ref pred, ref args, perm_amount) =>
-                vir::Stmt::Fold(pred.clone(), args.clone(), *perm_amount),
+            Action::Fold(ref pred, ref args, perm_amount, ref pos) =>
+                vir::Stmt::Fold(pred.clone(), args.clone(), *perm_amount, pos.clone()),
             Action::Unfold(ref pred, ref args, perm_amount) =>
                 vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount),
             Action::Drop(..) =>
@@ -34,7 +34,7 @@ impl Action {
 
     pub fn to_expr(&self, inner_expr: vir::Expr) -> vir::Expr {
         match self {
-            Action::Fold(ref pred, ref args, perm) => {
+            Action::Fold(ref pred, ref args, perm, _) => {
                 // Currently unsupported in Viper
                 unimplemented!("action {}", self)
             }

@@ -525,217 +525,46 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_statement(&mut self, stmt: &mir::Statement<'tcx>, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("Encode statement '{:?}', span: {:?}", stmt.kind, stmt.source_info.span);
-        let mut stmts: Vec<vir::Stmt> = vec![];
 
-        match stmt.kind {
+        let stmts = match stmt.kind {
             mir::StatementKind::StorageDead(_) |
             mir::StatementKind::StorageLive(_) |
             mir::StatementKind::EndRegion(_) |
             mir::StatementKind::ReadForMatch(_) |
             mir::StatementKind::UserAssertTy(_, _) |
-            mir::StatementKind::Nop => stmts,
+            mir::StatementKind::Nop => vec![],
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
                 let type_name = self.encoder.encode_type_predicate_use(ty);
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
-                        stmts.extend(
-                            self.encode_assign_operand(&encoded_lhs, operand, location)
-                        );
-                        stmts
+                        self.encode_assign_operand(&encoded_lhs, operand, location)
                     }
-
                     &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
-                        stmts.extend(
-                            self.encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location)
-                        );
-                        stmts
+                        self.encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location)
                     }
-
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
-                        let encoded_left = self.mir_encoder.encode_operand_expr(left);
-                        let encoded_right = self.mir_encoder.encode_operand_expr(right);
-                        let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left, encoded_right, ty);
-                        // Initialize lhs.field
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                encoded_lhs.field(field),
-                                encoded_value,
-                                vir::AssignKind::Copy
-                            )
-                        );
-                        stmts
+                        self.encode_assign_binary_op(op, left, right, encoded_lhs, ty)
                     }
-
                     &mir::Rvalue::CheckedBinaryOp(op, ref left, ref right) => {
-                        let operand_ty = if let ty::TypeVariants::TyTuple(ref types) = ty.sty {
-                            types[0].clone()
-                        } else {
-                            unreachable!()
-                        };
-                        let encoded_left = self.mir_encoder.encode_operand_expr(left);
-                        let encoded_right = self.mir_encoder.encode_operand_expr(right);
-                        let encoded_value = self.mir_encoder.encode_bin_op_expr(op, encoded_left.clone(), encoded_right.clone(), operand_ty);
-                        let encoded_check = self.mir_encoder.encode_bin_op_check(op, encoded_left, encoded_right, operand_ty);
-                        let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty { x } else { unreachable!() };
-                        let value_field = self.encoder.encode_raw_ref_field(
-                            "tuple_0".to_string(), field_types[0]);
-                        let value_field_value = self.encoder.encode_value_field(field_types[0]);
-                        let check_field = self.encoder.encode_raw_ref_field(
-                            "tuple_1".to_string(), field_types[1]);
-                        let check_field_value = self.encoder.encode_value_field(field_types[1]);
-                        // Initialize lhs.field
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                encoded_lhs.clone()
-                                    .field(value_field)
-                                    .field(value_field_value),
-                                encoded_value,
-                                vir::AssignKind::Copy
-                            )
-                        );
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                encoded_lhs
-                                    .field(check_field)
-                                    .field(check_field_value),
-                                encoded_check,
-                                vir::AssignKind::Copy
-                            )
-                        );
-                        stmts
+                        self.encode_assign_checked_binary_op(op, left, right, encoded_lhs, ty)
                     }
-
                     &mir::Rvalue::UnaryOp(op, ref operand) => {
-                        let encoded_val = self.mir_encoder.encode_operand_expr(operand);
-                        let field = self.encoder.encode_value_field(ty);
-                        let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
-                        // Initialize `lhs.field`
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                encoded_lhs.field(field),
-                                encoded_value,
-                                vir::AssignKind::Copy
-                            )
-                        );
-                        stmts
+                        self.encode_assign_unary_op(op, operand, encoded_lhs, ty)
                     }
-
                     &mir::Rvalue::NullaryOp(op, ref op_ty) => {
-                        match op {
-                            mir::NullOp::Box => {
-                                assert_eq!(op_ty, &ty.boxed_ty());
-                                let ref_field = self.encoder.encode_dereference_field(op_ty);
-
-                                let box_content = encoded_lhs.clone().field(ref_field);
-
-                                // Allocate `box_content`
-                                stmts.extend(
-                                    self.encode_havoc_and_allocation(&box_content)
-                                );
-
-                                // Leave `box_content` uninitialized
-                            }
-                            mir::NullOp::SizeOf => unimplemented!(),
-                        };
-                        stmts
+                        self.encode_assign_nullary_op(op, op_ty, encoded_lhs, ty)
                     }
-
                     &mir::Rvalue::Discriminant(ref src) => {
-                        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
-                        match src_ty.sty {
-                            ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
-                                let num_variants = adt_def.variants.len();
-                                // Initialize `lhs.int_field`
-                                // Note: in our encoding an enumeration with just one variant has
-                                // no discriminant
-                                if num_variants > 1 {
-                                    let int_field = self.encoder.encode_value_field(ty);
-                                    stmts.push(
-                                        vir::Stmt::Assign(
-                                            encoded_lhs.clone().field(int_field),
-                                            self.encoder.encode_discriminant_func_app(
-                                                self.translate_maybe_borrowed_place(
-                                                    location,
-                                                    encoded_src
-                                                ),
-                                                adt_def
-                                            ),
-                                            vir::AssignKind::Copy
-                                        )
-                                    );
-                                };
-                                stmts
-                            }
-
-                            ty::TypeVariants::TyInt(_) |
-                            ty::TypeVariants::TyUint(_) => {
-                                let value_field = self.encoder.encode_value_field(src_ty);
-                                let discr_value: vir::Expr = self.translate_maybe_borrowed_place(
-                                    location,
-                                    encoded_src.field(value_field)
-                                );
-                                let int_field = self.encoder.encode_value_field(ty);
-                                stmts.push(
-                                    vir::Stmt::Assign(
-                                        encoded_lhs.clone().field(int_field),
-                                        discr_value,
-                                        vir::AssignKind::Copy
-                                    )
-                                );
-                                stmts
-                            }
-
-                            ref x => {
-                                debug!("The discriminant of type {:?} is not defined", x);
-                                stmts
-                            }
-                        }
+                        self.encode_assign_discriminant(src, location, encoded_lhs, ty)
                     }
-
                     &mir::Rvalue::Ref(ref _region, mir_borrow_kind, ref place) => {
-                        let ref_field = self.encoder.encode_value_field(ty);
-                        let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
-                        let loan = self.polonius_info.get_loan_at_location(location);
-                        let vir_assign_kind = match mir_borrow_kind {
-                            mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan),
-                            mir::BorrowKind::Unique => unimplemented!(),
-                            mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan),
-                        };
-                        // Initialize ref_var.ref_field
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                encoded_lhs.clone().field(ref_field),
-                                encoded_value.into(),
-                                vir_assign_kind
-                            )
-                        );
-                        // Store a label for this state
-                        let label = self.cfg_method.get_fresh_label_name();
-                        debug!("Current loc {:?} has label {}", location, label);
-                        self.label_after_location.insert(location, label.clone());
-                        stmts.push(vir::Stmt::Label(label.clone()));
-                        stmts
+                        self.encode_assign_ref(mir_borrow_kind, place, location, encoded_lhs, ty)
                     }
-
-
                     &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
-                        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
-
-                        // Initialize `lhs.field`
-                        let field = self.encoder.encode_value_field(ty);
-                        stmts.push(
-                            vir::Stmt::Assign(
-                                encoded_lhs.field(field),
-                                encoded_val,
-                                vir::AssignKind::Copy
-                            )
-                        );
-                        stmts
+                        self.encode_cast(operand, dst_ty, encoded_lhs, ty)
                     }
-
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
                     }
@@ -743,11 +572,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ref x => unimplemented!("{:?}", x)
-        }.into_iter().map(
-            |s| {
-                let expr_pos = self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericExpression);
-                let stmt_pos = self.encoder.error_manager().register(stmt.source_info.span, ErrorCtxt::GenericStatement);
-
+        };
+        stmts
+            .into_iter()
+            .map(|s| {
+                let expr_pos = self.encoder.error_manager().register(
+                    stmt.source_info.span, ErrorCtxt::GenericExpression);
+                let stmt_pos = self.encoder.error_manager().register(
+                    stmt.source_info.span, ErrorCtxt::GenericStatement);
                 s.set_default_expr_pos(
                     expr_pos
                 ).set_default_pos(
@@ -2975,6 +2807,239 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
+    fn encode_assign_binary_op(
+        &mut self,
+        op: mir::BinOp,
+        left: &mir::Operand<'tcx>,
+        right: &mir::Operand<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_binary_op(op={:?}, left={:?}, right={:?})",
+               op, left, right);
+        let encoded_left = self.mir_encoder.encode_operand_expr(left);
+        let encoded_right = self.mir_encoder.encode_operand_expr(right);
+        let field = self.encoder.encode_value_field(ty);
+        let encoded_value = self.mir_encoder.encode_bin_op_expr(
+            op, encoded_left, encoded_right, ty);
+        // Initialize lhs.field
+        vec![
+            vir::Stmt::Assign(
+                encoded_lhs.field(field),
+                encoded_value,
+                vir::AssignKind::Copy
+            )
+        ]
+    }
+
+    fn encode_assign_checked_binary_op(
+        &mut self,
+        op: mir::BinOp,
+        left: &mir::Operand<'tcx>,
+        right: &mir::Operand<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_checked_binary_op(op={:?}, left={:?}, right={:?})",
+               op, left, right);
+        let operand_ty = if let ty::TypeVariants::TyTuple(ref types) = ty.sty {
+            types[0].clone()
+        } else {
+            unreachable!()
+        };
+        let encoded_left = self.mir_encoder.encode_operand_expr(left);
+        let encoded_right = self.mir_encoder.encode_operand_expr(right);
+        let encoded_value = self.mir_encoder.encode_bin_op_expr(
+            op, encoded_left.clone(), encoded_right.clone(), operand_ty);
+        let encoded_check = self.mir_encoder.encode_bin_op_check(
+            op, encoded_left, encoded_right, operand_ty);
+        let field_types = if let ty::TypeVariants::TyTuple(ref x) = ty.sty {
+            x
+        } else {
+            unreachable!()
+        };
+        let value_field = self.encoder.encode_raw_ref_field(
+            "tuple_0".to_string(), field_types[0]);
+        let value_field_value = self.encoder.encode_value_field(field_types[0]);
+        let check_field = self.encoder.encode_raw_ref_field(
+            "tuple_1".to_string(), field_types[1]);
+        let check_field_value = self.encoder.encode_value_field(field_types[1]);
+        // Initialize lhs.field
+        vec![
+            vir::Stmt::Assign(
+                encoded_lhs.clone()
+                    .field(value_field)
+                    .field(value_field_value),
+                encoded_value,
+                vir::AssignKind::Copy
+            ),
+            vir::Stmt::Assign(
+                encoded_lhs
+                    .field(check_field)
+                    .field(check_field_value),
+                encoded_check,
+                vir::AssignKind::Copy
+            )
+        ]
+    }
+
+    fn encode_assign_unary_op(
+        &mut self,
+        op: mir::UnOp,
+        operand: &mir::Operand<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_unary_op(op={:?}, operand={:?})", op, operand);
+        let encoded_val = self.mir_encoder.encode_operand_expr(operand);
+        let field = self.encoder.encode_value_field(ty);
+        let encoded_value = self.mir_encoder.encode_unary_op_expr(op, encoded_val);
+        // Initialize `lhs.field`
+        vec![
+            vir::Stmt::Assign(
+                encoded_lhs.field(field),
+                encoded_value,
+                vir::AssignKind::Copy
+            )
+        ]
+    }
+
+    fn encode_assign_nullary_op(
+        &mut self,
+        op: mir::NullOp,
+        op_ty: ty::Ty<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_nullary_op(op={:?}, op_ty={:?})", op, op_ty);
+        match op {
+            mir::NullOp::Box => {
+                assert_eq!(op_ty, ty.boxed_ty());
+                let ref_field = self.encoder.encode_dereference_field(op_ty);
+
+                let box_content = encoded_lhs.clone().field(ref_field);
+
+                // Allocate `box_content`
+                self.encode_havoc_and_allocation(&box_content)
+
+                // Leave `box_content` uninitialized
+            }
+            mir::NullOp::SizeOf => unimplemented!(),
+        }
+    }
+
+    fn encode_assign_discriminant(
+        &mut self,
+        src: &mir::Place<'tcx>,
+        location: mir::Location,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_discriminant(src={:?}, location={:?})", src, location);
+        let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
+        match src_ty.sty {
+            ty::TypeVariants::TyAdt(ref adt_def, _) if !adt_def.is_box() => {
+                let num_variants = adt_def.variants.len();
+                // Initialize `lhs.int_field`
+                // Note: in our encoding an enumeration with just one variant has
+                // no discriminant
+                if num_variants > 1 {
+                    let int_field = self.encoder.encode_value_field(ty);
+                    vec![
+                        vir::Stmt::Assign(
+                            encoded_lhs.clone().field(int_field),
+                            self.encoder.encode_discriminant_func_app(
+                                self.translate_maybe_borrowed_place(
+                                    location,
+                                    encoded_src
+                                ),
+                                adt_def
+                            ),
+                            vir::AssignKind::Copy
+                        )
+                    ]
+                } else {
+                    vec![]
+                }
+            }
+
+            ty::TypeVariants::TyInt(_) |
+            ty::TypeVariants::TyUint(_) => {
+                let value_field = self.encoder.encode_value_field(src_ty);
+                let discr_value: vir::Expr = self.translate_maybe_borrowed_place(
+                    location,
+                    encoded_src.field(value_field)
+                );
+                let int_field = self.encoder.encode_value_field(ty);
+                vec![
+                    vir::Stmt::Assign(
+                        encoded_lhs.clone().field(int_field),
+                        discr_value,
+                        vir::AssignKind::Copy
+                    )
+                ]
+            }
+
+            ref x => {
+                debug!("The discriminant of type {:?} is not defined", x);
+                vec![]
+            }
+        }
+    }
+
+    fn encode_assign_ref(
+        &mut self,
+        mir_borrow_kind: mir::BorrowKind,
+        place: &mir::Place<'tcx>,
+        location: mir::Location,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})",
+               mir_borrow_kind, place, location);
+        let ref_field = self.encoder.encode_value_field(ty);
+        let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
+        let loan = self.polonius_info.get_loan_at_location(location);
+        let vir_assign_kind = match mir_borrow_kind {
+            mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan),
+            mir::BorrowKind::Unique => unimplemented!(),
+            mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan),
+        };
+        // Initialize ref_var.ref_field
+        let ref_field_assign = vir::Stmt::Assign(
+            encoded_lhs.clone().field(ref_field),
+            encoded_value.into(),
+            vir_assign_kind
+        );
+        // Store a label for this state
+        let label = self.cfg_method.get_fresh_label_name();
+        debug!("Current loc {:?} has label {}", location, label);
+        self.label_after_location.insert(location, label.clone());
+        let state_label = vir::Stmt::Label(label.clone());
+        vec![ref_field_assign, state_label]
+    }
+
+    fn encode_cast(
+        &mut self,
+        operand: &mir::Operand<'tcx>,
+        dst_ty: ty::Ty<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+    ) -> Vec<vir::Stmt> {
+        trace!("[enter] encode_cast(operand={:?}, dst_ty={:?})", operand, dst_ty);
+        let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
+
+        // Initialize `lhs.field`
+        let field = self.encoder.encode_value_field(ty);
+        vec![
+            vir::Stmt::Assign(
+                encoded_lhs.field(field),
+                encoded_val,
+                vir::AssignKind::Copy
+            )
+        ]
+    }
+
     pub fn get_auxiliar_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {
         let name = format!("_aux_{}_{}", suffix, vir_type.name());
         if self.auxiliar_local_vars.contains_key(&name) {
@@ -3252,7 +3317,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         operands: &Vec<mir::Operand<'tcx>>,
         location: mir::Location
     ) -> Vec<vir::Stmt> {
-        debug!("Encode aggregate {:?}, {:?}", aggregate, operands);
+        debug!("[enter] encode_assign_aggregate({:?}, {:?})", aggregate, operands);
         let mut stmts: Vec<vir::Stmt> = vec![];
         // TODO: do we really need to allocate?
         // stmts.extend(

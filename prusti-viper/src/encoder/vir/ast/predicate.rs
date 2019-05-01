@@ -48,21 +48,21 @@ impl Predicate {
     pub fn new_primitive_value(
         typ: Type,
         field: Field,
-        bounds: Option<(Expr, Expr)>
+        bounds: Option<(Expr, Expr)>,
+        is_unsigned: bool
     ) -> Predicate {
         let predicate_name = typ.name();
         let this = Self::construct_this(typ);
         let val_field = Expr::from(this.clone()).field(field);
         let perm = Expr::acc_permission(val_field.clone(), PermAmount::Write);
-        let body = if let Some((lower, upper)) = bounds {
-            vec![
-                perm,
-                Expr::le_cmp(lower, val_field.clone()),
-                Expr::le_cmp(val_field, upper),
-            ].into_iter().conjoin()
-        } else {
-            perm
+        let mut conjuncts = vec![perm];
+        if let Some((lower, upper)) = bounds {
+            conjuncts.push(Expr::le_cmp(lower, val_field.clone()));
+            conjuncts.push(Expr::le_cmp(val_field, upper));
+        } else if is_unsigned {
+            conjuncts.push(Expr::le_cmp(0.into(), val_field));
         };
+        let body = conjuncts.into_iter().conjoin();
         Predicate::Struct(StructPredicate {
             name: predicate_name,
             this: this,

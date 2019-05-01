@@ -135,7 +135,7 @@ impl vir::Stmt {
                 // Do nothing.
             }
 
-            &vir::Stmt::Fold(ref pred_name, ref args, perm_amount) => {
+            &vir::Stmt::Fold(ref pred_name, ref args, perm_amount, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());

@@ -44,7 +44,7 @@ impl VecWrapperusize {
 // binary search using recursion
 pub fn binary_search_rec(arr: VecWrapperusize, target: usize) -> Option<usize> {
     let len = arr.len();
-    return binary_search_help(arr, 0, len - 1, target);
+    return binary_search_help(arr, 0, len - 1, target); //~ ERROR type invariant expected by the function call might not hold.
 }
 
 fn binary_search_help(arr: VecWrapperusize, left: usize, right: usize, target: usize) -> Option<usize> {
@@ -62,6 +62,7 @@ fn binary_search_help(arr: VecWrapperusize, left: usize, right: usize, target: u
 }
 
 // binary search using iteration
+#[requires="arr.len() > 0"]
 pub fn binary_search_iter(arr: VecWrapperusize, target: usize) -> Option<usize> {
     let len = arr.len();
     let mut left = 0;

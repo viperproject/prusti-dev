@@ -1,10 +1,10 @@
 extern crate prusti_contracts;
 
 struct Example {
-    m2: u32, // multiple of 2
-    m3: u32, // multiple of 3
-    m5: u32, // multiple of 5
-    m7: u32, // multiple of 7
+    m2: i32, // multiple of 2
+    m3: i32, // multiple of 3
+    m5: i32, // multiple of 5
+    m7: i32, // multiple of 7
 }
 
 impl Example {
@@ -22,7 +22,7 @@ impl Example {
         *result % 3 == 0,
         self.valid()
     )"]
-    fn m3_mut(&mut self) -> &mut u32 {
+    fn m3_mut(&mut self) -> &mut i32 {
         &mut self.m3
     }
 
@@ -32,7 +32,7 @@ impl Example {
         true,
         self.valid()
     )"]
-    fn m3_mut_fail(&mut self) -> &mut u32 { //~ ERROR pledge in the postcondition might not hold
+    fn m3_mut_fail(&mut self) -> &mut i32 { //~ ERROR pledge in the postcondition might not hold
         &mut self.m3
     }
 }

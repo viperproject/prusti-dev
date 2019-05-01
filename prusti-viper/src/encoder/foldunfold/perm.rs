@@ -140,6 +140,18 @@ impl Perm {
             Perm::Pred(expr, _) => Perm::Pred(expr, new_perm),
         }
     }
+
+    pub fn pos(&self) -> &vir::Position {
+        self.get_place().pos()
+    }
+
+    pub fn set_default_pos(self, pos: vir::Position) -> Self {
+        match self {
+            Perm::Acc(expr, perm) => Perm::Acc(expr.set_default_pos(pos), perm),
+            Perm::Pred(expr, perm) => Perm::Pred(expr.set_default_pos(pos), perm),
+        }
+    }
+
 }
 
 impl fmt::Display for Perm {
