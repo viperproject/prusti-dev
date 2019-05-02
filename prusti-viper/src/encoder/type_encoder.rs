@@ -153,7 +153,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     None
                 };
                 let unsigned = if let ty::TypeVariants::TyUint(_) = self.ty.sty {
-                    true
+                    config::encode_unsigned_num_constraint()
                 } else {
                     false
                 };
