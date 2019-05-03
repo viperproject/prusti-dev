@@ -176,7 +176,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 );
                 precondition.extend(bounds);
             }
-        } else {
+        } else if config::encode_unsigned_num_constraint() {
             if let ty::TypeVariants::TyUint(_) = self.mir.return_ty().sty {
                 let expr = vir::Expr::le_cmp(0.into(), pure_fn_return_variable.into());
                 postcondition.push(expr.set_default_pos(res_value_range_pos));

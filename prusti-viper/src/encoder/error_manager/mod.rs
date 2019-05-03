@@ -367,6 +367,12 @@ impl<'tcx> ErrorManager<'tcx> {
                 reason_span,
             ),
 
+            ("fold.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => CompilerError::new(
+                format!("implicit type invariants might not hold at the end of the method."),
+                error_span,
+                reason_span,
+            ),
+
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
                 format!(
                     "internal encoding error - unexpected verification error: [{}] {}",
