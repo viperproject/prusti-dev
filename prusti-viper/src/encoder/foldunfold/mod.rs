@@ -479,7 +479,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     match stmt {
                         vir::Stmt::Comment(_) |
                         vir::Stmt::ApplyMagicWand(_, _) |
-                        vir::Stmt::TransferPerm(_, _, _) => {
+                        vir::Stmt::TransferPerm(_, _, _) |
+                        vir::Stmt::Assign(_, _, _) => {
                             stmt.clone()
                         },
                         vir::Stmt::Inhale(expr) => {
@@ -496,7 +497,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                             vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args),
                                               *perm_amount)
                         },
-                        x => unreachable!("{:?}", x),
+                        x => unreachable!("{}", x),
                     }
                 })
                 .collect()

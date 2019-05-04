@@ -158,20 +158,21 @@ impl State {
                 }
             }
         }
-        // Check moved
-        for place in &self.moved {
-            if place.is_simple_place() && !self.contains_acc(place) &&
-                !place.is_mir_reference() &&
-                !self.framing_stack.iter().any(|fs|
-                    fs.contains(&Perm::Acc(place.clone(), PermAmount::Write))
-                ) {
-                panic!(
-                    "Consistency error: state has moved path {}, but not acc {} (not even a framed one)",
-                    place,
-                    place
-                );
-            }
-        }
+//      // Check moved
+//      TODO: Replace moved with initialisation information.
+//      for place in &self.moved {
+//          if place.is_simple_place() && !self.contains_acc(place) &&
+//              !place.is_mir_reference() &&
+//              !self.framing_stack.iter().any(|fs|
+//                  fs.contains(&Perm::Acc(place.clone(), PermAmount::Write))
+//              ) {
+//              panic!(
+//                  "Consistency error: state has moved path {}, but not acc {} (not even a framed one)",
+//                  place,
+//                  place
+//              );
+//          }
+//      }
     }
 
     pub fn replace_local_vars<F>(&mut self, replace: F) where F: Fn(&vir::LocalVar) -> vir::LocalVar {

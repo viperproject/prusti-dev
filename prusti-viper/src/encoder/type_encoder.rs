@@ -82,7 +82,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             },
 
             ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_) => unimplemented!(),
+            ty::TypeVariants::TyTuple(_) => unreachable!(),
 
             ref x => unimplemented!("{:?}", x),
         }
