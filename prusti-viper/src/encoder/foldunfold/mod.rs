@@ -156,11 +156,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     unchecked
                 )
             }
-            vir::Stmt::PackageMagicWand(wand, stmts, label, pos) => {
+            vir::Stmt::PackageMagicWand(wand, stmts, label, vars, pos) => {
                 vir::Stmt::PackageMagicWand(
                     self.replace_expr(&wand, bctxt),
                     stmts,
                     label,
+                    vars,
                     pos
                 )
             }
@@ -668,6 +669,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 vir::Expr::MagicWand(box ref lhs, box ref rhs, _, _),
                 ref old_package_stmts,
                 ref label,
+                ref vars,
                 ref position
             ) => {
                 let mut package_bctxt = bctxt.clone();
@@ -692,13 +694,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                                 rhs.clone(),
                                 package_stmts.clone(),
                                 label.clone(),
+                                vars.clone(),
                                 position.clone()
                             )
                         );
                     }
                 }
                 vir::Stmt::package_magic_wand(lhs.clone(), rhs.clone(), package_stmts,
-                                              label.clone(), position.clone())
+                                              label.clone(), vars.clone(), position.clone())
             }
             stmt => stmt,
         };

@@ -81,6 +81,8 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     init_info: InitInfo,
     /// Mapping from old expressions to ghost variables with which they were replaced.
     old_to_ghost_var: HashMap<vir::Expr, vir::Expr>,
+    /// Ghost variables used inside package statements.
+    old_ghost_vars: HashMap<String, vir::Type>,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -128,6 +130,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             pure_var_for_preserving_value_map: HashMap::new(),
             init_info: init_info,
             old_to_ghost_var: HashMap::new(),
+            old_ghost_vars: HashMap::new(),
         }
     }
 
@@ -2156,7 +2159,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         struct OldReplacer<'a> {
             label: Option<&'a str>,
             old_to_ghost_var: &'a mut HashMap<vir::Expr, vir::Expr>,
-            auxiliar_local_vars: &'a mut HashMap<String, vir::Type>,
+            old_ghost_vars: &'a mut HashMap<String, vir::Type>,
             cfg_method: &'a mut vir::CfgMethod,
         }
         impl<'a> vir::ExprFolder for OldReplacer<'a> {
@@ -2171,13 +2174,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else if self.label == Some(&label) {
                     let mut counter = 0;
                     let mut name = format!("_old${}${}", label, counter);
-                    while self.auxiliar_local_vars.contains_key(&name) {
+                    while self.old_ghost_vars.contains_key(&name) {
                         counter += 1;
                         name = format!("_old${}${}", label, counter);
                     }
                     let vir_type = base.get_type().clone();
+                    self.old_ghost_vars.insert(name.clone(), vir_type.clone());
                     self.cfg_method.add_local_var(&name, vir_type.clone());
-                    self.auxiliar_local_vars.insert(name.clone(), vir_type.clone());
                     let var: vir::Expr = vir::LocalVar::new(name, vir_type).into();
                     self.old_to_ghost_var.insert(*base, var.clone());
                     var
@@ -2189,7 +2192,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut replacer = OldReplacer {
             label: label,
             old_to_ghost_var: &mut self.old_to_ghost_var,
-            auxiliar_local_vars: &mut self.auxiliar_local_vars,
+            old_ghost_vars: &mut self.old_ghost_vars,
             cfg_method: &mut self.cfg_method,
         };
         vir::ExprFolder::fold(&mut replacer, expr)
@@ -2263,8 +2266,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.mir.span,
                 ErrorCtxt::PackageMagicWandForPostcondition
             );
+            let vars: Vec<_> = self.old_ghost_vars.iter()
+                .map(|(name, typ)| {
+                    vir::LocalVar::new(name.clone(), typ.clone())
+                })
+                .collect();
             stmts.push(vir::Stmt::package_magic_wand(lhs, rhs, package_stmts,
-                                                     post_label.clone(), pos));
+                                                     post_label.clone(), vars, pos));
 
             // We need to transfer all permissions from old[post](lhs) to lhs.
             let borrow_infos = &contract.borrow_infos;

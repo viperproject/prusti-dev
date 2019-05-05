@@ -133,7 +133,7 @@ impl CfgMethod {
                 vir::Stmt::ExpireBorrows(ref dag) => {
                     reborrowing_dags.push(dag);
                 }
-                vir::Stmt::PackageMagicWand(_, ref stmts, _, _) => {
+                vir::Stmt::PackageMagicWand(_, ref stmts, _, _, _) => {
                     for stmt in stmts {
                         if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
                             reborrowing_dags.push(dag);
