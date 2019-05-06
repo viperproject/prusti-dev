@@ -2344,10 +2344,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 // Transfer permissions.
+                //
+                // TODO: This version does not allow mutating function arguments.
+                // A way to allow this would be for each reference typed
+                // argument generate a fresh pure variable `v` and a
+                // variable `b:=true` and add `old[pre](_1.val_ref)` to
+                // the replacement map. Before each assignment that
+                // assigns to the reference itself, emit `b:=false`.
+                // After each assignment that assigns to the contents
+                // the reference is pointing to emit:
+                //
+                //      if b {
+                //          v := _1.val_ref;
+                //      }
                 let old_expr = encoded_deref.clone().old(PRECONDITION_LABEL);
+                let name = format!("_old${}${}", PRECONDITION_LABEL, i);
+                let vir_type = old_expr.get_type().clone();
+                self.old_ghost_vars.insert(name.clone(), vir_type.clone());
+                self.cfg_method.add_local_var(&name, vir_type.clone());
+                let var: vir::Expr = vir::LocalVar::new(name, vir_type).into();
+                self.old_to_ghost_var.insert(old_expr, var.clone());
+
                 self.cfg_method.add_stmt(
                     return_cfg_block,
-                    vir::Stmt::TransferPerm(encoded_deref, old_expr, false)
+                    vir::Stmt::Assign(var, encoded_deref, vir::AssignKind::Move)
                 );
             }
         }
@@ -2363,21 +2383,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
             ErrorCtxt::AssertMethodPostcondition
         );
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(func_spec, pos));
+        let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(patched_func_spec, pos));
 
         // Assert type invariants
         let pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::AssertMethodPostconditionTypeInvariants
         );
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(invs_spec, pos));
+        let patched_invs_spec = self.replace_old_places_with_ghost_vars(None, invs_spec);
+        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(patched_invs_spec, pos));
 
         // Exhale permissions of postcondition
         let pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::ExhaleMethodPostcondition
         );
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(type_spec, pos.clone()));
+        let patched_type_spec = self.replace_old_places_with_ghost_vars(None, type_spec);
+        self.cfg_method.add_stmt(return_cfg_block,
+                                 vir::Stmt::Exhale(patched_type_spec, pos.clone()));
         if let Some(access) = return_type_spec {
             self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(access, pos.clone()));
         }
