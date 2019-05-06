@@ -2168,6 +2168,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 base: Box<vir::Expr>,
                 pos: vir::Position
             ) -> vir::Expr {
+                let base = self.fold_boxed(base);
                 let expr = vir::Expr::LabelledOld(label.clone(), base, pos.clone());
                 debug!("replace_old_places_with_ghost_vars({:?}, {})", self.label, expr);
                 if self.old_to_ghost_var.contains_key(&expr) {
