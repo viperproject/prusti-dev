@@ -2110,11 +2110,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Encode permissions for return type
-        let return_perm = if !diverging {
-            Some(self.encode_local_variable_permission(contract.returned_value))
-        } else {
-            None
-        };
+        // TODO: Clean-up: remove unnecessary Option.
+        let return_perm = Some(self.encode_local_variable_permission(contract.returned_value));
 
         // Encode invariant for return value
         // TODO put this in the above if?
