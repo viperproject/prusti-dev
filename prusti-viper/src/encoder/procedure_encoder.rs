@@ -2924,13 +2924,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut stmts = if self.mir_encoder.is_reference(ty) {
                     let loan = self.polonius_info.get_loan_at_location(location);
                     let ref_field = self.encoder.encode_value_field(ty);
-                    vec![
+                    let mut stmts = self.prepare_assign_target(
+                        lhs.clone(), ref_field.clone(), location,
+                        vir::AssignKind::SharedBorrow(loan));
+                    stmts.push(
                         vir::Stmt::Assign(
                             lhs.clone().field(ref_field.clone()),
                             src.field(ref_field),
                             vir::AssignKind::SharedBorrow(loan)
                         )
-                    ]
+                    );
+                    stmts
                 } else {
 //                  let mut stmts = self.encode_havoc_and_allocation(lhs);
 //                  // Copy the values from `src` to `lhs`
