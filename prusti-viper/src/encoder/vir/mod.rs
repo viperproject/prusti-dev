@@ -14,5 +14,6 @@ mod cfg;
 mod conversions;
 mod to_viper;
 pub mod borrows;
+pub mod fixes;
 pub mod optimisations;
 pub mod utils;

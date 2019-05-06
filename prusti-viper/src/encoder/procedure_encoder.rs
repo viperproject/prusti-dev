@@ -47,6 +47,7 @@ use prusti_interface::utils::get_attr_value;
 use rustc::ty::layout;
 use rustc::ty::layout::IntegerExt;
 use syntax::attr::SignedInt;
+use encoder::vir::fixes::fix_ghost_vars;
 use encoder::vir::optimisations::methods::{remove_unused_vars, remove_trivial_assertions};
 use utils::to_string::ToString;
 
@@ -501,8 +502,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
             self.encoder, self.cfg_method, loan_positions);
 
+        // Fix variable declarations.
+        let fixed_method = fix_ghost_vars(method_with_fold_unfold);
+
         // Optimise encoding a bit
-        let method_without_unused_vars = remove_unused_vars(method_with_fold_unfold);
+        let method_without_unused_vars = remove_unused_vars(fixed_method);
         let method_without_trivial_assertions = remove_trivial_assertions(method_without_unused_vars);
         let final_method = optimiser::rewrite(method_without_trivial_assertions);
 
@@ -674,15 +678,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         rhs: vir::Expr,
         location: mir::Location
     ) -> Vec<vir::Stmt> {
-        let mut stmts = match &rhs {
-            vir::Expr::LabelledOld(label, box base, pos)
-                if self.old_to_ghost_var.contains_key(base) => {
-                let var = self.old_to_ghost_var[&base].clone();
-                vec![vir::Stmt::Assign(var, lhs.clone(), vir::AssignKind::Move)]
-            }
-            _ => {
-                vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
-            }
+        let mut stmts = if let Some(var) = self.old_to_ghost_var.get(&rhs) {
+            vec![vir::Stmt::Assign(var.clone(), lhs.clone(), vir::AssignKind::Move)]
+        } else {
+            vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
         };
 
         if self.check_fold_unfold_state {
@@ -1646,17 +1645,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 //stmts.push(vir::Stmt::Inhale(magic_wand));
                             //}
 
-                            // As a last step, re-allocate arguments that were used in the function
-                            // call. We do this after inhaling the functional spec, so that the
-                            // user can not inhale equalities and trigger unsoundness by mistake.
-                            // This is only needed inside loops.
-                            let type_spec = procedure_contract.args.iter()
-                                .map(|&local| self.encode_local_variable_permission(local))
-                                .into_iter().conjoin();
-                            //debug_assert_eq!(type_spec, pre_type_spec);
-                            let inhaled_spec = replace_fake_exprs(type_spec)
-                                .remove_read_permissions();
-                            stmts.push(vir::Stmt::Inhale(inhaled_spec));
+//                          // As a last step, re-allocate arguments that were used in the function
+//                          // call. We do this after inhaling the functional spec, so that the
+//                          // user can not inhale equalities and trigger unsoundness by mistake.
+//                          // This is only needed inside loops.
+//                          let type_spec = procedure_contract.args.iter()
+//                              .map(|&local| self.encode_local_variable_permission(local))
+//                              .into_iter().conjoin();
+//                          //debug_assert_eq!(type_spec, pre_type_spec);
+//                          let inhaled_spec = replace_fake_exprs(type_spec)
+//                              .remove_read_permissions();
+//                          stmts.push(vir::Stmt::Inhale(inhaled_spec));
 
                             stmts.extend(stmts_after);
 
@@ -2169,8 +2168,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 base: Box<vir::Expr>,
                 pos: vir::Position
             ) -> vir::Expr {
-                if self.old_to_ghost_var.contains_key(&*base) {
-                    self.old_to_ghost_var[&*base].clone().set_pos(pos)
+                let expr = vir::Expr::LabelledOld(label.clone(), base, pos.clone());
+                debug!("replace_old_places_with_ghost_vars({:?}, {})", self.label, expr);
+                if self.old_to_ghost_var.contains_key(&expr) {
+                    debug!("found={}", self.old_to_ghost_var[&expr]);
+                    self.old_to_ghost_var[&expr].clone().set_pos(pos)
                 } else if self.label == Some(&label) {
                     let mut counter = 0;
                     let mut name = format!("_old${}${}", label, counter);
@@ -2178,14 +2180,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         counter += 1;
                         name = format!("_old${}${}", label, counter);
                     }
-                    let vir_type = base.get_type().clone();
+                    let vir_type = expr.get_type().clone();
                     self.old_ghost_vars.insert(name.clone(), vir_type.clone());
                     self.cfg_method.add_local_var(&name, vir_type.clone());
                     let var: vir::Expr = vir::LocalVar::new(name, vir_type).into();
-                    self.old_to_ghost_var.insert(*base, var.clone());
+                    self.old_to_ghost_var.insert(expr, var.clone());
                     var
                 } else {
-                    vir::Expr::LabelledOld(label, base, pos)
+                    debug!("not found");
+                    expr
                 }
             }
         }

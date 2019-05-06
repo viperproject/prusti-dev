@@ -103,7 +103,6 @@ impl ast::StmtWalker for UsedVarCollector {
             self.walk(statement);
         }
         for var in vars {
-            // FIXME: This is needed so that we do not have duplicate variables.
             self.used_vars.remove(&var.name);
         }
     }
