@@ -80,7 +80,7 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
         // Paths accessed inside the loop body.
         let (write_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
-            bb, self.mir, None);
+            bb, self.mir, Some(self.initialization.get_before_block(bb)));
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {
