@@ -572,7 +572,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         self.encode_assign_unary_op(op, operand, encoded_lhs, ty, location)
                     }
                     &mir::Rvalue::NullaryOp(op, ref op_ty) => {
-                        self.encode_assign_nullary_op(op, op_ty, encoded_lhs, ty)
+                        self.encode_assign_nullary_op(op, op_ty, encoded_lhs, ty, location)
                     }
                     &mir::Rvalue::Discriminant(ref src) => {
                         self.encode_assign_discriminant(src, location, encoded_lhs, ty)
@@ -1321,7 +1321,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let boxed_ty = dest_ty.boxed_ty();
                         let ref_field = self.encoder.encode_dereference_field(boxed_ty);
 
-                        let box_content = dst.clone().field(ref_field);
+                        let box_content = dst.clone().field(ref_field.clone());
+
+                        stmts.extend(
+                            self.prepare_assign_target(
+                                dst, ref_field, location, vir::AssignKind::Move)
+                        );
 
                         // Allocate `box_content`
                         stmts.extend(
@@ -3129,19 +3134,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         op_ty: ty::Ty<'tcx>,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
+        location: mir::Location,
     ) -> Vec<vir::Stmt> {
         trace!("[enter] encode_assign_nullary_op(op={:?}, op_ty={:?})", op, op_ty);
         match op {
             mir::NullOp::Box => {
                 assert_eq!(op_ty, ty.boxed_ty());
                 let ref_field = self.encoder.encode_dereference_field(op_ty);
+                let box_content = encoded_lhs.clone().field(ref_field.clone());
 
-                let box_content = encoded_lhs.clone().field(ref_field);
+                let mut stmts = self.prepare_assign_target(
+                    encoded_lhs, ref_field, location, vir::AssignKind::Move);
 
                 // Allocate `box_content`
-                self.encode_havoc_and_allocation(&box_content)
+                stmts.extend(self.encode_havoc_and_allocation(&box_content));
 
                 // Leave `box_content` uninitialized
+                stmts
             }
             mir::NullOp::SizeOf => unimplemented!(),
         }
@@ -3669,8 +3678,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+                unreachable!();
                 // Box type
-                // Ensure that we are encoding a move, not a copy (enforced byt the Rust typesystem)
+                // Ensure that we are encoding a move, not a copy (enforced by the Rust typesystem)
                 assert!(is_move);
                 let field_ty = self_ty.boxed_ty();
                 let ref_field = self.encoder.encode_dereference_field(field_ty);
