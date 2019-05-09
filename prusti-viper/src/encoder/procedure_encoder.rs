@@ -3530,6 +3530,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ty::TypeVariants::TyTuple(elems) => {
                 self.encode_deep_copy_tuple(src, dst, elems, location)
             }
+            ty::TypeVariants::TyParam(_) => {
+                self.encode_havoc_and_allocation(&dst.clone())
+            }
 
             ref x => unimplemented!("{:?}", x),
         };
