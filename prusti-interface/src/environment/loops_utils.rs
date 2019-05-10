@@ -346,16 +346,23 @@ impl<'tcx> PermissionForest<'tcx> {
         read_paths: &Vec<mir::Place<'tcx>>,
         all_places: &PlaceSet<'tcx>
     ) -> Self {
-        trace!("[enter] PermissionForest::new(write_paths={:?}, read_paths={:?})",
-               write_paths, read_paths);
+        trace!("[enter] PermissionForest::new(\
+                            write_paths={:?}, \
+                            mut_borrowed_paths={:?}, \
+                            read_paths={:?}, \
+                            all_places={:?})",
+               write_paths, mut_borrowed_paths, read_paths, all_places);
 
         let mut trees: Vec<PermissionTree> = Vec::new();
 
         /// Take the intended place to add and compute the set of places
         /// to add that are definitely initialised.
-        fn compute_places_to_add<'a, 'tcx>(place: &'a mir::Place<'tcx>,
-                                           all_places: &'a PlaceSet<'tcx>
+        fn compute_places_to_add<'a, 'tcx>(
+            place: &'a mir::Place<'tcx>,
+            all_places: &'a PlaceSet<'tcx>
         ) -> Vec<(&'a mir::Place<'tcx>, &'a mir::Place<'tcx>)> {
+            trace!("[enter] compute_places_to_add(place={:?}, all_places={:?})",
+                   place, all_places);
             let mut found_def_init_prefix = false;
             let mut found_target_prefix = false;
             let mut result = Vec::new();

@@ -86,6 +86,9 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         for place in &read_leaves {
             all_places.insert(&place, self.mir, self.tcx)
         }
+        for place in &mut_borrow_leaves {
+            all_places.insert(&place, self.mir, self.tcx)
+        }
         for place in &write_leaves {
             all_places.insert(&place, self.mir, self.tcx)
         }
