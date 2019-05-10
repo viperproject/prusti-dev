@@ -2565,6 +2565,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
                         }
                     }
+                    /// This should be repalced with WriteNode and
+                    /// WriteSubtree before this point.
+                    PermissionKind::WriteNodeAndSubtree => {
+                        unreachable!()
+                    }
                     /// Give no permission to this node and the entire subtree. This
                     /// must be a leaf node.
                     PermissionKind::None => {

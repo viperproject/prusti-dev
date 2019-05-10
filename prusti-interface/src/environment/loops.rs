@@ -90,7 +90,7 @@ fn collect_loop_body<'tcx>(head: BasicBlockIndex, back_edge_source: BasicBlockIn
     debug!("Loop body (head={:?}): {:?}", head, body);
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PlaceAccessKind {
     /// The place is assigned to.
     Store,
@@ -106,13 +106,13 @@ pub enum PlaceAccessKind {
 
 impl PlaceAccessKind {
 
-    /// Does the access require write permission to the leaf of the path?
-    pub fn is_write_access(&self) -> bool {
+    /// Does the access write to the path?
+    fn is_write_access(&self) -> bool {
         match &self {
             PlaceAccessKind::Store |
-            PlaceAccessKind::Move |
-            PlaceAccessKind::MutableBorrow => true,
+            PlaceAccessKind::Move => true,
             PlaceAccessKind::Read |
+            PlaceAccessKind::MutableBorrow |
             PlaceAccessKind::SharedBorrow => false,
         }
     }
@@ -308,7 +308,7 @@ impl ProcedureLoops {
         loop_head: BasicBlockIndex,
         mir: &'a mir::Mir<'tcx>,
         definitely_initalised_paths: Option<&PlaceSet>,
-    ) -> (Vec<mir::Place<'tcx>>, Vec<mir::Place<'tcx>>) {
+    ) -> (Vec<mir::Place<'tcx>>, Vec<mir::Place<'tcx>>, Vec<mir::Place<'tcx>>) {
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
         //     accessed in the loop body and ``t`` is the type of access (read,
         //     destructive read, …).
@@ -333,7 +333,7 @@ impl ProcedureLoops {
         let accesses = self.compute_used_paths(loop_head, mir);
         debug!("accesses = {:?}", accesses);
         let mut accesses_pairs: Vec<_> = accesses.iter()
-            .map(|PlaceAccess {place, kind, .. }| (place, kind))
+            .map(|PlaceAccess {place, kind, .. }| (place, *kind))
             .collect();
         debug!("accesses_pairs = {:?}", accesses_pairs);
         if let Some(paths) = definitely_initalised_paths {
@@ -352,7 +352,7 @@ impl ProcedureLoops {
                         // Note that the Rust compiler is even more permissive as explained in this
                         // issue: https://github.com/rust-lang/rust/issues/21232.
                         (
-                            **kind == PlaceAccessKind::Store &&
+                            *kind == PlaceAccessKind::Store &&
                             utils::is_prefix(initialised_place, place)
                         )
                     )
@@ -377,6 +377,26 @@ impl ProcedureLoops {
             }
         }
         debug!("write_leaves = {:?}", write_leaves);
+
+        // Paths to whose leaves are roots of trees to which we need write permissions.
+        let mut mut_borrow_leaves: Vec<mir::Place> = Vec::new();
+        for (place, kind) in accesses_pairs.iter() {
+            if *kind == PlaceAccessKind::MutableBorrow {
+                let has_prefix = accesses_pairs
+                    .iter()
+                    .any(|(potential_prefix, kind)|
+                        (kind.is_write_access() || *kind == PlaceAccessKind::MutableBorrow) &&
+                            place != potential_prefix &&
+                            utils::is_prefix(place, potential_prefix)
+                    );
+                if !has_prefix && !write_leaves.contains(place) &&
+                        !mut_borrow_leaves.contains(place) {
+                    mut_borrow_leaves.push((*place).clone());
+                }
+            }
+        }
+        debug!("mut_borrow_leaves = {:?}", write_leaves);
+
         // Paths to whose leaves we need read permissions.
         let mut read_leaves: Vec<mir::Place> = Vec::new();
         for (place, kind) in accesses_pairs.iter() {
@@ -387,14 +407,15 @@ impl ProcedureLoops {
                         place != potential_prefix &&
                         utils::is_prefix(place, potential_prefix)
                     );
-                if !has_prefix && !read_leaves.contains(place) && !write_leaves.contains(place) {
+                if !has_prefix && !read_leaves.contains(place) && !write_leaves.contains(place) &&
+                        !mut_borrow_leaves.contains(place) {
                     read_leaves.push((*place).clone());
                 }
             }
         }
         debug!("read_leaves = {:?}", read_leaves);
 
-        (write_leaves, read_leaves)
+        (write_leaves, mut_borrow_leaves, read_leaves)
     }
 
     /// Check if ``block`` is inside a loop.
