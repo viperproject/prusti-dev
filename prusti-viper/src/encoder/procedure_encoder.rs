@@ -400,29 +400,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_local_var(&var_name, vir::Type::TypedRef(type_name));
         }
 
-//      // Allocate stack frame: formal return and local variables
-//      // (formal arguments are already inhaled by the precondition)
-//      self.cfg_method.add_stmt(start_cfg_block,
-//                               vir::Stmt::comment("Allocate formal return and local variables"));
-//      let local_vars_and_return: Vec<_> = self.locals
-//          .iter()
-//          .filter(|local| !self.locals.is_formal_arg(self.mir, *local))
-//          .collect();
-//      for local in local_vars_and_return.iter() {
-//          let local_ty = self.locals.get_type(*local);
-//          if let ty::TypeVariants::TyClosure(..) = local_ty.sty {
-//              // Do not encode closures
-//              continue;
-//          }
-//          let type_name = self.encoder.encode_type_predicate_use(local_ty);
-//          let var_name = self.locals.get_name(*local);
-//          let var_type = vir::Type::TypedRef(type_name.clone());
-//          let local_var: vir::Expr = vir::LocalVar::new(var_name.clone(), var_type).into();
-//          let alloc_access = self.encode_spec_place_permission(&local_var);
-//          let alloc_stmt = vir::Stmt::Inhale(alloc_access);
-//          self.cfg_method.add_stmt(start_cfg_block, alloc_stmt);
-//      }
-
         /*
         // Keep a copy of the value of the variable (fixes issue #20)
         let formal_args: Vec<_> = self.locals
@@ -1599,9 +1576,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Havoc the content of the lhs, if there is one
                             if let Some(ref target_place) = real_target {
                                 stmts.extend(self.encode_havoc(target_place));
-                                //stmts.push(
-                                    //self.encode_target_exhale(target_place)
-                                //);
                             }
 
                             // Store a label for permissions got back from the call
@@ -1646,21 +1620,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                             // Emit the label and magic wands
                             stmts.push(vir::Stmt::Label(post_label.clone()));
-                            //for magic_wand in magic_wands {
-                                //stmts.push(vir::Stmt::Inhale(magic_wand));
-                            //}
-
-//                          // As a last step, re-allocate arguments that were used in the function
-//                          // call. We do this after inhaling the functional spec, so that the
-//                          // user can not inhale equalities and trigger unsoundness by mistake.
-//                          // This is only needed inside loops.
-//                          let type_spec = procedure_contract.args.iter()
-//                              .map(|&local| self.encode_local_variable_permission(local))
-//                              .into_iter().conjoin();
-//                          //debug_assert_eq!(type_spec, pre_type_spec);
-//                          let inhaled_spec = replace_fake_exprs(type_spec)
-//                              .remove_read_permissions();
-//                          stmts.push(vir::Stmt::Inhale(inhaled_spec));
 
                             stmts.extend(stmts_after);
 
@@ -2890,12 +2849,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             &mir::Operand::Move(ref place) => {
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
-                //let mut stmts = vec![];
-
-//              // Copy the values from `src` to `lhs`
-//              stmts.extend(
-//                  self.encode_copy(src, lhs.clone(), ty, true, false, location)
-//              );
                 let mut stmts = match ty.sty {
                     ty::TypeVariants::TyRawPtr(..) |
                     ty::TypeVariants::TyRef(..) => {
@@ -2946,10 +2899,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     );
                     stmts
                 } else {
-//                  let mut stmts = self.encode_havoc_and_allocation(lhs);
-//                  // Copy the values from `src` to `lhs`
-//                  stmts.extend(self.encode_copy(src, lhs.clone(), ty, false, false, location));
-//                  stmts
                     self.encode_copy2(src, lhs.clone(), ty, location)
                 };
 
@@ -3013,25 +2962,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             op, encoded_left, encoded_right, ty);
         self.encode_copy_value_assign(encoded_lhs, encoded_value, ty, location)
     }
-
-//  fn encode_value_assign(
-//      &mut self,
-//      encoded_lhs: vir::Expr,
-//      encoded_rhs: vir::Expr,
-//      vir_assign_kind: vir::AssignKind,
-//      ty: ty::Ty<'tcx>,
-//  ) -> Vec<vir::Stmt> {
-//      let mut stmts = self.encode_havoc_and_allocation(&encoded_lhs);
-//      let field = self.encoder.encode_value_field(ty);
-//      stmts.push(
-//          vir::Stmt::Assign(
-//              encoded_lhs.field(field),
-//              encoded_rhs,
-//              vir_assign_kind
-//          )
-//      );
-//      stmts
-//  }
 
     fn encode_copy_value_assign(
         &mut self,
@@ -3326,19 +3256,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-//  fn encode_target_exhale(&mut self, dst: &vir::Expr) -> vir::Stmt {
-//      trace!("[enter] encode_target_exhale({})", dst);
-//      let access = self.encode_spec_place_permission(dst);
-//      let pos = self.encoder.error_manager().register(
-//          // TODO: choose a better error span
-//          self.mir.span,
-//          ErrorCtxt::Unexpected
-//      );
-//      let stmt = vir::Stmt::Exhale(access, pos);
-//      trace!("[enter] encode_target_exhale({}) = {}", dst, stmt);
-//      stmt
-//  }
-
     /// Prepare the ``dst`` to be copy target:
     ///
     /// 1.  Havoc and allocate if it is not yet allocated.
@@ -3405,14 +3322,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> Vec<vir::Stmt> {
         let field = self.encoder.encode_value_field(ty);
         self.encode_copy_value_assign2(dst, src.field(field.clone()), field, location)
-//      let mut stmts = self.prepare_assign_target(dst, field, location);
-//      let assign = vir::Stmt::Assign(
-//          dst.clone().field(field.clone()),
-//          src.field(field),
-//          vir::AssignKind::Copy
-//      );
-//      stmts.push(assign);
-//      stmts
     }
 
     fn encode_deep_copy_adt(
@@ -3662,61 +3571,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. }) |
             ty::TypeVariants::TyRef(_, ty, _) => {
-                // Ensure that we are encoding a move, not a copy (enforced by the Rust typesystem)
-                // Hack: we encode *copy* of shared references as a *move*
-                //assert!(is_move);
-                let ref_field = self.encoder.encode_dereference_field(ty);
-                let mut stmts = vec![
-                    // Move the reference to the boxed value
-                    vir::Stmt::Assign(
-                        dst.clone().field(ref_field.clone()),
-                        src.clone().field(ref_field.clone()),
-                        vir::AssignKind::Move
-                    )
-                ];
-                if self.loop_encoder.get_loop_depth(location.block) > 0 {
-                    // We havoc only inside a loop.
-                    stmts.extend(
-                        self.encode_havoc_and_allocation(
-                            &src.clone().field(ref_field.clone())
-                        )
-                    );
-                }
-                stmts
+                unreachable!();
             }
 
             ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
-                unreachable!();
                 // Box type
-                // Ensure that we are encoding a move, not a copy (enforced by the Rust typesystem)
-                assert!(is_move);
-                let field_ty = self_ty.boxed_ty();
-                let ref_field = self.encoder.encode_dereference_field(field_ty);
-                assert_eq!(adt_def.variants.len(), 1);
-                let mut stmts = vec![
-                    // Move the reference to the boxed value
-                    vir::Stmt::Assign(
-                        dst.clone().field(ref_field.clone()),
-                        src.clone().field(ref_field.clone()).into(),
-                        vir::AssignKind::Move
-                    )
-                ];
-                if self.loop_encoder.get_loop_depth(location.block) > 0 {
-                    stmts.extend(
-                        self.encode_havoc_and_allocation(
-                            &src.clone().field(ref_field.clone())
-                        )
-                    );
-                }
-                stmts
+                unreachable!();
             }
 
             ty::TypeVariants::TyParam(_) => {
-                let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
-                if is_move {
-                    stmts.extend(self.encode_havoc_and_allocation(&src.clone()));
-                }
-                stmts
+                unreachable!();
             }
 
             ref x => unimplemented!("{:?}", x),
@@ -3813,19 +3677,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.mir_encoder.encode_local(local)
             );
         }
-
-        //self.cfg_method.walk_statements(
-            //|stmt| {
-                //match stmt {
-                    //vir::Stmt::Assign(vir::Expr::Local(ref local_var, _), _, _) => {
-                        //if encoded_mir_locals.contains(local_var) {
-                            //invalid(format!("assignment to MIR local variable: {}", stmt));
-                        //}
-                    //}
-                    //_ => {} // OK
-                //}
-            //}
-        //)
     }
 }
 

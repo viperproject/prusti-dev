@@ -104,24 +104,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
         }
     }
 
-//  /// Is the ``place`` accessible (it is a prefix of a definitely
-//  /// initalised place) before the statement at given `location`?
-//  pub fn is_mir_place_accessible(
-//      &self,
-//      place: &mir::Place,
-//      location: mir::Location
-//  ) -> bool {
-//      if location.statement_index == 0 {
-//          self.mir_acc_before_block[&location.block].contains(place)
-//      } else {
-//          let new_location = mir::Location {
-//              statement_index: location.statement_index-1,
-//              ..location
-//          };
-//          self.mir_acc_after_statement[&new_location].contains(place)
-//      }
-//  }
-
     /// Is the ``place`` accessible (it is a prefix of a definitely
     /// initalised place) before the statement at given `location`?
     pub fn is_vir_place_accessible(
