@@ -48,9 +48,10 @@ pub enum Stmt {
     /// checks.
     TransferPerm(Expr, Expr, bool),
     /// Package a Magic Wand
-    /// Arguments: the magic wand, the package statement's body, and the
-    /// label just before the statement.
-    PackageMagicWand(Expr, Vec<Stmt>, String, Position),
+    /// Arguments: the magic wand, the package statement's body, the
+    /// label just before the statement, and ghost variables used inside
+    /// the package statement.
+    PackageMagicWand(Expr, Vec<Stmt>, String, Vec<LocalVar>, Position),
     /// Apply a Magic Wand.
     /// Arguments: the magic wand.
     ApplyMagicWand(Expr, Position),
@@ -143,6 +144,7 @@ impl fmt::Display for Stmt {
                 Expr::MagicWand(ref lhs, ref rhs, None, _),
                 ref package_stmts,
                 ref label,
+                _vars,
                 _position
             ) => {
                 writeln!(f, "package[{}] {}", label, lhs)?;
@@ -242,12 +244,14 @@ impl Stmt {
         rhs: Expr,
         stmts: Vec<Stmt>,
         label: String,
+        vars: Vec<LocalVar>,
         pos: Position
     ) -> Self {
         Stmt::PackageMagicWand(
             Expr::MagicWand(box lhs, box rhs, None, pos.clone()),
             stmts,
             label,
+            vars,
             pos
         )
     }
@@ -261,14 +265,14 @@ impl Stmt {
 
     pub fn pos(&self) -> Option<&Position> {
         match self {
-            Stmt::PackageMagicWand(_, _, _, ref p) => Some(p),
+            Stmt::PackageMagicWand(_, _, _, _, ref p) => Some(p),
             _ => None
         }
     }
 
     pub fn set_pos(self, pos: Position) -> Self {
         match self {
-            Stmt::PackageMagicWand(w, s, l, p) => Stmt::PackageMagicWand(w, s, l, pos),
+            Stmt::PackageMagicWand(w, s, l, v, p) => Stmt::PackageMagicWand(w, s, l, v, pos),
             x => x,
         }
     }
@@ -307,7 +311,7 @@ pub trait StmtFolder {
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::TransferPerm(a, b, c) => self.fold_transfer_perm(a, b, c),
-            Stmt::PackageMagicWand(w, s, l, p) => self.fold_package_magic_wand(w, s, l, p),
+            Stmt::PackageMagicWand(w, s, l, v, p) => self.fold_package_magic_wand(w, s, l, v, p),
             Stmt::ApplyMagicWand(w, p) => self.fold_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
             Stmt::If(g, t) => self.fold_if(g, t),
@@ -378,12 +382,20 @@ pub trait StmtFolder {
         Stmt::TransferPerm(self.fold_expr(a), self.fold_expr(b), unchecked)
     }
 
-    fn fold_package_magic_wand(&mut self, w: Expr, s: Vec<Stmt>, l: String, p: Position) -> Stmt {
+    fn fold_package_magic_wand(
+        &mut self,
+        wand: Expr,
+        body: Vec<Stmt>,
+        label: String,
+        vars: Vec<LocalVar>,
+        pos: Position
+    ) -> Stmt {
         Stmt::PackageMagicWand(
-            self.fold_expr(w),
-            s.into_iter().map(|x| self.fold(x)).collect(),
-            l,
-            p
+            self.fold_expr(wand),
+            body.into_iter().map(|x| self.fold(x)).collect(),
+            label,
+            vars,
+            pos
         )
     }
 
@@ -424,7 +436,7 @@ pub trait StmtWalker {
             Stmt::BeginFrame => self.walk_begin_frame(),
             Stmt::EndFrame => self.walk_end_frame(),
             Stmt::TransferPerm(a, b, c) => self.walk_transfer_perm(a, b, c),
-            Stmt::PackageMagicWand(w, s, l, p) => self.walk_package_magic_wand(w, s, l, p),
+            Stmt::PackageMagicWand(w, s, l, v, p) => self.walk_package_magic_wand(w, s, l, v, p),
             Stmt::ApplyMagicWand(w, p) => self.walk_apply_magic_wand(w, p),
             Stmt::ExpireBorrows(d) => self.walk_expire_borrows(d),
             Stmt::If(g, t) => self.walk_if(g, t),
@@ -496,10 +508,20 @@ pub trait StmtWalker {
         self.walk_expr(b);
     }
 
-    fn walk_package_magic_wand(&mut self, w: &Expr, b: &Vec<Stmt>, l: &str, _p: &Position) {
-        self.walk_expr(w);
-        for s in b {
-            self.walk(s);
+    fn walk_package_magic_wand(
+        &mut self,
+        wand: &Expr,
+        body: &Vec<Stmt>,
+        label: &str,
+        vars: &[LocalVar],
+        _p: &Position
+    ) {
+        self.walk_expr(wand);
+        for var in vars {
+            self.walk_local_var(var);
+        }
+        for statement in body {
+            self.walk(statement);
         }
     }
 

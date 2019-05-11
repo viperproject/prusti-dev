@@ -54,7 +54,7 @@ pub struct LocalVariableManager<'tcx> {
 
 impl<'tcx> LocalVariableManager<'tcx> {
 
-    pub fn new(real_locals: &IndexVec<mir::Local, mir::LocalDecl<'tcx>>) -> LocalVariableManager<'tcx> {
+    pub fn new(real_locals: &IndexVec<mir::Local, mir::LocalDecl<'tcx>>) -> Self {
         let mut manager = LocalVariableManager {
             variables: IndexVec::new(),
         };

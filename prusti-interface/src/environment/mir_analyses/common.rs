@@ -9,9 +9,9 @@ use std::collections::HashMap;
 
 pub struct AnalysisResult<T> {
     /// The state before the basic block.
-    pub(super) before_block: HashMap<mir::BasicBlock, T>,
+    pub before_block: HashMap<mir::BasicBlock, T>,
     /// The state after the statement.
-    pub(super) after_statement: HashMap<mir::Location, T>,
+    pub after_statement: HashMap<mir::Location, T>,
 }
 
 impl<T> AnalysisResult<T> {

@@ -495,17 +495,22 @@ impl Expr {
     }
 
     /// Only defined for places
-    pub fn get_parent(&self) -> Option<Expr> {
+    pub fn get_parent_ref(&self) -> Option<&Expr> {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(_, _) => None,
             &Expr::Variant(box ref base, _, _) |
             &Expr::Field(box ref base, _, _) |
-            &Expr::AddrOf(box ref base, _, _) => Some(base.clone()),
+            &Expr::AddrOf(box ref base, _, _) => Some(base),
             &Expr::LabelledOld(_, _, _) => None,
             &Expr::Unfolding(ref name, ref args, box ref base, perm, _) => None,
-            ref x => panic!("{}", x),
+            ref x => unreachable!("{}", x),
         }
+    }
+
+    /// Only defined for places
+    pub fn get_parent(&self) -> Option<Expr> {
+        self.get_parent_ref().cloned()
     }
 
     /// Is this place a MIR reference?

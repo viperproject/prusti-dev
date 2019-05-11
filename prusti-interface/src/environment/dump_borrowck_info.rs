@@ -387,11 +387,11 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
 
 
             let definitely_initalised_paths = self.initialization.get_before_block(bb);
-            let (write_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
+            let (write_leaves, mut_borrow_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
                 bb, self.mir, Some(&definitely_initalised_paths));
             // Construct the permission forest.
             let forest = PermissionForest::new(
-                &write_leaves, &read_leaves, &definitely_initalised_paths);
+                &write_leaves, &mut_borrow_leaves, &read_leaves, &definitely_initalised_paths);
 
             write_graph!(self, "<tr>");
             write_graph!(self, "<td colspan=\"2\">Write paths (A3):</td>");

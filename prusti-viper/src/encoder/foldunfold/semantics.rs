@@ -305,6 +305,7 @@ impl vir::Stmt {
                 vir::Expr::MagicWand(ref lhs, ref rhs, _, _),
                 ref _stmts,
                 ref _label,
+                ref _vars,
                 ref _pos
             ) => {
                 // The semantics of the statements is handled in `foldunfold/mod.rs`.

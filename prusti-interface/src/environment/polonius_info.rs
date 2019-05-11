@@ -632,7 +632,8 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         for &loop_head in loop_heads.iter() {
             debug!("loop_head = {:?}", loop_head);
             let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
-            let (write_leaves, _read_leaves) = self.loops.compute_read_and_write_leaves(
+            // TODO: Check whether we should use mut_borrow_leaves instead of write_leaves.
+            let (write_leaves, _mut_borrow_leaves, _read_leaves) = self.loops.compute_read_and_write_leaves(
                 loop_head, self.mir, Some(&definitely_initalised_paths));
             debug!("write_leaves = {:?}", write_leaves);
             let reborrows: Vec<(mir::Local, facts::Region)> = write_leaves

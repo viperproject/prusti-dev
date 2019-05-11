@@ -114,6 +114,7 @@ impl<'a> BranchCtxt<'a> {
                 )
             };
             */
+            // TODO: Remove all paths that are not definitely initialised.
             let moved_paths: HashSet<_> = ancestors(
                 &self.state.moved().clone().union(other.state.moved()).cloned().collect()
             );
@@ -531,7 +532,7 @@ Predicates: {{
             return ObtainResult::Failure(req.clone());
         } else {
             // We have no predicate to obtain the access permission `req`
-            unreachable!(
+            debug!(
 r"There is no access permission to obtain {} ({:?}).
 Access permissions: {{
 {}
@@ -546,6 +547,7 @@ Predicates: {{
                 self.state.display_acc(),
                 self.state.display_pred()
             );
+            return ObtainResult::Failure(req.clone());
         };
     }
 

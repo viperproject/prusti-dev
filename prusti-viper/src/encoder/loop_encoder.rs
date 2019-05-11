@@ -79,11 +79,14 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         //         bodies without unreachable elements instead of predicates.
 
         // Paths accessed inside the loop body.
-        let (write_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
-            bb, self.mir, None);
+        let (write_leaves, mut_borrow_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
+            bb, self.mir, Some(self.initialization.get_before_block(bb)));
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {
+            all_places.insert(&place, self.mir, self.tcx)
+        }
+        for place in &mut_borrow_leaves {
             all_places.insert(&place, self.mir, self.tcx)
         }
         for place in &write_leaves {
@@ -91,7 +94,8 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         }
 
         // Construct the permission forest.
-        let forest = PermissionForest::new(&write_leaves, &read_leaves, &all_places);
+        let forest = PermissionForest::new(
+            &write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
 
         forest
     }

@@ -2,38 +2,43 @@ extern crate prusti_contracts;
 
 #[requires="a + b <= std::u32::MAX"]
 #[ensures="result == a + b"]
-fn test1(mut a: u32, mut b: u32) -> u32 {
-    #[invariant="a + b == old(a + b)"]
-    while a > 0 {
-        a -= 1;
-        b += 1;
+pub fn test1(a: u32, b: u32) -> u32 {
+    let mut c = a;
+    let mut d = b;
+    #[invariant="c + d == old(a + b)"]
+    while c > 0 {
+        c -= 1;
+        d += 1;
         assert!(false); //~ ERROR
     }
-    b
+    d
 }
 
 #[requires="a + b <= std::u32::MAX"]
 #[ensures="result == a + b"]
-fn test2(mut a: u32, mut b: u32) -> u32 {
-    #[invariant="a + b == old(a + b)"]
-    while a > 0 {
-        a -= 1;
-        b += 1;
+pub fn test2(a: u32, b: u32) -> u32 {
+    let mut c = a;
+    let mut d = b;
+    #[invariant="c + d == old(a + b)"]
+    while c > 0 {
+        c -= 1;
+        d += 1;
     }
     assert!(false); //~ ERROR
-    b
+    d
 }
 
 #[requires="a + b <= std::u32::MAX"]
 #[ensures="result == b"]
-fn test3(mut a: u32, mut b: u32) -> u32 {    //~ ERROR
-    #[invariant="a + b == old(a + b)"]
-    while a > 0 {
-        a -= 1;
-        b += 1;
+pub fn test3(a: u32, b: u32) -> u32 {    //~ ERROR
+    let mut c = a;
+    let mut d = b;
+    #[invariant="c + d == old(a + b)"]
+    while c > 0 {
+        c -= 1;
+        d += 1;
     }
-    b
+    d
 }
 
 fn main() {}
-

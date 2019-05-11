@@ -21,6 +21,6 @@ mod places;
 mod foldunfold;
 mod error_manager;
 mod optimiser;
+mod initialisation;
 
 pub mod vir;
-

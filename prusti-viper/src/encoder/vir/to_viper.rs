@@ -134,7 +134,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref _label, ref pos) => {
+            &Stmt::PackageMagicWand(ref wand, ref package_stmts, ref _label, ref vars, ref pos) => {
                 // FIXME: When packaging a magic wand, Silicon needs help in showing that it has
                 // access to the needed paths.
                 fn stmt_to_viper_in_packge<'v>(
@@ -152,6 +152,11 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             .collect()
                     };
                     match stmt {
+                        Stmt::Assign(ref lhs, ref rhs, _) => {
+                            let mut stmts = create_footprint_asserts(rhs, PermAmount::Read);
+                            stmts.push(ast.abstract_assign(lhs.to_viper(ast), rhs.to_viper(ast)));
+                            ast.seqn(stmts.as_slice(), &[])
+                        }
                         Stmt::Exhale(ref expr, ref pos) => {
                             let mut stmts = create_footprint_asserts(expr, PermAmount::Read);
                             stmts.push(ast.exhale(expr.to_viper(ast), pos.to_viper(ast)));
@@ -200,11 +205,14 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         stmt_to_viper_in_packge(stmt, ast)
                     })
                     .collect();
+                let var_decls: Vec<_> = vars.into_iter()
+                    .map(|var| var.to_viper_decl(ast).into())
+                    .collect();
                 ast.package(
                     wand.to_viper(ast),
                     ast.seqn(
                         &stmts,
-                        &[],
+                        &var_decls,
                     ),
                     pos.to_viper(ast)
                 )

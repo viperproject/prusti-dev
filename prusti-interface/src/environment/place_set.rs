@@ -52,6 +52,9 @@ impl<'tcx> PlaceSet<'tcx> {
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a mir::Place<'tcx>> {
         self.places.iter()
     }
+    pub fn into_iter(self) -> impl Iterator<Item = mir::Place<'tcx>> {
+        self.places.into_iter()
+    }
     /// Insert `place`.
     pub fn insert<'a>(
         &mut self,
