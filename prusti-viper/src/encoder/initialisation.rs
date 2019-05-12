@@ -119,9 +119,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
                 ..location
             };
             use utils::to_string::ToString;
-            error!("initialised at {:?}: {}",
-                   location,
-                   self.vir_acc_after_statement[&new_location].iter().to_sorted_multiline_string());
             contains_prefix(&self.vir_acc_after_statement[&new_location], place)
         }
     }
