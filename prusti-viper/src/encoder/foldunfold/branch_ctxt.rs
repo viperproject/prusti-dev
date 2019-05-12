@@ -180,7 +180,7 @@ impl<'a> BranchCtxt<'a> {
                             debug!("Failed to obtain: {} because of {}", pred_perm, missing_perm);
                             let mut remove_places = |ctxt: &mut BranchCtxt, actions: &mut Vec<_>| {
                                 for acc_place in ctxt.state.acc_places() {
-                                    if acc_place.has_prefix(&pred_place) {
+                                    if acc_place.has_proper_prefix(&pred_place) {
                                         let perm_amount = ctxt.state.remove_acc_place(&acc_place);
                                         ctxt.state.remove_moved_matching(
                                             |moved_place| moved_place.has_prefix(&acc_place));
