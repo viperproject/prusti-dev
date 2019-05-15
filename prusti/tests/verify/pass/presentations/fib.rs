@@ -51,6 +51,8 @@ fn fib(n: usize) -> usize {
     }
 }
 
+#[requires="m >= 2"]
+#[ensures="m == result.len()"]
 #[ensures="forall j: usize ::
                 (0 <= j && j < result.len()) ==>
                 result.lookup(j) == fib(j)"]
@@ -64,7 +66,7 @@ fn create_fib_array(m: usize) -> VecWrapperUSize {
     #[invariant="forall j: usize ::
                     (0 <= j && j < fib_array.len()) ==>
                     fib_array.lookup(j) == fib(j)"]
-    while i <= m {
+    while i != m {
         let a = *fib_array.index(i-2);
         let b = *fib_array.index(i-1);
         fib_array.push(a + b);
