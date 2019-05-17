@@ -57,7 +57,8 @@ impl RequiredPermissionsGetter for vir::Stmt {
             },
 
             &vir::Stmt::Exhale(ref expr, ref pos) |
-            &vir::Stmt::Assert(ref expr, ref pos) => {
+            &vir::Stmt::Assert(ref expr, ref pos) |
+            &vir::Stmt::Obtain(ref expr, ref pos) => {
                 let perms = expr.get_required_permissions(predicates);
                 perms.into_iter().map(|perm| perm.set_default_pos(pos.clone())).collect()
             },
@@ -106,8 +107,6 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     )
                     .collect()
             },
-
-            &vir::Stmt::Obtain(ref expr) => expr.get_required_permissions(predicates),
 
             &vir::Stmt::WeakObtain(ref expr) => HashSet::new(),
 
@@ -164,7 +163,7 @@ impl vir::Stmt {
             &vir::Stmt::Assign(_, _, _) |
             &vir::Stmt::Fold(_, _, _, _) |
             &vir::Stmt::Unfold(_, _, _) |
-            &vir::Stmt::Obtain(_) |
+            &vir::Stmt::Obtain(_, _) |
             &vir::Stmt::Havoc |
             &vir::Stmt::BeginFrame |
             &vir::Stmt::EndFrame |

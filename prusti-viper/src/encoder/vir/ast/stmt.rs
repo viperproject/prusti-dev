@@ -26,7 +26,7 @@ pub enum Stmt {
     Unfold(String, Vec<Expr>, PermAmount),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
-    Obtain(Expr),
+    Obtain(Expr, Position),
     /// WeakObtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     #[deprecated]
@@ -126,7 +126,7 @@ impl fmt::Display for Stmt {
                 perm,
             ),
 
-            Stmt::Obtain(ref expr) => write!(f, "obtain {}", expr),
+            Stmt::Obtain(ref expr, _) => write!(f, "obtain {}", expr),
 
             Stmt::WeakObtain(ref expr) => write!(f, "weak obtain {}", expr),
 
@@ -201,8 +201,9 @@ impl Stmt {
             Expr::FieldAccessPredicate(
                 box place,
                 PermAmount::Write,
-                pos
-            )
+                pos.clone()
+            ),
+            pos
         )
     }
 
@@ -213,8 +214,9 @@ impl Stmt {
                 predicate_name,
                 box place,
                 PermAmount::Write,
-                pos
-            )
+                pos.clone()
+            ),
+            pos
         )
     }
 
@@ -305,7 +307,7 @@ pub trait StmtFolder {
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, p) => self.fold_fold(s, ve, perm, p),
             Stmt::Unfold(s, ve, perm) => self.fold_unfold(s, ve, perm),
-            Stmt::Obtain(e) => self.fold_obtain(e),
+            Stmt::Obtain(e, p) => self.fold_obtain(e, p),
             Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
             Stmt::Havoc => self.fold_havoc(),
             Stmt::BeginFrame => self.fold_begin_frame(),
@@ -358,8 +360,8 @@ pub trait StmtFolder {
         Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm)
     }
 
-    fn fold_obtain(&mut self, e: Expr) -> Stmt {
-        Stmt::Obtain(self.fold_expr(e))
+    fn fold_obtain(&mut self, e: Expr, p: Position) -> Stmt {
+        Stmt::Obtain(self.fold_expr(e), p)
     }
 
     fn fold_weak_obtain(&mut self, e: Expr) -> Stmt {
@@ -430,7 +432,7 @@ pub trait StmtWalker {
             Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
             Stmt::Fold(s, ve, perm, pos) => self.walk_fold(s, ve, perm, pos),
             Stmt::Unfold(s, ve, perm) => self.walk_unfold(s, ve, perm),
-            Stmt::Obtain(e) => self.walk_obtain(e),
+            Stmt::Obtain(e, p) => self.walk_obtain(e, p),
             Stmt::WeakObtain(e) => self.walk_weak_obtain(e),
             Stmt::Havoc => self.walk_havoc(),
             Stmt::BeginFrame => self.walk_begin_frame(),
@@ -489,7 +491,7 @@ pub trait StmtWalker {
         }
     }
 
-    fn walk_obtain(&mut self, e: &Expr) {
+    fn walk_obtain(&mut self, e: &Expr, _p: &Position) {
         self.walk_expr(e);
     }
 

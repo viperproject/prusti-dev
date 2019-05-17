@@ -468,7 +468,9 @@ impl<'a> BranchCtxt<'a> {
                        req, perm_amount, req.get_perm_amount());
 
                 for fold_req_place in &places_in_pred {
-                    let obtain_result = self.obtain(&(fold_req_place.clone()), false);
+                    let pos = req.get_place().pos().clone();
+                    let new_req_place = fold_req_place.clone().set_default_pos(pos);
+                    let obtain_result = self.obtain(&new_req_place, false);
                     match obtain_result {
                         ObtainResult::Success(new_actions) => {
                             actions.extend(new_actions);
