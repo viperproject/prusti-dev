@@ -3475,6 +3475,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("[enter] encode_copy(src={}, dst={}, self_ty={:?}, is_move={}, \
                 is_inner_ty={}, location={:?})",
                src, dst, self_ty, is_move, is_inner_ty, location);
+        assert!(!is_move, "Please use this method only for copying.");
 
         let stmts = match self_ty.sty {
             ty::TypeVariants::TyBool |
@@ -3580,7 +3581,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             ty::TypeVariants::TyParam(_) => {
-                unreachable!();
+                self.encode_havoc_and_allocation(&dst)
             }
 
             ref x => unimplemented!("{:?}", x),
