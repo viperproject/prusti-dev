@@ -681,12 +681,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_obtain(&mut self, expr: vir::Expr) -> Vec<vir::Stmt> {
+    fn encode_obtain(&mut self, expr: vir::Expr, pos: vir::Position) -> Vec<vir::Stmt> {
         let mut stmts = vec![];
 
-        stmts.push(
-            vir::Stmt::Obtain(expr.clone())
-        );
+
+        stmts.push(vir::Stmt::Obtain(expr.clone(), pos));
 
         if self.check_fold_unfold_state {
             let pos = self.encoder.error_manager().register(
@@ -2175,6 +2174,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Package magic wand(s)
         if let Some((lhs, rhs)) = self.encode_postcondition_magic_wand(contract, pre_label, post_label) {
+            let pos = self.encoder.error_manager().register(
+                self.mir.span,
+                ErrorCtxt::PackageMagicWandForPostcondition
+            );
+
             let blocker = mir::RETURN_PLACE;
             // TODO: Check if it really is always start and not the mid point.
             let start_point = self.polonius_info.get_point(location, facts::PointType::Start);
@@ -2200,7 +2204,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }
                 })
                 .filter_perm_conjunction();
-            stmts.extend(self.encode_obtain(current_lhs));
+            stmts.extend(self.encode_obtain(current_lhs, pos.clone()));
 
             // lhs must be phrased in terms of post state.
             let post_label = post_label.to_string();
@@ -2222,15 +2226,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     );
                     let predicate = vir::Expr::pred_permission(
                         old_deref_place, vir::PermAmount::Write).unwrap();
-                    package_stmts.extend(self.encode_obtain(predicate));
+                    package_stmts.extend(self.encode_obtain(predicate, pos.clone()));
                 }
             }
 
             // The fold-unfold algorithm will fill the body of the package statement
-            let pos = self.encoder.error_manager().register(
-                self.mir.span,
-                ErrorCtxt::PackageMagicWandForPostcondition
-            );
             let vars: Vec<_> = self.old_ghost_vars.iter()
                 .map(|(name, typ)| {
                     vir::LocalVar::new(name.clone(), typ.clone())
@@ -2257,6 +2257,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_postconditions(&mut self, return_cfg_block: CfgBlockIndex,
                              contract: &ProcedureContract<'tcx>) {
         self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
+
+        let type_inv_pos = self.encoder.error_manager().register(
+            self.mir.span,
+            ErrorCtxt::AssertMethodPostconditionTypeInvariants
+        );
 
         let (type_spec, return_type_spec, invs_spec, func_spec,
              magic_wands, _) = self.encode_postcondition_expr(
@@ -2301,7 +2306,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 // Fold argument.
                 let deref_pred = self.mir_encoder.encode_place_predicate_permission(
                     encoded_deref.clone(), vir::PermAmount::Write).unwrap();
-                for stmt in self.encode_obtain(deref_pred).drain(..) {
+                for stmt in self.encode_obtain(deref_pred, type_inv_pos.clone()).drain(..) {
                     self.cfg_method.add_stmt(return_cfg_block, stmt);
                 }
 
@@ -2335,7 +2340,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Assert functional specification of postcondition
-        let pos = self.encoder.error_manager().register(
+        let func_pos = self.encoder.error_manager().register(
             {
                 let mut multi_span = MultiSpan::from_span(self.mir.span);
                 for span in self.get_postcondition_span(contract).into_iter() {
@@ -2346,29 +2351,39 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::AssertMethodPostcondition
         );
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(patched_func_spec, pos));
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::Assert(patched_func_spec, func_pos)
+        );
 
         // Assert type invariants
-        let pos = self.encoder.error_manager().register(
-            self.mir.span,
-            ErrorCtxt::AssertMethodPostconditionTypeInvariants
-        );
         let patched_invs_spec = self.replace_old_places_with_ghost_vars(None, invs_spec);
-        self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Assert(patched_invs_spec, pos));
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::Assert(patched_invs_spec, type_inv_pos)
+        );
 
         // Exhale permissions of postcondition
-        let pos = self.encoder.error_manager().register(
+        let perm_pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::ExhaleMethodPostcondition
         );
         let patched_type_spec = self.replace_old_places_with_ghost_vars(None, type_spec);
-        self.cfg_method.add_stmt(return_cfg_block,
-                                 vir::Stmt::Exhale(patched_type_spec, pos.clone()));
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::Exhale(patched_type_spec, perm_pos.clone())
+        );
         if let Some(access) = return_type_spec {
-            self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(access, pos.clone()));
+            self.cfg_method.add_stmt(
+                return_cfg_block,
+                vir::Stmt::Exhale(access, perm_pos.clone())
+            );
         }
         for magic_wand in magic_wands {
-            self.cfg_method.add_stmt(return_cfg_block, vir::Stmt::Exhale(magic_wand, pos.clone()));
+            self.cfg_method.add_stmt(
+                return_cfg_block,
+                vir::Stmt::Exhale(magic_wand, perm_pos.clone())
+            );
         }
     }
 
@@ -2613,20 +2628,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         encoded_specs
-    }
-
-    fn encode_loop_invariant_obtain(&mut self, loop_head: BasicBlockIndex) -> Vec<vir::Stmt> {
-        trace!("[enter] encode_loop_invariant_obtain loop_head={:?}", loop_head);
-        let permissions = self.encode_loop_invariant_permissions(loop_head, true);
-
-        vec![
-            vir::Stmt::comment(
-                format!("Restore the fold/unfold state of the loop invariant of {:?}", loop_head)
-            ),
-            vir::Stmt::Obtain(
-                permissions.into_iter().conjoin()
-            )
-        ]
     }
 
     fn encode_loop_invariant_exhale(
