@@ -137,7 +137,7 @@ use syntax::codemap::Span;
 use syntax::ext::build::AstBuilder;
 use syntax::fold::{self, Folder};
 use syntax::util::small_vector::SmallVector;
-use syntax_pos::FileName;
+use syntax_pos::{FileName, BytePos, SyntaxContext};
 use specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, SpecID,
                      SpecType, SpecificationSet, Trigger, TriggerSet, UntypedAssertion,
                      UntypedExpression, UntypedSpecification, UntypedSpecificationMap,
@@ -810,7 +810,7 @@ impl<'tcx> SpecParser<'tcx> {
         statements.insert(0, self.build_loop_mark(spec_id));
         let builder = &self.ast_builder;
         let expr = builder.expr_if(
-            span,
+            Span::new(BytePos(0), BytePos(0), SyntaxContext::empty()),
             builder.expr_bool(span, false),
             builder.expr_block(builder.block(span, statements)),
             None,
