@@ -88,7 +88,6 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 rhs.to_viper(ast)
             ),
             &Stmt::Fold(ref pred_name, ref args, perm, ref pos) => {
-                assert!(!pos.is_default());
                 ast.fold_with_pos(
                     ast.predicate_access_predicate_with_pos(
                         ast.predicate_access_with_pos(
