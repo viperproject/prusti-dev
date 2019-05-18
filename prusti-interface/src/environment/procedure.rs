@@ -332,13 +332,14 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
         for target in get_normal_targets(term) {
             trace!("Try target {:?} of {:?}", target, source);
             // Skip the following "if false"
-            // TODO: this is an approximation: it treats all `if false {...}` as specification blocks
             let target_term = &mir[target].terminator.as_ref().unwrap();
-            trace!("target_term {:?}", target_term);
+            let span = target_term.source_info.span;
+            trace!("target_term {:?} span=({:?}, {:?})", target_term, span.lo(), span.hi());
             if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
                 trace!("target_term is a SwitchInt");
                 trace!("discr: '{:?}'", discr);
-                if format!("{:?}", discr) == "const false" {
+                // Specification guard has its span set to (0, 0) position.
+                if format!("{:?}", discr) == "const false" && span.lo().0 == 0 && span.hi().0 == 0 {
                     // Some assumptions
                     assert_eq!(values[0], 0 as u128);
                     assert_eq!(values.len(), 1);

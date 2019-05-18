@@ -42,4 +42,20 @@ pub fn test3<T>(e: &mut E3<T>) -> &mut T {
     }
 }
 
+pub enum E4 {
+    V1,
+    V2,
+    V3
+}
+
+pub fn test4() -> E4 {
+    if false {
+        E4::V1
+    } else if false {
+        E4::V2
+    } else {
+        E4::V3
+    }
+}
+
 fn main() {}
