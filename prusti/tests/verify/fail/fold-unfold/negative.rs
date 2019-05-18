@@ -13,4 +13,14 @@ fn test2(a: &mut U) -> &mut u32 { //~ ERROR implicit type invariants might not h
     &mut a.f
 }
 
+fn test3(a: u32) {
+    let b = a - 5;
+}
+
+fn test4(a: u32) {
+    let b = a - 5;
+    test3(b); //~ ERROR implicit type invariant expected by the function call might not hold.
+}
+
+
 fn main() {}
