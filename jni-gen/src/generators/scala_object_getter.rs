@@ -4,16 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use class_name::*;
 use errors::Result;
 use jni::JNIEnv;
-use class_name::*;
 
 pub fn generate_scala_object_getter(env: &JNIEnv, class_name: &ClassName) -> Result<String> {
     env.get_static_field_id(
         class_name.path(),
         "MODULE$",
         format!("L{};", class_name.path()),
-    ).map(|_| ())?;
+    )
+    .map(|_| ())?;
 
     Ok(vec![
         format!(
@@ -36,5 +37,7 @@ pub fn generate_scala_object_getter(env: &JNIEnv, class_name: &ClassName) -> Res
         format!("        \"L{};\",", class_name.path()),
         "    ).and_then(|x| x.l())".to_string(),
         "}".to_string(),
-    ].join("\n") + "\n")
+    ]
+    .join("\n")
+        + "\n")
 }

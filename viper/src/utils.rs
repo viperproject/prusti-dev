@@ -9,21 +9,18 @@
 use ast_factory::{AstFactory, Expr};
 
 pub trait ExprIterator<'v> {
-
     /// Conjoin a sequence of expressions into a single expression.
     /// Panics if the sequence has no elements.
     fn conjoin(&mut self, ast: &AstFactory<'v>) -> Expr<'v>;
 
     /// Conjoin a sequence of expressions into a single expression.
     fn conjoin_with_init(&mut self, ast: &AstFactory<'v>, init: Expr<'v>) -> Expr<'v>;
-
 }
 
 impl<'v, T> ExprIterator<'v> for T
-    where
-        T: Iterator<Item = Expr<'v>>
+where
+    T: Iterator<Item = Expr<'v>>,
 {
-
     fn conjoin(&mut self, ast: &AstFactory<'v>) -> Expr<'v> {
         let init = self.next().unwrap();
         self.conjoin_with_init(ast, init)
@@ -32,5 +29,4 @@ impl<'v, T> ExprIterator<'v> for T
     fn conjoin_with_init(&mut self, ast: &AstFactory<'v>, init: Expr<'v>) -> Expr<'v> {
         self.fold(init, |acc, conjunct| ast.and(acc, conjunct))
     }
-
 }

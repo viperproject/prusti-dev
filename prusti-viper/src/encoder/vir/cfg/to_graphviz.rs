@@ -35,20 +35,35 @@ impl CfgMethod {
                 "\"block_{}\" [shape=none,label=<{}>];",
                 escape_html(&label),
                 content
-            ).unwrap();
+            )
+            .unwrap();
 
             for dag in reborrowing_dags {
                 writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
                 writeln!(graph, "   label=\"Reborrowing DAG {}\"", label).unwrap();
                 for node in dag.iter() {
-                    writeln!(graph, "dag_{}_node_{:?} [shape=none,label=<",
-                             label, node.borrow).unwrap();
+                    writeln!(
+                        graph,
+                        "dag_{}_node_{:?} [shape=none,label=<",
+                        label, node.borrow
+                    )
+                    .unwrap();
                     writeln!(graph, "<table>").unwrap();
-                    writeln!(graph, "<tr><td colspan=\"2\">{:?} (guard: {})</td></tr>",
-                             node, escape_html(&dag.guard(node.borrow))).unwrap();
+                    writeln!(
+                        graph,
+                        "<tr><td colspan=\"2\">{:?} (guard: {})</td></tr>",
+                        node,
+                        escape_html(&dag.guard(node.borrow))
+                    )
+                    .unwrap();
                     for (i, stmt) in node.stmts.iter().enumerate() {
-                        writeln!(graph, "<tr><td>{}</td><td>{}</td></tr>", i, escape_html(stmt)).unwrap();
-
+                        writeln!(
+                            graph,
+                            "<tr><td>{}</td><td>{}</td></tr>",
+                            i,
+                            escape_html(stmt)
+                        )
+                        .unwrap();
                     }
                     writeln!(graph, "</table>").unwrap();
                     writeln!(graph, ">];").unwrap();
@@ -56,21 +71,17 @@ impl CfgMethod {
                         writeln!(
                             graph,
                             "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
-                            label,
-                            r_node,
-                            label,
-                            node.borrow
-                        ).unwrap();
+                            label, r_node, label, node.borrow
+                        )
+                        .unwrap();
                     }
                     for r_node in &node.reborrowed_nodes {
                         writeln!(
                             graph,
                             "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
-                            label,
-                            node.borrow,
-                            label,
-                            r_node
-                        ).unwrap();
+                            label, node.borrow, label, r_node
+                        )
+                        .unwrap();
                     }
                 }
                 writeln!(graph, "}}").unwrap();
@@ -79,11 +90,9 @@ impl CfgMethod {
                 writeln!(
                     graph,
                     "\"block_{}\" -> \"dag_{}_node_{:?}\" [dir=none lhead=cluster_{}];",
-                    label,
-                    label,
-                    node.borrow,
-                    label,
-                ).unwrap();
+                    label, label, node.borrow, label,
+                )
+                .unwrap();
             }
         }
 
@@ -97,7 +106,8 @@ impl CfgMethod {
                     "\"block_{}\" -> \"block_{}\";",
                     escape_html(&block_label),
                     escape_html(&target_label),
-                ).unwrap();
+                )
+                .unwrap();
             }
         }
 
@@ -150,7 +160,7 @@ impl CfgMethod {
                         .into_iter()
                         .map(|x| escape_html(x))
                         .collect::<Vec<_>>()
-                        .join(" \\ <br/>    ")
+                        .join(" \\ <br/>    "),
                 );
             }
             let stmt_html = splitted_stmt_lines.join("<br/>");
@@ -164,15 +174,25 @@ impl CfgMethod {
 
         match block.successor {
             // Red
-            Successor::Undefined => lines.push("<tr><td align=\"left\" bgcolor=\"#F43E3E\">".to_string()),
+            Successor::Undefined => {
+                lines.push("<tr><td align=\"left\" bgcolor=\"#F43E3E\">".to_string())
+            }
             // Green
-            Successor::Return => lines.push("<tr><td align=\"left\" bgcolor=\"#82CA9D\">".to_string()),
+            Successor::Return => {
+                lines.push("<tr><td align=\"left\" bgcolor=\"#82CA9D\">".to_string())
+            }
             _ => lines.push("<tr><td align=\"left\">".to_string()),
         }
         {
             let full_successor = block.successor.to_string();
             let splitted_successor = sub_strings(&full_successor, 120, 116);
-            lines.push(splitted_successor.into_iter().map(|x| escape_html(x)).collect::<Vec<_>>().join(" \\ <br/>    "));
+            lines.push(
+                splitted_successor
+                    .into_iter()
+                    .map(|x| escape_html(x))
+                    .collect::<Vec<_>>()
+                    .join(" \\ <br/>    "),
+            );
         }
         lines.push("</td></tr>".to_string());
 

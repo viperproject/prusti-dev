@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::ffi::CStr;
-use jni::strings::JavaStr;
 use errors::*;
+use jni::strings::JavaStr;
+use std::ffi::CStr;
 
 pub fn get_return_signature(signature: &str) -> String {
     let splitted: Vec<&str> = signature.split(')').collect();
@@ -32,7 +32,7 @@ pub fn generate_jni_type(signature: &str) -> String {
 pub fn is_object(signature: &str) -> bool {
     match signature.chars().nth(0).unwrap() {
         '[' | 'L' => true,
-        _ => false
+        _ => false,
     }
 }
 
@@ -83,7 +83,7 @@ pub fn java_str_to_valid_rust_argument_name(string: &JavaStr) -> Result<String> 
     res.push_str(
         &java_str_to_string(string)?
             .replace("_", "___")
-            .replace("$", "_d_")
+            .replace("$", "_d_"),
     );
     Ok(res)
 }

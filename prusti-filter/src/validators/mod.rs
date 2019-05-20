@@ -11,27 +11,25 @@ mod procedure_validator;
 mod pure_function_validator;
 mod unsafety_validator;
 
-pub use self::support_status::SupportStatus;
-pub use self::support_status::Reason;
 use self::common_validator::CommonValidator;
 use self::procedure_validator::*;
 use self::pure_function_validator::*;
-use syntax::ast::NodeId;
+pub use self::support_status::Reason;
+pub use self::support_status::SupportStatus;
 use rustc::hir;
-use rustc::hir::intravisit::*;
-use syntax::codemap::Span;
-use rustc::ty;
 use rustc::hir::def_id::DefId;
+use rustc::hir::intravisit::*;
+use rustc::ty;
+use syntax::ast::NodeId;
+use syntax::codemap::Span;
 
 pub struct Validator<'a, 'tcx: 'a> {
-    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>
+    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
 }
 
 impl<'a, 'tcx: 'a> Validator<'a, 'tcx> {
     pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>) -> Self {
-        Validator {
-            tcx
-        }
+        Validator { tcx }
     }
 
     #[allow(dead_code)]

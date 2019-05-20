@@ -6,9 +6,9 @@
 
 use crate::utils::{self, is_prefix};
 use rustc::mir;
+use rustc::ty::TyCtxt;
 use std::collections::HashSet;
 use std::mem;
-use rustc::ty::TyCtxt;
 
 /// A set of MIR places.
 ///

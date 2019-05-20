@@ -3,10 +3,10 @@ extern crate jni;
 extern crate systest;
 
 use error_chain::ChainedError;
-use jni::JavaVM;
+use jni::objects::JObject;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;
-use jni::objects::JObject;
+use jni::JavaVM;
 use systest::print_exception;
 use systest::wrappers::*;
 
@@ -28,7 +28,8 @@ fn test_jvm_builtin_classes() {
         panic!(e.display_chain().to_string());
     });
 
-    let env = jvm.attach_current_thread()
+    let env = jvm
+        .attach_current_thread()
         .expect("failed to attach jvm thread");
 
     for int_value in -10..10 {
@@ -48,7 +49,8 @@ fn test_jvm_builtin_classes() {
                 assert!(0 <= result && result < array_length);
 
                 Ok(JObject::null())
-            }).unwrap_or_else(|e| {
+            })
+            .unwrap_or_else(|e| {
                 print_exception(&env);
                 panic!(e.display_chain().to_string());
             });

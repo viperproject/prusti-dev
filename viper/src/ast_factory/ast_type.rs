@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper_sys::wrappers::viper::silver::ast;
-use ast_factory::AstFactory;
 use ast_factory::structs::Type;
+use ast_factory::AstFactory;
 use jni::objects::JObject;
+use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
     pub fn int_type(&self) -> Type<'a> {
@@ -29,7 +29,8 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn type_var(&self, name: &str) -> Type<'a> {
-        let obj = self.jni
+        let obj = self
+            .jni
             .unwrap_result(ast::TypeVar::with(self.env).new(self.jni.new_string(name)));
         Type::new(obj)
     }
@@ -49,19 +50,22 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn set_type(&self, element_type: Type) -> Type<'a> {
-        let obj = self.jni
+        let obj = self
+            .jni
             .unwrap_result(ast::SetType::with(self.env).new(element_type.to_jobject()));
         Type::new(obj)
     }
 
     pub fn multiset_type(&self, element_type: Type) -> Type<'a> {
-        let obj = self.jni
+        let obj = self
+            .jni
             .unwrap_result(ast::MultisetType::with(self.env).new(element_type.to_jobject()));
         Type::new(obj)
     }
 
     pub fn seq_type(&self, element_type: Type) -> Type<'a> {
-        let obj = self.jni
+        let obj = self
+            .jni
             .unwrap_result(ast::SeqType::with(self.env).new(element_type.to_jobject()));
         Type::new(obj)
     }

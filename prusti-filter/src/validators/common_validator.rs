@@ -4,41 +4,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use syntax::ast;
+use prusti_interface::environment::{Procedure, ProcedureLoops};
 use rustc::hir;
+use rustc::hir::def_id::DefId;
+use rustc::hir::intravisit::*;
 use rustc::hir::map::Node;
+use rustc::middle::const_val::ConstVal;
 use rustc::mir;
+use rustc::mir::interpret::GlobalId;
 use rustc::mir::BinOp;
 use rustc::mir::UnOp;
-use rustc::hir::intravisit::*;
-use syntax::codemap::Span;
 use rustc::ty;
 use rustc::ty::subst::Substs;
-use validators::SupportStatus;
-use validators::Reason;
-use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
-use prusti_interface::environment::{ProcedureLoops, Procedure};
-use rustc::mir::interpret::GlobalId;
-use rustc::middle::const_val::ConstVal;
-use validators::unsafety_validator::contains_unsafe;
 use std::hint::unreachable_unchecked;
+use syntax::ast;
+use syntax::codemap::Span;
+use validators::unsafety_validator::contains_unsafe;
+use validators::Reason;
+use validators::SupportStatus;
 
 #[macro_export]
 macro_rules! unsupported {
     ($self:expr, $span:expr, $reason: expr) => {
-        $self.support().unsupported(
-            Reason::new($reason, $span)
-        );
+        $self.support().unsupported(Reason::new($reason, $span));
     };
 }
 
 #[macro_export]
 macro_rules! partially {
     ($self:expr, $span:expr, $reason: expr) => {
-        $self.support().partially(
-            Reason::new($reason, $span)
-        );
+        $self.support().partially(Reason::new($reason, $span));
     };
 }
 
@@ -59,23 +55,39 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn check_hir(&mut self, node: Node) {
         match node {
-            Node::NodeExpr(hir::Expr { node: hir::Expr_::ExprClosure(..), span, .. }) => {
+            Node::NodeExpr(hir::Expr {
+                node: hir::Expr_::ExprClosure(..),
+                span,
+                ..
+            }) => {
                 unsupported!(self, *span, "is a closure");
             }
 
-            Node::NodeTraitItem(hir::TraitItem { node: hir::TraitItemKind::Method(ref method_sig, ..), span, .. }) |
-            Node::NodeImplItem(hir::ImplItem { node: hir::ImplItemKind::Method(ref method_sig, ..), span, .. }) => {
+            Node::NodeTraitItem(hir::TraitItem {
+                node: hir::TraitItemKind::Method(ref method_sig, ..),
+                span,
+                ..
+            })
+            | Node::NodeImplItem(hir::ImplItem {
+                node: hir::ImplItemKind::Method(ref method_sig, ..),
+                span,
+                ..
+            }) => {
                 self.check_fn_header(method_sig.header, *span);
             }
 
-            Node::NodeItem(hir::Item { node: hir::Item_::ItemFn(_, header, ref generics, _), span, .. }) => {
+            Node::NodeItem(hir::Item {
+                node: hir::Item_::ItemFn(_, header, ref generics, _),
+                span,
+                ..
+            }) => {
                 for generic_param in generics.params.iter() {
                     match generic_param.kind {
-                        hir::GenericParamKind::Type {..} => {
+                        hir::GenericParamKind::Type { .. } => {
                             interesting!(self, "uses function type parameters")
                         }
 
-                        hir::GenericParamKind::Lifetime {..} => {
+                        hir::GenericParamKind::Lifetime { .. } => {
                             interesting!(self, "uses function lifetime parameters")
                         }
                     }
@@ -86,7 +98,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
                 self.check_fn_header(*header, *span);
             }
 
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 
@@ -107,7 +119,6 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
             hir::IsAsync::NotAsync => {} // OK
         }
     }
-
 
     fn check_ty(&mut self, ty: ty::Ty<'tcx>, span: Span) {
         match ty.sty {
@@ -133,7 +144,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
                     match kind.unpack() {
                         ty::subst::UnpackedKind::Lifetime(..) => {
                             partially!(self, span, "uses data structures with lifetime parameters")
-                        },
+                        }
 
                         ty::subst::UnpackedKind::Type(ty) => self.check_ty(ty, span),
                     }
@@ -162,7 +173,9 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             ty::TypeVariants::TyFnDef(..) => unsupported!(self, span, "uses function types"),
 
-            ty::TypeVariants::TyFnPtr(..) => unsupported!(self, span, "uses function pointer types"),
+            ty::TypeVariants::TyFnPtr(..) => {
+                unsupported!(self, span, "uses function pointer types")
+            }
 
             ty::TypeVariants::TyDynamic(..) => unsupported!(self, span, "uses dynamic trait types"),
 
@@ -184,7 +197,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             ty::TypeVariants::TyAnon(..) => unsupported!(self, span, "uses anonymized types"),
 
-            ty::TypeVariants::TyParam(..) => {}, // OK
+            ty::TypeVariants::TyParam(..) => {} // OK
 
             ty::TypeVariants::TyInfer(..) => unsupported!(self, span, "has uninferred types"),
 
@@ -225,13 +238,17 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             mir::StatementKind::ReadForMatch(ref place) => self.check_place(mir, place, span),
 
-            mir::StatementKind::SetDiscriminant { ref place, .. } => self.check_place(mir, place, span),
+            mir::StatementKind::SetDiscriminant { ref place, .. } => {
+                self.check_place(mir, place, span)
+            }
 
             mir::StatementKind::StorageLive(_) => {} // OK
 
             mir::StatementKind::StorageDead(_) => {} // OK
 
-            mir::StatementKind::InlineAsm {..} => unsupported!(self, span, "uses inline Assembly"),
+            mir::StatementKind::InlineAsm { .. } => {
+                unsupported!(self, span, "uses inline Assembly")
+            }
 
             mir::StatementKind::Validate(_, _) => {} // OK
 
@@ -248,9 +265,11 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         let span = term.source_info.span;
 
         match term.kind {
-            mir::TerminatorKind::Goto {..} => {} // OK
+            mir::TerminatorKind::Goto { .. } => {} // OK
 
-            mir::TerminatorKind::SwitchInt { ref discr, .. } => self.check_operand(mir, discr, span),
+            mir::TerminatorKind::SwitchInt { ref discr, .. } => {
+                self.check_operand(mir, discr, span)
+            }
 
             mir::TerminatorKind::Resume => {
                 // This should be unreachable
@@ -265,12 +284,21 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             mir::TerminatorKind::Drop { ref location, .. } => self.check_place(mir, location, span),
 
-            mir::TerminatorKind::DropAndReplace { ref location, ref value, .. } => {
+            mir::TerminatorKind::DropAndReplace {
+                ref location,
+                ref value,
+                ..
+            } => {
                 self.check_place(mir, location, span);
                 self.check_operand(mir, value, span);
             }
 
-            mir::TerminatorKind::Call { ref func, ref args, ref destination, .. } => {
+            mir::TerminatorKind::Call {
+                ref func,
+                ref args,
+                ref destination,
+                ..
+            } => {
                 self.check_terminator_call(mir, func, args, destination, span);
             }
 
@@ -279,40 +307,45 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
                 self.check_operand(mir, cond, span)
             }
 
-            mir::TerminatorKind::Yield {..} => unsupported!(self, span, "uses `yield`"),
+            mir::TerminatorKind::Yield { .. } => unsupported!(self, span, "uses `yield`"),
 
-            mir::TerminatorKind::GeneratorDrop {..} => {
+            mir::TerminatorKind::GeneratorDrop { .. } => {
                 unsupported!(self, span, "uses `generator drop` MIR statement")
-            },
+            }
 
-            mir::TerminatorKind::FalseEdges {..} => {} // OK
+            mir::TerminatorKind::FalseEdges { .. } => {} // OK
 
-            mir::TerminatorKind::FalseUnwind {..} => {} // OK
+            mir::TerminatorKind::FalseUnwind { .. } => {} // OK
         }
     }
 
-    fn check_terminator_call(&mut self, mir: &mir::Mir<'tcx>, func: &mir::Operand<'tcx>,
-                             args: &Vec<mir::Operand<'tcx>>,
-                             destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
-                             span: Span) {
-        if let mir::Operand::Constant(
-            box mir::Constant {
-                literal: mir::Literal::Value {
-                    value: ty::Const {
-                        ty: &ty::TyS {
-                            sty: ty::TyFnDef(def_id, ref substs),
+    fn check_terminator_call(
+        &mut self,
+        mir: &mir::Mir<'tcx>,
+        func: &mir::Operand<'tcx>,
+        args: &Vec<mir::Operand<'tcx>>,
+        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        span: Span,
+    ) {
+        if let mir::Operand::Constant(box mir::Constant {
+            literal:
+                mir::Literal::Value {
+                    value:
+                        ty::Const {
+                            ty:
+                                &ty::TyS {
+                                    sty: ty::TyFnDef(def_id, ref substs),
+                                    ..
+                                },
                             ..
                         },
-                        ..
-                    }
                 },
-                ..
-            }
-        ) = func {
+            ..
+        }) = func
+        {
             let proc_name: &str = &self.tcx().absolute_item_path_str(def_id);
             match proc_name {
-                "std::rt::begin_panic" |
-                "std::panicking::begin_panic" => {
+                "std::rt::begin_panic" | "std::panicking::begin_panic" => {
                     interesting!(self, "uses panics");
                 }
 
@@ -350,21 +383,24 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         match place {
             mir::Place::Local(ref local) => mir.local_decls[*local].ty,
 
-            mir::Place::Static( box mir::Static { ty, .. }) => ty,
+            mir::Place::Static(box mir::Static { ty, .. }) => ty,
 
             mir::Place::Projection(box mir::Projection { ref base, ref elem }) => {
                 let base_ty = self.get_place_ty(mir, base);
-                mir::tcx::PlaceTy::from_ty(base_ty).projection_ty(self.tcx(), elem).to_ty(self.tcx())
+                mir::tcx::PlaceTy::from_ty(base_ty)
+                    .projection_ty(self.tcx(), elem)
+                    .to_ty(self.tcx())
             }
         }
     }
 
     fn get_operand_ty(&self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
         match operand {
-            mir::Operand::Copy(ref place) |
-            mir::Operand::Move(ref place) => self.get_place_ty(mir, place),
+            mir::Operand::Copy(ref place) | mir::Operand::Move(ref place) => {
+                self.get_place_ty(mir, place)
+            }
 
-            mir::Operand::Constant(box mir::Constant { ty, .. }) => ty
+            mir::Operand::Constant(box mir::Constant { ty, .. }) => ty,
         }
     }
 
@@ -383,7 +419,12 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-    fn check_projection(&mut self, mir: &mir::Mir<'tcx>, projection: &mir::PlaceProjection<'tcx>, span: Span) {
+    fn check_projection(
+        &mut self,
+        mir: &mir::Mir<'tcx>,
+        projection: &mir::PlaceProjection<'tcx>,
+        span: Span,
+    ) {
         self.check_place(mir, &projection.base, span);
         match projection.elem {
             mir::ProjectionElem::Deref => {} // OK
@@ -392,9 +433,13 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             mir::ProjectionElem::Index(..) => unsupported!(self, span, "uses index operations"),
 
-            mir::ProjectionElem::ConstantIndex {..} => unsupported!(self, span, "uses indices generated by slice patterns"),
+            mir::ProjectionElem::ConstantIndex { .. } => {
+                unsupported!(self, span, "uses indices generated by slice patterns")
+            }
 
-            mir::ProjectionElem::Subslice {..} => unsupported!(self, span, "uses indices generated by slice patterns"),
+            mir::ProjectionElem::Subslice { .. } => {
+                unsupported!(self, span, "uses indices generated by slice patterns")
+            }
 
             mir::ProjectionElem::Downcast(adt_def, _) => {
                 if adt_def.is_union() {
@@ -404,8 +449,13 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-
-    fn check_binary_op(&mut self, op: &mir::BinOp, left_ty: ty::Ty<'tcx>, right_ty: ty::Ty<'tcx>, span: Span) {
+    fn check_binary_op(
+        &mut self,
+        op: &mir::BinOp,
+        left_ty: ty::Ty<'tcx>,
+        right_ty: ty::Ty<'tcx>,
+        span: Span,
+    ) {
         match op {
             BinOp::Add | BinOp::Sub | BinOp::Mul => {} // OK
             BinOp::Div => {
@@ -415,7 +465,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
             BinOp::BitXor | BinOp::BitAnd | BinOp::BitOr => {
                 match (&left_ty.sty, &right_ty.sty) {
                     (ty::TypeVariants::TyBool, ty::TypeVariants::TyBool) => {} // OK
-                    _ => unsupported!(self, span, "uses bit operations on non-boolean types")
+                    _ => unsupported!(self, span, "uses bit operations on non-boolean types"),
                 }
             }
             BinOp::Shl | BinOp::Shr => unsupported!(self, span, "uses bit shift operations"),
@@ -446,7 +496,9 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             mir::Rvalue::Len(..) => unsupported!(self, span, "uses length operations"),
 
-            mir::Rvalue::Cast(cast_kind, ref op, dst_ty) => self.check_cast(mir, *cast_kind, op, dst_ty, span),
+            mir::Rvalue::Cast(cast_kind, ref op, dst_ty) => {
+                self.check_cast(mir, *cast_kind, op, dst_ty, span)
+            }
 
             mir::Rvalue::BinaryOp(ref op, ref left_operand, ref right_operand) => {
                 let left_ty = self.get_operand_ty(mir, left_operand);
@@ -473,69 +525,152 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             mir::Rvalue::NullaryOp(mir::NullOp::Box, ty) => self.check_inner_ty(ty, span),
 
-            mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => unsupported!(self, span, "uses `sizeof` operations"),
+            mir::Rvalue::NullaryOp(mir::NullOp::SizeOf, _) => {
+                unsupported!(self, span, "uses `sizeof` operations")
+            }
 
             mir::Rvalue::Discriminant(ref place) => self.check_place(mir, place, span),
 
-            mir::Rvalue::Aggregate(box ref kind, ref operands) => self.check_aggregate(mir, kind, operands, span),
+            mir::Rvalue::Aggregate(box ref kind, ref operands) => {
+                self.check_aggregate(mir, kind, operands, span)
+            }
         }
     }
 
-    fn check_cast(&mut self, mir: &mir::Mir<'tcx>, cast_kind: mir::CastKind, op: &mir::Operand<'tcx>, dst_ty: ty::Ty<'tcx>, span: Span) {
+    fn check_cast(
+        &mut self,
+        mir: &mir::Mir<'tcx>,
+        cast_kind: mir::CastKind,
+        op: &mir::Operand<'tcx>,
+        dst_ty: ty::Ty<'tcx>,
+        span: Span,
+    ) {
         let src_ty = self.get_operand_ty(mir, op);
 
         match (&src_ty.sty, &dst_ty.sty) {
-            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I8)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I16)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
-
-            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I16)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I16), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
-
-            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I32)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I32), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
-
-            (ty::TypeVariants::TyInt(ast::IntTy::I64), ty::TypeVariants::TyInt(ast::IntTy::I64)) |
-            (ty::TypeVariants::TyInt(ast::IntTy::I64), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
-
-            (ty::TypeVariants::TyInt(ast::IntTy::I128), ty::TypeVariants::TyInt(ast::IntTy::I128)) |
-
-            (ty::TypeVariants::TyInt(ast::IntTy::Isize), ty::TypeVariants::TyInt(ast::IntTy::Isize)) |
-
-            (ty::TypeVariants::TyChar, ty::TypeVariants::TyChar) |
-            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U8)) |
-            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U16)) |
-            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U32)) |
-            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U64)) |
-            (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U128)) |
-
-            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyChar) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U8)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U16)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
-
-            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U16)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U16), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
-
-            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U32)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U32), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
-
-            (ty::TypeVariants::TyUint(ast::UintTy::U64), ty::TypeVariants::TyUint(ast::UintTy::U64)) |
-            (ty::TypeVariants::TyUint(ast::UintTy::U64), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
-
-            (ty::TypeVariants::TyUint(ast::UintTy::U128), ty::TypeVariants::TyUint(ast::UintTy::U128)) |
-
-            (ty::TypeVariants::TyUint(ast::UintTy::Usize), ty::TypeVariants::TyUint(ast::UintTy::Usize)) => {} // OK
+            (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I8))
+            | (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I16))
+            | (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I32))
+            | (ty::TypeVariants::TyInt(ast::IntTy::I8), ty::TypeVariants::TyInt(ast::IntTy::I64))
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I8),
+                ty::TypeVariants::TyInt(ast::IntTy::I128),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I16),
+                ty::TypeVariants::TyInt(ast::IntTy::I16),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I16),
+                ty::TypeVariants::TyInt(ast::IntTy::I32),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I16),
+                ty::TypeVariants::TyInt(ast::IntTy::I64),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I16),
+                ty::TypeVariants::TyInt(ast::IntTy::I128),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I32),
+                ty::TypeVariants::TyInt(ast::IntTy::I32),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I32),
+                ty::TypeVariants::TyInt(ast::IntTy::I64),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I32),
+                ty::TypeVariants::TyInt(ast::IntTy::I128),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I64),
+                ty::TypeVariants::TyInt(ast::IntTy::I64),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I64),
+                ty::TypeVariants::TyInt(ast::IntTy::I128),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::I128),
+                ty::TypeVariants::TyInt(ast::IntTy::I128),
+            )
+            | (
+                ty::TypeVariants::TyInt(ast::IntTy::Isize),
+                ty::TypeVariants::TyInt(ast::IntTy::Isize),
+            )
+            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyChar)
+            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U8))
+            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U16))
+            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U32))
+            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U64))
+            | (ty::TypeVariants::TyChar, ty::TypeVariants::TyUint(ast::UintTy::U128))
+            | (ty::TypeVariants::TyUint(ast::UintTy::U8), ty::TypeVariants::TyChar)
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U8),
+                ty::TypeVariants::TyUint(ast::UintTy::U8),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U8),
+                ty::TypeVariants::TyUint(ast::UintTy::U16),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U8),
+                ty::TypeVariants::TyUint(ast::UintTy::U32),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U8),
+                ty::TypeVariants::TyUint(ast::UintTy::U64),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U8),
+                ty::TypeVariants::TyUint(ast::UintTy::U128),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U16),
+                ty::TypeVariants::TyUint(ast::UintTy::U16),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U16),
+                ty::TypeVariants::TyUint(ast::UintTy::U32),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U16),
+                ty::TypeVariants::TyUint(ast::UintTy::U64),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U16),
+                ty::TypeVariants::TyUint(ast::UintTy::U128),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U32),
+                ty::TypeVariants::TyUint(ast::UintTy::U32),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U32),
+                ty::TypeVariants::TyUint(ast::UintTy::U64),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U32),
+                ty::TypeVariants::TyUint(ast::UintTy::U128),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U64),
+                ty::TypeVariants::TyUint(ast::UintTy::U64),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U64),
+                ty::TypeVariants::TyUint(ast::UintTy::U128),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::U128),
+                ty::TypeVariants::TyUint(ast::UintTy::U128),
+            )
+            | (
+                ty::TypeVariants::TyUint(ast::UintTy::Usize),
+                ty::TypeVariants::TyUint(ast::UintTy::Usize),
+            ) => {} // OK
 
             _ => unsupported!(self, span, "uses unsupported casts"),
         };
@@ -543,10 +678,13 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn check_operand(&mut self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>, span: Span) {
         match operand {
-            mir::Operand::Copy(ref place) |
-            mir::Operand::Move(ref place) => self.check_place(mir, place, span),
+            mir::Operand::Copy(ref place) | mir::Operand::Move(ref place) => {
+                self.check_place(mir, place, span)
+            }
 
-            mir::Operand::Constant(box mir::Constant { ty, ref literal, .. }) => {
+            mir::Operand::Constant(box mir::Constant {
+                ty, ref literal, ..
+            }) => {
                 self.check_literal(literal, span);
                 self.check_ty(ty, span);
             }
@@ -591,19 +729,31 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
                 self.check_ty(value.ty, span);
 
                 match value.ty.sty {
-                    ty::TypeVariants::TyBool |
-                    ty::TypeVariants::TyInt(_) |
-                    ty::TypeVariants::TyUint(_) |
-                    ty::TypeVariants::TyChar => {} // OK
+                    ty::TypeVariants::TyBool
+                    | ty::TypeVariants::TyInt(_)
+                    | ty::TypeVariants::TyUint(_)
+                    | ty::TypeVariants::TyChar => {} // OK
 
-                    _ => unsupported!(self, span, "uses literals of type non-boolean, non-integer or non-char")
+                    _ => unsupported!(
+                        self,
+                        span,
+                        "uses literals of type non-boolean, non-integer or non-char"
+                    ),
                 };
             }
-            mir::Literal::Promoted { .. } => partially!(self, span, "uses promoted constant literals")
+            mir::Literal::Promoted { .. } => {
+                partially!(self, span, "uses promoted constant literals")
+            }
         }
     }
 
-    fn check_aggregate(&mut self, mir: &mir::Mir<'tcx>, kind: &mir::AggregateKind<'tcx>, operands: &Vec<mir::Operand<'tcx>>, span: Span) {
+    fn check_aggregate(
+        &mut self,
+        mir: &mir::Mir<'tcx>,
+        kind: &mir::AggregateKind<'tcx>,
+        operands: &Vec<mir::Operand<'tcx>>,
+        span: Span,
+    ) {
         trace!("check_aggregate {:?}, {:?}", kind, operands);
 
         match kind {

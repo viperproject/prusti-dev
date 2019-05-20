@@ -13,8 +13,8 @@ use rustc;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::string::ToString;
-use syntax::{ast, ptr};
 use syntax::codemap::Span;
+use syntax::{ast, ptr};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A specification type.
@@ -200,11 +200,7 @@ pub enum AssertionKind<ET, AT> {
     /// TODO < Even > ==> x % 2 == 0
     TypeCond(ForAllVars<AT>, Assertion<ET, AT>),
     /// Quantifier (forall vars :: {triggers} filter ==> body)
-    ForAll(
-        ForAllVars<AT>,
-        TriggerSet<ET>,
-        Assertion<ET, AT>,
-    ),
+    ForAll(ForAllVars<AT>, TriggerSet<ET>, Assertion<ET, AT>),
     /// Pledge after_expiry<reference>(rhs)
     ///     or after_expiry_if<reference>(lhs,rhs)
     Pledge(
@@ -279,23 +275,21 @@ pub type TypedTriggerSet = TriggerSet<rustc::hir::Expr>;
 
 pub type TypedTrigger = Trigger<rustc::hir::Expr>;
 
-
 impl TypedAssertion {
     pub fn get_spans(&self) -> Vec<Span> {
         match *self.kind {
-            AssertionKind::Expr(ref assertion_expr) => {
-                vec![ assertion_expr.expr.span.clone() ]
-            }
+            AssertionKind::Expr(ref assertion_expr) => vec![assertion_expr.expr.span.clone()],
             AssertionKind::And(ref assertions) => {
-                assertions.iter()
+                assertions
+                    .iter()
                     .map(|a| a.get_spans())
-                    .fold(
-                        vec![],
-                        |mut a, b| { a.extend(b); a }
-                    )
+                    .fold(vec![], |mut a, b| {
+                        a.extend(b);
+                        a
+                    })
             }
             AssertionKind::Implies(ref lhs, ref rhs) => {
-                let mut spans = vec![ lhs.expr.span.clone() ];
+                let mut spans = vec![lhs.expr.span.clone()];
                 spans.extend(rhs.get_spans());
                 spans
             }

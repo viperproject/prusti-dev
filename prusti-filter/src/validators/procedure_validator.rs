@@ -4,28 +4,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use syntax::ast;
+use prusti_interface::environment::{Procedure, ProcedureLoops};
 use rustc::hir;
-use rustc::mir;
+use rustc::hir::def_id::DefId;
 use rustc::hir::intravisit::*;
-use syntax::codemap::Span;
+use rustc::middle::const_val::ConstVal;
+use rustc::mir;
+use rustc::mir::interpret::GlobalId;
 use rustc::ty;
 use rustc::ty::subst::Substs;
-use validators::SupportStatus;
-use validators::Reason;
-use rustc::hir::def_id::DefId;
 use std::collections::HashSet;
-use prusti_interface::environment::{ProcedureLoops, Procedure};
-use rustc::mir::interpret::GlobalId;
-use rustc::middle::const_val::ConstVal;
-use validators::unsafety_validator::contains_unsafe;
+use syntax::ast;
+use syntax::codemap::Span;
 use validators::common_validator::CommonValidator;
+use validators::unsafety_validator::contains_unsafe;
+use validators::Reason;
+use validators::SupportStatus;
 
 pub struct ProcedureValidator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
     support: SupportStatus,
     visited_return_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>,
-    visited_inner_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>
+    visited_inner_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>,
 }
 
 macro_rules! skip_visited_return_type_variant {
@@ -218,7 +218,8 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 continue;
             }
             for successor in basic_block_data.terminator().successors() {
-                if !procedure.is_reachable_block(*successor) || procedure.is_spec_block(*successor) {
+                if !procedure.is_reachable_block(*successor) || procedure.is_spec_block(*successor)
+                {
                     continue;
                 }
                 let successor_data = &mir.basic_blocks()[*successor];
@@ -230,7 +231,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 //    continue;
                 //}
                 if loops.is_out_edge(bbi, *successor) && !loops.is_loop_head(bbi) {
-                    let span = basic_block_data.terminator.as_ref().unwrap().source_info.span;
+                    let span = basic_block_data
+                        .terminator
+                        .as_ref()
+                        .unwrap()
+                        .source_info
+                        .span;
                     partially!(self, span, "causes abrupt loop terminations");
                 }
             }

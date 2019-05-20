@@ -2,28 +2,42 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper_sys::wrappers::viper::silver::ast;
-use ast_factory::AstFactory;
-use ast_factory::structs::Type;
 use ast_factory::structs::DomainFunc;
 use ast_factory::structs::Expr;
-use ast_factory::structs::Trigger;
-use ast_factory::structs::Location;
-use ast_factory::structs::LocalVarDecl;
 use ast_factory::structs::Field;
+use ast_factory::structs::LocalVarDecl;
+use ast_factory::structs::Location;
 use ast_factory::structs::Position;
+use ast_factory::structs::Trigger;
+use ast_factory::structs::Type;
+use ast_factory::AstFactory;
 use jni::objects::JObject;
+use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
     pub fn add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::Add, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Add,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
     pub fn add(&self, left: Expr, right: Expr) -> Expr<'a> {
         self.add_with_pos(left, right, self.no_position())
     }
 
     pub fn sub_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::Sub, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Sub,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn sub(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -31,7 +45,14 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn mul_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::Mul, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Mul,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn mul(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -39,7 +60,14 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn div_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::Div, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Div,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn div(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -47,7 +75,14 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn module_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::Mod, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Mod,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn module(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -171,7 +206,14 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn or_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::Or, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::Or,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn or(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -179,7 +221,14 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn and_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
-        build_ast_node_with_pos!(self, Expr, ast::And, left.to_jobject(), right.to_jobject(), pos.to_jobject())
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::And,
+            left.to_jobject(),
+            right.to_jobject(),
+            pos.to_jobject()
+        )
     }
 
     pub fn and(&self, left: Expr, right: Expr) -> Expr<'a> {
@@ -254,7 +303,12 @@ impl<'a> AstFactory<'a> {
         self.null_lit_with_pos(self.no_position())
     }
 
-    pub fn field_access_predicate_with_pos(&self, loc: Expr, perm: Expr, pos: Position) -> Expr<'a> {
+    pub fn field_access_predicate_with_pos(
+        &self,
+        loc: Expr,
+        perm: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
@@ -269,7 +323,12 @@ impl<'a> AstFactory<'a> {
         self.field_access_predicate_with_pos(loc, perm, self.no_position())
     }
 
-    pub fn predicate_access_predicate_with_pos(&self, loc: Expr, perm: Expr, pos: Position) -> Expr<'a> {
+    pub fn predicate_access_predicate_with_pos(
+        &self,
+        loc: Expr,
+        perm: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
@@ -418,7 +477,14 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn func_app(&self, function_name: &str, args: &[Expr], formal_args: &[LocalVarDecl], return_type: Type, pos: Position) -> Expr<'a> {
+    pub fn func_app(
+        &self,
+        function_name: &str,
+        args: &[Expr],
+        formal_args: &[LocalVarDecl],
+        return_type: Type,
+        pos: Position,
+    ) -> Expr<'a> {
         let func_app_wrapper = ast::FuncApp::with(self.env);
         let obj = self.jni.unwrap_result(func_app_wrapper.call_apply(
             self.jni.new_string(function_name),
@@ -427,7 +493,7 @@ impl<'a> AstFactory<'a> {
             self.no_info(),
             return_type.to_jobject(),
             self.jni.new_seq(&map_to_jobjects!(formal_args)),
-            self.no_trafos()
+            self.no_trafos(),
         ));
         Expr::new(obj)
     }
@@ -479,7 +545,12 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn predicate_access_with_pos(&self, args: &[Expr], predicate_name: &str, pos: Position) -> Expr<'a> {
+    pub fn predicate_access_with_pos(
+        &self,
+        args: &[Expr],
+        predicate_name: &str,
+        pos: Position,
+    ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
@@ -490,7 +561,13 @@ impl<'a> AstFactory<'a> {
         )
     }
 
-    pub fn cond_exp_with_pos(&self, cond: Expr, then_expr: Expr, else_expr: Expr, pos: Position) -> Expr<'a> {
+    pub fn cond_exp_with_pos(
+        &self,
+        cond: Expr,
+        then_expr: Expr,
+        else_expr: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
@@ -536,7 +613,7 @@ impl<'a> AstFactory<'a> {
     }
 
     pub fn labelled_old_with_pos(&self, expr: Expr, old_label: &str, pos: Position) -> Expr<'a> {
-         build_ast_node_with_pos!(
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::LabelledOld,
@@ -550,7 +627,13 @@ impl<'a> AstFactory<'a> {
         self.labelled_old_with_pos(expr, old_label, self.no_position())
     }
 
-    pub fn let_expr_with_pos(&self, variable: LocalVarDecl, expr: Expr, body: Expr, pos: Position) -> Expr<'a> {
+    pub fn let_expr_with_pos(
+        &self,
+        variable: LocalVarDecl,
+        expr: Expr,
+        body: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
@@ -566,7 +649,13 @@ impl<'a> AstFactory<'a> {
         self.let_expr_with_pos(variable, expr, body, self.no_position())
     }
 
-    pub fn forall_with_pos(&self, variables: &[LocalVarDecl], triggers: &[Trigger], expr: Expr, pos: Position) -> Expr<'a> {
+    pub fn forall_with_pos(
+        &self,
+        variables: &[LocalVarDecl],
+        triggers: &[Trigger],
+        expr: Expr,
+        pos: Position,
+    ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,
             Expr,
@@ -803,7 +892,7 @@ impl<'a> AstFactory<'a> {
             simplifier_object_wrapper.call_simplify(
                 self.jni
                     .unwrap_result(simplifier_object_wrapper.singleton()),
-                expr.to_jobject()
+                expr.to_jobject(),
             ),
         );
         Expr::new(obj)

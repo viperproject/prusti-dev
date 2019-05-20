@@ -6,11 +6,11 @@
 
 //! Various helper functions for working with `mir::Place`.
 
-use rustc_data_structures::indexed_vec::Idx;
 use rustc::mir;
-use syntax::ast;
 use rustc::ty::{self, TyCtxt};
+use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashSet;
+use syntax::ast;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
@@ -22,8 +22,7 @@ pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
         true
     } else {
         match place {
-            mir::Place::Local(_) |
-            mir::Place::Static(_) => false,
+            mir::Place::Local(_) | mir::Place::Static(_) => false,
             mir::Place::Projection(box mir::Projection { base, .. }) => {
                 is_prefix(base, potential_prefix)
             }
@@ -57,28 +56,28 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
                     }
                 }
             }
-            ty::TyTuple(slice) => for (index, ty) in slice.iter().enumerate() {
-                if Some(index) != without_element {
-                    let field = mir::Field::new(index);
-                    places.push(place.clone().field(field, ty));
+            ty::TyTuple(slice) => {
+                for (index, ty) in slice.iter().enumerate() {
+                    if Some(index) != without_element {
+                        let field = mir::Field::new(index);
+                        places.push(place.clone().field(field, ty));
+                    }
                 }
-            },
-            ty::TyRef(_region, _ty, _) => {
-                match without_element {
-                    Some(without_element) => {
-                        assert_eq!(
-                            without_element,
-                            0,
-                            "References have only a single “field”.");
-                    }
-                    None => {
-                        places.push(place.clone().deref());
-                    }
+            }
+            ty::TyRef(_region, _ty, _) => match without_element {
+                Some(without_element) => {
+                    assert_eq!(
+                        without_element, 0,
+                        "References have only a single “field”."
+                    );
+                }
+                None => {
+                    places.push(place.clone().deref());
                 }
             },
             ref ty => {
                 unimplemented!("ty={:?}", ty);
-            },
+            }
         },
         mir::tcx::PlaceTy::Downcast { .. } => {}
     }
@@ -177,7 +176,6 @@ pub fn collapse<'a, 'tcx: 'a>(
     }
 }
 
-
 #[derive(Debug)]
 pub struct VecPlaceComponent<'tcx> {
     place: mir::Place<'tcx>,
@@ -203,10 +201,10 @@ impl<'tcx> VecPlace<'tcx> {
         };
         fn unroll_place<'tcx>(vec_place: &mut VecPlace<'tcx>, current: &mir::Place<'tcx>) {
             match current {
-                mir::Place::Local(_) => {},
+                mir::Place::Local(_) => {}
                 mir::Place::Projection(box mir::Projection { base, .. }) => {
                     unroll_place(vec_place, base);
-                },
+                }
                 _ => unimplemented!(),
             }
             vec_place.components.push(VecPlaceComponent {
@@ -225,22 +223,21 @@ impl<'tcx> VecPlace<'tcx> {
 }
 
 pub fn get_attr_value(attr: &ast::Attribute) -> String {
-    use syntax::tokenstream::TokenTree;
     use syntax::parse::token;
+    use syntax::tokenstream::TokenTree;
 
     let trees: Vec<_> = attr.tokens.trees().collect();
     assert_eq!(trees.len(), 2);
 
     match trees[0] {
         TokenTree::Token(_, ref token) => assert_eq!(*token, token::Token::Eq),
-        _ => unreachable!()
+        _ => unreachable!(),
     };
 
     match trees[1] {
         TokenTree::Token(_, ref token) => match *token {
             token::Token::Literal(ref lit, None) => match *lit {
-                token::Lit::Str_(ref name) |
-                token::Lit::StrRaw(ref name, _) => {
+                token::Lit::Str_(ref name) | token::Lit::StrRaw(ref name, _) => {
                     name.as_str().to_string()
                 }
                 _ => unreachable!(),

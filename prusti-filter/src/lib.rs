@@ -7,7 +7,6 @@
 // TODO: Remove these allows:
 #![allow(unused_imports)]
 #![allow(unused_variables)]
-
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]

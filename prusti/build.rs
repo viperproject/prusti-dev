@@ -1,13 +1,14 @@
 extern crate chrono;
 
-use std::process::Command;
 use chrono::prelude::Utc;
+use std::process::Command;
 
 fn main() {
-    let output = Command::new("git").args(&["rev-parse", "--short=19", "HEAD"]).output()
+    let output = Command::new("git")
+        .args(&["rev-parse", "--short=19", "HEAD"])
+        .output()
         .expect("Failed to obtain git hash");
-    let git_hash = String::from_utf8(output.stdout)
-        .expect("Failed to parse git hash");
+    let git_hash = String::from_utf8(output.stdout).expect("Failed to parse git hash");
     println!("cargo:rustc-env=GIT_HASH={}", git_hash);
 
     let build_time = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();

@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 pub mod class;
-pub mod module;
 mod constructor;
 mod method;
+pub mod module;
 mod scala_object_getter;

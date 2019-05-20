@@ -4,13 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use jni::JNIEnv;
+use class_name::*;
 use errors::*;
 use generators::constructor::*;
-use generators::scala_object_getter::*;
-use class_name::*;
-use wrapper_spec::*;
 use generators::method::*;
+use generators::scala_object_getter::*;
+use jni::JNIEnv;
+use wrapper_spec::*;
 
 pub struct ClassGenerator<'a> {
     env: &'a JNIEnv<'a>,
@@ -49,7 +49,8 @@ impl<'a> ClassGenerator<'a> {
             self.generate_begin_impl(),
             self.generate_items()?,
             self.generate_end_impl(),
-        ].join("\n"))
+        ]
+        .join("\n"))
     }
 
     fn generate_imports(&self) -> String {
@@ -61,7 +62,9 @@ impl<'a> ClassGenerator<'a> {
             "use jni::sys::*;",
             "use jni::signature::*;",
             "use std::str::FromStr;",
-        ].join("\n") + "\n"
+        ]
+        .join("\n")
+            + "\n"
     }
 
     fn generate_struct(&self) -> String {
@@ -70,7 +73,9 @@ impl<'a> ClassGenerator<'a> {
             format!("pub struct {}<'a> {{", self.class.rust_name()),
             "    env: &'a JNIEnv<'a>,".to_string(),
             "}".to_string(),
-        ].join("\n") + "\n"
+        ]
+        .join("\n")
+            + "\n"
     }
 
     fn generate_begin_impl(&self) -> String {
@@ -80,7 +85,9 @@ impl<'a> ClassGenerator<'a> {
             "pub fn with(env: &'a JNIEnv<'a>) -> Self {".to_string(),
             format!("    {}{{ env: env }}", self.class.rust_name()),
             "}".to_string(),
-        ].join("\n") + "\n"
+        ]
+        .join("\n")
+            + "\n"
     }
 
     fn generate_end_impl(&self) -> String {

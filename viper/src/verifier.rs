@@ -6,17 +6,17 @@
 
 #![cfg_attr(feature = "cargo-clippy", allow(new_ret_no_self))]
 
-use jni::JNIEnv;
-use jni::objects::JObject;
 use ast_factory::*;
-use viper_sys::wrappers::viper::*;
-use jni_utils::JniUtils;
-use verification_result::VerificationResult;
-use verification_result::VerificationError;
-use verification_backend::VerificationBackend;
 use ast_utils::AstUtils;
+use jni::objects::JObject;
+use jni::JNIEnv;
+use jni_utils::JniUtils;
 use std::marker::PhantomData;
 use std::time::Instant;
+use verification_backend::VerificationBackend;
+use verification_result::VerificationError;
+use verification_result::VerificationResult;
+use viper_sys::wrappers::viper::*;
 
 pub mod state {
     pub struct Uninitialized;
@@ -33,7 +33,10 @@ pub struct Verifier<'a, VerifierState> {
 }
 
 impl<'a, VerifierState> Verifier<'a, VerifierState> {
-    pub fn new(env: &'a JNIEnv, backend: VerificationBackend) -> Verifier<'a, state::Uninitialized> {
+    pub fn new(
+        env: &'a JNIEnv,
+        backend: VerificationBackend,
+    ) -> Verifier<'a, state::Uninitialized> {
         let jni = JniUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let verifier_instance = jni.unwrap_result(match backend {
@@ -42,16 +45,13 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
                 let utils = JniUtils::new(env);
                 let debug_info = utils.new_seq(&[]);
                 silicon::Silicon::with(env).new(reporter, debug_info)
-            },
+            }
             VerificationBackend::Carbon => carbon::CarbonVerifier::with(env).new(),
         });
 
-        let name = jni.to_string(
-            jni.unwrap_result(verifier_wrapper.call_name(verifier_instance))
-        );
-        let build_version = jni.to_string(
-            jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance))
-        );
+        let name = jni.to_string(jni.unwrap_result(verifier_wrapper.call_name(verifier_instance)));
+        let build_version =
+            jni.to_string(jni.unwrap_result(verifier_wrapper.call_buildVersion(verifier_instance)));
         info!("Using backend {} version {}", name, build_version);
 
         Verifier {
@@ -67,9 +67,12 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
 impl<'a> Verifier<'a, state::Uninitialized> {
     pub fn parse_command_line(self, args: &[String]) -> Verifier<'a, state::Stopped> {
         {
-            let args = self.jni.new_seq(&args.iter()
-                .map(|x| self.jni.new_string(x))
-                .collect::<Vec<JObject>>());
+            let args = self.jni.new_seq(
+                &args
+                    .iter()
+                    .map(|x| self.jni.new_string(x))
+                    .collect::<Vec<JObject>>(),
+            );
             self.jni.unwrap_result(
                 self.verifier_wrapper
                     .call_parseCommandLine(self.verifier_instance, args),
@@ -125,14 +128,22 @@ impl<'a> Verifier<'a, state::Started> {
         let start_verification = Instant::now();
         let viper_result = self.jni.unwrap_result(
             self.verifier_wrapper
-                .call_verify(self.verifier_instance, program.to_jobject())
+                .call_verify(self.verifier_instance, program.to_jobject()),
         );
         let duration = start_verification.elapsed();
 
-        debug!("Viper verification took {}.{} seconds", duration.as_secs(), duration.subsec_millis()/10);
-        debug!("Viper verification result: {}", self.jni.to_string(viper_result));
+        debug!(
+            "Viper verification took {}.{} seconds",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
+        debug!(
+            "Viper verification result: {}",
+            self.jni.to_string(viper_result)
+        );
 
-        let is_failure = self.jni
+        let is_failure = self
+            .jni
             .is_instance_of(viper_result, "viper/silver/verifier/Failure");
 
         if is_failure {
@@ -149,11 +160,13 @@ impl<'a> Verifier<'a, state::Started> {
             let error_reason_wrapper = silver::verifier::ErrorReason::with(self.env);
 
             for viper_error in viper_errors {
-                let is_verification_error = self.jni
+                let is_verification_error = self
+                    .jni
                     .is_instance_of(viper_error, "viper/silver/verifier/VerificationError");
 
                 if !is_verification_error {
-                    let is_aborted_exceptionally = self.jni
+                    let is_aborted_exceptionally = self
+                        .jni
                         .is_instance_of(viper_error, "viper/silver/verifier/AbortedExceptionally");
 
                     if is_aborted_exceptionally {
@@ -177,18 +190,23 @@ impl<'a> Verifier<'a, state::Started> {
                     panic!();
                 };
 
-                let reason = self.jni
+                let reason = self
+                    .jni
                     .unwrap_result(verification_error_wrapper.call_reason(viper_error));
 
-                let reason_pos = self.jni
+                let reason_pos = self
+                    .jni
                     .unwrap_result(error_reason_wrapper.call_pos(reason));
 
-                let reason_pos_id = if self.jni.is_instance_of(
-                        reason_pos, "viper/silver/ast/HasIdentifier") {
+                let reason_pos_id = if self
+                    .jni
+                    .is_instance_of(reason_pos, "viper/silver/ast/HasIdentifier")
+                {
                     Some(
                         self.jni.get_string(
-                            self.jni.unwrap_result(has_identifier_wrapper.call_id(reason_pos))
-                        )
+                            self.jni
+                                .unwrap_result(has_identifier_wrapper.call_id(reason_pos)),
+                        ),
                     )
                 } else {
                     debug!(
@@ -203,31 +221,37 @@ impl<'a> Verifier<'a, state::Started> {
                         .unwrap_result(verification_error_wrapper.call_fullId(viper_error)),
                 );
 
-                let pos = self.jni
+                let pos = self
+                    .jni
                     .unwrap_result(verification_error_wrapper.call_pos(viper_error));
 
-                let message = self.jni.to_string(
-                    self.jni.unwrap_result(
-                        verification_error_wrapper.call_readableMessage(viper_error)
-                    )
-                );
+                let message =
+                    self.jni.to_string(self.jni.unwrap_result(
+                        verification_error_wrapper.call_readableMessage(viper_error),
+                    ));
 
-                let pos_id = if self.jni.is_instance_of(pos, "viper/silver/ast/HasIdentifier") {
-                    Some(
-                        self.jni.get_string(
-                            self.jni.unwrap_result(has_identifier_wrapper.call_id(pos))
-                        )
-                    )
-                } else {
-                    debug!(
-                        "The verifier returned an error whose position has no identifier: {:?}",
-                        self.jni.to_string(viper_error)
-                    );
-                    None
-                };
+                let pos_id =
+                    if self
+                        .jni
+                        .is_instance_of(pos, "viper/silver/ast/HasIdentifier")
+                    {
+                        Some(self.jni.get_string(
+                            self.jni.unwrap_result(has_identifier_wrapper.call_id(pos)),
+                        ))
+                    } else {
+                        debug!(
+                            "The verifier returned an error whose position has no identifier: {:?}",
+                            self.jni.to_string(viper_error)
+                        );
+                        None
+                    };
 
-                errors.push(VerificationError::new(error_full_id, pos_id,
-                                                   reason_pos_id, message))
+                errors.push(VerificationError::new(
+                    error_full_id,
+                    pos_id,
+                    reason_pos_id,
+                    message,
+                ))
             }
 
             VerificationResult::Failure(errors)

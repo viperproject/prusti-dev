@@ -6,36 +6,36 @@
 
 //! This module defines the interface provided to a verifier.
 
-use rustc_driver::driver;
-use rustc::ty::TyCtxt;
+use rustc::hir;
 use rustc::hir::def_id::DefId;
+use rustc::ty;
+use rustc::ty::TyCtxt;
+use rustc_driver::driver;
 use std::path::PathBuf;
+use syntax::attr;
+use syntax::errors::DiagnosticId;
 use syntax_pos::FileName;
 use syntax_pos::MultiSpan;
-use syntax::errors::DiagnosticId;
-use rustc::hir;
-use rustc::ty;
-use syntax::attr;
 
-mod procedure;
-mod loops;
-mod loops_utils;
+pub mod borrowck;
 mod collect_prusti_spec_visitor;
 mod dump_borrowck_info;
-pub mod borrowck;
+mod loops;
+mod loops_utils;
 pub mod mir_analyses;
 pub mod place_set;
 pub mod polonius_info;
+mod procedure;
 
-use data::ProcedureDefId;
-pub use self::procedure::{BasicBlockIndex, Procedure};
-pub use self::loops::{ProcedureLoops, PlaceAccess, PlaceAccessKind};
-pub use self::loops_utils::*;
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
-use syntax::codemap::CodeMap;
-use utils::get_attr_value;
+pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
+pub use self::loops_utils::*;
+pub use self::procedure::{BasicBlockIndex, Procedure};
 use config;
+use data::ProcedureDefId;
+use syntax::codemap::CodeMap;
 use syntax::codemap::Span;
+use utils::get_attr_value;
 
 /// Facade to the Rust compiler.
 pub struct EnvironmentImpl<'r, 'a: 'r, 'tcx: 'a> {
@@ -100,7 +100,9 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
 
     /// Emits an error message.
     pub fn span_err_with_code<S: Into<MultiSpan>>(&self, sp: S, msg: &str, code: String) {
-        self.state.session.span_err_with_code(sp, msg, DiagnosticId::Error(code));
+        self.state
+            .session
+            .span_err_with_code(sp, msg, DiagnosticId::Error(code));
     }
 
     /// Emits an error message.
@@ -116,20 +118,17 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         code: String,
         reason_sp: S,
     ) {
-        let mut diagnostic = self.state.session.struct_err_with_code(
-            msg, DiagnosticId::Error(code));
+        let mut diagnostic = self
+            .state
+            .session
+            .struct_err_with_code(msg, DiagnosticId::Error(code));
         diagnostic.set_span(sp);
         diagnostic.span_note(reason_sp, "the failing assertion is this one");
         diagnostic.emit();
     }
 
     /// Emits an error message.
-    pub fn span_err_with_reason<S: Into<MultiSpan>>(
-        &self,
-        sp: S,
-        msg: &str,
-        reason_sp: S,
-    ) {
+    pub fn span_err_with_reason<S: Into<MultiSpan>>(&self, sp: S, msg: &str, reason_sp: S) {
         let mut diagnostic = self.state.session.struct_err(msg);
         diagnostic.set_span(sp);
         diagnostic.span_note(reason_sp, "the failing assertion is this one");
@@ -162,11 +161,12 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
         let opt_node_id = tcx.hir.as_local_node_id(def_id);
         match opt_node_id {
             None => None,
-            Some(node_id) => {
-                tcx.hir.attrs(node_id).iter()
-                    .find(|item| item.path.to_string() == name)
-                    .map(get_attr_value)
-            }
+            Some(node_id) => tcx
+                .hir
+                .attrs(node_id)
+                .iter()
+                .find(|item| item.path.to_string() == name)
+                .map(get_attr_value),
         }
     }
 
@@ -179,9 +179,7 @@ impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
                 debug!("Incomplete encoding of procedures from an external crate");
                 false
             }
-            Some(node_id) => {
-                attr::contains_name(tcx.hir.attrs(node_id), name)
-            }
+            Some(node_id) => attr::contains_name(tcx.hir.attrs(node_id), name),
         }
     }
 

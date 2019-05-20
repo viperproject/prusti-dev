@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt;
 use encoder::vir::ast::*;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Predicate {
@@ -49,7 +49,7 @@ impl Predicate {
         typ: Type,
         field: Field,
         bounds: Option<(Expr, Expr)>,
-        is_unsigned: bool
+        is_unsigned: bool,
     ) -> Predicate {
         let predicate_name = typ.name();
         let this = Self::construct_this(typ);
@@ -80,7 +80,7 @@ impl Predicate {
         this: LocalVar,
         discriminant: Expr,
         discriminant_bounds: Expr,
-        variants: Vec<(Expr, String, StructPredicate)>
+        variants: Vec<(Expr, String, StructPredicate)>,
     ) -> Predicate {
         let predicate_name = this.typ.name();
         Predicate::Enum(EnumPredicate {
@@ -131,9 +131,7 @@ impl fmt::Display for StructPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "struct_predicate {}({}", self.name, self.this)?;
         match self.body {
-            None => {
-                writeln!(f, ");")
-            },
+            None => writeln!(f, ");"),
             Some(ref body) => {
                 writeln!(f, "){{")?;
                 writeln!(f, "  {}", body)?;
@@ -147,17 +145,17 @@ impl StructPredicate {
     pub fn new(typ: Type, fields: Vec<Field>) -> Self {
         let predicate_name = typ.name();
         let this = Predicate::construct_this(typ);
-        let body = fields.into_iter().flat_map(|field| {
-            let predicate_name = field.typed_ref_name().unwrap();
-            let location: Expr = Expr::from(this.clone()).field(field).into();
-            let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
-            let pred_perm = Expr::predicate_access_predicate(
-                predicate_name,
-                location,
-                PermAmount::Write,
-            );
-            vec![field_perm, pred_perm]
-        }).conjoin();
+        let body = fields
+            .into_iter()
+            .flat_map(|field| {
+                let predicate_name = field.typed_ref_name().unwrap();
+                let location: Expr = Expr::from(this.clone()).field(field).into();
+                let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
+                let pred_perm =
+                    Expr::predicate_access_predicate(predicate_name, location, PermAmount::Write);
+                vec![field_perm, pred_perm]
+            })
+            .conjoin();
         Self {
             name: predicate_name,
             this: this,
@@ -211,20 +209,17 @@ impl fmt::Display for EnumPredicate {
 impl EnumPredicate {
     /// Construct an expression that represents the body of this predicate.
     pub fn body(&self) -> Expr {
-        let discriminant_perm = Expr::acc_permission(
-            self.discriminant.clone(),
-            PermAmount::Write,
-        );
-        let mut parts = vec![
-            discriminant_perm,
-            self.discriminant_bounds.clone()
-        ];
+        let discriminant_perm = Expr::acc_permission(self.discriminant.clone(), PermAmount::Write);
+        let mut parts = vec![discriminant_perm, self.discriminant_bounds.clone()];
         for (guard, name, variant) in self.variants.iter() {
             let field = Field::new(format!("enum_{}", name), variant.this.typ.clone());
             let location: Expr = Expr::from(self.this.clone()).field(field).into();
             let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
             let pred_perm = variant.construct_access(location, PermAmount::Write);
-            parts.push(Expr::implies(guard.clone(), Expr::and(field_perm, pred_perm)));
+            parts.push(Expr::implies(
+                guard.clone(),
+                Expr::and(field_perm, pred_perm),
+            ));
         }
         parts.into_iter().conjoin()
     }

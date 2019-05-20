@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
 use encoder::vir;
+use std::collections::HashMap;
 use std::io;
 
 pub(super) struct BasicBlock<'a> {
@@ -34,7 +34,7 @@ impl<'a> CFG<'a> {
     pub(super) fn add_block(&mut self, block: BasicBlock<'a>) {
         self.basic_blocks.push(block);
     }
-    pub(super) fn iter_mut(&mut self) -> impl Iterator<Item=&mut BasicBlock<'a>> {
+    pub(super) fn iter_mut(&mut self) -> impl Iterator<Item = &mut BasicBlock<'a>> {
         self.basic_blocks.iter_mut()
     }
 }
@@ -46,7 +46,11 @@ impl<'a> CFG<'a> {
     fn edge_label(&self, from: usize, to: usize) -> String {
         format!("edge_{}_{}", from, to)
     }
-    fn write_to_graphviz(&self, graph: &mut io::Write, curr_block_index: usize) -> Result<(),io::Error> {
+    fn write_to_graphviz(
+        &self,
+        graph: &mut io::Write,
+        curr_block_index: usize,
+    ) -> Result<(), io::Error> {
         fn escape_html<S: ToString>(s: S) -> String {
             s.to_string()
                 .replace("&", "&amp;")
@@ -67,21 +71,36 @@ impl<'a> CFG<'a> {
             }
             write!(graph, "label=<")?;
             write!(graph, "<table>")?;
-            write!(graph, "<tr><td>borrow:</td><td>{:?}</td></tr>", block.node.borrow)?;
+            write!(
+                graph,
+                "<tr><td>borrow:</td><td>{:?}</td></tr>",
+                block.node.borrow
+            )?;
             for (i, stmt) in block.statements.iter().enumerate() {
-                write!(graph, "<tr><td>{}</td><td>{}</td></tr>", i, escape_html(stmt))?;
+                write!(
+                    graph,
+                    "<tr><td>{}</td><td>{}</td></tr>",
+                    i,
+                    escape_html(stmt)
+                )?;
             }
             write!(graph, "</table>")?;
             writeln!(graph, ">];")?;
             for &predecessor in &block.predecessors {
-                writeln!(graph, "{} -> {};",
-                         self.block_label(predecessor),
-                         self.block_label(index))?;
+                writeln!(
+                    graph,
+                    "{} -> {};",
+                    self.block_label(predecessor),
+                    self.block_label(index)
+                )?;
             }
             for &successor in &block.successors {
-                writeln!(graph, "{} -> {};",
-                         self.block_label(index),
-                         self.block_label(successor))?;
+                writeln!(
+                    graph,
+                    "{} -> {};",
+                    self.block_label(index),
+                    self.block_label(successor)
+                )?;
             }
         }
 
@@ -89,16 +108,27 @@ impl<'a> CFG<'a> {
             write!(graph, "{} [shape=none,label=<", self.edge_label(from, to))?;
             write!(graph, "<table>")?;
             for (i, stmt) in stmts.iter().enumerate() {
-                write!(graph, "<tr><td>{}</td><td>{}</td></tr>", i, escape_html(stmt))?;
+                write!(
+                    graph,
+                    "<tr><td>{}</td><td>{}</td></tr>",
+                    i,
+                    escape_html(stmt)
+                )?;
             }
             write!(graph, "</table>")?;
             writeln!(graph, ">];")?;
-            writeln!(graph, "{} -> {};",
-                     self.block_label(from),
-                     self.edge_label(from, to))?;
-            writeln!(graph, "{} -> {};",
-                     self.edge_label(from, to),
-                     self.block_label(to))?;
+            writeln!(
+                graph,
+                "{} -> {};",
+                self.block_label(from),
+                self.edge_label(from, to)
+            )?;
+            writeln!(
+                graph,
+                "{} -> {};",
+                self.edge_label(from, to),
+                self.block_label(to)
+            )?;
         }
 
         writeln!(graph, "}}")

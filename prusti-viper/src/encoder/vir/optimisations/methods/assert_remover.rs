@@ -6,10 +6,10 @@
 
 //! Optimisation that removes unused temporary variables.
 
-use std::mem;
-use std::collections::HashSet;
-use encoder::vir::{Stmt, Expr, Const};
 use encoder::vir::cfg;
+use encoder::vir::{Const, Expr, Stmt};
+use std::collections::HashSet;
+use std::mem;
 
 /// Remove trivial assertions:
 /// * `assert true`
@@ -20,7 +20,7 @@ pub fn remove_trivial_assertions(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         match stmt {
             Stmt::Assert(Expr::Const(Const::Bool(true), _), _) => false,
             Stmt::Exhale(Expr::Const(Const::Bool(true), _), _) => false,
-            _ => true // Keep the rest
+            _ => true, // Keep the rest
         }
     });
     method

@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use rustc::hir;
+use rustc::hir::intravisit::{self, NestedVisitorMap, Visitor};
 use rustc::ty::TyCtxt;
 use syntax::ast::NodeId;
-use rustc::hir::intravisit::{self, NestedVisitorMap, Visitor};
-use rustc::hir;
 
 pub fn contains_unsafe(tcx: TyCtxt, node_id: NodeId) -> bool {
     let body_id = tcx.hir.body_owned_by(node_id);
@@ -24,7 +24,6 @@ struct UnsafetyDetector {
 }
 
 impl<'tcx> Visitor<'tcx> for UnsafetyDetector {
-
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
         NestedVisitorMap::None
     }
@@ -32,13 +31,12 @@ impl<'tcx> Visitor<'tcx> for UnsafetyDetector {
     fn visit_block(&mut self, block: &hir::Block) {
         intravisit::walk_block(self, block);
         match block.rules {
-            hir::BlockCheckMode::DefaultBlock => {},
-            hir::BlockCheckMode::UnsafeBlock(_) |
-            hir::BlockCheckMode::PushUnsafeBlock(_) |
-            hir::BlockCheckMode::PopUnsafeBlock(_) => {
+            hir::BlockCheckMode::DefaultBlock => {}
+            hir::BlockCheckMode::UnsafeBlock(_)
+            | hir::BlockCheckMode::PushUnsafeBlock(_)
+            | hir::BlockCheckMode::PopUnsafeBlock(_) => {
                 self.contains_unsafe = true;
             }
         }
     }
-
 }

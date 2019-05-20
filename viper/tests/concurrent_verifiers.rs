@@ -4,9 +4,9 @@ extern crate error_chain;
 extern crate lazy_static;
 extern crate viper;
 
-use viper::*;
 use std::thread;
 use std::thread::JoinHandle;
+use viper::*;
 
 lazy_static! {
     static ref VIPER: Viper = Viper::new();
@@ -37,19 +37,19 @@ fn concurrent_verifier_initialization() {
                             ast.empty_multiset(ast.int_type()),
                         ),
                         ast.eq_cmp(
-                            ast.explicit_set(&(0..10)
-                                .map(|x| ast.int_lit(x))
-                                .collect::<Vec<Expr>>()),
-                            ast.explicit_set(&(0..10)
-                                .map(|x| ast.int_lit(x))
-                                .collect::<Vec<Expr>>()),
+                            ast.explicit_set(
+                                &(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>(),
+                            ),
+                            ast.explicit_set(
+                                &(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>(),
+                            ),
                         ),
                     ),
                     ast.eq_cmp(
                         ast.seq_take(
-                            ast.explicit_seq(&(0..10)
-                                .map(|x| ast.int_lit(x))
-                                .collect::<Vec<Expr>>()),
+                            ast.explicit_seq(
+                                &(0..10).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>(),
+                            ),
                             ast.int_lit(3),
                         ),
                         ast.explicit_seq(&(0..3).map(|x| ast.int_lit(x)).collect::<Vec<Expr>>()),
@@ -64,7 +64,8 @@ fn concurrent_verifier_initialization() {
 
                 let program = ast.program(&[], &[], &[], &[], &[method]);
 
-                let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+                let verifier =
+                    verification_context.new_verifier(viper::VerificationBackend::Silicon);
 
                 let verification_result = verifier.verify(program);
 

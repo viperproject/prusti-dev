@@ -6,16 +6,16 @@
 
 //! A module that invokes the verifier `prusti-viper`
 
-use prusti_interface::specifications::TypedSpecificationMap;
-use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
-use prusti_interface::verifier::VerifierBuilder;
-use prusti_interface::verifier::VerificationContext;
-use prusti_interface::verifier::Verifier;
-use prusti_interface::data::VerificationTask;
 use prusti_interface::data::VerificationResult;
-use rustc_driver::driver;
+use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::EnvironmentImpl as Environment;
 use prusti_interface::report::user;
+use prusti_interface::specifications::TypedSpecificationMap;
+use prusti_interface::verifier::VerificationContext;
+use prusti_interface::verifier::Verifier;
+use prusti_interface::verifier::VerifierBuilder;
+use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
+use rustc_driver::driver;
 
 /// Verify a (typed) specification on compiler state.
 pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
@@ -33,7 +33,9 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
         debug!("Prepare verification task...");
         let annotated_procedures = env.get_annotated_procedures();
-        let verification_task = VerificationTask { procedures: annotated_procedures };
+        let verification_task = VerificationTask {
+            procedures: annotated_procedures,
+        };
         debug!("Verification task: {:?}", &verification_task);
 
         let header = vec![
@@ -53,7 +55,10 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
             option_env!("BUILD_TIME").unwrap_or("<unknown>")
         ));
         user::message(r"");
-        user::message(format!("Verification of {} items...", verification_task.procedures.len()));
+        user::message(format!(
+            "Verification of {} items...",
+            verification_task.procedures.len()
+        ));
 
         let verification_result = if verification_task.procedures.is_empty() {
             VerificationResult::Success
@@ -75,7 +80,10 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
         match verification_result {
             VerificationResult::Success => {
-                user::message(format!("Successful verification of {} items", verification_task.procedures.len()));
+                user::message(format!(
+                    "Successful verification of {} items",
+                    verification_task.procedures.len()
+                ));
             }
             VerificationResult::Failure => {
                 user::message("Verification failed");

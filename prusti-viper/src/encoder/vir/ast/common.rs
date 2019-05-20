@@ -4,14 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
-use std::cmp::Ordering;
-use std::fmt;
-use std::ops;
-use std::mem::discriminant;
-use std::hash::{Hash, Hasher};
-use num_rational::Ratio;
 use encoder::vir::ast::*;
+use num_rational::Ratio;
+use std::cmp::Ordering;
+use std::collections::HashMap;
+use std::fmt;
+use std::hash::{Hash, Hasher};
+use std::mem::discriminant;
+use std::ops;
 
 pub trait WithIdentifier {
     fn get_identifier(&self) -> String;
@@ -22,16 +22,12 @@ pub trait WithIdentifier {
 pub struct Position {
     line: i32,
     column: i32,
-    id: String
+    id: String,
 }
 
 impl Position {
     pub fn new(line: i32, column: i32, id: String) -> Self {
-        Position {
-            line,
-            column,
-            id
-        }
+        Position { line, column, id }
     }
 
     pub fn line(&self) -> i32 {
@@ -83,14 +79,8 @@ impl PermAmount {
     /// Can this permission amount be used in specifications?
     pub fn is_valid_for_specs(&self) -> bool {
         match self {
-            PermAmount::Read |
-            PermAmount::Write => {
-                true
-            }
-            PermAmount::Remaining |
-            PermAmount::Unset => {
-                false
-            }
+            PermAmount::Read | PermAmount::Write => true,
+            PermAmount::Remaining | PermAmount::Unset => false,
         }
     }
 }
@@ -111,9 +101,9 @@ impl ops::Add for PermAmount {
 
     fn add(self, other: PermAmount) -> PermAmount {
         match (self, other) {
-            (PermAmount::Read, PermAmount::Remaining) |
-            (PermAmount::Remaining, PermAmount::Read) => PermAmount::Write,
-            _ => unreachable!("Invalid addition: {} + {}", self, other)
+            (PermAmount::Read, PermAmount::Remaining)
+            | (PermAmount::Remaining, PermAmount::Read) => PermAmount::Write,
+            _ => unreachable!("Invalid addition: {} + {}", self, other),
         }
     }
 }
@@ -125,7 +115,7 @@ impl ops::Sub for PermAmount {
         match (self, other) {
             (PermAmount::Write, PermAmount::Read) => PermAmount::Remaining,
             (PermAmount::Write, PermAmount::Remaining) => PermAmount::Read,
-            _ => unreachable!("Invalid subtraction: {} - {}", self, other)
+            _ => unreachable!("Invalid subtraction: {} - {}", self, other),
         }
     }
 }
@@ -134,8 +124,9 @@ impl Ord for PermAmount {
     fn cmp(&self, other: &PermAmount) -> Ordering {
         match (self, other) {
             (PermAmount::Read, PermAmount::Write) => Ordering::Less,
-            (PermAmount::Read, PermAmount::Read) |
-            (PermAmount::Write, PermAmount::Write) => Ordering::Equal,
+            (PermAmount::Read, PermAmount::Read) | (PermAmount::Write, PermAmount::Write) => {
+                Ordering::Equal
+            }
             (PermAmount::Write, PermAmount::Read) => Ordering::Greater,
             _ => unreachable!("self={} other={}", self, other),
         }
@@ -154,7 +145,7 @@ pub enum Type {
     Bool,
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
-    TypedRef(String)
+    TypedRef(String),
 }
 
 impl fmt::Display for Type {
@@ -173,7 +164,7 @@ impl Type {
         match self {
             //&Type::Ref |
             &Type::TypedRef(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -191,7 +182,7 @@ impl Type {
             Type::TypedRef(mut name) => {
                 name.push_str(variant);
                 Type::TypedRef(name)
-            },
+            }
             _ => unreachable!(),
         }
     }
@@ -218,8 +209,7 @@ impl PartialEq for Type {
     }
 }
 
-impl Eq for Type {
-}
+impl Eq for Type {}
 
 impl Hash for Type {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -230,7 +220,7 @@ impl Hash for Type {
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct LocalVar {
     pub name: String,
-    pub typ: Type
+    pub typ: Type,
 }
 
 impl fmt::Display for LocalVar {
@@ -249,14 +239,14 @@ impl LocalVar {
     pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
         LocalVar {
             name: name.into(),
-            typ
+            typ,
         }
     }
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.typ {
             Type::TypedRef(ref name) => Some(name.clone()),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -264,7 +254,7 @@ impl LocalVar {
 #[derive(Clone)]
 pub struct Field {
     pub name: String,
-    pub typ: Type
+    pub typ: Type,
 }
 
 impl fmt::Display for Field {
@@ -283,17 +273,16 @@ impl Field {
     pub fn new<S: Into<String>>(name: S, typ: Type) -> Self {
         Field {
             name: name.into(),
-            typ
+            typ,
         }
     }
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.typ {
             Type::TypedRef(ref name) => Some(name.clone()),
-            _ => None
+            _ => None,
         }
     }
-
 }
 
 impl PartialEq for Field {
@@ -302,9 +291,7 @@ impl PartialEq for Field {
     }
 }
 
-impl Eq for Field {
-}
-
+impl Eq for Field {}
 
 impl Hash for Field {
     fn hash<H: Hasher>(&self, state: &mut H) {

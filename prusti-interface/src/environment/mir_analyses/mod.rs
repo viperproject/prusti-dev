@@ -6,7 +6,6 @@
 
 //! This module defines various MIR analyses.
 
-
 pub mod common;
 pub mod initialization;
 pub mod liveness;

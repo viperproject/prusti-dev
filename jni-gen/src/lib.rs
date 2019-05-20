@@ -12,13 +12,13 @@ extern crate log;
 #[macro_use]
 mod wrapper_spec;
 
+mod class_name;
 pub mod errors;
-mod utils;
+mod generators;
 mod module_tree;
 mod unordered_set_eq;
+mod utils;
 mod wrapper_generator;
-mod generators;
-mod class_name;
 
 pub use wrapper_generator::*;
 pub use wrapper_spec::*;

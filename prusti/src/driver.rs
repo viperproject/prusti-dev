@@ -14,12 +14,12 @@ extern crate prusti;
 extern crate prusti_interface;
 extern crate rustc_driver;
 
+use prusti::driver_utils::run;
+use prusti::prusti_runner::run_prusti;
+use prusti_interface::sysroot::current_sysroot;
 use rustc_driver::RustcDefaultCalls;
 use std::env;
-use prusti::driver_utils::run;
-use prusti_interface::sysroot::current_sysroot;
 use std::path::Path;
-use prusti::prusti_runner::run_prusti;
 use std::process::exit;
 
 pub fn main() {
@@ -51,8 +51,9 @@ pub fn main() {
         // this conditional check for the --sysroot flag is there so users can call
         // `prusti-filter` directly without having to pass --sysroot or anything
         if !args.iter().any(|s| s == "--sysroot") {
-            let sys_root = current_sysroot()
-                .expect("need to specify SYSROOT env var during compilation, or use rustup or multirust");
+            let sys_root = current_sysroot().expect(
+                "need to specify SYSROOT env var during compilation, or use rustup or multirust",
+            );
             debug!("Using sys_root='{}'", sys_root);
             args.push("--sysroot".to_owned());
             args.push(sys_root);

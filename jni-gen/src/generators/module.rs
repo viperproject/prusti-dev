@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
-use module_tree::*;
 use class_name::*;
+use module_tree::*;
+use std::collections::HashMap;
 
 pub fn generate_module(class_names: Vec<&ClassName>) -> String {
     let mut modules = ModuleTree::default();
@@ -45,5 +45,7 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
         "//! Automatically generated code\n".to_string(),
         "#![allow(non_snake_case)]\n".to_string(),
         modules_tree,
-    ].join("\n") + "\n"
+    ]
+    .join("\n")
+        + "\n"
 }

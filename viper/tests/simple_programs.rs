@@ -62,7 +62,10 @@ fn failure_with_assert_false() {
 
     if let VerificationResult::Failure(errors) = verification_result {
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0].full_id, "assert.failed:assertion.false".to_string());
+        assert_eq!(
+            errors[0].full_id,
+            "assert.failed:assertion.false".to_string()
+        );
         assert_eq!(errors[0].pos_id, Some("pos-id:123".to_string()));
     } else {
         assert!(false)
@@ -179,9 +182,7 @@ fn failure_with_assign_if_and_assert() {
     let if_stmt = ast.if_stmt(
         local_var,
         ast.seqn(
-            &[
-                ast.assert(ast.false_lit(), ast.identifier_position(3, 0, "then")),
-            ],
+            &[ast.assert(ast.false_lit(), ast.identifier_position(3, 0, "then"))],
             &[],
         ),
         ast.seqn(
@@ -205,7 +206,10 @@ fn failure_with_assign_if_and_assert() {
 
     if let VerificationResult::Failure(errors) = verification_result {
         assert_eq!(errors.len(), 1);
-        assert_eq!(errors[0].full_id, "assert.failed:assertion.false".to_string());
+        assert_eq!(
+            errors[0].full_id,
+            "assert.failed:assertion.false".to_string()
+        );
         assert_eq!(errors[0].pos_id, Some("then".to_string()));
     } else {
         assert!(false)

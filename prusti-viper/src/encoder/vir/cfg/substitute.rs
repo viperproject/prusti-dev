@@ -9,8 +9,14 @@ use encoder::vir::cfg::method::*;
 use std::fmt;
 
 impl CfgMethod {
-    pub fn substitute_expr<F>(&mut self, substitutor: F) where F: Fn(vir::Expr) -> vir::Expr {
-        trace!("CfgMethod::substitute_place_in_old_expr {}", self.method_name);
+    pub fn substitute_expr<F>(&mut self, substitutor: F)
+    where
+        F: Fn(vir::Expr) -> vir::Expr,
+    {
+        trace!(
+            "CfgMethod::substitute_place_in_old_expr {}",
+            self.method_name
+        );
         for block in &mut self.basic_blocks {
             for stmt in &mut block.stmts {
                 *stmt = stmt.clone().map_expr(|x| substitutor(x));
@@ -21,21 +27,25 @@ impl CfgMethod {
 }
 
 impl Successor {
-    pub fn map_expr<F>(self, f: F) -> Self where F: Fn(vir::Expr) -> vir::Expr {
+    pub fn map_expr<F>(self, f: F) -> Self
+    where
+        F: Fn(vir::Expr) -> vir::Expr,
+    {
         trace!("Successor::map_expr {:?}", self);
         match self {
             Successor::GotoSwitch(guarded_targets, default_target) => Successor::GotoSwitch(
-                guarded_targets.into_iter().map(|(guard, target)| (f(guard), target)).collect(),
-                default_target
+                guarded_targets
+                    .into_iter()
+                    .map(|(guard, target)| (f(guard), target))
+                    .collect(),
+                default_target,
             ),
 
-            Successor::GotoIf(guard, then_target, else_target) => Successor::GotoIf(
-                f(guard),
-                then_target,
-                else_target
-            ),
+            Successor::GotoIf(guard, then_target, else_target) => {
+                Successor::GotoIf(f(guard), then_target, else_target)
+            }
 
-            x => x
+            x => x,
         }
     }
 }

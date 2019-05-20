@@ -18,7 +18,9 @@ pub fn current_sysroot() -> Option<String> {
         .or_else(|| {
             let home = option_env!("RUSTUP_HOME").or(option_env!("MULTIRUST_HOME"));
             let toolchain = option_env!("RUSTUP_TOOLCHAIN").or(option_env!("MULTIRUST_TOOLCHAIN"));
-            home.and_then(|home| toolchain.map(|toolchain| format!("{}/toolchains/{}", home, toolchain)))
+            home.and_then(|home| {
+                toolchain.map(|toolchain| format!("{}/toolchains/{}", home, toolchain))
+            })
         })
         .or_else(|| {
             Command::new("rustc")

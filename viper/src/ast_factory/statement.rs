@@ -2,14 +2,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use viper_sys::wrappers::viper::silver::ast;
-use ast_factory::AstFactory;
+use ast_factory::structs::Declaration;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Field;
 use ast_factory::structs::Position;
 use ast_factory::structs::Stmt;
-use ast_factory::structs::Declaration;
+use ast_factory::AstFactory;
 use jni::objects::JObject;
+use viper_sys::wrappers::viper::silver::ast;
 
 impl<'a> AstFactory<'a> {
     pub fn new_stmt(&self, lhs: Expr, fields: &[Field]) -> Stmt<'a> {
@@ -24,9 +24,7 @@ impl<'a> AstFactory<'a> {
 
     pub fn abstract_assign(&self, lhs: Expr, rhs: Expr) -> Stmt<'a> {
         let abstract_assign_wrapper = ast::AbstractAssign_object::with(self.env);
-        let abstract_assign_instance = self.jni.unwrap_result(
-            abstract_assign_wrapper.singleton()
-        );
+        let abstract_assign_instance = self.jni.unwrap_result(abstract_assign_wrapper.singleton());
         let obj = self.jni.unwrap_result(abstract_assign_wrapper.call_apply(
             abstract_assign_instance,
             lhs.to_jobject(),

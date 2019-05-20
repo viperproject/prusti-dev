@@ -6,15 +6,15 @@
 
 use encoder::vir::Position;
 use std::collections::HashMap;
+use syntax::codemap::CodeMap;
 use syntax::codemap::Span;
 use syntax_pos::MultiSpan;
+use syntax_pos::DUMMY_SP;
 use uuid::Uuid;
 use viper::VerificationError;
-use syntax::codemap::CodeMap;
-use syntax_pos::DUMMY_SP;
 
 /// The cause of a panic!()
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum PanicCause {
     /// Unknown cause
     Unknown,
@@ -30,7 +30,7 @@ pub enum PanicCause {
 
 /// In case of verification error, this enum will contain additional information
 /// required to describe the error.
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes a Rust panic
     Panic(PanicCause),
@@ -79,11 +79,10 @@ pub enum ErrorCtxt {
     DivergingCallInPureFunction,
     /// A Viper pure function call with `false` precondition that encodes a Rust panic in a pure function
     PanicInPureFunction(PanicCause),
-
 }
 
 /// The Rust error that will be reported from the compiler
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct CompilerError {
     pub message: String,
     pub span: MultiSpan,
@@ -91,15 +90,11 @@ pub struct CompilerError {
 }
 
 impl CompilerError {
-    pub fn new<S: ToString>(
-        message: S,
-        span: MultiSpan,
-        reason_span: Option<MultiSpan>
-    ) -> Self {
+    pub fn new<S: ToString>(message: S, span: MultiSpan, reason_span: Option<MultiSpan>) -> Self {
         CompilerError {
             message: message.to_string(),
             span,
-            reason_span
+            reason_span,
         }
     }
 }
@@ -127,7 +122,10 @@ impl<'tcx> ErrorManager<'tcx> {
         let span = span.into();
         let pos_id = Uuid::new_v4().to_hyphenated().to_string();
         let pos = if let Some(primary_span) = span.primary_span() {
-            let lines_info = self.codemap.span_to_lines(span.primary_span().unwrap().source_callsite()).unwrap();
+            let lines_info = self
+                .codemap
+                .span_to_lines(span.primary_span().unwrap().source_callsite())
+                .unwrap();
             let first_line_info = lines_info.lines.get(0).unwrap();
             let line = first_line_info.line_index as i32 + 1;
             let column = first_line_info.start_col.0 as i32 + 1;
@@ -147,14 +145,17 @@ impl<'tcx> ErrorManager<'tcx> {
     pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {
         debug!("Verification error: {:?}", ver_error);
         let pos_id = &ver_error.pos_id;
-        let opt_error_ctxt = pos_id.as_ref().and_then(
-            |pos_id| self.error_contexts.get(pos_id)
-        );
+        let opt_error_ctxt = pos_id
+            .as_ref()
+            .and_then(|pos_id| self.error_contexts.get(pos_id));
 
-        let (error_span, error_ctxt, reason_span) = if let Some((error_span, error_ctxt)) = opt_error_ctxt {
-            let opt_reason_ctxt = ver_error.reason_pos_id.as_ref().and_then(
-                |pos_id| self.error_contexts.get(pos_id)
-            );
+        let (error_span, error_ctxt, reason_span) = if let Some((error_span, error_ctxt)) =
+            opt_error_ctxt
+        {
+            let opt_reason_ctxt = ver_error
+                .reason_pos_id
+                .as_ref()
+                .and_then(|pos_id| self.error_contexts.get(pos_id));
             if let Some((reason_span, _)) = opt_reason_ctxt {
                 (error_span.clone(), error_ctxt, Some(reason_span.clone()))
             } else {
@@ -164,24 +165,19 @@ impl<'tcx> ErrorManager<'tcx> {
             debug!("Unregistered verification error: {:?}", ver_error);
 
             match pos_id {
-                Some(ref pos_id) => {
-                    return CompilerError::new(
-                        format!(
-                            "internal encoding error - unregistered verification error: [{}; {}] {}",
-                            ver_error.full_id,
-                            pos_id,
-                            ver_error.message
-                        ),
-                        MultiSpan::new(),
-                        None,
-                    )
-                }
+                Some(ref pos_id) => return CompilerError::new(
+                    format!(
+                        "internal encoding error - unregistered verification error: [{}; {}] {}",
+                        ver_error.full_id, pos_id, ver_error.message
+                    ),
+                    MultiSpan::new(),
+                    None,
+                ),
                 None => {
                     return CompilerError::new(
                         format!(
                             "internal encoding error - unregistered verification error: [{}] {}",
-                            ver_error.full_id,
-                            ver_error.message
+                            ver_error.full_id, ver_error.message
                         ),
                         MultiSpan::new(),
                         None,
@@ -191,212 +187,272 @@ impl<'tcx> ErrorManager<'tcx> {
         };
 
         match (ver_error.full_id.as_str(), error_ctxt) {
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => CompilerError::new(
-                "statement might panic",
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => {
+                CompilerError::new("statement might panic", error_span, reason_span)
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => CompilerError::new(
-                "panic!(..) statement might panic",
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => {
+                CompilerError::new("panic!(..) statement might panic", error_span, reason_span)
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => CompilerError::new(
-                "assert!(..) statement might not hold",
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                CompilerError::new(
+                    "assert!(..) statement might not hold",
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => CompilerError::new(
-                "unreachable!(..) statement might be reachable",
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => {
+                CompilerError::new(
+                    "unreachable!(..) statement might be reachable",
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unimplemented)) => CompilerError::new(
-                "unimplemented!(..) statement might be reachable",
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unimplemented)) => {
+                CompilerError::new(
+                    "unimplemented!(..) statement might be reachable",
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => CompilerError::new(
-                format!("assertion might fail with \"{}\"", message),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => {
+                CompilerError::new(
+                    format!("assertion might fail with \"{}\"", message),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => CompilerError::new(
-                format!("statement might abort"),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => {
+                CompilerError::new(format!("statement might abort"), error_span, reason_span)
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => CompilerError::new(
-                format!("unreachable code might be reachable. This might be a bug in the compiler."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => {
+                CompilerError::new(
+                    format!(
+                        "unreachable code might be reachable. This might be a bug in the compiler."
+                    ),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => CompilerError::new(
-                format!("precondition might not hold."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
+                CompilerError::new(
+                    format!("precondition might not hold."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("fold.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => CompilerError::new(
-                format!("implicit type invariant expected by the function call might not hold."),
-                error_span,
-                reason_span,
-            ),
+            ("fold.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
+                CompilerError::new(
+                    format!(
+                        "implicit type invariant expected by the function call might not hold."
+                    ),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => CompilerError::new(
-                format!("postcondition might not hold."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
+                CompilerError::new(
+                    format!("postcondition might not hold."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => CompilerError::new(
-                format!("loop invariant might not hold on entry."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+                CompilerError::new(
+                    format!("loop invariant might not hold on entry."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("fold.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => CompilerError::new(
-                format!("implicit type invariant of a variable might not hold on loop entry."),
-                error_span,
-                reason_span,
-            ),
+            ("fold.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
+                CompilerError::new(
+                    format!("implicit type invariant of a variable might not hold on loop entry."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => CompilerError::new(
-                format!("loop invariant might not hold on entry."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => {
+                CompilerError::new(
+                    format!("loop invariant might not hold on entry."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => CompilerError::new(
-                format!("loop invariant might not hold at the end of a loop iteration."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
+                CompilerError::new(
+                    format!("loop invariant might not hold at the end of a loop iteration."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => CompilerError::new(
-                format!("loop invariant might not hold at the end of a loop iteration."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
+                CompilerError::new(
+                    format!("loop invariant might not hold at the end of a loop iteration."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => CompilerError::new(
-                format!("precondition of pure function call might not hold."),
-                error_span,
-                reason_span,
-            ),
+            ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => {
+                CompilerError::new(
+                    format!("precondition of pure function call might not hold."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => CompilerError::new(
-                format!("pledge in the postcondition might not hold."),
-                error_span,
-                reason_span,
-            ),
+            ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => {
+                CompilerError::new(
+                    format!("pledge in the postcondition might not hold."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("application.precondition:assertion.false", ErrorCtxt::DivergingCallInPureFunction) => CompilerError::new(
+            (
+                "application.precondition:assertion.false",
+                ErrorCtxt::DivergingCallInPureFunction,
+            ) => CompilerError::new(
                 format!("diverging function call in pure function might be reachable."),
                 error_span,
                 reason_span,
             ),
 
-            ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Unknown)) => CompilerError::new(
+            (
+                "application.precondition:assertion.false",
+                ErrorCtxt::PanicInPureFunction(PanicCause::Unknown),
+            ) => CompilerError::new(
                 "statement in pure function might panic",
                 error_span,
                 reason_span,
             ),
 
-            ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Panic)) => CompilerError::new(
+            (
+                "application.precondition:assertion.false",
+                ErrorCtxt::PanicInPureFunction(PanicCause::Panic),
+            ) => CompilerError::new(
                 "panic!(..) statement in pure function might panic",
                 error_span,
                 reason_span,
             ),
 
-            ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Assert)) => CompilerError::new(
+            (
+                "application.precondition:assertion.false",
+                ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
+            ) => CompilerError::new(
                 "assert!(..) statement in pure function might not hold",
                 error_span,
                 reason_span,
             ),
 
-            ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable)) => CompilerError::new(
+            (
+                "application.precondition:assertion.false",
+                ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable),
+            ) => CompilerError::new(
                 "unreachable!(..) statement in pure function might be reachable",
                 error_span,
                 reason_span,
             ),
 
-            ("application.precondition:assertion.false", ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented)) => CompilerError::new(
+            (
+                "application.precondition:assertion.false",
+                ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented),
+            ) => CompilerError::new(
                 "unimplemented!(..) statement in pure function might be reachable",
                 error_span,
                 reason_span,
             ),
 
-            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
-            ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => CompilerError::new(
-                "postcondition of pure function definition might not hold",
-                error_span,
-                reason_span,
-            ),
+            ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition)
+            | ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall)
+            | ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => {
+                CompilerError::new(
+                    "postcondition of pure function definition might not hold",
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("application.precondition:assertion.false", ErrorCtxt::PureFunctionAssertTerminator(ref message)) => CompilerError::new(
+            (
+                "application.precondition:assertion.false",
+                ErrorCtxt::PureFunctionAssertTerminator(ref message),
+            ) => CompilerError::new(
                 format!("assertion might fail with \"{}\"", message),
                 error_span,
                 reason_span,
             ),
 
-            ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => CompilerError::new(
-                "obligation might not hold on borrow expiry",
-                error_span,
-                reason_span,
-            ),
+            ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => {
+                CompilerError::new(
+                    "obligation might not hold on borrow expiry",
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition) => CompilerError::new(
-                format!("postcondition might not hold."),
-                error_span,
-                reason_span,
-            ),
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition) => {
+                CompilerError::new(
+                    format!("postcondition might not hold."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => CompilerError::new(
+            (
+                "assert.failed:assertion.false",
+                ErrorCtxt::AssertMethodPostconditionTypeInvariants,
+            ) => CompilerError::new(
                 format!("type invariants might not hold at the end of the method."),
                 error_span,
                 reason_span,
             ),
 
-            ("fold.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) |
-            ("fold.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => CompilerError::new(
-                format!("implicit type invariants might not hold at the end of the method."),
-                error_span,
-                reason_span,
-            ),
+            ("fold.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition)
+            | ("fold.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => {
+                CompilerError::new(
+                    format!("implicit type invariants might not hold at the end of the method."),
+                    error_span,
+                    reason_span,
+                )
+            }
 
             (full_err_id, ErrorCtxt::Unexpected) => CompilerError::new(
                 format!(
                     "internal encoding error - unexpected verification error: [{}] {}",
-                    full_err_id,
-                    ver_error.message
+                    full_err_id, ver_error.message
                 ),
                 error_span,
                 reason_span,
             ),
 
             (full_err_id, _) => {
-                debug!("Unhandled verification error: {:?}, context: {:?}", ver_error, error_ctxt);
+                debug!(
+                    "Unhandled verification error: {:?}, context: {:?}",
+                    ver_error, error_ctxt
+                );
                 CompilerError::new(
                     format!(
                         "internal encoding error - unhandled verification error: {:?} [{}] {}",
-                        error_ctxt,
-                        full_err_id,
-                        ver_error.message,
+                        error_ctxt, full_err_id, ver_error.message,
                     ),
                     error_span,
                     reason_span,
                 )
-            },
+            }
         }
     }
 }

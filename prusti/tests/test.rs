@@ -1,8 +1,8 @@
 extern crate compiletest_rs;
 
-use std::env::{var, set_var, remove_var};
-use std::path::PathBuf;
 use compiletest_rs::{common, run_tests, Config};
+use std::env::{remove_var, set_var, var};
+use std::path::PathBuf;
 
 static LOCAL_DRIVER_PATH: &'static str = "target/debug/prusti-driver";
 static WORKSPACE_DRIVER_PATH: &'static str = "../target/debug/prusti-driver";

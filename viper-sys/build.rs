@@ -10,12 +10,12 @@ extern crate jni_gen;
 extern crate reqwest;
 extern crate tempdir;
 
-use std::fs;
-use std::env;
-use jni_gen::*;
 use error_chain::ChainedError;
-use std::io::copy;
+use jni_gen::*;
+use std::env;
+use std::fs;
 use std::fs::File;
+use std::io::copy;
 use tempdir::TempDir;
 
 fn main() {

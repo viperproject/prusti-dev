@@ -4,18 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_interface::utils;
+use prusti_interface::environment::mir_analyses::initialization::{
+    compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
+};
+use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::environment::{
-    BasicBlockIndex, PlaceAccess, PlaceAccessKind, ProcedureLoops, PermissionForest};
+    BasicBlockIndex, PermissionForest, PlaceAccess, PlaceAccessKind, ProcedureLoops,
+};
+use prusti_interface::utils;
+use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
 use std::collections::HashMap;
-use prusti_interface::environment::mir_analyses::initialization::{
-    compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult
-};
-use rustc::hir::def_id::DefId;
-use prusti_interface::environment::place_set::PlaceSet;
 
 pub struct LoopEncoder<'a, 'tcx: 'a> {
     mir: &'a mir::Mir<'tcx>,
@@ -25,9 +25,11 @@ pub struct LoopEncoder<'a, 'tcx: 'a> {
 }
 
 impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
-
-    pub fn new(mir: &'a mir::Mir<'tcx>, tcx: ty::TyCtxt<'a, 'tcx, 'tcx>, def_id: DefId) -> LoopEncoder<'a, 'tcx>
-    {
+    pub fn new(
+        mir: &'a mir::Mir<'tcx>,
+        tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
+        def_id: DefId,
+    ) -> LoopEncoder<'a, 'tcx> {
         let def_path = tcx.hir.def_path(def_id);
         LoopEncoder {
             mir,
@@ -49,13 +51,12 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
     /// 0 = outside loops, 1 = inside one loop, 2 = inside 2 loops and so on
     pub fn get_loop_depth(&self, bbi: BasicBlockIndex) -> usize {
-        self.get_loop_head(bbi).map(
-            |head| self.loops.get_loop_head_depth(head)
-        ).unwrap_or(0)
+        self.get_loop_head(bbi)
+            .map(|head| self.loops.get_loop_head_depth(head))
+            .unwrap_or(0)
     }
 
-    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx>
-    {
+    pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx> {
         assert!(self.is_loop_head(bb));
 
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
@@ -79,8 +80,12 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         //         bodies without unreachable elements instead of predicates.
 
         // Paths accessed inside the loop body.
-        let (write_leaves, mut_borrow_leaves, read_leaves) = self.loops.compute_read_and_write_leaves(
-            bb, self.mir, Some(self.initialization.get_before_block(bb)));
+        let (write_leaves, mut_borrow_leaves, read_leaves) =
+            self.loops.compute_read_and_write_leaves(
+                bb,
+                self.mir,
+                Some(self.initialization.get_before_block(bb)),
+            );
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {
@@ -94,15 +99,17 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
         }
 
         // Construct the permission forest.
-        let forest = PermissionForest::new(
-            &write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
+        let forest =
+            PermissionForest::new(&write_leaves, &mut_borrow_leaves, &read_leaves, &all_places);
 
         forest
     }
 
     /// Is the ``place`` definitely initialised at the beginning of ``bbi``?
     pub fn is_definitely_initialised(&self, place: &mir::Place, bbi: BasicBlockIndex) -> bool {
-        self.initialization.get_before_block(bbi).iter()
+        self.initialization
+            .get_before_block(bbi)
+            .iter()
             .any(|def_init_place| utils::is_prefix(place, def_init_place))
     }
 }

@@ -7,10 +7,10 @@
 // TODO: fix later
 #![allow(deprecated)]
 
-use std::fmt;
-use encoder::vir::ast::*;
-use super::super::borrows::{DAG as ReborrowingDAG, Borrow};
+use super::super::borrows::{Borrow, DAG as ReborrowingDAG};
 use super::super::cfg::CfgBlockIndex;
+use encoder::vir::ast::*;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Stmt {
@@ -89,40 +89,49 @@ impl fmt::Display for Stmt {
             Stmt::Exhale(ref expr, _) => write!(f, "exhale {}", expr),
             Stmt::Assert(ref expr, _) => write!(f, "assert {}", expr),
             Stmt::MethodCall(ref name, ref args, ref vars) => write!(
-                f, "{} := {}({})",
-                vars.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                f,
+                "{} := {}({})",
+                vars.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
                 name,
-                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                args.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
             ),
             Stmt::Assign(ref lhs, ref rhs, kind) => match kind {
-                AssignKind::Move => {
-                    write!(f, "{} := move {}", lhs, rhs)
-                },
-                AssignKind::Copy => {
-                    write!(f, "{} := copy {}", lhs, rhs)
-                },
+                AssignKind::Move => write!(f, "{} := move {}", lhs, rhs),
+                AssignKind::Copy => write!(f, "{} := copy {}", lhs, rhs),
                 AssignKind::MutableBorrow(borrow) => {
                     write!(f, "{} := mut borrow {} // {:?}", lhs, rhs, borrow)
-                },
+                }
                 AssignKind::SharedBorrow(borrow) => {
                     write!(f, "{} := borrow {} // {:?}", lhs, rhs, borrow)
-                },
-                AssignKind::Ghost => {
-                    write!(f, "{} := ghost {}", lhs, rhs)
-                },
+                }
+                AssignKind::Ghost => write!(f, "{} := ghost {}", lhs, rhs),
             },
 
             Stmt::Fold(ref pred_name, ref args, perm, _) => write!(
-                f, "fold acc({}({}), {})",
+                f,
+                "fold acc({}({}), {})",
                 pred_name,
-                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                args.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
                 perm,
             ),
 
             Stmt::Unfold(ref pred_name, ref args, perm) => write!(
-                f, "unfold acc({}({}), {})",
+                f,
+                "unfold acc({}({}), {})",
                 pred_name,
-                args.iter().map(|f| f.to_string()).collect::<Vec<String>>().join(", "),
+                args.iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
                 perm,
             ),
 
@@ -136,16 +145,18 @@ impl fmt::Display for Stmt {
 
             Stmt::EndFrame => write!(f, "end frame"),
 
-            Stmt::TransferPerm(ref lhs, ref rhs, unchecked) => {
-                write!(f, "transfer perm {} --> {} // unchecked: {}", lhs, rhs, unchecked)
-            },
+            Stmt::TransferPerm(ref lhs, ref rhs, unchecked) => write!(
+                f,
+                "transfer perm {} --> {} // unchecked: {}",
+                lhs, rhs, unchecked
+            ),
 
             Stmt::PackageMagicWand(
                 Expr::MagicWand(ref lhs, ref rhs, None, _),
                 ref package_stmts,
                 ref label,
                 _vars,
-                _position
+                _position,
             ) => {
                 writeln!(f, "package[{}] {}", label, lhs)?;
                 writeln!(f, "    --* {}", rhs)?;
@@ -163,9 +174,7 @@ impl fmt::Display for Stmt {
                 writeln!(f, "apply[{:?}] {} --* {}", borrow, lhs, rhs)
             }
 
-            Stmt::ExpireBorrows(dag) => {
-                writeln!(f, "expire_borrows {:?}", dag)
-            }
+            Stmt::ExpireBorrows(dag) => writeln!(f, "expire_borrows {:?}", dag),
 
             Stmt::If(ref guard, ref then_stmts) => {
                 write!(f, "if {} {{", guard)?;
@@ -187,7 +196,7 @@ impl Stmt {
     pub fn is_comment(&self) -> bool {
         match self {
             Stmt::Comment(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -198,12 +207,8 @@ impl Stmt {
     pub fn obtain_acc(place: Expr, pos: Position) -> Self {
         assert!(!place.is_local());
         Stmt::Obtain(
-            Expr::FieldAccessPredicate(
-                box place,
-                PermAmount::Write,
-                pos.clone()
-            ),
-            pos
+            Expr::FieldAccessPredicate(box place, PermAmount::Write, pos.clone()),
+            pos,
         )
     }
 
@@ -214,31 +219,20 @@ impl Stmt {
                 predicate_name,
                 box place,
                 PermAmount::Write,
-                pos.clone()
+                pos.clone(),
             ),
-            pos
+            pos,
         )
     }
 
     pub fn fold_pred(place: Expr, perm: PermAmount, pos: Position) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Fold(
-            predicate_name,
-            vec![
-                place.into()
-            ],
-            perm,
-            pos
-        )
+        Stmt::Fold(predicate_name, vec![place.into()], perm, pos)
     }
 
     pub fn unfold_pred(place: Expr, perm: PermAmount) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Unfold(
-            predicate_name,
-            vec![ place ],
-            perm
-        )
+        Stmt::Unfold(predicate_name, vec![place], perm)
     }
 
     pub fn package_magic_wand(
@@ -247,28 +241,25 @@ impl Stmt {
         stmts: Vec<Stmt>,
         label: String,
         vars: Vec<LocalVar>,
-        pos: Position
+        pos: Position,
     ) -> Self {
         Stmt::PackageMagicWand(
             Expr::MagicWand(box lhs, box rhs, None, pos.clone()),
             stmts,
             label,
             vars,
-            pos
+            pos,
         )
     }
 
     pub fn apply_magic_wand(lhs: Expr, rhs: Expr, borrow: Borrow, pos: Position) -> Self {
-        Stmt::ApplyMagicWand(
-            Expr::magic_wand(lhs, rhs, Some(borrow)),
-            pos
-        )
+        Stmt::ApplyMagicWand(Expr::magic_wand(lhs, rhs, Some(borrow)), pos)
     }
 
     pub fn pos(&self) -> Option<&Position> {
         match self {
             Stmt::PackageMagicWand(_, _, _, _, ref p) => Some(p),
-            _ => None
+            _ => None,
         }
     }
 
@@ -292,7 +283,6 @@ impl Stmt {
     pub fn set_default_expr_pos(self, pos: Position) -> Self {
         self.map_expr(|e| e.set_default_pos(pos.clone()))
     }
-
 }
 
 pub trait StmtFolder {
@@ -353,7 +343,12 @@ pub trait StmtFolder {
     }
 
     fn fold_fold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount, p: Position) -> Stmt {
-        Stmt::Fold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm, p)
+        Stmt::Fold(
+            s,
+            ve.into_iter().map(|e| self.fold_expr(e)).collect(),
+            perm,
+            p,
+        )
     }
 
     fn fold_unfold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount) -> Stmt {
@@ -390,22 +385,19 @@ pub trait StmtFolder {
         body: Vec<Stmt>,
         label: String,
         vars: Vec<LocalVar>,
-        pos: Position
+        pos: Position,
     ) -> Stmt {
         Stmt::PackageMagicWand(
             self.fold_expr(wand),
             body.into_iter().map(|x| self.fold(x)).collect(),
             label,
             vars,
-            pos
+            pos,
         )
     }
 
     fn fold_apply_magic_wand(&mut self, w: Expr, p: Position) -> Stmt {
-        Stmt::ApplyMagicWand(
-            self.fold_expr(w),
-            p
-        )
+        Stmt::ApplyMagicWand(self.fold_expr(w), p)
     }
 
     fn fold_expire_borrows(&mut self, dag: ReborrowingDAG) -> Stmt {
@@ -516,7 +508,7 @@ pub trait StmtWalker {
         body: &Vec<Stmt>,
         label: &str,
         vars: &[LocalVar],
-        _p: &Position
+        _p: &Position,
     ) {
         self.walk_expr(wand);
         for var in vars {

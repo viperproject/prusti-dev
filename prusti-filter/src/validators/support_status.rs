@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::collections::HashSet;
-use syntax::codemap::Span;
-use serde::ser::{Serialize, Serializer, SerializeStruct};
 use std::hash::Hash;
+use syntax::codemap::Span;
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Reason {
@@ -55,21 +55,22 @@ impl<T: Clone + Eq + PartialEq + Hash + Serialize> Restriction<T> {
     pub fn is_partially_supported(&self) -> bool {
         match self {
             Restriction::PartiallySupported(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn is_unsupported(&self) -> bool {
         match self {
             Restriction::Unsupported(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn reason(&self) -> &T {
         match self {
-            Restriction::Unsupported(ref reason) |
-            Restriction::PartiallySupported(ref reason) => reason,
+            Restriction::Unsupported(ref reason) | Restriction::PartiallySupported(ref reason) => {
+                reason
+            }
         }
     }
 }
@@ -94,22 +95,18 @@ impl SupportStatus {
     }
 
     pub fn partially(&mut self, reason: Reason) {
-        self.restrictions.insert(
-            Restriction::PartiallySupported(reason.reason.clone())
-        );
-        self.precise_restrictions.insert(
-            Restriction::PartiallySupported(reason)
-        );
+        self.restrictions
+            .insert(Restriction::PartiallySupported(reason.reason.clone()));
+        self.precise_restrictions
+            .insert(Restriction::PartiallySupported(reason));
     }
 
     #[allow(dead_code)]
     pub fn unsupported(&mut self, reason: Reason) {
-        self.restrictions.insert(
-            Restriction::Unsupported(reason.reason.clone())
-        );
-        self.precise_restrictions.insert(
-            Restriction::Unsupported(reason)
-        );
+        self.restrictions
+            .insert(Restriction::Unsupported(reason.reason.clone()));
+        self.precise_restrictions
+            .insert(Restriction::Unsupported(reason));
     }
 
     #[allow(dead_code)]
@@ -122,19 +119,21 @@ impl SupportStatus {
     }
 
     pub fn is_partially_supported(&self) -> bool {
-        !self.precise_restrictions.is_empty() &&
-        self.precise_restrictions.iter()
-            .all(|s| s.is_partially_supported())
+        !self.precise_restrictions.is_empty()
+            && self
+                .precise_restrictions
+                .iter()
+                .all(|s| s.is_partially_supported())
     }
 
     #[allow(dead_code)]
     pub fn is_unsupported(&self) -> bool {
-        self.precise_restrictions.iter()
-            .any(|s| s.is_unsupported())
+        self.precise_restrictions.iter().any(|s| s.is_unsupported())
     }
 
     pub fn get_partially_supported_reasons(&self) -> Vec<Reason> {
-        self.precise_restrictions.iter()
+        self.precise_restrictions
+            .iter()
             .filter(|s| s.is_partially_supported())
             .map(|s| s.reason().clone())
             .collect()
@@ -142,7 +141,8 @@ impl SupportStatus {
 
     #[allow(dead_code)]
     pub fn get_unsupported_reasons(&self) -> Vec<Reason> {
-        self.precise_restrictions.iter()
+        self.precise_restrictions
+            .iter()
             .filter(|s| s.is_unsupported())
             .map(|s| s.reason().clone())
             .collect()

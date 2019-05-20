@@ -11,12 +11,12 @@
 //! Code adapted from the Rust compiler source code, file `librustc_driver/lib.rs`.
 
 use rustc::session::CompileIncomplete;
+use rustc::session::CompileResult;
+use rustc::session::{config, Session};
 use rustc_driver::in_rustc_thread;
 use rustc_errors as errors;
-use syntax_pos::MultiSpan;
-use rustc::session::{config, Session};
 use std::panic;
-use rustc::session::CompileResult;
+use syntax_pos::MultiSpan;
 
 static PRUSTI_BUG_REPORT_URL: &str = "<URL placeholder>";
 
@@ -26,10 +26,7 @@ static PRUSTI_BUG_REPORT_URL: &str = "<URL placeholder>";
 /// The diagnostic emitter yielded to the procedure should be used for reporting
 /// errors of the compiler.
 fn monitor<F: FnOnce() + Send + 'static>(f: F) {
-    let result = in_rustc_thread(move || {
-        f()
-    });
-
+    let result = in_rustc_thread(move || f());
 
     if let Err(value) = result {
         // Thread panicked without emitting a fatal diagnostic
@@ -37,19 +34,18 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
             // Emit a newline
             eprintln!("");
 
-            let emitter =
-                Box::new(errors::emitter::EmitterWriter::stderr(errors::ColorConfig::Auto,
-                                                                None,
-                                                                false,
-                                                                false));
+            let emitter = Box::new(errors::emitter::EmitterWriter::stderr(
+                errors::ColorConfig::Auto,
+                None,
+                false,
+                false,
+            ));
             let handler = errors::Handler::with_emitter(true, false, emitter);
 
             // a .span_bug or .bug call has already printed what
             // it wants to print.
             if !value.is::<errors::ExplicitBug>() {
-                handler.emit(&MultiSpan::new(),
-                             "unexpected panic",
-                             errors::Level::Bug);
+                handler.emit(&MultiSpan::new(), "unexpected panic", errors::Level::Bug);
             }
 
             let xs = vec![
@@ -65,19 +61,17 @@ fn monitor<F: FnOnce() + Send + 'static>(f: F) {
             ];
 
             for note in &xs {
-                handler.emit(&MultiSpan::new(),
-                             &note,
-                             errors::Level::Note);
+                handler.emit(&MultiSpan::new(), &note, errors::Level::Note);
             }
         }
 
         panic::resume_unwind(Box::new(errors::FatalErrorMarker));
     }
-
 }
 
 pub fn run<F>(run_compiler: F) -> isize
-    where F: FnOnce() -> (CompileResult, Option<Session>) + Send + 'static
+where
+    F: FnOnce() -> (CompileResult, Option<Session>) + Send + 'static,
 {
     monitor(move || {
         let (result, session) = run_compiler();
@@ -92,15 +86,18 @@ pub fn run<F>(run_compiler: F) -> isize
                     panic!("error reported but abort_if_errors didn't abort");
                 }
                 None => {
-                    let emitter =
-                        errors::emitter::EmitterWriter::stderr(errors::ColorConfig::Auto,
-                                                               None,
-                                                               true,
-                                                               false);
+                    let emitter = errors::emitter::EmitterWriter::stderr(
+                        errors::ColorConfig::Auto,
+                        None,
+                        true,
+                        false,
+                    );
                     let handler = errors::Handler::with_emitter(true, false, Box::new(emitter));
-                    handler.emit(&MultiSpan::new(),
-                                 "aborting due to previous error(s)",
-                                 errors::Level::Fatal);
+                    handler.emit(
+                        &MultiSpan::new(),
+                        "aborting due to previous error(s)",
+                        errors::Level::Fatal,
+                    );
                     panic::resume_unwind(Box::new(errors::FatalErrorMarker));
                 }
             }
@@ -110,7 +107,8 @@ pub fn run<F>(run_compiler: F) -> isize
 }
 
 pub fn silent_run<F>(run_compiler: F) -> isize
-    where F: FnOnce() -> (CompileResult, Option<Session>) + Send + 'static
+where
+    F: FnOnce() -> (CompileResult, Option<Session>) + Send + 'static,
 {
     let result = in_rustc_thread(move || {
         let (compile_result, session) = run_compiler();
@@ -122,16 +120,10 @@ pub fn silent_run<F>(run_compiler: F) -> isize
         }
 
         match compile_result {
-            Err(CompileIncomplete::Errored(_)) => {
-                match session {
-                    Some(_) => {
-                        3
-                    }
-                    None => {
-                        4
-                    }
-                }
-            }
+            Err(CompileIncomplete::Errored(_)) => match session {
+                Some(_) => 3,
+                None => 4,
+            },
 
             Err(CompileIncomplete::Stopped) => 0,
 
@@ -141,9 +133,7 @@ pub fn silent_run<F>(run_compiler: F) -> isize
 
     match result {
         // Thread panicked
-        Err(_value) => {
-            return 1
-        }
+        Err(_value) => return 1,
 
         Ok(exit_code) => exit_code,
     }

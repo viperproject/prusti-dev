@@ -2,27 +2,34 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use jni::sys::jint;
+use ast_factory::structs::Position;
+use ast_factory::AstFactory;
 use jni::strings::JNIString;
+use jni::sys::jint;
 use viper_sys::wrappers::java;
 use viper_sys::wrappers::viper::silver::ast;
-use ast_factory::AstFactory;
-use ast_factory::structs::Position;
 
 impl<'a> AstFactory<'a> {
     pub fn no_position(&self) -> Position<'a> {
-        let obj = self.jni
+        let obj = self
+            .jni
             .unwrap_result(ast::NoPosition_object::with(self.env).singleton());
         Position::new(obj)
     }
 
     pub fn line_column_position(&self, line: jint, column: jint) -> Position<'a> {
-        let obj = self.jni
+        let obj = self
+            .jni
             .unwrap_result(ast::LineColumnPosition::with(self.env).new(line, column));
         Position::new(obj)
     }
 
-    pub fn identifier_position<S: Into<JNIString>>(&self, line: jint, column: jint, pos_id: S) -> Position<'a> {
+    pub fn identifier_position<S: Into<JNIString>>(
+        &self,
+        line: jint,
+        column: jint,
+        pos_id: S,
+    ) -> Position<'a> {
         let obj = self.jni.unwrap_result(
             ast::IdentifierPosition::with(self.env).new(
                 self.jni.unwrap_result(

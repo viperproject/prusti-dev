@@ -43,11 +43,10 @@ impl AssignmentSet {
         }
     }
     fn replace(&mut self, local: mir::Local, location: mir::Location) {
-        self.set = self.set
+        self.set = self
+            .set
             .iter()
-            .filter(|assignment| {
-                assignment.target != local
-            })
+            .filter(|assignment| assignment.target != local)
             .cloned()
             .collect();
         self.set.insert(Assignment {
@@ -55,7 +54,7 @@ impl AssignmentSet {
             location: location,
         });
     }
-    pub fn iter(&self) -> impl Iterator<Item=&Assignment> {
+    pub fn iter(&self) -> impl Iterator<Item = &Assignment> {
         self.set.iter()
     }
 }
@@ -158,13 +157,16 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
     /// work queue.
     fn apply_terminator_effects(&mut self, bb: mir::BasicBlock) {
         trace!("[enter] apply_terminator_effects bb={:?}", bb);
-        let mir::BasicBlockData { ref terminator, ref statements, .. } = self.mir[bb];
+        let mir::BasicBlockData {
+            ref terminator,
+            ref statements,
+            ..
+        } = self.mir[bb];
         let mut set = self.get_set_before_terminator(bb);
         if let Some(ref terminator) = *terminator {
             match terminator.kind {
                 mir::TerminatorKind::Call {
-                    ref destination,
-                    ..
+                    ref destination, ..
                 } => {
                     if let Some((place, _)) = destination {
                         let location = mir::Location {
@@ -203,7 +205,10 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
             let old_set = &self.result.before_block[&bb];
             trace!(
                 "    merge_effects bb={:?} old_set={:?} set={:?}",
-                bb, old_set, set);
+                bb,
+                old_set,
+                set
+            );
             old_set != &set
         };
         if changed {
@@ -221,19 +226,19 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         }
     }
     /// Replace all assignments to `place` as definitely initialized.
-    fn replace_in_set(&self, set: &mut AssignmentSet, place: &mir::Place<'tcx>,
-                      location: mir::Location) {
+    fn replace_in_set(
+        &self,
+        set: &mut AssignmentSet,
+        place: &mir::Place<'tcx>,
+        location: mir::Location,
+    ) {
         if let mir::Place::Local(ref local) = place {
             set.replace(*local, location);
         }
     }
     /// If the place set after the statement is different from the provided,
     /// updates it and adds the successor to the work queue.
-    fn update_set_after_statement(
-        &mut self,
-        mut location: mir::Location,
-        set: AssignmentSet,
-    ) {
+    fn update_set_after_statement(&mut self, mut location: mir::Location, set: AssignmentSet) {
         let changed = {
             let old_set = &self.result.after_statement[&location];
             old_set != &set
@@ -270,7 +275,7 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         }
     }
     /// Return the set before the terminator of the given basic block.
-    fn get_set_before_terminator(&self, bb: mir::BasicBlock) ->  AssignmentSet {
+    fn get_set_before_terminator(&self, bb: mir::BasicBlock) -> AssignmentSet {
         let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
         if statements.len() == 0 {
             self.result.before_block[&bb].clone()
@@ -292,7 +297,6 @@ impl<'a, 'tcx: 'a> LivenessAnalysis<'a, 'tcx> {
         self.result.after_statement[&location].clone()
     }
 }
-
 
 /// Compute which assignments to local variables are live at each
 /// program point.

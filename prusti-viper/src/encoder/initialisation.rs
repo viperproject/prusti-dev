@@ -4,21 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-/// Module that allows querying the initialisation information.
-
-use encoder::vir;
 use encoder::mir_encoder::MirEncoder;
+/// Module that allows querying the initialisation information.
+use encoder::vir;
 use prusti_interface::environment::mir_analyses::initialization::{
-    compute_definitely_initialized,
-    DefinitelyInitializedAnalysisResult
+    compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
 };
 use prusti_interface::environment::place_set::PlaceSet;
-use rustc::{ty, mir};
 use rustc::hir::def_id::DefId;
+use rustc::{mir, ty};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
-pub struct InitInfo/*<'tcx>*/ {
+pub struct InitInfo {
     //mir_acc_before_block: HashMap<mir::BasicBlock, HashSet<mir::Place<'tcx>>>,
     //mir_acc_after_statement: HashMap<mir::Location, HashSet<mir::Place<'tcx>>>,
     vir_acc_before_block: HashMap<mir::BasicBlock, HashSet<vir::Expr>>,
@@ -30,11 +28,11 @@ fn explode<'tcx>(place_set: PlaceSet<'tcx>) -> HashSet<mir::Place<'tcx>> {
     let mut result = HashSet::new();
     fn insert<'tcx>(place: mir::Place<'tcx>, set: &mut HashSet<mir::Place<'tcx>>) {
         match place {
-            mir::Place::Local(_) => {},
-            mir::Place::Static(_) => {},
-            mir::Place::Projection(box mir::Projection{ ref base, .. }) => {
+            mir::Place::Local(_) => {}
+            mir::Place::Static(_) => {}
+            mir::Place::Projection(box mir::Projection { ref base, .. }) => {
                 insert(base.clone(), set)
-            },
+            }
         }
         set.insert(place);
     }
@@ -82,17 +80,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
     ) -> Self {
         let def_path = tcx.hir.def_path(def_id);
         let initialisation = compute_definitely_initialized(&mir, tcx, def_path);
-        let mir_acc_before_block: HashMap<_, _> = initialisation.before_block
+        let mir_acc_before_block: HashMap<_, _> = initialisation
+            .before_block
             .into_iter()
-            .map(|(basic_block, place_set)| {
-                (basic_block, explode(place_set))
-            })
+            .map(|(basic_block, place_set)| (basic_block, explode(place_set)))
             .collect();
-        let mir_acc_after_statement: HashMap<_, _> = initialisation.after_statement
+        let mir_acc_after_statement: HashMap<_, _> = initialisation
+            .after_statement
             .into_iter()
-            .map(|(location, place_set)| {
-                (location, explode(place_set))
-            })
+            .map(|(location, place_set)| (location, explode(place_set)))
             .collect();
         let vir_acc_before_block = convert_to_vir(&mir_acc_before_block, mir_encoder);
         let vir_acc_after_statement = convert_to_vir(&mir_acc_after_statement, mir_encoder);
@@ -106,16 +102,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
 
     /// Is the ``place`` accessible (it is a prefix of a definitely
     /// initalised place) before the statement at given `location`?
-    pub fn is_vir_place_accessible(
-        &self,
-        place: &vir::Expr,
-        location: mir::Location
-    ) -> bool {
+    pub fn is_vir_place_accessible(&self, place: &vir::Expr, location: mir::Location) -> bool {
         if location.statement_index == 0 {
             contains_prefix(&self.vir_acc_before_block[&location.block], place)
         } else {
             let new_location = mir::Location {
-                statement_index: location.statement_index-1,
+                statement_index: location.statement_index - 1,
                 ..location
             };
             use utils::to_string::ToString;
