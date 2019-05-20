@@ -4,12 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
-use jni::JNIEnv;
-use jni::objects::JValue;
-use errors::*;
-use utils::*;
 use class_name::*;
+use errors::*;
+use jni::objects::JValue;
+use jni::JNIEnv;
+use std::collections::HashMap;
+use utils::*;
 
 pub fn generate_constructor(
     env: &JNIEnv,
@@ -19,12 +19,13 @@ pub fn generate_constructor(
 ) -> Result<String> {
     let clazz = env.find_class(class.path())?;
 
-    let constructors = env.call_method(
-        clazz.into(),
-        "getConstructors",
-        "()[Ljava/lang/reflect/Constructor;",
-        &[],
-    )?
+    let constructors = env
+        .call_method(
+            clazz.into(),
+            "getConstructors",
+            "()[Ljava/lang/reflect/Constructor;",
+            &[],
+        )?
         .l()?;
     let num_constructors = env.get_array_length(constructors.into_inner())?;
 
@@ -34,16 +35,18 @@ pub fn generate_constructor(
         let constructor =
             env.get_object_array_element(constructors.into_inner(), constructor_index)?;
 
-        let constructor_signature = java_str_to_string(&env.get_string(
-            env.call_static_method(
-                "org/objectweb/asm/Type",
-                "getConstructorDescriptor",
-                "(Ljava/lang/reflect/Constructor;)Ljava/lang/String;",
-                &[JValue::Object(constructor)],
-            )?
+        let constructor_signature = java_str_to_string(
+            &env.get_string(
+                env.call_static_method(
+                    "org/objectweb/asm/Type",
+                    "getConstructorDescriptor",
+                    "(Ljava/lang/reflect/Constructor;)Ljava/lang/String;",
+                    &[JValue::Object(constructor)],
+                )?
                 .l()?
                 .into(),
-        )?)?;
+            )?,
+        )?;
 
         indexed_constructors.insert(constructor_signature, constructor);
     }
@@ -57,7 +60,8 @@ pub fn generate_constructor(
                 return Err(ErrorKind::AmbiguousConstructor(
                     class.full_name(),
                     indexed_constructors.keys().map(|k| k.to_string()).collect(),
-                ).into());
+                )
+                .into());
             }
             indexed_constructors.drain().take(1).next().unwrap()
         }
@@ -70,12 +74,13 @@ pub fn generate_constructor(
     let mut parameter_names: Vec<String> = vec![];
     let mut parameter_signatures: Vec<String> = vec![];
 
-    let parameters = env.call_method(
-        constructor,
-        "getParameters",
-        "()[Ljava/lang/reflect/Parameter;",
-        &[],
-    )?
+    let parameters = env
+        .call_method(
+            constructor,
+            "getParameters",
+            "()[Ljava/lang/reflect/Parameter;",
+            &[],
+        )?
         .l()?;
     let num_parameters = env.get_array_length(parameters.into_inner())?;
 
@@ -86,7 +91,8 @@ pub fn generate_constructor(
                 .l()?
                 .into(),
         )?;
-        let parameter_type = env.call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
+        let parameter_type = env
+            .call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
             .l()?;
         let parameter_signature = env.get_string(
             env.call_static_method(
@@ -95,8 +101,8 @@ pub fn generate_constructor(
                 "(Ljava/lang/Class;)Ljava/lang/String;",
                 &[JValue::Object(parameter_type)],
             )?
-                .l()?
-                .into(),
+            .l()?
+            .into(),
         )?;
 
         parameter_names.push(java_str_to_valid_rust_argument_name(&parameter_name)?);

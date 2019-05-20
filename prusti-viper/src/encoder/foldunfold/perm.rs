@@ -6,19 +6,19 @@
 
 use encoder::vir;
 use encoder::vir::PermAmount;
+use std::collections::hash_set;
+use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;
 use std::iter::FlatMap;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::hash_set;
 //use std::ops::Mul;
 
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Perm {
     Acc(vir::Expr, PermAmount),
-    Pred(vir::Expr, PermAmount)
+    Pred(vir::Expr, PermAmount),
 }
 
 impl Perm {
@@ -81,27 +81,25 @@ impl Perm {
 
     pub fn get_place(&self) -> &vir::Expr {
         match self {
-            &Perm::Acc(ref place, _) |
-            &Perm::Pred(ref place, _) => place,
+            &Perm::Acc(ref place, _) | &Perm::Pred(ref place, _) => place,
         }
     }
 
     pub fn place_as_mut_ref(&mut self) -> &mut vir::Expr {
         match self {
-            &mut Perm::Acc(ref mut place, _) |
-            &mut Perm::Pred(ref mut place, _) => place,
+            &mut Perm::Acc(ref mut place, _) | &mut Perm::Pred(ref mut place, _) => place,
         }
     }
 
     pub fn unwrap_place(self) -> vir::Expr {
         match self {
-            Perm::Acc(place, _) |
-            Perm::Pred(place, _) => place,
+            Perm::Acc(place, _) | Perm::Pred(place, _) => place,
         }
     }
 
     pub fn map_place<F>(self, f: F) -> Self
-        where F: Fn(vir::Expr) -> vir::Expr
+    where
+        F: Fn(vir::Expr) -> vir::Expr,
     {
         match self {
             Perm::Acc(place, fr) => Perm::Acc(f(place), fr),
@@ -133,7 +131,7 @@ impl Perm {
     }
 
     pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
-        assert!(self.get_perm_amount().is_valid_for_specs());  // Just a sanity check.
+        assert!(self.get_perm_amount().is_valid_for_specs()); // Just a sanity check.
         assert!(new_perm.is_valid_for_specs());
         match self {
             Perm::Acc(expr, _) => Perm::Acc(expr, new_perm),
@@ -151,16 +149,13 @@ impl Perm {
             Perm::Pred(expr, perm) => Perm::Pred(expr.set_default_pos(pos), perm),
         }
     }
-
 }
 
 impl fmt::Display for Perm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Perm::Acc(ref place, perm_amount) =>
-                write!(f, "Acc({}, {})", place, perm_amount),
-            &Perm::Pred(ref place, perm_amount) =>
-                write!(f, "Pred({}, {})", place, perm_amount),
+            &Perm::Acc(ref place, perm_amount) => write!(f, "Acc({}, {})", place, perm_amount),
+            &Perm::Pred(ref place, perm_amount) => write!(f, "Pred({}, {})", place, perm_amount),
         }
     }
 }
@@ -168,14 +163,11 @@ impl fmt::Display for Perm {
 impl fmt::Debug for Perm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Perm::Acc(ref place, perm_amount) =>
-                write!(f, "Acc({:?}, {})", place, perm_amount),
-            &Perm::Pred(ref place, perm_amount) =>
-                write!(f, "Pred({:?}, {})", place, perm_amount),
+            &Perm::Acc(ref place, perm_amount) => write!(f, "Acc({:?}, {})", place, perm_amount),
+            &Perm::Pred(ref place, perm_amount) => write!(f, "Pred({:?}, {})", place, perm_amount),
         }
     }
 }
-
 
 /// A set of permissions
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -188,7 +180,7 @@ impl PermSet {
     pub fn empty() -> Self {
         PermSet {
             acc_perms: HashMap::new(),
-            pred_perms: HashMap::new()
+            pred_perms: HashMap::new(),
         }
     }
 
@@ -196,10 +188,8 @@ impl PermSet {
     /// Note: the amount of the permission is actually ignored
     pub fn add(&mut self, perm: Perm) {
         match perm {
-            Perm::Acc(place, perm_amount) =>
-                self.acc_perms.insert(place, perm_amount),
-            Perm::Pred(place, perm_amount) =>
-                self.pred_perms.insert(place, perm_amount),
+            Perm::Acc(place, perm_amount) => self.acc_perms.insert(place, perm_amount),
+            Perm::Pred(place, perm_amount) => self.pred_perms.insert(place, perm_amount),
         };
     }
 
@@ -264,13 +254,15 @@ impl fmt::Display for PermSet {
     }
 }
 
-
 pub trait PermIterator {
     fn collect_curr(&mut self) -> Vec<Perm>;
     fn group_by_label(&mut self) -> HashMap<Option<String>, Vec<Perm>>;
 }
 
-impl<T> PermIterator for T where T: Iterator<Item = Perm> {
+impl<T> PermIterator for T
+where
+    T: Iterator<Item = Perm>,
+{
     fn collect_curr(&mut self) -> Vec<Perm> {
         self.filter(|perm| perm.is_curr()).collect()
     }
@@ -278,7 +270,10 @@ impl<T> PermIterator for T where T: Iterator<Item = Perm> {
     fn group_by_label(&mut self) -> HashMap<Option<String>, Vec<Perm>> {
         let mut res_perms = HashMap::new();
         for perm in self {
-            res_perms.entry(perm.get_label().cloned()).or_insert(vec![]).push(perm.clone());
+            res_perms
+                .entry(perm.get_label().cloned())
+                .or_insert(vec![])
+                .push(perm.clone());
         }
         res_perms
     }
@@ -288,21 +283,17 @@ impl<T> PermIterator for T where T: Iterator<Item = Perm> {
 /// panic if `left` has less permission than `right`.
 fn place_perm_difference(
     mut left: HashMap<vir::Expr, PermAmount>,
-    mut right: HashMap<vir::Expr, PermAmount>
+    mut right: HashMap<vir::Expr, PermAmount>,
 ) -> HashMap<vir::Expr, PermAmount> {
     for (place, right_perm_amount) in right.drain() {
         match left.get(&place) {
-            Some(left_perm_amount) => {
-                match (*left_perm_amount, right_perm_amount) {
-                    (PermAmount::Read, PermAmount::Read) |
-                    (PermAmount::Read, PermAmount::Write) |
-                    (PermAmount::Write, PermAmount::Write) => {
-                        left.remove(&place);
-                    },
-                    _ => {
-                        unreachable!("left={} right={}", left_perm_amount, right_perm_amount)
-                    },
+            Some(left_perm_amount) => match (*left_perm_amount, right_perm_amount) {
+                (PermAmount::Read, PermAmount::Read)
+                | (PermAmount::Read, PermAmount::Write)
+                | (PermAmount::Write, PermAmount::Write) => {
+                    left.remove(&place);
                 }
+                _ => unreachable!("left={} right={}", left_perm_amount, right_perm_amount),
             },
             None => {}
         }
@@ -312,7 +303,11 @@ fn place_perm_difference(
 
 /// Set difference that takes into account that removing `x.f` also removes any `x.f.g.h`
 pub fn perm_difference(mut left: HashSet<Perm>, mut right: HashSet<Perm>) -> HashSet<Perm> {
-    trace!("[enter] perm_difference(left={:?}, right={:?})", left, right);
+    trace!(
+        "[enter] perm_difference(left={:?}, right={:?})",
+        left,
+        right
+    );
     let left_acc = left.iter().filter(|x| x.is_acc()).cloned();
     let left_pred = left.iter().filter(|x| x.is_pred()).cloned();
     let right_acc = right.iter().filter(|x| x.is_acc()).cloned();
@@ -320,15 +315,29 @@ pub fn perm_difference(mut left: HashSet<Perm>, mut right: HashSet<Perm>) -> Has
     let mut res = vec![];
     res.extend(
         place_perm_difference(
-            left_acc.map(|p| (p.get_place().clone(), p.get_perm_amount())).collect(),
-            right_acc.map(|p| (p.get_place().clone(), p.get_perm_amount())).collect(),
-        ).drain().map(|(place, amount)| Perm::Acc(place, amount)).collect::<Vec<_>>()
+            left_acc
+                .map(|p| (p.get_place().clone(), p.get_perm_amount()))
+                .collect(),
+            right_acc
+                .map(|p| (p.get_place().clone(), p.get_perm_amount()))
+                .collect(),
+        )
+        .drain()
+        .map(|(place, amount)| Perm::Acc(place, amount))
+        .collect::<Vec<_>>(),
     );
     res.extend(
         place_perm_difference(
-            left_pred.map(|p| (p.get_place().clone(), p.get_perm_amount())).collect(),
-            right_pred.map(|p| (p.get_place().clone(), p.get_perm_amount())).collect(),
-        ).drain().map(|(place, amount)| Perm::Pred(place, amount)).collect::<Vec<_>>()
+            left_pred
+                .map(|p| (p.get_place().clone(), p.get_perm_amount()))
+                .collect(),
+            right_pred
+                .map(|p| (p.get_place().clone(), p.get_perm_amount()))
+                .collect(),
+        )
+        .drain()
+        .map(|(place, amount)| Perm::Pred(place, amount))
+        .collect::<Vec<_>>(),
     );
     res.into_iter().collect()
 }

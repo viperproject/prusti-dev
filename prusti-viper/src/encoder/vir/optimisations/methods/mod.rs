@@ -6,8 +6,8 @@
 
 //! A module that contains optimisations for methods.
 
-mod var_remover;
 mod assert_remover;
+mod var_remover;
 
-pub use self::var_remover::remove_unused_vars;
 pub use self::assert_remover::remove_trivial_assertions;
+pub use self::var_remover::remove_unused_vars;

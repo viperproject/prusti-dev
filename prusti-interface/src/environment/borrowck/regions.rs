@@ -6,7 +6,6 @@
 
 /// Code for finding `rustc::ty::sty::RegionVid` associated with local
 /// reference typed variables.
-
 use environment::borrowck::facts;
 use regex::Regex;
 use rustc::mir;
@@ -21,13 +20,16 @@ pub fn load_variable_regions(path: &Path) -> io::Result<HashMap<mir::Local, fact
     let mut variable_regions = HashMap::new();
     let file = File::open(path)?;
     lazy_static! {
-        static ref fn_sig: Regex = Regex::new(r"^fn [a-zA-Z\d_]+\((?P<args>.*)\) -> (?P<result>.*)\{$").unwrap();
+        static ref fn_sig: Regex =
+            Regex::new(r"^fn [a-zA-Z\d_]+\((?P<args>.*)\) -> (?P<result>.*)\{$").unwrap();
     }
     lazy_static! {
-        static ref arg: Regex = Regex::new(r"^_(?P<local>\d+): &'(?P<rvid>\d+)rv (mut)? [a-zA-Z\d_]+\s*$").unwrap();
+        static ref arg: Regex =
+            Regex::new(r"^_(?P<local>\d+): &'(?P<rvid>\d+)rv (mut)? [a-zA-Z\d_]+\s*$").unwrap();
     }
     lazy_static! {
-        static ref local: Regex = Regex::new(r"^\s+let( mut)? _(?P<local>\d+): &'(?P<rvid>\d+)rv ").unwrap();
+        static ref local: Regex =
+            Regex::new(r"^\s+let( mut)? _(?P<local>\d+): &'(?P<rvid>\d+)rv ").unwrap();
     }
     for line in io::BufReader::new(file).lines() {
         let line = line?;
@@ -43,7 +45,10 @@ pub fn load_variable_regions(path: &Path) -> io::Result<HashMap<mir::Local, fact
             }
         }
         if let Some(local_caps) = local.captures(&line) {
-            debug!("local {} rvid {}", &local_caps["local"], &local_caps["rvid"]);
+            debug!(
+                "local {} rvid {}",
+                &local_caps["local"], &local_caps["rvid"]
+            );
             let local_arg: usize = (&local_caps["local"]).parse().unwrap();
             let rvid: usize = (&local_caps["rvid"]).parse().unwrap();
             variable_regions.insert(mir::Local::new(local_arg), rvid.into());

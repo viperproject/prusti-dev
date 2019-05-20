@@ -9,8 +9,12 @@
 
 /// This function is used to evaluate an expression in the “old”
 /// context, that is at the beginning of the method call.
-pub fn old<T>(arg: T) -> T { arg }
+pub fn old<T>(arg: T) -> T {
+    arg
+}
 
 /// This function is used to evaluate an expression in the context just
 /// before the borrows expires.
-pub fn before_expiry<T>(arg: T) -> T {arg}
+pub fn before_expiry<T>(arg: T) -> T {
+    arg
+}

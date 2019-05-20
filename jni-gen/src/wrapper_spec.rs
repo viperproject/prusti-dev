@@ -45,55 +45,64 @@ pub enum ItemWrapperSpec {
 
 #[macro_export]
 macro_rules! java_class {
-    ($full_class_name:expr) => (
+    ($full_class_name:expr) => {
         ClassWrapperSpec::new($full_class_name, vec![])
-    );
-    ($full_class_name:expr, $items:expr) => (
+    };
+    ($full_class_name:expr, $items:expr) => {
         ClassWrapperSpec::new($full_class_name, $items)
-    );
+    };
 }
 
 #[macro_export]
 macro_rules! object_getter {
-    () => (
+    () => {
         ItemWrapperSpec::ScalaObjectGetter()
-    );
+    };
 }
 
 #[macro_export]
 macro_rules! constructor {
-    () => (
-        ItemWrapperSpec::Constructor { signature: None, suffix: None }
-    );
-    ($signature:expr) => (
-        ItemWrapperSpec::Constructor { signature: Some($signature.into()), suffix: None }
-    );
-    ($signature:expr, $suffix:expr) => (
-        ItemWrapperSpec::Constructor { signature: $signature.into(), suffix: Some($suffix.into()) }
-    );
+    () => {
+        ItemWrapperSpec::Constructor {
+            signature: None,
+            suffix: None,
+        }
+    };
+    ($signature:expr) => {
+        ItemWrapperSpec::Constructor {
+            signature: Some($signature.into()),
+            suffix: None,
+        }
+    };
+    ($signature:expr, $suffix:expr) => {
+        ItemWrapperSpec::Constructor {
+            signature: $signature.into(),
+            suffix: Some($suffix.into()),
+        }
+    };
 }
 
 #[macro_export]
 macro_rules! method {
-    ($name:expr) => (
+    ($name:expr) => {
         ItemWrapperSpec::Method {
             name: $name.into(),
             signature: None,
-            suffix: None
+            suffix: None,
         }
-    );
-    ($name:expr, $signature:expr) => (
+    };
+    ($name:expr, $signature:expr) => {
         ItemWrapperSpec::Method {
             name: $name.into(),
             signature: Some($signature.into()),
-            suffix: None
+            suffix: None,
         }
-    );
-    ($name:expr, $signature:expr, $suffix:expr) => (
+    };
+    ($name:expr, $signature:expr, $suffix:expr) => {
         ItemWrapperSpec::Method {
             name: $name.into(),
             signature: Some($signature.into()),
-            suffix: Some($suffix.into())
+            suffix: Some($suffix.into()),
         }
-    );
+    };
 }

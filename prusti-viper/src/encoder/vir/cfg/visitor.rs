@@ -65,7 +65,11 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     ) -> Vec<Stmt>;
 
     /// Inject some statements and replace a successor, mutating the branch context
-    fn replace_successor(&mut self, succ: &Successor, bctxt: &mut BranchCtxt) -> (Vec<Stmt>, Successor);
+    fn replace_successor(
+        &mut self,
+        succ: &Successor,
+        bctxt: &mut BranchCtxt,
+    ) -> (Vec<Stmt>, Successor);
 
     /// Compute actions that need to be performed before the join point,
     /// returning the merged branch context.
@@ -88,16 +92,16 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
         // Initialize the blocks of the new cfg
         for (index, block) in cfg.basic_blocks.iter().enumerate() {
             let label = &cfg.basic_blocks_labels[index];
-            new_cfg.add_block(
-                label,
-                block.invs.clone(),
-                vec![]
-            );
+            new_cfg.add_block(label, block.invs.clone(), vec![]);
         }
 
         // Find the blocks
         //
-        let to_visit: Vec<usize> = cfg.get_topological_sort().iter().map(|x| x.block_index).collect();
+        let to_visit: Vec<usize> = cfg
+            .get_topological_sort()
+            .iter()
+            .map(|x| x.block_index)
+            .collect();
         let mut visited: Vec<bool> = vec![false; cfg.basic_blocks.len()];
         let mut reachable: Vec<bool> = vec![false; cfg.basic_blocks.len()];
         let mut initial_bctxt: Vec<Option<BranchCtxt>> = vec![None; cfg.basic_blocks.len()];
@@ -123,7 +127,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
                     curr_block_index,
                     curr_block.successor.clone().replace_uuid(new_cfg.uuid),
                 );
-                continue
+                continue;
             }
 
             // Mark following blocks as reachable
@@ -132,13 +136,23 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
             }
 
             // JOIN incoming visited edges. This may add one basic block for each incoming edge.
-            debug!("Incoming blocks to {:?}: {:?}", curr_block_index, cfg.get_preceding(cfg.block_index(curr_index)));
-            let incoming_edges: Vec<usize> = cfg.get_preceding(cfg.block_index(curr_index)).into_iter()
+            debug!(
+                "Incoming blocks to {:?}: {:?}",
+                curr_block_index,
+                cfg.get_preceding(cfg.block_index(curr_index))
+            );
+            let incoming_edges: Vec<usize> = cfg
+                .get_preceding(cfg.block_index(curr_index))
+                .into_iter()
                 .map(|x| x.block_index)
                 .filter(|i| visited[*i])
                 .collect();
-            debug!("Incoming visited blocks to {:?}: {:?}", curr_block_index, &incoming_edges);
-            let incoming_bctxt: Vec<&BranchCtxt> = incoming_edges.iter()
+            debug!(
+                "Incoming visited blocks to {:?}: {:?}",
+                curr_block_index, &incoming_edges
+            );
+            let incoming_bctxt: Vec<&BranchCtxt> = incoming_edges
+                .iter()
                 .map(|i| final_bctxt[*i].as_ref().unwrap())
                 .collect();
             let mut bctxt: BranchCtxt;
@@ -152,25 +166,30 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
                     assert!(visited[src_index]);
                     if !action.is_noop() {
                         let src_block_index = new_cfg.block_index(src_index);
-                        trace!("Perform action to {:?} coming from {:?}: {:?}",
-                               curr_block_index, src_block_index, action);
+                        trace!(
+                            "Perform action to {:?} coming from {:?}: {:?}",
+                            curr_block_index,
+                            src_block_index,
+                            action
+                        );
                         let new_label = new_cfg.get_fresh_label_name();
                         let new_block_index = new_cfg.add_block(
                             &new_label,
                             vec![],
-                            vec![Stmt::comment(format!("========== {} ==========", new_label))]);
+                            vec![Stmt::comment(format!(
+                                "========== {} ==========",
+                                new_label
+                            ))],
+                        );
                         let stmts_to_add = self.perform_prejoin_action(new_block_index, action);
                         new_cfg.add_stmts(new_block_index, stmts_to_add);
-                        new_cfg.set_successor(
-                            new_block_index,
-                            Successor::Goto(curr_block_index),
-                        );
+                        new_cfg.set_successor(new_block_index, Successor::Goto(curr_block_index));
                         new_cfg.set_successor(
                             src_block_index,
-                            new_cfg.basic_blocks[src_index].successor.clone().replace_target(
-                                curr_block_index,
-                                new_block_index
-                            ),
+                            new_cfg.basic_blocks[src_index]
+                                .successor
+                                .clone()
+                                .replace_target(curr_block_index, new_block_index),
                         );
                     }
                 }
@@ -184,12 +203,20 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
             for (stmt_index, stmt) in curr_block.stmts.iter().enumerate() {
                 self.current_cfg(&new_cfg);
                 let last_stmt_before_return =
-                    stmt_index == curr_block.stmts.len() - 1 &&
-                    curr_block.successor.is_return();
-                let new_stmts = self.replace_stmt(stmt, last_stmt_before_return,
-                                                  &mut bctxt, curr_block_index,
-                                                  &new_cfg, None);
-                trace!("Replace stmt '{}' with [{}]", stmt, new_stmts.iter().to_string());
+                    stmt_index == curr_block.stmts.len() - 1 && curr_block.successor.is_return();
+                let new_stmts = self.replace_stmt(
+                    stmt,
+                    last_stmt_before_return,
+                    &mut bctxt,
+                    curr_block_index,
+                    &new_cfg,
+                    None,
+                );
+                trace!(
+                    "Replace stmt '{}' with [{}]",
+                    stmt,
+                    new_stmts.iter().to_string()
+                );
                 for new_stmt in new_stmts {
                     new_cfg.add_stmt(curr_block_index, new_stmt);
                 }
@@ -197,29 +224,44 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
 
             // REPLACE successor
             self.current_cfg(&new_cfg);
-            let (new_stmts, new_successor) = self.replace_successor(&curr_block.successor, &mut bctxt);
-            trace!("Replace successor of {:?} with {:?} and {:?}", curr_block_index, new_stmts, new_successor);
+            let (new_stmts, new_successor) =
+                self.replace_successor(&curr_block.successor, &mut bctxt);
+            trace!(
+                "Replace successor of {:?} with {:?} and {:?}",
+                curr_block_index,
+                new_stmts,
+                new_successor
+            );
             for new_stmt in new_stmts {
                 new_cfg.add_stmt(curr_block_index, new_stmt);
             }
             // Check that the structure of the CFG is unchanged
             assert_eq!(
-                curr_block.successor.get_following().iter().map(|x| x.block_index).collect::<Vec<_>>(),
-                new_successor.get_following().iter().map(|x| x.block_index).collect::<Vec<_>>(),
+                curr_block
+                    .successor
+                    .get_following()
+                    .iter()
+                    .map(|x| x.block_index)
+                    .collect::<Vec<_>>(),
+                new_successor
+                    .get_following()
+                    .iter()
+                    .map(|x| x.block_index)
+                    .collect::<Vec<_>>(),
                 "The structure of the CFG changed"
             );
             // Add successor
-            new_cfg.set_successor(
-                curr_block_index,
-                new_successor.replace_uuid(new_cfg.uuid),
-            );
+            new_cfg.set_successor(curr_block_index, new_successor.replace_uuid(new_cfg.uuid));
 
             // Check if there is any back edge
             let following = new_cfg.basic_blocks[curr_index].successor.get_following();
             for following_index in following {
                 let index = following_index.block_index;
                 if visited[index] {
-                    debug!("Back edge from {:?} to {:?}", curr_block_index, following_index);
+                    debug!(
+                        "Back edge from {:?} to {:?}",
+                        curr_block_index, following_index
+                    );
                     let other_bctxt = initial_bctxt[index].as_ref().unwrap();
                     Self::check_compatible_back_edge(&bctxt, other_bctxt);
                 }
@@ -235,15 +277,18 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     }
 }
 
-
 pub trait SuccessorFolder {
     fn fold(&mut self, s: Successor) -> Successor {
         match s {
             Successor::Undefined => self.fold_undefined(),
             Successor::Return => self.fold_return(),
             Successor::Goto(target) => self.fold_goto(target),
-            Successor::GotoSwitch(guarded_targets, default_target) => self.fold_goto_switch(guarded_targets, default_target),
-            Successor::GotoIf(condition, then_target, else_target) => self.fold_goto_if(condition, then_target, else_target),
+            Successor::GotoSwitch(guarded_targets, default_target) => {
+                self.fold_goto_switch(guarded_targets, default_target)
+            }
+            Successor::GotoIf(condition, then_target, else_target) => {
+                self.fold_goto_if(condition, then_target, else_target)
+            }
         }
     }
 
@@ -267,20 +312,39 @@ pub trait SuccessorFolder {
         Successor::Goto(self.fold_target(target))
     }
 
-    fn fold_goto_switch(&mut self, guarded_targets: Vec<(Expr, CfgBlockIndex)>, default_target: CfgBlockIndex) -> Successor {
+    fn fold_goto_switch(
+        &mut self,
+        guarded_targets: Vec<(Expr, CfgBlockIndex)>,
+        default_target: CfgBlockIndex,
+    ) -> Successor {
         Successor::GotoSwitch(
-            guarded_targets.into_iter().map(|(cond, targ)| (self.fold_expr(cond), targ)).collect(),
-            self.fold_target(default_target)
+            guarded_targets
+                .into_iter()
+                .map(|(cond, targ)| (self.fold_expr(cond), targ))
+                .collect(),
+            self.fold_target(default_target),
         )
     }
 
-    fn fold_goto_if(&mut self, condition: Expr, then_target: CfgBlockIndex, else_target: CfgBlockIndex) -> Successor {
-        Successor::GotoIf(self.fold_expr(condition), self.fold_target(then_target), self.fold_target(else_target))
+    fn fold_goto_if(
+        &mut self,
+        condition: Expr,
+        then_target: CfgBlockIndex,
+        else_target: CfgBlockIndex,
+    ) -> Successor {
+        Successor::GotoIf(
+            self.fold_expr(condition),
+            self.fold_target(then_target),
+            self.fold_target(else_target),
+        )
     }
 }
 
 impl CfgMethod {
-    pub fn walk_statements<F>(&self, mut walker: F) where F: FnMut(&Stmt) {
+    pub fn walk_statements<F>(&self, mut walker: F)
+    where
+        F: FnMut(&Stmt),
+    {
         for block in self.basic_blocks.iter() {
             for stmt in block.stmts.iter() {
                 walker(stmt);
@@ -288,14 +352,20 @@ impl CfgMethod {
         }
     }
 
-    pub fn walk_successors<F>(&self, mut walker: F) where F: FnMut(&Successor) {
+    pub fn walk_successors<F>(&self, mut walker: F)
+    where
+        F: FnMut(&Successor),
+    {
         for block in self.basic_blocks.iter() {
             walker(&block.successor);
         }
     }
 
     /// Remove all statements `s` such that `f(&s)` returns `false`
-    pub fn retain_stmts<F>(&mut self, f: F) where F: Fn(&Stmt) -> bool {
+    pub fn retain_stmts<F>(&mut self, f: F)
+    where
+        F: Fn(&Stmt) -> bool,
+    {
         for block in &mut self.basic_blocks {
             block.stmts.retain(|stmt| f(stmt))
         }

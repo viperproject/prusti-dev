@@ -4,17 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use jni::JavaVM;
+use class_name::*;
+use errors::Result as LocalResult;
+use generators::class::ClassGenerator;
+use generators::module::*;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;
-use std::fs::OpenOptions;
+use jni::JavaVM;
 use std::fs::create_dir_all;
-use std::path::Path;
+use std::fs::OpenOptions;
 use std::io::prelude::*;
-use errors::Result as LocalResult;
-use generators::module::*;
-use class_name::*;
-use generators::class::ClassGenerator;
+use std::path::Path;
 use wrapper_spec::*;
 
 pub struct WrapperGenerator {

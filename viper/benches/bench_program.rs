@@ -46,16 +46,14 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
 
     let unwrap_domain_function = ast.domain_func(
         "unwrap",
-        &[
-            ast.local_var_decl(
-                "x",
-                ast.domain_type(
-                    "Wrapper",
-                    &[(ast.type_var("T"), ast.type_var("T"))],
-                    &[ast.type_var("T")],
-                ),
+        &[ast.local_var_decl(
+            "x",
+            ast.domain_type(
+                "Wrapper",
+                &[(ast.type_var("T"), ast.type_var("T"))],
+                &[ast.type_var("T")],
             ),
-        ],
+        )],
         ast.type_var("T"),
         false,
         "Wrapper",
@@ -64,31 +62,27 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
     let wrapper_domain = ast.domain(
         "Wrapper",
         &[wrap_domain_function, unwrap_domain_function],
-        &[
-            ast.domain_axiom(
-                "unwrap_wrapper",
-                // forall x: T :: unwrap(wrap(x)) == x
-                ast.forall(
-                    &[ast.local_var_decl("x", ast.type_var("T"))],
-                    &[],
-                    ast.eq_cmp(
-                        ast.domain_func_app(
-                            unwrap_domain_function,
-                            &[
-                                ast.domain_func_app(
-                                    wrap_domain_function,
-                                    &[ast.local_var("x", ast.type_var("T"))],
-                                    &[(ast.type_var("T"), ast.type_var("T"))],
-                                ),
-                            ],
+        &[ast.domain_axiom(
+            "unwrap_wrapper",
+            // forall x: T :: unwrap(wrap(x)) == x
+            ast.forall(
+                &[ast.local_var_decl("x", ast.type_var("T"))],
+                &[],
+                ast.eq_cmp(
+                    ast.domain_func_app(
+                        unwrap_domain_function,
+                        &[ast.domain_func_app(
+                            wrap_domain_function,
+                            &[ast.local_var("x", ast.type_var("T"))],
                             &[(ast.type_var("T"), ast.type_var("T"))],
-                        ),
-                        ast.local_var("x", ast.type_var("T")),
+                        )],
+                        &[(ast.type_var("T"), ast.type_var("T"))],
                     ),
+                    ast.local_var("x", ast.type_var("T")),
                 ),
-                "Wrapper",
             ),
-        ],
+            "Wrapper",
+        )],
         &[ast.type_var("T")],
     );
 
@@ -125,12 +119,10 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                 ),
                 ast.func_app(
                     "even",
-                    &[
-                        ast.field_access(
-                            ast.local_var("box", ast.ref_type()),
-                            ast.field("value", ast.int_type()),
-                        ),
-                    ],
+                    &[ast.field_access(
+                        ast.local_var("box", ast.ref_type()),
+                        ast.field("value", ast.int_type()),
+                    )],
                     &[ast.local_var_decl("v", ast.int_type())],
                     ast.bool_type(),
                     ast.no_position(),
@@ -150,7 +142,7 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                 &[ast.local_var("v", ast.int_type())],
                 &[ast.local_var_decl("v", ast.int_type())],
                 ast.bool_type(),
-                ast.no_position()
+                ast.no_position(),
             ),
         ],
         &[
@@ -175,13 +167,11 @@ fn build_program<'a>(ast: &'a AstFactory) -> Program<'a> {
                     ),
                     ast.domain_func_app(
                         unwrap_domain_function,
-                        &[
-                            ast.domain_func_app(
-                                wrap_domain_function,
-                                &[ast.local_var("v", ast.int_type())],
-                                &[(ast.type_var("T"), ast.int_type())],
-                            ),
-                        ],
+                        &[ast.domain_func_app(
+                            wrap_domain_function,
+                            &[ast.local_var("v", ast.int_type())],
+                            &[(ast.type_var("T"), ast.int_type())],
+                        )],
                         &[(ast.type_var("T"), ast.int_type())],
                     ),
                 ),

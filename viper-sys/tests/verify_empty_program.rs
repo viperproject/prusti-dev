@@ -5,16 +5,16 @@ extern crate jni;
 extern crate log;
 extern crate viper_sys;
 
-use std::fs;
-use std::convert::From;
-use jni::JavaVM;
+use error_chain::ChainedError;
+use jni::objects::JObject;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;
-use jni::objects::JObject;
-use error_chain::ChainedError;
+use jni::JavaVM;
+use std::convert::From;
+use std::env;
+use std::fs;
 use viper_sys::get_system_out;
 use viper_sys::wrappers::*;
-use std::env;
 
 #[test]
 fn verify_empty_program() {
@@ -51,12 +51,17 @@ fn verify_empty_program() {
         panic!(e.display_chain().to_string());
     });
 
-    let env = jvm.attach_current_thread()
+    let env = jvm
+        .attach_current_thread()
         .expect("failed to attach jvm thread");
 
     env.with_local_frame(32, || {
-        let reporter = viper::silver::reporter::CSVReporter::with(&env).new().unwrap();
-        let debug_info = scala::collection::mutable::ArraySeq::with(&env).new(0).unwrap();
+        let reporter = viper::silver::reporter::CSVReporter::with(&env)
+            .new()
+            .unwrap();
+        let debug_info = scala::collection::mutable::ArraySeq::with(&env)
+            .new(0)
+            .unwrap();
         let silicon = viper::silicon::Silicon::with(&env).new(reporter, debug_info)?;
         let verifier = viper::silver::verifier::Verifier::with(&env);
 
@@ -107,8 +112,10 @@ fn verify_empty_program() {
         verifier.call_stop(silicon)?;
 
         Ok(JObject::null())
-    }).unwrap_or_else(|e| {
-        let exception_occurred = env.exception_check()
+    })
+    .unwrap_or_else(|e| {
+        let exception_occurred = env
+            .exception_check()
             .unwrap_or_else(|e| panic!(format!("{:?}", e)));
         if exception_occurred {
             env.exception_describe()

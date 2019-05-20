@@ -4,10 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::mem;
-use std::collections::HashMap;
 use encoder::vir;
-
+use std::collections::HashMap;
+use std::mem;
 
 /// Optimisations currently done:
 ///
@@ -19,13 +18,11 @@ pub fn rewrite(cfg: vir::CfgMethod) -> vir::CfgMethod {
     optimiser.replace_cfg(cfg)
 }
 
-struct Optimiser {
-}
+struct Optimiser {}
 
 impl Optimiser {
     fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     fn replace_cfg(&mut self, mut cfg: vir::CfgMethod) -> vir::CfgMethod {
@@ -51,25 +48,20 @@ impl Optimiser {
     }
 }
 
-
 impl vir::StmtFolder for Optimiser {
-
     fn fold_assert(&mut self, e: vir::Expr, p: vir::Position) -> vir::Stmt {
         vir::Stmt::Assert(self.replace_expr(e), p)
     }
-
 }
 
 impl vir::ExprFolder for Optimiser {
-
     fn fold_forall(
         &mut self,
         variables: Vec<vir::LocalVar>,
         triggers: Vec<vir::Trigger>,
         body: Box<vir::Expr>,
-        pos: vir::Position
+        pos: vir::Position,
     ) -> vir::Expr {
-
         debug!("original body: {}", body);
         let mut replacer = OldPlaceReplacer::new();
         let mut replaced_body = replacer.fold_boxed(body);
@@ -85,7 +77,6 @@ impl vir::ExprFolder for Optimiser {
 
         forall
     }
-
 }
 
 struct OldPlaceReplacer {
@@ -112,12 +103,11 @@ impl OldPlaceReplacer {
 }
 
 impl vir::ExprFolder for OldPlaceReplacer {
-
     fn fold_labelled_old(
         &mut self,
         label: String,
         expr: Box<vir::Expr>,
-        pos: vir::Position
+        pos: vir::Position,
     ) -> vir::Expr {
         let original_expr = vir::Expr::LabelledOld(label, expr.clone(), pos.clone());
         if expr.is_place() {

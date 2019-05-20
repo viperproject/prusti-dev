@@ -4,16 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use jni::JNIEnv;
-use jni::objects::JObject;
-use jni::errors::Result;
-use jni::objects::JString;
-use jni::sys::jsize;
-use jni::strings::JNIString;
-use viper_sys::wrappers::*;
 use error_chain::ChainedError;
-use std::process::Command;
+use jni::errors::Result;
+use jni::objects::JObject;
+use jni::objects::JString;
+use jni::strings::JNIString;
+use jni::sys::jsize;
+use jni::JNIEnv;
 use std::process;
+use std::process::Command;
+use viper_sys::wrappers::*;
 
 #[derive(Clone, Copy)]
 pub struct JniUtils<'a> {
@@ -80,7 +80,10 @@ impl<'a> JniUtils<'a> {
     }
 
     #[allow(dead_code)]
-    pub fn retry_on_exception<F, T>(&self, f: F, retry: usize) -> T where F: Fn() -> Result<T> {
+    pub fn retry_on_exception<F, T>(&self, f: F, retry: usize) -> T
+    where
+        F: Fn() -> Result<T>,
+    {
         let mut res = f();
         for _ in 0..retry {
             if res.is_ok() {

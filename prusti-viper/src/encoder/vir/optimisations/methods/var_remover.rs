@@ -6,10 +6,10 @@
 
 //! Optimisation that removes unused temporary variables.
 
-use std::mem;
-use std::collections::HashSet;
 use super::super::super::ast;
 use super::super::super::cfg;
+use std::collections::HashSet;
+use std::mem;
 
 /// Remove unused temporary variables and related inhale statements.
 pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
@@ -19,19 +19,15 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     method.walk_statements(|stmt| {
         ast::StmtWalker::walk(&mut collector, stmt);
     });
-    method.walk_successors(|successor| {
-        match successor {
-            cfg::Successor::Undefined |
-            cfg::Successor::Return |
-            cfg::Successor::Goto(_) => {},
-            cfg::Successor::GotoSwitch(conditional_targets, _) => {
-                for (expr, _) in conditional_targets {
-                    ast::ExprWalker::walk(&mut collector, expr);
-                }
-            },
-            cfg::Successor::GotoIf(condition, _, _) => {
-                ast::ExprWalker::walk(&mut collector, condition);
-            },
+    method.walk_successors(|successor| match successor {
+        cfg::Successor::Undefined | cfg::Successor::Return | cfg::Successor::Goto(_) => {}
+        cfg::Successor::GotoSwitch(conditional_targets, _) => {
+            for (expr, _) in conditional_targets {
+                ast::ExprWalker::walk(&mut collector, expr);
+            }
+        }
+        cfg::Successor::GotoIf(condition, _, _) => {
+            ast::ExprWalker::walk(&mut collector, condition);
         }
     });
     let mut unused_vars = HashSet::new();
@@ -45,7 +41,7 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     }
     method.local_vars = used_vars;
     let mut remover = UnusedVarRemover {
-        unused_vars: unused_vars
+        unused_vars: unused_vars,
     };
     let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
     for block in &mut method.basic_blocks {
@@ -73,14 +69,16 @@ impl ast::ExprWalker for UsedVarCollector {
         _predicate_name: &str,
         _arg: &ast::Expr,
         _perm_amount: ast::PermAmount,
-        _pos: &ast::Position
-    ) {}
+        _pos: &ast::Position,
+    ) {
+    }
     fn walk_field_access_predicate(
         &mut self,
         _expr: &ast::Expr,
         _perm_amount: ast::PermAmount,
-        _pos: &ast::Position
-    ) {}
+        _pos: &ast::Position,
+    ) {
+    }
 }
 
 impl ast::StmtWalker for UsedVarCollector {
@@ -96,7 +94,7 @@ impl ast::StmtWalker for UsedVarCollector {
         body: &Vec<ast::Stmt>,
         _label: &str,
         vars: &[ast::LocalVar],
-        _p: &ast::Position
+        _p: &ast::Position,
     ) {
         self.walk_expr(wand);
         for statement in body {
@@ -118,15 +116,15 @@ impl ast::ExprFolder for UnusedVarRemover {
         predicate_name: String,
         arg: Box<ast::Expr>,
         perm_amount: ast::PermAmount,
-        pos: ast::Position
+        pos: ast::Position,
     ) -> ast::Expr {
         match arg {
             box ast::Expr::Local(ref var, _) => {
                 if self.unused_vars.contains(var) {
                     return true.into();
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
         ast::Expr::PredicateAccessPredicate(predicate_name, arg, perm_amount, pos)
     }
@@ -134,7 +132,7 @@ impl ast::ExprFolder for UnusedVarRemover {
         &mut self,
         expr: Box<ast::Expr>,
         perm_amount: ast::PermAmount,
-        pos: ast::Position
+        pos: ast::Position,
     ) -> ast::Expr {
         let var = expr.get_base();
         if self.unused_vars.contains(&var) {
@@ -145,9 +143,7 @@ impl ast::ExprFolder for UnusedVarRemover {
 }
 
 impl ast::StmtFolder for UnusedVarRemover {
-
     fn fold_expr(&mut self, e: ast::Expr) -> ast::Expr {
         ast::ExprFolder::fold(self, e)
     }
-
 }

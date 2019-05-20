@@ -6,9 +6,9 @@
 
 //! This module defines the verifier's interface.
 
-use environment::EnvironmentImpl;
 use data::{VerificationResult, VerificationTask};
-use specifications::{TypedSpecificationMap};
+use environment::EnvironmentImpl;
+use specifications::TypedSpecificationMap;
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
@@ -34,7 +34,11 @@ pub trait VerificationContext<'v, 'r, 'a, 'tcx> {
     type VerifierImpl: Verifier;
 
     /// Construct a new verifier object.
-    fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Self::VerifierImpl;
+    fn new_verifier(
+        &'v self,
+        env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        spec: &'v TypedSpecificationMap,
+    ) -> Self::VerifierImpl;
 }
 
 /// A verifier is an object for verifying a single crate, potentially

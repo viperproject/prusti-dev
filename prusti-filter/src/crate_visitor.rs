@@ -4,18 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use syntax::ast::NodeId;
+use prusti_interface::environment::{Procedure, ProcedureLoops};
 use rustc::hir;
-use rustc::hir::intravisit::{NestedVisitorMap, Visitor};
 use rustc::hir::intravisit::*;
-use syntax::codemap::{Span, CodeMap};
+use rustc::hir::intravisit::{NestedVisitorMap, Visitor};
 use rustc::ty::TyCtxt;
-use validators::Validator;
+use syntax::ast::NodeId;
+use syntax::codemap::{CodeMap, Span};
 use validators::SupportStatus;
-use prusti_interface::environment::{ProcedureLoops, Procedure};
+use validators::Validator;
 
-pub struct CrateVisitor<'tcx: 'a, 'a>
-{
+pub struct CrateVisitor<'tcx: 'a, 'a> {
     pub crate_name: &'a str,
     pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
     pub validator: Validator<'a, 'tcx>,
@@ -44,11 +43,17 @@ pub struct FunctionStatus {
     pub source_code: Option<String>,
 }
 
-impl<'tcx: 'a, 'a> CrateVisitor<'tcx, 'a> {
-}
+impl<'tcx: 'a, 'a> CrateVisitor<'tcx, 'a> {}
 
 impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
-    fn visit_fn(&mut self, fk: FnKind<'tcx>, fd: &'tcx hir::FnDecl, b: hir::BodyId, s: Span, id: NodeId) {
+    fn visit_fn(
+        &mut self,
+        fk: FnKind<'tcx>,
+        fd: &'tcx hir::FnDecl,
+        b: hir::BodyId,
+        s: Span,
+        id: NodeId,
+    ) {
         let def_id = self.tcx.hir.local_def_id(id);
         let procedure = Procedure::new(self.tcx, def_id);
         let node_path = procedure.get_def_path();
@@ -66,7 +71,8 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
         let from_macro_expansion = s.parent().is_some();
         let source_code = self.source_map.span_to_snippet(s).unwrap();
         let lines_of_code = source_code.lines().count();
-        let show_source_code = procedure_support_status.is_supported() || pure_function_support_status.is_supported();
+        let show_source_code =
+            procedure_support_status.is_supported() || pure_function_support_status.is_supported();
 
         let function_status = FunctionStatus {
             crate_name: String::from(self.crate_name),
@@ -79,7 +85,11 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
             num_loop_heads,
             max_loop_nesting,
             from_macro_expansion,
-            source_code: if show_source_code { Some(source_code) } else { None }
+            source_code: if show_source_code {
+                Some(source_code)
+            } else {
+                None
+            },
         };
         self.crate_status.functions.push(function_status);
 

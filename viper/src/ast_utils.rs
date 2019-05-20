@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use jni::JNIEnv;
-use jni::objects::JObject;
 use ast_factory::Program;
-use viper_sys::wrappers::viper::*;
+use jni::objects::JObject;
+use jni::JNIEnv;
 use jni_utils::JniUtils;
+use viper_sys::wrappers::viper::*;
 
 #[derive(Clone, Copy)]
 pub struct AstUtils<'a> {

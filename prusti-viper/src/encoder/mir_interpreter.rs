@@ -4,24 +4,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use encoder::vir;
 use rustc::mir;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::marker::Sized;
-use std::iter::FromIterator;
 use std::fmt::{self, Debug, Display};
-use encoder::vir;
+use std::iter::FromIterator;
+use std::marker::Sized;
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
-    type State : Sized;
-    fn apply_terminator(&self, bb: mir::BasicBlock, terminator: &mir::Terminator<'tcx>, states: HashMap<mir::BasicBlock, &Self::State>) -> Self::State;
-    fn apply_statement(&self, bb: mir::BasicBlock, stmt_index: usize, stmt: &mir::Statement<'tcx>, state: &mut Self::State);
+    type State: Sized;
+    fn apply_terminator(
+        &self,
+        bb: mir::BasicBlock,
+        terminator: &mir::Terminator<'tcx>,
+        states: HashMap<mir::BasicBlock, &Self::State>,
+    ) -> Self::State;
+    fn apply_statement(
+        &self,
+        bb: mir::BasicBlock,
+        stmt_index: usize,
+        stmt: &mir::Statement<'tcx>,
+        state: &mut Self::State,
+    );
 }
 
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
-pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tcx, State = S>>(mir: &mir::Mir<'tcx>, interpreter: &I) -> Option<S> {
+pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tcx, State = S>>(
+    mir: &mir::Mir<'tcx>,
+    interpreter: &I,
+) -> Option<S> {
     let basic_blocks = mir.basic_blocks();
     let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
     let mut predecessors: HashMap<mir::BasicBlock, Vec<mir::BasicBlock>> = HashMap::new();
@@ -40,12 +54,14 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
     }
 
     // Find the final basic blocks
-    let mut pending_blocks: Vec<mir::BasicBlock> = basic_blocks.iter_enumerated().filter(
-        |(_, bb_data)| match bb_data.terminator {
+    let mut pending_blocks: Vec<mir::BasicBlock> = basic_blocks
+        .iter_enumerated()
+        .filter(|(_, bb_data)| match bb_data.terminator {
             Some(ref term) => term.successors().next().is_none(),
-            _ => false
-        }
-    ).map(|(bb, _)| bb).collect();
+            _ => false,
+        })
+        .map(|(bb, _)| bb)
+        .collect();
 
     // Interpret all the blocks in `pending_blocks`
     while !pending_blocks.is_empty() {
@@ -54,16 +70,10 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
 
         // Apply the terminator
         let terminator = bb_data.terminator.as_ref().unwrap();
-        let states = HashMap::from_iter(
-            terminator.successors().map(|bb| (*bb, &heads[bb]))
-        );
+        let states = HashMap::from_iter(terminator.successors().map(|bb| (*bb, &heads[bb])));
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
-        let mut curr_state = interpreter.apply_terminator(
-            curr_bb,
-            terminator,
-            states
-        );
+        let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states);
         trace!("State after: {:?}", curr_state);
 
         // Apply each statement, from the last
@@ -96,10 +106,13 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
     result
 }
 
-
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
-pub fn run_backward_interpretation_point_to_point<'tcx, S: Debug + Clone, I: BackwardMirInterpreter<'tcx, State = S>>(
+pub fn run_backward_interpretation_point_to_point<
+    'tcx,
+    S: Debug + Clone,
+    I: BackwardMirInterpreter<'tcx, State = S>,
+>(
     mir: &mir::Mir<'tcx>,
     interpreter: &I,
     initial_bbi: mir::BasicBlock,
@@ -147,21 +160,20 @@ pub fn run_backward_interpretation_point_to_point<'tcx, S: Debug + Clone, I: Bac
         let terminator_index = bb_data.statements.len();
         let states = {
             // HACK: define the state even if only one successor is defined
-            let default_state = terminator.successors()
+            let default_state = terminator
+                .successors()
                 .flat_map(|bb| heads.get(bb))
                 .next()
                 .unwrap_or(&empty_state);
             HashMap::from_iter(
-                terminator.successors().map(|bb| (*bb, heads.get(bb).unwrap_or(&default_state)))
+                terminator
+                    .successors()
+                    .map(|bb| (*bb, heads.get(bb).unwrap_or(&default_state))),
             )
         };
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
-        let mut curr_state = interpreter.apply_terminator(
-            curr_bb,
-            terminator,
-            states
-        );
+        let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states);
         trace!("State after: {:?}", curr_state);
         if curr_bb == final_bbi && final_stmt_index == terminator_index {
             trace!("Final location reached in terminator");
@@ -217,15 +229,26 @@ pub fn run_backward_interpretation_point_to_point<'tcx, S: Debug + Clone, I: Bac
 
 /// Forward interpreter for a loop-less MIR
 pub trait ForwardMirInterpreter<'tcx> {
-    type State : Sized;
+    type State: Sized;
     fn initial_state(&self) -> Self::State;
     fn apply_statement(&self, stmt: &mir::Statement<'tcx>, state: &mut Self::State);
-    fn apply_terminator(&self, terminator: &mir::Terminator<'tcx>, state: &Self::State) -> (HashMap<mir::BasicBlock, Self::State>, Option<Self::State>);
+    fn apply_terminator(
+        &self,
+        terminator: &mir::Terminator<'tcx>,
+        state: &Self::State,
+    ) -> (HashMap<mir::BasicBlock, Self::State>, Option<Self::State>);
     fn join(&self, states: &[&Self::State]) -> Self::State;
 }
 
 /// Interpret a loop-less MIR returning the joined **final** states.
-pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpreter<'tcx, State = S>>(mir: &mir::Mir<'tcx>, interpreter: &I) -> S {
+pub fn run_forward_interpretation<
+    'tcx,
+    S: Debug + Display,
+    I: ForwardMirInterpreter<'tcx, State = S>,
+>(
+    mir: &mir::Mir<'tcx>,
+    interpreter: &I,
+) -> S {
     let basic_blocks = mir.basic_blocks();
     let mut visited: HashSet<mir::BasicBlock> = HashSet::new();
     let mut final_state: HashMap<mir::BasicBlock, S> = HashMap::new();
@@ -259,8 +282,16 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
 
         let mut curr_state = {
             let empty_states = vec![];
-            let incoming: Vec<&S> = incoming_states.get(&curr_bb).unwrap_or(&empty_states).iter().collect();
-            trace!("Join {} incoming states at block {:?}", incoming.len(), curr_bb);
+            let incoming: Vec<&S> = incoming_states
+                .get(&curr_bb)
+                .unwrap_or(&empty_states)
+                .iter()
+                .collect();
+            trace!(
+                "Join {} incoming states at block {:?}",
+                incoming.len(),
+                curr_bb
+            );
             interpreter.join(&incoming[..])
         };
 
@@ -276,7 +307,8 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
         let terminator = bb_data.terminator.as_ref().unwrap();
         trace!("State before: {:?}", curr_state);
         trace!("Apply terminator {:?}", terminator);
-        let (mut succ_states, opt_final_state) = interpreter.apply_terminator(terminator, &mut curr_state);
+        let (mut succ_states, opt_final_state) =
+            interpreter.apply_terminator(terminator, &mut curr_state);
         trace!("States after: {:?}, {:?}", succ_states, opt_final_state);
 
         // Store the states at the end of block `curr_bb`
@@ -284,7 +316,10 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
             final_states.push(final_state);
         }
         for (succ_bb, succ_state) in succ_states.drain() {
-            incoming_states.entry(succ_bb).or_insert(vec![]).push(succ_state);
+            incoming_states
+                .entry(succ_bb)
+                .or_insert(vec![])
+                .push(succ_state);
         }
 
         visited.insert(curr_bb);
@@ -298,7 +333,11 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
                     succ_bb
                 );
             }
-            if incoming_states.contains_key(succ_bb) && predecessors[&succ_bb].iter().all(|pred_bb| visited.contains(pred_bb)) {
+            if incoming_states.contains_key(succ_bb)
+                && predecessors[&succ_bb]
+                    .iter()
+                    .all(|pred_bb| visited.contains(pred_bb))
+            {
                 trace!("Schedule interpretation of {:?}", succ_bb);
                 pending_blocks.push(*succ_bb);
             }
@@ -309,30 +348,31 @@ pub fn run_forward_interpretation<'tcx, S: Debug + Display, I: ForwardMirInterpr
     interpreter.join(&final_states.iter().collect::<Vec<_>>()[..])
 }
 
-
-
 #[derive(Clone, Debug)]
 pub struct MultiExprBackwardInterpreterState {
-    exprs: Vec<vir::Expr>
+    exprs: Vec<vir::Expr>,
 }
 
 impl Display for MultiExprBackwardInterpreterState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "exprs={}", self.exprs.iter().map(|e| format!("{},", e)).collect::<String>())
+        write!(
+            f,
+            "exprs={}",
+            self.exprs
+                .iter()
+                .map(|e| format!("{},", e))
+                .collect::<String>()
+        )
     }
 }
 
 impl MultiExprBackwardInterpreterState {
     pub fn new(exprs: Vec<vir::Expr>) -> Self {
-        MultiExprBackwardInterpreterState {
-            exprs
-        }
+        MultiExprBackwardInterpreterState { exprs }
     }
 
     pub fn new_single(expr: vir::Expr) -> Self {
-        MultiExprBackwardInterpreterState {
-            exprs: vec![expr]
-        }
+        MultiExprBackwardInterpreterState { exprs: vec![expr] }
     }
 
     pub fn expr(&self, index: usize) -> &vir::Expr {
@@ -351,10 +391,15 @@ impl MultiExprBackwardInterpreterState {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
 
         // If `replacement` is a reference, simplify also its dereferentiations
-        if let vir::Expr::AddrOf(box ref base_replacement, ref dereferenced_type, ref pos) = replacement {
+        if let vir::Expr::AddrOf(box ref base_replacement, ref dereferenced_type, ref pos) =
+            replacement
+        {
             trace!("Substitution of a reference. Simplify its dereferentiations.");
             let deref_field = vir::Field::new("val_ref", base_replacement.get_type().clone());
-            let deref_target = sub_target.clone().field(deref_field.clone()).set_pos(pos.clone());
+            let deref_target = sub_target
+                .clone()
+                .field(deref_field.clone())
+                .set_pos(pos.clone());
             self.substitute_place(&deref_target, base_replacement.clone());
         }
 
@@ -372,8 +417,6 @@ impl MultiExprBackwardInterpreterState {
 
     pub fn use_place(&self, sub_target: &vir::Expr) -> bool {
         trace!("use_place {:?}", sub_target);
-        self.exprs.iter().any(
-            |expr| expr.find(sub_target)
-        )
+        self.exprs.iter().any(|expr| expr.find(sub_target))
     }
 }

@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::sync::RwLock;
-use std::env;
 use config_crate::{Config, Environment, File};
+use std::env;
+use std::sync::RwLock;
 
 lazy_static! {
     // Is this RwLock<..> necessary?
@@ -49,7 +49,7 @@ lazy_static! {
         ).unwrap();
 
         settings
-	});
+    });
 }
 
 /// Generate a dump of the settings
@@ -59,47 +59,86 @@ pub fn dump() -> String {
 
 /// Generate additional, *slow*, checks for the foldunfold algorithm
 pub fn check_foldunfold_state() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("CHECK_FOLDUNFOLD_STATE").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("CHECK_FOLDUNFOLD_STATE")
+        .unwrap()
 }
 
 /// The Viper backend that should be used for the verification
 pub fn viper_backend() -> String {
-    SETTINGS.read().unwrap().get::<String>("VIPER_BACKEND").unwrap().to_lowercase().trim().to_string()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<String>("VIPER_BACKEND")
+        .unwrap()
+        .to_lowercase()
+        .trim()
+        .to_string()
 }
 
 /// Should we check absence of panics?
 pub fn check_panics() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("CHECK_PANICS").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("CHECK_PANICS")
+        .unwrap()
 }
 
 /// Should we simplify expressions?
 pub fn simplify_expressions() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("SIMPLIFY_EXPRESSIONS").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("SIMPLIFY_EXPRESSIONS")
+        .unwrap()
 }
 
 /// Whether to use the verifiation whitelist
 pub fn enable_whitelist() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("ENABLE_WHITELIST").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("ENABLE_WHITELIST")
+        .unwrap()
 }
 
 /// Get the whitelist of procedures that should be verified
 pub fn verification_whitelist() -> Vec<String> {
-    SETTINGS.read().unwrap().get::<Vec<String>>("WHITELIST").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<Vec<String>>("WHITELIST")
+        .unwrap()
 }
 
 /// Should we dump debug files?
 pub fn dump_debug_info() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("DUMP_DEBUG_INFO").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("DUMP_DEBUG_INFO")
+        .unwrap()
 }
 
 /// Should we dump borrowck info?
 pub fn dump_borrowck_info() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("DUMP_BORROWCK_INFO").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("DUMP_BORROWCK_INFO")
+        .unwrap()
 }
 
 /// Should we dump the Viper program?
 pub fn dump_viper_program() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("DUMP_VIPER_PROGRAM").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("DUMP_VIPER_PROGRAM")
+        .unwrap()
 }
 
 /// In which folder should we sore log/dumps?
@@ -109,32 +148,56 @@ pub fn log_dir() -> String {
 
 /// Check binary operations for overflows
 pub fn check_binary_operations() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("CHECK_BINARY_OPERATIONS").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("CHECK_BINARY_OPERATIONS")
+        .unwrap()
 }
 
 /// Encode that unsigned integers are non-negative.
 pub fn encode_unsigned_num_constraint() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("ENCODE_UNSIGNED_NUM_CONSTRAINT").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("ENCODE_UNSIGNED_NUM_CONSTRAINT")
+        .unwrap()
 }
 
 /// Location of 'libprusti_contracts*.rlib'
 pub fn contracts_lib() -> String {
-    SETTINGS.read().unwrap().get::<String>("CONTRACTS_LIB").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<String>("CONTRACTS_LIB")
+        .unwrap()
 }
 
 /// Get extra JVM arguments
 pub fn extra_jvm_args() -> Vec<String> {
-    SETTINGS.read().unwrap().get::<Vec<String>>("EXTRA_JVM_ARGS").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<Vec<String>>("EXTRA_JVM_ARGS")
+        .unwrap()
 }
 
 /// Get extra arguments for the verifier
 pub fn extra_verifier_args() -> Vec<String> {
-    SETTINGS.read().unwrap().get::<Vec<String>>("EXTRA_VERIFIER_ARGS").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<Vec<String>>("EXTRA_VERIFIER_ARGS")
+        .unwrap()
 }
 
 /// Should we simplify functions?
 pub fn simplify_functions() -> bool {
-    SETTINGS.read().unwrap().get::<bool>("SIMPLIFY_FUNCTIONS").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("SIMPLIFY_FUNCTIONS")
+        .unwrap()
 }
 
 /// Should we hide user messages?
@@ -144,5 +207,9 @@ pub fn quiet() -> bool {
 
 /// The assert timeout (in miliseconds) passed to Silicon.
 pub fn assert_timeout() -> u64 {
-    SETTINGS.read().unwrap().get::<u64>("ASSERT_TIMEOUT").unwrap()
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<u64>("ASSERT_TIMEOUT")
+        .unwrap()
 }

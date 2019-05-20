@@ -11,8 +11,8 @@
 extern crate env_logger;
 #[macro_use]
 extern crate log;
-extern crate rustc_driver;
 extern crate rustc;
+extern crate rustc_driver;
 extern crate rustc_plugin;
 extern crate syntax;
 
@@ -26,19 +26,18 @@ extern crate prusti_interface;
 mod crate_visitor;
 mod validators;
 
-use rustc_driver::RustcDefaultCalls;
-use rustc_driver::driver::{CompileController, CompileState};
-use rustc_driver::Compilation;
-use std::env;
-use std::fs;
-use self::crate_visitor::{CrateVisitor, CrateStatus};
-use validators::Validator;
-use rustc::hir::intravisit::Visitor;
+use self::crate_visitor::{CrateStatus, CrateVisitor};
+use prusti_interface::config;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::sysroot::current_sysroot;
-use prusti_interface::config;
+use rustc::hir::intravisit::Visitor;
+use rustc_driver::driver::{CompileController, CompileState};
+use rustc_driver::Compilation;
+use rustc_driver::RustcDefaultCalls;
+use std::env;
+use std::fs;
 use std::path::Path;
-
+use validators::Validator;
 
 fn main() {
     env_logger::init();
@@ -120,23 +119,25 @@ fn main() {
                     crate_name: String::from(crate_name),
                     functions: Vec::new(),
                 },
-                source_map: state.session.parse_sess.codemap()
+                source_map: state.session.parse_sess.codemap(),
             };
 
             // **Deep visit**: Want to scan for specific kinds of HIR nodes within
             // an item, but don't care about how item-like things are nested
             // within one another.
-            tcx.hir.krate().visit_all_item_likes(&mut crate_visitor.as_deep_visitor());
+            tcx.hir
+                .krate()
+                .visit_all_item_likes(&mut crate_visitor.as_deep_visitor());
 
             let data = serde_json::to_string_pretty(&crate_visitor.crate_status).unwrap();
             //let path = fs::canonicalize("../prusti-filter-results.json").unwrap();
 
             // For rosetta without deleting root Cargo.toml:
             //let mut file = fs::OpenOptions::new()
-                //.append(true)
-                //.create(true)
-                //.open("prusti-filter-results.json")
-                //.unwrap();
+            //.append(true)
+            //.create(true)
+            //.open("prusti-filter-results.json")
+            //.unwrap();
             //file.write_all(b"\n====================\n").unwrap();
             //file.write_all(&data.into_bytes()).unwrap();
 

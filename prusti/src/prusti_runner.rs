@@ -4,13 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::env;
 use compiler_calls::PrustiCompilerCalls;
 use prusti_interface::config;
 use prusti_interface::report::user;
-use rustc_driver;
-use rustc::session::Session;
 use rustc::session::CompileResult;
+use rustc::session::Session;
+use rustc_driver;
+use std::env;
 
 /// Add arguments required by Prusti, then run the compiler with Prusti callbacks
 pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {

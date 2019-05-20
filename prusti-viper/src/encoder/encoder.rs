@@ -4,42 +4,44 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::{
-    compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
+use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use encoder::builtin_encoder::BuiltinEncoder;
-use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::error_manager::{ErrorManager, ErrorCtxt};
+use encoder::builtin_encoder::BuiltinMethodKind;
+use encoder::error_manager::{ErrorCtxt, ErrorManager};
 use encoder::foldunfold;
 use encoder::mir_encoder::MirEncoder;
-use encoder::spec_encoder::SpecEncoder;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
+use encoder::spec_encoder::SpecEncoder;
 use encoder::type_encoder::{compute_discriminant_values, TypeEncoder};
 use encoder::vir;
+use encoder::vir::WithIdentifier;
 use prusti_interface::config;
+use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::EnvironmentImpl;
+use prusti_interface::environment::Procedure;
 use prusti_interface::report::log;
+use prusti_interface::specifications::{
+    Assertion, SpecID, SpecType, Specification, SpecificationSet, TypedAssertion,
+    TypedSpecificationMap, TypedSpecificationSet,
+};
+use rustc::hir;
 use rustc::hir::def_id::DefId;
 use rustc::middle::const_val::ConstVal;
-use rustc::hir;
 use rustc::mir;
+use rustc::mir::interpret::GlobalId;
 use rustc::ty;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::io::Write;
+use std::iter::FromIterator;
+use std::mem;
 use syntax::ast;
 use viper;
-use prusti_interface::specifications::{SpecID, TypedSpecificationMap, SpecificationSet, TypedSpecificationSet, TypedAssertion, Specification, SpecType, Assertion};
-use prusti_interface::constants::PRUSTI_SPEC_ATTR;
-use std::mem;
-use prusti_interface::environment::Procedure;
-use std::io::Write;
-use rustc::mir::interpret::GlobalId;
-use std::iter::FromIterator;
-use encoder::vir::WithIdentifier;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
@@ -61,7 +63,15 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     fields: RefCell<HashMap<String, vir::Field>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
-    closure_instantiations: HashMap<DefId, Vec<(ProcedureDefId, mir::BasicBlock, usize, Vec<mir::Operand<'tcx>>)>>,
+    closure_instantiations: HashMap<
+        DefId,
+        Vec<(
+            ProcedureDefId,
+            mir::BasicBlock,
+            usize,
+            Vec<mir::Operand<'tcx>>,
+        )>,
+    >,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
@@ -75,10 +85,20 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         let vir_program_before_foldunfold_writer = RefCell::new(
-            log::build_writer("vir_program_before_foldunfold", format!("{}.vir", source_filename)).ok().unwrap()
+            log::build_writer(
+                "vir_program_before_foldunfold",
+                format!("{}.vir", source_filename),
+            )
+            .ok()
+            .unwrap(),
         );
         let vir_program_before_viper_writer = RefCell::new(
-            log::build_writer("vir_program_before_viper", format!("{}.vir", source_filename)).ok().unwrap()
+            log::build_writer(
+                "vir_program_before_viper",
+                format!("{}.vir", source_filename),
+            )
+            .ok()
+            .unwrap(),
         );
 
         Encoder {
@@ -112,15 +132,27 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn log_vir_program_before_foldunfold<S: ToString>(&self, program: S) {
         let mut writer = self.vir_program_before_foldunfold_writer.borrow_mut();
-        writer.write_all(program.to_string().as_bytes()).ok().unwrap();
-        writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
+        writer
+            .write_all(program.to_string().as_bytes())
+            .ok()
+            .unwrap();
+        writer
+            .write_all("\n\n".to_string().as_bytes())
+            .ok()
+            .unwrap();
         writer.flush().ok().unwrap();
     }
 
     pub fn log_vir_program_before_viper<S: ToString>(&self, program: S) {
         let mut writer = self.vir_program_before_viper_writer.borrow_mut();
-        writer.write_all(program.to_string().as_bytes()).ok().unwrap();
-        writer.write_all("\n\n".to_string().as_bytes()).ok().unwrap();
+        writer
+            .write_all(program.to_string().as_bytes())
+            .ok()
+            .unwrap();
+        writer
+            .write_all("\n\n".to_string().as_bytes())
+            .ok()
+            .unwrap();
         writer.flush().ok().unwrap();
     }
 
@@ -202,13 +234,20 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let mut closure_instantiations: HashMap<DefId, Vec<_>> = HashMap::new();
         let crate_num = hir::def_id::LOCAL_CRATE;
         for &mir_def_id in tcx.mir_keys(crate_num).iter() {
-            if !(
-                self.env().has_attribute_name(mir_def_id, "__PRUSTI_LOOP_SPEC_ID") ||
-                self.env().has_attribute_name(mir_def_id, "__PRUSTI_EXPR_ID") ||
-                self.env().has_attribute_name(mir_def_id, "__PRUSTI_FORALL_ID") ||
-                self.env().has_attribute_name(mir_def_id, "__PRUSTI_SPEC_ONLY") ||
-                self.env().has_attribute_name(mir_def_id, PRUSTI_SPEC_ATTR)
-            ) {
+            if !(self
+                .env()
+                .has_attribute_name(mir_def_id, "__PRUSTI_LOOP_SPEC_ID")
+                || self
+                    .env()
+                    .has_attribute_name(mir_def_id, "__PRUSTI_EXPR_ID")
+                || self
+                    .env()
+                    .has_attribute_name(mir_def_id, "__PRUSTI_FORALL_ID")
+                || self
+                    .env()
+                    .has_attribute_name(mir_def_id, "__PRUSTI_SPEC_ONLY")
+                || self.env().has_attribute_name(mir_def_id, PRUSTI_SPEC_ATTR))
+            {
                 continue;
             }
             trace!("Collecting closure instantiations for mir {:?}", mir_def_id);
@@ -219,19 +258,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                         _,
                         mir::Rvalue::Aggregate(
                             box mir::AggregateKind::Closure(cl_def_id, _),
-                            ref operands
-                        )
-                    ) = stmt.kind {
+                            ref operands,
+                        ),
+                    ) = stmt.kind
+                    {
                         trace!("Found closure instantiation: {:?}", stmt);
-                        let instantiations = closure_instantiations.entry(cl_def_id).or_insert(vec![]);
-                        instantiations.push(
-                            (
-                                mir_def_id,
-                                bb_index,
-                                stmt_index,
-                                operands.clone()
-                            )
-                        )
+                        let instantiations =
+                            closure_instantiations.entry(cl_def_id).or_insert(vec![]);
+                        instantiations.push((mir_def_id, bb_index, stmt_index, operands.clone()))
                     }
                 }
             }
@@ -239,30 +273,33 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.closure_instantiations = closure_instantiations;
     }
 
-    pub fn get_closure_instantiations(&self, closure_def_id: DefId) -> Vec<(ProcedureDefId, mir::BasicBlock, usize, Vec<mir::Operand<'tcx>>)> {
+    pub fn get_closure_instantiations(
+        &self,
+        closure_def_id: DefId,
+    ) -> Vec<(
+        ProcedureDefId,
+        mir::BasicBlock,
+        usize,
+        Vec<mir::Operand<'tcx>>,
+    )> {
         trace!("Get closure instantiations for {:?}", closure_def_id);
         match self.closure_instantiations.get(&closure_def_id) {
             Some(result) => result.clone(),
-            None => vec![]
+            None => vec![],
         }
     }
 
     pub fn get_opt_spec_id(&self, def_id: DefId) -> Option<SpecID> {
-        let opt_spec_id = self.env().tcx()
+        let opt_spec_id = self
+            .env()
+            .tcx()
             .get_attrs(def_id)
             .iter()
             .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
-            .and_then(|x| x
-                .value_str()
-                .and_then(|y| y
-                    .as_str()
-                    .parse::<u64>()
-                    .ok()
-                    .map(
-                        |z| z.into()
-                    )
-                )
-            );
+            .and_then(|x| {
+                x.value_str()
+                    .and_then(|y| y.as_str().parse::<u64>().ok().map(|z| z.into()))
+            });
         debug!("Function {:?} has spec_id {:?}", def_id, opt_spec_id);
         opt_spec_id
     }
@@ -272,12 +309,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
         // that the def_id does not point to an external crate.
         if !def_id.is_local() {
-            return None
+            return None;
         }
-        self.get_opt_spec_id(def_id).and_then(|spec_id| self.spec().get(&spec_id))
+        self.get_opt_spec_id(def_id)
+            .and_then(|spec_id| self.spec().get(&spec_id))
     }
 
-    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) ->  ProcedureContractMirDef<'tcx> {
+    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) -> ProcedureContractMirDef<'tcx> {
         let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
         let fun_spec = match opt_fun_spec {
             Some(fun_spec) => fun_spec.clone(),
@@ -291,7 +329,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn get_procedure_contract_for_def(
         &self,
-        proc_def_id: ProcedureDefId
+        proc_def_id: ProcedureDefId,
     ) -> ProcedureContract<'tcx> {
         self.procedure_contracts
             .borrow_mut()
@@ -304,7 +342,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
         args: &Vec<places::Local>,
-        target: places::Local
+        target: places::Local,
     ) -> ProcedureContract<'tcx> {
         let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
         let fun_spec = match opt_fun_spec {
@@ -316,24 +354,33 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         };
         let tymap = self.typaram_repl.borrow_mut();
         assert!(tymap.len() == 1);
-        let contract = compute_procedure_contract(
-            proc_def_id, self.env().tcx(), fun_spec, Some(&tymap[0]));
+        let contract =
+            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, Some(&tymap[0]));
         contract.to_call_site_contract(args, target)
     }
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_encoder = TypeEncoder::new(self, ty);
         let mut field = type_encoder.encode_value_field();
-        self.fields.borrow_mut().entry(field.name.clone()).or_insert_with(|| field.clone());
+        self.fields
+            .borrow_mut()
+            .entry(field.name.clone())
+            .or_insert_with(|| field.clone());
         field
     }
 
     pub fn encode_raw_ref_field(&self, viper_field_name: String, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_name = self.encode_type_predicate_use(ty);
-        self.fields.borrow_mut().entry(viper_field_name.clone()).or_insert_with(|| {
-            // Do not store the name of the type in self.fields
-            vir::Field::new(viper_field_name.clone(), vir::Type::TypedRef("".to_string()))
-        });
+        self.fields
+            .borrow_mut()
+            .entry(viper_field_name.clone())
+            .or_insert_with(|| {
+                // Do not store the name of the type in self.fields
+                vir::Field::new(
+                    viper_field_name.clone(),
+                    vir::Type::TypedRef("".to_string()),
+                )
+            });
         vir::Field::new(viper_field_name, vir::Type::TypedRef(type_name))
     }
 
@@ -359,45 +406,51 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_discriminant_field(&self) -> vir::Field {
         let name = "discriminant";
         let field = vir::Field::new(name, vir::Type::Int);
-        self.fields.borrow_mut().entry(name.to_string()).or_insert_with(|| field.clone());
+        self.fields
+            .borrow_mut()
+            .entry(name.to_string())
+            .or_insert_with(|| field.clone());
         field
     }
 
     pub fn encode_discriminant_func_app(
         &self,
         place: vir::Expr,
-        adt_def: &ty::AdtDef
+        adt_def: &ty::AdtDef,
     ) -> vir::Expr {
         let typ = place.get_type().clone();
         let mut name = typ.name();
         name.push_str("$$discriminant$$");
         let self_local_var = vir::LocalVar::new("self", typ);
-        self.type_discriminant_funcs.borrow_mut().entry(name.clone()).or_insert_with(|| {
-            let predicate_name = place.get_type().name();
-            let precondition = vir::Expr::predicate_access_predicate(
-                predicate_name,
-                self_local_var.clone().into(),
-                vir::PermAmount::Read,
-            );
-            let result = vir::LocalVar::new("__result", vir::Type::Int);
-            let postcondition = compute_discriminant_values(
-                adt_def, self.env.tcx(), &result.into());
-            let discr_field = self.encode_discriminant_field();
-            let self_local_var_expr: vir::Expr = self_local_var.clone().into();
-            let function = vir::Function {
-                name: name.clone(),
-                formal_args: vec![self_local_var.clone()],
-                return_type: vir::Type::Int,
-                pres: vec![precondition],
-                posts: vec![postcondition],
-                body: Some(self_local_var_expr.field(discr_field)),
-            };
-            let final_function = foldunfold::add_folding_unfolding_to_function(
-                function,
-                self.get_used_viper_predicates_map()
-            );
-            final_function
-        });
+        self.type_discriminant_funcs
+            .borrow_mut()
+            .entry(name.clone())
+            .or_insert_with(|| {
+                let predicate_name = place.get_type().name();
+                let precondition = vir::Expr::predicate_access_predicate(
+                    predicate_name,
+                    self_local_var.clone().into(),
+                    vir::PermAmount::Read,
+                );
+                let result = vir::LocalVar::new("__result", vir::Type::Int);
+                let postcondition =
+                    compute_discriminant_values(adt_def, self.env.tcx(), &result.into());
+                let discr_field = self.encode_discriminant_field();
+                let self_local_var_expr: vir::Expr = self_local_var.clone().into();
+                let function = vir::Function {
+                    name: name.clone(),
+                    formal_args: vec![self_local_var.clone()],
+                    return_type: vir::Type::Int,
+                    pres: vec![precondition],
+                    posts: vec![postcondition],
+                    body: Some(self_local_var_expr.field(discr_field)),
+                };
+                let final_function = foldunfold::add_folding_unfolding_to_function(
+                    function,
+                    self.get_used_viper_predicates_map(),
+                );
+                final_function
+            });
         vir::Expr::FuncApp(
             name,
             vec![place],
@@ -413,7 +466,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let builtin_encoder = BuiltinEncoder::new(self);
             let method = builtin_encoder.encode_builtin_method_def(method_kind);
             self.log_vir_program_before_viper(method.to_string());
-            self.builtin_methods.borrow_mut().insert(method_kind.clone(), method);
+            self.builtin_methods
+                .borrow_mut()
+                .insert(method_kind.clone(), method);
         }
         self.builtin_methods.borrow()[&method_kind].clone()
     }
@@ -434,7 +489,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let builtin_encoder = BuiltinEncoder::new(self);
             let function = builtin_encoder.encode_builtin_function_def(function_kind.clone());
             self.log_vir_program_before_viper(function.to_string());
-            self.builtin_functions.borrow_mut().insert(function_kind.clone(), function);
+            self.builtin_functions
+                .borrow_mut()
+                .insert(function_kind.clone(), function);
         }
         self.builtin_functions.borrow()[&function_kind].clone()
     }
@@ -451,8 +508,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_procedure_use(&self, proc_def_id: ProcedureDefId) -> String {
         trace!("encode_procedure_use({:?})", proc_def_id);
-        assert!(!self.env.has_attribute_name(proc_def_id, "pure"),
-                "procedure is marked as pure: {:?}", proc_def_id);
+        assert!(
+            !self.env.has_attribute_name(proc_def_id, "pure"),
+            "procedure is marked as pure: {:?}",
+            proc_def_id
+        );
         self.queue_procedure_encoding(proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
         let procedure_encoder = ProcedureEncoder::new(self, &procedure);
@@ -461,8 +521,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
         debug!("encode_procedure({:?})", proc_def_id);
-        assert!(!self.env.has_attribute_name(proc_def_id, "pure"), "procedure is marked as pure: {:?}", proc_def_id);
-        assert!(!self.env.has_attribute_name(proc_def_id, "trusted"), "procedure is marked as trusted: {:?}", proc_def_id);
+        assert!(
+            !self.env.has_attribute_name(proc_def_id, "pure"),
+            "procedure is marked as pure: {:?}",
+            proc_def_id
+        );
+        assert!(
+            !self.env.has_attribute_name(proc_def_id, "trusted"),
+            "procedure is marked as trusted: {:?}",
+            proc_def_id
+        );
         if !self.procedures.borrow().contains_key(&proc_def_id) {
             let procedure = self.env.get_procedure(proc_def_id);
             let procedure_encoder = ProcedureEncoder::new(self, &procedure);
@@ -488,17 +556,28 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         type_encoder.encode_bounds(var)
     }
 
-    pub fn encode_assertion(&self, assertion: &TypedAssertion, mir: &mir::Mir<'tcx>,
-                            label: &str, encoded_args: &[vir::Expr],
-                            encoded_return: Option<&vir::Expr>, targets_are_values: bool,
-                            stop_at_bbi: Option<mir::BasicBlock>
+    pub fn encode_assertion(
+        &self,
+        assertion: &TypedAssertion,
+        mir: &mir::Mir<'tcx>,
+        label: &str,
+        encoded_args: &[vir::Expr],
+        encoded_return: Option<&vir::Expr>,
+        targets_are_values: bool,
+        stop_at_bbi: Option<mir::BasicBlock>,
     ) -> vir::Expr {
-        let spec_encoder = SpecEncoder::new(self, mir, label, encoded_args, encoded_return, targets_are_values, stop_at_bbi);
+        let spec_encoder = SpecEncoder::new(
+            self,
+            mir,
+            label,
+            encoded_args,
+            encoded_return,
+            targets_are_values,
+            stop_at_bbi,
+        );
         spec_encoder.encode_assertion(assertion).set_default_pos(
-            self.error_manager().register(
-                assertion.get_spans(),
-                ErrorCtxt::GenericExpression
-            )
+            self.error_manager()
+                .register(assertion.get_spans(), ErrorCtxt::GenericExpression),
         )
     }
 
@@ -506,12 +585,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.type_predicate_names.borrow().contains_key(&ty.sty) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_predicate_use();
-            self.type_predicate_names.borrow_mut().insert(ty.sty.clone(), result);
+            self.type_predicate_names
+                .borrow_mut()
+                .insert(ty.sty.clone(), result);
             // Trigger encoding of definition
             self.encode_type_predicate_def(ty);
         }
         let predicate_name = self.type_predicate_names.borrow()[&ty.sty].clone();
-        self.predicate_types.borrow_mut().insert(predicate_name.clone(), ty);
+        self.predicate_types
+            .borrow_mut()
+            .insert(predicate_name.clone(), ty);
         predicate_name
     }
 
@@ -527,7 +610,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             for predicate in predicates {
                 self.log_vir_program_before_viper(predicate.to_string());
                 let predicate_name = predicate.name();
-                self.type_predicates.borrow_mut().insert(predicate_name.to_string(), predicate);
+                self.type_predicates
+                    .borrow_mut()
+                    .insert(predicate_name.to_string(), predicate);
             }
         }
         self.type_predicates.borrow()[&predicate_name].clone()
@@ -546,7 +631,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.type_invariant_names.borrow().contains_key(&ty.sty) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_invariant_use();
-            self.type_invariant_names.borrow_mut().insert(ty.sty.clone(), result);
+            self.type_invariant_names
+                .borrow_mut()
+                .insert(ty.sty.clone(), result);
             // Trigger encoding of definition
             self.encode_type_invariant_def(ty);
         }
@@ -559,7 +646,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.type_invariants.borrow().contains_key(&invariant_name) {
             let type_encoder = TypeEncoder::new(self, ty);
             let invariant = type_encoder.encode_invariant_def();
-            self.type_invariants.borrow_mut().insert(invariant_name.clone(), invariant);
+            self.type_invariants
+                .borrow_mut()
+                .insert(invariant_name.clone(), invariant);
         }
         self.type_invariants.borrow()[&invariant_name].clone()
     }
@@ -568,7 +657,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.type_tag_names.borrow().contains_key(&ty.sty) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_tag_use();
-            self.type_tag_names.borrow_mut().insert(ty.sty.clone(), result);
+            self.type_tag_names
+                .borrow_mut()
+                .insert(ty.sty.clone(), result);
             // Trigger encoding of definition
             self.encode_type_tag_def(ty);
         }
@@ -589,19 +680,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_const_expr(&self, value: &ty::Const<'tcx>) -> vir::Expr {
         trace!("encode_const_expr {:?}", value);
         let scalar_value = match value.val {
-            ConstVal::Value(ref value) => {
-                value.to_scalar().expect(&format!("Unsupported const: {:?}", value))
-            },
+            ConstVal::Value(ref value) => value
+                .to_scalar()
+                .expect(&format!("Unsupported const: {:?}", value)),
             ConstVal::Unevaluated(def_id, substs) => {
                 let tcx = self.env().tcx();
                 let param_env = tcx.param_env(def_id);
                 let cid = GlobalId {
                     instance: ty::Instance::new(def_id, substs),
-                    promoted: None
+                    promoted: None,
                 };
                 if let Ok(const_value) = tcx.const_eval(param_env.and(cid)) {
                     if let ConstVal::Value(ref value) = const_value.val {
-                        value.to_scalar().expect(&format!("Unsupported const: {:?}", value))
+                        value
+                            .to_scalar()
+                            .expect(&format!("Unsupported const: {:?}", value))
                     } else {
                         unreachable!()
                     }
@@ -623,20 +716,86 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
         let expr = match value.ty.sty {
             ty::TypeVariants::TyBool => scalar_value.to_bool().ok().unwrap().into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I8) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap(), 8) as i8).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I16) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap(), 16) as i16).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I32) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(32)).ok().unwrap(), 32) as i32).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I64) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap(), 64) as i64).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::I128) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(128)).ok().unwrap(), 128) as i128).into(),
-            ty::TypeVariants::TyInt(ast::IntTy::Isize) => (with_sign(scalar_value.to_bits(ty::layout::Size::from_bits(usize_bits as u64)).ok().unwrap(), usize_bits as u64) as i128).into(),
-            ty::TypeVariants::TyUint(ast::UintTy::U8) => (scalar_value.to_bits(ty::layout::Size::from_bits(8)).ok().unwrap() as u8).into(),
-            ty::TypeVariants::TyUint(ast::UintTy::U16) => (scalar_value.to_bits(ty::layout::Size::from_bits(16)).ok().unwrap() as u16).into(),
-            ty::TypeVariants::TyChar |
-            ty::TypeVariants::TyUint(ast::UintTy::U32) => (scalar_value.to_bits(ty::layout::Size::from_bits(32)).ok().unwrap() as u32).into(),
-            ty::TypeVariants::TyUint(ast::UintTy::U64) => (scalar_value.to_bits(ty::layout::Size::from_bits(64)).ok().unwrap() as u64).into(),
-            ty::TypeVariants::TyUint(ast::UintTy::U128) => (scalar_value.to_bits(ty::layout::Size::from_bits(128)).ok().unwrap() as u128).into(),
-            ty::TypeVariants::TyUint(ast::UintTy::Usize) => (scalar_value.to_bits(ty::layout::Size::from_bits(usize_bits as u64)).ok().unwrap() as u128).into(),
-            ref x => unimplemented!("{:?}", x)
+            ty::TypeVariants::TyInt(ast::IntTy::I8) => (with_sign(
+                scalar_value
+                    .to_bits(ty::layout::Size::from_bits(8))
+                    .ok()
+                    .unwrap(),
+                8,
+            ) as i8)
+                .into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I16) => (with_sign(
+                scalar_value
+                    .to_bits(ty::layout::Size::from_bits(16))
+                    .ok()
+                    .unwrap(),
+                16,
+            ) as i16)
+                .into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I32) => (with_sign(
+                scalar_value
+                    .to_bits(ty::layout::Size::from_bits(32))
+                    .ok()
+                    .unwrap(),
+                32,
+            ) as i32)
+                .into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I64) => (with_sign(
+                scalar_value
+                    .to_bits(ty::layout::Size::from_bits(64))
+                    .ok()
+                    .unwrap(),
+                64,
+            ) as i64)
+                .into(),
+            ty::TypeVariants::TyInt(ast::IntTy::I128) => (with_sign(
+                scalar_value
+                    .to_bits(ty::layout::Size::from_bits(128))
+                    .ok()
+                    .unwrap(),
+                128,
+            ) as i128)
+                .into(),
+            ty::TypeVariants::TyInt(ast::IntTy::Isize) => (with_sign(
+                scalar_value
+                    .to_bits(ty::layout::Size::from_bits(usize_bits as u64))
+                    .ok()
+                    .unwrap(),
+                usize_bits as u64,
+            ) as i128)
+                .into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U8) => (scalar_value
+                .to_bits(ty::layout::Size::from_bits(8))
+                .ok()
+                .unwrap() as u8)
+                .into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U16) => (scalar_value
+                .to_bits(ty::layout::Size::from_bits(16))
+                .ok()
+                .unwrap() as u16)
+                .into(),
+            ty::TypeVariants::TyChar | ty::TypeVariants::TyUint(ast::UintTy::U32) => (scalar_value
+                .to_bits(ty::layout::Size::from_bits(32))
+                .ok()
+                .unwrap()
+                as u32)
+                .into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U64) => (scalar_value
+                .to_bits(ty::layout::Size::from_bits(64))
+                .ok()
+                .unwrap() as u64)
+                .into(),
+            ty::TypeVariants::TyUint(ast::UintTy::U128) => (scalar_value
+                .to_bits(ty::layout::Size::from_bits(128))
+                .ok()
+                .unwrap() as u128)
+                .into(),
+            ty::TypeVariants::TyUint(ast::UintTy::Usize) => (scalar_value
+                .to_bits(ty::layout::Size::from_bits(usize_bits as u64))
+                .ok()
+                .unwrap() as u128)
+                .into(),
+            ref x => unimplemented!("{:?}", x),
         };
         debug!("encode_const_expr {:?} --> {:?}", value, expr);
         expr
@@ -661,7 +820,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyUint(ast::UintTy::U128) => (value as u128).into(),
             ty::TypeVariants::TyUint(ast::UintTy::Usize) => (value as usize).into(),
             ty::TypeVariants::TyChar => value.into(),
-            ref x => unimplemented!("{:?}", x)
+            ref x => unimplemented!("{:?}", x),
         };
         debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);
         expr
@@ -671,15 +830,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         // Rule: the rhs must always have an even number of "$"
         let mut name = "m_".to_string();
         name.push_str(
-            &self.env.get_item_def_path(def_id)
+            &self
+                .env
+                .get_item_def_path(def_id)
                 .replace("::", "$$")
-                .replace("<", "$openang$").replace(">", "$closeang$")
-                .replace("(", "$openrou$").replace(")", "$closerou$")
-                .replace("[", "$opensqu$").replace("]", "$closesqu$")
-                .replace("{", "$opencur$").replace("}", "$closecur$")
+                .replace("<", "$openang$")
+                .replace(">", "$closeang$")
+                .replace("(", "$openrou$")
+                .replace(")", "$closerou$")
+                .replace("[", "$opensqu$")
+                .replace("]", "$closesqu$")
+                .replace("{", "$opencur$")
+                .replace("}", "$closecur$")
                 .replace(",", "$comma$")
                 .replace(";", "$semic$")
-                .replace(" ", "$space$")
+                .replace(" ", "$space$"),
         );
         name
     }
@@ -714,7 +879,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_pure_function_body(
         &self,
         proc_def_id: ProcedureDefId,
-        is_encoding_assertion: bool
+        is_encoding_assertion: bool,
     ) -> vir::Expr {
         let substs_key = self.type_substitution_key();
         let key = (proc_def_id, substs_key);
@@ -727,7 +892,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 is_encoding_assertion,
             );
             let body = pure_function_encoder.encode_body();
-            self.pure_function_bodies.borrow_mut().insert(key.clone(), body);
+            self.pure_function_bodies
+                .borrow_mut()
+                .insert(key.clone(), body);
         }
         self.pure_function_bodies.borrow()[&key].clone()
     }
@@ -735,11 +902,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_pure_function_def(
         &self,
         proc_def_id: ProcedureDefId,
-        substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>
+        substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
     ) {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
-        assert!(self.env.has_attribute_name(proc_def_id, "pure"),
-                "procedure is not marked as pure: {:?}", proc_def_id);
+        assert!(
+            self.env.has_attribute_name(proc_def_id, "pure"),
+            "procedure is not marked as pure: {:?}",
+            proc_def_id
+        );
 
         {
             // FIXME; hideous monstrosity...
@@ -759,12 +929,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if !self.pure_functions.borrow().contains_key(&key) {
             trace!("not encoded: {:?}", key);
             let procedure = self.env.get_procedure(proc_def_id);
-            let pure_function_encoder = PureFunctionEncoder::new(
-                self,
-                proc_def_id,
-                procedure.get_mir(),
-                false,
-            );
+            let pure_function_encoder =
+                PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
             let function = if self.is_trusted(proc_def_id) {
                 pure_function_encoder.encode_bodyless_function()
             } else {
@@ -784,36 +950,36 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_pure_function_use(&self, proc_def_id: ProcedureDefId) -> String {
         trace!("encode_pure_function_use({:?})", proc_def_id);
-        assert!(self.env.has_attribute_name(proc_def_id, "pure"),
-                "procedure is not marked as pure: {:?}", proc_def_id);
+        assert!(
+            self.env.has_attribute_name(proc_def_id, "pure"),
+            "procedure is not marked as pure: {:?}",
+            proc_def_id
+        );
         self.queue_pure_function_encoding(proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder = PureFunctionEncoder::new(
-            self,
-            proc_def_id,
-            procedure.get_mir(),
-            false,
-        );
+        let pure_function_encoder =
+            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
         pure_function_encoder.encode_function_name()
     }
 
     pub fn encode_pure_function_return_type(&self, proc_def_id: ProcedureDefId) -> vir::Type {
         trace!("encode_pure_function_return_type({:?})", proc_def_id);
-        assert!(self.env.has_attribute_name(proc_def_id, "pure"),
-                "procedure is not marked as pure: {:?}", proc_def_id);
-        let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder = PureFunctionEncoder::new(
-            self,
-            proc_def_id,
-            procedure.get_mir(),
-            false,
+        assert!(
+            self.env.has_attribute_name(proc_def_id, "pure"),
+            "procedure is not marked as pure: {:?}",
+            proc_def_id
         );
+        let procedure = self.env.get_procedure(proc_def_id);
+        let pure_function_encoder =
+            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
         // FIXME: This assumes that pure functions cannot return generic values.
         pure_function_encoder.encode_function_return_type()
     }
 
     pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {
-        self.encoding_queue.borrow_mut().push((proc_def_id, Vec::new()));
+        self.encoding_queue
+            .borrow_mut()
+            .push((proc_def_id, Vec::new()));
     }
 
     pub fn queue_pure_function_encoding(&self, proc_def_id: ProcedureDefId) {
@@ -828,14 +994,20 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let proc_name = self.env.get_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             let proc_span = self.env.get_item_span(proc_def_id);
-            info!("Encoding: {} from {:?} ({})", proc_name, proc_span, proc_def_path);
+            info!(
+                "Encoding: {} from {:?} ({})",
+                proc_name, proc_span, proc_def_path
+            );
             let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
             if is_pure_function {
                 self.encode_pure_function_def(proc_def_id, substs);
             } else {
                 assert!(substs.is_empty());
                 if self.is_trusted(proc_def_id) {
-                    debug!("Trusted procedure will not be encoded or verified: {:?}", proc_def_id);
+                    debug!(
+                        "Trusted procedure will not be encoded or verified: {:?}",
+                        proc_def_id
+                    );
                 } else {
                     self.encode_procedure(proc_def_id);
                 }
@@ -845,9 +1017,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
         trace!("is_trusted {:?}", def_id);
-        let result = self.env().has_attribute_name(def_id, "trusted") || (
-            self.use_whitelist && !self.whitelist.contains(&self.env().get_item_def_path(def_id))
-        );
+        let result = self.env().has_attribute_name(def_id, "trusted")
+            || (self.use_whitelist
+                && !self
+                    .whitelist
+                    .contains(&self.env().get_item_def_path(def_id)));
         trace!("is_trusted {:?} = {}", def_id, result);
         result
     }
@@ -857,7 +1031,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         // FIXME: This should use current_tymap.
         if let Some(first) = self.typaram_repl.borrow().first() {
             if let Some(replaced_ty) = first.get(&ty) {
-                return replaced_ty.clone()
+                return replaced_ty.clone();
             }
         }
         ty
@@ -904,17 +1078,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
     /// type substitution.
     pub fn type_substitution_key(&self) -> String {
-        let mut substs: Vec<_> = self.type_substitution_strings()
+        let mut substs: Vec<_> = self
+            .type_substitution_strings()
             .into_iter()
-            .filter(|(typ, subst)| {
-                typ != subst
-            })
-            .map(|(typ, subst)| {
-                format!("({},{})", typ, subst)
-            })
+            .filter(|(typ, subst)| typ != subst)
+            .map(|(typ, subst)| format!("({},{})", typ, subst))
             .collect();
         substs.sort();
         substs.join(";")
     }
-
 }

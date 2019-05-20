@@ -4,19 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-pub use self::expr::*;
-pub use self::stmt::*;
-pub use self::trigger::*;
-pub use self::predicate::*;
-pub use self::function::*;
 pub use self::bodyless_method::*;
 pub use self::common::*;
+pub use self::expr::*;
+pub use self::function::*;
+pub use self::predicate::*;
+pub use self::stmt::*;
+pub use self::trigger::*;
 
-mod expr;
-mod stmt;
-mod trigger;
-mod predicate;
-mod function;
 mod bodyless_method;
 mod common;
+mod expr;
+mod function;
+mod predicate;
+mod stmt;
+mod trigger;
 pub mod typaram;

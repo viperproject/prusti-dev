@@ -55,7 +55,7 @@ impl Substs {
         let mut repls = HashMap::new();
         let captures = repls_regex.captures(to).unwrap();
         for i in 1..captures.len() {
-            let from_typaram = found_typarams[i-1].to_string();
+            let from_typaram = found_typarams[i - 1].to_string();
             let to_typaram = captures.get(i).unwrap().as_str();
             let old_entry = repls.insert(from_typaram.clone(), to_typaram.to_string());
             // What if there was something in `repls`? Check that we didn't change it.
@@ -103,8 +103,10 @@ mod tests {
 
     #[test]
     pub fn test1() {
-        let outer1 = "ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_";
-        let outer2 = "ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_";
+        let outer1 =
+            "ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_";
+        let outer2 =
+            "ref$m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_";
         let inner1 = "m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Y$__$_end_";
         let inner2 = "m_generics_basic_3$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$Z$__$_end_";
         test(outer1, outer2, inner1, inner2);
@@ -133,7 +135,8 @@ mod tests {
         let outer1 = "ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_";
         let outer2 = "ref$m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_";
         let inner1 = "m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$__TYPARAM__$B$__$_end_";
-        let inner2 = "m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_";
+        let inner2 =
+            "m_generics_basic_4$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$C$__$_sep_$i16$_end_";
         test(outer1, outer2, inner1, inner2);
     }
 
@@ -142,7 +145,8 @@ mod tests {
         let outer1 = "ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$A$__$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_$_sep_$__TYPARAM__$D$__$_end_";
         let outer2 = "ref$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i8$_sep_$i32$_sep_$u8$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_$_sep_$m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$isize$_sep_$i32$_sep_$usize$_end_$_end_";
         let inner1 = "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$__TYPARAM__$B$__$_sep_$i32$_sep_$__TYPARAM__$C$__$_end_";
-        let inner2 = "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_";
+        let inner2 =
+            "m_generics_basic_5$$Number$opensqu$0$closesqu$$_beg_$i16$_sep_$i32$_sep_$i64$_end_";
         test(outer1, outer2, inner1, inner2);
     }
 

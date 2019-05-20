@@ -4,20 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use encoder::vir::{self, optimisations, ToViper, ToViperDecl};
 use encoder::Encoder;
-use encoder::vir::{self, ToViper, ToViperDecl, optimisations};
+use prusti_filter::validators::{SupportStatus, Validator};
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::EnvironmentImpl;
+use prusti_interface::report::log;
+use prusti_interface::specifications::TypedSpecificationMap;
 use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
 use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
-use prusti_interface::report::log;
-use viper::{self, Viper, VerificationBackend};
-use prusti_interface::specifications::{TypedSpecificationMap};
-use prusti_filter::validators::{Validator, SupportStatus};
 use std::time::Instant;
+use viper::{self, VerificationBackend, Viper};
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -26,9 +26,7 @@ pub struct VerifierBuilder {
 impl VerifierBuilder {
     pub fn new() -> Self {
         VerifierBuilder {
-            viper: Viper::new_with_args(
-                config::extra_jvm_args()
-            ),
+            viper: Viper::new_with_args(config::extra_jvm_args()),
         }
     }
 }
@@ -40,10 +38,10 @@ impl Default for VerifierBuilder {
 }
 
 impl<'v, 'r, 'a, 'tcx> VerifierBuilderSpec<'v, 'r, 'a, 'tcx> for VerifierBuilder
-    where
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a
+where
+    'r: 'v,
+    'a: 'r,
+    'tcx: 'a,
 {
     type VerificationContextImpl = VerificationContext<'v>;
 
@@ -54,7 +52,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierBuilderSpec<'v, 'r, 'a, 'tcx> for VerifierBuilder
 }
 
 pub struct VerificationContext<'v> {
-    verification_ctx: viper::VerificationContext<'v>
+    verification_ctx: viper::VerificationContext<'v>,
 }
 
 impl<'v> VerificationContext<'v> {
@@ -64,14 +62,18 @@ impl<'v> VerificationContext<'v> {
 }
 
 impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for VerificationContext<'v>
-    where
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a
+where
+    'r: 'v,
+    'a: 'r,
+    'tcx: 'a,
 {
     type VerifierImpl = Verifier<'v, 'r, 'a, 'tcx>;
 
-    fn new_verifier(&'v self, env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Verifier<'v, 'r, 'a, 'tcx> {
+    fn new_verifier(
+        &'v self,
+        env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        spec: &'v TypedSpecificationMap,
+    ) -> Verifier<'v, 'r, 'a, 'tcx> {
         let backend = VerificationBackend::from_str(&config::viper_backend());
 
         let mut verifier_args: Vec<String> = vec![];
@@ -80,20 +82,23 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
                 "--enableMoreCompleteExhale".to_string(), // Buggy :(
                 "--assertTimeout".to_string(),
                 config::assert_timeout().to_string(),
-                "--tempDirectory".to_string(), "./log/viper_tmp".to_string(),
+                "--tempDirectory".to_string(),
+                "./log/viper_tmp".to_string(),
                 //"--logLevel".to_string(), "WARN".to_string(),
             ]);
         } else {
             verifier_args.extend(vec![
                 "--disableAllocEncoding".to_string(),
-                "--boogieOpt".to_string(), "/logPrefix ./log/viper_tmp".to_string()
+                "--boogieOpt".to_string(),
+                "/logPrefix ./log/viper_tmp".to_string(),
             ]);
         }
         if config::dump_debug_info() {
             if let VerificationBackend::Silicon = backend {
                 verifier_args.extend(vec![
                     "--printMethodCFGs".to_string(),
-                    "--logLevel".to_string(), "INFO".to_string(),
+                    "--logLevel".to_string(),
+                    "INFO".to_string(),
                     //"--printTranslatedProgram".to_string(),
                 ]);
             } else {
@@ -106,21 +111,19 @@ impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for Verificatio
         Verifier::new(
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
-            self.verification_ctx.new_verifier_with_args(
-                backend,
-                verifier_args
-            ),
+            self.verification_ctx
+                .new_verifier_with_args(backend, verifier_args),
             env,
-            spec
+            spec,
         )
     }
 }
 
 pub struct Verifier<'v, 'r, 'a, 'tcx>
-    where
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a
+where
+    'r: 'v,
+    'a: 'r,
+    'tcx: 'a,
 {
     ast_utils: viper::AstUtils<'v>,
     ast_factory: viper::AstFactory<'v>,
@@ -136,7 +139,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         ast_factory: viper::AstFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
         env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
-        spec: &'v TypedSpecificationMap
+        spec: &'v TypedSpecificationMap,
     ) -> Self {
         Verifier {
             ast_utils,
@@ -187,8 +190,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     debug!("Partially supported reason: {:?}", reason);
                     let message = format!(
                         "[Prusti] the following is partially supported{}, because it {}",
-                        extra_msg,
-                        reason.reason
+                        extra_msg, reason.reason
                     );
                     self.env.span_warn(reason.position, &message);
                 }
@@ -199,8 +201,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     debug!("Unsupported reason: {:?}", reason);
                     let message = format!(
                         "[Prusti] the following is unsupported{}, because it {}",
-                        extra_msg,
-                        reason.reason
+                        extra_msg, reason.reason
                     );
                     self.env.span_err(reason.position, &message);
                 }
@@ -213,7 +214,11 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         self.encoder.process_encoding_queue();
 
         let duration = start.elapsed();
-        info!("Encoding to Viper successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+        info!(
+            "Encoding to Viper successful ({}.{} seconds)",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
         let start = Instant::now();
 
         let program = {
@@ -225,7 +230,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             let mut functions: Vec<_> = if config::simplify_functions() {
                 optimisations::functions::inline_constant_functions(unoptimized_functions)
                     .into_iter()
-                    .map(|mut f| { optimisations::functions::simplify(&mut f); f })
+                    .map(|mut f| {
+                        optimisations::functions::simplify(&mut f);
+                        f
+                    })
                     .map(|f| f.to_viper(ast))
                     .collect()
             } else {
@@ -235,8 +243,12 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     .collect()
             };
             let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
-            let methods = self.encoder.get_used_viper_methods().into_iter()
-                .map(|m| m.to_viper(ast)).collect::<Vec<_>>();
+            let methods = self
+                .encoder
+                .get_used_viper_methods()
+                .into_iter()
+                .map(|m| m.to_viper(ast))
+                .collect::<Vec<_>>();
 
             info!(
                 "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
@@ -244,20 +256,18 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             );
 
             // Add a function that represents the symbolic read permission amount.
-            functions.push(
-                ast.function(
-                    "read$",
-                    &[],
-                    ast.perm_type(),
-                    &[],
-                    &[
-                        ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
-                        ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm())
-                    ],
-                    ast.no_position(),
-                    None
-                )
-            );
+            functions.push(ast.function(
+                "read$",
+                &[],
+                ast.perm_type(),
+                &[],
+                &[
+                    ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
+                    ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+                ],
+                ast.no_position(),
+                None,
+            ));
 
             // Add a predicate that represents the dead loan token.
             predicates.push(
@@ -266,9 +276,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     &[vir::LocalVar {
                         name: "borrow".to_string(),
                         typ: vir::Type::Int,
-                    }.to_viper_decl(ast)],
+                    }
+                    .to_viper_decl(ast)],
                     None,
-                )
+                ),
             );
 
             ast.program(&domains, &fields, &functions, &predicates, &methods)
@@ -278,24 +289,34 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             // Dump Viper program
             let source_path = self.env.source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-            log::report("viper_program",
-                        format!("{}.vpr", source_filename),
-                        self.ast_utils.pretty_print(program));
+            log::report(
+                "viper_program",
+                format!("{}.vpr", source_filename),
+                self.ast_utils.pretty_print(program),
+            );
         }
 
         let duration = start.elapsed();
-        info!("Construction of JVM objects successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+        info!(
+            "Construction of JVM objects successful ({}.{} seconds)",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
         let start = Instant::now();
 
         let verification_result: viper::VerificationResult = self.verifier.verify(program);
 
         let duration = start.elapsed();
-        info!("Verification complete ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+        info!(
+            "Verification complete ({}.{} seconds)",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
         let start = Instant::now();
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,
-            _ => vec![]
+            _ => vec![],
         };
 
         if verification_errors.is_empty() {
@@ -311,12 +332,12 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     self.env.span_err_with_reason(
                         compilation_error.span,
                         &format!("[Prusti] {}", compilation_error.message),
-                        reason_span
+                        reason_span,
                     )
                 } else {
                     self.env.span_err(
                         compilation_error.span,
-                        &format!("[Prusti] {}", compilation_error.message)
+                        &format!("[Prusti] {}", compilation_error.message),
                     )
                 }
             }

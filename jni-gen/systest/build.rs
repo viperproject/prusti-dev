@@ -4,11 +4,11 @@ extern crate jni_gen;
 extern crate reqwest;
 extern crate tempdir;
 
-use std::env;
-use jni_gen::*;
 use error_chain::ChainedError;
-use std::io::copy;
+use jni_gen::*;
+use std::env;
 use std::fs::File;
+use std::io::copy;
 use tempdir::TempDir;
 
 fn main() {
@@ -45,9 +45,10 @@ fn main() {
             java_class!("java.lang.Integer", vec![constructor!("(I)V")]),
             java_class!(
                 "java.util.Arrays",
-                vec![
-                    method!("binarySearch", "([Ljava/lang/Object;Ljava/lang/Object;)I"),
-                ]
+                vec![method!(
+                    "binarySearch",
+                    "([Ljava/lang/Object;Ljava/lang/Object;)I"
+                ),]
             ),
         ])
         .generate(&generated_dir)

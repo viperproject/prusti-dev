@@ -4,13 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
-use jni::JNIEnv;
-use jni::objects::JValue;
-use jni::objects::JObject;
-use errors::*;
-use utils::*;
 use class_name::*;
+use errors::*;
+use jni::objects::JObject;
+use jni::objects::JValue;
+use jni::JNIEnv;
+use std::collections::HashMap;
+use utils::*;
 
 pub fn generate_method(
     env: &JNIEnv,
@@ -21,12 +21,13 @@ pub fn generate_method(
 ) -> Result<String> {
     let clazz = env.find_class(class.path())?;
 
-    let methods = env.call_method(
-        clazz.into(),
-        "getMethods",
-        "()[Ljava/lang/reflect/Method;",
-        &[],
-    )?
+    let methods = env
+        .call_method(
+            clazz.into(),
+            "getMethods",
+            "()[Ljava/lang/reflect/Method;",
+            &[],
+        )?
         .l()?;
     let num_methods = env.get_array_length(methods.into_inner())?;
 
@@ -35,22 +36,26 @@ pub fn generate_method(
     for method_index in 0..num_methods {
         let method = env.get_object_array_element(methods.into_inner(), method_index)?;
 
-        let method_name = java_str_to_string(&env.get_string(
-            env.call_method(method, "getName", "()Ljava/lang/String;", &[])?
-                .l()?
-                .into(),
-        )?)?;
+        let method_name = java_str_to_string(
+            &env.get_string(
+                env.call_method(method, "getName", "()Ljava/lang/String;", &[])?
+                    .l()?
+                    .into(),
+            )?,
+        )?;
 
-        let method_signature = java_str_to_string(&env.get_string(
-            env.call_static_method(
-                "org/objectweb/asm/Type",
-                "getMethodDescriptor",
-                "(Ljava/lang/reflect/Method;)Ljava/lang/String;",
-                &[JValue::Object(method)],
-            )?
+        let method_signature = java_str_to_string(
+            &env.get_string(
+                env.call_static_method(
+                    "org/objectweb/asm/Type",
+                    "getMethodDescriptor",
+                    "(Ljava/lang/reflect/Method;)Ljava/lang/String;",
+                    &[JValue::Object(method)],
+                )?
                 .l()?
                 .into(),
-        )?)?;
+            )?,
+        )?;
 
         match indexed_methods.remove(&method_name) {
             None => {
@@ -80,39 +85,45 @@ pub fn generate_method(
                     class.full_name(),
                     method_name.into(),
                     matching_methods.keys().map(|k| k.to_string()).collect(),
-                ).into());
+                )
+                .into());
             }
             matching_methods.drain().take(1).next().unwrap()
         }
         Some(sign) => match matching_methods.get(&sign) {
             Some(constr) => (sign, *constr),
             None => {
-                return Err(
-                    ErrorKind::NoMatchingMethod(class.full_name(), method_name.into(), sign).into(),
+                return Err(ErrorKind::NoMatchingMethod(
+                    class.full_name(),
+                    method_name.into(),
+                    sign,
                 )
+                .into())
             }
         },
     };
 
     let method_modifier = env.call_method(method, "getModifiers", "()I", &[])?.i()?;
 
-    let is_static = env.call_static_method(
-        "java/lang/reflect/Modifier",
-        "isStatic",
-        "(I)Z",
-        &[JValue::Int(method_modifier)],
-    )?
+    let is_static = env
+        .call_static_method(
+            "java/lang/reflect/Modifier",
+            "isStatic",
+            "(I)Z",
+            &[JValue::Int(method_modifier)],
+        )?
         .z()?;
 
     let mut parameter_names: Vec<String> = vec![];
     let mut parameter_signatures: Vec<String> = vec![];
 
-    let parameters = env.call_method(
-        method,
-        "getParameters",
-        "()[Ljava/lang/reflect/Parameter;",
-        &[],
-    )?
+    let parameters = env
+        .call_method(
+            method,
+            "getParameters",
+            "()[Ljava/lang/reflect/Parameter;",
+            &[],
+        )?
         .l()?;
     let num_parameters = env.get_array_length(parameters.into_inner())?;
 
@@ -123,7 +134,8 @@ pub fn generate_method(
                 .l()?
                 .into(),
         )?;
-        let parameter_type = env.call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
+        let parameter_type = env
+            .call_method(parameter, "getType", "()Ljava/lang/Class;", &[])?
             .l()?;
         let parameter_signature = env.get_string(
             env.call_static_method(
@@ -132,8 +144,8 @@ pub fn generate_method(
                 "(Ljava/lang/Class;)Ljava/lang/String;",
                 &[JValue::Object(parameter_type)],
             )?
-                .l()?
-                .into(),
+            .l()?
+            .into(),
         )?;
 
         parameter_names.push(java_str_to_valid_rust_argument_name(&parameter_name)?);

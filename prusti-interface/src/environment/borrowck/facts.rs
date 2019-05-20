@@ -9,20 +9,18 @@
 /// This code was adapted from the
 /// [Polonius](https://github.com/rust-lang-nursery/polonius/blob/master/src/facts.rs)
 /// source code.
-
 use csv::ReaderBuilder;
 use regex::Regex;
 use rustc::mir;
 use rustc_data_structures::indexed_vec::Idx;
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
+use std::fmt;
 use std::hash::Hash;
 use std::path::Path;
 use std::str::FromStr;
-use std::fmt;
 
 use polonius_engine;
-
 
 /// Macro for declaring index types for referencing interned facts.
 macro_rules! index_type {
@@ -32,9 +30,7 @@ macro_rules! index_type {
 
         impl From<usize> for $typ {
             fn from(index: usize) -> $typ {
-                $typ {
-                    0: index,
-                }
+                $typ { 0: index }
             }
         }
 
@@ -69,7 +65,6 @@ pub fn loan_id(loan: Loan) -> usize {
 }
 
 impl FromStr for Region {
-
     type Err = ();
 
     fn from_str(region: &str) -> Result<Self, Self::Err> {
@@ -78,14 +73,11 @@ impl FromStr for Region {
         }
         let caps = re.captures(region).unwrap();
         let id: usize = caps["id"].parse().unwrap();
-        Ok(Self {
-            0: id,
-        })
+        Ok(Self { 0: id })
     }
 }
 
 impl FromStr for Loan {
-
     type Err = ();
 
     fn from_str(loan: &str) -> Result<Self, Self::Err> {
@@ -94,11 +86,8 @@ impl FromStr for Loan {
         }
         let caps = re.captures(loan).unwrap();
         let id: usize = caps["id"].parse().unwrap();
-        Ok(Self {
-            0: id,
-        })
+        Ok(Self { 0: id })
     }
-
 }
 
 /// The type of the point. Either the start of a statement or in the
@@ -113,7 +102,6 @@ pub enum PointType {
 pub struct UnknownPointTypeError(String);
 
 impl FromStr for PointType {
-
     type Err = UnknownPointTypeError;
 
     fn from_str(point_type: &str) -> Result<Self, Self::Err> {
@@ -133,12 +121,12 @@ pub struct Point {
 }
 
 impl FromStr for Point {
-
     type Err = ();
 
     fn from_str(point: &str) -> Result<Self, Self::Err> {
         lazy_static! {
-            static ref re: Regex = Regex::new(r"^(?P<type>Mid|Start)\(bb(?P<bb>\d+)\[(?P<stmt>\d+)\]\)$").unwrap();
+            static ref re: Regex =
+                Regex::new(r"^(?P<type>Mid|Start)\(bb(?P<bb>\d+)\[(?P<stmt>\d+)\]\)$").unwrap();
         }
         let caps = re.captures(point).unwrap();
         let point_type: PointType = caps["type"].parse().unwrap();
@@ -152,12 +140,10 @@ impl FromStr for Point {
             typ: point_type,
         })
     }
-
 }
 
 pub type AllInputFacts = polonius_engine::AllFacts<Region, Loan, PointIndex>;
 pub type AllOutputFacts = polonius_engine::Output<Region, Loan, PointIndex>;
-
 
 /// A table that stores a mapping between interned elements of type
 /// `SourceType` and their indices.
@@ -169,11 +155,10 @@ pub struct InternerTable<SourceType: Eq, IndexType: From<usize> + Copy> {
 }
 
 impl<SourceType, IndexType> InternerTable<SourceType, IndexType>
-    where
-        SourceType: Eq + Hash + Clone,
-        IndexType: Into<usize> + From<usize> + Copy,
+where
+    SourceType: Eq + Hash + Clone,
+    IndexType: Into<usize> + From<usize> + Copy,
 {
-
     fn new() -> Self {
         Self {
             interned_elements: Vec::new(),
@@ -199,9 +184,7 @@ impl<SourceType, IndexType> InternerTable<SourceType, IndexType>
 }
 
 trait InternTo<FromType, ToType> {
-
     fn intern(&mut self, element: FromType) -> ToType;
-
 }
 
 pub struct Interner {
@@ -209,7 +192,6 @@ pub struct Interner {
 }
 
 impl Interner {
-
     pub fn get_point_index(&self, point: &Point) -> PointIndex {
         self.points.get_index(point)
     }
@@ -217,7 +199,6 @@ impl Interner {
     pub fn get_point(&self, index: PointIndex) -> &Point {
         self.points.get_element(index)
     }
-
 }
 
 impl InternTo<String, Region> for Interner {
@@ -240,9 +221,9 @@ impl InternTo<String, PointIndex> for Interner {
 }
 
 impl<A, B> InternTo<(String, String), (A, B)> for Interner
-    where
-        Interner: InternTo<String, A>,
-        Interner: InternTo<String, B>,
+where
+    Interner: InternTo<String, A>,
+    Interner: InternTo<String, B>,
 {
     fn intern(&mut self, (e1, e2): (String, String)) -> (A, B) {
         (self.intern(e1), self.intern(e2))
@@ -250,10 +231,10 @@ impl<A, B> InternTo<(String, String), (A, B)> for Interner
 }
 
 impl<A, B, C> InternTo<(String, String, String), (A, B, C)> for Interner
-    where
-        Interner: InternTo<String, A>,
-        Interner: InternTo<String, B>,
-        Interner: InternTo<String, C>,
+where
+    Interner: InternTo<String, A>,
+    Interner: InternTo<String, B>,
+    Interner: InternTo<String, C>,
 {
     fn intern(&mut self, (e1, e2, e3): (String, String, String)) -> (A, B, C) {
         (self.intern(e1), self.intern(e2), self.intern(e3))
@@ -264,14 +245,11 @@ fn load_facts_from_file<T: DeserializeOwned>(facts_dir: &Path, facts_type: &str)
     let filename = format!("{}.facts", facts_type);
     let facts_file = facts_dir.join(&filename);
     let mut reader = ReaderBuilder::new()
-         .delimiter(b'\t')
-         .has_headers(false)
-         .from_path(facts_file)
-         .unwrap();
-    reader
-        .deserialize()
-        .map(|row| row.unwrap())
-        .collect()
+        .delimiter(b'\t')
+        .has_headers(false)
+        .from_path(facts_file)
+        .unwrap();
+    reader.deserialize().map(|row| row.unwrap()).collect()
 }
 
 impl Interner {
@@ -295,8 +273,11 @@ impl FactLoader {
         }
     }
     pub fn load_all_facts(&mut self, facts_dir: &Path) {
-
-        let facts = load_facts::<(String, String, String), _>(&mut self.interner, facts_dir, "borrow_region");
+        let facts = load_facts::<(String, String, String), _>(
+            &mut self.interner,
+            facts_dir,
+            "borrow_region",
+        );
         self.facts.borrow_region.extend(facts);
 
         let facts = load_facts::<String, Region>(&mut self.interner, facts_dir, "universal_region");
@@ -308,10 +289,12 @@ impl FactLoader {
         let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "killed");
         self.facts.killed.extend(facts);
 
-        let facts = load_facts::<(String, String, String), _>(&mut self.interner, facts_dir, "outlives");
+        let facts =
+            load_facts::<(String, String, String), _>(&mut self.interner, facts_dir, "outlives");
         self.facts.outlives.extend(facts);
 
-        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "region_live_at");
+        let facts =
+            load_facts::<(String, String), _>(&mut self.interner, facts_dir, "region_live_at");
         self.facts.region_live_at.extend(facts);
 
         let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "invalidates");
@@ -319,9 +302,13 @@ impl FactLoader {
     }
 }
 
-fn load_facts<F: DeserializeOwned, T>(interner: &mut Interner, facts_dir: &Path, facts_type: &str) -> Vec<T>
-    where
-        Interner: InternTo<F, T>
+fn load_facts<F: DeserializeOwned, T>(
+    interner: &mut Interner,
+    facts_dir: &Path,
+    facts_type: &str,
+) -> Vec<T>
+where
+    Interner: InternTo<F, T>,
 {
     load_facts_from_file(facts_dir, facts_type)
         .into_iter()

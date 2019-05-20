@@ -4,12 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use error_chain::ChainedError;
 use jni::*;
+use jni_utils::JniUtils;
+use std::env;
 use std::fs;
 use verification_context::*;
-use error_chain::ChainedError;
-use std::env;
-use jni_utils::JniUtils;
 use viper_sys::wrappers::*;
 
 pub struct Viper {
@@ -50,13 +50,13 @@ impl Viper {
             .option(&format!("-Xmx{}m", heap_size))
             // stack size
             .option("-Xss1024m");
-            //.option("-Xdebug")
-            //.option("-verbose:gc")
-            //.option("-Xcheck:jni")
-            //.option("-XX:+CheckJNICalls")
-            //.option("-Djava.security.debug=all")
-            //.option("-verbose:jni")
-            //.option("-XX:+TraceJNICalls")
+        //.option("-Xdebug")
+        //.option("-verbose:gc")
+        //.option("-Xcheck:jni")
+        //.option("-XX:+CheckJNICalls")
+        //.option("-Djava.security.debug=all")
+        //.option("-verbose:jni")
+        //.option("-XX:+TraceJNICalls")
         let jvm_args = java_args
             .into_iter()
             .fold(init_args, |curr_args, opt| curr_args.option(&opt))
@@ -80,19 +80,11 @@ impl Viper {
             let system_wrapper = java::lang::System::with(&env);
 
             let vm_name = jni.to_string(
-                jni.unwrap_result(
-                    system_wrapper.call_getProperty(
-                        jni.new_string("java.vm.name")
-                    )
-                )
+                jni.unwrap_result(system_wrapper.call_getProperty(jni.new_string("java.vm.name"))),
             );
 
             let java_version = jni.to_string(
-                jni.unwrap_result(
-                    system_wrapper.call_getProperty(
-                        jni.new_string("java.version")
-                    )
-                )
+                jni.unwrap_result(system_wrapper.call_getProperty(jni.new_string("java.version"))),
             );
 
             info!("Using JVM {}, Java {}", vm_name, java_version);
@@ -104,7 +96,8 @@ impl Viper {
     }
 
     pub fn new_verification_context(&self) -> VerificationContext {
-        let env_guard = self.jvm
+        let env_guard = self
+            .jvm
             .attach_current_thread()
             .expect("failed to attach jvm thread");
 

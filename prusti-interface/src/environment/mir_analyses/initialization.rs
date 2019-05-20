@@ -16,14 +16,14 @@
 //! the set at the same time. For example, having `x.f` and `x.f.g` in
 //! `S` at the same time is illegal.
 
+use super::common::{self, WorkItem};
+use crate::environment::place_set::PlaceSet;
 use csv::{ReaderBuilder, WriterBuilder};
+use rustc::ty::TyCtxt;
 use rustc::{hir, mir};
+use rustc_data_structures::indexed_vec::Idx;
 use std::env;
 use std::path::Path;
-use rustc::ty::TyCtxt;
-use rustc_data_structures::indexed_vec::Idx;
-use crate::environment::place_set::PlaceSet;
-use super::common::{self, WorkItem};
 
 /// The result of the definitely initialized analysis.
 pub type DefinitelyInitializedAnalysisResult<'tcx> = common::AnalysisResult<PlaceSet<'tcx>>;
@@ -151,9 +151,11 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
                         self.apply_operand_effect(&mut place_set, operand1);
                         self.apply_operand_effect(&mut place_set, operand2);
                     }
-                    mir::Rvalue::Aggregate(_, ref operands) => for operand in operands.iter() {
-                        self.apply_operand_effect(&mut place_set, operand);
-                    },
+                    mir::Rvalue::Aggregate(_, ref operands) => {
+                        for operand in operands.iter() {
+                            self.apply_operand_effect(&mut place_set, operand);
+                        }
+                    }
                     _ => {}
                 }
                 self.set_place_initialised(&mut place_set, target);

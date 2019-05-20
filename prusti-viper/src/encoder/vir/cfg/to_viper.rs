@@ -34,27 +34,14 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a CfgMethod {
         blocks.insert(0, (0, &self.basic_blocks[0]));
 
         for (index, block) in blocks.into_iter() {
-            blocks_ast.push(block_to_viper(
-                ast,
-                &self.basic_blocks_labels,
-                block,
-                index,
-            ));
+            blocks_ast.push(block_to_viper(ast, &self.basic_blocks_labels, block, index));
             declarations.push(
-                ast
-                    .label(&index_to_label(&self.basic_blocks_labels, index), &[])
+                ast.label(&index_to_label(&self.basic_blocks_labels, index), &[])
                     .into(),
             );
         }
-        blocks_ast.push(
-            ast
-                .label(RETURN_LABEL, &[]),
-        );
-        declarations.push(
-            ast
-                .label(RETURN_LABEL, &[])
-                .into(),
-        );
+        blocks_ast.push(ast.label(RETURN_LABEL, &[]));
+        declarations.push(ast.label(RETURN_LABEL, &[]).into());
 
         let method_body = Some(ast.seqn(&blocks_ast, &declarations));
 
@@ -98,8 +85,10 @@ fn successor_to_viper<'a>(
     successor: &Successor,
 ) -> viper::Stmt<'a> {
     match *successor {
-        Successor::Undefined =>
-            panic!("CFG block '{}' has no successor.", basic_block_labels[index].clone()),
+        Successor::Undefined => panic!(
+            "CFG block '{}' has no successor.",
+            basic_block_labels[index].clone()
+        ),
         Successor::Return => ast.goto(RETURN_LABEL),
         Successor::Goto(target) => ast.goto(&basic_block_labels[target.block_index]),
         Successor::GotoSwitch(ref successors, ref default_target) => {
@@ -130,14 +119,13 @@ fn block_to_viper<'a>(
 ) -> viper::Stmt<'a> {
     let label = &basic_block_labels[index];
     let mut stmts: Vec<viper::Stmt> = vec![];
-    stmts.push(
-        ast.label(label, &block.invs.to_viper(ast))
-    );
-    stmts.extend(
-        block.stmts.to_viper(ast)
-    );
-    stmts.push(
-        successor_to_viper(ast, index, basic_block_labels, &block.successor)
-    );
+    stmts.push(ast.label(label, &block.invs.to_viper(ast)));
+    stmts.extend(block.stmts.to_viper(ast));
+    stmts.push(successor_to_viper(
+        ast,
+        index,
+        basic_block_labels,
+        &block.successor,
+    ));
     ast.seqn(&stmts, &[])
 }

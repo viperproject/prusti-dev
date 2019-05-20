@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt;
-use std::collections::{HashMap, VecDeque};
-use super::ast::{Expr, Stmt, ExprIterator};
+use super::ast::{Expr, ExprIterator, Stmt};
 use prusti_interface::environment::borrowck;
 pub use prusti_interface::environment::borrowck::facts::loan_id as borrow_id;
+use std::collections::{HashMap, VecDeque};
+use std::fmt;
 
 /// The method-unique borrow identifier.
 pub type Borrow = borrowck::facts::Loan;
@@ -76,7 +76,7 @@ pub struct DAG {
 }
 
 impl DAG {
-    pub fn iter(&self) -> impl Iterator<Item=&Node> {
+    pub fn iter(&self) -> impl Iterator<Item = &Node> {
         self.nodes.iter()
     }
     pub fn get_borrow_index(&self, borrow: Borrow) -> usize {
@@ -84,10 +84,9 @@ impl DAG {
         self.borrow_indices[&borrow]
     }
     pub fn in_borrowed_places(&self, place: &Expr) -> bool {
-        self.borrowed_places.iter().any(
-            |borrowed_place| {
-                place.has_prefix(borrowed_place)
-            })
+        self.borrowed_places
+            .iter()
+            .any(|borrowed_place| place.has_prefix(borrowed_place))
     }
     pub fn check_integrity(&self) {
         trace!("[enter] check_integrity dag=[{:?}]", self);
@@ -150,9 +149,7 @@ impl DAGBuilder {
             nodes: Vec::new(),
             borrowed_places: Vec::new(),
         };
-        Self {
-            dag: dag,
-        }
+        Self { dag: dag }
     }
     pub fn add_node(&mut self, node: Node) {
         let borrow = node.borrow;

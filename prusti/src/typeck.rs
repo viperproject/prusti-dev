@@ -9,18 +9,20 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
+use prusti_interface::specifications::{
+    Assertion, AssertionKind, Expression, ExpressionId, ForAllVars, Specification,
+    SpecificationSet, Trigger, TypedAssertion, TypedSpecification, TypedSpecificationMap,
+    TypedTriggerSet, UntypedAssertion, UntypedSpecification, UntypedSpecificationMap,
+    UntypedTriggerSet,
+};
+use prusti_interface::utils::get_attr_value;
 use rustc;
 use rustc::hir::{self, intravisit};
 use rustc::ty::TyCtxt;
 use rustc_driver::driver;
-use syntax::ast;
 use std::collections::HashMap;
-use prusti_interface::specifications::{Assertion, AssertionKind, Expression, ExpressionId, ForAllVars,
-                     Specification, SpecificationSet, Trigger, TypedAssertion,
-                     TypedSpecification, TypedSpecificationMap, TypedTriggerSet, UntypedAssertion,
-                     UntypedSpecification, UntypedSpecificationMap, UntypedTriggerSet};
+use syntax::ast;
 use syntax_pos::Span;
-use prusti_interface::utils::get_attr_value;
 
 /// Convert untyped specifications to typed specifications.
 pub fn type_specifications(
@@ -153,7 +155,9 @@ fn convert_to_typed(
                 SpecificationSet::Procedure(convert(precondition), convert(postcondition)),
             ),
             SpecificationSet::Loop(invariants) => (id, SpecificationSet::Loop(convert(invariants))),
-            SpecificationSet::Struct(invariants) => (id, SpecificationSet::Struct(convert(invariants))),
+            SpecificationSet::Struct(invariants) => {
+                (id, SpecificationSet::Struct(convert(invariants)))
+            }
         })
         .collect()
 }
@@ -196,7 +200,14 @@ impl<'a, 'tcx: 'a, 'hir> intravisit::Visitor<'tcx> for TypeCollector<'a, 'tcx> {
         intravisit::NestedVisitorMap::All(map)
     }
 
-    fn visit_fn(&mut self, fk: intravisit::FnKind<'tcx>, fd: &'tcx hir::FnDecl, body_id: hir::BodyId, s: Span, id: ast::NodeId) {
+    fn visit_fn(
+        &mut self,
+        fk: intravisit::FnKind<'tcx>,
+        fd: &'tcx hir::FnDecl,
+        body_id: hir::BodyId,
+        s: Span,
+        id: ast::NodeId,
+    ) {
         let opt_body = self.nested_visit_map().intra().map(|map| map.body(body_id));
         if let Some(body) = opt_body {
             let args = &body.arguments;

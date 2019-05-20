@@ -6,9 +6,9 @@
 
 //! Inliner of pure functions.
 
+use super::super::super::ast;
 use std::collections::HashMap;
 use std::mem;
-use super::super::super::ast;
 
 /// Convert functions whose body does not depend on arguments such as
 ///
@@ -65,12 +65,12 @@ fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     trace!("[enter] try_purify(name={})", function.name);
     if function.has_constant_body() && function.pres.len() == 1 {
         match function.pres[0] {
-            ast::Expr::PredicateAccessPredicate(_, _, _, _) |
-            ast::Expr::FieldAccessPredicate(_, _, _) => {
+            ast::Expr::PredicateAccessPredicate(_, _, _, _)
+            | ast::Expr::FieldAccessPredicate(_, _, _) => {
                 function.pres.clear();
                 return function.body.clone();
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
     None
@@ -88,79 +88,60 @@ impl ast::Function {
 }
 
 impl ast::Expr {
-
     /// Is this expression a constant?
     fn is_constant(&self) -> bool {
         match self {
-            ast::Expr::Const(_, _) =>
-                true,
-            ast::Expr::UnaryOp(_, box subexpr, _) =>
-                subexpr.is_constant(),
-            ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) =>
-                subexpr1.is_constant() && subexpr2.is_constant(),
+            ast::Expr::Const(_, _) => true,
+            ast::Expr::UnaryOp(_, box subexpr, _) => subexpr.is_constant(),
+            ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
+                subexpr1.is_constant() && subexpr2.is_constant()
+            }
             _ => false,
         }
     }
 }
 
 trait ConstantFunctionInliner {
-
     /// Replace ``unfolding P(...) in f(...)`` with ``f(...)`` if ``f`` is pure.
-    fn inline_constant_functions(
-        &mut self,
-        pure_function_map: &HashMap<String, ast::Expr>,
-    );
-
+    fn inline_constant_functions(&mut self, pure_function_map: &HashMap<String, ast::Expr>);
 }
 
 impl ConstantFunctionInliner for ast::Function {
-
-    fn inline_constant_functions(
-        &mut self,
-        pure_function_map: &HashMap<String, ast::Expr>,
-    ) {
+    fn inline_constant_functions(&mut self, pure_function_map: &HashMap<String, ast::Expr>) {
         match self.body {
             Some(ref mut body) => body.inline_constant_functions(pure_function_map),
-            None => {},
+            None => {}
         }
     }
-
 }
 
 fn is_constant_function_call(
     expr: &ast::Expr,
-    pure_function_map: &HashMap<String, ast::Expr>
+    pure_function_map: &HashMap<String, ast::Expr>,
 ) -> Option<ast::Expr> {
     match expr {
         ast::Expr::Unfolding(_, _, box ast::Expr::FuncApp(name, _, _, _, _), _, _) => {
             pure_function_map.get(name).cloned()
-        },
-        _ => {
-            None
-        },
+        }
+        _ => None,
     }
 }
 
 impl ConstantFunctionInliner for ast::Expr {
-
-    fn inline_constant_functions(
-        &mut self,
-        pure_function_map: &HashMap<String, ast::Expr>,
-    ) {
+    fn inline_constant_functions(&mut self, pure_function_map: &HashMap<String, ast::Expr>) {
         if let Some(mut expr) = is_constant_function_call(self, pure_function_map) {
             mem::swap(self, &mut expr);
         } else {
             match self {
                 ast::Expr::UnaryOp(_, box subexpr, _) => {
                     subexpr.inline_constant_functions(pure_function_map)
-                },
+                }
                 ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
                     subexpr1.inline_constant_functions(pure_function_map);
                     subexpr2.inline_constant_functions(pure_function_map);
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
     }
-
 }

@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt;
-use std::collections::HashMap;
 use encoder::vir::ast::*;
+use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Function {
@@ -47,7 +47,10 @@ impl fmt::Display for Function {
 
 impl Function {
     pub fn inline_body(&self, args: Vec<Expr>) -> Expr {
-        let subst: HashMap<LocalVar, Expr> = self.formal_args.iter().cloned()
+        let subst: HashMap<LocalVar, Expr> = self
+            .formal_args
+            .iter()
+            .cloned()
             .zip(args.into_iter())
             .collect();
         // TODO: this does not handle let expressions, quantifiers, and so on

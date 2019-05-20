@@ -4,9 +4,11 @@
 
 #[macro_export]
 macro_rules! jobject_wrapper {
-    ($name:ident) => (
+    ($name:ident) => {
         #[derive(Copy, Clone)]
-        pub struct $name<'a> { obj: JObject<'a> }
+        pub struct $name<'a> {
+            obj: JObject<'a>,
+        }
 
         impl<'a> $name<'a> {
             pub(crate) fn new(obj: JObject<'a>) -> Self {
@@ -16,35 +18,35 @@ macro_rules! jobject_wrapper {
                 self.obj
             }
         }
-    );
+    };
 }
 
 #[macro_export]
 macro_rules! map_to_jobject {
-    ($item:expr) => (
+    ($item:expr) => {
         $item.map(|x| x.to_jobject())
-    );
+    };
 }
 
 #[macro_export]
 macro_rules! map_to_jobjects {
-    ($items:expr) => (
+    ($items:expr) => {
         map_to_jobject!($items.iter()).collect::<Vec<JObject>>()
-    );
+    };
 }
 
 #[macro_export]
 macro_rules! map_to_jobject_pair {
-    ($item:expr) => (
+    ($item:expr) => {
         $item.map(|x| (x.0.to_jobject(), x.1.to_jobject()))
-    );
+    };
 }
 
 #[macro_export]
 macro_rules! map_to_jobject_pairs {
-    ($items:expr) => (
+    ($items:expr) => {
         map_to_jobject_pair!($items.iter()).collect::<Vec<(JObject, JObject)>>()
-    );
+    };
 }
 
 #[macro_export]

@@ -4,13 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::{HashMap, HashSet};
-use rustc_data_structures::control_flow_graph::dominators::Dominators;
+use crate::utils;
+use environment::place_set::PlaceSet;
+use environment::procedure::BasicBlockIndex;
 use rustc::mir;
 use rustc::mir::visit::Visitor;
-use environment::procedure::BasicBlockIndex;
-use environment::place_set::PlaceSet;
-use crate::utils;
+use rustc_data_structures::control_flow_graph::dominators::Dominators;
+use std::collections::{HashMap, HashSet};
 
 /// A visitor that collects the loop heads and bodies.
 struct LoopHeadCollector<'d> {
@@ -20,12 +20,12 @@ struct LoopHeadCollector<'d> {
 }
 
 impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
-
     fn visit_terminator_kind(
         &mut self,
         block: BasicBlockIndex,
         kind: &mir::TerminatorKind<'tcx>,
-        _: mir::Location) {
+        _: mir::Location,
+    ) {
         for successor in kind.successors() {
             if self.dominators.is_dominated_by(block, *successor) {
                 self.back_edges.push((block, *successor));
@@ -33,14 +33,12 @@ impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
             }
         }
     }
-
 }
 
 /// A visitor for loopless code that visits a basic block only after all
 /// predecessors of that basic block were already visited.
 /// TODO: Either remove this trait or move it to a proper location.
 trait PredecessorsFirstVisitor<'tcx>: Visitor<'tcx> {
-
     /// Should the given basic block be ignored?
     fn is_ignored(&mut self, bb: BasicBlockIndex) -> bool;
 
@@ -53,12 +51,9 @@ trait PredecessorsFirstVisitor<'tcx>: Visitor<'tcx> {
             self.visit_basic_block_data(current, basic_block_data);
             analysed_blocks.insert(current);
             for &successor in basic_block_data.terminator().successors() {
-                let all_predecessors_analysed = mir
-                    .predecessors_for(successor)
-                    .iter()
-                    .all(|predecessor| {
-                        analysed_blocks.contains(predecessor) ||
-                        self.is_ignored(*predecessor)
+                let all_predecessors_analysed =
+                    mir.predecessors_for(successor).iter().all(|predecessor| {
+                        analysed_blocks.contains(predecessor) || self.is_ignored(*predecessor)
                     });
                 if all_predecessors_analysed {
                     assert!(!analysed_blocks.contains(&successor));
@@ -67,12 +62,15 @@ trait PredecessorsFirstVisitor<'tcx>: Visitor<'tcx> {
             }
         }
     }
-
 }
 
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
-fn collect_loop_body<'tcx>(head: BasicBlockIndex, back_edge_source: BasicBlockIndex,
-                           mir: &mir::Mir<'tcx>, body: &mut HashSet<BasicBlockIndex>) {
+fn collect_loop_body<'tcx>(
+    head: BasicBlockIndex,
+    back_edge_source: BasicBlockIndex,
+    mir: &mir::Mir<'tcx>,
+    body: &mut HashSet<BasicBlockIndex>,
+) {
     let mut work_queue = vec![back_edge_source];
     body.insert(back_edge_source);
     while !work_queue.is_empty() {
@@ -105,15 +103,13 @@ pub enum PlaceAccessKind {
 }
 
 impl PlaceAccessKind {
-
     /// Does the access write to the path?
     fn is_write_access(&self) -> bool {
         match &self {
-            PlaceAccessKind::Store |
-            PlaceAccessKind::Move => true,
-            PlaceAccessKind::Read |
-            PlaceAccessKind::MutableBorrow |
-            PlaceAccessKind::SharedBorrow => false,
+            PlaceAccessKind::Store | PlaceAccessKind::Move => true,
+            PlaceAccessKind::Read
+            | PlaceAccessKind::MutableBorrow
+            | PlaceAccessKind::SharedBorrow => false,
         }
     }
 }
@@ -139,28 +135,37 @@ struct AccessCollector<'b, 'tcx> {
 }
 
 impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
-
     fn visit_place(
         &mut self,
         place: &mir::Place<'tcx>,
         context: mir::visit::PlaceContext<'tcx>,
-        location: mir::Location
+        location: mir::Location,
     ) {
         // TODO: using `location`, skip the places that are used for typechecking
         // because that part of the generated code contains closures.
         if self.body.contains(&location.block) {
-            trace!("visit_place(place={:?}, context={:?}, location={:?})",
-                   place, context, location);
+            trace!(
+                "visit_place(place={:?}, context={:?}, location={:?})",
+                place,
+                context,
+                location
+            );
             use rustc::mir::visit::PlaceContext::*;
             let access_kind = match context {
                 Store => PlaceAccessKind::Store,
                 Copy => PlaceAccessKind::Read,
                 Move => PlaceAccessKind::Move,
-                Borrow { kind: mir::BorrowKind::Shared, .. } => PlaceAccessKind::SharedBorrow,
-                Borrow { kind: mir::BorrowKind::Mut { .. }, .. } => PlaceAccessKind::MutableBorrow,
+                Borrow {
+                    kind: mir::BorrowKind::Shared,
+                    ..
+                } => PlaceAccessKind::SharedBorrow,
+                Borrow {
+                    kind: mir::BorrowKind::Mut { .. },
+                    ..
+                } => PlaceAccessKind::MutableBorrow,
                 Call => PlaceAccessKind::Store,
-                                    // FIXME: This is just a guess. Upgrade to the new
-                                    // version of rustc to get proper information.
+                // FIXME: This is just a guess. Upgrade to the new
+                // version of rustc to get proper information.
                 Inspect => PlaceAccessKind::Read,
                 Drop => PlaceAccessKind::Move,
                 x => unimplemented!("{:?}", x),
@@ -173,9 +178,7 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
             self.accessed_places.push(access);
         }
     }
-
 }
-
 
 /// Struct that contains information about all loops in the procedure.
 pub struct ProcedureLoops {
@@ -194,7 +197,6 @@ pub struct ProcedureLoops {
 }
 
 impl ProcedureLoops {
-
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Mir<'tcx>) -> ProcedureLoops {
         let dominators = mir.dominators();
         let back_edges;
@@ -213,10 +215,13 @@ impl ProcedureLoops {
             collect_loop_body(target, source, mir, body);
         }
 
-        let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> = HashMap::new();
+        let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> =
+            HashMap::new();
         for (&loop_head, loop_body) in loop_bodies.iter() {
             for &block in loop_body.iter() {
-                let heads_set = enclosing_loop_heads_set.entry(block).or_insert(HashSet::new());
+                let heads_set = enclosing_loop_heads_set
+                    .entry(block)
+                    .or_insert(HashSet::new());
                 heads_set.insert(loop_head);
             }
         }
@@ -279,8 +284,7 @@ impl ProcedureLoops {
                 } else {
                     !self.enclosing_loop_heads[&to].contains(&from_loop_head)
                 }
-            }
-            else {
+            } else {
                 true
             }
         } else {
@@ -290,8 +294,11 @@ impl ProcedureLoops {
 
     /// Compute what paths that come from the outside of the loop are accessed
     /// inside the loop.
-    fn compute_used_paths<'a, 'tcx: 'a>(&self, loop_head: BasicBlockIndex,
-                                        mir: &'a mir::Mir<'tcx>) -> Vec<PlaceAccess<'tcx>> {
+    fn compute_used_paths<'a, 'tcx: 'a>(
+        &self,
+        loop_head: BasicBlockIndex,
+        mir: &'a mir::Mir<'tcx>,
+    ) -> Vec<PlaceAccess<'tcx>> {
         let body = self.loop_bodies.get(&loop_head).unwrap();
         let mut visitor = AccessCollector {
             body: body,
@@ -308,7 +315,11 @@ impl ProcedureLoops {
         loop_head: BasicBlockIndex,
         mir: &'a mir::Mir<'tcx>,
         definitely_initalised_paths: Option<&PlaceSet>,
-    ) -> (Vec<mir::Place<'tcx>>, Vec<mir::Place<'tcx>>, Vec<mir::Place<'tcx>>) {
+    ) -> (
+        Vec<mir::Place<'tcx>>,
+        Vec<mir::Place<'tcx>>,
+        Vec<mir::Place<'tcx>>,
+    ) {
         // 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
         //     accessed in the loop body and ``t`` is the type of access (read,
         //     destructive read, …).
@@ -332,8 +343,9 @@ impl ProcedureLoops {
         // Paths accessed inside the loop body.
         let accesses = self.compute_used_paths(loop_head, mir);
         debug!("accesses = {:?}", accesses);
-        let mut accesses_pairs: Vec<_> = accesses.iter()
-            .map(|PlaceAccess {place, kind, .. }| (place, *kind))
+        let mut accesses_pairs: Vec<_> = accesses
+            .iter()
+            .map(|PlaceAccess { place, kind, .. }| (place, *kind))
             .collect();
         debug!("accesses_pairs = {:?}", accesses_pairs);
         if let Some(paths) = definitely_initalised_paths {
@@ -341,8 +353,7 @@ impl ProcedureLoops {
             accesses_pairs = accesses_pairs
                 .into_iter()
                 .filter(|(place, kind)| {
-                    paths.iter().any(
-                        |initialised_place|
+                    paths.iter().any(|initialised_place|
                         // If the prefix is definitely initialised, then this place is a potential
                         // loop invariant.
                         utils::is_prefix(place, initialised_place) ||
@@ -354,8 +365,7 @@ impl ProcedureLoops {
                         (
                             *kind == PlaceAccessKind::Store &&
                             utils::is_prefix(initialised_place, place)
-                        )
-                    )
+                        ))
                 })
                 .collect();
         }
@@ -364,13 +374,11 @@ impl ProcedureLoops {
         let mut write_leaves: Vec<mir::Place> = Vec::new();
         for (place, kind) in accesses_pairs.iter() {
             if kind.is_write_access() {
-                let has_prefix = accesses_pairs
-                    .iter()
-                    .any(|(potential_prefix, kind)|
-                        kind.is_write_access() &&
-                            place != potential_prefix &&
-                            utils::is_prefix(place, potential_prefix)
-                    );
+                let has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
+                    kind.is_write_access()
+                        && place != potential_prefix
+                        && utils::is_prefix(place, potential_prefix)
+                });
                 if !has_prefix && !write_leaves.contains(place) {
                     write_leaves.push((*place).clone());
                 }
@@ -382,15 +390,15 @@ impl ProcedureLoops {
         let mut mut_borrow_leaves: Vec<mir::Place> = Vec::new();
         for (place, kind) in accesses_pairs.iter() {
             if *kind == PlaceAccessKind::MutableBorrow {
-                let has_prefix = accesses_pairs
-                    .iter()
-                    .any(|(potential_prefix, kind)|
-                        (kind.is_write_access() || *kind == PlaceAccessKind::MutableBorrow) &&
-                            place != potential_prefix &&
-                            utils::is_prefix(place, potential_prefix)
-                    );
-                if !has_prefix && !write_leaves.contains(place) &&
-                        !mut_borrow_leaves.contains(place) {
+                let has_prefix = accesses_pairs.iter().any(|(potential_prefix, kind)| {
+                    (kind.is_write_access() || *kind == PlaceAccessKind::MutableBorrow)
+                        && place != potential_prefix
+                        && utils::is_prefix(place, potential_prefix)
+                });
+                if !has_prefix
+                    && !write_leaves.contains(place)
+                    && !mut_borrow_leaves.contains(place)
+                {
                     mut_borrow_leaves.push((*place).clone());
                 }
             }
@@ -401,14 +409,14 @@ impl ProcedureLoops {
         let mut read_leaves: Vec<mir::Place> = Vec::new();
         for (place, kind) in accesses_pairs.iter() {
             if !kind.is_write_access() {
-                let has_prefix = accesses_pairs
-                    .iter()
-                    .any(|(potential_prefix, _kind)|
-                        place != potential_prefix &&
-                        utils::is_prefix(place, potential_prefix)
-                    );
-                if !has_prefix && !read_leaves.contains(place) && !write_leaves.contains(place) &&
-                        !mut_borrow_leaves.contains(place) {
+                let has_prefix = accesses_pairs.iter().any(|(potential_prefix, _kind)| {
+                    place != potential_prefix && utils::is_prefix(place, potential_prefix)
+                });
+                if !has_prefix
+                    && !read_leaves.contains(place)
+                    && !write_leaves.contains(place)
+                    && !mut_borrow_leaves.contains(place)
+                {
                     read_leaves.push((*place).clone());
                 }
             }
@@ -419,8 +427,7 @@ impl ProcedureLoops {
     }
 
     /// Check if ``block`` is inside a loop.
-    pub fn is_block_in_loop(&self, loop_head: BasicBlockIndex,
-                            block: BasicBlockIndex) -> bool {
+    pub fn is_block_in_loop(&self, loop_head: BasicBlockIndex, block: BasicBlockIndex) -> bool {
         self.dominators.is_dominated_by(block, loop_head)
     }
 }

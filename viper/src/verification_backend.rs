@@ -6,7 +6,7 @@
 
 use std::fmt;
 
-#[derive(Clone,Copy,Debug,Eq,PartialEq,Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum VerificationBackend {
     Silicon,
     Carbon,
@@ -20,7 +20,7 @@ impl VerificationBackend {
             _ => panic!(
                 "Invalid verification backend: '{}'. Allowed values are 'Silicon' and 'Carbon'",
                 backend
-            )
+            ),
         }
     }
 }

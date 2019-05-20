@@ -25,12 +25,10 @@ fn success_with_complex_program() {
         &[ast.false_lit()],
         &[ast.true_lit()],
         Some(ast.seqn(
-            &[
-                ast.local_var_assign(
-                    ast.local_var("res", ast.int_type()),
-                    ast.local_var("arg", ast.int_type()),
-                ),
-            ],
+            &[ast.local_var_assign(
+                ast.local_var("res", ast.int_type()),
+                ast.local_var("arg", ast.int_type()),
+            )],
             &[],
         )),
     );

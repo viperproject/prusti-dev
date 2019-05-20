@@ -15,7 +15,10 @@ use std::hash::Hash;
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { a, b.c }
-pub fn filter_prefixes_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_prefixes_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -34,7 +37,10 @@ pub fn filter_prefixes_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>)
 ///   { a, b.c, d.e.f, d.g },
 ///   { a, b.c.d, b.c.e, d.e,h }
 /// ) = { b.c }
-pub fn filter_proper_prefixes_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_proper_prefixes_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -53,7 +59,10 @@ pub fn filter_proper_prefixes_of(left: &HashSet<vir::Expr>, right: &HashSet<vir:
 ///   { a, b.c.d, b.c.e, d.e,h },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, b.c.d, b.c.e }
-pub fn filter_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_extensions_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -72,7 +81,10 @@ pub fn filter_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr
 ///   { a, b.c.d, b.c.e, d.e,h },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { b.c.d, b.c.e }
-pub fn filter_proper_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_proper_extensions_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         for right_item in right.iter() {
@@ -92,7 +104,10 @@ pub fn filter_proper_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vi
 ///   { a, b.c.d, b.c.e, d.e },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, b.c.d }
-pub fn filter_not_proper_prefix_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_not_proper_prefix_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -116,7 +131,10 @@ pub fn filter_not_proper_prefix_of(left: &HashSet<vir::Expr>, right: &HashSet<vi
 ///   { a, b.c.d, b.c.e, d.e },
 ///   { a, b.c, d.e.f, d.g }
 /// ) = { a, d.e }
-pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_not_proper_extensions_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -140,11 +158,17 @@ pub fn filter_not_proper_extensions_of(left: &HashSet<vir::Expr>, right: &HashSe
 ///   { a, b.c, d.e.g, d.g }
 ///   { a, b.c.d, b.c.e, d.e.f },
 /// ) = { a, b.c, d }
-pub fn common_ancestors(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn common_ancestors(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut intermediate = HashSet::new();
     for left_item in left.iter() {
         for candidate_ancestor in left_item.all_prefixes().into_iter().rev() {
-            if right.iter().any(|right_item| right_item.has_prefix(&candidate_ancestor)) {
+            if right
+                .iter()
+                .any(|right_item| right_item.has_prefix(&candidate_ancestor))
+            {
                 intermediate.insert(candidate_ancestor);
                 break;
             }
@@ -199,8 +223,18 @@ pub fn union<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -> Has
 }
 
 /// Returns the union of three sets
-pub fn union3<T: Eq + Hash + Clone>(left: &HashSet<T>, mid: &HashSet<T>, right: &HashSet<T>) -> HashSet<T> {
-    left.clone().union(mid).cloned().collect::<HashSet<T>>().union(right).cloned().collect()
+pub fn union3<T: Eq + Hash + Clone>(
+    left: &HashSet<T>,
+    mid: &HashSet<T>,
+    right: &HashSet<T>,
+) -> HashSet<T> {
+    left.clone()
+        .union(mid)
+        .cloned()
+        .collect::<HashSet<T>>()
+        .union(right)
+        .cloned()
+        .collect()
 }
 
 /// Returns the intersection of two sets
@@ -214,7 +248,10 @@ pub fn difference<T: Eq + Hash + Clone>(left: &HashSet<T>, right: &HashSet<T>) -
 }
 
 /// Returns the elements of A1 that are not a prefix of some elements in A2.
-pub fn filter_not_prefix_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_not_prefix_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut keep: bool = true;
@@ -231,20 +268,22 @@ pub fn filter_not_prefix_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr
     res
 }
 
-
 /// Returns the elements of A1 that are not an extension of some elements in A2.
-pub fn filter_not_extensions_of(left: &HashSet<vir::Expr>, right: &HashSet<vir::Expr>) -> HashSet<vir::Expr> {
+pub fn filter_not_extensions_of(
+    left: &HashSet<vir::Expr>,
+    right: &HashSet<vir::Expr>,
+) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
         let mut remove = if let Some(parent) = left_item.get_parent() {
             right.contains(&parent)
-            // TODO: Check which version we should use here.
-            //for right_item in right.iter() {
-                //if left_item.has_prefix(right_item) {
-                    //keep = false;
-                    //break;
-                //}
-            //}
+        // TODO: Check which version we should use here.
+        //for right_item in right.iter() {
+        //if left_item.has_prefix(right_item) {
+        //keep = false;
+        //break;
+        //}
+        //}
         } else {
             true
         };

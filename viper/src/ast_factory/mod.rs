@@ -4,23 +4,23 @@
 
 #[macro_use]
 mod macros;
-mod structs;
+mod ast_type;
 mod expression;
 mod position;
-mod statement;
 mod program;
-mod ast_type;
+mod statement;
+mod structs;
 
-use jni::JNIEnv;
 use jni::objects::JObject;
+use jni::JNIEnv;
 use jni_utils::JniUtils;
 use viper_sys::wrappers::viper::silver::ast;
 
+pub use self::ast_type::*;
 pub use self::expression::*;
 pub use self::position::*;
-pub use self::statement::*;
 pub use self::program::*;
-pub use self::ast_type::*;
+pub use self::statement::*;
 pub use self::structs::*;
 
 #[derive(Clone, Copy)]
@@ -45,10 +45,12 @@ impl<'a> AstFactory<'a> {
     fn simple_info(&self, comments: &[&str]) -> JObject {
         self.jni.unwrap_result(
             ast::SimpleInfo::with(self.env).new(
-                self.jni.new_seq(&comments
-                    .iter()
-                    .map(|x| self.jni.new_string(x))
-                    .collect::<Vec<JObject>>()),
+                self.jni.new_seq(
+                    &comments
+                        .iter()
+                        .map(|x| self.jni.new_string(x))
+                        .collect::<Vec<JObject>>(),
+                ),
             ),
         )
     }

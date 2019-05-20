@@ -4,17 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc::mir;
-use rustc::ty::{self, Ty, TyCtxt};
-use rustc_data_structures::indexed_vec::{IndexVec, Idx};
-use std::collections::HashSet;
-use std::collections::HashMap;
-use rustc::mir::Mir;
-use std::cell::Ref;
-use rustc::mir::{BasicBlock, BasicBlockData, Terminator, TerminatorKind};
-use data::ProcedureDefId;
-use syntax::codemap::Span;
 use super::loops;
+use data::ProcedureDefId;
+use rustc::mir;
+use rustc::mir::Mir;
+use rustc::mir::{BasicBlock, BasicBlockData, Terminator, TerminatorKind};
+use rustc::ty::{self, Ty, TyCtxt};
+use rustc_data_structures::indexed_vec::{Idx, IndexVec};
+use std::cell::Ref;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use syntax::codemap::Span;
 
 /// Index of a Basic Block
 pub type BasicBlockIndex = mir::BasicBlock;
@@ -43,7 +43,8 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             let bb_data = &mir.basic_blocks()[bbi];
             let term = bb_data.terminator.as_ref().unwrap();
             for succ in get_normal_targets(term) {
-                predecessors.entry(succ)
+                predecessors
+                    .entry(succ)
                     .or_insert(HashSet::new())
                     .insert(bbi);
             }
@@ -66,18 +67,20 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     fn order_basic_blocks(mir: &Mir<'tcx>) -> Vec<BasicBlockIndex> {
         let basic_blocks = mir.basic_blocks();
         let mut sorted_blocks = Vec::new();
-        let mut permanent_mark = IndexVec::<BasicBlockIndex, bool>::from_elem_n(
-            false, basic_blocks.len());
+        let mut permanent_mark =
+            IndexVec::<BasicBlockIndex, bool>::from_elem_n(false, basic_blocks.len());
         let mut temporary_mark = permanent_mark.clone();
         let loop_info = loops::ProcedureLoops::new(&mir);
         let back_edges = loop_info.back_edges.into_iter().collect();
 
-        fn visit<'tcx>(basic_blocks: &IndexVec<BasicBlock, BasicBlockData<'tcx>>,
-                       back_edges: &HashSet<(mir::BasicBlock, mir::BasicBlock)>,
-                       current: BasicBlockIndex,
-                       sorted_blocks: &mut Vec<BasicBlockIndex>,
-                       permanent_mark: &mut IndexVec<BasicBlockIndex, bool>,
-                       temporary_mark: &mut IndexVec<BasicBlockIndex, bool>) {
+        fn visit<'tcx>(
+            basic_blocks: &IndexVec<BasicBlock, BasicBlockData<'tcx>>,
+            back_edges: &HashSet<(mir::BasicBlock, mir::BasicBlock)>,
+            current: BasicBlockIndex,
+            sorted_blocks: &mut Vec<BasicBlockIndex>,
+            permanent_mark: &mut IndexVec<BasicBlockIndex, bool>,
+            temporary_mark: &mut IndexVec<BasicBlockIndex, bool>,
+        ) {
             if permanent_mark[current] {
                 return;
             }
@@ -87,8 +90,14 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
                 if back_edges.contains(&(current, successor)) {
                     continue;
                 }
-                visit(basic_blocks, back_edges, successor,
-                      sorted_blocks, permanent_mark, temporary_mark);
+                visit(
+                    basic_blocks,
+                    back_edges,
+                    successor,
+                    sorted_blocks,
+                    permanent_mark,
+                    temporary_mark,
+                );
             }
             permanent_mark[current] = true;
             sorted_blocks.push(current);
@@ -98,17 +107,24 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             let index = if let Some(index) = permanent_mark.iter().position(|x| !*x) {
                 BasicBlockIndex::new(index)
             } else {
-                break
+                break;
             };
-            visit(basic_blocks, &back_edges, index,
-                  &mut sorted_blocks, &mut permanent_mark, &mut temporary_mark);
+            visit(
+                basic_blocks,
+                &back_edges,
+                index,
+                &mut sorted_blocks,
+                &mut permanent_mark,
+                &mut temporary_mark,
+            );
         }
         sorted_blocks.reverse();
         sorted_blocks
     }
 
     pub fn predecessors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
-        self.predecessors.get(&bbi)
+        self.predecessors
+            .get(&bbi)
             .map(|p| p.iter().cloned().collect())
             .unwrap_or(vec![])
     }
@@ -128,7 +144,9 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     }
 
     /// Get definition ID of the procedure.
-    pub fn get_id(&self) -> ProcedureDefId { self.proc_def_id }
+    pub fn get_id(&self) -> ProcedureDefId {
+        self.proc_def_id
+    }
 
     /// Get the MIR of the procedure
     pub fn get_mir(&self) -> &Mir<'tcx> {
@@ -175,14 +193,16 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
     /// Iterate over all reachable CFG basic blocks
     pub fn get_reachable_cfg_blocks(&self) -> Vec<BasicBlock> {
-        self.get_all_cfg_blocks().into_iter()
+        self.get_all_cfg_blocks()
+            .into_iter()
             .filter(|bbi| self.is_reachable_block(*bbi))
             .collect()
     }
 
     /// Iterate over all reachable CFG basic blocks that are not part of the specification type checking
     pub fn get_reachable_nonspec_cfg_blocks(&self) -> Vec<BasicBlock> {
-        self.get_reachable_cfg_blocks().into_iter()
+        self.get_reachable_cfg_blocks()
+            .into_iter()
             .filter(|bbi| !self.is_spec_block(*bbi))
             .collect()
     }
@@ -201,25 +221,28 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         if let TerminatorKind::Call {
             args: ref _args,
             destination: ref _destination,
-            func: mir::Operand::Constant(
-                box mir::Constant {
-                    literal: mir::Literal::Value {
-                        value: ty::Const {
-                            ty: &ty::TyS {
-                                sty: ty::TyFnDef(def_id, ..),
-                                ..
-                            },
-                            ..
-                        }
-                    },
+            func:
+                mir::Operand::Constant(box mir::Constant {
+                    literal:
+                        mir::Literal::Value {
+                            value:
+                                ty::Const {
+                                    ty:
+                                        &ty::TyS {
+                                            sty: ty::TyFnDef(def_id, ..),
+                                            ..
+                                        },
+                                    ..
+                                },
+                        },
                     ..
-                }
-            ),
+                }),
             ..
-        } = self.mir[bbi].terminator.as_ref().unwrap().kind {
+        } = self.mir[bbi].terminator.as_ref().unwrap().kind
+        {
             let func_proc_name = self.tcx.absolute_item_path_str(def_id);
-            &func_proc_name == "std::panicking::begin_panic" ||
-                &func_proc_name == "std::rt::begin_panic"
+            &func_proc_name == "std::panicking::begin_panic"
+                || &func_proc_name == "std::rt::begin_panic"
         } else {
             false
         }
@@ -232,36 +255,36 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
 
 fn get_normal_targets(terminator: &Terminator) -> Vec<BasicBlock> {
     match terminator.kind {
-        TerminatorKind::Goto { ref target } |
-        TerminatorKind::Assert { ref target, .. } =>
-            vec![*target],
-
-        TerminatorKind::SwitchInt { ref targets, .. } =>
-            targets.clone(),
-
-        TerminatorKind::Resume |
-        TerminatorKind::Abort |
-        TerminatorKind::Return |
-        TerminatorKind::Unreachable =>
-            vec![],
-
-        TerminatorKind::DropAndReplace { ref target, .. } |
-        TerminatorKind::Drop { ref target, .. } =>
-            vec![*target],
-
-        TerminatorKind::Call { ref destination, .. } => {
-            match *destination {
-                Some((_, target)) => vec![target],
-                None => vec![]
-            }
+        TerminatorKind::Goto { ref target } | TerminatorKind::Assert { ref target, .. } => {
+            vec![*target]
         }
 
-        TerminatorKind::FalseEdges { ref real_target, .. } => vec![*real_target],
+        TerminatorKind::SwitchInt { ref targets, .. } => targets.clone(),
 
-        TerminatorKind::FalseUnwind { ref real_target, .. } => vec![*real_target],
+        TerminatorKind::Resume
+        | TerminatorKind::Abort
+        | TerminatorKind::Return
+        | TerminatorKind::Unreachable => vec![],
 
-        TerminatorKind::Yield { .. } |
-        TerminatorKind::GeneratorDrop => unimplemented!(),
+        TerminatorKind::DropAndReplace { ref target, .. }
+        | TerminatorKind::Drop { ref target, .. } => vec![*target],
+
+        TerminatorKind::Call {
+            ref destination, ..
+        } => match *destination {
+            Some((_, target)) => vec![target],
+            None => vec![],
+        },
+
+        TerminatorKind::FalseEdges {
+            ref real_target, ..
+        } => vec![*real_target],
+
+        TerminatorKind::FalseUnwind {
+            ref real_target, ..
+        } => vec![*real_target],
+
+        TerminatorKind::Yield { .. } | TerminatorKind::GeneratorDrop => unimplemented!(),
     }
 }
 
@@ -334,8 +357,19 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
             // Skip the following "if false"
             let target_term = &mir[target].terminator.as_ref().unwrap();
             let span = target_term.source_info.span;
-            trace!("target_term {:?} span=({:?}, {:?})", target_term, span.lo(), span.hi());
-            if let TerminatorKind::SwitchInt { ref discr, ref values, ref targets, .. } = target_term.kind {
+            trace!(
+                "target_term {:?} span=({:?}, {:?})",
+                target_term,
+                span.lo(),
+                span.hi()
+            );
+            if let TerminatorKind::SwitchInt {
+                ref discr,
+                ref values,
+                ref targets,
+                ..
+            } = target_term.kind
+            {
                 trace!("target_term is a SwitchInt");
                 trace!("discr: '{:?}'", discr);
                 // Specification guard has its span set to (0, 0) position.
@@ -346,7 +380,10 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
 
                     // Do not visit the 'then' branch.
                     // So, it will not be put into nonspec_basic_blocks.
-                    debug!("MIR block {:?} is the head of a specification branch", targets[1]);
+                    debug!(
+                        "MIR block {:?} is the head of a specification branch",
+                        targets[1]
+                    );
                     visited.insert(targets[1]);
                 }
             }

@@ -2,13 +2,13 @@ extern crate compiletest_rs;
 extern crate prusti;
 extern crate prusti_interface;
 
-use std::env::{set_var, remove_var};
-use std::path::PathBuf;
 use compiletest_rs::{common, run_tests, Config};
-use prusti::prusti_runner::run_prusti;
 use prusti::driver_utils::silent_run;
-use std::fs;
+use prusti::prusti_runner::run_prusti;
 use prusti_interface::sysroot::current_sysroot;
+use std::env::{remove_var, set_var};
+use std::fs;
+use std::path::PathBuf;
 
 static PRUSTI_CONTRACTS_LIB: &'static str = "../target/debug/libprusti_contracts.rlib";
 
@@ -22,7 +22,10 @@ fn test_runner() {
 
     set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB);
     let test_files = fs::read_dir("./tests/verify/long-pass").unwrap();
-    for file in test_files.filter_map(Result::ok).filter(|f| f.path().extension().unwrap() == "rs") {
+    for file in test_files
+        .filter_map(Result::ok)
+        .filter(|f| f.path().extension().unwrap() == "rs")
+    {
         let path = file.path().to_str().unwrap().to_string();
         println!("Testing '{}'...", path);
         let sys_root = current_sysroot().expect("need to specify SYSROOT");
@@ -31,7 +34,7 @@ fn test_runner() {
                 "prusti".to_string(),
                 "--sysroot".to_string(),
                 sys_root,
-                path
+                path,
             ])
         });
         assert_eq!(0, exit_status);

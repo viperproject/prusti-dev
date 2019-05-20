@@ -10,7 +10,6 @@
 #![allow(unused_mut)]
 #![allow(unused_doc_comments)]
 #![allow(dead_code)]
-
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(nll)]
@@ -18,8 +17,10 @@
 
 #[macro_use]
 extern crate log;
-extern crate prusti_interface;
+extern crate num_rational;
+extern crate num_traits;
 extern crate prusti_filter;
+extern crate prusti_interface;
 extern crate regex;
 extern crate rustc;
 extern crate rustc_data_structures;
@@ -28,8 +29,6 @@ extern crate syntax;
 extern crate syntax_pos;
 extern crate uuid;
 extern crate viper;
-extern crate num_rational;
-extern crate num_traits;
 #[macro_use]
 extern crate lazy_static;
 

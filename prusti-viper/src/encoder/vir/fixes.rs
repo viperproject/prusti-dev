@@ -6,10 +6,10 @@
 
 //! Fix potentially broken encoding.
 
-use std::collections::HashSet;
-use std::mem;
 use super::ast;
 use super::cfg;
+use std::collections::HashSet;
+use std::mem;
 
 /// Viper has a consistency check that only variables declared inside
 /// the package statement can be assigned in it. Since these ghost
@@ -19,7 +19,7 @@ use super::cfg;
 /// pass that renames all variables declared inside package statements
 /// so that they are unique.
 pub fn fix_ghost_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
-    let mut fixer = GhostVarFixer{
+    let mut fixer = GhostVarFixer {
         package_stmt_count: 0,
         vars: None,
     };
@@ -44,7 +44,9 @@ struct GhostVarFixer {
 
 impl GhostVarFixer {
     fn fix_name(&self, mut local_var: ast::LocalVar) -> ast::LocalVar {
-        local_var.name.push_str(&format!("$p{}", self.package_stmt_count));
+        local_var
+            .name
+            .push_str(&format!("$p{}", self.package_stmt_count));
         local_var
     }
 }
@@ -55,15 +57,12 @@ impl ast::ExprFolder for GhostVarFixer {
             Some(ref vars) if vars.contains(&local_var) => {
                 ast::Expr::Local(self.fix_name(local_var), pos)
             }
-            _ => {
-                ast::Expr::Local(local_var, pos)
-            }
+            _ => ast::Expr::Local(local_var, pos),
         }
     }
 }
 
 impl ast::StmtFolder for GhostVarFixer {
-
     fn fold_expr(&mut self, e: ast::Expr) -> ast::Expr {
         ast::ExprFolder::fold(self, e)
     }
@@ -74,15 +73,17 @@ impl ast::StmtFolder for GhostVarFixer {
         body: Vec<ast::Stmt>,
         label: String,
         vars: Vec<ast::LocalVar>,
-        pos: ast::Position
+        pos: ast::Position,
     ) -> ast::Stmt {
         let wand = self.fold_expr(wand);
         self.vars = Some(vars.into_iter().collect());
         let body = body.into_iter().map(|stmt| self.fold(stmt)).collect();
         let unfixed_vars = self.vars.take().unwrap();
-        let vars = unfixed_vars.into_iter().map(|var| self.fix_name(var)).collect();
+        let vars = unfixed_vars
+            .into_iter()
+            .map(|var| self.fix_name(var))
+            .collect();
         self.package_stmt_count += 1;
         ast::Stmt::PackageMagicWand(wand, body, label, vars, pos)
     }
-
 }

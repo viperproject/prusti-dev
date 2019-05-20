@@ -21,16 +21,17 @@ pub struct CfgMethod {
     pub(in super::super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     pub(super) reserved_labels: HashSet<String>,
-    pub basic_blocks: Vec<CfgBlock>,    // FIXME: Hack, should be pub(super).
+    pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(super) basic_blocks_labels: Vec<String>,
     fresh_var_index: i32,
     fresh_label_index: i32,
 }
 
 #[derive(Debug, Clone)]
-pub struct CfgBlock {    // FIXME: Hack, should be pub(super).
+pub struct CfgBlock {
+    // FIXME: Hack, should be pub(super).
     pub(super) invs: Vec<Expr>,
-    pub stmts: Vec<Stmt>,   // FIXME: Hack, should be pub(super).
+    pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
     pub(super) successor: Successor,
 }
 
@@ -65,20 +66,14 @@ impl Successor {
 
     pub fn get_following(&self) -> Vec<CfgBlockIndex> {
         match self {
-            &Successor::Undefined |
-            &Successor::Return => vec![],
-            &Successor::Goto(target) => vec![
-                target
-            ],
+            &Successor::Undefined | &Successor::Return => vec![],
+            &Successor::Goto(target) => vec![target],
             &Successor::GotoSwitch(ref guarded_targets, default_target) => {
                 let mut res: Vec<CfgBlockIndex> = guarded_targets.iter().map(|g| g.1).collect();
                 res.push(default_target);
                 res
-            },
-            &Successor::GotoIf(_, then_target, else_target) => vec![
-                then_target,
-                else_target
-            ],
+            }
+            &Successor::GotoIf(_, then_target, else_target) => vec![then_target, else_target],
         }
     }
 
@@ -88,37 +83,43 @@ impl Successor {
             "The provided src CfgBlockIndex is not compatible with the dst CfgBlockIndex"
         );
         match self {
-            Successor::Goto(target) => Successor::Goto(
-                if target == src { dst } else { target }
-            ),
+            Successor::Goto(target) => Successor::Goto(if target == src { dst } else { target }),
             Successor::GotoSwitch(guarded_targets, default_target) => Successor::GotoSwitch(
-                guarded_targets.into_iter().map(|x| (x.0, if x.1 == src { dst } else { x.1 })).collect(),
-                if default_target == src { dst } else { default_target }
+                guarded_targets
+                    .into_iter()
+                    .map(|x| (x.0, if x.1 == src { dst } else { x.1 }))
+                    .collect(),
+                if default_target == src {
+                    dst
+                } else {
+                    default_target
+                },
             ),
             Successor::GotoIf(expr, then_target, else_target) => Successor::GotoIf(
                 expr,
                 if then_target == src { dst } else { then_target },
-                if else_target == src { dst } else { else_target }
+                if else_target == src { dst } else { else_target },
             ),
-            x => x
+            x => x,
         }
     }
 
     pub(super) fn replace_uuid(self, new_uuid: Uuid) -> Self {
         match self {
-            Successor::Goto(target) => Successor::Goto(
-                target.set_uuid(new_uuid)
-            ),
+            Successor::Goto(target) => Successor::Goto(target.set_uuid(new_uuid)),
             Successor::GotoSwitch(guarded_targets, default_target) => Successor::GotoSwitch(
-                guarded_targets.into_iter().map(|x| (x.0, x.1.set_uuid(new_uuid))).collect(),
-                default_target.set_uuid(new_uuid)
+                guarded_targets
+                    .into_iter()
+                    .map(|x| (x.0, x.1.set_uuid(new_uuid)))
+                    .collect(),
+                default_target.set_uuid(new_uuid),
             ),
             Successor::GotoIf(expr, then_target, else_target) => Successor::GotoIf(
                 expr,
                 then_target.set_uuid(new_uuid),
-                else_target.set_uuid(new_uuid)
+                else_target.set_uuid(new_uuid),
             ),
-            x => x
+            x => x,
         }
     }
 }
@@ -165,7 +166,7 @@ impl CfgMethod {
     pub(super) fn block_index(&self, index: usize) -> CfgBlockIndex {
         CfgBlockIndex {
             method_uuid: self.uuid,
-            block_index: index
+            block_index: index,
         }
     }
 
@@ -180,7 +181,9 @@ impl CfgMethod {
     fn generate_fresh_local_var_name(&mut self) -> String {
         let mut candidate_name = format!("__t{}", self.fresh_var_index);
         self.fresh_var_index += 1;
-        while !self.is_fresh_local_name(&candidate_name) || self.reserved_labels.contains(&candidate_name) {
+        while !self.is_fresh_local_name(&candidate_name)
+            || self.reserved_labels.contains(&candidate_name)
+        {
             candidate_name = format!("__t{}", self.fresh_var_index);
             self.fresh_var_index += 1;
         }
@@ -190,7 +193,9 @@ impl CfgMethod {
     pub fn get_fresh_label_name(&mut self) -> String {
         let mut candidate_name = format!("l{}", self.fresh_label_index);
         self.fresh_label_index += 1;
-        while !self.is_fresh_local_name(&candidate_name) || self.reserved_labels.contains(&candidate_name) {
+        while !self.is_fresh_local_name(&candidate_name)
+            || self.reserved_labels.contains(&candidate_name)
+        {
             candidate_name = format!("l{}", self.fresh_label_index);
             self.fresh_label_index += 1;
         }
@@ -260,7 +265,11 @@ impl CfgMethod {
 
     pub fn add_stmt(&mut self, index: CfgBlockIndex, stmt: Stmt) {
         if let &Stmt::Label(ref label_name) = &stmt {
-            assert!(self.is_fresh_local_name(label_name), "label {} is not fresh", label_name);
+            assert!(
+                self.is_fresh_local_name(label_name),
+                "label {} is not fresh",
+                label_name
+            );
             self.labels.insert(label_name.clone());
         };
         self.basic_blocks[index.block_index].stmts.push(stmt);
@@ -274,7 +283,10 @@ impl CfgMethod {
 
     pub fn add_block(&mut self, label: &str, invs: Vec<Expr>, stmts: Vec<Stmt>) -> CfgBlockIndex {
         assert!(label.chars().take(1).all(|c| c.is_alphabetic() || c == '_'));
-        assert!(label.chars().skip(1).all(|c| c.is_alphanumeric() || c == '_'));
+        assert!(label
+            .chars()
+            .skip(1)
+            .all(|c| c.is_alphanumeric() || c == '_'));
         assert!(self.basic_blocks_labels.iter().all(|l| l != label));
         assert!(label != RETURN_LABEL);
         let index = self.basic_blocks.len();
@@ -303,11 +315,9 @@ impl CfgMethod {
         self.basic_blocks
             .iter()
             .enumerate()
-            .filter(
-                |x| x.1.successor.get_following().contains(&target_index)
-            ).map(
-                |x| self.block_index(x.0)
-            ).collect()
+            .filter(|x| x.1.successor.get_following().contains(&target_index))
+            .map(|x| self.block_index(x.0))
+            .collect()
     }
 
     pub fn get_initial_block(&self) -> CfgBlockIndex {
@@ -327,7 +337,12 @@ impl CfgMethod {
         topo_sorted.into_iter().rev().collect()
     }
 
-    fn topological_sort_impl(&self, visited: &mut Vec<bool>, topo_sorted: &mut Vec<CfgBlockIndex>, curr_index: usize) {
+    fn topological_sort_impl(
+        &self,
+        visited: &mut Vec<bool>,
+        topo_sorted: &mut Vec<CfgBlockIndex>,
+        curr_index: usize,
+    ) {
         assert!(!visited[curr_index]);
         visited[curr_index] = true;
         let curr_block = &self.basic_blocks[curr_index];
@@ -347,9 +362,13 @@ impl CfgMethod {
     pub fn find_path(
         &self,
         start_block: CfgBlockIndex,
-        end_block: CfgBlockIndex
+        end_block: CfgBlockIndex,
     ) -> Vec<CfgBlockIndex> {
-        trace!("[enter] find_path start={:?} end={:?}", start_block, end_block);
+        trace!(
+            "[enter] find_path start={:?} end={:?}",
+            start_block,
+            end_block
+        );
         assert!(!start_block.weak_eq(&end_block));
         let mut visited = vec![false; self.basic_blocks.len()];
         let mut came_from = vec![None; self.basic_blocks.len()];

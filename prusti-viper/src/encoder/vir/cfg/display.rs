@@ -13,12 +13,20 @@ impl fmt::Display for CfgMethod {
             f,
             "method {}({})",
             self.method_name,
-            self.formal_args.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+            self.formal_args
+                .iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", ")
         )?;
         writeln!(
             f,
             "    returns ({})",
-            self.formal_returns.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>().join(", ")
+            self.formal_returns
+                .iter()
+                .map(|x| format!("{:?}", x))
+                .collect::<Vec<String>>()
+                .join(", ")
         )?;
         writeln!(f, "{{")?;
         for local_var in self.local_vars.iter() {
@@ -26,7 +34,11 @@ impl fmt::Display for CfgMethod {
         }
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
-            writeln!(f, "  label {} // {}", self.basic_blocks_labels[index], index)?;
+            writeln!(
+                f,
+                "  label {} // {}",
+                self.basic_blocks_labels[index], index
+            )?;
             for inv in &block.invs {
                 writeln!(f, "    inv {}", inv)?;
             }
@@ -46,17 +58,19 @@ impl fmt::Display for Successor {
             &Successor::Undefined => writeln!(f, "Undefined"),
             &Successor::Return => writeln!(f, "Return"),
             &Successor::Goto(ref target) => writeln!(f, "Goto({})", target),
-            &Successor::GotoSwitch(ref guarded_targets, ref default_target) => {
-                writeln!(
-                    f,
-                    "GotoSwitch({}, {})",
-                    guarded_targets.iter().map(|(guard, target)| format!("({}, {})", guard, target)).collect::<Vec<_>>().join(", "),
-                    default_target
-                )
-            },
+            &Successor::GotoSwitch(ref guarded_targets, ref default_target) => writeln!(
+                f,
+                "GotoSwitch({}, {})",
+                guarded_targets
+                    .iter()
+                    .map(|(guard, target)| format!("({}, {})", guard, target))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                default_target
+            ),
             &Successor::GotoIf(ref condition, ref then_target, ref else_target) => {
                 writeln!(f, "GotoIf({}, {}, {})", condition, then_target, else_target)
-            },
+            }
         }
     }
 }

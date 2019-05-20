@@ -4,16 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-pub use self::visitor::*;
 pub use self::display::*;
 pub use self::method::*;
+pub use self::substitute::*;
 pub use self::to_graphviz::*;
 pub use self::to_viper::*;
-pub use self::substitute::*;
+pub use self::visitor::*;
 
-mod method;
 mod display;
-mod to_viper;
-mod to_graphviz;
-mod visitor;
+mod method;
 mod substitute;
+mod to_graphviz;
+mod to_viper;
+mod visitor;

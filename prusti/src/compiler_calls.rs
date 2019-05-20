@@ -5,21 +5,21 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use getopts;
-use rustc_errors;
-use rustc;
-use std;
-use typeck;
-use verifier;
 use prusti_interface;
+use rustc;
 use rustc::session;
-use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
-use std::env::{var, set_var};
+use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
+use rustc_errors;
+use std;
+use std::cell::Cell;
+use std::env::{set_var, var};
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::cell::Cell;
-use syntax::ast;
 use std::time::Instant;
+use syntax::ast;
+use typeck;
+use verifier;
 
 pub struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
@@ -87,7 +87,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         let specifications = Rc::new(Cell::new(None));
         let put_specifications = Rc::clone(&specifications);
         let get_specifications = Rc::clone(&specifications);
-        let old_after_parse_callback = std::mem::replace(&mut control.after_parse.callback, box |_| {});
+        let old_after_parse_callback =
+            std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
             let start = Instant::now();
@@ -97,23 +98,31 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             put_specifications.set(Some(untyped_specifications));
 
             let duration = start.elapsed();
-            info!("Parsing of annotations successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+            info!(
+                "Parsing of annotations successful ({}.{} seconds)",
+                duration.as_secs(),
+                duration.subsec_millis() / 10
+            );
             trace!("[after_parse.callback] exit");
             old_after_parse_callback(state);
         };
 
-        let old_after_analysis_callback = std::mem::replace(&mut control.after_analysis.callback, box |_| {});
+        let old_after_analysis_callback =
+            std::mem::replace(&mut control.after_analysis.callback, box |_| {});
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
             let start = Instant::now();
 
             let untyped_specifications = get_specifications.replace(None).unwrap();
-            let typed_specifications =
-                typeck::type_specifications(state, untyped_specifications);
+            let typed_specifications = typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);
 
             let duration = start.elapsed();
-            info!("Type-checking of annotations successful ({}.{} seconds)", duration.as_secs(), duration.subsec_millis()/10);
+            info!(
+                "Type-checking of annotations successful ({}.{} seconds)",
+                duration.as_secs(),
+                duration.subsec_millis() / 10
+            );
 
             // Call the verifier
             if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {
