@@ -549,7 +549,7 @@ impl<'tcx> SpecParser<'tcx> {
     ) -> ast::Item {
         let mut name = item.ident.to_string();
         match item.node {
-            ast::ItemKind::Struct(ref variantdata, ref generics) => {
+            ast::ItemKind::Struct(ref _variantdata, ref generics) => {
                 let mut statements = vec![];
 
                 // Add invariants.
@@ -1398,13 +1398,13 @@ impl<'tcx> SpecParser<'tcx> {
             spec_string,
             base_span
         );
-        let mut whitespace_count = 0;
-        for char in spec_string.chars() {
-            if !char.is_whitespace() {
-                break;
-            }
-            whitespace_count += 1;
-        }
+        //let mut whitespace_count = 0;
+        //for char in spec_string.chars() {
+        //    if !char.is_whitespace() {
+        //        break;
+        //    }
+        //    whitespace_count += 1;
+        //}
         let mut parser = parse::new_parser_from_source_str(
             &self.session.parse_sess,
             FileName::QuoteExpansion,

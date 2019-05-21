@@ -20,7 +20,10 @@ SET_RELEASE_ENV_VARS = LD_LIBRARY_PATH=$(RELEASE_LIB_PATH) JAVA_HOME=$(JAVA_HOME
 default: build
 
 fmt:
-	cargo fmt --all || true
+	rustup run nightly cargo fmt --all || true
+
+fix:
+	$(SET_ENV_VARS) cargo fix
 
 check:
 	$(SET_ENV_VARS) cargo check --all

@@ -540,7 +540,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
     fn check_cast(
         &mut self,
         mir: &mir::Mir<'tcx>,
-        cast_kind: mir::CastKind,
+        _cast_kind: mir::CastKind,
         op: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
         span: Span,
@@ -700,7 +700,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
                             unsupported!(self, span, "uses non-scalar literals");
                         }
                     }
-                    ConstVal::Unevaluated(def_id, substs) => {
+                    ConstVal::Unevaluated(_def_id, _substs) => {
                         // On crate `078_crossbeam` the `const_eval` call fails with
                         // "can't type-check body of DefId(0/0:18 ~ lock_api[964c]::mutex[0]::RawMutex[0]::INIT[0])"
                         // at "const INIT: Self;"

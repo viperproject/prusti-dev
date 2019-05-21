@@ -38,6 +38,7 @@ impl vir::Stmt {
 
 /// Substitute (map) old expressions in an expression
 impl vir::Expr {
+    #[allow(dead_code)]
     pub fn map_old_expr<F>(self, substitutor: F) -> Self
     where
         F: Fn(&str, vir::Expr) -> vir::Expr,
