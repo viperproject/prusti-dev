@@ -222,7 +222,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 {
                     continue;
                 }
-                let successor_data = &mir.basic_blocks()[*successor];
+                let _successor_data = &mir.basic_blocks()[*successor];
                 // TODO: enable only after issue #149 is solved
                 //if let mir::TerminatorKind::Unreachable = successor_data.terminator.as_ref().unwrap().kind {
                 //    continue;

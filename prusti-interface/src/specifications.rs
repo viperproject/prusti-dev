@@ -293,7 +293,7 @@ impl TypedAssertion {
                 spans.extend(rhs.get_spans());
                 spans
             }
-            AssertionKind::ForAll(ref _vars, ref trigger_set, ref body) => {
+            AssertionKind::ForAll(ref _vars, ref _trigger_set, ref body) => {
                 // FIXME: include the variables
                 body.get_spans()
             }

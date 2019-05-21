@@ -4,9 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// TODO: Remove this and fix.
-#![allow(deprecated)]
-
 use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::error_manager::ErrorCtxt;
