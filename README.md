@@ -1,29 +1,7 @@
 Prusti-dev
 ==========
 
-[![Build Status][build_badge]][build_status]
-
-
 Workspace project containing all Prusti sub-projects.
-
-[build_badge]: https://travis-ci.org/viperproject/prusti-dev.svg
-[build_status]: https://travis-ci.org/viperproject/prusti-dev
-
-
-Documentation
--------------
-
-[Development documentation](https://viperproject.github.io/prusti-dev/)
-
-Modules:
-
-- [jni-gen](https://viperproject.github.io/prusti-dev/jni_gen/)
-- [viper-sys](https://viperproject.github.io/prusti-dev/viper_sys/)
-- [viper](https://viperproject.github.io/prusti-dev/viper/)
-- [prusti-viper](https://viperproject.github.io/prusti-dev/prusti_viper/)
-- [prusti-utils](https://viperproject.github.io/prusti-dev/prusti_utils/)
-- [prusti-interface](https://viperproject.github.io/prusti-dev/prusti_interface/)
-- [prusti](https://viperproject.github.io/prusti-dev/prusti/)
 
 
 Build for local development
@@ -101,12 +79,13 @@ Build for local development
 	sudo apt-get install jq
 	```
 
+
 Demo with `rust-playground`
 ---------------------------
 
 If you have [Vagrant](https://www.vagrantup.com/) installed, just run
 ``make demo`` and open
-http://localhost:23438/?version=nightly&mode=debug&edition=2018.
+<http://localhost:23438/?version=nightly&mode=debug&edition=2018>.
 Otherwise, you can follow the instructions below.
 
 Choose a folder in which to run the demo
