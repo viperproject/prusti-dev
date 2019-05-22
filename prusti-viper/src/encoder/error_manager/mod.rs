@@ -149,42 +149,43 @@ impl<'tcx> ErrorManager<'tcx> {
             .as_ref()
             .and_then(|pos_id| self.error_contexts.get(pos_id));
 
-        let (error_span, error_ctxt, reason_span) = if let Some((error_span, error_ctxt)) =
-            opt_error_ctxt
-        {
-            let opt_reason_ctxt = ver_error
-                .reason_pos_id
-                .as_ref()
-                .and_then(|pos_id| self.error_contexts.get(pos_id));
-            if let Some((reason_span, _)) = opt_reason_ctxt {
-                (error_span.clone(), error_ctxt, Some(reason_span.clone()))
+        let (error_span, error_ctxt, reason_span) =
+            if let Some((error_span, error_ctxt)) = opt_error_ctxt {
+                let opt_reason_ctxt = ver_error
+                    .reason_pos_id
+                    .as_ref()
+                    .and_then(|pos_id| self.error_contexts.get(pos_id));
+                if let Some((reason_span, _)) = opt_reason_ctxt {
+                    (error_span.clone(), error_ctxt, Some(reason_span.clone()))
+                } else {
+                    (error_span.clone(), error_ctxt, None)
+                }
             } else {
-                (error_span.clone(), error_ctxt, None)
-            }
-        } else {
-            debug!("Unregistered verification error: {:?}", ver_error);
+                debug!("Unregistered verification error: {:?}", ver_error);
 
-            match pos_id {
-                Some(ref pos_id) => return CompilerError::new(
-                    format!(
+                match pos_id {
+                    Some(ref pos_id) => {
+                        return CompilerError::new(
+                            format!(
                         "internal encoding error - unregistered verification error: [{}; {}] {}",
                         ver_error.full_id, pos_id, ver_error.message
                     ),
-                    MultiSpan::new(),
-                    None,
-                ),
-                None => {
-                    return CompilerError::new(
-                        format!(
+                            MultiSpan::new(),
+                            None,
+                        )
+                    }
+                    None => {
+                        return CompilerError::new(
+                            format!(
                             "internal encoding error - unregistered verification error: [{}] {}",
                             ver_error.full_id, ver_error.message
                         ),
-                        MultiSpan::new(),
-                        None,
-                    )
+                            MultiSpan::new(),
+                            None,
+                        )
+                    }
                 }
-            }
-        };
+            };
 
         match (ver_error.full_id.as_str(), error_ctxt) {
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => {

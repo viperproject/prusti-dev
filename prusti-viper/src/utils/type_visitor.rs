@@ -100,6 +100,7 @@ pub trait TypeVisitor<'a, 'tcx>: Sized {
         walk_ref(self, region, ty, mutability);
     }
 
+    #[allow(dead_code)]
     fn visit_ref_type(&mut self, ty: Ty<'tcx>, mutability: Mutability) {
         trace!("visit_ref_type({:?}, {:?})", ty, mutability);
         walk_ref_type(self, ty, mutability);
