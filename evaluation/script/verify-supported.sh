@@ -56,10 +56,10 @@ info "Using PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT=$PRUSTI_ENCODE_UNSIGNED_NUM_CO
 export RUSTUP_TOOLCHAIN="$(cat "$DIR/../../rust-toolchain")"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
-CARGO_PRUSTI="$DIR/../../docker/cargo-prusti"
+CARGO_PRUSTI="$DIR/../../bin/cargo-prusti"
 info "Using CARGO_PRUSTI=$CARGO_PRUSTI"
 
-CARGO_PRUSTI_FILTER="$DIR/../../docker/cargo-prusti-filter"
+CARGO_PRUSTI_FILTER="$DIR/../../bin/cargo-prusti-filter"
 info "Using CARGO_PRUSTI_FILTER=$CARGO_PRUSTI_FILTER"
 
 # Make sure that the "standard" compilation uses the same compiler flags as Prusti uses

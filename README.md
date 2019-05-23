@@ -68,7 +68,7 @@ Build for local development
 	or
 
     ```bash
-    ./docker/prusti path/to/the/program_to_be_verified.rs
+    ./bin/prusti path/to/the/program_to_be_verified.rs
     ```
 
 - To see examples of programs with annotation, look into the `prusti/tests/verify/pass` folder.

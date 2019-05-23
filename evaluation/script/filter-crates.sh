@@ -40,7 +40,7 @@ fi
 FILTERING_TIMEOUT="${3:-900}"
 info "Using FILTERING_TIMEOUT=$FILTERING_TIMEOUT seconds"
 
-CARGO_PRUSTI_FILTER="$DIR/../../docker/cargo-prusti-filter"
+CARGO_PRUSTI_FILTER="$DIR/../../bin/cargo-prusti-filter"
 info "Using CARGO_PRUSTI_FILTER=$CARGO_PRUSTI_FILTER"
 
 start_date="$(date '+%Y-%m-%d-%H%M%S')"

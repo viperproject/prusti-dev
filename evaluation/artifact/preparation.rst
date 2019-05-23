@@ -25,8 +25,8 @@ Steps to prepare the artifact for submission
     chmod 755 /usr/local/prusti/prusti-driver
     cp target/release/libprusti.so /usr/local/prusti/libprusti.so
     cp target/release/deps/libprusti_contracts-*.rlib /usr/local/prusti/libprusti_contracts.rlib
-    ADD docker/prusti /usr/local/bin/prusti
-    ADD docker/cargo-prusti /usr/local/bin/cargo-prusti
+    ADD bin/prusti /usr/local/bin/prusti
+    ADD bin/cargo-prusti /usr/local/bin/cargo-prusti
     chmod 755 /usr/local/bin/prusti
     chmod 755 /usr/local/bin/cargo-prusti
 
