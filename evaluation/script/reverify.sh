@@ -38,10 +38,10 @@ info "Using PRUSTI_CHECK_BINARY_OPERATIONS=$PRUSTI_CHECK_BINARY_OPERATIONS"
 export RUSTUP_TOOLCHAIN="$(cat "$DIR/../../rust-toolchain")"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
 
-CARGO_PRUSTI="$DIR/../../docker/cargo-prusti"
+CARGO_PRUSTI="$DIR/../../bin/cargo-prusti"
 info "Using CARGO_PRUSTI=$CARGO_PRUSTI"
 
-CARGO_PRUSTI_FILTER="$DIR/../../docker/cargo-prusti-filter"
+CARGO_PRUSTI_FILTER="$DIR/../../bin/cargo-prusti-filter"
 info "Using CARGO_PRUSTI_FILTER=$CARGO_PRUSTI_FILTER"
 
 export LOG_LEVEL=info
