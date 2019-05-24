@@ -1,13 +1,3 @@
 # Prusti
 
-Prusti is a Rust front-end for the [Viper verification
-infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
-
-
-## Debugging
-
-You can specify the log level as follows:
-
-```bash
-make LOG_LEVEL=trace run
-```
+This is the entry crate of Prusti: it provides the binary that can be used in place of rustc to run Prusti and verify a Rust program.
