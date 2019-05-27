@@ -7,7 +7,7 @@ built upon the the [Viper verification infrastructure](http://www.pm.inf.ethz.ch
 By default Prusti verifies absence of panics by proving that statements such as `unreachable!()` and `panic!()` are unreachable.
 Overflow checking can be enabled with a configuration flag, otherwise all integers are treated as unbounded.
 In Prusti, the functional behaviour of a function can be specified by using preconditions, postconditions, and loop invariants.
-The tool uses them to modularly check that the code adheres to the provided specification.
+The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
 To see examples of programs annotated with specifications, look into the [`prusti/tests/verify/pass/rosetta`](prusti/tests/verify/pass/rosetta) and [`prusti/tests/verify/pass-overflow/rosetta`](prusti/tests/verify/pass-overflow/rosetta) folders.
 
@@ -149,7 +149,7 @@ Otherwise, you can follow the following instructions.
 5. Use the demo:
     - Visit <http://localhost:8080/>
     - Select "Nightly channel".
-    - Write with the following program:
+    - Write the following program:
         ```rust
         extern crate prusti_contracts;
 
