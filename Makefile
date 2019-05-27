@@ -43,6 +43,12 @@ test:
 	$(SET_ENV_VARS) \
 	cargo test --all
 
+build-profile:
+	$(SET_ENV_VARS) \
+	CARGO_INCREMENTAL=0 \
+	RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads" \
+	cargo build --all
+
 long-test: build
 	find prusti/tests/verify/long-pass/ -name '*.rs' | while read run_file; do \
 		echo "Testing '$$run_file'..."; \
