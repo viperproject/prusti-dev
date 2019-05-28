@@ -34,28 +34,29 @@ The following instructions has been tested on Ubuntu 16.04:
 
 - Install Rustup
 
-	```bash
-	curl https://sh.rustup.rs -sSf | sh
-	```
+    ```bash
+    curl https://sh.rustup.rs -sSf | sh
+    source $HOME/.cargo/env
+    ```
+
+- Install the dependencies required by some Rust libraries
+
+    ```bash
+    sudo apt-get install build-essential pkg-config gcc libssl-dev
+    ```
+
+- Download this Prusti repository and move to the `prusti-dev` folder
+
+    ```bash
+    git clone "<url-of-prusti-repository>"
+    cd prusti-dev
+    ```
 
 - Install the Rust compiler (the exact compiler version is stored in the rust-toolchain file)
 
     ```bash
     rustup toolchain install $(cat rust-toolchain)
     ```
-
-- Install the dependencies required by some Rust libraries
-
-	```bash
-	sudo apt-get install build-essential pkg-config gcc libssl-dev
-	```
-
-- Download this Prusti repository and move to the `prusti-dev` folder
-
-	```bash
-	git clone "<url-of-prusti-repository>"
-	cd prusti-dev
-	```
 
 - You can now compile Prusti
 
@@ -95,9 +96,9 @@ The following instructions has been tested on Ubuntu 16.04:
 
 - (Optional) To install additional tools required by some scripts in the evaluation folder:
 
-	```bash
-	sudo apt-get install jq
-	```
+    ```bash
+    sudo apt-get install jq
+    ```
 
 
 Demo with `rust-playground`
