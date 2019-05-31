@@ -3,8 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use jni::objects::JObject;
-use jni::JNIEnv;
-use std::mem;
 
 jobject_wrapper!(Program);
 jobject_wrapper!(Type);

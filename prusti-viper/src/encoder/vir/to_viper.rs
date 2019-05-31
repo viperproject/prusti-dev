@@ -231,7 +231,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Expr<'v> {
         match self {
             PermAmount::Write => ast.full_perm(),
-            PermAmount::Read => ast.func_app("read$", &[], &[], ast.perm_type(), ast.no_position()),
+            PermAmount::Read => ast.func_app("read$", &[], ast.perm_type(), ast.no_position()),
             PermAmount::Remaining => ast.perm_sub(
                 PermAmount::Write.to_viper(ast),
                 PermAmount::Read.to_viper(ast),
@@ -372,7 +372,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ast.func_app(
                     &identifier,
                     &args.to_viper(ast),
-                    &formal_args.to_viper_decl(ast)[..],
                     return_type.to_viper(ast),
                     pos.to_viper(ast),
                 )
