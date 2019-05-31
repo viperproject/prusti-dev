@@ -474,23 +474,36 @@ fn remove_back_edges(
 /// Returns the place that is borrowed by the assignment. We assume that
 /// all shared references are created only via assignments and ignore
 /// all other cases.
-fn get_borrowed_place<'a, 'tcx: 'a>(
+fn get_borrowed_places<'a, 'tcx: 'a>(
     mir: &'a mir::Mir<'tcx>,
     loan_position: &HashMap<facts::Loan, mir::Location>,
     loan: facts::Loan,
-) -> Option<&'a mir::Place<'tcx>> {
+) -> Vec<&'a mir::Place<'tcx>> {
     let location = loan_position[&loan];
     let mir::BasicBlockData { ref statements, .. } = mir[location.block];
     if statements.len() == location.statement_index {
-        None
+        Vec::new()
     } else {
         let statement = &statements[location.statement_index];
         match statement.kind {
             mir::StatementKind::Assign(ref _lhs, ref rhs) => match rhs {
-                &mir::Rvalue::Ref(ref _region, _mir_borrow_kind, ref place) => Some(place),
-                &mir::Rvalue::Use(mir::Operand::Copy(ref rhs_place))
-                | &mir::Rvalue::Use(mir::Operand::Move(ref rhs_place)) => Some(rhs_place),
-                &mir::Rvalue::Use(mir::Operand::Constant(_)) => None,
+                &mir::Rvalue::Ref(_, _, ref place) |
+                &mir::Rvalue::Discriminant(ref place) |
+                &mir::Rvalue::Use(mir::Operand::Copy(ref place)) |
+                &mir::Rvalue::Use(mir::Operand::Move(ref place)) => vec![place],
+                &mir::Rvalue::Use(mir::Operand::Constant(_)) => Vec::new(),
+                &mir::Rvalue::Aggregate(_, ref operands) => {
+                    operands
+                        .iter()
+                        .flat_map(|operand| {
+                            match operand {
+                                mir::Operand::Copy(ref place) |
+                                mir::Operand::Move(ref place) => Some(place),
+                                mir::Operand::Constant(_) => None,
+                            }
+                        })
+                        .collect()
+                }
                 x => unreachable!("{:?}", x),
             },
             ref x => unreachable!("{:?}", x),
@@ -520,13 +533,13 @@ fn compute_loan_conflict_sets(
         {
             continue;
         }
-        if let Some(borrowed_place) = get_borrowed_place(mir, loan_position, loan_created) {
+        for borrowed_place in get_borrowed_places(mir, loan_position, loan_created) {
             if let Some(live_borrows) = borrowck_out_facts.borrow_live_at.get(&point) {
                 for loan_alive in live_borrows {
                     if loan_created == *loan_alive {
                         continue;
                     }
-                    if let Some(place) = get_borrowed_place(mir, loan_position, *loan_alive) {
+                    for place in get_borrowed_places(mir, loan_position, *loan_alive) {
                         if utils::is_prefix(borrowed_place, place)
                             || utils::is_prefix(place, borrowed_place)
                         {
