@@ -687,8 +687,11 @@ impl State {
         trace!("[exit] restore_dropped_perm");
     }
 
-    fn restore_acc(&mut self, acc_place: vir::Expr, perm: PermAmount) {
+    fn restore_acc(&mut self, acc_place: vir::Expr, mut perm: PermAmount) {
         trace!("restore_acc {}, {}", acc_place, perm);
+        if let Some(curr_perm_amount) = self.acc.get(&acc_place) {
+            perm = perm + *curr_perm_amount;
+        }
         if acc_place.is_simple_place() {
             for pred_place in self.pred.keys() {
                 if pred_place.is_simple_place() && acc_place.has_proper_prefix(&pred_place) {
@@ -700,13 +703,6 @@ impl State {
                     return;
                 }
             }
-        }
-        if self.acc.contains_key(&acc_place) {
-            trace!(
-                "restore_acc {}: ignored (state already contains place)",
-                acc_place
-            );
-            return;
         }
         self.acc.insert(acc_place, perm);
     }

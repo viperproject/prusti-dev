@@ -6,13 +6,10 @@
 
 use encoder::vir;
 use encoder::vir::PermAmount;
-use std::collections::hash_set;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;
-use std::iter::FlatMap;
-//use std::ops::Mul;
 
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]

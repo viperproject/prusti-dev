@@ -14,23 +14,16 @@ use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
 use encoder::mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
 };
-use encoder::mir_interpreter::{run_forward_interpretation, ForwardMirInterpreter};
-use encoder::places;
 use encoder::vir;
 use encoder::vir::ExprIterator;
 use encoder::Encoder;
 use prusti_interface::config;
-use prusti_interface::report::log;
 use prusti_interface::specifications::SpecificationSet;
 use rustc::hir;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
-use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
-use std::collections::HashSet;
-use std::fmt;
-use syntax::ast;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,

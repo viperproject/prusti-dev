@@ -25,6 +25,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
+        settings.set_default("DUMP_BRANCH_CTXT_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
@@ -120,6 +121,15 @@ pub fn dump_debug_info() -> bool {
         .read()
         .unwrap()
         .get::<bool>("DUMP_DEBUG_INFO")
+        .unwrap()
+}
+
+/// Should we dump the branch context state in debug files?
+pub fn dump_branch_ctxt_in_debug_info() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("DUMP_BRANCH_CTXT_IN_DEBUG_INFO")
         .unwrap()
 }
 

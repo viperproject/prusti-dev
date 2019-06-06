@@ -4,23 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::error_manager::ErrorCtxt;
-use encoder::places;
-use encoder::places::LocalVariableManager;
 use encoder::vir;
-use encoder::vir::ExprIterator;
 use encoder::Encoder;
 use prusti_interface::config;
-use prusti_interface::data::ProcedureDefId;
 use rustc::hir::def_id::DefId;
 use rustc::hir::Mutability;
 use rustc::mir;
 use rustc::ty;
 use rustc_data_structures::indexed_vec::Idx;
 use std;
-use std::collections::HashMap;
 use syntax::ast;
 use syntax::codemap::Span;
 

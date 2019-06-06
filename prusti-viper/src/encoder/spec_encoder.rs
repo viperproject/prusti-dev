@@ -4,12 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::ProcedureContract;
-use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::error_manager::ErrorCtxt;
-use encoder::error_manager::PanicCause;
-use encoder::foldunfold;
 use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::PRECONDITION_LABEL;
 use encoder::mir_interpreter::{
@@ -18,26 +13,15 @@ use encoder::mir_interpreter::{
 };
 use encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
 use encoder::vir::ExprIterator;
-use encoder::vir::{self, CfgBlockIndex, Successor};
+use encoder::vir;
 use encoder::Encoder;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::BasicBlockIndex;
-use prusti_interface::environment::Procedure;
-use prusti_interface::report::log;
 use prusti_interface::specifications::*;
 use rustc::hir;
 use rustc::hir::def_id::DefId;
-use rustc::middle::const_val::ConstVal;
 use rustc::mir;
-use rustc::mir::TerminatorKind;
 use rustc::ty;
-use rustc_data_structures::indexed_vec::Idx;
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use syntax::ast;
-use syntax::codemap::Span;
-use syntax_pos::symbol::Ident;
 
 pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,

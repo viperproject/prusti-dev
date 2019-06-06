@@ -5,9 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::foldunfold::action::*;
-use encoder::foldunfold::perm::PermIterator;
 use encoder::foldunfold::perm::*;
-use encoder::foldunfold::permissions::*;
 use encoder::foldunfold::places_utils::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
@@ -419,17 +417,13 @@ impl<'a> BranchCtxt<'a> {
                 let right_perm = other.state.acc()[&acc_place];
                 if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
                     self.state.remove_acc(&acc_place, PermAmount::Remaining);
-                    // TODO: We probably should log the removed
-                    // permissions and restore them in
-                    // process_expire_borrows together with other
-                    // dropped permissions.
+                    let perm = Perm::acc(acc_place.clone(), PermAmount::Remaining);
+                    left_actions.push(Action::Drop(perm.clone(), perm));
                 }
                 if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
                     other.state.remove_acc(&acc_place, PermAmount::Remaining);
-                    // TODO: We probably should log the removed
-                    // permissions and restore them in
-                    // process_expire_borrows together with other
-                    // dropped permissions.
+                    let perm = Perm::acc(acc_place.clone(), PermAmount::Remaining);
+                    right_actions.push(Action::Drop(perm.clone(), perm));
                 }
             }
             for pred_place in self.state.pred_places() {

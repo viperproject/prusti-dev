@@ -15,9 +15,7 @@ use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 use encoder::optimiser;
 use encoder::places::{Local, LocalVariableManager, Place};
-use encoder::spec_encoder::SpecEncoder;
 use encoder::vir::fixes::fix_ghost_vars;
-use encoder::vir::optimisations;
 use encoder::vir::optimisations::methods::{remove_trivial_assertions, remove_unused_vars};
 use encoder::vir::ExprIterator;
 use encoder::vir::{self, CfgBlockIndex, Successor};
@@ -27,17 +25,15 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::borrowck::facts;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
 use prusti_interface::environment::polonius_info::{
-    ReborrowingBranching, ReborrowingDAG, ReborrowingDAGNode, ReborrowingForest, ReborrowingGuard,
-    ReborrowingKind, ReborrowingNode, ReborrowingTree, ReborrowingZombity,
+    ReborrowingDAG, ReborrowingDAGNode,
+    ReborrowingKind, ReborrowingZombity,
 };
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::Procedure;
 use prusti_interface::report::log;
 use prusti_interface::specifications::*;
-use prusti_interface::utils::get_attr_value;
 use rustc::hir::Mutability;
-use rustc::middle::const_val::ConstVal;
 use rustc::mir;
 use rustc::mir::TerminatorKind;
 use rustc::ty;
@@ -46,7 +42,6 @@ use rustc::ty::layout::IntegerExt;
 use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use syntax::ast;
 use syntax::attr::SignedInt;
 use syntax::codemap::{MultiSpan, Span};
 use utils::to_string::ToString;
@@ -2812,21 +2807,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     continue;
                 }
                 match kind {
-                    /// Gives read permission to this node. It must not be a leaf node.
+                    // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
                         let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Read);
                         permissions.push(perm);
                     }
 
-                    /// Gives write permission to this node. It must not be a leaf node.
+                    // Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
                         let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
                         permissions.push(perm);
                     }
 
-                    /// Gives read or write permission to the entire
-                    /// subtree including this node. This must be a leaf
-                    /// node.
+                    // Gives read or write permission to the entire
+                    // subtree including this node. This must be a leaf
+                    // node.
                     PermissionKind::ReadSubtree | PermissionKind::WriteSubtree => {
                         let perm_amount = match kind {
                             PermissionKind::WriteSubtree => vir::PermAmount::Write,
@@ -2899,11 +2894,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
                         }
                     }
-                    /// This should be repalced with WriteNode and
-                    /// WriteSubtree before this point.
+                    // This should be repalced with WriteNode and
+                    // WriteSubtree before this point.
                     PermissionKind::WriteNodeAndSubtree => unreachable!(),
-                    /// Give no permission to this node and the entire subtree. This
-                    /// must be a leaf node.
+                    // Give no permission to this node and the entire subtree. This
+                    // must be a leaf node.
                     PermissionKind::None => unreachable!(),
                 };
             }

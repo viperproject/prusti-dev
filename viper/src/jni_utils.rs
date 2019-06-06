@@ -11,8 +11,6 @@ use jni::objects::JString;
 use jni::strings::JNIString;
 use jni::sys::jsize;
 use jni::JNIEnv;
-use std::process;
-use std::process::Command;
 use viper_sys::wrappers::*;
 
 #[derive(Clone, Copy)]

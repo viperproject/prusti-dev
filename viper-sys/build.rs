@@ -298,7 +298,7 @@ fn main() {
             ]),
             java_class!("viper.silver.ast.FuncApp", vec![
                 constructor!(),
-                method!("apply", "(Ljava/lang/String;Lscala/collection/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/Type;Lscala/collection/Seq;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/FuncApp;"),
+                method!("apply", "(Ljava/lang/String;Lscala/collection/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/Type;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/FuncApp;"),
             ]),
             java_class!("viper.silver.ast.FuncApp$", vec![
                 object_getter!(),

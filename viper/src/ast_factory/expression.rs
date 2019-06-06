@@ -481,7 +481,6 @@ impl<'a> AstFactory<'a> {
         &self,
         function_name: &str,
         args: &[Expr],
-        formal_args: &[LocalVarDecl],
         return_type: Type,
         pos: Position,
     ) -> Expr<'a> {
@@ -492,7 +491,6 @@ impl<'a> AstFactory<'a> {
             pos.to_jobject(),
             self.no_info(),
             return_type.to_jobject(),
-            self.jni.new_seq(&map_to_jobjects!(formal_args)),
             self.no_trafos(),
         ));
         Expr::new(obj)

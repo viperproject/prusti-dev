@@ -11,7 +11,6 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::mem::discriminant;
-use std::ops::Mul;
 
 #[derive(Debug, Clone)]
 pub enum Expr {

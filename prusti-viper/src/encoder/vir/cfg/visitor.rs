@@ -56,6 +56,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     /// ```
     fn replace_stmt(
         &mut self,
+        stmt_index: usize,
         stmt: &Stmt,
         is_last_before_return: bool,
         bctxt: &mut BranchCtxt,
@@ -205,6 +206,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
                 let last_stmt_before_return =
                     stmt_index == curr_block.stmts.len() - 1 && curr_block.successor.is_return();
                 let new_stmts = self.replace_stmt(
+                    stmt_index,
                     stmt,
                     last_stmt_before_return,
                     &mut bctxt,
