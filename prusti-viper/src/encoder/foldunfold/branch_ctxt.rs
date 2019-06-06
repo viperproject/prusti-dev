@@ -5,9 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::foldunfold::action::*;
-use encoder::foldunfold::perm::PermIterator;
 use encoder::foldunfold::perm::*;
-use encoder::foldunfold::permissions::*;
 use encoder::foldunfold::places_utils::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;

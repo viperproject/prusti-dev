@@ -9,18 +9,14 @@ use encoder::foldunfold::action::Action;
 use encoder::foldunfold::log::EventLog;
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
-use encoder::foldunfold::places_utils::*;
 use encoder::vir;
 use encoder::vir::ExprFolder;
-use encoder::vir::ExprIterator;
 use encoder::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
 use encoder::Encoder;
 use prusti_interface::config;
 use prusti_interface::report;
 use std;
-use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::mem;
 use utils::to_string::ToString;
 

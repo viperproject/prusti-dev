@@ -9,6 +9,8 @@
 #![feature(nll)]
 #![feature(box_syntax)]
 
+#![deny(unused_imports)]
+
 #[macro_use]
 extern crate log;
 extern crate num_rational;

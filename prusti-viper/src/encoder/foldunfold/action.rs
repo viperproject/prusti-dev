@@ -7,9 +7,7 @@
 use encoder::foldunfold::perm::*;
 use encoder::vir;
 use encoder::vir::PermAmount;
-use std::collections::HashMap;
 use std::fmt;
-use std::iter::FlatMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Action {

@@ -8,7 +8,6 @@
 
 use encoder::vir;
 use encoder::vir::ExprFolder;
-use encoder::vir::ExprWalker;
 use encoder::vir::StmtFolder;
 
 /// Substitute (map) expressions in a statement

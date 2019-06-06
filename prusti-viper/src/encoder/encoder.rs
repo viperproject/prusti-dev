@@ -10,7 +10,6 @@ use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::builtin_encoder::BuiltinMethodKind;
 use encoder::error_manager::{ErrorCtxt, ErrorManager};
 use encoder::foldunfold;
-use encoder::mir_encoder::MirEncoder;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
@@ -22,10 +21,9 @@ use prusti_interface::config;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::EnvironmentImpl;
-use prusti_interface::environment::Procedure;
 use prusti_interface::report::log;
 use prusti_interface::specifications::{
-    Assertion, SpecID, SpecType, Specification, SpecificationSet, TypedAssertion,
+    SpecID, SpecificationSet, TypedAssertion,
     TypedSpecificationMap, TypedSpecificationSet,
 };
 use rustc::hir;

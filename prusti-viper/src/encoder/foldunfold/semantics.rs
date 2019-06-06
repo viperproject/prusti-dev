@@ -7,9 +7,7 @@
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
-use encoder::vir::PermAmount;
 use std::collections::HashMap;
-use std::collections::HashSet;
 
 fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
     state.insert_all_perms(

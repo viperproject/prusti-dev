@@ -8,7 +8,7 @@ use encoder::mir_encoder::MirEncoder;
 /// Module that allows querying the initialisation information.
 use encoder::vir;
 use prusti_interface::environment::mir_analyses::initialization::{
-    compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
+    compute_definitely_initialized,
 };
 use prusti_interface::environment::place_set::PlaceSet;
 use rustc::hir::def_id::DefId;
@@ -110,7 +110,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
                 statement_index: location.statement_index - 1,
                 ..location
             };
-            use utils::to_string::ToString;
             contains_prefix(&self.vir_acc_after_statement[&new_location], place)
         }
     }

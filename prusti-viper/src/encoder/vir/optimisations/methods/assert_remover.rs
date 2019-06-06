@@ -8,8 +8,6 @@
 
 use encoder::vir::cfg;
 use encoder::vir::{Const, Expr, Stmt};
-use std::collections::HashSet;
-use std::mem;
 
 /// Remove trivial assertions:
 /// * `assert true`

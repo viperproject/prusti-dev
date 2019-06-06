@@ -6,7 +6,6 @@
 
 use encoder::vir;
 use encoder::vir::cfg::method::*;
-use std::fmt;
 
 impl CfgMethod {
     pub fn substitute_expr<F>(&mut self, substitutor: F)

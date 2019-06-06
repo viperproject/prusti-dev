@@ -6,7 +6,7 @@
 
 use encoder::vir::{self, optimisations, ToViper, ToViperDecl};
 use encoder::Encoder;
-use prusti_filter::validators::{SupportStatus, Validator};
+use prusti_filter::validators::Validator;
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;

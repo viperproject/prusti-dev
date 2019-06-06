@@ -7,7 +7,6 @@
 use encoder::vir::Position;
 use std::collections::HashMap;
 use syntax::codemap::CodeMap;
-use syntax::codemap::Span;
 use syntax_pos::MultiSpan;
 use syntax_pos::DUMMY_SP;
 use uuid::Uuid;

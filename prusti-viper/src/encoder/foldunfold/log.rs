@@ -12,7 +12,6 @@ use encoder::foldunfold::perm::Perm;
 use encoder::vir;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::iter;
 use utils::to_string::ToString;
 
 /// The type of the access permission.

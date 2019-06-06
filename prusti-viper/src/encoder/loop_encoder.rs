@@ -9,13 +9,12 @@ use prusti_interface::environment::mir_analyses::initialization::{
 };
 use prusti_interface::environment::place_set::PlaceSet;
 use prusti_interface::environment::{
-    BasicBlockIndex, PermissionForest, PlaceAccess, PlaceAccessKind, ProcedureLoops,
+    BasicBlockIndex, PermissionForest, ProcedureLoops,
 };
 use prusti_interface::utils;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
-use std::collections::HashMap;
 
 pub struct LoopEncoder<'a, 'tcx: 'a> {
     mir: &'a mir::Mir<'tcx>,
