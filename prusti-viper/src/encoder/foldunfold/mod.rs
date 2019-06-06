@@ -324,12 +324,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             let curr_node = &curr_block.node;
             curr_block.statements.extend(curr_block_pre_statements);
 
-            for stmt in &curr_node.stmts {
+            for (stmt_index, stmt) in curr_node.stmts.iter().enumerate() {
                 debug!(
                     "process_expire_borrows block={} ({:?}) stmt={}",
                     curr_block_index, curr_node.borrow, stmt
                 );
                 let new_stmts = self.replace_stmt(
+                    stmt_index,
                     &stmt,
                     false,
                     &mut bctxt,
@@ -354,6 +355,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 maybe_original_place = Some(original_place);
                 let stmt = vir::Stmt::Exhale(read_access, vir::Position::default());
                 let new_stmts = self.replace_stmt(
+                    curr_block.statements.len(),
                     &stmt,
                     false,
                     &mut bctxt,
@@ -608,6 +610,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
     /// Replace some statements, mutating the branch context
     fn replace_stmt(
         &mut self,
+        stmt_index: usize,
         stmt: &vir::Stmt,
         is_last_before_return: bool,
         bctxt: &mut BranchCtxt<'p>,
@@ -655,6 +658,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
 
         let mut stmts: Vec<vir::Stmt> = vec![];
+
+        if stmt_index == 0 && config::dump_branch_ctxt_in_debug_info() {
+            stmts.push(
+                vir::Stmt::comment(format!("[state] acc: {{\n{}\n}}", bctxt.state().display_acc()))
+            );
+            stmts.push(
+                vir::Stmt::comment(format!("[state] pred: {{\n{}\n}}", bctxt.state().display_pred()))
+            );
+        }
 
         // 0. Insert "unfolding in" inside old expressions. This handles *old* requirements.
         debug!("[step.0] replace_stmt: {}", stmt);
@@ -756,6 +768,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 let mut package_stmts = vec![];
                 for stmt in old_package_stmts {
                     package_stmts.extend(self.replace_stmt(
+                        stmt_index,
                         stmt,
                         false,
                         &mut package_bctxt,
