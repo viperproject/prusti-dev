@@ -2807,21 +2807,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     continue;
                 }
                 match kind {
-                    /// Gives read permission to this node. It must not be a leaf node.
+                    // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
                         let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Read);
                         permissions.push(perm);
                     }
 
-                    /// Gives write permission to this node. It must not be a leaf node.
+                    // Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
                         let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
                         permissions.push(perm);
                     }
 
-                    /// Gives read or write permission to the entire
-                    /// subtree including this node. This must be a leaf
-                    /// node.
+                    // Gives read or write permission to the entire
+                    // subtree including this node. This must be a leaf
+                    // node.
                     PermissionKind::ReadSubtree | PermissionKind::WriteSubtree => {
                         let perm_amount = match kind {
                             PermissionKind::WriteSubtree => vir::PermAmount::Write,
@@ -2894,11 +2894,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
                         }
                     }
-                    /// This should be repalced with WriteNode and
-                    /// WriteSubtree before this point.
+                    // This should be repalced with WriteNode and
+                    // WriteSubtree before this point.
                     PermissionKind::WriteNodeAndSubtree => unreachable!(),
-                    /// Give no permission to this node and the entire subtree. This
-                    /// must be a leaf node.
+                    // Give no permission to this node and the entire subtree. This
+                    // must be a leaf node.
                     PermissionKind::None => unreachable!(),
                 };
             }
