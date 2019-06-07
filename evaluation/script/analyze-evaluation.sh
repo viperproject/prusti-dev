@@ -243,3 +243,9 @@ cat "$DIR"/../crates/global_blacklist.csv | while read f; do
     echo "$f";
     cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq ".functions[] | select(.node_path == $f) | .source_code" | sed 's/^"//;s/"$/\n/;s/\\n/\n/g;s/\\"/"/g;s/\\t/\t/g';
 done
+
+space
+
+inlineinfo "Supported functions that may panic:"
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions" || . == "uses panics")) | .node_path' | wc -l
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions" || . == "uses panics")) | .node_path'

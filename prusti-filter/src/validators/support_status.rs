@@ -79,7 +79,7 @@ impl<T: Clone + Eq + PartialEq + Hash + Serialize> Restriction<T> {
 pub struct SupportStatus {
     /// Reasons why the implementation item is unsupported or partially supported
     restrictions: HashSet<Restriction<String>>,
-    /// Like restrictions, with with the offending code span
+    /// Like restrictions, but with the offending code span
     precise_restrictions: HashSet<Restriction<Reason>>,
     /// Interesting features (e.g. "returns a reference")
     interestings: HashSet<String>,
