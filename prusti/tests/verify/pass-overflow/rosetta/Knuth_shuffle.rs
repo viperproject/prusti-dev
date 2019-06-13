@@ -97,7 +97,7 @@ fn print_vector_after<T: Debug>(v: &mut VecWrapper<T>) {
     println!("after:  {:?}", v.v);
 }
 
-fn main() {
+fn test() {
     let mut v = VecWrapper::new();
     let mut i = 0;
     while i < 10 {
@@ -108,3 +108,5 @@ fn main() {
     knuth_shuffle(&mut v);
     print_vector_after(&mut v);
 }
+
+fn main() {}
