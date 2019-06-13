@@ -70,11 +70,12 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     cfg: vir::CfgMethod,
     borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
+    method_pos: vir::Position,
 ) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map();
     let initial_bctxt = BranchCtxt::new(cfg_vars, &predicates);
-    FoldUnfold::new(encoder, initial_bctxt, &cfg, borrow_positions).replace_cfg(&cfg)
+    FoldUnfold::new(encoder, initial_bctxt, &cfg, borrow_positions, method_pos).replace_cfg(&cfg)
 }
 
 #[derive(Clone)]
@@ -87,6 +88,7 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     cfg: &'p vir::CfgMethod,
     log: EventLog,
     borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
+    method_pos: vir::Position,
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
@@ -95,6 +97,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         initial_bctxt: BranchCtxt<'p>,
         cfg: &'p vir::CfgMethod,
         borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
+        method_pos: vir::Position,
     ) -> Self {
         FoldUnfold {
             encoder,
@@ -105,6 +108,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             cfg,
             log: EventLog::new(),
             borrow_positions,
+            method_pos
         }
     }
 
@@ -349,7 +353,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     read_access = read_access.replace_place(&original_place, place);
                 }
                 maybe_original_place = Some(original_place);
-                let stmt = vir::Stmt::Exhale(read_access, vir::Position::default());
+                let stmt = vir::Stmt::Exhale(read_access, self.method_pos.clone());
                 let new_stmts = self.replace_stmt(
                     curr_block.statements.len(),
                     &stmt,
@@ -878,7 +882,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                         vir::Position::default(),
                     );
                     self.log.log_convertion_to_read(borrow, access.clone());
-                    let stmt = vir::Stmt::Exhale(access, vir::Position::default());
+                    let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
                     bctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
                 }
@@ -919,7 +923,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                         place.pos().clone(),
                     );
                     self.log.log_convertion_to_read(borrow, access.clone());
-                    let stmt = vir::Stmt::Exhale(access, vir::Position::default());
+                    let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
                     bctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
                 }

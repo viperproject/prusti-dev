@@ -538,8 +538,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (loan, vir_basic_block)
             })
             .collect();
-        let method_with_fold_unfold =
-            foldunfold::add_fold_unfold(self.encoder, self.cfg_method, loan_positions);
+        let method_pos = self.encoder.error_manager().register(
+            self.mir.span,
+            ErrorCtxt::Unexpected,
+        );
+        let method_with_fold_unfold = foldunfold::add_fold_unfold(
+            self.encoder, self.cfg_method, loan_positions, method_pos);
 
         // Fix variable declarations.
         let fixed_method = fix_ghost_vars(method_with_fold_unfold);
@@ -1766,6 +1770,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 pos.clone(),
                             ));
                             let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
+                            assert!(!pos.is_default());
                             stmts.push(vir::Stmt::Exhale(
                                 pre_perm_spec.remove_read_permissions(),
                                 pos.clone(),
@@ -1851,6 +1856,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
 
                             // Exhale the permissions that were moved into magic wands.
+                            assert!(!pos.is_default());
                             stmts.push(vir::Stmt::Exhale(pre_mandatory_perm_spec, pos));
 
                             // Emit the label and magic wands
@@ -2712,6 +2718,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .error_manager()
             .register(self.mir.span, ErrorCtxt::ExhaleMethodPostcondition);
         let patched_type_spec = self.replace_old_places_with_ghost_vars(None, type_spec);
+        assert!(!perm_pos.is_default());
         self.cfg_method.add_stmt(
             return_cfg_block,
             vir::Stmt::Exhale(patched_type_spec, perm_pos.clone()),
@@ -3056,6 +3063,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ));
             }
         }
+        assert!(!assert_pos.is_default());
         stmts.push(vir::Stmt::Assert(
             func_spec.into_iter().conjoin(),
             assert_pos,

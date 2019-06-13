@@ -66,7 +66,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 let fake_position = Position::new(0, 0, "inhale".to_string());
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
             }
-            &Stmt::Exhale(ref expr, ref pos) => ast.exhale(expr.to_viper(ast), pos.to_viper(ast)),
+            &Stmt::Exhale(ref expr, ref pos) => {
+                assert!(!pos.is_default());
+                ast.exhale(expr.to_viper(ast), pos.to_viper(ast))
+            },
             &Stmt::Assert(ref expr, ref pos) => ast.assert(expr.to_viper(ast), pos.to_viper(ast)),
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::new(0, 0, "method_call".to_string());
@@ -145,6 +148,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             ast.seqn(stmts.as_slice(), &[])
                         }
                         Stmt::Exhale(ref expr, ref pos) => {
+                            assert!(!pos.is_default());
                             let mut stmts = create_footprint_asserts(expr, PermAmount::Read);
                             stmts.push(ast.exhale(expr.to_viper(ast), pos.to_viper(ast)));
                             ast.seqn(stmts.as_slice(), &[])
