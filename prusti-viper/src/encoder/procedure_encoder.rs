@@ -614,8 +614,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Use(ref operand) => {
                         self.encode_assign_operand(&encoded_lhs, operand, location)
                     }
-                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => self
-                        .encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location),
+                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
+                        self.encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location)
+                    },
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
                         self.encode_assign_binary_op(op, left, right, encoded_lhs, ty, location)
                     }
@@ -4129,11 +4130,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             .val
                             .into()
                     };
-                    stmts.push(vir::Stmt::Assign(
-                        dst.clone().field(discr_field).into(),
-                        discr_value,
-                        vir::AssignKind::Copy,
-                    ));
+                    // dst was havocked, so it is safe to assume the equality here.
+                    stmts.push(
+                        vir::Stmt::Inhale(
+                            vir::Expr::eq_cmp(
+                                dst.clone().field(discr_field).into(),
+                                discr_value,
+                            )
+                        )
+                    );
                     let variant_name = &variant_def.name.as_str();
                     dst_base = dst_base.variant(variant_name);
                 }

@@ -14,7 +14,7 @@ use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
 use encoder::spec_encoder::SpecEncoder;
-use encoder::type_encoder::{compute_discriminant_values, TypeEncoder};
+use encoder::type_encoder::{compute_discriminant_bounds, TypeEncoder};
 use encoder::vir;
 use encoder::vir::WithIdentifier;
 use prusti_interface::config;
@@ -431,8 +431,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     vir::PermAmount::Read,
                 );
                 let result = vir::LocalVar::new("__result", vir::Type::Int);
-                let postcondition =
-                    compute_discriminant_values(adt_def, self.env.tcx(), &result.into());
+                let postcondition = compute_discriminant_bounds(
+                    adt_def, self.env.tcx(), &result.into());
                 let discr_field = self.encode_discriminant_field();
                 let self_local_var_expr: vir::Expr = self_local_var.clone().into();
                 let function = vir::Function {
