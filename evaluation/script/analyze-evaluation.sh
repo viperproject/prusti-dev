@@ -247,5 +247,4 @@ done
 space
 
 inlineinfo "Supported functions that may panic:"
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions" || . == "uses panics")) | .node_path' | wc -l
-cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions" || . == "uses panics")) | .node_path'
+cat "$CRATE_DOWNLOAD_DIR"/*/source/prusti-filter-results.json | jq '.functions[] | select(.procedure.restrictions | length == 0) | select(.procedure.interestings | any(. == "uses assertions" or . == "uses panics")) | .node_path' | wc -l
