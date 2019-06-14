@@ -551,14 +551,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     vir::Stmt::Exhale(expr, pos) => {
                         vir::Stmt::Exhale(patch_expr(label, expr), pos.clone())
                     }
-                    vir::Stmt::Fold(ref pred_name, ref args, perm_amount, pos) => vir::Stmt::Fold(
-                        pred_name.clone(),
-                        patch_args(label, args),
-                        *perm_amount,
-                        pos.clone(),
-                    ),
-                    vir::Stmt::Unfold(ref pred_name, ref args, perm_amount) => {
-                        vir::Stmt::Unfold(pred_name.clone(), patch_args(label, args), *perm_amount)
+                    vir::Stmt::Fold(ref pred_name, ref args, perm_amount, variant, pos) => {
+                        vir::Stmt::Fold(
+                            pred_name.clone(),
+                            patch_args(label, args),
+                            *perm_amount,
+                            variant.clone(),
+                            pos.clone(),
+                        )
+                    },
+                    vir::Stmt::Unfold(ref pred_name, ref args, perm_amount, variant) => {
+                        vir::Stmt::Unfold(
+                            pred_name.clone(),
+                            patch_args(label, args),
+                            *perm_amount,
+                            variant.clone()
+                        )
                     }
                     x => unreachable!("{}", x),
                 })
@@ -660,12 +668,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         let mut stmts: Vec<vir::Stmt> = vec![];
 
         if stmt_index == 0 && config::dump_branch_ctxt_in_debug_info() {
-            stmts.push(
-                vir::Stmt::comment(format!("[state] acc: {{\n{}\n}}", bctxt.state().display_acc()))
-            );
-            stmts.push(
-                vir::Stmt::comment(format!("[state] pred: {{\n{}\n}}", bctxt.state().display_pred()))
-            );
+            let acc_state = bctxt.state().display_acc().replace("\n", "\n//");
+            stmts.push(vir::Stmt::comment(format!("[state] acc: {{\n//{}\n//}}", acc_state)));
+            let pred_state = bctxt.state().display_pred().replace("\n", "\n//");
+            stmts.push(vir::Stmt::comment(format!("[state] pred: {{\n//{}\n//}}", pred_state)));
+            let moved_state = bctxt.state().display_moved().replace("\n", "\n//");
+            stmts.push(vir::Stmt::comment(format!("[state] moved: {{\n//{}\n//}}", moved_state)));
         }
 
         // 0. Insert "unfolding in" inside old expressions. This handles *old* requirements.
@@ -1153,6 +1161,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         args: Vec<vir::Expr>,
         expr: Box<vir::Expr>,
         perm: vir::PermAmount,
+        variant: vir::MaybeEnumVariantIndex,
         pos: vir::Position,
     ) -> vir::Expr {
         debug!(
@@ -1161,12 +1170,12 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         );
 
         let res = if self.wait_old_expr {
-            vir::Expr::Unfolding(name, args, self.fold_boxed(expr), perm, pos)
+            vir::Expr::Unfolding(name, args, self.fold_boxed(expr), perm, variant, pos)
         } else {
             // Compute inner state
             let mut inner_bctxt = self.curr_bctxt.clone();
             let inner_state = inner_bctxt.mut_state();
-            vir::Stmt::Unfold(name.clone(), args.clone(), perm)
+            vir::Stmt::Unfold(name.clone(), args.clone(), perm, variant.clone())
                 .apply_on_state(inner_state, self.curr_bctxt.predicates());
 
             // Store states
@@ -1178,7 +1187,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             // Restore states
             std::mem::swap(&mut self.curr_bctxt, &mut tmp_curr_bctxt);
 
-            vir::Expr::Unfolding(name, args, inner_expr, perm, pos)
+            vir::Expr::Unfolding(name, args, inner_expr, perm, variant, pos)
         };
 
         debug!("[exit] fold_unfolding = {}", res);

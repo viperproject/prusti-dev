@@ -153,7 +153,7 @@ impl vir::Stmt {
                 // Do nothing.
             }
 
-            &vir::Stmt::Fold(ref pred_name, ref args, perm_amount, _) => {
+            &vir::Stmt::Fold(ref pred_name, ref args, perm_amount, ref variant, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -166,7 +166,7 @@ impl vir::Stmt {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<Perm> = predicate
-                    .get_permissions()
+                    .get_permissions_with_variant(variant)
                     .into_iter()
                     .map(|perm| {
                         perm.map_place(|p| p.replace_place(&pred_self_place, place))
@@ -184,7 +184,7 @@ impl vir::Stmt {
                 state.insert_pred(place.clone(), perm_amount);
             }
 
-            &vir::Stmt::Unfold(ref pred_name, ref args, perm_amount) => {
+            &vir::Stmt::Unfold(ref pred_name, ref args, perm_amount, ref variant) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -197,7 +197,7 @@ impl vir::Stmt {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: Vec<_> = predicate
-                    .get_permissions()
+                    .get_permissions_with_variant(variant)
                     .into_iter()
                     .map(|aop| aop.map_place(|p| p.replace_place(&pred_self_place, place)))
                     .collect();

@@ -4131,10 +4131,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             .into()
                     };
                     // dst was havocked, so it is safe to assume the equality here.
+                    let discriminant = self.encoder.encode_discriminant_func_app(
+                        dst.clone(),
+                        adt_def,
+                    );
                     stmts.push(
                         vir::Stmt::Inhale(
                             vir::Expr::eq_cmp(
-                                dst.clone().field(discr_field).into(),
+                                discriminant,
                                 discr_value,
                             )
                         )

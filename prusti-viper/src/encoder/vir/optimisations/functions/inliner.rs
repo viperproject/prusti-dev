@@ -120,7 +120,7 @@ fn is_constant_function_call(
     pure_function_map: &HashMap<String, ast::Expr>,
 ) -> Option<ast::Expr> {
     match expr {
-        ast::Expr::Unfolding(_, _, box ast::Expr::FuncApp(name, _, _, _, _), _, _) => {
+        ast::Expr::Unfolding(_, _, box ast::Expr::FuncApp(name, _, _, _, _), _, _, _) => {
             pure_function_map.get(name).cloned()
         }
         _ => None,

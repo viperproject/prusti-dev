@@ -92,7 +92,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 res
             }
 
-            &vir::Stmt::Fold(_, ref args, perm_amount, _) => {
+            &vir::Stmt::Fold(_, ref args, perm_amount, ref variant, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -103,7 +103,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
-                    .get_permissions()
+                    .get_permissions_with_variant(variant)
                     .into_iter()
                     .map(|perm| {
                         perm.map_place(|p| p.replace_place(&pred_self_place, &place))
@@ -114,7 +114,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 places_in_pred
             }
 
-            &vir::Stmt::Unfold(ref _pred_name, ref args, perm_amount) => {
+            &vir::Stmt::Unfold(ref _pred_name, ref args, perm_amount, ref _variant) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -179,8 +179,8 @@ impl vir::Stmt {
             | &vir::Stmt::Assert(_, _)
             | &vir::Stmt::MethodCall(_, _, _)
             | &vir::Stmt::Assign(_, _, _)
-            | &vir::Stmt::Fold(_, _, _, _)
-            | &vir::Stmt::Unfold(_, _, _)
+            | &vir::Stmt::Fold(_, _, _, _, _)
+            | &vir::Stmt::Unfold(_, _, _, _)
             | &vir::Stmt::Obtain(_, _)
             | &vir::Stmt::Havoc
             | &vir::Stmt::BeginFrame
@@ -206,7 +206,7 @@ impl RequiredPermissionsGetter for vir::Expr {
         let permissions = match self {
             vir::Expr::Const(_, _) => HashSet::new(),
 
-            vir::Expr::Unfolding(_, args, expr, perm_amount, _) => {
+            vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -217,7 +217,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
-                    .get_permissions()
+                    .get_permissions_with_variant(variant)
                     .into_iter()
                     .map(|aop| {
                         aop.map_place(|p| p.replace_place(&pred_self_place, place))
@@ -367,7 +367,7 @@ impl vir::Expr {
             | vir::Expr::Const(_, _)
             | vir::Expr::FuncApp(..) => HashSet::new(),
 
-            vir::Expr::Unfolding(_, args, expr, perm_amount, _) => {
+            vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -378,7 +378,7 @@ impl vir::Expr {
 
                 let pred_self_place: vir::Expr = predicate.self_place();
                 let places_in_pred: HashSet<Perm> = predicate
-                    .get_permissions()
+                    .get_permissions_with_variant(variant)
                     .into_iter()
                     .map(|aop| {
                         aop.map_place(|p| p.replace_place(&pred_self_place, place))
@@ -452,12 +452,24 @@ impl vir::Expr {
 
 impl vir::Predicate {
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    pub fn get_permissions(&self) -> HashSet<Perm> {
+    pub fn get_permissions_with_variant(
+        &self,
+        maybe_variant: &vir::MaybeEnumVariantIndex
+    ) -> HashSet<Perm> {
         let perms = match self {
-            vir::Predicate::Struct(p) => p.get_permissions(),
-            vir::Predicate::Enum(p) => p.get_permissions(),
+            vir::Predicate::Struct(p) => {
+                assert!(maybe_variant.is_none());
+                p.get_permissions()
+            },
+            vir::Predicate::Enum(p) => {
+                if let Some(variant) = maybe_variant {
+                    p.get_permissions(variant)
+                } else {
+                    // We must be doing fold/unfold for a pure function.
+                    p.get_all_permissions()
+                }
+            },
         };
-        //error!("perms {}: {:?}", self, perms);
         perms
     }
 }
@@ -478,11 +490,32 @@ impl vir::StructPredicate {
 
 impl vir::EnumPredicate {
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    pub fn get_permissions(&self) -> HashSet<Perm> {
+    pub fn get_permissions(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
         // A predicate body should not contain unfolding expression
         let predicates = HashMap::new();
         let mut perms = self.discriminant.get_required_permissions(&predicates);
-        // TODO: We should unfold only the intendent variant, not all of them.
+        let this: vir::Expr = self.this.clone().into();
+        //let (_, ref variant_name, _) = &self.variants[variant];
+        let variant_name = variant.get_variant_name();
+        perms.insert(
+            Perm::Acc(
+                this.clone().variant(variant_name),
+                PermAmount::Write,
+            )
+        );
+        perms.insert(
+            Perm::Pred(
+                this.clone().variant(variant_name),
+                PermAmount::Write,
+            )
+        );
+        perms
+    }
+    /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
+    pub fn get_all_permissions(&self) -> HashSet<Perm> {
+        // A predicate body should not contain unfolding expression
+        let predicates = HashMap::new();
+        let mut perms = self.discriminant.get_required_permissions(&predicates);
         let this: vir::Expr = self.this.clone().into();
         for (_guard, variant_name, _variant_predicate) in &self.variants {
             perms.insert(Perm::Acc(

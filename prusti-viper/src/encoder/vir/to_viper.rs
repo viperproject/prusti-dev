@@ -82,7 +82,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Assign(ref lhs, ref rhs, _) => {
                 ast.abstract_assign(lhs.to_viper(ast), rhs.to_viper(ast))
             }
-            &Stmt::Fold(ref pred_name, ref args, perm, ref pos) => ast.fold_with_pos(
+            &Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => ast.fold_with_pos(
                 ast.predicate_access_predicate_with_pos(
                     ast.predicate_access_with_pos(
                         &args.to_viper(ast),
@@ -94,7 +94,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 ),
                 pos.to_viper(ast),
             ),
-            &Stmt::Unfold(ref pred_name, ref args, perm) => {
+            &Stmt::Unfold(ref pred_name, ref args, perm, ref _variant) => {
                 ast.unfold(ast.predicate_access_predicate(
                     ast.predicate_access(&args.to_viper(ast), &pred_name),
                     perm.to_viper(ast),
@@ -153,7 +153,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             stmts.push(ast.exhale(expr.to_viper(ast), pos.to_viper(ast)));
                             ast.seqn(stmts.as_slice(), &[])
                         }
-                        &Stmt::Fold(ref pred_name, ref args, perm, ref pos) => {
+                        &Stmt::Fold(ref pred_name, ref args, perm, ref _variant, ref pos) => {
                             assert_eq!(args.len(), 1);
                             let place = &args[0];
                             assert!(place.is_place());
@@ -338,15 +338,23 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     ast.implies_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
             },
-            &Expr::Unfolding(ref predicate_name, ref args, ref expr, perm, ref pos) => ast
-                .unfolding_with_pos(
+            &Expr::Unfolding(
+                ref predicate_name,
+                ref args,
+                ref expr,
+                perm,
+                ref _variant,
+                ref pos
+            ) => {
+                ast.unfolding_with_pos(
                     ast.predicate_access_predicate(
                         ast.predicate_access(&args.to_viper(ast)[..], &predicate_name),
                         perm.to_viper(ast),
                     ),
                     expr.to_viper(ast),
                     pos.to_viper(ast),
-                ),
+                )
+            },
             &Expr::Cond(ref guard, ref left, ref right, ref pos) => ast.cond_exp_with_pos(
                 guard.to_viper(ast),
                 left.to_viper(ast),

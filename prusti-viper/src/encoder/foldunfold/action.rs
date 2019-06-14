@@ -11,8 +11,8 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Action {
-    Fold(String, Vec<vir::Expr>, PermAmount, vir::Position),
-    Unfold(String, Vec<vir::Expr>, PermAmount),
+    Fold(String, Vec<vir::Expr>, PermAmount, vir::MaybeEnumVariantIndex, vir::Position),
+    Unfold(String, Vec<vir::Expr>, PermAmount, vir::MaybeEnumVariantIndex),
     /// The dropped perm and the missing permission that caused this
     /// perm to be dropped.
     Drop(Perm, Perm),
@@ -21,11 +21,17 @@ pub enum Action {
 impl Action {
     pub fn to_stmt(&self) -> vir::Stmt {
         match self {
-            Action::Fold(ref pred, ref args, perm_amount, ref pos) => {
-                vir::Stmt::Fold(pred.clone(), args.clone(), *perm_amount, pos.clone())
+            Action::Fold(ref pred, ref args, perm_amount, ref variant, ref pos) => {
+                vir::Stmt::Fold(
+                    pred.clone(),
+                    args.clone(),
+                    *perm_amount,
+                    variant.clone(),
+                    pos.clone()
+                )
             }
-            Action::Unfold(ref pred, ref args, perm_amount) => {
-                vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount)
+            Action::Unfold(ref pred, ref args, perm_amount, ref variant) => {
+                vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount, variant.clone())
             }
             Action::Drop(..) => vir::Stmt::comment(self.to_string()),
         }
@@ -33,13 +39,14 @@ impl Action {
 
     pub fn to_expr(&self, inner_expr: vir::Expr) -> vir::Expr {
         match self {
-            Action::Fold(ref pred, ref args, perm, _) => {
+            Action::Fold(ref pred, ref _args, _perm, ref _variant, _) => {
                 // Currently unsupported in Viper
                 unimplemented!("action {}", self)
             }
 
-            Action::Unfold(ref pred, ref args, perm) => {
-                vir::Expr::unfolding(pred.clone(), args.clone(), inner_expr, *perm)
+            Action::Unfold(ref pred, ref args, perm, ref variant) => {
+                vir::Expr::unfolding(
+                    pred.clone(), args.clone(), inner_expr, *perm, variant.clone())
             }
 
             Action::Drop(..) => inner_expr,

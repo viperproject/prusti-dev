@@ -61,7 +61,12 @@ impl<'a> BranchCtxt<'a> {
     }
 
     /// Simulate an unfold
-    fn unfold(&mut self, pred_place: &vir::Expr, perm_amount: PermAmount) -> Action {
+    fn unfold(
+        &mut self,
+        pred_place: &vir::Expr,
+        perm_amount: PermAmount,
+        variant: vir::MaybeEnumVariantIndex,
+    ) -> Action {
         debug!("We want to unfold {} with {}", pred_place, perm_amount);
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
         assert!(
@@ -80,7 +85,7 @@ impl<'a> BranchCtxt<'a> {
 
         let pred_self_place: vir::Expr = predicate.self_place();
         let places_in_pred: Vec<Perm> = predicate
-            .get_permissions()
+            .get_permissions_with_variant(&variant)
             .into_iter()
             .map(|perm| {
                 perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
@@ -112,6 +117,7 @@ impl<'a> BranchCtxt<'a> {
             predicate_name.clone(),
             vec![pred_place.clone().into()],
             perm_amount,
+            variant,
         )
     }
 
@@ -171,7 +177,7 @@ impl<'a> BranchCtxt<'a> {
 
             // Compute which access permissions may be preserved
             let (unfold_potential_acc, fold_potential_pred) =
-                compute_fold_target(&self.state.acc_leaves(), &other.state.acc_leaves());
+                compute_fold_target(&self.state.acc_places(), &other.state.acc_places());
             debug!(
                 "unfold_potential_acc: {}",
                 unfold_potential_acc.iter().to_sorted_multiline_string()
@@ -225,13 +231,13 @@ impl<'a> BranchCtxt<'a> {
                                 );
                                 let mut remove_places =
                                     |ctxt: &mut BranchCtxt, actions: &mut Vec<_>| {
+                                        ctxt.state.remove_moved_matching(|moved_place| {
+                                            moved_place.has_prefix(&pred_place)
+                                        });
                                         for acc_place in ctxt.state.acc_places() {
                                             if acc_place.has_proper_prefix(&pred_place) {
                                                 let perm_amount =
                                                     ctxt.state.remove_acc_place(&acc_place);
-                                                ctxt.state.remove_moved_matching(|moved_place| {
-                                                    moved_place.has_prefix(&acc_place)
-                                                });
                                                 let perm = Perm::acc(acc_place, perm_amount);
                                                 debug!(
                                                     "dropping perm={} missing_perm={}",
@@ -245,9 +251,6 @@ impl<'a> BranchCtxt<'a> {
                                             if place.has_prefix(&pred_place) {
                                                 let perm_amount =
                                                     ctxt.state.remove_pred_place(&place);
-                                                ctxt.state.remove_moved_matching(|moved_place| {
-                                                    moved_place.has_prefix(&place)
-                                                });
                                                 let perm = Perm::pred(place, perm_amount);
                                                 debug!(
                                                     "dropping perm={} missing_perm={}",
@@ -443,20 +446,20 @@ impl<'a> BranchCtxt<'a> {
             }
 
             trace!(
-                "Actions in left branch: {}",
+                "Actions in left branch: \n{}",
                 left_actions
                     .iter()
                     .map(|a| a.to_string())
                     .collect::<Vec<_>>()
-                    .join(", ")
+                    .join(",\n")
             );
             trace!(
-                "Actions in right branch: {}",
+                "Actions in right branch: \n{}",
                 right_actions
                     .iter()
                     .map(|a| a.to_string())
                     .collect::<Vec<_>>()
-                    .join(", ")
+                    .join(",\n")
             );
 
             assert_eq!(self.state.acc(), other.state.acc());
@@ -517,7 +520,8 @@ impl<'a> BranchCtxt<'a> {
                 req.get_perm_amount()
             );
             assert!(perm_amount >= req.get_perm_amount());
-            let action = self.unfold(&existing_pred_to_unfold, perm_amount);
+            let variant = self.find_variant(&existing_pred_to_unfold, req.get_place());
+            let action = self.unfold(&existing_pred_to_unfold, perm_amount, variant);
             actions.push(action);
             debug!("We unfolded {}", existing_pred_to_unfold);
 
@@ -535,12 +539,7 @@ impl<'a> BranchCtxt<'a> {
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
-            let pred_self_place: vir::Expr = predicate.self_place();
-            let places_in_pred: Vec<Perm> = predicate
-                .get_permissions()
-                .into_iter()
-                .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
-                .collect();
+            let variant = self.find_fold_variant(req);
 
             // Find an access permission for which req is a proper suffix
             let existing_proper_perm_extension_opt: Option<_> = self
@@ -548,6 +547,13 @@ impl<'a> BranchCtxt<'a> {
                 .acc_places()
                 .into_iter()
                 .find(|p| p.has_proper_prefix(req.get_place()));
+
+            let pred_self_place: vir::Expr = predicate.self_place();
+            let places_in_pred: Vec<Perm> = predicate
+                .get_permissions_with_variant(&variant)
+                .into_iter()
+                .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
+                .collect();
 
             // Check that there exists something that would make the fold possible.
             // We don't want to end up in an infinite recursion, trying to obtain the
@@ -606,6 +612,7 @@ impl<'a> BranchCtxt<'a> {
                     predicate_name.clone(),
                     vec![req.get_place().clone().into()],
                     perm_amount,
+                    variant,
                     pos,
                 );
                 actions.push(fold_action);
@@ -707,6 +714,46 @@ Predicates: {{
         trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
         actions
     }
+
+    /// Find the variant of enum that `place` has.
+    fn find_variant(
+        &self,
+        place: &vir::Expr,
+        prefixed_place: &vir::Expr
+    ) -> vir::MaybeEnumVariantIndex {
+        trace!("[enter] find_variant(place={}, prefixed_place={})", place, prefixed_place);
+        let parent = prefixed_place.get_parent_ref().unwrap();
+        let result = if place == parent {
+            match prefixed_place {
+                vir::Expr::Variant(_, field, _) => {
+                    Some(field.into())
+                },
+                _ => {
+                    None
+                }
+            }
+        } else {
+            self.find_variant(place, parent)
+        };
+        trace!("[exit] find_variant(place={}, prefixed_place={}) = {:?}",
+               place, prefixed_place, result);
+        result
+    }
+
+    /// Find the variant of enum that should be folded.
+    fn find_fold_variant(&self, req: &Perm) -> vir::MaybeEnumVariantIndex {
+        let req_place = req.get_place();
+        // Find an access permission for which req is a proper suffix and extract variant from it.
+        self.state
+            .acc_places()
+            .into_iter()
+            .find(|place| {
+                place.has_proper_prefix(req_place) && place.is_variant()
+            })
+            .and_then(|prefixed_place| {
+                self.find_variant(req_place, &prefixed_place)
+            })
+    }
 }
 
 /// Computes a pair of sets of places that should be obtained. The first
@@ -736,35 +783,45 @@ pub fn compute_fold_target(
     left: &HashSet<vir::Expr>,
     right: &HashSet<vir::Expr>,
 ) -> (HashSet<vir::Expr>, HashSet<vir::Expr>) {
-    // If we have a different variant of an enum unfolded in left and
-    // right, but not both, then we add that enum to conflicting places.
     let mut conflicting_base = HashSet::new();
-    let mut places = HashSet::new();
-    let mut check = |first: &vir::Expr, second, second_set: &HashSet<vir::Expr>| {
-        if first.has_prefix(second) {
-            places.insert(first.clone());
-        } else if let vir::Expr::Variant(box ref base, _, _) = second {
-            if first.has_prefix(base) {
-                if !second_set.iter().any(|s| first.has_prefix(s)) {
-                    // The second does not have any place that would a
-                    // prefix of first. Therefore, ``base`` is the
-                    // conflicting base.
-                    conflicting_base.insert(base.clone());
-                }
+    // If we have an enum unfolded only in one, then we add that enum to
+    // conflicting places.
+    let mut conflicting_base_check = |item: &vir::Expr, second_set: &HashSet<vir::Expr>| {
+        if let vir::Expr::Variant(box ref base, _, _) = item {
+            error!("item: {}", item);
+            if !second_set.iter().any(|p| p.has_prefix(item)) {
+                // The enum corresponding to base is completely folded in second_set or unfolded
+                // with a different variant.
+                conflicting_base.insert(base.clone());
             }
         }
     };
     for left_item in left.iter() {
-        for right_item in right.iter() {
-            check(right_item, left_item, left);
-            check(left_item, right_item, right);
-        }
+        conflicting_base_check(left_item, right);
     }
-    let acc_places: HashSet<_> = places
-        .into_iter()
-        .filter(|place| !conflicting_base.iter().any(|base| place.has_prefix(base)))
-        .collect();
-    let pred_places = conflicting_base
+    for right_item in right.iter() {
+        conflicting_base_check(right_item, left);
+    }
+
+    let mut places = HashSet::new();
+    let mut place_check = |item: &vir::Expr, item_set: &HashSet<vir::Expr>,
+                                            other_set: &HashSet<vir::Expr>| {
+        let is_leaf = !item_set.iter().any(|p| p.has_proper_prefix(item));
+        let below_all_others = !other_set.iter().any(|p| p.has_prefix(item));
+        let no_conflict_base = !conflicting_base.iter().any(|base| item.has_prefix(base));
+        if is_leaf && below_all_others && no_conflict_base {
+            places.insert(item.clone());
+        }
+    };
+    for left_item in left.iter() {
+        place_check(left_item, left, right);
+    }
+    for right_item in right.iter() {
+        place_check(right_item, right, left);
+    }
+
+    let acc_places = places;
+    let pred_places: HashSet<_> = conflicting_base
         .iter()
         .filter(|place| {
             !conflicting_base

@@ -19,8 +19,10 @@ pub enum Stmt {
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Expr, Expr, AssignKind),
-    Fold(String, Vec<Expr>, PermAmount, Position),
-    Unfold(String, Vec<Expr>, PermAmount),
+    /// Fold statement: predicate name, predicate args, perm_amount, variant of enum, position.
+    Fold(String, Vec<Expr>, PermAmount, MaybeEnumVariantIndex, Position),
+    /// Unfold statement: predicate name, predicate args, perm_amount, variant of enum.
+    Unfold(String, Vec<Expr>, PermAmount, MaybeEnumVariantIndex),
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     Obtain(Expr, Position),
@@ -110,10 +112,11 @@ impl fmt::Display for Stmt {
                 AssignKind::Ghost => write!(f, "{} := ghost {}", lhs, rhs),
             },
 
-            Stmt::Fold(ref pred_name, ref args, perm, _) => write!(
+            Stmt::Fold(ref pred_name, ref args, perm, ref variant, _) => write!(
                 f,
-                "fold acc({}({}), {})",
+                "fold acc({}:{:?}({}), {})",
                 pred_name,
+                variant,
                 args.iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>()
@@ -121,10 +124,11 @@ impl fmt::Display for Stmt {
                 perm,
             ),
 
-            Stmt::Unfold(ref pred_name, ref args, perm) => write!(
+            Stmt::Unfold(ref pred_name, ref args, perm, ref variant) => write!(
                 f,
-                "unfold acc({}({}), {})",
+                "unfold acc({}:{:?}({}), {})",
                 pred_name,
+                variant,
                 args.iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>()
@@ -222,14 +226,23 @@ impl Stmt {
         )
     }
 
-    pub fn fold_pred(place: Expr, perm: PermAmount, pos: Position) -> Self {
+    pub fn fold_pred(
+        place: Expr,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        pos: Position
+    ) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Fold(predicate_name, vec![place.into()], perm, pos)
+        Stmt::Fold(predicate_name, vec![place.into()], perm, variant, pos)
     }
 
-    pub fn unfold_pred(place: Expr, perm: PermAmount) -> Self {
+    pub fn unfold_pred(
+        place: Expr,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex
+    ) -> Self {
         let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Unfold(predicate_name, vec![place], perm)
+        Stmt::Unfold(predicate_name, vec![place], perm, variant)
     }
 
     pub fn package_magic_wand(
@@ -292,8 +305,8 @@ pub trait StmtFolder {
             Stmt::Assert(e, p) => self.fold_assert(e, p),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
-            Stmt::Fold(s, ve, perm, p) => self.fold_fold(s, ve, perm, p),
-            Stmt::Unfold(s, ve, perm) => self.fold_unfold(s, ve, perm),
+            Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
+            Stmt::Unfold(s, ve, perm, variant) => self.fold_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.fold_obtain(e, p),
             Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
             Stmt::Havoc => self.fold_havoc(),
@@ -339,17 +352,31 @@ pub trait StmtFolder {
         Stmt::Assign(self.fold_expr(p), self.fold_expr(e), k)
     }
 
-    fn fold_fold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount, p: Position) -> Stmt {
+    fn fold_fold(
+        &mut self,
+        s: String,
+        ve: Vec<Expr>,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        p: Position
+    ) -> Stmt {
         Stmt::Fold(
             s,
             ve.into_iter().map(|e| self.fold_expr(e)).collect(),
             perm,
+            variant,
             p,
         )
     }
 
-    fn fold_unfold(&mut self, s: String, ve: Vec<Expr>, perm: PermAmount) -> Stmt {
-        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm)
+    fn fold_unfold(
+        &mut self,
+        s: String,
+        ve: Vec<Expr>,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+    ) -> Stmt {
+        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm, variant)
     }
 
     fn fold_obtain(&mut self, e: Expr, p: Position) -> Stmt {
@@ -419,8 +446,8 @@ pub trait StmtWalker {
             Stmt::Assert(e, p) => self.walk_assert(e, p),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
-            Stmt::Fold(s, ve, perm, pos) => self.walk_fold(s, ve, perm, pos),
-            Stmt::Unfold(s, ve, perm) => self.walk_unfold(s, ve, perm),
+            Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
+            Stmt::Unfold(s, ve, perm, variant) => self.walk_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.walk_obtain(e, p),
             Stmt::WeakObtain(e) => self.walk_weak_obtain(e),
             Stmt::Havoc => self.walk_havoc(),
@@ -468,13 +495,26 @@ pub trait StmtWalker {
         self.walk_expr(e);
     }
 
-    fn walk_fold(&mut self, s: &str, ve: &Vec<Expr>, perm: &PermAmount, p: &Position) {
+    fn walk_fold(
+        &mut self,
+        s: &str,
+        ve: &Vec<Expr>,
+        perm: &PermAmount,
+        variant: &MaybeEnumVariantIndex,
+        p: &Position
+    ) {
         for a in ve {
             self.walk_expr(a);
         }
     }
 
-    fn walk_unfold(&mut self, s: &str, ve: &Vec<Expr>, perm: &PermAmount) {
+    fn walk_unfold(
+        &mut self,
+        s: &str,
+        ve: &Vec<Expr>,
+        perm: &PermAmount,
+        variant: &MaybeEnumVariantIndex,
+    ) {
         for a in ve {
             self.walk_expr(a);
         }
