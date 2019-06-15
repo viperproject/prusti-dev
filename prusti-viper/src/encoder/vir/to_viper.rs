@@ -62,7 +62,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
         match self {
             &Stmt::Comment(ref comment) => ast.comment(&comment),
             &Stmt::Label(ref label) => ast.label(&label, &[]),
-            &Stmt::Inhale(ref expr) => {
+            &Stmt::Inhale(ref expr, _) => {
                 let fake_position = Position::new(0, 0, "inhale".to_string());
                 ast.inhale(expr.to_viper(ast), fake_position.to_viper(ast))
             }

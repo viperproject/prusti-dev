@@ -58,7 +58,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_) | &vir::Stmt::Label(_) => HashSet::new(),
 
-            &vir::Stmt::Inhale(ref expr) => {
+            &vir::Stmt::Inhale(ref expr, _) => {
                 // footprint = used - inhaled
                 perm_difference(
                     expr.get_required_permissions(predicates),
@@ -174,7 +174,7 @@ impl vir::Stmt {
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
-            | &vir::Stmt::Inhale(_)
+            | &vir::Stmt::Inhale(_, _)
             | &vir::Stmt::Exhale(_, _)
             | &vir::Stmt::Assert(_, _, _)
             | &vir::Stmt::MethodCall(_, _, _)

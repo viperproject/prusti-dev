@@ -44,7 +44,7 @@ pub fn add_folding_unfolding_to_function(
     let formal_vars = function.formal_args.clone();
     let mut bctxt = BranchCtxt::new(formal_vars, &predicates);
     for pre in &function.pres {
-        bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone()));
+        bctxt.apply_stmt(&vir::Stmt::Inhale(pre.clone(), vir::FoldingBehaviour::Expr));
     }
 
     // Add appropriate unfolding around expressions
@@ -135,7 +135,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     /// Insert "unfolding in" expressions
     fn rewrite_stmt_with_unfoldings(&self, stmt: vir::Stmt, bctxt: &BranchCtxt<'p>) -> vir::Stmt {
         match stmt {
-            vir::Stmt::Inhale(expr) => {
+            vir::Stmt::Inhale(expr, folding) => {
                 // Compute inner state
                 let mut inner_bctxt = bctxt.clone();
                 let inner_state = inner_bctxt.mut_state();
@@ -146,7 +146,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 );
 
                 // Rewrite statement
-                vir::Stmt::Inhale(self.replace_expr(&expr, &inner_bctxt))
+                vir::Stmt::Inhale(self.replace_expr(&expr, &inner_bctxt), folding)
             }
             vir::Stmt::TransferPerm(lhs, rhs, unchecked) => {
                 // Compute rhs state
@@ -493,7 +493,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     .iter()
                     .map(|a| a.to_stmt()),
             );
-            let inhale_stmt = vir::Stmt::Inhale(access);
+            let inhale_stmt = vir::Stmt::Inhale(access, vir::FoldingBehaviour::Stmt);
             bctxt.apply_stmt(&inhale_stmt);
             stmts.push(inhale_stmt);
         }
@@ -547,7 +547,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     | vir::Stmt::ApplyMagicWand(_, _)
                     | vir::Stmt::TransferPerm(_, _, _)
                     | vir::Stmt::Assign(_, _, _) => stmt.clone(),
-                    vir::Stmt::Inhale(expr) => vir::Stmt::Inhale(patch_expr(label, expr)),
+                    vir::Stmt::Inhale(expr, folding) => {
+                        vir::Stmt::Inhale(patch_expr(label, expr), *folding)
+                    },
                     vir::Stmt::Exhale(expr, pos) => {
                         vir::Stmt::Exhale(patch_expr(label, expr), pos.clone())
                     }
@@ -651,7 +653,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 let mut labelled_bctxt = bctxt.clone();
                 let labelled_state = labelled_bctxt.mut_state();
                 labelled_state.remove_all();
-                vir::Stmt::Inhale(lhs.clone()).apply_on_state(labelled_state, bctxt.predicates());
+                vir::Stmt::Inhale(
+                    lhs.clone(),
+                    vir::FoldingBehaviour::Expr,
+                ).apply_on_state(labelled_state, bctxt.predicates());
                 if let vir::Expr::PredicateAccessPredicate(ref name, box ref arg, perm_amount, _) =
                     lhs
                 {
@@ -724,7 +729,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
         match &stmt {
-            vir::Stmt::Inhale(_) |
+            vir::Stmt::Inhale(_, vir::FoldingBehaviour::Expr) |
             vir::Stmt::Assert(_, vir::FoldingBehaviour::Expr, _) => {
                 // Unfolding expressions will be added in step 4.
             }
@@ -925,7 +930,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                     lhs_read_access.clone(),
                     lhs_place.clone(),
                 );
-                let stmt = vir::Stmt::Inhale(lhs_read_access);
+                let stmt = vir::Stmt::Inhale(lhs_read_access, vir::FoldingBehaviour::Stmt);
                 bctxt.apply_stmt(&stmt);
                 stmts.push(stmt);
             }
@@ -967,7 +972,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                     lhs_read_access.clone(),
                     lhs_place.clone(),
                 );
-                let stmt = vir::Stmt::Inhale(lhs_read_access);
+                let stmt = vir::Stmt::Inhale(lhs_read_access, vir::FoldingBehaviour::Stmt);
                 bctxt.apply_stmt(&stmt);
                 stmts.push(stmt);
             }

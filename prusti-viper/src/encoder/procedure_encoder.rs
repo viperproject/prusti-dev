@@ -376,7 +376,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 new_cfg_targets.push((new_local.into(), cfg_target));
 
                                 // Assume the condition under which the jump happened.
-                                let stmt = vir::Stmt::Inhale(expr.clone());
+                                let stmt = vir::Stmt::Inhale(
+                                    expr.clone(),
+                                    vir::FoldingBehaviour::Stmt,
+                                );
                                 default_condition_conjuncts.push(expr);
                                 self.cfg_method.add_stmt(cfg_target, stmt);
                             }
@@ -385,7 +388,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 box default_condition_conjuncts.into_iter().conjoin(),
                                 vir::Position::default(),
                             );
-                            let stmt = vir::Stmt::Inhale(default_condition);
+                            let stmt = vir::Stmt::Inhale(
+                                default_condition,
+                                vir::FoldingBehaviour::Stmt
+                            );
                             self.cfg_method.add_stmt(cfg_default_target, stmt);
                             let new_successor =
                                 Successor::GotoSwitch(new_cfg_targets, cfg_default_target);
@@ -1069,7 +1075,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Inhale the magic wand.
         let magic_wand =
             vir::Expr::MagicWand(box lhs.clone(), box rhs.clone(), Some(loan), pos.clone());
-        stmts.push(vir::Stmt::Inhale(magic_wand));
+        stmts.push(vir::Stmt::Inhale(magic_wand, vir::FoldingBehaviour::Stmt));
         // Emit the apply statement.
         let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan, pos);
         debug!("{:?} at {:?}", statement, loan_location);
@@ -1558,56 +1564,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     vir::PermAmount::Write,
                                 )
                                 .unwrap();
-                            stmts.push(vir::Stmt::Inhale(type_predicate));
-
-                            // Fold arguments.
-                            let type_inv_pos = self
-                                .encoder
-                                .error_manager()
-                                .register(term.source_info.span,
-                                          ErrorCtxt::AssertMethodPostconditionTypeInvariants);
-                            for operand in args.iter() {
-                                let operand_ty = self.mir_encoder.get_operand_ty(operand);
-                                let operand_place = self.mir_encoder.encode_operand_place(operand);
-                                match (operand_place, &operand_ty.sty) {
-                                    (
-                                        Some(ref place),
-                                        ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                                            ty: ref inner_ty,
-                                            ..
-                                        }),
-                                    )
-                                    | (
-                                        Some(ref place),
-                                        ty::TypeVariants::TyRef(_, ref inner_ty, _),
-                                    ) => {
-                                        let ref_field =
-                                            self.encoder.encode_dereference_field(inner_ty);
-                                        let ref_place = place.clone().field(ref_field);
-                                        let pred = self
-                                            .mir_encoder
-                                            .encode_place_predicate_permission(
-                                                ref_place.clone(),
-                                                vir::PermAmount::Write,
-                                            )
-                                            .unwrap();
-                                        let obtain_stmt = vir::Stmt::Obtain(
-                                            pred, type_inv_pos.clone());
-                                        stmts.push(obtain_stmt);
-                                    }
-                                    _ => {} // Nothing
-                                }
-                            }
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    type_predicate,
+                                    vir::FoldingBehaviour::Stmt
+                                )
+                            );
 
                             // Initialize the lhs
                             let target_value = match destination.as_ref() {
                                 Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
                                 None => unreachable!(),
                             };
-                            stmts.push(vir::Stmt::Inhale(vir::Expr::eq_cmp(
-                                target_value.into(),
-                                func_call,
-                            )));
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    vir::Expr::eq_cmp(
+                                        target_value.into(),
+                                        func_call,
+                                    ),
+                                    vir::FoldingBehaviour::Stmt,
+                                )
+                            );
 
                             // Store a label for permissions got back from the call
                             debug!(
@@ -1732,7 +1709,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         // The return type is Never
                                         // This means that the function call never returns
                                         // So, we `assume false` after the function call
-                                        stmts_after.push(vir::Stmt::Inhale(false.into()));
+                                        stmts_after.push(
+                                            vir::Stmt::Inhale(
+                                                false.into(),
+                                                vir::FoldingBehaviour::Stmt,
+                                            )
+                                        );
                                         // Return a dummy local variable
                                         let never_ty = self
                                             .encoder
@@ -1900,9 +1882,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 .collect();
 
                             let post_perm_spec = replace_fake_exprs(post_type_spec);
-                            stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    post_perm_spec.remove_read_permissions(),
+                                    vir::FoldingBehaviour::Stmt,
+                                )
+                            );
                             if let Some(access) = return_type_spec {
-                                stmts.push(vir::Stmt::Inhale(replace_fake_exprs(access)));
+                                stmts.push(
+                                    vir::Stmt::Inhale(
+                                        replace_fake_exprs(access),
+                                        vir::FoldingBehaviour::Stmt,
+                                    )
+                                );
                             }
                             for (from_place, to_place) in read_transfer {
                                 stmts.push(vir::Stmt::TransferPerm(
@@ -1911,8 +1903,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     true,
                                 ));
                             }
-                            stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
-                            stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    replace_fake_exprs(post_invs_spec),
+                                    vir::FoldingBehaviour::Stmt,
+                                )
+                            );
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    replace_fake_exprs(post_func_spec),
+                                    vir::FoldingBehaviour::Expr,
+                                )
+                            );
 
                             // Exhale the permissions that were moved into magic wands.
                             assert!(!pos.is_default());
@@ -2154,15 +2156,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
             self.encode_precondition_expr(contract);
         self.cfg_method
-            .add_stmt(start_cfg_block, vir::Stmt::Inhale(type_spec));
+            .add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(type_spec, vir::FoldingBehaviour::Stmt)
+            );
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale(mandatory_type_spec.into_iter().conjoin()),
+            vir::Stmt::Inhale(
+                mandatory_type_spec.into_iter().conjoin(),
+                vir::FoldingBehaviour::Stmt
+            ),
         );
         self.cfg_method
-            .add_stmt(start_cfg_block, vir::Stmt::Inhale(invs_spec));
+            .add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(invs_spec, vir::FoldingBehaviour::Stmt)
+            );
         self.cfg_method
-            .add_stmt(start_cfg_block, vir::Stmt::Inhale(func_spec));
+            .add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(func_spec, vir::FoldingBehaviour::Expr)
+            );
         self.cfg_method.add_stmt(
             start_cfg_block,
             vir::Stmt::Label(PRECONDITION_LABEL.to_string()),
@@ -3187,8 +3201,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         if after_loop {
             stmts.push(vir::Stmt::EndFrame);
         }
-        stmts.push(vir::Stmt::Inhale(permission_expr));
-        stmts.push(vir::Stmt::Inhale(func_spec.into_iter().conjoin()));
+        stmts.push(vir::Stmt::Inhale(permission_expr, vir::FoldingBehaviour::Stmt));
+        stmts.push(
+            vir::Stmt::Inhale(
+                func_spec.into_iter().conjoin(),
+                vir::FoldingBehaviour::Expr
+            )
+        );
         stmts
     }
 
@@ -3532,10 +3551,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         {
             let mut alloc_stmts = self.encode_havoc(&encoded_lhs);
             let mut inhale_acc = |place| {
-                alloc_stmts.push(vir::Stmt::Inhale(vir::Expr::acc_permission(
-                    place,
-                    vir::PermAmount::Write,
-                )));
+                alloc_stmts.push(
+                    vir::Stmt::Inhale(
+                        vir::Expr::acc_permission(
+                            place,
+                            vir::PermAmount::Write,
+                        ),
+                        vir::FoldingBehaviour::Stmt,
+                    )
+                );
             };
             inhale_acc(encoded_lhs.clone().field(value_field.clone()));
             inhale_acc(
@@ -3773,11 +3797,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Havoc `dst`
         stmts.extend(self.encode_havoc(dst));
         // Allocate `dst`
-        stmts.push(vir::Stmt::Inhale(
-            self.mir_encoder
-                .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
-                .unwrap(),
-        ));
+        stmts.push(
+            vir::Stmt::Inhale(
+                self.mir_encoder
+                    .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
+                    .unwrap(),
+                vir::FoldingBehaviour::Stmt,
+            )
+        );
         stmts
     }
 
@@ -3796,7 +3823,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         vec![
             vir::Stmt::Exhale(type_predicate.clone(), pos),
-            vir::Stmt::Inhale(type_predicate),
+            vir::Stmt::Inhale(type_predicate, vir::FoldingBehaviour::Stmt),
         ]
     }
 
@@ -3830,7 +3857,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let mut alloc_stmts = self.encode_havoc(&dst);
             let dst_field = dst.clone().field(field.clone());
             let acc = vir::Expr::acc_permission(dst_field, vir::PermAmount::Write);
-            alloc_stmts.push(vir::Stmt::Inhale(acc));
+            alloc_stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_ref() {
@@ -3888,10 +3915,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
-        stmts.push(vir::Stmt::Inhale(pred));
+        stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
         let eq = self.encoder.encode_memory_eq_func_app(
             src, dst, self_ty, vir::Position::default());
-        stmts.push(vir::Stmt::Inhale(eq));
+        stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
         stmts
     }
 
@@ -3909,12 +3936,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
             let pred =
                 vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
-            stmts.push(vir::Stmt::Inhale(acc));
-            stmts.push(vir::Stmt::Inhale(pred));
+            stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
+            stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
             let src_field = src.clone().field(field.clone());
             let eq = self.encoder.encode_memory_eq_func_app(
                 src_field, dst_field, ty, vir::Position::default());
-            stmts.push(vir::Stmt::Inhale(eq));
+            stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
         }
         stmts
     }
@@ -3943,7 +3970,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
                 let eq = self.encoder.encode_memory_eq_func_app(
                     src, dst, self_ty, vir::Position::default());
-                stmts.push(vir::Stmt::Inhale(eq));
+                stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
                 stmts
             },
 
@@ -4044,7 +4071,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             vir::Expr::eq_cmp(
                                 discriminant,
                                 discr_value,
-                            )
+                            ),
+                            vir::FoldingBehaviour::Stmt,
                         )
                     );
                     let variant_name = &variant_def.name.as_str();

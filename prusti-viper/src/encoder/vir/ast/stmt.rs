@@ -13,7 +13,7 @@ use std::fmt;
 pub enum Stmt {
     Comment(String),
     Label(String),
-    Inhale(Expr),
+    Inhale(Expr, FoldingBehaviour),
     Exhale(Expr, Position),
     Assert(Expr, FoldingBehaviour, Position),
     /// MethodCall: method_name, args, targets
@@ -95,7 +95,9 @@ impl fmt::Display for Stmt {
         match self {
             Stmt::Comment(ref comment) => write!(f, "// {}", comment),
             Stmt::Label(ref label) => write!(f, "label {}", label),
-            Stmt::Inhale(ref expr) => write!(f, "inhale {}", expr),
+            Stmt::Inhale(ref expr, ref folding) => {
+                write!(f, "inhale({:?}) {}", folding, expr)
+            },
             Stmt::Exhale(ref expr, _) => write!(f, "exhale {}", expr),
             Stmt::Assert(ref expr, ref folding, _) => {
                 write!(f, "assert({:?}) {}", folding, expr)
@@ -313,7 +315,7 @@ pub trait StmtFolder {
         match e {
             Stmt::Comment(s) => self.fold_comment(s),
             Stmt::Label(s) => self.fold_label(s),
-            Stmt::Inhale(e) => self.fold_inhale(e),
+            Stmt::Inhale(expr, folding) => self.fold_inhale(expr, folding),
             Stmt::Exhale(e, p) => self.fold_exhale(e, p),
             Stmt::Assert(expr, folding, pos) => self.fold_assert(expr, folding, pos),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
@@ -345,8 +347,8 @@ pub trait StmtFolder {
         Stmt::Label(s)
     }
 
-    fn fold_inhale(&mut self, e: Expr) -> Stmt {
-        Stmt::Inhale(self.fold_expr(e))
+    fn fold_inhale(&mut self, expr: Expr, folding: FoldingBehaviour) -> Stmt {
+        Stmt::Inhale(self.fold_expr(expr), folding)
     }
 
     fn fold_exhale(&mut self, e: Expr, p: Position) -> Stmt {
@@ -454,7 +456,7 @@ pub trait StmtWalker {
         match e {
             Stmt::Comment(s) => self.walk_comment(s),
             Stmt::Label(s) => self.walk_label(s),
-            Stmt::Inhale(e) => self.walk_inhale(e),
+            Stmt::Inhale(expr, folding) => self.walk_inhale(expr, folding),
             Stmt::Exhale(e, p) => self.walk_exhale(e, p),
             Stmt::Assert(expr, folding, pos) => self.walk_assert(expr, folding, pos),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
@@ -482,8 +484,8 @@ pub trait StmtWalker {
 
     fn walk_label(&mut self, s: &str) {}
 
-    fn walk_inhale(&mut self, e: &Expr) {
-        self.walk_expr(e);
+    fn walk_inhale(&mut self, expr: &Expr, folding: &FoldingBehaviour) {
+        self.walk_expr(expr);
     }
 
     fn walk_exhale(&mut self, e: &Expr, p: &Position) {

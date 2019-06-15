@@ -41,7 +41,7 @@ impl vir::Stmt {
             | &vir::Stmt::Obtain(_, _)
             | &vir::Stmt::WeakObtain(_) => {}
 
-            &vir::Stmt::Inhale(ref expr) => {
+            &vir::Stmt::Inhale(ref expr, _) => {
                 inhale_expr(expr, state, predicates);
             }
 
