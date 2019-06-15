@@ -724,6 +724,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
         match &stmt {
+            vir::Stmt::Inhale(_) |
             vir::Stmt::Assert(_, vir::FoldingBehaviour::Expr, _) => {
                 // Unfolding expressions will be added in step 4.
             }
