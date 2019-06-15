@@ -2717,11 +2717,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ),
         );
         let ty = self.locals.get_type(contract.returned_value);
-        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
+        let encoded_return: vir::Expr = self.encode_prusti_local(
+            contract.returned_value).into();
+        let encoded_return_expr = if self.mir_encoder.is_reference(ty) {
+            let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return, ty);
+            encoded_deref
+        } else {
+            encoded_return
+        };
         let return_pred = self
             .mir_encoder
             .encode_place_predicate_permission(
-                encoded_return.clone(),
+                encoded_return_expr.clone(),
                 vir::PermAmount::Write,
             )
             .unwrap();
