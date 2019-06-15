@@ -330,7 +330,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 );
                 self.cfg_method.add_stmt(
                     cfg_block,
-                    vir::Stmt::Assert(false.into(), vir::Position::default()),
+                    vir::Stmt::Assert(
+                        false.into(),
+                        vir::FoldingBehaviour::Expr,
+                        vir::Position::default()
+                    ),
                 );
             }
 
@@ -755,10 +759,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .encoder
                 .error_manager()
                 .register(self.mir.source_info(location).span, ErrorCtxt::Unexpected);
-            stmts.push(vir::Stmt::Assert(
-                vir::Expr::eq_cmp(lhs.clone().into(), rhs.into()),
-                pos,
-            ));
+            stmts.push(
+                vir::Stmt::Assert(
+                    vir::Expr::eq_cmp(lhs.clone().into(), rhs.into()),
+                    vir::FoldingBehaviour::Expr,
+                    pos,
+                )
+            );
         }
 
         stmts
@@ -775,7 +782,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.mir.span,
                 ErrorCtxt::Unexpected,
             );
-            stmts.push(vir::Stmt::Assert(expr, pos));
+            stmts.push(vir::Stmt::Assert(expr, vir::FoldingBehaviour::Expr, pos));
         }
 
         stmts
@@ -1299,7 +1306,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     .encoder
                     .error_manager()
                     .register(term.source_info.span, ErrorCtxt::AbortTerminator);
-                stmts.push(vir::Stmt::Assert(false.into(), pos));
+                stmts.push(vir::Stmt::Assert(false.into(), vir::FoldingBehaviour::Stmt, pos));
                 (stmts, Successor::Return)
             }
 
@@ -1459,7 +1466,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 "Rust panic - {}",
                                 panic_message
                             )));
-                            stmts.push(vir::Stmt::Assert(false.into(), pos));
+                            stmts.push(
+                                vir::Stmt::Assert(
+                                    false.into(),
+                                    vir::FoldingBehaviour::Stmt,
+                                    pos
+                                )
+                            );
                         } else {
                             debug!("Absence of panic will not be checked")
                         }
@@ -1762,14 +1775,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 term.source_info.span,
                                 ErrorCtxt::ExhaleMethodPrecondition,
                             );
-                            stmts.push(vir::Stmt::Assert(
-                                replace_fake_exprs(pre_func_spec),
-                                pos.clone(),
-                            ));
-                            stmts.push(vir::Stmt::Assert(
-                                replace_fake_exprs(pre_invs_spec),
-                                pos.clone(),
-                            ));
+                            stmts.push(
+                                vir::Stmt::Assert(
+                                    replace_fake_exprs(pre_func_spec),
+                                    vir::FoldingBehaviour::Stmt, // TODO: Should be Expr.
+                                    pos.clone(),
+                                )
+                            );
+                            stmts.push(
+                                vir::Stmt::Assert(
+                                    replace_fake_exprs(pre_invs_spec),
+                                    vir::FoldingBehaviour::Stmt,
+                                    pos.clone(),
+                                )
+                            );
                             let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
                             assert!(!pos.is_default());
                             stmts.push(vir::Stmt::Exhale(
@@ -1932,6 +1951,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         if self.check_panics {
                             vir::Stmt::Assert(
                                 false.into(),
+                                vir::FoldingBehaviour::Stmt,
                                 self.encoder.error_manager().register(
                                     term.source_info.span,
                                     ErrorCtxt::AssertTerminator(msg.description().to_string()),
@@ -2703,14 +2723,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(patched_func_spec, func_pos),
+            vir::Stmt::Assert(
+                patched_func_spec,
+                vir::FoldingBehaviour::Expr,
+                func_pos
+            ),
         );
 
         // Assert type invariants
         let patched_invs_spec = self.replace_old_places_with_ghost_vars(None, invs_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(patched_invs_spec, type_inv_pos),
+            vir::Stmt::Assert(patched_invs_spec, vir::FoldingBehaviour::Stmt, type_inv_pos),
         );
 
         // Exhale permissions of postcondition
@@ -3065,10 +3089,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
         assert!(!assert_pos.is_default());
-        stmts.push(vir::Stmt::Assert(
-            func_spec.into_iter().conjoin(),
-            assert_pos,
-        ));
+        stmts.push(
+            vir::Stmt::Assert(
+                func_spec.into_iter().conjoin(),
+                vir::FoldingBehaviour::Stmt,    // TODO: This should Expr.
+                assert_pos,
+            )
+        );
         stmts.push(vir::Stmt::Exhale(permission_expr, exhale_pos));
         stmts
     }

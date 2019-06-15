@@ -711,54 +711,72 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
             if self.check_foldunfold_state {
                 stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                stmts.push(vir::Stmt::Assert(
-                    bctxt.state().as_vir_expr(),
-                    vir::Position::new(0, 0, "check fold/unfold state".to_string()),
-                ));
+                stmts.push(
+                    vir::Stmt::Assert(
+                        bctxt.state().as_vir_expr(),
+                        vir::FoldingBehaviour::Expr,
+                        vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                    )
+                );
             }
         }
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
-        let all_perms = stmt.get_required_permissions(bctxt.predicates());
-        let pred_permissions: Vec<_> = all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
-        let acc_permissions: Vec<_> = all_perms
-            .into_iter()
-            .filter(|p| {
-                if !p.is_acc() {
-                    false
-                } else {
-                    if p.is_curr() {
-                        true
-                    } else {
-                        pred_permissions
-                            .iter()
-                            .any(|pred_p| pred_p.get_place() == p.get_place())
+        match &stmt {
+            vir::Stmt::Assert(_, vir::FoldingBehaviour::Expr, _) => {
+                // Unfolding expressions will be added in step 4.
+            }
+            _ => {
+                let all_perms = stmt.get_required_permissions(bctxt.predicates());
+                let pred_permissions: Vec<_> = all_perms
+                    .iter()
+                    .cloned()
+                    .filter(|p| p.is_pred())
+                    .collect();
+
+                let acc_permissions: Vec<_> = all_perms
+                    .into_iter()
+                    .filter(|p| {
+                        if !p.is_acc() {
+                            false
+                        } else {
+                            if p.is_curr() {
+                                true
+                            } else {
+                                pred_permissions
+                                    .iter()
+                                    .any(|pred_p| pred_p.get_place() == p.get_place())
+                            }
+                        }
+                    })
+                    .collect();
+
+                let mut perms = acc_permissions;
+                perms.extend(pred_permissions.into_iter());
+                debug!(
+                    "required permissions: {{\n{}\n}}",
+                    perms
+                        .iter()
+                        .map(|x| format!("  {:?}", x))
+                        .collect::<Vec<_>>()
+                        .join(",\n")
+                );
+
+                if !perms.is_empty() {
+                    stmts.extend(bctxt.obtain_permissions(perms).iter().map(|a| a.to_stmt()));
+
+                    if self.check_foldunfold_state && !is_last_before_return {
+                        stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
+                        stmts.push(
+                            vir::Stmt::Assert(
+                                bctxt.state().as_vir_expr(),
+                                vir::FoldingBehaviour::Expr,
+                                vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                            )
+                        );
                     }
                 }
-            })
-            .collect();
-
-        let mut perms = acc_permissions;
-        perms.extend(pred_permissions.into_iter());
-        debug!(
-            "required permissions: {{\n{}\n}}",
-            perms
-                .iter()
-                .map(|x| format!("  {:?}", x))
-                .collect::<Vec<_>>()
-                .join(",\n")
-        );
-
-        if !perms.is_empty() {
-            stmts.extend(bctxt.obtain_permissions(perms).iter().map(|a| a.to_stmt()));
-
-            if self.check_foldunfold_state && !is_last_before_return {
-                stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                stmts.push(vir::Stmt::Assert(
-                    bctxt.state().as_vir_expr(),
-                    vir::Position::new(0, 0, "check fold/unfold state".to_string()),
-                ));
             }
         }
 
@@ -1014,10 +1032,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
         if some_perms_required && self.check_foldunfold_state {
             stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-            stmts.push(vir::Stmt::Assert(
-                bctxt.state().as_vir_expr(),
-                vir::Position::new(0, 0, "check fold/unfold state".to_string()),
-            ));
+            stmts.push(
+                vir::Stmt::Assert(
+                    bctxt.state().as_vir_expr(),
+                    vir::FoldingBehaviour::Expr,
+                    vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                )
+            );
         }
 
         // Add "fold/unfolding in" expressions in successor

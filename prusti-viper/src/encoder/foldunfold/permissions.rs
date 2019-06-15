@@ -67,7 +67,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
             }
 
             &vir::Stmt::Exhale(ref expr, ref pos)
-            | &vir::Stmt::Assert(ref expr, ref pos)
+            | &vir::Stmt::Assert(ref expr, _, ref pos)
             | &vir::Stmt::Obtain(ref expr, ref pos) => {
                 let perms = expr.get_required_permissions(predicates);
                 perms
@@ -176,7 +176,7 @@ impl vir::Stmt {
             | &vir::Stmt::Label(_)
             | &vir::Stmt::Inhale(_)
             | &vir::Stmt::Exhale(_, _)
-            | &vir::Stmt::Assert(_, _)
+            | &vir::Stmt::Assert(_, _, _)
             | &vir::Stmt::MethodCall(_, _, _)
             | &vir::Stmt::Assign(_, _, _)
             | &vir::Stmt::Fold(_, _, _, _, _)

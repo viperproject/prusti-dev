@@ -37,7 +37,7 @@ impl vir::Stmt {
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
-            | &vir::Stmt::Assert(_, _)
+            | &vir::Stmt::Assert(_, _, _)
             | &vir::Stmt::Obtain(_, _)
             | &vir::Stmt::WeakObtain(_) => {}
 

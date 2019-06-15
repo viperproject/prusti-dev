@@ -15,7 +15,7 @@ pub enum Stmt {
     Label(String),
     Inhale(Expr),
     Exhale(Expr, Position),
-    Assert(Expr, Position),
+    Assert(Expr, FoldingBehaviour, Position),
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     Assign(Expr, Expr, AssignKind),
@@ -60,6 +60,17 @@ pub enum Stmt {
     If(Expr, Vec<Stmt>),
 }
 
+/// What folding behaviour should be used?
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum FoldingBehaviour {
+    /// Use `fold` and `unfold` statements.
+    Stmt,
+    /// Use `unfolding` expressions.
+    Expr,
+    /// Should not require changes in folding.
+    None,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AssignKind {
     /// Encodes a Rust copy.
@@ -86,7 +97,9 @@ impl fmt::Display for Stmt {
             Stmt::Label(ref label) => write!(f, "label {}", label),
             Stmt::Inhale(ref expr) => write!(f, "inhale {}", expr),
             Stmt::Exhale(ref expr, _) => write!(f, "exhale {}", expr),
-            Stmt::Assert(ref expr, _) => write!(f, "assert {}", expr),
+            Stmt::Assert(ref expr, ref folding, _) => {
+                write!(f, "assert({:?}) {}", folding, expr)
+            },
             Stmt::MethodCall(ref name, ref args, ref vars) => write!(
                 f,
                 "{} := {}({})",
@@ -302,7 +315,7 @@ pub trait StmtFolder {
             Stmt::Label(s) => self.fold_label(s),
             Stmt::Inhale(e) => self.fold_inhale(e),
             Stmt::Exhale(e, p) => self.fold_exhale(e, p),
-            Stmt::Assert(e, p) => self.fold_assert(e, p),
+            Stmt::Assert(expr, folding, pos) => self.fold_assert(expr, folding, pos),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
@@ -340,8 +353,8 @@ pub trait StmtFolder {
         Stmt::Exhale(self.fold_expr(e), p)
     }
 
-    fn fold_assert(&mut self, e: Expr, p: Position) -> Stmt {
-        Stmt::Assert(self.fold_expr(e), p)
+    fn fold_assert(&mut self, expr: Expr, folding: FoldingBehaviour, pos: Position) -> Stmt {
+        Stmt::Assert(self.fold_expr(expr), folding, pos)
     }
 
     fn fold_method_call(&mut self, s: String, ve: Vec<Expr>, vv: Vec<LocalVar>) -> Stmt {
@@ -443,7 +456,7 @@ pub trait StmtWalker {
             Stmt::Label(s) => self.walk_label(s),
             Stmt::Inhale(e) => self.walk_inhale(e),
             Stmt::Exhale(e, p) => self.walk_exhale(e, p),
-            Stmt::Assert(e, p) => self.walk_assert(e, p),
+            Stmt::Assert(expr, folding, pos) => self.walk_assert(expr, folding, pos),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
@@ -477,8 +490,8 @@ pub trait StmtWalker {
         self.walk_expr(e);
     }
 
-    fn walk_assert(&mut self, e: &Expr, p: &Position) {
-        self.walk_expr(e);
+    fn walk_assert(&mut self, expr: &Expr, folding: &FoldingBehaviour, pos: &Position) {
+        self.walk_expr(expr);
     }
 
     fn walk_method_call(&mut self, s: &str, ve: &Vec<Expr>, vv: &Vec<LocalVar>) {
