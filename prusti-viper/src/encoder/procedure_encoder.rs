@@ -1560,6 +1560,45 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 .unwrap();
                             stmts.push(vir::Stmt::Inhale(type_predicate));
 
+                            // Fold arguments.
+                            let type_inv_pos = self
+                                .encoder
+                                .error_manager()
+                                .register(term.source_info.span,
+                                          ErrorCtxt::AssertMethodPostconditionTypeInvariants);
+                            for operand in args.iter() {
+                                let operand_ty = self.mir_encoder.get_operand_ty(operand);
+                                let operand_place = self.mir_encoder.encode_operand_place(operand);
+                                match (operand_place, &operand_ty.sty) {
+                                    (
+                                        Some(ref place),
+                                        ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
+                                            ty: ref inner_ty,
+                                            ..
+                                        }),
+                                    )
+                                    | (
+                                        Some(ref place),
+                                        ty::TypeVariants::TyRef(_, ref inner_ty, _),
+                                    ) => {
+                                        let ref_field =
+                                            self.encoder.encode_dereference_field(inner_ty);
+                                        let ref_place = place.clone().field(ref_field);
+                                        let pred = self
+                                            .mir_encoder
+                                            .encode_place_predicate_permission(
+                                                ref_place.clone(),
+                                                vir::PermAmount::Write,
+                                            )
+                                            .unwrap();
+                                        let obtain_stmt = vir::Stmt::Obtain(
+                                            pred, type_inv_pos.clone());
+                                        stmts.push(obtain_stmt);
+                                    }
+                                    _ => {} // Nothing
+                                }
+                            }
+
                             // Initialize the lhs
                             let target_value = match destination.as_ref() {
                                 Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
