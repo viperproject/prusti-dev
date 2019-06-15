@@ -2709,6 +2709,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
 
+        // Fold the result.
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::comment(
+                "Fold the result",
+            ),
+        );
+        let ty = self.locals.get_type(contract.returned_value);
+        let encoded_return: vir::Expr = self.encode_prusti_local(contract.returned_value).into();
+        let return_pred = self
+            .mir_encoder
+            .encode_place_predicate_permission(
+                encoded_return.clone(),
+                vir::PermAmount::Write,
+            )
+            .unwrap();
+        let obtain_return_stmt = vir::Stmt::Obtain(return_pred, type_inv_pos.clone());
+        self.cfg_method.add_stmt(return_cfg_block, obtain_return_stmt);
+
         // Assert functional specification of postcondition
         let func_pos = self.encoder.error_manager().register(
             {
