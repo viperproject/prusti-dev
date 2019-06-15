@@ -3792,67 +3792,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         src: vir::Expr,
         dst: vir::Expr,
-        adt_def: &ty::AdtDef,
-        subst: &ty::Slice<ty::subst::Kind<'tcx>>,
-        location: mir::Location,
+        self_ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
         stmts.push(vir::Stmt::Inhale(pred));
-        let tcx = self.encoder.env().tcx();
-        let num_variants = adt_def.variants.len();
-        if num_variants == 1 {
-            // A struct.
-            let variant_def = &adt_def.variants[0];
-            for field in &variant_def.fields {
-                let field_name = &field.ident.as_str();
-                let field_ty = field.ty(tcx, subst);
-                let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                stmts.extend(
-                    // Copy fields
-                    // TODO: Refactor. encode_copy is old code that does not allocate the target.
-                    self.encode_copy(
-                        src.clone().field(elem_field.clone()),
-                        dst.clone().field(elem_field.clone()),
-                        field_ty,
-                        false,
-                        true,
-                        location,
-                    ),
-                )
-            }
-        } else {
-            // An enum.
-            let discriminant_field = self.encoder.encode_discriminant_field();
-            stmts.push(
-                // Copy discriminant
-                vir::Stmt::Assign(
-                    dst.clone().field(discriminant_field.clone()),
-                    src.clone().field(discriminant_field.clone()).into(),
-                    vir::AssignKind::Copy,
-                ),
-            );
-            for variant_def in adt_def.variants.iter() {
-                let variant_name = &variant_def.name.as_str();
-                for field in &variant_def.fields {
-                    let field_name = &field.ident.as_str();
-                    let field_ty = field.ty(tcx, subst);
-                    let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                    stmts.extend(
-                        // Copy fields
-                        // TODO: Refactor. encode_copy is old code that does not allocate the target.
-                        self.encode_copy(
-                            src.clone().variant(variant_name).field(elem_field.clone()),
-                            dst.clone().variant(variant_name).field(elem_field.clone()),
-                            field_ty,
-                            false,
-                            true,
-                            location,
-                        ),
-                    )
-                }
-            }
-        }
+        let eq = self.encoder.encode_memory_eq_func_app(
+            src, dst, self_ty, vir::Position::default());
+        stmts.push(vir::Stmt::Inhale(eq));
         stmts
     }
 
@@ -3861,7 +3808,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         src: vir::Expr,
         dst: vir::Expr,
         elems: &ty::Slice<&'tcx ty::TyS<'tcx>>,
-        location: mir::Location,
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         for (field_num, ty) in elems.iter().enumerate() {
@@ -3873,18 +3819,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
             stmts.push(vir::Stmt::Inhale(acc));
             stmts.push(vir::Stmt::Inhale(pred));
-
-            stmts.extend(
-                // Copy fields
-                self.encode_copy(
-                    src.clone().field(field.clone()),
-                    dst_field,
-                    ty,
-                    false,
-                    true,
-                    location,
-                ),
-            );
+            let src_field = src.clone().field(field.clone());
+            let eq = self.encoder.encode_memory_eq_func_app(
+                src_field, dst_field, ty, vir::Position::default());
+            stmts.push(vir::Stmt::Inhale(eq));
         }
         stmts
     }
@@ -3903,13 +3841,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             | ty::TypeVariants::TyChar => {
                 self.encode_copy_primitive_value(src, dst, self_ty, location)
             }
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                self.encode_deep_copy_adt(src, dst, adt_def, subst, location)
+            ty::TypeVariants::TyAdt(adt_def, _subst) if !adt_def.is_box() => {
+                self.encode_deep_copy_adt(src, dst, self_ty)
             }
             ty::TypeVariants::TyTuple(elems) => {
-                self.encode_deep_copy_tuple(src, dst, elems, location)
+                self.encode_deep_copy_tuple(src, dst, elems)
             }
-            ty::TypeVariants::TyParam(_) => self.encode_havoc_and_allocation(&dst.clone()),
+            ty::TypeVariants::TyParam(_) => {
+                let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
+                let eq = self.encoder.encode_memory_eq_func_app(
+                    src, dst, self_ty, vir::Position::default());
+                stmts.push(vir::Stmt::Inhale(eq));
+                stmts
+            },
 
             ref x => unimplemented!("{:?}", x),
         };
@@ -3935,138 +3879,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         is_inner_ty: bool,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        trace!(
-            "[enter] encode_copy(src={}, dst={}, self_ty={:?}, is_move={}, \
-             is_inner_ty={}, location={:?})",
-            src,
-            dst,
-            self_ty,
-            is_move,
-            is_inner_ty,
-            location
-        );
-        assert!(!is_move, "Please use this method only for copying.");
-
-        let stmts = match self_ty.sty {
-            ty::TypeVariants::TyBool
-            | ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar => {
-                let field = self.encoder.encode_value_field(self_ty);
-                vec![
-                    // Copy value
-                    vir::Stmt::Assign(
-                        dst.clone().field(field.clone()),
-                        src.clone().field(field.clone()).into(),
-                        vir::AssignKind::Copy,
-                    ),
-                ]
-            }
-
-            ty::TypeVariants::TyTuple(elems) => {
-                let mut stmts: Vec<vir::Stmt> = vec![];
-                for (field_num, ty) in elems.iter().enumerate() {
-                    let field_name = format!("tuple_{}", field_num);
-                    let field = self.encoder.encode_raw_ref_field(field_name, ty);
-                    stmts.extend(
-                        // Copy fields
-                        self.encode_copy(
-                            src.clone().field(field.clone()),
-                            dst.clone().field(field.clone()),
-                            ty,
-                            is_move,
-                            true,
-                            location,
-                        ),
-                    );
-                }
-                stmts
-            }
-
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
-                let mut stmts: Vec<vir::Stmt> = vec![];
-                let tcx = self.encoder.env().tcx();
-                let num_variants = adt_def.variants.len();
-                if num_variants == 1 {
-                    // A struct.
-                    let variant_def = &adt_def.variants[0];
-                    for field in &variant_def.fields {
-                        let field_name = &field.ident.as_str();
-                        let field_ty = field.ty(tcx, subst);
-                        let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                        stmts.extend(
-                            // Copy fields
-                            self.encode_copy(
-                                src.clone().field(elem_field.clone()),
-                                dst.clone().field(elem_field.clone()),
-                                field_ty,
-                                is_move,
-                                true,
-                                location,
-                            ),
-                        )
-                    }
-                } else {
-                    // An enum.
-                    let discriminant_field = self.encoder.encode_discriminant_field();
-                    stmts.push(
-                        // Copy discriminant
-                        vir::Stmt::Assign(
-                            dst.clone().field(discriminant_field.clone()),
-                            src.clone().field(discriminant_field.clone()).into(),
-                            vir::AssignKind::Copy,
-                        ),
-                    );
-                    for variant_def in adt_def.variants.iter() {
-                        let variant_name = &variant_def.name.as_str();
-                        for field in &variant_def.fields {
-                            let field_name = &field.ident.as_str();
-                            let field_ty = field.ty(tcx, subst);
-                            let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                            stmts.extend(
-                                // Copy fields
-                                self.encode_copy(
-                                    src.clone().variant(variant_name).field(elem_field.clone()),
-                                    dst.clone().variant(variant_name).field(elem_field.clone()),
-                                    field_ty,
-                                    is_move,
-                                    true,
-                                    location,
-                                ),
-                            )
-                        }
-                    }
-                }
-                stmts
-            }
-
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. })
-            | ty::TypeVariants::TyRef(_, ty, _) => {
-                unreachable!();
-            }
-
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
-                // Box type
-                unreachable!();
-            }
-
-            ty::TypeVariants::TyParam(_) => self.encode_havoc_and_allocation(&dst),
-
-            ref x => unimplemented!("{:?}", x),
-        };
-
-        trace!(
-            "[exit] encode_copy(src={}, dst={}, self_ty={:?}, is_move={}, \
-             is_inner_ty={}, location={:?}) = {}",
-            src,
-            dst,
-            self_ty,
-            is_move,
-            is_inner_ty,
-            location,
-            vir::stmts_to_str(&stmts)
-        );
-        stmts
+        unreachable!();
     }
 
     fn encode_assign_aggregate(
@@ -4111,7 +3924,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 if num_variants != 1 {
                     // An enum.
                     let tcx = self.encoder.env().tcx();
-                    let discr_field = self.encoder.encode_discriminant_field();
                     // Handle *signed* discriminats
                     let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr.discr_type() {
                         let bit_size =
