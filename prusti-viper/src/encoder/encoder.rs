@@ -463,6 +463,25 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         )
     }
 
+    fn encode_memory_eq_tuple(
+        &self,
+        first: vir::Expr,
+        second: vir::Expr,
+        elems: &ty::Slice<&'tcx ty::TyS<'tcx>>,
+    ) -> vir::Expr {
+        let mut conjuncts = Vec::new();
+        for (field_num, ty) in elems.iter().enumerate() {
+            let field_name = format!("tuple_{}", field_num);
+            let field = self.encode_raw_ref_field(field_name, ty);
+            let first_field = first.clone().field(field.clone());
+            let second_field = second.clone().field(field);
+            let eq = self.encode_memory_eq_func_app(
+                second_field, first_field, ty, vir::Position::default());
+            conjuncts.push(eq);
+        }
+        vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
+    }
+
     fn encode_memory_eq_adt(
         &self,
         first: vir::Expr,
@@ -539,7 +558,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 Some(self.encode_memory_eq_adt(first, second, adt_def, subst))
             }
             ty::TypeVariants::TyTuple(elems) => {
-                unimplemented!();
+                Some(self.encode_memory_eq_tuple(first, second, elems))
             }
             ty::TypeVariants::TyParam(_) => {
                 None
