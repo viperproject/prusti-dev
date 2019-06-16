@@ -330,7 +330,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 );
                 self.cfg_method.add_stmt(
                     cfg_block,
-                    vir::Stmt::Assert(false.into(), vir::Position::default()),
+                    vir::Stmt::Assert(
+                        false.into(),
+                        vir::FoldingBehaviour::Expr,
+                        vir::Position::default()
+                    ),
                 );
             }
 
@@ -372,7 +376,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 new_cfg_targets.push((new_local.into(), cfg_target));
 
                                 // Assume the condition under which the jump happened.
-                                let stmt = vir::Stmt::Inhale(expr.clone());
+                                let stmt = vir::Stmt::Inhale(
+                                    expr.clone(),
+                                    vir::FoldingBehaviour::Stmt,
+                                );
                                 default_condition_conjuncts.push(expr);
                                 self.cfg_method.add_stmt(cfg_target, stmt);
                             }
@@ -381,7 +388,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 box default_condition_conjuncts.into_iter().conjoin(),
                                 vir::Position::default(),
                             );
-                            let stmt = vir::Stmt::Inhale(default_condition);
+                            let stmt = vir::Stmt::Inhale(
+                                default_condition,
+                                vir::FoldingBehaviour::Stmt
+                            );
                             self.cfg_method.add_stmt(cfg_default_target, stmt);
                             let new_successor =
                                 Successor::GotoSwitch(new_cfg_targets, cfg_default_target);
@@ -614,8 +624,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Use(ref operand) => {
                         self.encode_assign_operand(&encoded_lhs, operand, location)
                     }
-                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => self
-                        .encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location),
+                    &mir::Rvalue::Aggregate(ref aggregate, ref operands) => {
+                        self.encode_assign_aggregate(&encoded_lhs, ty, aggregate, operands, location)
+                    },
                     &mir::Rvalue::BinaryOp(op, ref left, ref right) => {
                         self.encode_assign_binary_op(op, left, right, encoded_lhs, ty, location)
                     }
@@ -754,10 +765,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 .encoder
                 .error_manager()
                 .register(self.mir.source_info(location).span, ErrorCtxt::Unexpected);
-            stmts.push(vir::Stmt::Assert(
-                vir::Expr::eq_cmp(lhs.clone().into(), rhs.into()),
-                pos,
-            ));
+            stmts.push(
+                vir::Stmt::Assert(
+                    vir::Expr::eq_cmp(lhs.clone().into(), rhs.into()),
+                    vir::FoldingBehaviour::Expr,
+                    pos,
+                )
+            );
         }
 
         stmts
@@ -774,7 +788,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.mir.span,
                 ErrorCtxt::Unexpected,
             );
-            stmts.push(vir::Stmt::Assert(expr, pos));
+            stmts.push(vir::Stmt::Assert(expr, vir::FoldingBehaviour::Expr, pos));
         }
 
         stmts
@@ -1061,7 +1075,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Inhale the magic wand.
         let magic_wand =
             vir::Expr::MagicWand(box lhs.clone(), box rhs.clone(), Some(loan), pos.clone());
-        stmts.push(vir::Stmt::Inhale(magic_wand));
+        stmts.push(vir::Stmt::Inhale(magic_wand, vir::FoldingBehaviour::Stmt));
         // Emit the apply statement.
         let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan, pos);
         debug!("{:?} at {:?}", statement, loan_location);
@@ -1298,7 +1312,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     .encoder
                     .error_manager()
                     .register(term.source_info.span, ErrorCtxt::AbortTerminator);
-                stmts.push(vir::Stmt::Assert(false.into(), pos));
+                stmts.push(vir::Stmt::Assert(false.into(), vir::FoldingBehaviour::Stmt, pos));
                 (stmts, Successor::Return)
             }
 
@@ -1458,7 +1472,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 "Rust panic - {}",
                                 panic_message
                             )));
-                            stmts.push(vir::Stmt::Assert(false.into(), pos));
+                            stmts.push(
+                                vir::Stmt::Assert(
+                                    false.into(),
+                                    vir::FoldingBehaviour::Stmt,
+                                    pos
+                                )
+                            );
                         } else {
                             debug!("Absence of panic will not be checked")
                         }
@@ -1544,17 +1564,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     vir::PermAmount::Write,
                                 )
                                 .unwrap();
-                            stmts.push(vir::Stmt::Inhale(type_predicate));
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    type_predicate,
+                                    vir::FoldingBehaviour::Stmt
+                                )
+                            );
 
                             // Initialize the lhs
                             let target_value = match destination.as_ref() {
                                 Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
                                 None => unreachable!(),
                             };
-                            stmts.push(vir::Stmt::Inhale(vir::Expr::eq_cmp(
-                                target_value.into(),
-                                func_call,
-                            )));
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    vir::Expr::eq_cmp(
+                                        target_value.into(),
+                                        func_call,
+                                    ),
+                                    vir::FoldingBehaviour::Stmt,
+                                )
+                            );
 
                             // Store a label for permissions got back from the call
                             debug!(
@@ -1679,7 +1709,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                         // The return type is Never
                                         // This means that the function call never returns
                                         // So, we `assume false` after the function call
-                                        stmts_after.push(vir::Stmt::Inhale(false.into()));
+                                        stmts_after.push(
+                                            vir::Stmt::Inhale(
+                                                false.into(),
+                                                vir::FoldingBehaviour::Stmt,
+                                            )
+                                        );
                                         // Return a dummy local variable
                                         let never_ty = self
                                             .encoder
@@ -1761,14 +1796,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 term.source_info.span,
                                 ErrorCtxt::ExhaleMethodPrecondition,
                             );
-                            stmts.push(vir::Stmt::Assert(
-                                replace_fake_exprs(pre_func_spec),
-                                pos.clone(),
-                            ));
-                            stmts.push(vir::Stmt::Assert(
-                                replace_fake_exprs(pre_invs_spec),
-                                pos.clone(),
-                            ));
+                            stmts.push(
+                                vir::Stmt::Assert(
+                                    replace_fake_exprs(pre_func_spec),
+                                    vir::FoldingBehaviour::Stmt, // TODO: Should be Expr.
+                                    pos.clone(),
+                                )
+                            );
+                            stmts.push(
+                                vir::Stmt::Assert(
+                                    replace_fake_exprs(pre_invs_spec),
+                                    vir::FoldingBehaviour::Stmt,
+                                    pos.clone(),
+                                )
+                            );
                             let pre_perm_spec = replace_fake_exprs(pre_type_spec.clone());
                             assert!(!pos.is_default());
                             stmts.push(vir::Stmt::Exhale(
@@ -1841,9 +1882,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 .collect();
 
                             let post_perm_spec = replace_fake_exprs(post_type_spec);
-                            stmts.push(vir::Stmt::Inhale(post_perm_spec.remove_read_permissions()));
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    post_perm_spec.remove_read_permissions(),
+                                    vir::FoldingBehaviour::Stmt,
+                                )
+                            );
                             if let Some(access) = return_type_spec {
-                                stmts.push(vir::Stmt::Inhale(replace_fake_exprs(access)));
+                                stmts.push(
+                                    vir::Stmt::Inhale(
+                                        replace_fake_exprs(access),
+                                        vir::FoldingBehaviour::Stmt,
+                                    )
+                                );
                             }
                             for (from_place, to_place) in read_transfer {
                                 stmts.push(vir::Stmt::TransferPerm(
@@ -1852,8 +1903,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     true,
                                 ));
                             }
-                            stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_invs_spec)));
-                            stmts.push(vir::Stmt::Inhale(replace_fake_exprs(post_func_spec)));
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    replace_fake_exprs(post_invs_spec),
+                                    vir::FoldingBehaviour::Stmt,
+                                )
+                            );
+                            stmts.push(
+                                vir::Stmt::Inhale(
+                                    replace_fake_exprs(post_func_spec),
+                                    vir::FoldingBehaviour::Expr,
+                                )
+                            );
 
                             // Exhale the permissions that were moved into magic wands.
                             assert!(!pos.is_default());
@@ -1931,6 +1992,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         if self.check_panics {
                             vir::Stmt::Assert(
                                 false.into(),
+                                vir::FoldingBehaviour::Stmt,
                                 self.encoder.error_manager().register(
                                     term.source_info.span,
                                     ErrorCtxt::AssertTerminator(msg.description().to_string()),
@@ -2094,15 +2156,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
             self.encode_precondition_expr(contract);
         self.cfg_method
-            .add_stmt(start_cfg_block, vir::Stmt::Inhale(type_spec));
+            .add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(type_spec, vir::FoldingBehaviour::Stmt)
+            );
         self.cfg_method.add_stmt(
             start_cfg_block,
-            vir::Stmt::Inhale(mandatory_type_spec.into_iter().conjoin()),
+            vir::Stmt::Inhale(
+                mandatory_type_spec.into_iter().conjoin(),
+                vir::FoldingBehaviour::Stmt
+            ),
         );
         self.cfg_method
-            .add_stmt(start_cfg_block, vir::Stmt::Inhale(invs_spec));
+            .add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(invs_spec, vir::FoldingBehaviour::Stmt)
+            );
         self.cfg_method
-            .add_stmt(start_cfg_block, vir::Stmt::Inhale(func_spec));
+            .add_stmt(
+                start_cfg_block,
+                vir::Stmt::Inhale(func_spec, vir::FoldingBehaviour::Expr)
+            );
         self.cfg_method.add_stmt(
             start_cfg_block,
             vir::Stmt::Label(PRECONDITION_LABEL.to_string()),
@@ -2688,6 +2762,32 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
 
+        // Fold the result.
+        self.cfg_method.add_stmt(
+            return_cfg_block,
+            vir::Stmt::comment(
+                "Fold the result",
+            ),
+        );
+        let ty = self.locals.get_type(contract.returned_value);
+        let encoded_return: vir::Expr = self.encode_prusti_local(
+            contract.returned_value).into();
+        let encoded_return_expr = if self.mir_encoder.is_reference(ty) {
+            let (encoded_deref, ..) = self.mir_encoder.encode_deref(encoded_return, ty);
+            encoded_deref
+        } else {
+            encoded_return
+        };
+        let return_pred = self
+            .mir_encoder
+            .encode_place_predicate_permission(
+                encoded_return_expr.clone(),
+                vir::PermAmount::Write,
+            )
+            .unwrap();
+        let obtain_return_stmt = vir::Stmt::Obtain(return_pred, type_inv_pos.clone());
+        self.cfg_method.add_stmt(return_cfg_block, obtain_return_stmt);
+
         // Assert functional specification of postcondition
         let func_pos = self.encoder.error_manager().register(
             {
@@ -2702,14 +2802,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(patched_func_spec, func_pos),
+            vir::Stmt::Assert(
+                patched_func_spec,
+                vir::FoldingBehaviour::Expr,
+                func_pos
+            ),
         );
 
         // Assert type invariants
         let patched_invs_spec = self.replace_old_places_with_ghost_vars(None, invs_spec);
         self.cfg_method.add_stmt(
             return_cfg_block,
-            vir::Stmt::Assert(patched_invs_spec, type_inv_pos),
+            vir::Stmt::Assert(patched_invs_spec, vir::FoldingBehaviour::Stmt, type_inv_pos),
         );
 
         // Exhale permissions of postcondition
@@ -3048,8 +3152,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
         );
 
-        let permission_expr = permissions.into_iter().conjoin();
-
         let mut stmts = vec![vir::Stmt::comment(format!(
             "Assert and exhale the loop invariant of block {:?}",
             loop_head
@@ -3064,10 +3166,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
         assert!(!assert_pos.is_default());
-        stmts.push(vir::Stmt::Assert(
-            func_spec.into_iter().conjoin(),
-            assert_pos,
-        ));
+        let obtain_predicates = permissions
+            .iter()
+            .map(|p| {
+                vir::Stmt::Obtain(p.clone(), assert_pos.clone())    // TODO: Use a better position.
+            });
+        stmts.extend(obtain_predicates);
+
+        stmts.push(
+            vir::Stmt::Assert(
+                func_spec.into_iter().conjoin(),
+                vir::FoldingBehaviour::Expr,
+                assert_pos,
+            )
+        );
+        let permission_expr = permissions.into_iter().conjoin();
         stmts.push(vir::Stmt::Exhale(permission_expr, exhale_pos));
         stmts
     }
@@ -3094,8 +3207,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         if after_loop {
             stmts.push(vir::Stmt::EndFrame);
         }
-        stmts.push(vir::Stmt::Inhale(permission_expr));
-        stmts.push(vir::Stmt::Inhale(func_spec.into_iter().conjoin()));
+        stmts.push(vir::Stmt::Inhale(permission_expr, vir::FoldingBehaviour::Stmt));
+        stmts.push(
+            vir::Stmt::Inhale(
+                func_spec.into_iter().conjoin(),
+                vir::FoldingBehaviour::Expr
+            )
+        );
         stmts
     }
 
@@ -3439,10 +3557,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         {
             let mut alloc_stmts = self.encode_havoc(&encoded_lhs);
             let mut inhale_acc = |place| {
-                alloc_stmts.push(vir::Stmt::Inhale(vir::Expr::acc_permission(
-                    place,
-                    vir::PermAmount::Write,
-                )));
+                alloc_stmts.push(
+                    vir::Stmt::Inhale(
+                        vir::Expr::acc_permission(
+                            place,
+                            vir::PermAmount::Write,
+                        ),
+                        vir::FoldingBehaviour::Stmt,
+                    )
+                );
             };
             inhale_acc(encoded_lhs.clone().field(value_field.clone()));
             inhale_acc(
@@ -3680,11 +3803,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Havoc `dst`
         stmts.extend(self.encode_havoc(dst));
         // Allocate `dst`
-        stmts.push(vir::Stmt::Inhale(
-            self.mir_encoder
-                .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
-                .unwrap(),
-        ));
+        stmts.push(
+            vir::Stmt::Inhale(
+                self.mir_encoder
+                    .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
+                    .unwrap(),
+                vir::FoldingBehaviour::Stmt,
+            )
+        );
         stmts
     }
 
@@ -3703,7 +3829,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         vec![
             vir::Stmt::Exhale(type_predicate.clone(), pos),
-            vir::Stmt::Inhale(type_predicate),
+            vir::Stmt::Inhale(type_predicate, vir::FoldingBehaviour::Stmt),
         ]
     }
 
@@ -3737,7 +3863,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let mut alloc_stmts = self.encode_havoc(&dst);
             let dst_field = dst.clone().field(field.clone());
             let acc = vir::Expr::acc_permission(dst_field, vir::PermAmount::Write);
-            alloc_stmts.push(vir::Stmt::Inhale(acc));
+            alloc_stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
             match vir_assign_kind {
                 vir::AssignKind::Copy => {
                     if field.typ.is_ref() {
@@ -3791,67 +3917,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         src: vir::Expr,
         dst: vir::Expr,
-        adt_def: &ty::AdtDef,
-        subst: &ty::Slice<ty::subst::Kind<'tcx>>,
-        location: mir::Location,
+        self_ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         let pred = vir::Expr::pred_permission(dst.clone(), vir::PermAmount::Write).unwrap();
-        stmts.push(vir::Stmt::Inhale(pred));
-        let tcx = self.encoder.env().tcx();
-        let num_variants = adt_def.variants.len();
-        if num_variants == 1 {
-            // A struct.
-            let variant_def = &adt_def.variants[0];
-            for field in &variant_def.fields {
-                let field_name = &field.ident.as_str();
-                let field_ty = field.ty(tcx, subst);
-                let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                stmts.extend(
-                    // Copy fields
-                    // TODO: Refactor. encode_copy is old code that does not allocate the target.
-                    self.encode_copy(
-                        src.clone().field(elem_field.clone()),
-                        dst.clone().field(elem_field.clone()),
-                        field_ty,
-                        false,
-                        true,
-                        location,
-                    ),
-                )
-            }
-        } else {
-            // An enum.
-            let discriminant_field = self.encoder.encode_discriminant_field();
-            stmts.push(
-                // Copy discriminant
-                vir::Stmt::Assign(
-                    dst.clone().field(discriminant_field.clone()),
-                    src.clone().field(discriminant_field.clone()).into(),
-                    vir::AssignKind::Copy,
-                ),
-            );
-            for variant_def in adt_def.variants.iter() {
-                let variant_name = &variant_def.name.as_str();
-                for field in &variant_def.fields {
-                    let field_name = &field.ident.as_str();
-                    let field_ty = field.ty(tcx, subst);
-                    let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                    stmts.extend(
-                        // Copy fields
-                        // TODO: Refactor. encode_copy is old code that does not allocate the target.
-                        self.encode_copy(
-                            src.clone().variant(variant_name).field(elem_field.clone()),
-                            dst.clone().variant(variant_name).field(elem_field.clone()),
-                            field_ty,
-                            false,
-                            true,
-                            location,
-                        ),
-                    )
-                }
-            }
-        }
+        stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
+        let eq = self.encoder.encode_memory_eq_func_app(
+            src, dst, self_ty, vir::Position::default());
+        stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
         stmts
     }
 
@@ -3860,7 +3933,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         src: vir::Expr,
         dst: vir::Expr,
         elems: &ty::Slice<&'tcx ty::TyS<'tcx>>,
-        location: mir::Location,
     ) -> Vec<vir::Stmt> {
         let mut stmts = self.encode_havoc(&dst);
         for (field_num, ty) in elems.iter().enumerate() {
@@ -3870,20 +3942,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
             let pred =
                 vir::Expr::pred_permission(dst_field.clone(), vir::PermAmount::Write).unwrap();
-            stmts.push(vir::Stmt::Inhale(acc));
-            stmts.push(vir::Stmt::Inhale(pred));
-
-            stmts.extend(
-                // Copy fields
-                self.encode_copy(
-                    src.clone().field(field.clone()),
-                    dst_field,
-                    ty,
-                    false,
-                    true,
-                    location,
-                ),
-            );
+            stmts.push(vir::Stmt::Inhale(acc, vir::FoldingBehaviour::Stmt));
+            stmts.push(vir::Stmt::Inhale(pred, vir::FoldingBehaviour::Stmt));
+            let src_field = src.clone().field(field.clone());
+            let eq = self.encoder.encode_memory_eq_func_app(
+                src_field, dst_field, ty, vir::Position::default());
+            stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
         }
         stmts
     }
@@ -3902,13 +3966,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             | ty::TypeVariants::TyChar => {
                 self.encode_copy_primitive_value(src, dst, self_ty, location)
             }
-            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                self.encode_deep_copy_adt(src, dst, adt_def, subst, location)
+            ty::TypeVariants::TyAdt(adt_def, _subst) if !adt_def.is_box() => {
+                self.encode_deep_copy_adt(src, dst, self_ty)
             }
             ty::TypeVariants::TyTuple(elems) => {
-                self.encode_deep_copy_tuple(src, dst, elems, location)
+                self.encode_deep_copy_tuple(src, dst, elems)
             }
-            ty::TypeVariants::TyParam(_) => self.encode_havoc_and_allocation(&dst.clone()),
+            ty::TypeVariants::TyParam(_) => {
+                let mut stmts = self.encode_havoc_and_allocation(&dst.clone());
+                let eq = self.encoder.encode_memory_eq_func_app(
+                    src, dst, self_ty, vir::Position::default());
+                stmts.push(vir::Stmt::Inhale(eq, vir::FoldingBehaviour::Stmt));
+                stmts
+            },
 
             ref x => unimplemented!("{:?}", x),
         };
@@ -3934,138 +4004,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         is_inner_ty: bool,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        trace!(
-            "[enter] encode_copy(src={}, dst={}, self_ty={:?}, is_move={}, \
-             is_inner_ty={}, location={:?})",
-            src,
-            dst,
-            self_ty,
-            is_move,
-            is_inner_ty,
-            location
-        );
-        assert!(!is_move, "Please use this method only for copying.");
-
-        let stmts = match self_ty.sty {
-            ty::TypeVariants::TyBool
-            | ty::TypeVariants::TyInt(_)
-            | ty::TypeVariants::TyUint(_)
-            | ty::TypeVariants::TyChar => {
-                let field = self.encoder.encode_value_field(self_ty);
-                vec![
-                    // Copy value
-                    vir::Stmt::Assign(
-                        dst.clone().field(field.clone()),
-                        src.clone().field(field.clone()).into(),
-                        vir::AssignKind::Copy,
-                    ),
-                ]
-            }
-
-            ty::TypeVariants::TyTuple(elems) => {
-                let mut stmts: Vec<vir::Stmt> = vec![];
-                for (field_num, ty) in elems.iter().enumerate() {
-                    let field_name = format!("tuple_{}", field_num);
-                    let field = self.encoder.encode_raw_ref_field(field_name, ty);
-                    stmts.extend(
-                        // Copy fields
-                        self.encode_copy(
-                            src.clone().field(field.clone()),
-                            dst.clone().field(field.clone()),
-                            ty,
-                            is_move,
-                            true,
-                            location,
-                        ),
-                    );
-                }
-                stmts
-            }
-
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
-                let mut stmts: Vec<vir::Stmt> = vec![];
-                let tcx = self.encoder.env().tcx();
-                let num_variants = adt_def.variants.len();
-                if num_variants == 1 {
-                    // A struct.
-                    let variant_def = &adt_def.variants[0];
-                    for field in &variant_def.fields {
-                        let field_name = &field.ident.as_str();
-                        let field_ty = field.ty(tcx, subst);
-                        let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                        stmts.extend(
-                            // Copy fields
-                            self.encode_copy(
-                                src.clone().field(elem_field.clone()),
-                                dst.clone().field(elem_field.clone()),
-                                field_ty,
-                                is_move,
-                                true,
-                                location,
-                            ),
-                        )
-                    }
-                } else {
-                    // An enum.
-                    let discriminant_field = self.encoder.encode_discriminant_field();
-                    stmts.push(
-                        // Copy discriminant
-                        vir::Stmt::Assign(
-                            dst.clone().field(discriminant_field.clone()),
-                            src.clone().field(discriminant_field.clone()).into(),
-                            vir::AssignKind::Copy,
-                        ),
-                    );
-                    for variant_def in adt_def.variants.iter() {
-                        let variant_name = &variant_def.name.as_str();
-                        for field in &variant_def.fields {
-                            let field_name = &field.ident.as_str();
-                            let field_ty = field.ty(tcx, subst);
-                            let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                            stmts.extend(
-                                // Copy fields
-                                self.encode_copy(
-                                    src.clone().variant(variant_name).field(elem_field.clone()),
-                                    dst.clone().variant(variant_name).field(elem_field.clone()),
-                                    field_ty,
-                                    is_move,
-                                    true,
-                                    location,
-                                ),
-                            )
-                        }
-                    }
-                }
-                stmts
-            }
-
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ty, .. })
-            | ty::TypeVariants::TyRef(_, ty, _) => {
-                unreachable!();
-            }
-
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
-                // Box type
-                unreachable!();
-            }
-
-            ty::TypeVariants::TyParam(_) => self.encode_havoc_and_allocation(&dst),
-
-            ref x => unimplemented!("{:?}", x),
-        };
-
-        trace!(
-            "[exit] encode_copy(src={}, dst={}, self_ty={:?}, is_move={}, \
-             is_inner_ty={}, location={:?}) = {}",
-            src,
-            dst,
-            self_ty,
-            is_move,
-            is_inner_ty,
-            location,
-            vir::stmts_to_str(&stmts)
-        );
-        stmts
+        unreachable!();
     }
 
     fn encode_assign_aggregate(
@@ -4110,7 +4049,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 if num_variants != 1 {
                     // An enum.
                     let tcx = self.encoder.env().tcx();
-                    let discr_field = self.encoder.encode_discriminant_field();
                     // Handle *signed* discriminats
                     let discr_value: vir::Expr = if let SignedInt(ity) = adt_def.repr.discr_type() {
                         let bit_size =
@@ -4129,11 +4067,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             .val
                             .into()
                     };
-                    stmts.push(vir::Stmt::Assign(
-                        dst.clone().field(discr_field).into(),
-                        discr_value,
-                        vir::AssignKind::Copy,
-                    ));
+                    // dst was havocked, so it is safe to assume the equality here.
+                    let discriminant = self.encoder.encode_discriminant_func_app(
+                        dst.clone(),
+                        adt_def,
+                    );
+                    stmts.push(
+                        vir::Stmt::Inhale(
+                            vir::Expr::eq_cmp(
+                                discriminant,
+                                discr_value,
+                            ),
+                            vir::FoldingBehaviour::Stmt,
+                        )
+                    );
                     let variant_name = &variant_def.name.as_str();
                     dst_base = dst_base.variant(variant_name);
                 }

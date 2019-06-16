@@ -31,13 +31,13 @@ pub enum Expr {
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
-    // Unfolding: predicate name, predicate_args, in_expr
-    Unfolding(String, Vec<Expr>, Box<Expr>, PermAmount, Position),
-    // Cond: guard, then_expr, else_expr
+    /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
+    Unfolding(String, Vec<Expr>, Box<Expr>, PermAmount, MaybeEnumVariantIndex, Position),
+    /// Cond: guard, then_expr, else_expr
     Cond(Box<Expr>, Box<Expr>, Box<Expr>, Position),
-    // ForAll: variables, triggers, body
+    /// ForAll: variables, triggers, body
     ForAll(Vec<LocalVar>, Vec<Trigger>, Box<Expr>, Position),
-    // let variable == (expr) in body
+    /// let variable == (expr) in body
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
@@ -107,17 +107,20 @@ impl fmt::Display for Expr {
             Expr::MagicWand(ref left, ref right, ref borrow, ref _pos) => {
                 write!(f, "({}) {:?} --* ({})", left, borrow, right)
             }
-            Expr::Unfolding(ref pred_name, ref args, ref expr, perm, ref _pos) => write!(
-                f,
-                "(unfolding acc({}({}), {}) in {})",
-                pred_name,
-                args.iter()
-                    .map(|x| x.to_string())
-                    .collect::<Vec<String>>()
-                    .join(", "),
-                perm,
-                expr
-            ),
+            Expr::Unfolding(ref pred_name, ref args, ref expr, perm, ref variant, ref _pos) => {
+                write!(
+                    f,
+                    "(unfolding acc({}:{:?}({}), {}) in {})",
+                    pred_name,
+                    variant,
+                    args.iter()
+                        .map(|x| x.to_string())
+                        .collect::<Vec<String>>()
+                        .join(", "),
+                    perm,
+                    expr
+                )
+            },
             Expr::Cond(ref guard, ref left, ref right, ref _pos) => {
                 write!(f, "({})?({}):({})", guard, left, right)
             }
@@ -215,7 +218,7 @@ impl Expr {
             Expr::FieldAccessPredicate(_, _, ref p) => p,
             Expr::UnaryOp(_, _, ref p) => p,
             Expr::BinOp(_, _, _, ref p) => p,
-            Expr::Unfolding(_, _, _, _, ref p) => p,
+            Expr::Unfolding(_, _, _, _, _, ref p) => p,
             Expr::Cond(_, _, _, ref p) => p,
             Expr::ForAll(_, _, _, ref p) => p,
             Expr::LetExpr(_, _, _, ref p) => p,
@@ -238,7 +241,9 @@ impl Expr {
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
             Expr::BinOp(x, y, z, _) => Expr::BinOp(x, y, z, pos),
-            Expr::Unfolding(x, y, z, perm, _) => Expr::Unfolding(x, y, z, perm, pos),
+            Expr::Unfolding(x, y, z, perm, variant, _) => {
+                Expr::Unfolding(x, y, z, perm, variant, pos)
+            },
             Expr::Cond(x, y, z, _) => Expr::Cond(x, y, z, pos),
             Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
@@ -382,8 +387,14 @@ impl Expr {
         Expr::Cond(box guard, box left, box right, Position::default())
     }
 
-    pub fn unfolding(pred_name: String, args: Vec<Expr>, expr: Expr, perm: PermAmount) -> Self {
-        Expr::Unfolding(pred_name, args, box expr, perm, Position::default())
+    pub fn unfolding(
+        pred_name: String,
+        args: Vec<Expr>,
+        expr: Expr,
+        perm: PermAmount,
+        variant: MaybeEnumVariantIndex,
+    ) -> Self {
+        Expr::Unfolding(pred_name, args, box expr, perm, variant, Position::default())
     }
 
     pub fn func_app(
@@ -480,7 +491,14 @@ impl Expr {
             | &Expr::Field(ref base, _, _)
             | &Expr::AddrOf(ref base, _, _)
             | &Expr::LabelledOld(_, ref base, _)
-            | &Expr::Unfolding(_, _, ref base, _, _) => base.is_place(),
+            | &Expr::Unfolding(_, _, ref base, _, _, _) => base.is_place(),
+            _ => false,
+        }
+    }
+
+    pub fn is_variant(&self) -> bool {
+        match self {
+            Expr::Variant(..) => true,
             _ => false,
         }
     }
@@ -493,7 +511,7 @@ impl Expr {
             | &Expr::Field(ref base, _, _)
             | &Expr::AddrOf(ref base, _, _)
             | &Expr::LabelledOld(_, ref base, _)
-            | &Expr::Unfolding(_, _, ref base, _, _) => base.place_depth() + 1,
+            | &Expr::Unfolding(_, _, ref base, _, _, _) => base.place_depth() + 1,
             x => unreachable!("{:?}", x),
         }
     }
@@ -515,7 +533,7 @@ impl Expr {
             | &Expr::Field(box ref base, _, _)
             | &Expr::AddrOf(box ref base, _, _) => Some(base),
             &Expr::LabelledOld(_, _, _) => None,
-            &Expr::Unfolding(ref name, ref args, box ref base, perm, _) => None,
+            &Expr::Unfolding(_, _, _, _, _, _) => None,
             ref x => unreachable!("{}", x),
         }
     }
@@ -562,8 +580,8 @@ impl Expr {
             Expr::Field(box base, field, pos) => Expr::Field(box f(base), field, pos),
             Expr::AddrOf(box base, ty, pos) => Expr::AddrOf(box f(base), ty, pos),
             Expr::LabelledOld(label, box base, pos) => Expr::LabelledOld(label, box f(base), pos),
-            Expr::Unfolding(name, args, box base, perm, pos) => {
-                Expr::Unfolding(name, args, box f(base), perm, pos)
+            Expr::Unfolding(name, args, box base, perm, variant, pos) => {
+                Expr::Unfolding(name, args, box f(base), perm, variant, pos)
             }
             _ => self,
         }
@@ -698,7 +716,8 @@ impl Expr {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(ref var, _) => var.clone(),
-            &Expr::LabelledOld(_, ref base, _) | &Expr::Unfolding(_, _, ref base, _, _) => {
+            &Expr::LabelledOld(_, ref base, _) |
+            &Expr::Unfolding(_, _, ref base, _, _, _) => {
                 base.get_base()
             }
             _ => self.get_parent().unwrap().get_base(),
@@ -785,8 +804,11 @@ impl Expr {
             &Expr::Local(LocalVar { ref typ, .. }, _)
             | &Expr::Variant(_, Field { ref typ, .. }, _)
             | &Expr::Field(_, Field { ref typ, .. }, _)
-            | &Expr::AddrOf(_, ref typ, _) => &typ,
-            &Expr::LabelledOld(_, box ref base, _) | &Expr::Unfolding(_, _, box ref base, _, _) => {
+            | &Expr::AddrOf(_, ref typ, _) => {
+                &typ
+            },
+            &Expr::LabelledOld(_, box ref base, _)
+            | &Expr::Unfolding(_, _, box ref base, _, _, _) => {
                 base.get_type()
             }
             _ => panic!(),
@@ -1202,11 +1224,11 @@ impl PartialEq for Expr {
                 Expr::FuncApp(ref other_name, ref other_args, _, _, _),
             ) => (self_name, self_args) == (other_name, other_args),
             (
-                Expr::Unfolding(ref self_name, ref self_args, box ref self_base, self_perm, _),
-                Expr::Unfolding(ref other_name, ref other_args, box ref other_base, other_perm, _),
+                Expr::Unfolding(ref self_name, ref self_args, box ref self_base, self_perm, ref self_variant, _),
+                Expr::Unfolding(ref other_name, ref other_args, box ref other_base, other_perm, ref other_variant, _),
             ) => {
-                (self_name, self_args, self_base, self_perm)
-                    == (other_name, other_args, other_base, other_perm)
+                (self_name, self_args, self_base, self_perm, self_variant)
+                    == (other_name, other_args, other_base, other_perm, other_variant)
             }
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
@@ -1244,8 +1266,8 @@ impl Hash for Expr {
             }
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
-            Expr::Unfolding(ref name, ref args, box ref base, perm, _) => {
-                (name, args, base, perm).hash(state)
+            Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
+                (name, args, base, perm, variant).hash(state)
             }
         }
     }
@@ -1307,18 +1329,20 @@ pub trait ExprFolder: Sized {
     }
     fn fold_unfolding(
         &mut self,
-        x: String,
-        y: Vec<Expr>,
-        z: Box<Expr>,
+        name: String,
+        args: Vec<Expr>,
+        expr: Box<Expr>,
         perm: PermAmount,
-        p: Position,
+        variant: MaybeEnumVariantIndex,
+        pos: Position,
     ) -> Expr {
         Expr::Unfolding(
-            x,
-            y.into_iter().map(|e| self.fold(e)).collect(),
-            self.fold_boxed(z),
+            name,
+            args.into_iter().map(|e| self.fold(e)).collect(),
+            self.fold_boxed(expr),
             perm,
-            p,
+            variant,
+            pos,
         )
     }
     fn fold_cond(&mut self, x: Box<Expr>, y: Box<Expr>, z: Box<Expr>, p: Position) -> Expr {
@@ -1368,7 +1392,9 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fold_bin_op(x, y, z, p),
-        Expr::Unfolding(x, y, z, perm, p) => this.fold_unfolding(x, y, z, perm, p),
+        Expr::Unfolding(x, y, z, perm, variant, p) => {
+            this.fold_unfolding(x, y, z, perm, variant, p)
+        },
         Expr::Cond(x, y, z, p) => this.fold_cond(x, y, z, p),
         Expr::ForAll(x, y, z, p) => this.fold_forall(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
@@ -1419,7 +1445,15 @@ pub trait ExprWalker: Sized {
         self.walk(y);
         self.walk(z);
     }
-    fn walk_unfolding(&mut self, x: &str, y: &Vec<Expr>, z: &Expr, perm: PermAmount, p: &Position) {
+    fn walk_unfolding(
+        &mut self,
+        x: &str,
+        y: &Vec<Expr>,
+        z: &Expr,
+        perm: PermAmount,
+        variant: &MaybeEnumVariantIndex,
+        p: &Position
+    ) {
         for e in y {
             self.walk(e);
         }
@@ -1466,7 +1500,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
         Expr::BinOp(x, ref y, ref z, ref p) => this.walk_bin_op(x, y, z, p),
-        Expr::Unfolding(ref x, ref y, ref z, perm, ref p) => this.walk_unfolding(x, y, z, perm, p),
+        Expr::Unfolding(ref x, ref y, ref z, perm, ref variant, ref p) => {
+            this.walk_unfolding(x, y, z, perm, variant, p)
+        },
         Expr::Cond(ref x, ref y, ref z, ref p) => this.walk_cond(x, y, z, p),
         Expr::ForAll(ref x, ref y, ref z, ref p) => this.walk_forall(x, y, z, p),
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),

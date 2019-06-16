@@ -183,7 +183,7 @@ fn m(items: &Items, i: usize, w: usize, max_weight: usize) -> usize {
         }
     }
 }
-
+/*
 #[requires="items.len() < std::usize::MAX"]
 #[requires="2 <= max_weight && max_weight < std::usize::MAX"]
 pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
@@ -264,5 +264,5 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
  
     result
 }
-
+*/
 fn main() {}

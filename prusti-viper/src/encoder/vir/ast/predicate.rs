@@ -195,6 +195,24 @@ pub struct EnumPredicate {
     pub variants: Vec<(Expr, String, StructPredicate)>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct EnumVariantIndex(String);
+pub type MaybeEnumVariantIndex = Option<EnumVariantIndex>;
+
+impl EnumVariantIndex {
+    pub fn get_variant_name(&self) -> &str {
+        &self.0
+    }
+}
+
+impl<'a> Into<EnumVariantIndex> for &'a Field {
+    fn into(self) -> EnumVariantIndex {
+        // TODO: Refactor to avoid string manipulations.
+        assert!(self.name.starts_with("enum_"));
+        EnumVariantIndex(self.name[5..].to_string())
+    }
+}
+
 impl fmt::Display for EnumPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "enum_predicate {}({}){{\n", self.name, self.this)?;
@@ -203,6 +221,12 @@ impl fmt::Display for EnumPredicate {
             writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
         }
         writeln!(f, "}}")
+    }
+}
+
+impl fmt::Display for EnumVariantIndex {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{{}}}", self.0)
     }
 }
 

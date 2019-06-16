@@ -49,8 +49,13 @@ impl Optimiser {
 }
 
 impl vir::StmtFolder for Optimiser {
-    fn fold_assert(&mut self, e: vir::Expr, p: vir::Position) -> vir::Stmt {
-        vir::Stmt::Assert(self.replace_expr(e), p)
+    fn fold_assert(
+        &mut self,
+        expr: vir::Expr,
+        folding: vir::FoldingBehaviour,
+        pos: vir::Position
+    ) -> vir::Stmt {
+        vir::Stmt::Assert(self.replace_expr(expr), folding, pos)
     }
 }
 

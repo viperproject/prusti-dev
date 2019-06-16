@@ -198,14 +198,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let discriminant_field = self.encoder.encode_discriminant_field();
                     let this = vir::Predicate::construct_this(typ.clone());
                     let discriminant_loc = vir::Expr::from(this.clone()).field(discriminant_field);
-                    let discriminant_bounds =
-                        compute_discriminant_values(adt_def, tcx, &discriminant_loc);
+                    let discriminant_bounds = compute_discriminant_bounds(
+                        adt_def, tcx, &discriminant_loc);
 
+                    let discriminant_values = compute_discriminant_values(adt_def, tcx);
                     let variants: Vec<_> = adt_def
                         .variants
                         .iter()
-                        .enumerate()
-                        .map(|(variant_index, variant_def)| {
+                        .zip(discriminant_values)
+                        .map(|(variant_def, variant_index)| {
                             let fields = variant_def
                                 .fields
                                 .iter()
@@ -217,10 +218,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                 })
                                 .collect();
                             let variant_name = &variant_def.name.as_str();
+                            let guard = vir::Expr::eq_cmp(
+                                discriminant_loc.clone().into(),
+                                variant_index.into(),
+                            );
                             let variant_typ = typ.clone().variant(variant_name);
-                            // TODO: Implement guards.
                             (
-                                true.into(),
+                                guard,
                                 variant_name.to_string(),
                                 vir::StructPredicate::new(variant_typ, fields),
                             )
@@ -558,8 +562,36 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 }
 
-/// Encode a disjunction that lists all possible discrimintant values.
+/// Compute the values that a discriminant can take.
 pub fn compute_discriminant_values(
+    adt_def: &ty::AdtDef,
+    tcx: ty::TyCtxt,
+) -> Vec<i128> {
+    let mut discr_values: Vec<i128> = vec![];
+    // Handle *signed* discriminats
+    if let SignedInt(ity) = adt_def.repr.discr_type() {
+        let bit_size = layout::Integer::from_attr(tcx, SignedInt(ity))
+            .size()
+            .bits();
+        let shift = 128 - bit_size;
+        for (variant_index, _) in adt_def.variants.iter().enumerate() {
+            let unsigned_discr = adt_def.discriminant_for_variant(tcx, variant_index).val;
+            let casted_discr = unsigned_discr as i128;
+            // sign extend the raw representation to be an i128
+            let signed_discr = (casted_discr << shift) >> shift;
+            discr_values.push(signed_discr);
+        }
+    } else {
+        for (variant_index, _) in adt_def.variants.iter().enumerate() {
+            let value = adt_def.discriminant_for_variant(tcx, variant_index).val;
+            discr_values.push(value as i128);
+        }
+    }
+    discr_values
+}
+
+/// Encode a disjunction that lists all possible discrimintant values.
+pub fn compute_discriminant_bounds(
     adt_def: &ty::AdtDef,
     tcx: ty::TyCtxt,
     discriminant_loc: &vir::Expr,
@@ -589,27 +621,8 @@ pub fn compute_discriminant_values(
     }
 
     // Handle *signed* discriminats
-    if let SignedInt(ity) = adt_def.repr.discr_type() {
-        let bit_size = layout::Integer::from_attr(tcx, SignedInt(ity))
-            .size()
-            .bits();
-        let shift = 128 - bit_size;
-        let mut discr_values: Vec<i128> = vec![];
-        for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            let unsigned_discr = adt_def.discriminant_for_variant(tcx, variant_index).val;
-            let casted_discr = unsigned_discr as i128;
-            // sign extend the raw representation to be an i128
-            let signed_discr = (casted_discr << shift) >> shift;
-            discr_values.push(signed_discr);
-        }
-        build_discr_range_expr(discriminant_loc, discr_values)
-    } else {
-        let mut discr_values: Vec<u128> = vec![];
-        for (variant_index, _) in adt_def.variants.iter().enumerate() {
-            discr_values.push(adt_def.discriminant_for_variant(tcx, variant_index).val);
-        }
-        build_discr_range_expr(discriminant_loc, discr_values)
-    }
+    let discr_values = compute_discriminant_values(adt_def, tcx);
+    build_discr_range_expr(discriminant_loc, discr_values)
 }
 
 struct HackyExprFolder {
