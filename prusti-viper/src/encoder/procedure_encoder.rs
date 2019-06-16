@@ -3152,8 +3152,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             },
         );
 
-        let permission_expr = permissions.into_iter().conjoin();
-
         let mut stmts = vec![vir::Stmt::comment(format!(
             "Assert and exhale the loop invariant of block {:?}",
             loop_head
@@ -3168,13 +3166,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
         assert!(!assert_pos.is_default());
+        let obtain_predicates = permissions
+            .iter()
+            .map(|p| {
+                vir::Stmt::Obtain(p.clone(), assert_pos.clone())    // TODO: Use a better position.
+            });
+        stmts.extend(obtain_predicates);
+
         stmts.push(
             vir::Stmt::Assert(
                 func_spec.into_iter().conjoin(),
-                vir::FoldingBehaviour::Stmt,    // TODO: This should Expr.
+                vir::FoldingBehaviour::Expr,
                 assert_pos,
             )
         );
+        let permission_expr = permissions.into_iter().conjoin();
         stmts.push(vir::Stmt::Exhale(permission_expr, exhale_pos));
         stmts
     }
