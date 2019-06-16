@@ -57,7 +57,6 @@ impl VecWrapperI32 {
     }
 }
 
-#[requires="vec.len() >= 0"]    // TODO: This one should not be needed.
 #[ensures="vec.len() == old(vec.len())"]
 #[ensures="forall i: usize :: (0 <= i && i < vec.len()) ==> vec.lookup(i) <= 0"]
 #[ensures=r"forall j: usize :: (0 <= j && j < vec.len() && old(vec.lookup(j)) > 0) ==>
