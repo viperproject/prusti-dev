@@ -132,6 +132,22 @@ impl<'tcx> PermissionNode<'tcx> {
         }
     }
 
+    pub fn get_child(&self, place: &mir::Place<'tcx>) -> Option<&PermissionNode<'tcx>> {
+        match self {
+            PermissionNode::OwnedNode { children, .. } => {
+                let index = children.iter().position(|child| child.get_place() == place);
+                if let Some(index) = index {
+                    return Some(&children[index]);
+                }
+            }
+            PermissionNode::BorrowedNode { .. } => {
+                unimplemented!(); // TODO: Change code so that we do not
+                                  // have to deal with this case.
+            }
+        }
+        None
+    }
+
     pub fn get_children(&self) -> Vec<&PermissionNode<'tcx>> {
         match self {
             PermissionNode::OwnedNode { ref children, .. } => children.iter().collect(),
@@ -318,6 +334,34 @@ impl<'tcx> PermissionTree<'tcx> {
         trace!("[exit] get_permissions visited={:?}", visited);
         visited
     }
+
+    pub fn get_children(&self, parent_place: &mir::Place<'tcx>) -> Vec<&mir::Place<'tcx>> {
+        trace!("[enter] get_children self={:?} parent_place={:?}", self, parent_place);
+        let mut current_parent_node = &self.root;
+        let mut components = utils::VecPlace::new(parent_place);
+        let mut component_iter = components.iter();
+        component_iter.next();
+        for component in component_iter {
+            if let Some(tmp) = current_parent_node.get_child(component.get_mir_place()) {
+                current_parent_node = tmp;
+            } else {
+                return Vec::new();
+            }
+        }
+
+        let mut visited = vec![];
+        let mut to_visit = vec![current_parent_node];
+        while let Some(node) = to_visit.pop() {
+            for &child in node.get_children().iter() {
+                if child.get_permission_kind() != PermissionKind::None {
+                    to_visit.push(child);
+                    visited.push(child.get_place());
+                }
+            }
+        }
+        trace!("[exit] get_children visited={:?}", visited);
+        visited
+    }
 }
 
 impl<'tcx> fmt::Display for PermissionTree<'tcx> {
@@ -424,6 +468,15 @@ impl<'tcx> PermissionForest<'tcx> {
 
     pub fn get_trees(&self) -> &[PermissionTree<'tcx>] {
         &self.trees
+    }
+
+    pub fn get_children(&self, parent_place: &mir::Place<'tcx>) -> Vec<&mir::Place<'tcx>> {
+        for tree in &self.trees {
+            if utils::is_prefix(parent_place, tree.get_root_place()) {
+                return tree.get_children(parent_place);
+            }
+        }
+        Vec::new()
     }
 }
 

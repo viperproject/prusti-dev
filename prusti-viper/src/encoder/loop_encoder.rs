@@ -55,6 +55,11 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
             .unwrap_or(0)
     }
 
+    /// Get iterator over enclosing loop heads.
+    pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+        self.loops.get_enclosing_loop_heads(bbi)
+    }
+
     pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx> {
         assert!(self.is_loop_head(bb));
 

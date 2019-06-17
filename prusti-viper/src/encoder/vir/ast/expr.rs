@@ -434,6 +434,35 @@ impl Expr {
         finder.found
     }
 
+    /// Extract all predicates places mentioned in the expression whose predicates have the given
+    /// permission amount.
+    pub fn extract_predicate_places(&self, perm_amount: PermAmount) -> Vec<Expr> {
+        pub struct PredicateFinder {
+            predicates: Vec<Expr>,
+            perm_amount: PermAmount,
+        }
+        impl ExprWalker for PredicateFinder {
+            fn walk_predicate_access_predicate(
+                &mut self,
+                name: &str,
+                arg: &Expr,
+                perm_amount: PermAmount,
+                position: &Position
+            ) {
+                if perm_amount == self.perm_amount {
+                    self.predicates.push(arg.clone());
+                }
+            }
+        }
+
+        let mut finder = PredicateFinder {
+            predicates: Vec::new(),
+            perm_amount: perm_amount,
+        };
+        finder.walk(self);
+        finder.predicates
+    }
+
     /// Split place into place components.
     pub fn explode_place(&self) -> (Expr, Vec<PlaceComponent>) {
         match self {
