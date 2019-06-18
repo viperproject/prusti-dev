@@ -11,6 +11,7 @@ use std::mem;
 /// Optimisations currently done:
 ///
 /// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.
+/// 2.  Pull out all `unfolding ... in` that are inside `forall` to outside of `forall`.
 ///
 /// Note: this seems to be required to workaround some Silicon incompleteness.
 pub fn rewrite(cfg: vir::CfgMethod) -> vir::CfgMethod {
@@ -42,9 +43,18 @@ impl Optimiser {
         self.fold(stmt)
     }
 
-    fn replace_expr(&mut self, expr: vir::Expr) -> vir::Expr {
+    fn replace_expr_old(&mut self, expr: vir::Expr) -> vir::Expr {
         use self::vir::ExprFolder;
         self.fold(expr)
+    }
+
+    fn replace_expr_unfolding(&mut self, expr: vir::Expr) -> vir::Expr {
+        let mut unfolding_extractor = UnfoldingExtractor {
+            unfoldings: HashMap::new(),
+            in_quantifier: false,
+        };
+        use self::vir::ExprFolder;
+        unfolding_extractor.fold(expr)
     }
 }
 
@@ -55,7 +65,13 @@ impl vir::StmtFolder for Optimiser {
         folding: vir::FoldingBehaviour,
         pos: vir::Position
     ) -> vir::Stmt {
-        vir::Stmt::Assert(self.replace_expr(expr), folding, pos)
+        let replaced_old = self.replace_expr_old(expr);
+        let pulled_unfodling = self.replace_expr_unfolding(replaced_old);
+        vir::Stmt::Assert(pulled_unfodling, folding, pos)
+    }
+    fn fold_inhale(&mut self, expr: vir::Expr, folding: vir::FoldingBehaviour) -> vir::Stmt {
+        let pulled_unfodling = self.replace_expr_unfolding(expr);
+        vir::Stmt::Inhale(pulled_unfodling, folding)
     }
 }
 
@@ -126,6 +142,56 @@ impl vir::ExprFolder for OldPlaceReplacer {
             }
         } else {
             original_expr
+        }
+    }
+}
+
+struct UnfoldingExtractor {
+    unfoldings: HashMap<(String, Vec<vir::Expr>),
+                        (vir::PermAmount, vir::MaybeEnumVariantIndex, vir::Position)>,
+    in_quantifier: bool,
+}
+
+impl vir::ExprFolder for UnfoldingExtractor {
+    fn fold_forall(
+        &mut self,
+        variables: Vec<vir::LocalVar>,
+        triggers: Vec<vir::Trigger>,
+        body: Box<vir::Expr>,
+        pos: vir::Position,
+    ) -> vir::Expr {
+        assert!(self.unfoldings.is_empty(), "Nested quantifiers are not supported.");
+        debug!("original body: {}", body);
+
+        self.in_quantifier = true;
+        let replaced_body = self.fold_boxed(body);
+        self.in_quantifier = false;
+
+        let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos.clone());
+
+        let unfoldings = mem::replace(&mut self.unfoldings, HashMap::new());
+
+        for ((name, args), (perm_amount, variant, _)) in unfoldings {
+            forall = vir::Expr::Unfolding(name, args, box forall, perm_amount, variant, pos.clone());
+        }
+        debug!("replaced quantifier: {}", forall);
+
+        forall
+    }
+    fn fold_unfolding(
+        &mut self,
+        name: String,
+        args: Vec<vir::Expr>,
+        expr: Box<vir::Expr>,
+        perm: vir::PermAmount,
+        variant: vir::MaybeEnumVariantIndex,
+        pos: vir::Position,
+    ) -> vir::Expr {
+        if self.in_quantifier {
+            self.unfoldings.insert((name, args), (perm, variant, pos));
+            self.fold(*expr)
+        } else {
+            vir::Expr::Unfolding(name, args, expr, perm, variant, pos)
         }
     }
 }
