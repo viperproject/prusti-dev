@@ -167,12 +167,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 for assoc_item in assoc_items {
                     if assoc_item.name == proc_name {
                         // TODO use the impl's specs if there are any (separately replace pre/post!)
-                        //error!("found: {:?}", &assoc_item);
-
                         procedure_contract = self
                             .encoder
                             .get_procedure_contract_for_def(assoc_item.def_id);
-                        //error!("new procedure contract: {:?}", &procedure_contract);
                     }
                 }
             }
