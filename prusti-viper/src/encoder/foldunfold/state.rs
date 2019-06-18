@@ -99,7 +99,8 @@ impl State {
                     && other_place.is_simple_place()
                     && place.has_proper_prefix(&other_place)
                 {
-                    if !(self.pred[place] == PermAmount::Read
+                    if !((self.pred[place] == PermAmount::Read ||
+                          self.pred[place] == PermAmount::Remaining)
                         && self.pred[other_place] == PermAmount::Read)
                     {
                         panic!(
