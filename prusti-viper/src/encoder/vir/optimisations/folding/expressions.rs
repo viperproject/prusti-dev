@@ -97,7 +97,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
                 } else if k1.has_prefix(k2) {
                     Ordering::Less
                 } else {
-                    unreachable!("{} {}", k1, k2);
+                    format!("{}", k1).cmp(&format!("{}", k2))
                 }
             }
         }
@@ -162,24 +162,24 @@ fn check_requirements_conflict(reqs1: &RequirementSet, reqs2: &RequirementSet) -
 
 impl ast::ExprFolder for ExprOptimiser {
 
-    fn fold_func_app(
-        &mut self,
-        name: String,
-        args: Vec<ast::Expr>,
-        formal_args: Vec<ast::LocalVar>,
-        return_type: ast::Type,
-        pos: ast::Position,
-    ) -> ast::Expr {
-        assert!(self.requirements.is_empty());
-        assert!(self.unfoldings.is_empty());
-        for arg in &args {
-            let mut collector = RequirementsCollector {
-                requirements: HashSet::new(),
-            };
-            ast::ExprWalker::walk(&mut collector, arg);
-            self.requirements.extend(collector.requirements);
+    fn fold(&mut self, expr: ast::Expr) -> ast::Expr {
+        match expr {
+            ast::Expr::LabelledOld(..) => expr,
+            ast::Expr::Unfolding(name, mut args, box body, perm, variant, _) => {
+                assert!(args.len() == 1);
+                let new_expr = self.fold(body);
+                self.unfoldings.insert(args.pop().unwrap(), (name, perm, variant));
+                new_expr
+            }
+            _ => {
+                if expr.is_place() {
+                    self.requirements.insert(expr.clone());
+                    expr
+                } else {
+                    ast::default_fold_expr(self, expr)
+                }
+            }
         }
-        ast::Expr::FuncApp(name, args, formal_args, return_type, pos)
     }
     fn fold_unfolding(
         &mut self,
@@ -190,10 +190,7 @@ impl ast::ExprFolder for ExprOptimiser {
         variant: ast::MaybeEnumVariantIndex,
         pos: ast::Position,
     ) -> ast::Expr {
-        assert!(args.len() == 1);
-        let new_expr = self.fold(*expr);
-        self.unfoldings.insert(args.pop().unwrap(), (name, perm, variant));
-        new_expr
+        unreachable!();
     }
     fn fold_labelled_old(
         &mut self,
@@ -201,8 +198,7 @@ impl ast::ExprFolder for ExprOptimiser {
         body: Box<ast::Expr>,
         pos: ast::Position
     ) -> ast::Expr {
-        // Do not try to move unfoldings out of labelled olds.
-        ast::Expr::LabelledOld(label, body, pos)
+        unreachable!();
     }
     fn fold_magic_wand(
         &mut self,
