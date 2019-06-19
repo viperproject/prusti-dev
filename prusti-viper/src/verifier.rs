@@ -79,7 +79,7 @@ where
         let mut verifier_args: Vec<String> = vec![];
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
-                "--enableMoreCompleteExhale".to_string(), // Buggy :(
+                //"--enableMoreCompleteExhale".to_string(), // Buggy :(
                 "--assertTimeout".to_string(),
                 config::assert_timeout().to_string(),
                 "--tempDirectory".to_string(),

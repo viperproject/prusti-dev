@@ -53,7 +53,6 @@ impl<T> VecWrapper<T> {
     }
 }
 
-#[trusted] // TODO: Disabled because of Silicon issue https://bitbucket.org/viperproject/silicon/issues/387/
 #[ensures="array.len() == old(array.len())"]
 fn selection_sort(array: &mut VecWrapper<i32>) {
 
