@@ -67,6 +67,7 @@ impl ExprOptimiser {
     /// Same as add_requirements, just drops all places that have the added places as prefixes.
     fn update_requirements<'a>(&mut self, requirements: impl Iterator<Item=&'a ast::Expr>) {
         for place in requirements {
+            assert!(place.is_place());
             self.requirements.retain(|p| !p.has_prefix(place));
             self.requirements.insert(place.clone());
         }
@@ -96,7 +97,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
                 } else if k1.has_prefix(k2) {
                     Ordering::Less
                 } else {
-                    unreachable!();
+                    unreachable!("{} {}", k1, k2);
                 }
             }
         }
@@ -172,7 +173,11 @@ impl ast::ExprFolder for ExprOptimiser {
         assert!(self.requirements.is_empty());
         assert!(self.unfoldings.is_empty());
         for arg in &args {
-            self.requirements.insert(arg.clone());
+            let mut collector = RequirementsCollector {
+                requirements: HashSet::new(),
+            };
+            ast::ExprWalker::walk(&mut collector, arg);
+            self.requirements.extend(collector.requirements);
         }
         ast::Expr::FuncApp(name, args, formal_args, return_type, pos)
     }
@@ -328,5 +333,37 @@ impl ast::ExprFolder for ExprOptimiser {
             self.unfoldings.extend(expr_unfoldings);
             ast::Expr::LetExpr(var, expr_folded, body_folded, pos)
         }
+    }
+}
+
+struct RequirementsCollector {
+    /// Unfolding requirements: how deeply a specific place should be unfolded.
+    requirements: RequirementSet,
+}
+
+impl ast::ExprWalker for RequirementsCollector {
+    fn walk(&mut self, e: &ast::Expr) {
+        if e.is_place() {
+            self.requirements.insert(e.clone());
+        } else {
+            ast::default_walk_expr(self, e);
+        }
+    }
+    fn walk_unfolding(
+        &mut self,
+        _name: &str,
+        args: &Vec<ast::Expr>,
+        _body: &ast::Expr,
+        _perm: ast::PermAmount,
+        _variant: &ast::MaybeEnumVariantIndex,
+        _pos: &ast::Position
+    ) {
+        debug_assert!(args.len() == 1);
+        let arg = args[0].clone();
+        assert!(arg.is_place());
+        self.requirements.insert(arg);
+    }
+    fn walk_labelled_old(&mut self, _label: &str, _body: &ast::Expr, _pos: &ast::Position) {
+        // We do not collect requirements from old expressions.
     }
 }

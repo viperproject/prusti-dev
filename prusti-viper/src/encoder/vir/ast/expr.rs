@@ -793,8 +793,8 @@ impl Expr {
     */
 
     pub fn has_proper_prefix(&self, other: &Expr) -> bool {
-        debug_assert!(self.is_place());
-        debug_assert!(other.is_place());
+        debug_assert!(self.is_place(), "self={} other={}", self, other);
+        debug_assert!(other.is_place(), "self={} other={}", self, other);
         self != other && self.has_prefix(other)
     }
 
@@ -1488,8 +1488,8 @@ pub trait ExprWalker: Sized {
     fn walk_old(&mut self, x: &Expr, p: &Position) {
         self.walk(x);
     }
-    fn walk_labelled_old(&mut self, x: &str, y: &Expr, p: &Position) {
-        self.walk(y);
+    fn walk_labelled_old(&mut self, label: &str, body: &Expr, pos: &Position) {
+        self.walk(body);
     }
     fn walk_magic_wand(&mut self, x: &Expr, y: &Expr, b: &Option<Borrow>, p: &Position) {
         self.walk(x);
