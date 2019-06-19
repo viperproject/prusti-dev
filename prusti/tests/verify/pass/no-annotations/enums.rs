@@ -66,6 +66,43 @@ fn test3(x: E1) -> E1 {
     y
 }
 
+struct S2 {
+    f: u32,
+    g: S1,
+}
+
+#[ensures="result.f == result.g.b"]
+fn test4() -> S2 {
+    S2 {
+        f: 3,
+        g: S1 {
+            a: 4,
+            b: 3,
+        },
+    }
+}
+
+#[pure]
+fn get_f(s: &S2) -> u32 {
+    s.f
+}
+
+#[pure]
+fn get_b(s: &S1) -> u32 {
+    s.b
+}
+
+#[ensures="get_f(&result) == get_b(&result.g)"]
+fn test5() -> S2 {
+    S2 {
+        f: 3,
+        g: S1 {
+            a: 4,
+            b: 3,
+        },
+    }
+}
+
 /* TODO: Uncomment.
 fn get_t2() -> T2 {
     unimplemented!();
