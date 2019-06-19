@@ -149,6 +149,16 @@ fn check_requirements_conflict(reqs1: &RequirementSet, reqs2: &RequirementSet) -
                                     return true;
                                 }
                             }
+                            (ast::PlaceComponent::Field(ast::Field { name, .. }, _),
+                             ast::PlaceComponent::Variant(..)) |
+                            (ast::PlaceComponent::Variant(..),
+                             ast::PlaceComponent::Field(ast::Field { name, .. }, _)) => {
+                                if name == "discriminant" {
+                                    // If we are checking discriminant, this means that the
+                                    // permission is guarded.
+                                    return true;
+                                }
+                            }
                             _ => {}
                         }
                         break;
