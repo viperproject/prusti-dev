@@ -14,7 +14,8 @@ use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
 use encoder::spec_encoder::SpecEncoder;
-use encoder::type_encoder::{compute_discriminant_bounds, TypeEncoder};
+use encoder::type_encoder::{
+    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use encoder::vir;
 use encoder::vir::WithIdentifier;
 use prusti_interface::config;
@@ -505,33 +506,31 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     first_field, second_field, field_ty, vir::Position::default());
                 conjuncts.push(eq);
             }
-      } else {
+        } else {
             // An enum.
-            let first_discriminant = self.encode_discriminant_func_app(first, adt_def);
-            let second_discriminant = self.encode_discriminant_func_app(second, adt_def);
-            conjuncts.push(vir::Expr::eq_cmp(first_discriminant, second_discriminant));
-            // TODO: Need to check the discriminant value and if it's true, compare under the
-            // implication.
-//          for variant_def in adt_def.variants.iter() {
-//              let variant_name = &variant_def.name.as_str();
-//              for field in &variant_def.fields {
-//                  let field_name = &field.ident.as_str();
-//                  let field_ty = field.ty(tcx, subst);
-//                  let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-//                  stmts.extend(
-//                      // Copy fields
-//                      // TODO: Refactor. encode_copy is old code that does not allocate the target.
-//                      self.encode_copy(
-//                          src.clone().variant(variant_name).field(elem_field.clone()),
-//                          dst.clone().variant(variant_name).field(elem_field.clone()),
-//                          field_ty,
-//                          false,
-//                          true,
-//                          location,
-//                      ),
-//                  )
-//              }
-//          }
+            let discr_field = self.encode_discriminant_field();
+            let typ = first.get_type().clone();
+            let first_discriminant = first.clone().field(discr_field.clone());
+            let second_discriminant = second.clone().field(discr_field);
+            conjuncts.push(vir::Expr::eq_cmp(first_discriminant.clone(), second_discriminant));
+            let discriminant_values = compute_discriminant_values(adt_def, tcx);
+            let variants = adt_def.variants
+                .iter()
+                .zip(discriminant_values)
+                .map(|(variant_def, variant_index)| {
+                    let guard = vir::Expr::eq_cmp(
+                        first_discriminant.clone(),
+                        variant_index.into(),
+                    );
+                    let variant_name = &variant_def.name.as_str();
+                    let first_location = first.clone().variant(variant_name);
+                    let second_location = second.clone().variant(variant_name);
+                    let eq = self.encode_memory_eq_func_app_variant(
+                        first_location, second_location, variant_def, subst,
+                        vir::Position::default());
+                    vir::Expr::implies(guard, eq)
+                });
+            conjuncts.extend(variants);
         }
         vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
     }
@@ -606,6 +605,61 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.memory_eq_funcs.borrow_mut().insert(name, Some(final_function));
     }
 
+    fn encode_memory_eq_func_variant(
+        &self,
+        name: String,
+        typ: vir::Type,
+        self_variant: &ty::VariantDef,
+        subst: &ty::Slice<ty::subst::Kind<'tcx>>,
+    ) {
+        assert!(!self.memory_eq_funcs.borrow().contains_key(&name));
+        // Mark that we started encoding this function to avoid infinite recursion.
+        self.memory_eq_funcs.borrow_mut().insert(name.clone(), None);
+        let tcx = self.env().tcx();
+        let type_name = typ.name();
+        let first_local_var = vir::LocalVar::new("self", typ.clone());
+        let second_local_var = vir::LocalVar::new("other", typ);
+        let precondition = vec![
+            vir::Expr::predicate_access_predicate(
+                type_name.clone(),
+                first_local_var.clone().into(),
+                vir::PermAmount::Read,
+            ),
+            vir::Expr::predicate_access_predicate(
+                type_name,
+                second_local_var.clone().into(),
+                vir::PermAmount::Read,
+            ),
+        ];
+        let mut conjuncts = self_variant.fields
+            .iter()
+            .map(|field| {
+                let field_name = &field.ident.as_str();
+                let field_ty = field.ty(tcx, subst);
+                let encoded_field = self.encode_struct_field(field_name, field_ty);
+                let first_field = vir::Expr::from(first_local_var.clone())
+                    .field(encoded_field.clone());
+                let second_field = vir::Expr::from(second_local_var.clone())
+                    .field(encoded_field.clone());
+                self.encode_memory_eq_func_app(
+                    first_field, second_field, field_ty, vir::Position::default())
+            });
+        let body = Some(vir::ExprIterator::conjoin(&mut conjuncts));
+        let function = vir::Function {
+            name: name.clone(),
+            formal_args: vec![first_local_var, second_local_var],
+            return_type: vir::Type::Bool,
+            pres: precondition,
+            posts: vec![],
+            body: body,
+        };
+        let final_function = foldunfold::add_folding_unfolding_to_function(
+            function,
+            self.get_used_viper_predicates_map(),
+        );
+        self.memory_eq_funcs.borrow_mut().insert(name, Some(final_function));
+    }
+
     pub fn encode_memory_eq_func_app(
         &self,
         first: vir::Expr,
@@ -619,6 +673,32 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         name.push_str("$$memory_eq$$");
         if !self.memory_eq_funcs.borrow().contains_key(&name) {
             self.encode_memory_eq_func(name.clone(), self_ty);
+        }
+        let first_local_var = vir::LocalVar::new("self", typ.clone());
+        let second_local_var = vir::LocalVar::new("other", typ);
+        vir::Expr::FuncApp(
+            name,
+            vec![first, second],
+            vec![first_local_var, second_local_var],
+            vir::Type::Bool,
+            position,
+        )
+    }
+
+    pub fn encode_memory_eq_func_app_variant(
+        &self,
+        first: vir::Expr,
+        second: vir::Expr,
+        self_variant: &ty::VariantDef,
+        subst: &ty::Slice<ty::subst::Kind<'tcx>>,
+        position: vir::Position,
+    ) -> vir::Expr {
+        let typ = first.get_type().clone();
+        assert!(&typ == second.get_type());
+        let mut name = typ.name();
+        name.push_str("$$memory_eq$$");
+        if !self.memory_eq_funcs.borrow().contains_key(&name) {
+            self.encode_memory_eq_func_variant(name.clone(), typ.clone(), self_variant, subst);
         }
         let first_local_var = vir::LocalVar::new("self", typ.clone());
         let second_local_var = vir::LocalVar::new("other", typ);

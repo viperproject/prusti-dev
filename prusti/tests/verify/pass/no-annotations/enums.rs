@@ -37,6 +37,35 @@ fn test2(x: T3, y: T2) {
     x.g = y;
 }
 
+#[derive(Clone, Copy)]
+struct S1 {
+    a: u32,
+    b: u32,
+}
+
+#[derive(Clone, Copy)]
+enum E1 {
+    V1(u32),
+    V2((u32, u32)),
+    V3(S1),
+    V4(u32),
+}
+
+fn test3(x: E1) -> E1 {
+    let y = x;
+    match x {
+        E1::V1(x_val) => {
+            if let E1::V1(y_val) = y {
+                assert!(x_val == y_val);
+            } else {
+                unreachable!();
+            }
+        },
+        _ => {},
+    }
+    y
+}
+
 /* TODO: Uncomment.
 fn get_t2() -> T2 {
     unimplemented!();
