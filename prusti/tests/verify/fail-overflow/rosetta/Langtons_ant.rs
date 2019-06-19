@@ -106,10 +106,8 @@ impl Ant {
                 (0 <= x && x < vec.x_size() && 0 <= y && y < vec.y_size()) ==>
                 vec.lookup(y, x) == 0 || vec.lookup(y, x) == 1"]
     fn mv(&mut self, vec: &mut Matrix) {
-        let x = self.x; // TODO
-        let y = self.y;
-        assert!(vec.lookup(y, x) == 0 || vec.lookup(y, x) == 1);
-        let pointer = vec.borrow(y, x);
+        assert!(vec.lookup(self.y, self.x) == 0 || vec.lookup(self.y, self.x) == 1);
+        let pointer = vec.borrow(self.y, self.x);
         assert!(*pointer == 0 || *pointer == 1);
         //change direction
         match *pointer {

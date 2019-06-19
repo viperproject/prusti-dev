@@ -263,7 +263,6 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
     #[invariant="0 <= p.y && p.y < size()"]
     #[invariant="continue_loop_1 ==> step <= size() * size()"]
     while continue_loop_1 {
-        let _x = &mut board;    // FIXME: Pull write permission into the loop.
         // choose next square by Warnsdorf's rule
         let mut candidates = Candidates::new();
         let mut moves = moves();

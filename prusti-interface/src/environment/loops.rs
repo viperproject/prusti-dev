@@ -261,6 +261,14 @@ impl ProcedureLoops {
         self.loop_head_depths.contains_key(&bbi)
     }
 
+    pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+        if let Some(heads) = self.enclosing_loop_heads.get(&bbi) {
+            heads.clone()
+        } else {
+            Vec::new()
+        }
+    }
+
     /// Get the loop head, if any
     /// Note: a loop head **is** loop head of itself
     pub fn get_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {

@@ -7,6 +7,7 @@
 use encoder::vir;
 use encoder::vir::cfg::method::*;
 use std::io::Write;
+use prusti_interface::config;
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()
@@ -38,61 +39,63 @@ impl CfgMethod {
             )
             .unwrap();
 
-            for dag in reborrowing_dags {
-                writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
-                writeln!(graph, "   label=\"Reborrowing DAG {}\"", label).unwrap();
-                for node in dag.iter() {
-                    writeln!(
-                        graph,
-                        "dag_{}_node_{:?} [shape=none,label=<",
-                        label, node.borrow
-                    )
-                    .unwrap();
-                    writeln!(graph, "<table>").unwrap();
-                    writeln!(
-                        graph,
-                        "<tr><td colspan=\"2\">{:?} (guard: {})</td></tr>",
-                        node,
-                        escape_html(&dag.guard(node.borrow))
-                    )
-                    .unwrap();
-                    for (i, stmt) in node.stmts.iter().enumerate() {
+            if config::dump_reborrowing_dag_in_debug_info() {
+                for dag in reborrowing_dags {
+                    writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
+                    writeln!(graph, "   label=\"Reborrowing DAG {}\"", label).unwrap();
+                    for node in dag.iter() {
                         writeln!(
                             graph,
-                            "<tr><td>{}</td><td>{}</td></tr>",
-                            i,
-                            escape_html(stmt)
+                            "dag_{}_node_{:?} [shape=none,label=<",
+                            label, node.borrow
                         )
                         .unwrap();
-                    }
-                    writeln!(graph, "</table>").unwrap();
-                    writeln!(graph, ">];").unwrap();
-                    for r_node in &node.reborrowing_nodes {
+                        writeln!(graph, "<table>").unwrap();
                         writeln!(
                             graph,
-                            "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
-                            label, r_node, label, node.borrow
+                            "<tr><td colspan=\"2\">{:?} (guard: {})</td></tr>",
+                            node,
+                            escape_html(&dag.guard(node.borrow))
                         )
                         .unwrap();
+                        for (i, stmt) in node.stmts.iter().enumerate() {
+                            writeln!(
+                                graph,
+                                "<tr><td>{}</td><td>{}</td></tr>",
+                                i,
+                                escape_html(stmt)
+                            )
+                            .unwrap();
+                        }
+                        writeln!(graph, "</table>").unwrap();
+                        writeln!(graph, ">];").unwrap();
+                        for r_node in &node.reborrowing_nodes {
+                            writeln!(
+                                graph,
+                                "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
+                                label, r_node, label, node.borrow
+                            )
+                            .unwrap();
+                        }
+                        for r_node in &node.reborrowed_nodes {
+                            writeln!(
+                                graph,
+                                "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
+                                label, node.borrow, label, r_node
+                            )
+                            .unwrap();
+                        }
                     }
-                    for r_node in &node.reborrowed_nodes {
-                        writeln!(
-                            graph,
-                            "\"dag_{}_node_{:?}\" -> \"dag_{}_node_{:?}\";",
-                            label, node.borrow, label, r_node
-                        )
-                        .unwrap();
-                    }
-                }
-                writeln!(graph, "}}").unwrap();
+                    writeln!(graph, "}}").unwrap();
 
-                let node = dag.iter().next().unwrap();
-                writeln!(
-                    graph,
-                    "\"block_{}\" -> \"dag_{}_node_{:?}\" [dir=none lhead=cluster_{}];",
-                    label, label, node.borrow, label,
-                )
-                .unwrap();
+                    let node = dag.iter().next().unwrap();
+                    writeln!(
+                        graph,
+                        "\"block_{}\" -> \"dag_{}_node_{:?}\" [dir=none lhead=cluster_{}];",
+                        label, label, node.borrow, label,
+                    )
+                    .unwrap();
+                }
             }
         }
 

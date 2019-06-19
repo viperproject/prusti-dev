@@ -788,7 +788,6 @@ pub fn compute_fold_target(
     // conflicting places.
     let mut conflicting_base_check = |item: &vir::Expr, second_set: &HashSet<vir::Expr>| {
         if let vir::Expr::Variant(box ref base, _, _) = item {
-            error!("item: {}", item);
             if !second_set.iter().any(|p| p.has_prefix(item)) {
                 // The enum corresponding to base is completely folded in second_set or unfolded
                 // with a different variant.

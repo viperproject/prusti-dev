@@ -70,6 +70,7 @@ impl VecWrapperI32 {
     }
 }
 
+#[trusted] // TODO: Disabled because of Silicon issue https://bitbucket.org/viperproject/silicon/issues/387/
 #[ensures="array.len() == old(array.len())"]
 #[ensures="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < array.len()) ==>
              array.lookup(k1) <= array.lookup(k2)"]

@@ -850,7 +850,42 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         bctxt.apply_stmt(&stmt);
         stmts.push(stmt.clone());
 
-        // 6. Handle shared borrows.
+        // 6. Recombine permissions into full if read was carved out during fold.
+        if let vir::Stmt::Inhale(expr, vir::FoldingBehaviour::Stmt) = &stmt {
+            // We may need to recombine predicates for which read permission was taking during
+            // an unfold operation.
+            let inhaled_places = expr.extract_predicate_places(vir::PermAmount::Read);
+            let restorable_places: Vec<_> = bctxt
+                .state()
+                .pred()
+                .iter()
+                .filter(|(place, perm)| {
+                    **perm == vir::PermAmount::Remaining &&
+                    inhaled_places.iter().any(|ip| place.has_prefix(ip))
+                })
+                .map(|(place, _)| place.clone())
+                .collect();
+            for place in restorable_places {
+                let stmt = vir::Stmt::Obtain(
+                    vir::Expr::pred_permission(place, vir::PermAmount::Read).unwrap(),
+                    vir::Position::default(),   // This should trigger only unfolds,
+                                                // so the default position should be fine.
+                );
+                stmts.extend(
+                    self.replace_stmt(
+                        stmt_index,
+                        &stmt,
+                        false,
+                        bctxt,
+                        curr_block_index,
+                        new_cfg,
+                        label
+                    )
+                );
+            }
+        }
+
+        // 7. Handle shared borrows.
         debug!("[step.6] replace_stmt: {}", stmt);
         if let vir::Stmt::Assign(
             ref lhs_place,
