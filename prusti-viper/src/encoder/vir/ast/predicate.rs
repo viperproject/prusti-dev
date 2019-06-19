@@ -240,10 +240,12 @@ impl EnumPredicate {
             let location: Expr = Expr::from(self.this.clone()).field(field).into();
             let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
             let pred_perm = variant.construct_access(location, PermAmount::Write);
-            parts.push(Expr::implies(
-                guard.clone(),
-                Expr::and(field_perm, pred_perm),
-            ));
+            parts.push(
+                Expr::and(
+                    field_perm,
+                    Expr::implies(guard.clone(), pred_perm),
+                )
+            );
         }
         parts.into_iter().conjoin()
     }

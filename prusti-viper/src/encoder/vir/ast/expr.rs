@@ -513,6 +513,17 @@ impl Expr {
         Expr::AddrOf(box self, Type::TypedRef(type_name), Position::default())
     }
 
+    pub fn is_only_permissions(&self) -> bool {
+        match self {
+            Expr::PredicateAccessPredicate(..) |
+            Expr::FieldAccessPredicate(..) => true,
+            Expr::BinOp(BinOpKind::And, box lhs, box rhs, _) => {
+                lhs.is_only_permissions() && rhs.is_only_permissions()
+            }
+            _ => false,
+        }
+    }
+
     pub fn is_place(&self) -> bool {
         match self {
             &Expr::Local(_, _) => true,
@@ -793,8 +804,8 @@ impl Expr {
     */
 
     pub fn has_proper_prefix(&self, other: &Expr) -> bool {
-        debug_assert!(self.is_place());
-        debug_assert!(other.is_place());
+        debug_assert!(self.is_place(), "self={} other={}", self, other);
+        debug_assert!(other.is_place(), "self={} other={}", self, other);
         self != other && self.has_prefix(other)
     }
 
@@ -1326,35 +1337,51 @@ pub trait ExprFolder: Sized {
     fn fold_const(&mut self, x: Const, p: Position) -> Expr {
         Expr::Const(x, p)
     }
-    fn fold_labelled_old(&mut self, x: String, y: Box<Expr>, p: Position) -> Expr {
-        Expr::LabelledOld(x, self.fold_boxed(y), p)
+    fn fold_labelled_old(
+        &mut self,
+        label: String,
+        body: Box<Expr>,
+        pos: Position
+    ) -> Expr {
+        Expr::LabelledOld(label, self.fold_boxed(body), pos)
     }
     fn fold_magic_wand(
         &mut self,
-        x: Box<Expr>,
-        y: Box<Expr>,
-        b: Option<Borrow>,
-        p: Position,
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
+        borrow: Option<Borrow>,
+        pos: Position,
     ) -> Expr {
-        Expr::MagicWand(self.fold_boxed(x), self.fold_boxed(y), b, p)
+        Expr::MagicWand(self.fold_boxed(lhs), self.fold_boxed(rhs), borrow, pos)
     }
     fn fold_predicate_access_predicate(
         &mut self,
-        x: String,
-        y: Box<Expr>,
-        z: PermAmount,
-        p: Position,
+        name: String,
+        arg: Box<Expr>,
+        perm_amount: PermAmount,
+        pos: Position,
     ) -> Expr {
-        Expr::PredicateAccessPredicate(x, self.fold_boxed(y), z, p)
+        Expr::PredicateAccessPredicate(name, self.fold_boxed(arg), perm_amount, pos)
     }
-    fn fold_field_access_predicate(&mut self, x: Box<Expr>, y: PermAmount, p: Position) -> Expr {
-        Expr::FieldAccessPredicate(self.fold_boxed(x), y, p)
+    fn fold_field_access_predicate(
+        &mut self,
+        receiver: Box<Expr>,
+        perm_amount: PermAmount,
+        pos: Position
+    ) -> Expr {
+        Expr::FieldAccessPredicate(self.fold_boxed(receiver), perm_amount, pos)
     }
     fn fold_unary_op(&mut self, x: UnaryOpKind, y: Box<Expr>, p: Position) -> Expr {
         Expr::UnaryOp(x, self.fold_boxed(y), p)
     }
-    fn fold_bin_op(&mut self, x: BinOpKind, y: Box<Expr>, z: Box<Expr>, p: Position) -> Expr {
-        Expr::BinOp(x, self.fold_boxed(y), self.fold_boxed(z), p)
+    fn fold_bin_op(
+        &mut self,
+        kind: BinOpKind,
+        first: Box<Expr>,
+        second: Box<Expr>,
+        pos: Position
+    ) -> Expr {
+        Expr::BinOp(kind, self.fold_boxed(first), self.fold_boxed(second), pos)
     }
     fn fold_unfolding(
         &mut self,
@@ -1374,12 +1401,18 @@ pub trait ExprFolder: Sized {
             pos,
         )
     }
-    fn fold_cond(&mut self, x: Box<Expr>, y: Box<Expr>, z: Box<Expr>, p: Position) -> Expr {
+    fn fold_cond(
+        &mut self,
+        guard: Box<Expr>,
+        then_expr: Box<Expr>,
+        else_expr: Box<Expr>,
+        pos: Position
+    ) -> Expr {
         Expr::Cond(
-            self.fold_boxed(x),
-            self.fold_boxed(y),
-            self.fold_boxed(z),
-            p,
+            self.fold_boxed(guard),
+            self.fold_boxed(then_expr),
+            self.fold_boxed(else_expr),
+            pos,
         )
     }
     fn fold_forall(
@@ -1391,18 +1424,30 @@ pub trait ExprFolder: Sized {
     ) -> Expr {
         Expr::ForAll(x, y, self.fold_boxed(z), p)
     }
-    fn fold_let_expr(&mut self, x: LocalVar, y: Box<Expr>, z: Box<Expr>, p: Position) -> Expr {
-        Expr::LetExpr(x, self.fold_boxed(y), self.fold_boxed(z), p)
+    fn fold_let_expr(
+        &mut self,
+        var: LocalVar,
+        expr: Box<Expr>,
+        body: Box<Expr>,
+        pos: Position
+    ) -> Expr {
+        Expr::LetExpr(var, self.fold_boxed(expr), self.fold_boxed(body), pos)
     }
     fn fold_func_app(
         &mut self,
-        x: String,
-        y: Vec<Expr>,
-        z: Vec<LocalVar>,
-        k: Type,
-        p: Position,
+        name: String,
+        args: Vec<Expr>,
+        formal_args: Vec<LocalVar>,
+        return_type: Type,
+        pos: Position,
     ) -> Expr {
-        Expr::FuncApp(x, y.into_iter().map(|e| self.fold(e)).collect(), z, k, p)
+        Expr::FuncApp(
+            name,
+            args.into_iter().map(|e| self.fold(e)).collect(),
+            formal_args,
+            return_type,
+            pos
+        )
     }
 }
 
@@ -1454,8 +1499,8 @@ pub trait ExprWalker: Sized {
     fn walk_old(&mut self, x: &Expr, p: &Position) {
         self.walk(x);
     }
-    fn walk_labelled_old(&mut self, x: &str, y: &Expr, p: &Position) {
-        self.walk(y);
+    fn walk_labelled_old(&mut self, label: &str, body: &Expr, pos: &Position) {
+        self.walk(body);
     }
     fn walk_magic_wand(&mut self, x: &Expr, y: &Expr, b: &Option<Borrow>, p: &Position) {
         self.walk(x);
@@ -1476,17 +1521,17 @@ pub trait ExprWalker: Sized {
     }
     fn walk_unfolding(
         &mut self,
-        x: &str,
-        y: &Vec<Expr>,
-        z: &Expr,
+        name: &str,
+        args: &Vec<Expr>,
+        body: &Expr,
         perm: PermAmount,
         variant: &MaybeEnumVariantIndex,
-        p: &Position
+        pos: &Position
     ) {
-        for e in y {
-            self.walk(e);
+        for arg in args {
+            self.walk(arg);
         }
-        self.walk(z);
+        self.walk(body);
     }
     fn walk_cond(&mut self, x: &Expr, y: &Expr, z: &Expr, p: &Position) {
         self.walk(x);

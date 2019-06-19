@@ -232,7 +232,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     .into_iter()
                     .map(|mut f| {
                         optimisations::functions::simplify(&mut f);
-                        f
+                        optimisations::folding::FoldingOptimiser::optimise(f)
                     })
                     .map(|f| f.to_viper(ast))
                     .collect()
