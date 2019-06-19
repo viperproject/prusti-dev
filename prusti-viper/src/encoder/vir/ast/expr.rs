@@ -513,6 +513,17 @@ impl Expr {
         Expr::AddrOf(box self, Type::TypedRef(type_name), Position::default())
     }
 
+    pub fn is_only_permissions(&self) -> bool {
+        match self {
+            Expr::PredicateAccessPredicate(..) |
+            Expr::FieldAccessPredicate(..) => true,
+            Expr::BinOp(BinOpKind::And, box lhs, box rhs, _) => {
+                lhs.is_only_permissions() && rhs.is_only_permissions()
+            }
+            _ => false,
+        }
+    }
+
     pub fn is_place(&self) -> bool {
         match self {
             &Expr::Local(_, _) => true,

@@ -6,9 +6,8 @@
 
 //! Inliner of pure functions.
 
-use super::super::super::ast;
+use super::super::super::ast::{self, ExprFolder};
 use std::collections::HashMap;
-use std::mem;
 
 /// Convert functions whose body does not depend on arguments such as
 ///
@@ -49,10 +48,10 @@ pub fn inline_constant_functions(mut functions: Vec<ast::Function>) -> Vec<ast::
                 non_pure_functions.push(function);
             }
         }
-        for function in &mut non_pure_functions {
-            function.inline_constant_functions(&pure_function_map);
-        }
-        functions = non_pure_functions;
+        functions = non_pure_functions
+            .into_iter()
+            .map(|function| inline_into(function, &pure_function_map))
+            .collect();
         non_pure_functions = Vec::new();
     }
     functions.extend(pure_functions);
@@ -63,14 +62,12 @@ pub fn inline_constant_functions(mut functions: Vec<ast::Function>) -> Vec<ast::
 /// precondition. Returns true if successful.
 fn try_purify(function: &mut ast::Function) -> Option<ast::Expr> {
     trace!("[enter] try_purify(name={})", function.name);
-    if function.has_constant_body() && function.pres.len() == 1 {
-        match function.pres[0] {
-            ast::Expr::PredicateAccessPredicate(_, _, _, _)
-            | ast::Expr::FieldAccessPredicate(_, _, _) => {
-                function.pres.clear();
-                return function.body.clone();
-            }
-            _ => {}
+    if function.has_constant_body() {
+        if function.pres.iter().all(|cond| cond.is_only_permissions()) &&
+            function.posts.is_empty() {
+
+            function.pres.clear();
+            return function.body.clone();
         }
     }
     None
@@ -101,47 +98,67 @@ impl ast::Expr {
     }
 }
 
-trait ConstantFunctionInliner {
-    /// Replace ``unfolding P(...) in f(...)`` with ``f(...)`` if ``f`` is pure.
-    fn inline_constant_functions(&mut self, pure_function_map: &HashMap<String, ast::Expr>);
+/// Inline all calls to constant functions.
+struct ConstantFunctionInliner<'a> {
+    pure_function_map: &'a HashMap<String, ast::Expr>,
 }
 
-impl ConstantFunctionInliner for ast::Function {
-    fn inline_constant_functions(&mut self, pure_function_map: &HashMap<String, ast::Expr>) {
-        match self.body {
-            Some(ref mut body) => body.inline_constant_functions(pure_function_map),
-            None => {}
-        }
-    }
-}
-
-fn is_constant_function_call(
-    expr: &ast::Expr,
+fn inline_into(
+    mut function: ast::Function,
     pure_function_map: &HashMap<String, ast::Expr>,
-) -> Option<ast::Expr> {
-    match expr {
-        ast::Expr::Unfolding(_, _, box ast::Expr::FuncApp(name, _, _, _, _), _, _, _) => {
-            pure_function_map.get(name).cloned()
-        }
-        _ => None,
-    }
+) -> ast::Function {
+    function.body = function.body.map(|body| {
+        let mut inliner = ConstantFunctionInliner {
+            pure_function_map,
+        };
+        inliner.fold(body)
+    });
+    function
 }
 
-impl ConstantFunctionInliner for ast::Expr {
-    fn inline_constant_functions(&mut self, pure_function_map: &HashMap<String, ast::Expr>) {
-        if let Some(mut expr) = is_constant_function_call(self, pure_function_map) {
-            mem::swap(self, &mut expr);
+impl<'a> ExprFolder for ConstantFunctionInliner<'a> {
+    fn fold_func_app(
+        &mut self,
+        name: String,
+        args: Vec<ast::Expr>,
+        formal_args: Vec<ast::LocalVar>,
+        return_type: ast::Type,
+        pos: ast::Position,
+    ) -> ast::Expr {
+        if self.pure_function_map.contains_key(&name) {
+            self.pure_function_map[&name].clone()
         } else {
-            match self {
-                ast::Expr::UnaryOp(_, box subexpr, _) => {
-                    subexpr.inline_constant_functions(pure_function_map)
-                }
-                ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
-                    subexpr1.inline_constant_functions(pure_function_map);
-                    subexpr2.inline_constant_functions(pure_function_map);
-                }
-                _ => {}
-            }
+            ast::Expr::FuncApp(
+                name,
+                args.into_iter().map(|e| self.fold(e)).collect(),
+                formal_args,
+                return_type,
+                pos
+            )
         }
     }
+    fn fold_unfolding(
+        &mut self,
+        name: String,
+        args: Vec<ast::Expr>,
+        expr: Box<ast::Expr>,
+        perm: ast::PermAmount,
+        variant: ast::MaybeEnumVariantIndex,
+        pos: ast::Position,
+    ) -> ast::Expr {
+        let body = self.fold_boxed(expr);
+        if body.is_constant() {
+            *body
+        } else {
+            ast::Expr::Unfolding(
+                name,
+                args.into_iter().map(|e| self.fold(e)).collect(),
+                body,
+                perm,
+                variant,
+                pos,
+            )
+        }
+    }
+
 }
