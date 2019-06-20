@@ -366,17 +366,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, '
         }
     }
 
-    pub(super) fn mir(&self) -> &mir::Mir<'tcx> {
-        self.mir
-    }
-
     pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         &self.mir_encoder
     }
 
-    pub(super) fn encoder(&self) -> &Encoder<'v, 'r, 'a, 'tcx> {
-        &self.encoder
-    }
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>

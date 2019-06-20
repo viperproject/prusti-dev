@@ -756,19 +756,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         builtin_encoder.encode_builtin_function_name(&function_kind)
     }
 
-    pub fn encode_procedure_use(&self, proc_def_id: ProcedureDefId) -> String {
-        trace!("encode_procedure_use({:?})", proc_def_id);
-        assert!(
-            !self.env.has_attribute_name(proc_def_id, "pure"),
-            "procedure is marked as pure: {:?}",
-            proc_def_id
-        );
-        self.queue_procedure_encoding(proc_def_id);
-        let procedure = self.env.get_procedure(proc_def_id);
-        let procedure_encoder = ProcedureEncoder::new(self, &procedure);
-        procedure_encoder.encode_name()
-    }
-
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
         debug!("encode_procedure({:?})", proc_def_id);
         assert!(

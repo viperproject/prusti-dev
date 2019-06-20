@@ -131,10 +131,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    pub fn encode_name(&self) -> String {
-        self.cfg_method.name()
-    }
-
     pub fn encode(mut self) -> vir::CfgMethod {
         trace!("Encode procedure {}", self.cfg_method.name());
 
@@ -1121,13 +1117,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
-    }
-
-    fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("encode_expiring_borrows_before '{:?}'", location);
-        let (all_dying_loans, zombie_loans) =
-            self.polonius_info.get_all_loans_dying_before(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
     }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
@@ -2167,14 +2156,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             start_cfg_block,
             vir::Stmt::Label(PRECONDITION_LABEL.to_string()),
         );
-    }
-
-    /// Encode permissions that are implicitly carried by the given place.
-    /// `state_label` – the label of the state in which the place should
-    /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_acc_permission(&self, place: &Place<'tcx>) -> vir::Expr {
-        let (encoded_place, _, _) = self.encode_generic_place(place);
-        vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write)
     }
 
     /// Encode the magic wand used in the postcondition with its
@@ -3828,35 +3809,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    /// Havoc the content (Viper fields) of a place.
-    /// The place itself (Viper reference) does not change.
-    fn encode_havoc_content(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
-        debug!("Encode havoc content {:?}", dst);
-        let type_predicate = self
-            .mir_encoder
-            .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
-            .unwrap();
-        let pos = self.encoder.error_manager().register(
-            // TODO: choose a better error span
-            self.mir.span,
-            ErrorCtxt::Unexpected,
-        );
-        vec![
-            vir::Stmt::Exhale(type_predicate.clone(), pos),
-            vir::Stmt::Inhale(type_predicate, vir::FoldingBehaviour::Stmt),
-        ]
-    }
-
-    fn encode_spec_place_permission(&self, place: &vir::Expr) -> vir::Expr {
-        if let Some(field_place) = place.try_deref() {
-            vir::Expr::acc_permission(field_place, vir::PermAmount::Write)
-        } else {
-            self.mir_encoder
-                .encode_place_predicate_permission(place.clone(), vir::PermAmount::Write)
-                .unwrap()
-        }
-    }
-
     /// Prepare the ``dst`` to be copy target:
     ///
     /// 1.  Havoc and allocate if it is not yet allocated.
@@ -3999,28 +3951,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    /// Encodes the copy of a structure, reading from a source `src` and using `dst` as target.
-    /// The copy is neither shallow nor deep:
-    /// - if a field encodes a Rust reference, the reference is copied (shallow copy);
-    /// - if a field does not encode a Rust reference, but is a Viper reference, a recursive call
-    ///   copies the content of the field (deep copy).
-    /// - if a field does not encode a Rust reference and is not a Viper reference, the field is
-    ///   copied.
-    ///
-    /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
-    /// a Rust move assignment, and not a copy assignment.
-    fn encode_copy(
-        &mut self,
-        _src: vir::Expr,
-        _dst: vir::Expr,
-        _self_ty: ty::Ty<'tcx>,
-        _is_move: bool,
-        _is_inner_ty: bool,
-        _location: mir::Location,
-    ) -> Vec<vir::Stmt> {
-        unreachable!();
-    }
-
     fn encode_assign_aggregate(
         &mut self,
         dst: &vir::Expr,
@@ -4118,11 +4048,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn check_vir(&self) {
-        fn invalid(reson: String) {
-            debug!("Invalid VIR: {}", reson);
-            debug_assert!(false, "Invalid VIR: {}", reson);
-        }
-
         let mut encoded_mir_locals = HashSet::new();
         for local in self.mir.local_decls.indices() {
             encoded_mir_locals.insert(self.mir_encoder.encode_local(local));

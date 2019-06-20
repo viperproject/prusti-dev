@@ -10,7 +10,6 @@ use encoder::vir;
 use encoder::Encoder;
 use prusti_interface::config;
 use rustc::hir::def_id::DefId;
-use rustc::hir::Mutability;
 use rustc::mir;
 use rustc::ty;
 use rustc_data_structures::indexed_vec::Idx;
@@ -61,10 +60,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn def_id(&self) -> DefId {
-        self.def_id
-    }
-
     pub fn encode_local_var_name(&self, local: mir::Local) -> String {
         format!("{}{:?}", self.namespace, local)
     }
@@ -79,18 +74,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             .encoder
             .encode_type_predicate_use(self.get_local_ty(local));
         vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
-    }
-
-    pub fn encode_local_var_with_name(&self, name: String) -> Option<vir::LocalVar> {
-        self.mir
-            .local_decls
-            .iter_enumerated()
-            .find(|(_, decl)| decl.name.is_some() && decl.name.unwrap().to_string() == name)
-            .map(|(index, decl)| {
-                let var_name = format!("{}{:?}", self.namespace, index);
-                let type_name = self.encoder.encode_type_predicate_use(decl.ty);
-                vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
-            })
     }
 
     /// Returns
@@ -222,18 +205,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         match base_ty.sty {
             ty::TypeVariants::TyRawPtr(..) | ty::TypeVariants::TyRef(..) => true,
 
-            _ => false,
-        }
-    }
-
-    pub fn is_mut_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
-        trace!("is_mut_reference {}", base_ty);
-        match base_ty.sty {
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                mutbl: Mutability::MutMutable,
-                ..
-            })
-            | ty::TypeVariants::TyRef(_, _, Mutability::MutMutable) => true,
             _ => false,
         }
     }
@@ -640,11 +611,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         perm: vir::PermAmount,
     ) -> Option<vir::Expr> {
         vir::Expr::pred_permission(place, perm)
-    }
-
-    pub fn encode_old_place(&self, place: vir::Expr, label: &str) -> vir::Expr {
-        debug!("encode_old_place {}, {}", place, label);
-        vir::Expr::labelled_old(label, place.into())
     }
 
     pub fn encode_old_expr(&self, expr: vir::Expr, label: &str) -> vir::Expr {
