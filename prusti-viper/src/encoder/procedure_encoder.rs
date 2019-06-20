@@ -2172,15 +2172,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode permissions that are implicitly carried by the given place.
     /// `state_label` – the label of the state in which the place should
     /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_pred_permission(&self, place: &Place<'tcx>, state_label: Option<&str>) -> vir::Expr {
-        let (encoded_place, _, _) = self.encode_generic_place(place);
-        vir::Expr::pred_permission(encoded_place.maybe_old(state_label), vir::PermAmount::Write)
-            .unwrap()
-    }
-
-    /// Encode permissions that are implicitly carried by the given place.
-    /// `state_label` – the label of the state in which the place should
-    /// be evaluated (the place expression is wrapped in the labelled old).
     fn encode_acc_permission(&self, place: &Place<'tcx>) -> vir::Expr {
         let (encoded_place, _, _) = self.encode_generic_place(place);
         vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write)

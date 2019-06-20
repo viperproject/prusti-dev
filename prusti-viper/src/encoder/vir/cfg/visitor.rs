@@ -288,9 +288,6 @@ pub trait SuccessorFolder {
             Successor::GotoSwitch(guarded_targets, default_target) => {
                 self.fold_goto_switch(guarded_targets, default_target)
             }
-            Successor::GotoIf(condition, then_target, else_target) => {
-                self.fold_goto_if(condition, then_target, else_target)
-            }
         }
     }
 
@@ -325,19 +322,6 @@ pub trait SuccessorFolder {
                 .map(|(cond, targ)| (self.fold_expr(cond), targ))
                 .collect(),
             self.fold_target(default_target),
-        )
-    }
-
-    fn fold_goto_if(
-        &mut self,
-        condition: Expr,
-        then_target: CfgBlockIndex,
-        else_target: CfgBlockIndex,
-    ) -> Successor {
-        Successor::GotoIf(
-            self.fold_expr(condition),
-            self.fold_target(then_target),
-            self.fold_target(else_target),
         )
     }
 }

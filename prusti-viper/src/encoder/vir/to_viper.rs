@@ -411,7 +411,6 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
         match self.0 {
             &Const::Bool(true) => ast.true_lit_with_pos(self.1.to_viper(ast)),
             &Const::Bool(false) => ast.false_lit_with_pos(self.1.to_viper(ast)),
-            &Const::Null => ast.null_lit_with_pos(self.1.to_viper(ast)),
             &Const::Int(x) => ast.int_lit_with_pos(x, self.1.to_viper(ast)),
             &Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
         }

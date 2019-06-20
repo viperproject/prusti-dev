@@ -129,7 +129,6 @@ where
     ast_factory: viper::AstFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
-    spec: &'v TypedSpecificationMap,
     encoder: Encoder<'v, 'r, 'a, 'tcx>,
 }
 
@@ -146,7 +145,6 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             ast_factory,
             verifier,
             env,
-            spec,
             encoder: Encoder::new(env, spec),
         }
     }

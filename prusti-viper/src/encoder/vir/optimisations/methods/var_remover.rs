@@ -26,9 +26,6 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
                 ast::ExprWalker::walk(&mut collector, expr);
             }
         }
-        cfg::Successor::GotoIf(condition, _, _) => {
-            ast::ExprWalker::walk(&mut collector, condition);
-        }
     });
     let mut unused_vars = HashSet::new();
     let mut used_vars = Vec::new();

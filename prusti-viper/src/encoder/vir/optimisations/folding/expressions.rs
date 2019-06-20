@@ -341,35 +341,3 @@ impl ast::ExprFolder for ExprOptimiser {
         }
     }
 }
-
-struct RequirementsCollector {
-    /// Unfolding requirements: how deeply a specific place should be unfolded.
-    requirements: RequirementSet,
-}
-
-impl ast::ExprWalker for RequirementsCollector {
-    fn walk(&mut self, e: &ast::Expr) {
-        if e.is_place() {
-            self.requirements.insert(e.clone());
-        } else {
-            ast::default_walk_expr(self, e);
-        }
-    }
-    fn walk_unfolding(
-        &mut self,
-        _name: &str,
-        args: &Vec<ast::Expr>,
-        _body: &ast::Expr,
-        _perm: ast::PermAmount,
-        _variant: &ast::MaybeEnumVariantIndex,
-        _pos: &ast::Position
-    ) {
-        debug_assert!(args.len() == 1);
-        let arg = args[0].clone();
-        assert!(arg.is_place());
-        self.requirements.insert(arg);
-    }
-    fn walk_labelled_old(&mut self, _label: &str, _body: &ast::Expr, _pos: &ast::Position) {
-        // We do not collect requirements from old expressions.
-    }
-}

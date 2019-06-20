@@ -220,46 +220,6 @@ impl Stmt {
         Stmt::Comment(comment.to_string())
     }
 
-    pub fn obtain_acc(place: Expr, pos: Position) -> Self {
-        assert!(!place.is_local());
-        Stmt::Obtain(
-            Expr::FieldAccessPredicate(box place, PermAmount::Write, pos.clone()),
-            pos,
-        )
-    }
-
-    pub fn obtain_pred(place: Expr, pos: Position) -> Self {
-        let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Obtain(
-            Expr::PredicateAccessPredicate(
-                predicate_name,
-                box place,
-                PermAmount::Write,
-                pos.clone(),
-            ),
-            pos,
-        )
-    }
-
-    pub fn fold_pred(
-        place: Expr,
-        perm: PermAmount,
-        variant: MaybeEnumVariantIndex,
-        pos: Position
-    ) -> Self {
-        let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Fold(predicate_name, vec![place.into()], perm, variant, pos)
-    }
-
-    pub fn unfold_pred(
-        place: Expr,
-        perm: PermAmount,
-        variant: MaybeEnumVariantIndex
-    ) -> Self {
-        let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Unfold(predicate_name, vec![place], perm, variant)
-    }
-
     pub fn package_magic_wand(
         lhs: Expr,
         rhs: Expr,

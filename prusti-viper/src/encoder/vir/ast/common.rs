@@ -69,8 +69,6 @@ pub enum PermAmount {
     Write,
     /// The permission remaining after ``Read`` was subtracted from ``Write``.
     Remaining,
-    /// The permission amount was not initialised yet.
-    Unset,
 }
 
 impl PermAmount {
@@ -78,7 +76,7 @@ impl PermAmount {
     pub fn is_valid_for_specs(&self) -> bool {
         match self {
             PermAmount::Read | PermAmount::Write => true,
-            PermAmount::Remaining | PermAmount::Unset => false,
+            PermAmount::Remaining => false,
         }
     }
 }
@@ -89,7 +87,6 @@ impl fmt::Display for PermAmount {
             PermAmount::Read => write!(f, "read"),
             PermAmount::Write => write!(f, "write"),
             PermAmount::Remaining => write!(f, "write-read"),
-            PermAmount::Unset => write!(f, "unset"),
         }
     }
 }
@@ -238,13 +235,6 @@ impl LocalVar {
         LocalVar {
             name: name.into(),
             typ,
-        }
-    }
-
-    pub fn typed_ref_name(&self) -> Option<String> {
-        match self.typ {
-            Type::TypedRef(ref name) => Some(name.clone()),
-            _ => None,
         }
     }
 }

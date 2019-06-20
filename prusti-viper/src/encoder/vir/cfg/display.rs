@@ -68,9 +68,6 @@ impl fmt::Display for Successor {
                     .join(", "),
                 default_target
             ),
-            &Successor::GotoIf(ref condition, ref then_target, ref else_target) => {
-                writeln!(f, "GotoIf({}, {}, {})", condition, then_target, else_target)
-            }
         }
     }
 }

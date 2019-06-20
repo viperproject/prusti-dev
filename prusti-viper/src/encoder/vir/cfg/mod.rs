@@ -6,14 +6,12 @@
 
 pub use self::display::*;
 pub use self::method::*;
-pub use self::substitute::*;
 pub use self::to_graphviz::*;
 pub use self::to_viper::*;
 pub use self::visitor::*;
 
 mod display;
 mod method;
-mod substitute;
 mod to_graphviz;
 mod to_viper;
 mod visitor;

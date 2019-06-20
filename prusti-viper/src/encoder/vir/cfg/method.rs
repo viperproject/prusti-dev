@@ -41,7 +41,6 @@ pub enum Successor {
     Return,
     Goto(CfgBlockIndex),
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
-    GotoIf(Expr, CfgBlockIndex, CfgBlockIndex),
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
@@ -73,7 +72,6 @@ impl Successor {
                 res.push(default_target);
                 res
             }
-            &Successor::GotoIf(_, then_target, else_target) => vec![then_target, else_target],
         }
     }
 
@@ -95,11 +93,6 @@ impl Successor {
                     default_target
                 },
             ),
-            Successor::GotoIf(expr, then_target, else_target) => Successor::GotoIf(
-                expr,
-                if then_target == src { dst } else { then_target },
-                if else_target == src { dst } else { else_target },
-            ),
             x => x,
         }
     }
@@ -113,11 +106,6 @@ impl Successor {
                     .map(|x| (x.0, x.1.set_uuid(new_uuid)))
                     .collect(),
                 default_target.set_uuid(new_uuid),
-            ),
-            Successor::GotoIf(expr, then_target, else_target) => Successor::GotoIf(
-                expr,
-                then_target.set_uuid(new_uuid),
-                else_target.set_uuid(new_uuid),
             ),
             x => x,
         }
@@ -211,14 +199,6 @@ impl CfgMethod {
         vars
     }
 
-    /// Returns all formal returns and local variables
-    pub fn get_formal_returns_and_local_vars(&self) -> Vec<LocalVar> {
-        let mut vars: Vec<LocalVar> = vec![];
-        vars.extend(self.formal_returns.clone());
-        vars.extend(self.local_vars.clone());
-        vars
-    }
-
     /// Returns all labels
     pub fn get_all_labels(&self) -> Vec<String> {
         let mut labels: Vec<String> = vec![];
@@ -234,28 +214,9 @@ impl CfgMethod {
         local_var
     }
 
-    pub fn add_fresh_formal_arg(&mut self, typ: Type) -> LocalVar {
-        let name = self.generate_fresh_local_var_name();
-        let local_var = LocalVar::new(name, typ);
-        self.formal_args.push(local_var.clone());
-        local_var
-    }
-
-    pub fn add_fresh_formal_return(&mut self, typ: Type) -> LocalVar {
-        let name = self.generate_fresh_local_var_name();
-        let local_var = LocalVar::new(name, typ);
-        self.formal_returns.push(local_var.clone());
-        local_var
-    }
-
     pub fn add_local_var(&mut self, name: &str, typ: Type) {
         assert!(self.is_fresh_local_name(name));
         self.local_vars.push(LocalVar::new(name, typ));
-    }
-
-    pub fn add_formal_arg(&mut self, name: &str, typ: Type) {
-        assert!(self.is_fresh_local_name(name));
-        self.formal_args.push(LocalVar::new(name, typ));
     }
 
     pub fn add_formal_return(&mut self, name: &str, typ: Type) {
@@ -318,10 +279,6 @@ impl CfgMethod {
             .filter(|x| x.1.successor.get_following().contains(&target_index))
             .map(|x| self.block_index(x.0))
             .collect()
-    }
-
-    pub fn get_initial_block(&self) -> CfgBlockIndex {
-        self.block_index(0)
     }
 
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {

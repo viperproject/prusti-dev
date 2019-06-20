@@ -1038,7 +1038,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             &vir::Successor::GotoSwitch(ref guarded_targets, _) => {
                 guarded_targets.iter().map(|g| &g.0).collect()
             }
-            &vir::Successor::GotoIf(ref expr, _, _) => vec![expr],
             _ => vec![],
         };
 
@@ -1097,9 +1096,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                         .collect::<Vec<_>>(),
                     *default_target,
                 )
-            }
-            vir::Successor::GotoIf(condition, then_target, else_target) => {
-                vir::Successor::GotoIf(repl_expr(condition), *then_target, *else_target)
             }
         };
 

@@ -76,7 +76,6 @@ pub enum BinOpKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Const {
     Bool(bool),
-    Null,
     Int(i64),
     BigInt(String),
 }
@@ -197,7 +196,6 @@ impl fmt::Display for Const {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Const::Bool(val) => write!(f, "{}", val),
-            &Const::Null => write!(f, "null"),
             &Const::Int(val) => write!(f, "{}", val),
             &Const::BigInt(ref val) => write!(f, "{}", val),
         }
@@ -373,10 +371,6 @@ impl Expr {
 
     pub fn implies(left: Expr, right: Expr) -> Self {
         Expr::BinOp(BinOpKind::Implies, box left, box right, Position::default())
-    }
-
-    pub fn let_expr(variable: LocalVar, expr: Expr, body: Expr) -> Self {
-        Expr::LetExpr(variable, box expr, box body, Position::default())
     }
 
     pub fn forall(vars: Vec<LocalVar>, triggers: Vec<Trigger>, body: Expr) -> Self {
@@ -609,24 +603,6 @@ impl Expr {
         None
     }
 
-    pub fn map_parent<F>(self, f: F) -> Expr
-    where
-        F: Fn(Expr) -> Expr,
-    {
-        match self {
-            Expr::Variant(box base, variant_index, pos) => {
-                Expr::Variant(box f(base), variant_index, pos)
-            }
-            Expr::Field(box base, field, pos) => Expr::Field(box f(base), field, pos),
-            Expr::AddrOf(box base, ty, pos) => Expr::AddrOf(box f(base), ty, pos),
-            Expr::LabelledOld(label, box base, pos) => Expr::LabelledOld(label, box f(base), pos),
-            Expr::Unfolding(name, args, box base, perm, variant, pos) => {
-                Expr::Unfolding(name, args, box f(base), perm, variant, pos)
-            }
-            _ => self,
-        }
-    }
-
     pub fn is_local(&self) -> bool {
         match self {
             &Expr::Local(..) => true,
@@ -634,23 +610,9 @@ impl Expr {
         }
     }
 
-    pub fn get_local(&self) -> Option<&LocalVar> {
-        match self {
-            &Expr::Local(ref local, _) => Some(local),
-            _ => None,
-        }
-    }
-
     pub fn is_addr_of(&self) -> bool {
         match self {
             &Expr::AddrOf(..) => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_unfolding(&self) -> bool {
-        match self {
-            &Expr::Unfolding(..) => true,
             _ => false,
         }
     }
@@ -680,28 +642,6 @@ impl Expr {
             }
             _ => Expr::LabelledOld(label.to_string(), box self, Position::default()),
         }
-    }
-
-    /// Puts the place into an `old[label](..)` expression, if the label is not `None`
-    pub fn maybe_old<S: fmt::Display + ToString>(self, label: Option<S>) -> Self {
-        match label {
-            None => self,
-            Some(label) => self.old(label),
-        }
-    }
-
-    pub fn contains_old_label(&self) -> bool {
-        struct OldLabelFinder {
-            found: bool,
-        }
-        impl ExprWalker for OldLabelFinder {
-            fn walk_labelled_old(&mut self, _label: &str, _body: &Expr, _pos: &Position) {
-                self.found = true;
-            }
-        }
-        let mut walker = OldLabelFinder { found: false };
-        walker.walk(self);
-        walker.found
     }
 
     pub fn is_old(&self) -> bool {
@@ -1195,16 +1135,6 @@ impl Expr {
         }
         let mut patcher = TypePatcher { substs: substs };
         patcher.fold(self)
-    }
-}
-
-impl Const {
-    pub fn is_num(&self) -> bool {
-        match self {
-            &Const::Bool(..) | &Const::Null => false,
-
-            &Const::Int(..) | &Const::BigInt(..) => true,
-        }
     }
 }
 
