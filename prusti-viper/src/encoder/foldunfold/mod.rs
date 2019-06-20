@@ -681,50 +681,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             stmts.push(vir::Stmt::comment(format!("[state] moved: {{\n//{}\n//}}", moved_state)));
         }
 
-        // 0. Insert "unfolding in" inside old expressions. This handles *old* requirements.
-        debug!("[step.0] replace_stmt: {}", stmt);
-        stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &bctxt);
-
-        // 1. Obtain "preferred" permissions (i.e. due to "weak obtain" statements)
+        // 1. Insert "unfolding in" inside old expressions. This handles *old* requirements.
         debug!("[step.1] replace_stmt: {}", stmt);
-        let preferred_perms: Vec<_> = stmt
-            .get_preferred_permissions(bctxt.predicates())
-            .into_iter()
-            .filter(|p| p.is_curr())
-            .collect();
-
-        let obtainable_preferred_perms: Vec<_> = preferred_perms
-            .into_iter()
-            .filter(|p| !(p.is_curr() && bctxt.state().is_prefix_of_some_moved(&p.get_place())))
-            .filter(|p| {
-                !(p.is_curr()
-                    && bctxt
-                        .state()
-                        .moved()
-                        .iter()
-                        .any(|mp| p.get_place().has_prefix(mp)))
-            })
-            .collect();
-
-        if !obtainable_preferred_perms.is_empty() {
-            stmts.extend(
-                bctxt
-                    .obtain_permissions(obtainable_preferred_perms)
-                    .iter()
-                    .map(|a| a.to_stmt()),
-            );
-
-            if self.check_foldunfold_state {
-                stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                stmts.push(
-                    vir::Stmt::Assert(
-                        bctxt.state().as_vir_expr(),
-                        vir::FoldingBehaviour::Expr,
-                        vir::Position::new(0, 0, "check fold/unfold state".to_string()),
-                    )
-                );
-            }
-        }
+        stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &bctxt);
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);

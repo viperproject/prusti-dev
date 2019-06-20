@@ -125,8 +125,6 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .collect()
             }
 
-            &vir::Stmt::WeakObtain(ref _expr) => HashSet::new(),
-
             &vir::Stmt::Havoc | &vir::Stmt::BeginFrame | &vir::Stmt::EndFrame => HashSet::new(),
 
             &vir::Stmt::TransferPerm(ref lhs, _, unchecked) => {
@@ -161,37 +159,6 @@ impl RequiredPermissionsGetter for vir::Stmt {
             }
 
             ref x => unimplemented!("{}", x),
-        }
-    }
-}
-
-impl vir::Stmt {
-    /// Returns the permissions that the statement would prefer to have
-    pub fn get_preferred_permissions(
-        &self,
-        predicates: &HashMap<String, vir::Predicate>,
-    ) -> HashSet<Perm> {
-        match self {
-            &vir::Stmt::Comment(_)
-            | &vir::Stmt::Label(_)
-            | &vir::Stmt::Inhale(_, _)
-            | &vir::Stmt::Exhale(_, _)
-            | &vir::Stmt::Assert(_, _, _)
-            | &vir::Stmt::MethodCall(_, _, _)
-            | &vir::Stmt::Assign(_, _, _)
-            | &vir::Stmt::Fold(_, _, _, _, _)
-            | &vir::Stmt::Unfold(_, _, _, _)
-            | &vir::Stmt::Obtain(_, _)
-            | &vir::Stmt::Havoc
-            | &vir::Stmt::BeginFrame
-            | &vir::Stmt::EndFrame
-            | &vir::Stmt::TransferPerm(_, _, _)
-            | &vir::Stmt::PackageMagicWand(_, _, _, _, _)
-            | &vir::Stmt::ApplyMagicWand(_, _)
-            | &vir::Stmt::ExpireBorrows(_)
-            | &vir::Stmt::If(_, _) => HashSet::new(),
-
-            &vir::Stmt::WeakObtain(ref expr) => expr.get_required_permissions(predicates),
         }
     }
 }

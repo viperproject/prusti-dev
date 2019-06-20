@@ -38,8 +38,7 @@ impl vir::Stmt {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
             | &vir::Stmt::Assert(_, _, _)
-            | &vir::Stmt::Obtain(_, _)
-            | &vir::Stmt::WeakObtain(_) => {}
+            | &vir::Stmt::Obtain(_, _) => {}
 
             &vir::Stmt::Inhale(ref expr, _) => {
                 inhale_expr(expr, state, predicates);

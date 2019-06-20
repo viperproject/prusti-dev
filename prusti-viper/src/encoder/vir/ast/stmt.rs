@@ -26,10 +26,6 @@ pub enum Stmt {
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     Obtain(Expr, Position),
-    /// WeakObtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
-    /// They will be used by the fold/unfold algorithm
-    #[deprecated]
-    WeakObtain(Expr),
     /// Havoc: used for emptying the fold/unfold state
     #[deprecated]
     Havoc,
@@ -152,8 +148,6 @@ impl fmt::Display for Stmt {
             ),
 
             Stmt::Obtain(ref expr, _) => write!(f, "obtain {}", expr),
-
-            Stmt::WeakObtain(ref expr) => write!(f, "weak obtain {}", expr),
 
             Stmt::Havoc => write!(f, "havoc"),
 
@@ -285,7 +279,6 @@ pub trait StmtFolder {
             Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
             Stmt::Unfold(s, ve, perm, variant) => self.fold_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.fold_obtain(e, p),
-            Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
             Stmt::Havoc => self.fold_havoc(),
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
@@ -360,10 +353,6 @@ pub trait StmtFolder {
         Stmt::Obtain(self.fold_expr(e), p)
     }
 
-    fn fold_weak_obtain(&mut self, e: Expr) -> Stmt {
-        Stmt::WeakObtain(self.fold_expr(e))
-    }
-
     fn fold_havoc(&mut self) -> Stmt {
         Stmt::Havoc
     }
@@ -426,7 +415,6 @@ pub trait StmtWalker {
             Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
             Stmt::Unfold(s, ve, perm, variant) => self.walk_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.walk_obtain(e, p),
-            Stmt::WeakObtain(e) => self.walk_weak_obtain(e),
             Stmt::Havoc => self.walk_havoc(),
             Stmt::BeginFrame => self.walk_begin_frame(),
             Stmt::EndFrame => self.walk_end_frame(),
