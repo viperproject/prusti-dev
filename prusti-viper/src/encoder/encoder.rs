@@ -365,7 +365,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_encoder = TypeEncoder::new(self, ty);
-        let mut field = type_encoder.encode_value_field();
+        let field = type_encoder.encode_value_field();
         self.fields
             .borrow_mut()
             .entry(field.name.clone())
@@ -509,7 +509,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         } else {
             // An enum.
             let discr_field = self.encode_discriminant_field();
-            let typ = first.get_type().clone();
             let first_discriminant = first.clone().field(discr_field.clone());
             let second_discriminant = second.clone().field(discr_field);
             conjuncts.push(vir::Expr::eq_cmp(first_discriminant.clone(), second_discriminant));
@@ -714,7 +713,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
         trace!("encode_builtin_method_def({:?})", method_kind);
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
-            let builtin_encoder = BuiltinEncoder::new(self);
+            let builtin_encoder = BuiltinEncoder::new();
             let method = builtin_encoder.encode_builtin_method_def(method_kind);
             self.log_vir_program_before_viper(method.to_string());
             self.builtin_methods
@@ -730,14 +729,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             // Trigger encoding of definition
             self.encode_builtin_method_def(method_kind);
         }
-        let builtin_encoder = BuiltinEncoder::new(self);
+        let builtin_encoder = BuiltinEncoder::new();
         builtin_encoder.encode_builtin_method_name(method_kind)
     }
 
     pub fn encode_builtin_function_def(&self, function_kind: BuiltinFunctionKind) -> vir::Function {
         trace!("encode_builtin_function_def({:?})", function_kind);
         if !self.builtin_functions.borrow().contains_key(&function_kind) {
-            let builtin_encoder = BuiltinEncoder::new(self);
+            let builtin_encoder = BuiltinEncoder::new();
             let function = builtin_encoder.encode_builtin_function_def(function_kind.clone());
             self.log_vir_program_before_viper(function.to_string());
             self.builtin_functions
@@ -753,21 +752,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             // Trigger encoding of definition
             self.encode_builtin_function_def(function_kind.clone());
         }
-        let builtin_encoder = BuiltinEncoder::new(self);
+        let builtin_encoder = BuiltinEncoder::new();
         builtin_encoder.encode_builtin_function_name(&function_kind)
-    }
-
-    pub fn encode_procedure_use(&self, proc_def_id: ProcedureDefId) -> String {
-        trace!("encode_procedure_use({:?})", proc_def_id);
-        assert!(
-            !self.env.has_attribute_name(proc_def_id, "pure"),
-            "procedure is marked as pure: {:?}",
-            proc_def_id
-        );
-        self.queue_procedure_encoding(proc_def_id);
-        let procedure = self.env.get_procedure(proc_def_id);
-        let procedure_encoder = ProcedureEncoder::new(self, &procedure);
-        procedure_encoder.encode_name()
     }
 
     pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
@@ -849,10 +835,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         predicate_name
     }
 
-    pub fn get_predicate_type(&self, predicate_name: String) -> Option<ty::Ty<'tcx>> {
-        self.predicate_types.borrow().get(&predicate_name).cloned()
-    }
-
     pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
         let predicate_name = self.encode_type_predicate_use(ty);
         if !self.type_predicates.borrow().contains_key(&predicate_name) {
@@ -867,14 +849,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             }
         }
         self.type_predicates.borrow()[&predicate_name].clone()
-    }
-
-    pub fn get_type_predicate_by_name(&self, predicate_name: &str) -> Option<vir::Predicate> {
-        self.type_predicates.borrow().get(predicate_name).cloned()
-    }
-
-    pub fn get_type_invariant_by_name(&self, invariant_name: &str) -> Option<vir::Function> {
-        self.type_invariants.borrow().get(invariant_name).cloned()
     }
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
@@ -1054,7 +1028,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
         trace!("encode_int_cast {:?} as {:?}", value, ty);
-        let usize_bits = mem::size_of::<usize>() * 8;
 
         let expr = match ty.sty {
             ty::TypeVariants::TyBool => (value != 0).into(),
@@ -1296,7 +1269,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 map.insert(typ.clone(), subst.clone());
                 let additional_substs: Vec<_> = map
                     .iter()
-                    .filter(|(typ1, typ2)| typ2 == &typ)
+                    .filter(|(_typ1, typ2)| typ2 == &typ)
                     .map(|(typ1, typ2)| (typ1.clone(), typ2.clone()))
                     .collect();
                 for (typ, subst) in additional_substs {

@@ -16,12 +16,8 @@ use self::procedure_validator::*;
 use self::pure_function_validator::*;
 pub use self::support_status::Reason;
 pub use self::support_status::SupportStatus;
-use rustc::hir;
 use rustc::hir::def_id::DefId;
-use rustc::hir::intravisit::*;
 use rustc::ty;
-use syntax::ast::NodeId;
-use syntax::codemap::Span;
 
 pub struct Validator<'a, 'tcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,

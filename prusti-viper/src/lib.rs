@@ -9,6 +9,10 @@
 #![feature(nll)]
 #![feature(box_syntax)]
 
+#![deny(unreachable_patterns)]
+#![deny(dead_code)]
+#![deny(unused_mut)]
+#![deny(unused_variables)]
 #![deny(unused_imports)]
 #![deny(unused_doc_comments)]
 

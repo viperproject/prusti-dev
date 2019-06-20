@@ -150,7 +150,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             }
             vir::Stmt::TransferPerm(lhs, rhs, unchecked) => {
                 // Compute rhs state
-                let mut rhs_bctxt = bctxt.clone();
+                let rhs_bctxt = bctxt.clone();
                 /*
                 let rhs_state = rhs_bctxt.mut_state();
                 rhs_state.insert_all_perms(
@@ -291,7 +291,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 }
                 let incoming_bctxt_refs = incoming_bctxt.iter().collect();
                 let (actions, mut bctxt) = self.prepend_join(incoming_bctxt_refs);
-                for (&src_index, mut action) in curr_block.predecessors.iter().zip(&actions) {
+                for (&src_index, action) in curr_block.predecessors.iter().zip(&actions) {
                     assert!(src_index < curr_block_index);
                     if !action.is_empty() {
                         //let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
@@ -422,7 +422,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             .map(|i| final_bctxt[*i].as_ref().unwrap())
             .collect();
         let (actions, mut final_bctxt) = self.prepend_join(final_bctxts);
-        for (&i, mut action) in final_blocks.iter().zip(actions.iter()) {
+        for (&i, action) in final_blocks.iter().zip(actions.iter()) {
             if !action.is_empty() {
                 let mut stmts_to_add = Vec::new();
                 for a in action {
@@ -602,9 +602,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
     }
 
-    fn check_compatible_back_edge(left: &BranchCtxt<'p>, right: &BranchCtxt<'p>) {
-        let left_state = left.state();
-        let right_state = right.state();
+    fn check_compatible_back_edge(_left: &BranchCtxt<'p>, _right: &BranchCtxt<'p>) {
+        //let left_state = left.state();
+        //let right_state = right.state();
 
         // TODO: re-enable this consistency check, discarding all places for which `.is_simple_place()` is false
         //debug_assert_eq!(left_state.acc(), right_state.acc(), "back edge (acc)");
@@ -657,7 +657,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                     lhs.clone(),
                     vir::FoldingBehaviour::Expr,
                 ).apply_on_state(labelled_state, bctxt.predicates());
-                if let vir::Expr::PredicateAccessPredicate(ref name, box ref arg, perm_amount, _) =
+                if let vir::Expr::PredicateAccessPredicate(ref _name, box ref arg, perm_amount, _) =
                     lhs
                 {
                     labelled_state.insert_acc(arg.clone(), *perm_amount);
@@ -681,50 +681,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             stmts.push(vir::Stmt::comment(format!("[state] moved: {{\n//{}\n//}}", moved_state)));
         }
 
-        // 0. Insert "unfolding in" inside old expressions. This handles *old* requirements.
-        debug!("[step.0] replace_stmt: {}", stmt);
-        stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &bctxt);
-
-        // 1. Obtain "preferred" permissions (i.e. due to "weak obtain" statements)
+        // 1. Insert "unfolding in" inside old expressions. This handles *old* requirements.
         debug!("[step.1] replace_stmt: {}", stmt);
-        let preferred_perms: Vec<_> = stmt
-            .get_preferred_permissions(bctxt.predicates())
-            .into_iter()
-            .filter(|p| p.is_curr())
-            .collect();
-
-        let obtainable_preferred_perms: Vec<_> = preferred_perms
-            .into_iter()
-            .filter(|p| !(p.is_curr() && bctxt.state().is_prefix_of_some_moved(&p.get_place())))
-            .filter(|p| {
-                !(p.is_curr()
-                    && bctxt
-                        .state()
-                        .moved()
-                        .iter()
-                        .any(|mp| p.get_place().has_prefix(mp)))
-            })
-            .collect();
-
-        if !obtainable_preferred_perms.is_empty() {
-            stmts.extend(
-                bctxt
-                    .obtain_permissions(obtainable_preferred_perms)
-                    .iter()
-                    .map(|a| a.to_stmt()),
-            );
-
-            if self.check_foldunfold_state {
-                stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                stmts.push(
-                    vir::Stmt::Assert(
-                        bctxt.state().as_vir_expr(),
-                        vir::FoldingBehaviour::Expr,
-                        vir::Position::new(0, 0, "check fold/unfold state".to_string()),
-                    )
-                );
-            }
-        }
+        stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &bctxt);
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
@@ -1038,7 +997,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             &vir::Successor::GotoSwitch(ref guarded_targets, _) => {
                 guarded_targets.iter().map(|g| &g.0).collect()
             }
-            &vir::Successor::GotoIf(ref expr, _, _) => vec![expr],
             _ => vec![],
         };
 
@@ -1097,9 +1055,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                         .collect::<Vec<_>>(),
                     *default_target,
                 )
-            }
-            vir::Successor::GotoIf(condition, then_target, else_target) => {
-                vir::Successor::GotoIf(repl_expr(condition), *then_target, *else_target)
             }
         };
 

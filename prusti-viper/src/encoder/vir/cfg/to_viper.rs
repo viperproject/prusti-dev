@@ -103,11 +103,6 @@ fn successor_to_viper<'a>(
             stmts.push(default_goto);
             ast.seqn(&stmts, &[])
         }
-        Successor::GotoIf(ref test, then_target, else_target) => {
-            let then_goto = ast.goto(&basic_block_labels[then_target.block_index]);
-            let else_goto = ast.goto(&basic_block_labels[else_target.block_index]);
-            ast.if_stmt(test.to_viper(ast), then_goto, else_goto)
-        }
     }
 }
 

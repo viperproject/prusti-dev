@@ -47,6 +47,6 @@ impl<'a> AstUtils<'a> {
     }
 
     pub fn ensure_local_capacity(&self, capacity: i32) {
-        self.env.ensure_local_capacity(capacity);
+        self.env.ensure_local_capacity(capacity).unwrap();
     }
 }

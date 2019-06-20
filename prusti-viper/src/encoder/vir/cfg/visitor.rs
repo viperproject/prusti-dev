@@ -28,7 +28,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     */
 
     /// Callback method called each time the CFG is modified. Useful for debugging purposes.
-    fn current_cfg(&self, cfg: &CfgMethod) {}
+    fn current_cfg(&self, _cfg: &CfgMethod) {}
 
     /// Are two branch context compatible for a back edge?
     fn check_compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt);
@@ -163,7 +163,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
                 let actions_and_bctxt = self.prepend_join(incoming_bctxt);
                 let actions = actions_and_bctxt.0;
                 bctxt = actions_and_bctxt.1;
-                for (&src_index, mut action) in incoming_edges.iter().zip(actions) {
+                for (&src_index, action) in incoming_edges.iter().zip(actions) {
                     assert!(visited[src_index]);
                     if !action.is_noop() {
                         let src_block_index = new_cfg.block_index(src_index);
@@ -288,9 +288,6 @@ pub trait SuccessorFolder {
             Successor::GotoSwitch(guarded_targets, default_target) => {
                 self.fold_goto_switch(guarded_targets, default_target)
             }
-            Successor::GotoIf(condition, then_target, else_target) => {
-                self.fold_goto_if(condition, then_target, else_target)
-            }
         }
     }
 
@@ -325,19 +322,6 @@ pub trait SuccessorFolder {
                 .map(|(cond, targ)| (self.fold_expr(cond), targ))
                 .collect(),
             self.fold_target(default_target),
-        )
-    }
-
-    fn fold_goto_if(
-        &mut self,
-        condition: Expr,
-        then_target: CfgBlockIndex,
-        else_target: CfgBlockIndex,
-    ) -> Successor {
-        Successor::GotoIf(
-            self.fold_expr(condition),
-            self.fold_target(then_target),
-            self.fold_target(else_target),
         )
     }
 }

@@ -38,8 +38,7 @@ impl vir::Stmt {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
             | &vir::Stmt::Assert(_, _, _)
-            | &vir::Stmt::Obtain(_, _)
-            | &vir::Stmt::WeakObtain(_) => {}
+            | &vir::Stmt::Obtain(_, _) => {}
 
             &vir::Stmt::Inhale(ref expr, _) => {
                 inhale_expr(expr, state, predicates);
@@ -153,7 +152,7 @@ impl vir::Stmt {
                 // Do nothing.
             }
 
-            &vir::Stmt::Fold(ref pred_name, ref args, perm_amount, ref variant, _) => {
+            &vir::Stmt::Fold(ref _pred_name, ref args, perm_amount, ref variant, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -184,7 +183,7 @@ impl vir::Stmt {
                 state.insert_pred(place.clone(), perm_amount);
             }
 
-            &vir::Stmt::Unfold(ref pred_name, ref args, perm_amount, ref variant) => {
+            &vir::Stmt::Unfold(ref _pred_name, ref args, perm_amount, ref variant) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -209,12 +208,6 @@ impl vir::Stmt {
                 // Simulate unfolding of `place`
                 state.remove_pred(place, perm_amount);
                 state.insert_all_perms(places_in_pred.into_iter());
-            }
-
-            &vir::Stmt::Havoc => {
-                state.remove_acc_matching(|p| p.is_curr() && !p.is_local());
-                state.remove_pred_matching(|p| p.is_curr() && !p.is_local());
-                state.remove_moved_matching(|p| !p.is_local());
             }
 
             &vir::Stmt::BeginFrame => state.begin_frame(),

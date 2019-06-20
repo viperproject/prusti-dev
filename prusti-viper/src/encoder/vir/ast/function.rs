@@ -55,7 +55,7 @@ impl Function {
             .collect();
         // TODO: this does not handle let expressions, quantifiers, and so on
         self.body.clone().unwrap().fold_expr(|orig_expr| {
-            if let Expr::Local(ref local, ref pos) = orig_expr {
+            if let Expr::Local(ref local, ref _pos) = orig_expr {
                 subst[local].clone()
             } else {
                 orig_expr

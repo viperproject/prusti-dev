@@ -193,46 +193,46 @@ impl ast::ExprFolder for ExprOptimiser {
     }
     fn fold_unfolding(
         &mut self,
-        name: String,
-        mut args: Vec<ast::Expr>,
-        expr: Box<ast::Expr>,
-        perm: ast::PermAmount,
-        variant: ast::MaybeEnumVariantIndex,
-        pos: ast::Position,
+        _name: String,
+        _args: Vec<ast::Expr>,
+        _expr: Box<ast::Expr>,
+        _perm: ast::PermAmount,
+        _variant: ast::MaybeEnumVariantIndex,
+        _pos: ast::Position,
     ) -> ast::Expr {
         unreachable!();
     }
     fn fold_labelled_old(
         &mut self,
-        label: String,
-        body: Box<ast::Expr>,
-        pos: ast::Position
+        _label: String,
+        _body: Box<ast::Expr>,
+        _pos: ast::Position
     ) -> ast::Expr {
         unreachable!();
     }
     fn fold_magic_wand(
         &mut self,
-        lhs: Box<ast::Expr>,
-        rhs: Box<ast::Expr>,
-        borrow: Option<borrows::Borrow>,
-        pos: ast::Position,
+        _lhs: Box<ast::Expr>,
+        _rhs: Box<ast::Expr>,
+        _borrow: Option<borrows::Borrow>,
+        _pos: ast::Position,
     ) -> ast::Expr {
         unimplemented!()
     }
     fn fold_predicate_access_predicate(
         &mut self,
-        name: String,
-        arg: Box<ast::Expr>,
-        perm_amount: ast::PermAmount,
-        pos: ast::Position,
+        _name: String,
+        _arg: Box<ast::Expr>,
+        _perm_amount: ast::PermAmount,
+        _pos: ast::Position,
     ) -> ast::Expr {
         unimplemented!()
     }
     fn fold_field_access_predicate(
         &mut self,
-        receiver: Box<ast::Expr>,
-        perm_amount: ast::PermAmount,
-        pos: ast::Position
+        _receiver: Box<ast::Expr>,
+        _perm_amount: ast::PermAmount,
+        _pos: ast::Position
     ) -> ast::Expr {
         unimplemented!()
     }
@@ -339,37 +339,5 @@ impl ast::ExprFolder for ExprOptimiser {
             self.unfoldings.extend(expr_unfoldings);
             ast::Expr::LetExpr(var, expr_folded, body_folded, pos)
         }
-    }
-}
-
-struct RequirementsCollector {
-    /// Unfolding requirements: how deeply a specific place should be unfolded.
-    requirements: RequirementSet,
-}
-
-impl ast::ExprWalker for RequirementsCollector {
-    fn walk(&mut self, e: &ast::Expr) {
-        if e.is_place() {
-            self.requirements.insert(e.clone());
-        } else {
-            ast::default_walk_expr(self, e);
-        }
-    }
-    fn walk_unfolding(
-        &mut self,
-        _name: &str,
-        args: &Vec<ast::Expr>,
-        _body: &ast::Expr,
-        _perm: ast::PermAmount,
-        _variant: &ast::MaybeEnumVariantIndex,
-        _pos: &ast::Position
-    ) {
-        debug_assert!(args.len() == 1);
-        let arg = args[0].clone();
-        assert!(arg.is_place());
-        self.requirements.insert(arg);
-    }
-    fn walk_labelled_old(&mut self, _label: &str, _body: &ast::Expr, _pos: &ast::Position) {
-        // We do not collect requirements from old expressions.
     }
 }

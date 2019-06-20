@@ -36,6 +36,8 @@
 //!
 //! TODO: Implement `prusti_interface`.
 
+#![deny(unused_imports)]
+
 #![feature(plugin_registrar)]
 #![feature(quote)]
 #![feature(box_syntax)]

@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::vir;
-use encoder::Encoder;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
@@ -20,13 +19,12 @@ pub enum BuiltinFunctionKind {
     Undefined(vir::Type),
 }
 
-pub struct BuiltinEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+pub struct BuiltinEncoder {
 }
 
-impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> BuiltinEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>) -> Self {
-        BuiltinEncoder { encoder }
+impl BuiltinEncoder {
+    pub fn new() -> Self {
+        Self {}
     }
 
     pub fn encode_builtin_method_name(&self, method: BuiltinMethodKind) -> String {

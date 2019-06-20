@@ -131,10 +131,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    pub fn encode_name(&self) -> String {
-        self.cfg_method.name()
-    }
-
     pub fn encode(mut self) -> vir::CfgMethod {
         trace!("Encode procedure {}", self.cfg_method.name());
 
@@ -616,7 +612,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
-                let type_name = self.encoder.encode_type_predicate_use(ty);
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         self.encode_assign_operand(&encoded_lhs, operand, location)
@@ -875,7 +870,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn construct_vir_reborrowing_node_for_assignment(
         &mut self,
-        mir_dag: &ReborrowingDAG,
+        _mir_dag: &ReborrowingDAG,
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
         location: mir::Location,
@@ -903,7 +898,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ));
             for &in_loan in node.reborrowing_loans.iter() {
                 let in_location = self.polonius_info.get_loan_location(&in_loan);
-                let in_node = mir_dag.get_node(in_loan);
                 let in_label =
                     self.label_after_location
                         .get(&in_location)
@@ -984,10 +978,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn construct_vir_reborrowing_node_for_call(
         &mut self,
-        mir_dag: &ReborrowingDAG,
+        _mir_dag: &ReborrowingDAG,
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
-        location: mir::Location,
+        _location: mir::Location,
     ) -> vir::borrows::Node {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
 
@@ -1028,17 +1022,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
             if node.incoming_zombies {
-                let lhs_label = self
-                    .label_after_location
-                    .get(&loan_location)
-                    .cloned()
-                    .expect(&format!(
-                        "No label has been saved for location {:?} ({:?})",
-                        loan_location, self.label_after_location
-                    ));
                 for &in_loan in node.reborrowing_loans.iter() {
                     let in_location = self.polonius_info.get_loan_location(&in_loan);
-                    let in_node = mir_dag.get_node(in_loan);
                     let in_label =
                         self.label_after_location
                             .get(&in_location)
@@ -1132,13 +1117,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
-    }
-
-    fn encode_expiring_borrows_before(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
-        debug!("encode_expiring_borrows_before '{:?}'", location);
-        let (all_dying_loans, zombie_loans) =
-            self.polonius_info.get_all_loans_dying_before(location);
-        self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
     }
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
@@ -1549,7 +1527,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Label(label.clone()));
 
                             // Havoc the content of the lhs
-                            let (target_place, target_ty, _) = match destination.as_ref() {
+                            let (target_place, _target_ty, _) = match destination.as_ref() {
                                 Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
                                 None => unreachable!(),
                             };
@@ -2180,23 +2158,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
     }
 
-    /// Encode permissions that are implicitly carried by the given place.
-    /// `state_label` – the label of the state in which the place should
-    /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_pred_permission(&self, place: &Place<'tcx>, state_label: Option<&str>) -> vir::Expr {
-        let (encoded_place, ty, _) = self.encode_generic_place(place);
-        vir::Expr::pred_permission(encoded_place.maybe_old(state_label), vir::PermAmount::Write)
-            .unwrap()
-    }
-
-    /// Encode permissions that are implicitly carried by the given place.
-    /// `state_label` – the label of the state in which the place should
-    /// be evaluated (the place expression is wrapped in the labelled old).
-    fn encode_acc_permission(&self, place: &Place<'tcx>) -> vir::Expr {
-        let (encoded_place, _, _) = self.encode_generic_place(place);
-        vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write)
-    }
-
     /// Encode the magic wand used in the postcondition with its
     /// functional specification. Returns (lhs, rhs).
     fn encode_postcondition_magic_wand(
@@ -2362,7 +2323,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         pre_label: &str,
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
-        diverging: bool,
+        _diverging: bool,
         loan: Option<facts::Loan>,
         function_end: bool,
     ) -> (
@@ -2601,9 +2562,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let (deref_place, ..) =
                         self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
                     let old_deref_place = deref_place.clone().old(&pre_label);
-                    let deref_pred =
-                        vir::Expr::pred_permission(old_deref_place.clone(), vir::PermAmount::Write)
-                            .unwrap();
                     package_stmts.extend(self.encode_transfer_permissions(
                         deref_place,
                         old_deref_place.clone(),
@@ -2639,7 +2597,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 "We can have at most one magic wand in the postcondition."
             );
             for (path, _) in &borrow_infos[0].blocking_paths {
-                let (mut encoded_place, _, _) = self.encode_generic_place(path);
+                let (encoded_place, _, _) = self.encode_generic_place(path);
                 let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
             }
@@ -2903,7 +2861,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
         debug!("permissions_forest: {:?}", permissions_forest);
-        let mut loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
+        let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
         let enclosing_permission_forest = if loops.len() > 1 {
             let next_to_last = loops.len() - 2;
             let enclosing_loop_head = loops[next_to_last];
@@ -3809,7 +3767,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vir::LocalVar::new(name, vir_type)
     }
 
-    #[deprecated(note = "please use `encode_havoc_content` instead")]
     fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc {:?}", dst);
         // TODO: Can we encode the havoc with an exhale + inhale?
@@ -3832,7 +3789,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Havoc and assume permission on fields
-    #[deprecated(note = "please use `encode_havoc_content` instead")]
     fn encode_havoc_and_allocation(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc and allocation {:?}", dst);
 
@@ -3849,35 +3805,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             )
         );
         stmts
-    }
-
-    /// Havoc the content (Viper fields) of a place.
-    /// The place itself (Viper reference) does not change.
-    fn encode_havoc_content(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
-        debug!("Encode havoc content {:?}", dst);
-        let type_predicate = self
-            .mir_encoder
-            .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
-            .unwrap();
-        let pos = self.encoder.error_manager().register(
-            // TODO: choose a better error span
-            self.mir.span,
-            ErrorCtxt::Unexpected,
-        );
-        vec![
-            vir::Stmt::Exhale(type_predicate.clone(), pos),
-            vir::Stmt::Inhale(type_predicate, vir::FoldingBehaviour::Stmt),
-        ]
-    }
-
-    fn encode_spec_place_permission(&self, place: &vir::Expr) -> vir::Expr {
-        if let Some(field_place) = place.try_deref() {
-            vir::Expr::acc_permission(field_place, vir::PermAmount::Write)
-        } else {
-            self.mir_encoder
-                .encode_place_predicate_permission(place.clone(), vir::PermAmount::Write)
-                .unwrap()
-        }
     }
 
     /// Prepare the ``dst`` to be copy target:
@@ -4022,28 +3949,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    /// Encodes the copy of a structure, reading from a source `src` and using `dst` as target.
-    /// The copy is neither shallow nor deep:
-    /// - if a field encodes a Rust reference, the reference is copied (shallow copy);
-    /// - if a field does not encode a Rust reference, but is a Viper reference, a recursive call
-    ///   copies the content of the field (deep copy).
-    /// - if a field does not encode a Rust reference and is not a Viper reference, the field is
-    ///   copied.
-    ///
-    /// The `is_move` parameter is used just to assert that a reference is only copied when encoding
-    /// a Rust move assignment, and not a copy assignment.
-    fn encode_copy(
-        &mut self,
-        src: vir::Expr,
-        dst: vir::Expr,
-        self_ty: ty::Ty<'tcx>,
-        is_move: bool,
-        is_inner_ty: bool,
-        location: mir::Location,
-    ) -> Vec<vir::Stmt> {
-        unreachable!();
-    }
-
     fn encode_assign_aggregate(
         &mut self,
         dst: &vir::Expr,
@@ -4141,11 +4046,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     fn check_vir(&self) {
-        fn invalid(reson: String) {
-            debug!("Invalid VIR: {}", reson);
-            debug_assert!(false, "Invalid VIR: {}", reson);
-        }
-
         let mut encoded_mir_locals = HashSet::new();
         for local in self.mir.local_decls.indices() {
             encoded_mir_locals.insert(self.mir_encoder.encode_local(local));

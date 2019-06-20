@@ -615,7 +615,7 @@ impl<'tcx> SpecParser<'tcx> {
                     .map(|x| ast::GenericArg::Type(self.ast_builder.ty_ident(DUMMY_SP, x.ident)))
                     .collect();
 
-                let mut spec_item_envelope = ast::Item {
+                let spec_item_envelope = ast::Item {
                     ident: ast::Ident::from_str(""), // FIXME?
                     attrs: Vec::new(),
                     id: ast::DUMMY_NODE_ID,
@@ -1451,12 +1451,12 @@ impl<'tcx> SpecParser<'tcx> {
         let vars_string = var_match.as_str();
         let mut vars = Vec::new();
         lazy_static! {
-            static ref re: Regex =
+            static ref RE: Regex =
                 Regex::new(r"^\s*([a-z][a-z0-9]*)\s*:\s*([a-z][a-z0-9]*)\s*$").unwrap();
         }
         let builder = &self.ast_builder;
         for var_string in vars_string.split(',') {
-            if let Some(caps) = re.captures(var_string) {
+            if let Some(caps) = RE.captures(var_string) {
                 let name = &caps[1];
                 let typ = &caps[2];
                 let var = builder.arg(
@@ -1526,7 +1526,7 @@ impl<'tcx> SpecParser<'tcx> {
     ) -> Result<UntypedAssertion, AssertionParsingError> {
         let is_postcondition = true;
         lazy_static! {
-            static ref postcondition_re: Regex = Regex::new(
+            static ref POSTCONDITION_RE: Regex = Regex::new(
                 r"(?sx)
                 ^(?P<whitespace1>\s*(?P<construct>(after|assert_on)_expiry)\s*(<result>)?\s*\()
                 (?P<body>.*)
@@ -1536,7 +1536,7 @@ impl<'tcx> SpecParser<'tcx> {
             .unwrap();
         }
         lazy_static! {
-            static ref non_postcondition_re: Regex = Regex::new(
+            static ref NON_POSTCONDITION_RE: Regex = Regex::new(
                 r"(?sx)
                 ^\s*after_expiry\s*
                 (<(?P<reference>[a-zA-Z0-9_]+)>)?
@@ -1546,9 +1546,9 @@ impl<'tcx> SpecParser<'tcx> {
             .unwrap();
         }
         let captures_result = if is_postcondition {
-            postcondition_re.captures(spec_string)
+            POSTCONDITION_RE.captures(spec_string)
         } else {
-            non_postcondition_re.captures(spec_string)
+            NON_POSTCONDITION_RE.captures(spec_string)
         };
         if let Some(caps) = captures_result {
             let reference = if !is_postcondition {
@@ -1613,14 +1613,14 @@ impl<'tcx> SpecParser<'tcx> {
         let spec_string_without_parenthesis = {
             // Remove parenthesis.
             lazy_static! {
-                static ref re: Regex = Regex::new(
+                static ref RE: Regex = Regex::new(
                     r"(?sx)
                     ^\s*\(\s*(?P<forall>.*)\s*\)\s*$
                 ",
                 )
                 .unwrap();
             }
-            if let Some(caps) = re.captures(spec_string) {
+            if let Some(caps) = RE.captures(spec_string) {
                 caps.name("forall").unwrap().as_str().to_string()
             } else {
                 spec_string.to_string()
@@ -1631,7 +1631,7 @@ impl<'tcx> SpecParser<'tcx> {
             spec_string_without_parenthesis
         );
         lazy_static! {
-            static ref re: Regex = Regex::new(
+            static ref RE: Regex = Regex::new(
                 r"(?sx)
                 ^\s*forall\s*
                 (?P<vars>.*)\s*::\s*(\{(?P<triggers>.*)\})?\s*
@@ -1640,7 +1640,7 @@ impl<'tcx> SpecParser<'tcx> {
             )
             .unwrap();
         }
-        if let Some(caps) = re.captures(&spec_string_without_parenthesis) {
+        if let Some(caps) = RE.captures(&spec_string_without_parenthesis) {
             let vars = self.parse_vars(span, caps.name("vars").unwrap())?;
             let triggers = match caps.name("triggers") {
                 Some(triggers) => self.parse_triggers(span, triggers)?,
@@ -1698,9 +1698,9 @@ impl<'tcx> SpecParser<'tcx> {
         // Drop surrounding parenthesis.
         {
             lazy_static! {
-                static ref re: Regex = Regex::new(r"^(\s*\()(.*)\)\s*$").unwrap();
+                static ref RE: Regex = Regex::new(r"^(\s*\()(.*)\)\s*$").unwrap();
             }
-            if let Some(caps) = re.captures(&spec_string) {
+            if let Some(caps) = RE.captures(&spec_string) {
                 let new_span = shift_span(span, caps[1].len() as u32);
                 return self.parse_assertion_simple(new_span, String::from(&caps[2]));
             }

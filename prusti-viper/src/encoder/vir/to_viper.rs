@@ -102,15 +102,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     perm.to_viper(ast),
                 ))
             }
-            &Stmt::Obtain(ref expr, _) => {
-                // Skip
-                ast.comment(&self.to_string())
-            }
-            &Stmt::WeakObtain(ref expr) => {
-                // Skip
-                ast.comment(&self.to_string())
-            }
-            &Stmt::Havoc => {
+            &Stmt::Obtain(ref _expr, _) => {
                 // Skip
                 ast.comment(&self.to_string())
             }
@@ -176,7 +168,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             ast.seqn(stmts.as_slice(), &[])
                         }
                         &Stmt::If(ref guard, ref then_stmts) => {
-                            let mut stmts: Vec<_> = then_stmts
+                            let stmts: Vec<_> = then_stmts
                                 .iter()
                                 .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                                 .collect();
@@ -189,7 +181,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         _ => stmt.to_viper(ast),
                     }
                 };
-                let mut stmts: Vec<_> = package_stmts
+                let stmts: Vec<_> = package_stmts
                     .iter()
                     .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                     .collect();
@@ -243,7 +235,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
                 PermAmount::Write.to_viper(ast),
                 PermAmount::Read.to_viper(ast),
             ),
-            x => unreachable!("{:?}", x),
         }
     }
 }
@@ -411,7 +402,6 @@ impl<'v, 'a, 'b> ToViper<'v, viper::Expr<'v>> for (&'a Const, &'b Position) {
         match self.0 {
             &Const::Bool(true) => ast.true_lit_with_pos(self.1.to_viper(ast)),
             &Const::Bool(false) => ast.false_lit_with_pos(self.1.to_viper(ast)),
-            &Const::Null => ast.null_lit_with_pos(self.1.to_viper(ast)),
             &Const::Int(x) => ast.int_lit_with_pos(x, self.1.to_viper(ast)),
             &Const::BigInt(ref x) => ast.int_lit_from_ref_with_pos(x, self.1.to_viper(ast)),
         }

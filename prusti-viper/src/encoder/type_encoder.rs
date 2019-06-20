@@ -248,7 +248,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 }
             }
 
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+            ty::TypeVariants::TyAdt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let num_variants = adt_def.variants.len();
                 assert_eq!(num_variants, 1);
                 let field_ty = self.ty.boxed_ty();
@@ -389,7 +389,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let field_invariants = match self.ty.sty {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
             | ty::TypeVariants::TyRef(_, ref ty, _) => {
-                let elem_invariant_name = self.encoder.encode_type_invariant_use(ty);
                 let elem_field = self.encoder.encode_dereference_field(ty);
                 let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
                 vec![self.encoder.encode_invariant_func_app(ty, elem_loc)]
@@ -529,7 +528,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let tag_name = self.encoder.encode_type_tag_use(self.ty);
 
         let body = match self.ty.sty {
-            ty::TypeVariants::TyParam(param_ty) => None,
+            ty::TypeVariants::TyParam(_param_ty) => None,
             _ => Some((vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64)).into()),
         };
 
@@ -630,7 +629,7 @@ struct HackyExprFolder {
 }
 
 impl ExprFolder for HackyExprFolder {
-    fn fold_local(&mut self, v: vir::LocalVar, pos: vir::Position) -> vir::Expr {
+    fn fold_local(&mut self, _var: vir::LocalVar, pos: vir::Position) -> vir::Expr {
         vir::Expr::Local(self.saelf.clone(), pos)
     }
 }

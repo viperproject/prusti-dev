@@ -39,7 +39,7 @@ impl Action {
 
     pub fn to_expr(&self, inner_expr: vir::Expr) -> vir::Expr {
         match self {
-            Action::Fold(ref pred, ref _args, _perm, ref _variant, _) => {
+            Action::Fold(ref _pred, ref _args, _perm, ref _variant, _) => {
                 // Currently unsupported in Viper
                 unimplemented!("action {}", self)
             }

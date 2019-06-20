@@ -338,7 +338,7 @@ impl<'tcx> PermissionTree<'tcx> {
     pub fn get_children(&self, parent_place: &mir::Place<'tcx>) -> Vec<&mir::Place<'tcx>> {
         trace!("[enter] get_children self={:?} parent_place={:?}", self, parent_place);
         let mut current_parent_node = &self.root;
-        let mut components = utils::VecPlace::new(parent_place);
+        let components = utils::VecPlace::new(parent_place);
         let mut component_iter = components.iter();
         component_iter.next();
         for component in component_iter {

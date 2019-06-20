@@ -7,14 +7,8 @@
 use prusti_interface::environment::{Procedure, ProcedureLoops};
 use rustc::hir;
 use rustc::hir::def_id::DefId;
-use rustc::hir::intravisit::*;
-use rustc::middle::const_val::ConstVal;
-use rustc::mir;
-use rustc::mir::interpret::GlobalId;
 use rustc::ty;
-use rustc::ty::subst::Substs;
 use std::collections::HashSet;
-use syntax::ast::NodeId;
 use syntax::codemap::Span;
 use validators::common_validator::CommonValidator;
 use validators::unsafety_validator::contains_unsafe;

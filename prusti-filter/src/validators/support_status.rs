@@ -44,14 +44,6 @@ pub enum Restriction<T: Clone + Eq + PartialEq + Hash + Serialize> {
 }
 
 impl<T: Clone + Eq + PartialEq + Hash + Serialize> Restriction<T> {
-    pub fn partially(reason: T) -> Self {
-        Restriction::PartiallySupported(reason)
-    }
-
-    pub fn unsupported(reason: T) -> Self {
-        Restriction::Unsupported(reason)
-    }
-
     pub fn is_partially_supported(&self) -> bool {
         match self {
             Restriction::PartiallySupported(_) => true,

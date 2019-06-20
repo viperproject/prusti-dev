@@ -79,7 +79,7 @@ where
         let mut verifier_args: Vec<String> = vec![];
         if let VerificationBackend::Silicon = backend {
             verifier_args.extend(vec![
-                "--enableMoreCompleteExhale".to_string(), // Buggy :(
+                //"--enableMoreCompleteExhale".to_string(), // Buggy :(
                 "--assertTimeout".to_string(),
                 config::assert_timeout().to_string(),
                 "--tempDirectory".to_string(),
@@ -129,7 +129,6 @@ where
     ast_factory: viper::AstFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
-    spec: &'v TypedSpecificationMap,
     encoder: Encoder<'v, 'r, 'a, 'tcx>,
 }
 
@@ -146,7 +145,6 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             ast_factory,
             verifier,
             env,
-            spec,
             encoder: Encoder::new(env, spec),
         }
     }
@@ -185,7 +183,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
             if support_status.is_partially_supported() {
                 let reasons = support_status.get_partially_supported_reasons();
-                let proc_name = self.env.get_item_name(proc_id);
                 for reason in &reasons {
                     debug!("Partially supported reason: {:?}", reason);
                     let message = format!(
@@ -196,7 +193,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 }
             } else if support_status.is_unsupported() {
                 let reasons = support_status.get_unsupported_reasons();
-                let proc_name = self.env.get_item_name(proc_id);
                 for reason in &reasons {
                     debug!("Unsupported reason: {:?}", reason);
                     let message = format!(
@@ -312,7 +308,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             duration.as_secs(),
             duration.subsec_millis() / 10
         );
-        let start = Instant::now();
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,

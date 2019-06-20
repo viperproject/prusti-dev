@@ -20,23 +20,23 @@ pub fn load_variable_regions(path: &Path) -> io::Result<HashMap<mir::Local, fact
     let mut variable_regions = HashMap::new();
     let file = File::open(path)?;
     lazy_static! {
-        static ref fn_sig: Regex =
+        static ref FN_SIG: Regex =
             Regex::new(r"^fn [a-zA-Z\d_]+\((?P<args>.*)\) -> (?P<result>.*)\{$").unwrap();
     }
     lazy_static! {
-        static ref arg: Regex =
+        static ref ARG: Regex =
             Regex::new(r"^_(?P<local>\d+): &'(?P<rvid>\d+)rv (mut)? [a-zA-Z\d_]+\s*$").unwrap();
     }
     lazy_static! {
-        static ref local: Regex =
+        static ref LOCAL: Regex =
             Regex::new(r"^\s+let( mut)? _(?P<local>\d+): &'(?P<rvid>\d+)rv ").unwrap();
     }
     for line in io::BufReader::new(file).lines() {
         let line = line?;
-        if let Some(caps) = fn_sig.captures(&line) {
+        if let Some(caps) = FN_SIG.captures(&line) {
             debug!("args: {} result: {}", &caps["args"], &caps["result"]);
             for arg_str in (&caps["args"]).split(", ") {
-                if let Some(arg_caps) = arg.captures(arg_str) {
+                if let Some(arg_caps) = ARG.captures(arg_str) {
                     debug!("arg {} rvid {}", &arg_caps["local"], &arg_caps["rvid"]);
                     let local_arg: usize = (&arg_caps["local"]).parse().unwrap();
                     let rvid: usize = (&arg_caps["rvid"]).parse().unwrap();
@@ -44,7 +44,7 @@ pub fn load_variable_regions(path: &Path) -> io::Result<HashMap<mir::Local, fact
                 }
             }
         }
-        if let Some(local_caps) = local.captures(&line) {
+        if let Some(local_caps) = LOCAL.captures(&line) {
             debug!(
                 "local {} rvid {}",
                 &local_caps["local"], &local_caps["rvid"]

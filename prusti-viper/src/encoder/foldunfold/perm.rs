@@ -9,7 +9,6 @@ use encoder::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
-use std::fmt::Display;
 
 /// An access or predicate permission to a place
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -41,10 +40,6 @@ impl Perm {
         }
     }
 
-    pub fn is_old(&self) -> bool {
-        self.get_place().is_old()
-    }
-
     pub fn is_curr(&self) -> bool {
         self.get_place().is_curr()
     }
@@ -53,16 +48,8 @@ impl Perm {
         self.get_place().is_local()
     }
 
-    pub fn is_simple_place(&self) -> bool {
-        self.get_place().is_simple_place()
-    }
-
     pub fn typed_ref_name(&self) -> Option<String> {
         self.get_place().typed_ref_name()
-    }
-
-    pub fn get_type(&self) -> &vir::Type {
-        self.get_place().get_type()
     }
 
     pub fn get_label(&self) -> Option<&String> {
@@ -82,18 +69,6 @@ impl Perm {
         }
     }
 
-    pub fn place_as_mut_ref(&mut self) -> &mut vir::Expr {
-        match self {
-            &mut Perm::Acc(ref mut place, _) | &mut Perm::Pred(ref mut place, _) => place,
-        }
-    }
-
-    pub fn unwrap_place(self) -> vir::Expr {
-        match self {
-            Perm::Acc(place, _) | Perm::Pred(place, _) => place,
-        }
-    }
-
     pub fn map_place<F>(self, f: F) -> Self
     where
         F: Fn(vir::Expr) -> vir::Expr,
@@ -104,24 +79,16 @@ impl Perm {
         }
     }
 
-    pub fn old<S: ToString + Clone + Display>(self, label: S) -> Self {
-        self.map_place(|p| p.old(label.clone()))
-    }
-
     pub fn has_proper_prefix(&self, other: &vir::Expr) -> bool {
         self.get_place().has_proper_prefix(other)
-    }
-
-    pub fn has_prefix(&self, other: &vir::Expr) -> bool {
-        self.get_place().has_prefix(other)
     }
 
     pub fn init_perm_amount(self, new_perm: PermAmount) -> Self {
         trace!("[enter] init_perm_amount({}, {})", self, new_perm);
         assert!(new_perm.is_valid_for_specs());
         match self {
-            Perm::Acc(expr, PermAmount::Remaining) => unreachable!(),
-            Perm::Pred(expr, PermAmount::Remaining) => unreachable!(),
+            Perm::Acc(_expr, PermAmount::Remaining) => unreachable!(),
+            Perm::Pred(_expr, PermAmount::Remaining) => unreachable!(),
             Perm::Acc(expr, _) => Perm::Acc(expr, new_perm),
             Perm::Pred(expr, _) => Perm::Pred(expr, new_perm),
         }
@@ -134,10 +101,6 @@ impl Perm {
             Perm::Acc(expr, _) => Perm::Acc(expr, new_perm),
             Perm::Pred(expr, _) => Perm::Pred(expr, new_perm),
         }
-    }
-
-    pub fn pos(&self) -> &vir::Position {
-        self.get_place().pos()
     }
 
     pub fn set_default_pos(self, pos: vir::Position) -> Self {
@@ -188,40 +151,6 @@ impl PermSet {
             Perm::Acc(place, perm_amount) => self.acc_perms.insert(place, perm_amount),
             Perm::Pred(place, perm_amount) => self.pred_perms.insert(place, perm_amount),
         };
-    }
-
-    pub fn add_all(&mut self, mut perms: Vec<Perm>) {
-        for perm in perms.drain(..) {
-            self.add(perm);
-        }
-    }
-
-    /// Corresponds to an `exhale`
-    /// Note: the amount of the permission is actually ignored
-    pub fn remove(&mut self, perm: &Perm) {
-        match perm {
-            Perm::Acc(..) => self.acc_perms.remove(perm.get_place()),
-            Perm::Pred(..) => self.pred_perms.remove(perm.get_place()),
-        };
-    }
-
-    pub fn remove_all(&mut self, mut perms: Vec<&Perm>) {
-        for perm in perms.drain(..) {
-            self.remove(perm);
-        }
-    }
-
-    /// Corresponds to an `assert`
-    /// Note: the amount of the permission is actually ignored
-    pub fn contains(&self, perm: &Perm) -> bool {
-        match perm {
-            Perm::Acc(..) => self.acc_perms.contains_key(perm.get_place()),
-            Perm::Pred(..) => self.pred_perms.contains_key(perm.get_place()),
-        }
-    }
-
-    pub fn contains_all(&self, perms: Vec<&Perm>) -> bool {
-        perms.iter().all(|x| self.contains(x))
     }
 
     pub fn perms(mut self) -> Vec<Perm> {
@@ -299,7 +228,7 @@ fn place_perm_difference(
 }
 
 /// Set difference that takes into account that removing `x.f` also removes any `x.f.g.h`
-pub fn perm_difference(mut left: HashSet<Perm>, mut right: HashSet<Perm>) -> HashSet<Perm> {
+pub fn perm_difference(left: HashSet<Perm>, right: HashSet<Perm>) -> HashSet<Perm> {
     trace!(
         "[enter] perm_difference(left={:?}, right={:?})",
         left,

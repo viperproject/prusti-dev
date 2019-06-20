@@ -26,13 +26,6 @@ pub enum Stmt {
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     Obtain(Expr, Position),
-    /// WeakObtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
-    /// They will be used by the fold/unfold algorithm
-    #[deprecated]
-    WeakObtain(Expr),
-    /// Havoc: used for emptying the fold/unfold state
-    #[deprecated]
-    Havoc,
     /// Mark a CFG point in which all current permissions are framed out
     /// They will be used by the fold/unfold algorithm
     BeginFrame,
@@ -153,10 +146,6 @@ impl fmt::Display for Stmt {
 
             Stmt::Obtain(ref expr, _) => write!(f, "obtain {}", expr),
 
-            Stmt::WeakObtain(ref expr) => write!(f, "weak obtain {}", expr),
-
-            Stmt::Havoc => write!(f, "havoc"),
-
             Stmt::BeginFrame => write!(f, "begin frame"),
 
             Stmt::EndFrame => write!(f, "end frame"),
@@ -220,46 +209,6 @@ impl Stmt {
         Stmt::Comment(comment.to_string())
     }
 
-    pub fn obtain_acc(place: Expr, pos: Position) -> Self {
-        assert!(!place.is_local());
-        Stmt::Obtain(
-            Expr::FieldAccessPredicate(box place, PermAmount::Write, pos.clone()),
-            pos,
-        )
-    }
-
-    pub fn obtain_pred(place: Expr, pos: Position) -> Self {
-        let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Obtain(
-            Expr::PredicateAccessPredicate(
-                predicate_name,
-                box place,
-                PermAmount::Write,
-                pos.clone(),
-            ),
-            pos,
-        )
-    }
-
-    pub fn fold_pred(
-        place: Expr,
-        perm: PermAmount,
-        variant: MaybeEnumVariantIndex,
-        pos: Position
-    ) -> Self {
-        let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Fold(predicate_name, vec![place.into()], perm, variant, pos)
-    }
-
-    pub fn unfold_pred(
-        place: Expr,
-        perm: PermAmount,
-        variant: MaybeEnumVariantIndex
-    ) -> Self {
-        let predicate_name = place.typed_ref_name().unwrap();
-        Stmt::Unfold(predicate_name, vec![place], perm, variant)
-    }
-
     pub fn package_magic_wand(
         lhs: Expr,
         rhs: Expr,
@@ -290,7 +239,9 @@ impl Stmt {
 
     pub fn set_pos(self, pos: Position) -> Self {
         match self {
-            Stmt::PackageMagicWand(w, s, l, v, p) => Stmt::PackageMagicWand(w, s, l, v, pos),
+            Stmt::PackageMagicWand(wand, package_body, label, vars, _) => {
+                Stmt::PackageMagicWand(wand, package_body, label, vars, pos)
+            },
             x => x,
         }
     }
@@ -323,8 +274,6 @@ pub trait StmtFolder {
             Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
             Stmt::Unfold(s, ve, perm, variant) => self.fold_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.fold_obtain(e, p),
-            Stmt::WeakObtain(e) => self.fold_weak_obtain(e),
-            Stmt::Havoc => self.fold_havoc(),
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::TransferPerm(a, b, c) => self.fold_transfer_perm(a, b, c),
@@ -398,14 +347,6 @@ pub trait StmtFolder {
         Stmt::Obtain(self.fold_expr(e), p)
     }
 
-    fn fold_weak_obtain(&mut self, e: Expr) -> Stmt {
-        Stmt::WeakObtain(self.fold_expr(e))
-    }
-
-    fn fold_havoc(&mut self) -> Stmt {
-        Stmt::Havoc
-    }
-
     fn fold_begin_frame(&mut self) -> Stmt {
         Stmt::BeginFrame
     }
@@ -464,8 +405,6 @@ pub trait StmtWalker {
             Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
             Stmt::Unfold(s, ve, perm, variant) => self.walk_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.walk_obtain(e, p),
-            Stmt::WeakObtain(e) => self.walk_weak_obtain(e),
-            Stmt::Havoc => self.walk_havoc(),
             Stmt::BeginFrame => self.walk_begin_frame(),
             Stmt::EndFrame => self.walk_end_frame(),
             Stmt::TransferPerm(a, b, c) => self.walk_transfer_perm(a, b, c),
@@ -476,71 +415,71 @@ pub trait StmtWalker {
         }
     }
 
-    fn walk_expr(&mut self, e: &Expr) {}
+    fn walk_expr(&mut self, _expr: &Expr) {}
 
-    fn walk_local_var(&mut self, local_var: &LocalVar) {}
+    fn walk_local_var(&mut self, _local_var: &LocalVar) {}
 
-    fn walk_comment(&mut self, s: &str) {}
+    fn walk_comment(&mut self, _text: &str) {}
 
-    fn walk_label(&mut self, s: &str) {}
+    fn walk_label(&mut self, _label: &str) {}
 
-    fn walk_inhale(&mut self, expr: &Expr, folding: &FoldingBehaviour) {
+    fn walk_inhale(&mut self, expr: &Expr, _folding: &FoldingBehaviour) {
         self.walk_expr(expr);
     }
 
-    fn walk_exhale(&mut self, e: &Expr, p: &Position) {
-        self.walk_expr(e);
-    }
-
-    fn walk_assert(&mut self, expr: &Expr, folding: &FoldingBehaviour, pos: &Position) {
+    fn walk_exhale(&mut self, expr: &Expr, _pos: &Position) {
         self.walk_expr(expr);
     }
 
-    fn walk_method_call(&mut self, s: &str, ve: &Vec<Expr>, vv: &Vec<LocalVar>) {
-        for a in ve {
-            self.walk_expr(a);
+    fn walk_assert(&mut self, expr: &Expr, _folding: &FoldingBehaviour, _pos: &Position) {
+        self.walk_expr(expr);
+    }
+
+    fn walk_method_call(&mut self, _method_name: &str, args: &Vec<Expr>, targets: &Vec<LocalVar>) {
+        for arg in args {
+            self.walk_expr(arg);
         }
-        for t in vv {
-            self.walk_local_var(t);
+        for target in targets {
+            self.walk_local_var(target);
         }
     }
 
-    fn walk_assign(&mut self, p: &Expr, e: &Expr, k: &AssignKind) {
-        self.walk_expr(p);
-        self.walk_expr(e);
+    fn walk_assign(&mut self, target: &Expr, expr: &Expr, _kind: &AssignKind) {
+        self.walk_expr(target);
+        self.walk_expr(expr);
     }
 
     fn walk_fold(
         &mut self,
-        s: &str,
-        ve: &Vec<Expr>,
-        perm: &PermAmount,
-        variant: &MaybeEnumVariantIndex,
-        p: &Position
+        _predicate_name: &str,
+        args: &Vec<Expr>,
+        _perm: &PermAmount,
+        _variant: &MaybeEnumVariantIndex,
+        _pos: &Position
     ) {
-        for a in ve {
-            self.walk_expr(a);
+        for arg in args {
+            self.walk_expr(arg);
         }
     }
 
     fn walk_unfold(
         &mut self,
-        s: &str,
-        ve: &Vec<Expr>,
-        perm: &PermAmount,
-        variant: &MaybeEnumVariantIndex,
+        _predicate_name: &str,
+        args: &Vec<Expr>,
+        _perm: &PermAmount,
+        _variant: &MaybeEnumVariantIndex,
     ) {
-        for a in ve {
-            self.walk_expr(a);
+        for arg in args {
+            self.walk_expr(arg);
         }
     }
 
-    fn walk_obtain(&mut self, e: &Expr, _p: &Position) {
-        self.walk_expr(e);
+    fn walk_obtain(&mut self, expr: &Expr, _pos: &Position) {
+        self.walk_expr(expr);
     }
 
-    fn walk_weak_obtain(&mut self, e: &Expr) {
-        self.walk_expr(e);
+    fn walk_weak_obtain(&mut self, expr: &Expr) {
+        self.walk_expr(expr);
     }
 
     fn walk_havoc(&mut self) {}
@@ -549,18 +488,18 @@ pub trait StmtWalker {
 
     fn walk_end_frame(&mut self) {}
 
-    fn walk_transfer_perm(&mut self, a: &Expr, b: &Expr, unchecked: &bool) {
-        self.walk_expr(a);
-        self.walk_expr(b);
+    fn walk_transfer_perm(&mut self, from: &Expr, to: &Expr, _unchecked: &bool) {
+        self.walk_expr(from);
+        self.walk_expr(to);
     }
 
     fn walk_package_magic_wand(
         &mut self,
         wand: &Expr,
         body: &Vec<Stmt>,
-        label: &str,
+        _label: &str,
         vars: &[LocalVar],
-        _p: &Position,
+        _pos: &Position,
     ) {
         self.walk_expr(wand);
         for var in vars {
@@ -571,13 +510,13 @@ pub trait StmtWalker {
         }
     }
 
-    fn walk_apply_magic_wand(&mut self, w: &Expr, _p: &Position) {
-        self.walk_expr(w);
+    fn walk_apply_magic_wand(&mut self, wand: &Expr, _p: &Position) {
+        self.walk_expr(wand);
     }
 
-    fn walk_expire_borrows(&mut self, dag: &ReborrowingDAG) {}
+    fn walk_expire_borrows(&mut self, _dag: &ReborrowingDAG) {}
 
-    fn walk_nested_cfg(&mut self, entry: &CfgBlockIndex, exit: &CfgBlockIndex) {}
+    fn walk_nested_cfg(&mut self, _entry: &CfgBlockIndex, _exit: &CfgBlockIndex) {}
 
     fn walk_if(&mut self, g: &Expr, t: &Vec<Stmt>) {
         self.walk_expr(g);

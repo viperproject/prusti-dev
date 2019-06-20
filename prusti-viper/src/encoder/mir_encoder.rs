@@ -10,7 +10,6 @@ use encoder::vir;
 use encoder::Encoder;
 use prusti_interface::config;
 use rustc::hir::def_id::DefId;
-use rustc::hir::Mutability;
 use rustc::mir;
 use rustc::ty;
 use rustc_data_structures::indexed_vec::Idx;
@@ -61,10 +60,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn def_id(&self) -> DefId {
-        self.def_id
-    }
-
     pub fn encode_local_var_name(&self, local: mir::Local) -> String {
         format!("{}{:?}", self.namespace, local)
     }
@@ -79,18 +74,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             .encoder
             .encode_type_predicate_use(self.get_local_ty(local));
         vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
-    }
-
-    pub fn encode_local_var_with_name(&self, name: String) -> Option<vir::LocalVar> {
-        self.mir
-            .local_decls
-            .iter_enumerated()
-            .find(|(index, decl)| decl.name.is_some() && decl.name.unwrap().to_string() == name)
-            .map(|(index, decl)| {
-                let var_name = format!("{}{:?}", self.namespace, index);
-                let type_name = self.encoder.encode_type_predicate_use(decl.ty);
-                vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
-            })
     }
 
     /// Returns
@@ -183,7 +166,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             .nth(field.index())
                             .unwrap();
 
-                        let mut encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
+                        let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
                             let freevar = &freevars[field.index()];
                             let field_name = format!("closure_{}", field.index());
                             let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
@@ -226,18 +209,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn is_mut_reference(&self, base_ty: ty::Ty<'tcx>) -> bool {
-        trace!("is_mut_reference {}", base_ty);
-        match base_ty.sty {
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                mutbl: Mutability::MutMutable,
-                ..
-            })
-            | ty::TypeVariants::TyRef(_, _, Mutability::MutMutable) => true,
-            _ => false,
-        }
-    }
-
     pub fn can_be_dereferenced(&self, base_ty: ty::Ty<'tcx>) -> bool {
         trace!("can_be_dereferenced {}", base_ty);
         match base_ty.sty {
@@ -276,7 +247,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
                 (access, ty, None)
             }
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+            ty::TypeVariants::TyAdt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
                     encoded_base.get_parent().unwrap()
                 } else {
@@ -301,7 +272,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         trace!("Encode operand expr {:?}", operand);
         match operand {
             &mir::Operand::Constant(box mir::Constant {
-                ty,
                 literal: mir::Literal::Value { value },
                 ..
             }) => self.encoder.encode_const_expr(value),
@@ -311,7 +281,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
             &mir::Operand::Constant(box mir::Constant {
                 ty,
-                literal: mir::Literal::Promoted { index },
+                literal: mir::Literal::Promoted { .. },
                 ..
             }) => {
                 debug!("Incomplete encoding of promoted literal {:?}", operand);
@@ -643,12 +613,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::Expr::pred_permission(place, perm)
     }
 
-    pub fn encode_old_place(&self, mut place: vir::Expr, label: &str) -> vir::Expr {
-        debug!("encode_old_place {}, {}", place, label);
-        vir::Expr::labelled_old(label, place.into())
-    }
-
-    pub fn encode_old_expr(&self, mut expr: vir::Expr, label: &str) -> vir::Expr {
+    pub fn encode_old_expr(&self, expr: vir::Expr, label: &str) -> vir::Expr {
         debug!("encode_old_expr {}, {}", expr, label);
         vir::Expr::labelled_old(label, expr)
     }

@@ -76,9 +76,9 @@ pub trait TypeVisitor<'a, 'tcx>: Sized {
 
     fn visit_never(&mut self) {}
 
-    fn visit_param(&mut self, param: ParamTy) {}
+    fn visit_param(&mut self, _param: ParamTy) {}
 
-    fn visit_projection(&mut self, data: ProjectionTy<'tcx>) {}
+    fn visit_projection(&mut self, _data: ProjectionTy<'tcx>) {}
 
     fn visit_adt(&mut self, adt_def: &'tcx AdtDef, substs: &'tcx Substs<'tcx>) {
         trace!("visit_adt({:?})", adt_def);
