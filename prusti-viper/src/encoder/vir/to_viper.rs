@@ -243,7 +243,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for PermAmount {
                 PermAmount::Write.to_viper(ast),
                 PermAmount::Read.to_viper(ast),
             ),
-            x => unreachable!("{:?}", x),
         }
     }
 }
