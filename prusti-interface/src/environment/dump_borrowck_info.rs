@@ -14,8 +14,7 @@ use super::mir_analyses::liveness::{compute_liveness, LivenessAnalysisResult};
 use super::polonius_info::PoloniusInfo;
 use super::procedure::Procedure;
 use data::ProcedureDefId;
-use rustc::hir::itemlikevisit::ItemLikeVisitor;
-use rustc::hir::{self, intravisit};
+use rustc::hir;
 use rustc::mir;
 use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
@@ -23,19 +22,16 @@ use rustc_hash::FxHashMap;
 use std::cell;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::env;
-use std::fs::create_dir_all;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::PathBuf;
-use syntax::ast;
-use syntax::codemap::Span;
 
 pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, procedures: &Vec<ProcedureDefId>) {
     trace!("[dump_borrowck_info] enter");
 
     assert!(tcx.use_mir_borrowck(), "NLL is not enabled.");
 
-    let mut printer = InfoPrinter { tcx: tcx };
+    let printer = InfoPrinter { tcx: tcx };
     //intravisit::walk_crate(&mut printer, tcx.hir.krate());
     //tcx.hir.krate().visit_all_item_likes(&mut printer);
 
@@ -84,7 +80,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
         let initialization = compute_definitely_initialized(&mir, self.tcx, def_path.clone());
         let liveness = compute_liveness(&mir);
 
-        let mut mir_info_printer = MirInfoPrinter {
+        let mir_info_printer = MirInfoPrinter {
             def_path: def_path,
             tcx: self.tcx,
             mir: &mir,
