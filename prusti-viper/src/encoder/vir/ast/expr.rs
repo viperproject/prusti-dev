@@ -1639,11 +1639,17 @@ where
     T: Iterator<Item = Expr>,
 {
     fn conjoin(&mut self) -> Expr {
-        if let Some(init) = self.next() {
-            self.fold(init, |acc, conjunct| Expr::and(acc, conjunct))
-        } else {
-            true.into()
+        fn rfold<T>(s: &mut T) -> Expr
+        where
+            T: Iterator<Item = Expr>,
+        {
+            if let Some(conjunct) = s.next() {
+                Expr::and(conjunct, rfold(s))
+            } else {
+                true.into()
+            }
         }
+        rfold(self)
     }
 
     fn disjoin(&mut self) -> Expr {
