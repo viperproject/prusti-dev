@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#![deny(unused_imports)]
+
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
@@ -28,11 +30,9 @@ mod validators;
 
 use self::crate_visitor::{CrateStatus, CrateVisitor};
 use prusti_interface::config;
-use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::sysroot::current_sysroot;
 use rustc::hir::intravisit::Visitor;
 use rustc_driver::driver::{CompileController, CompileState};
-use rustc_driver::Compilation;
 use rustc_driver::RustcDefaultCalls;
 use std::env;
 use std::fs;

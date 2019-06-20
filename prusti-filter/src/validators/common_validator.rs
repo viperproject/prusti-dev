@@ -4,23 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_interface::environment::{Procedure, ProcedureLoops};
 use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::hir::intravisit::*;
 use rustc::hir::map::Node;
 use rustc::middle::const_val::ConstVal;
 use rustc::mir;
-use rustc::mir::interpret::GlobalId;
 use rustc::mir::BinOp;
 use rustc::mir::UnOp;
 use rustc::ty;
 use rustc::ty::subst::Substs;
-use std::collections::HashSet;
-use std::hint::unreachable_unchecked;
 use syntax::ast;
 use syntax::codemap::Span;
-use validators::unsafety_validator::contains_unsafe;
 use validators::Reason;
 use validators::SupportStatus;
 
