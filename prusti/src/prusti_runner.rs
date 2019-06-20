@@ -6,7 +6,6 @@
 
 use compiler_calls::PrustiCompilerCalls;
 use prusti_interface::config;
-use prusti_interface::report::user;
 use rustc::session::CompileResult;
 use rustc::session::Session;
 use rustc_driver;
