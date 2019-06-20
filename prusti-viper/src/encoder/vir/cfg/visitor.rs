@@ -163,7 +163,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
                 let actions_and_bctxt = self.prepend_join(incoming_bctxt);
                 let actions = actions_and_bctxt.0;
                 bctxt = actions_and_bctxt.1;
-                for (&src_index, mut action) in incoming_edges.iter().zip(actions) {
+                for (&src_index, action) in incoming_edges.iter().zip(actions) {
                     assert!(visited[src_index]);
                     if !action.is_noop() {
                         let src_block_index = new_cfg.block_index(src_index);

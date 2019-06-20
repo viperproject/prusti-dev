@@ -176,7 +176,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             ast.seqn(stmts.as_slice(), &[])
                         }
                         &Stmt::If(ref guard, ref then_stmts) => {
-                            let mut stmts: Vec<_> = then_stmts
+                            let stmts: Vec<_> = then_stmts
                                 .iter()
                                 .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                                 .collect();
@@ -189,7 +189,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                         _ => stmt.to_viper(ast),
                     }
                 };
-                let mut stmts: Vec<_> = package_stmts
+                let stmts: Vec<_> = package_stmts
                     .iter()
                     .map(|stmt| stmt_to_viper_in_packge(stmt, ast))
                     .collect();

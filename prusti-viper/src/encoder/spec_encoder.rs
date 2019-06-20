@@ -156,7 +156,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     fn encode_hir_variable(&self, var_path: &hir::Path) -> vir::LocalVar {
         trace!("encode_hir_variable: {:?}", var_path);
         let original_var_name = self.path_to_string(var_path);
-        let mut is_quantified_var;
+        let is_quantified_var;
 
         // Special variable names
         let var_name = if original_var_name == "result" {
