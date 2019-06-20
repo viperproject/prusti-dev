@@ -85,7 +85,7 @@ impl vir::ExprFolder for Optimiser {
     ) -> vir::Expr {
         debug!("original body: {}", body);
         let mut replacer = OldPlaceReplacer::new();
-        let mut replaced_body = replacer.fold_boxed(body);
+        let replaced_body = replacer.fold_boxed(body);
         debug!("replaced body: {}", replaced_body);
         let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos.clone());
 

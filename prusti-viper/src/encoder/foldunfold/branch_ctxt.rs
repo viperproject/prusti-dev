@@ -43,7 +43,7 @@ impl<'a> BranchCtxt<'a> {
 
     pub fn clone_clean(&self) -> Self {
         let mut new_bctxt = self.clone();
-        let mut state = new_bctxt.mut_state();
+        let state = new_bctxt.mut_state();
         state.remove_all();
         new_bctxt
     }
@@ -215,7 +215,7 @@ impl<'a> BranchCtxt<'a> {
                     .or_else(|| get_perm_amount(&other))
                     .unwrap();
                 let pred_perm = Perm::pred(pred_place.clone(), perm_amount);
-                let mut try_obtain =
+                let try_obtain =
                     |left_ctxt: &mut BranchCtxt,
                      right_ctxt: &mut BranchCtxt,
                      left_actions: &mut Vec<_>,
@@ -229,7 +229,7 @@ impl<'a> BranchCtxt<'a> {
                                     "Failed to obtain: {} because of {}",
                                     pred_perm, missing_perm
                                 );
-                                let mut remove_places =
+                                let remove_places =
                                     |ctxt: &mut BranchCtxt, actions: &mut Vec<_>| {
                                         ctxt.state.remove_moved_matching(|moved_place| {
                                             moved_place.has_prefix(&pred_place)
@@ -271,7 +271,7 @@ impl<'a> BranchCtxt<'a> {
             }
             // Obtain access permissions by unfolding
             for acc_place in &unfold_actual_acc {
-                let mut try_obtain =
+                let try_obtain =
                     |ctxt_left: &mut BranchCtxt,
                      ctxt_right: &mut BranchCtxt,
                      left_actions: &mut Vec<_>,

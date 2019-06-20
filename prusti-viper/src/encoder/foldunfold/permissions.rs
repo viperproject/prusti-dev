@@ -328,7 +328,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                                         .unwrap(),
                                 )
                             } else {
-                                let mut predicate_name = arg.get_type().name();
+                                let predicate_name = arg.get_type().name();
                                 vir::Expr::predicate_access_predicate(
                                     predicate_name.clone(),
                                     arg.clone().into(),

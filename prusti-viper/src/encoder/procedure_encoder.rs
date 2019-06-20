@@ -2625,7 +2625,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 "We can have at most one magic wand in the postcondition."
             );
             for (path, _) in &borrow_infos[0].blocking_paths {
-                let (mut encoded_place, _, _) = self.encode_generic_place(path);
+                let (encoded_place, _, _) = self.encode_generic_place(path);
                 let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
             }
@@ -2889,7 +2889,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         let permissions_forest = self.loop_encoder.compute_loop_invariant(loop_head);
         debug!("permissions_forest: {:?}", permissions_forest);
-        let mut loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
+        let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
         let enclosing_permission_forest = if loops.len() > 1 {
             let next_to_last = loops.len() - 2;
             let enclosing_loop_head = loops[next_to_last];

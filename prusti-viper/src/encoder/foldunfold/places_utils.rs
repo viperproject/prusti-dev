@@ -275,7 +275,7 @@ pub fn filter_not_extensions_of(
 ) -> HashSet<vir::Expr> {
     let mut res = HashSet::new();
     for left_item in left.iter() {
-        let mut remove = if let Some(parent) = left_item.get_parent() {
+        let remove = if let Some(parent) = left_item.get_parent() {
             right.contains(&parent)
         // TODO: Check which version we should use here.
         //for right_item in right.iter() {

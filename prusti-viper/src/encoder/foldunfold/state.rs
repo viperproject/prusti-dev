@@ -546,7 +546,7 @@ impl State {
     /// Argument: the places to preserve
     pub fn remove_dropped(&mut self, places: &[vir::Expr]) {
         debug_assert!(places.iter().all(|p| p.is_place()));
-        let mut to_remove: Vec<_> = self.dropped.iter().cloned().collect();
+        let to_remove: Vec<_> = self.dropped.iter().cloned().collect();
         self.dropped.clear();
         for dropped_perm in to_remove.into_iter() {
             if !places
@@ -793,7 +793,7 @@ impl State {
             "Before: {} frames are on the stack",
             self.framing_stack.len()
         );
-        let mut framed_perms = self.framing_stack.pop().unwrap();
+        let framed_perms = self.framing_stack.pop().unwrap();
         debug!("Framed permissions: {}", framed_perms);
         for perm in framed_perms.perms().drain(..) {
             self.insert_perm(perm);

@@ -299,7 +299,7 @@ fn place_perm_difference(
 }
 
 /// Set difference that takes into account that removing `x.f` also removes any `x.f.g.h`
-pub fn perm_difference(mut left: HashSet<Perm>, mut right: HashSet<Perm>) -> HashSet<Perm> {
+pub fn perm_difference(left: HashSet<Perm>, right: HashSet<Perm>) -> HashSet<Perm> {
     trace!(
         "[enter] perm_difference(left={:?}, right={:?})",
         left,

@@ -183,7 +183,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             .nth(field.index())
                             .unwrap();
 
-                        let mut encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
+                        let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
                             let freevar = &freevars[field.index()];
                             let field_name = format!("closure_{}", field.index());
                             let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
@@ -642,12 +642,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::Expr::pred_permission(place, perm)
     }
 
-    pub fn encode_old_place(&self, mut place: vir::Expr, label: &str) -> vir::Expr {
+    pub fn encode_old_place(&self, place: vir::Expr, label: &str) -> vir::Expr {
         debug!("encode_old_place {}, {}", place, label);
         vir::Expr::labelled_old(label, place.into())
     }
 
-    pub fn encode_old_expr(&self, mut expr: vir::Expr, label: &str) -> vir::Expr {
+    pub fn encode_old_expr(&self, expr: vir::Expr, label: &str) -> vir::Expr {
         debug!("encode_old_expr {}, {}", expr, label);
         vir::Expr::labelled_old(label, expr)
     }

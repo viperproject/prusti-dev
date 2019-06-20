@@ -365,7 +365,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
         let type_encoder = TypeEncoder::new(self, ty);
-        let mut field = type_encoder.encode_value_field();
+        let field = type_encoder.encode_value_field();
         self.fields
             .borrow_mut()
             .entry(field.name.clone())

@@ -150,7 +150,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             }
             vir::Stmt::TransferPerm(lhs, rhs, unchecked) => {
                 // Compute rhs state
-                let mut rhs_bctxt = bctxt.clone();
+                let rhs_bctxt = bctxt.clone();
                 /*
                 let rhs_state = rhs_bctxt.mut_state();
                 rhs_state.insert_all_perms(
@@ -291,7 +291,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 }
                 let incoming_bctxt_refs = incoming_bctxt.iter().collect();
                 let (actions, mut bctxt) = self.prepend_join(incoming_bctxt_refs);
-                for (&src_index, mut action) in curr_block.predecessors.iter().zip(&actions) {
+                for (&src_index, action) in curr_block.predecessors.iter().zip(&actions) {
                     assert!(src_index < curr_block_index);
                     if !action.is_empty() {
                         //let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
@@ -422,7 +422,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             .map(|i| final_bctxt[*i].as_ref().unwrap())
             .collect();
         let (actions, mut final_bctxt) = self.prepend_join(final_bctxts);
-        for (&i, mut action) in final_blocks.iter().zip(actions.iter()) {
+        for (&i, action) in final_blocks.iter().zip(actions.iter()) {
             if !action.is_empty() {
                 let mut stmts_to_add = Vec::new();
                 for a in action {
