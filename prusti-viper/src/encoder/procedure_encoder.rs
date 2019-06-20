@@ -3767,7 +3767,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vir::LocalVar::new(name, vir_type)
     }
 
-    #[deprecated(note = "please use `encode_havoc_content` instead")]
     fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc {:?}", dst);
         // TODO: Can we encode the havoc with an exhale + inhale?
@@ -3790,7 +3789,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Havoc and assume permission on fields
-    #[deprecated(note = "please use `encode_havoc_content` instead")]
     fn encode_havoc_and_allocation(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc and allocation {:?}", dst);
 
