@@ -8,7 +8,6 @@ use encoder::vir::Position;
 use std::collections::HashMap;
 use syntax::codemap::CodeMap;
 use syntax_pos::MultiSpan;
-use syntax_pos::DUMMY_SP;
 use uuid::Uuid;
 use viper::VerificationError;
 
@@ -53,10 +52,12 @@ pub enum ErrorCtxt {
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
+    #[allow(dead_code)]
     UnreachableTerminator,
     /// An error that should never happen
     Unexpected,
     /// A pure function definition
+    #[allow(dead_code)]
     PureFunctionDefinition,
     /// A pure function call
     PureFunctionCall,
@@ -111,10 +112,6 @@ impl<'tcx> ErrorManager<'tcx> {
             codemap,
             error_contexts: HashMap::new(),
         }
-    }
-
-    pub fn no_position(&mut self) -> Position {
-        self.register(DUMMY_SP, ErrorCtxt::Unexpected)
     }
 
     pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt) -> Position {

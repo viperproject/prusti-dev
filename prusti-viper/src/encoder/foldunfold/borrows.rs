@@ -34,9 +34,6 @@ impl<'a> CFG<'a> {
     pub(super) fn add_block(&mut self, block: BasicBlock<'a>) {
         self.basic_blocks.push(block);
     }
-    pub(super) fn iter_mut(&mut self) -> impl Iterator<Item = &mut BasicBlock<'a>> {
-        self.basic_blocks.iter_mut()
-    }
 }
 
 impl<'a> CFG<'a> {

@@ -14,15 +14,6 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use utils::to_string::ToString;
 
-/// The type of the access permission.
-#[derive(Clone, Copy, Eq, PartialEq, Hash)]
-enum PermType {
-    /// Field access predicate.
-    FieldAccess,
-    /// Predicate access predicate.
-    PredicateAccess,
-}
-
 #[derive(Clone)]
 pub(super) struct EventLog {
     /// Actions performed by the fold-unfold algorithm before the join. We can use a single

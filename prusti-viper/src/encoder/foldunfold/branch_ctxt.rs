@@ -41,13 +41,6 @@ impl<'a> BranchCtxt<'a> {
         }
     }
 
-    pub fn clone_clean(&self) -> Self {
-        let mut new_bctxt = self.clone();
-        let state = new_bctxt.mut_state();
-        state.remove_all();
-        new_bctxt
-    }
-
     pub fn state(&self) -> &State {
         &self.state
     }
