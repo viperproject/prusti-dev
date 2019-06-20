@@ -194,4 +194,12 @@ impl vir::ExprFolder for UnfoldingExtractor {
             vir::Expr::Unfolding(name, args, expr, perm, variant, pos)
         }
     }
+    fn fold_labelled_old(
+        &mut self,
+        label: String,
+        body: Box<vir::Expr>,
+        pos: vir::Position
+    ) -> vir::Expr {
+        vir::Expr::LabelledOld(label, body, pos)
+    }
 }
