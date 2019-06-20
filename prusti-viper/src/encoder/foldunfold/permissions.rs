@@ -125,7 +125,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .collect()
             }
 
-            &vir::Stmt::Havoc | &vir::Stmt::BeginFrame | &vir::Stmt::EndFrame => HashSet::new(),
+            &vir::Stmt::BeginFrame | &vir::Stmt::EndFrame => HashSet::new(),
 
             &vir::Stmt::TransferPerm(ref lhs, _, unchecked) => {
                 let mut res = HashSet::new();

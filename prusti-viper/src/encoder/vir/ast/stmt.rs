@@ -26,9 +26,6 @@ pub enum Stmt {
     /// Obtain: conjunction of Expr::PredicateAccessPredicate or Expr::FieldAccessPredicate
     /// They will be used by the fold/unfold algorithm
     Obtain(Expr, Position),
-    /// Havoc: used for emptying the fold/unfold state
-    #[deprecated]
-    Havoc,
     /// Mark a CFG point in which all current permissions are framed out
     /// They will be used by the fold/unfold algorithm
     BeginFrame,
@@ -148,8 +145,6 @@ impl fmt::Display for Stmt {
             ),
 
             Stmt::Obtain(ref expr, _) => write!(f, "obtain {}", expr),
-
-            Stmt::Havoc => write!(f, "havoc"),
 
             Stmt::BeginFrame => write!(f, "begin frame"),
 
@@ -279,7 +274,6 @@ pub trait StmtFolder {
             Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
             Stmt::Unfold(s, ve, perm, variant) => self.fold_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.fold_obtain(e, p),
-            Stmt::Havoc => self.fold_havoc(),
             Stmt::BeginFrame => self.fold_begin_frame(),
             Stmt::EndFrame => self.fold_end_frame(),
             Stmt::TransferPerm(a, b, c) => self.fold_transfer_perm(a, b, c),
@@ -353,10 +347,6 @@ pub trait StmtFolder {
         Stmt::Obtain(self.fold_expr(e), p)
     }
 
-    fn fold_havoc(&mut self) -> Stmt {
-        Stmt::Havoc
-    }
-
     fn fold_begin_frame(&mut self) -> Stmt {
         Stmt::BeginFrame
     }
@@ -415,7 +405,6 @@ pub trait StmtWalker {
             Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
             Stmt::Unfold(s, ve, perm, variant) => self.walk_unfold(s, ve, perm, variant),
             Stmt::Obtain(e, p) => self.walk_obtain(e, p),
-            Stmt::Havoc => self.walk_havoc(),
             Stmt::BeginFrame => self.walk_begin_frame(),
             Stmt::EndFrame => self.walk_end_frame(),
             Stmt::TransferPerm(a, b, c) => self.walk_transfer_perm(a, b, c),

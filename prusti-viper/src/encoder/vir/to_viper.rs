@@ -106,10 +106,6 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::Havoc => {
-                // Skip
-                ast.comment(&self.to_string())
-            }
             &Stmt::BeginFrame => {
                 // Skip
                 ast.comment(&self.to_string())

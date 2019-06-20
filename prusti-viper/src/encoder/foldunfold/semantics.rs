@@ -210,12 +210,6 @@ impl vir::Stmt {
                 state.insert_all_perms(places_in_pred.into_iter());
             }
 
-            &vir::Stmt::Havoc => {
-                state.remove_acc_matching(|p| p.is_curr() && !p.is_local());
-                state.remove_pred_matching(|p| p.is_curr() && !p.is_local());
-                state.remove_moved_matching(|p| !p.is_local());
-            }
-
             &vir::Stmt::BeginFrame => state.begin_frame(),
 
             &vir::Stmt::EndFrame => state.end_frame(),
