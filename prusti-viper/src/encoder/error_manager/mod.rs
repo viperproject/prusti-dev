@@ -123,7 +123,7 @@ impl<'tcx> ErrorManager<'tcx> {
         let pos = if let Some(primary_span) = span.primary_span() {
             let lines_info = self
                 .codemap
-                .span_to_lines(span.primary_span().unwrap().source_callsite())
+                .span_to_lines(primary_span.source_callsite())
                 .unwrap();
             let first_line_info = lines_info.lines.get(0).unwrap();
             let line = first_line_info.line_index as i32 + 1;

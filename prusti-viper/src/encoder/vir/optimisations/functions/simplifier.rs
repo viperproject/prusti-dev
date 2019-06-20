@@ -26,7 +26,7 @@ trait Simplifier {
 impl Simplifier for ast::Expr {
     fn simplify(&mut self) {
         match self {
-            ast::Expr::BinOp(_, box subexpr1, box subexpr2, pos) => {
+            ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
                 subexpr1.simplify();
                 subexpr2.simplify();
             }

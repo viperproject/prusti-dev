@@ -288,7 +288,7 @@ impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
             &ty::RegionKind::ReLateBound(_, bound_region) => Some(bound_region),
             &ty::RegionKind::ReEarlyBound(early_region) => Some(early_region.to_bound_region()),
             &ty::RegionKind::ReStatic => None,
-            &ty::RegionKind::ReScope(scope) => None, //  FIXME: This is incorrect.
+            &ty::RegionKind::ReScope(_scope) => None, //  FIXME: This is incorrect.
             x => unimplemented!("{:?}", x),
         }
     }

@@ -251,7 +251,6 @@ pub fn run_forward_interpretation<
 ) -> S {
     let basic_blocks = mir.basic_blocks();
     let mut visited: HashSet<mir::BasicBlock> = HashSet::new();
-    let mut final_state: HashMap<mir::BasicBlock, S> = HashMap::new();
     let mut predecessors: HashMap<mir::BasicBlock, Vec<mir::BasicBlock>> = HashMap::new();
     let mut final_states: Vec<S> = vec![];
     let mut incoming_states: HashMap<mir::BasicBlock, Vec<S>> = HashMap::new();
@@ -391,7 +390,7 @@ impl MultiExprBackwardInterpreterState {
         trace!("substitute_place {:?} --> {:?}", sub_target, replacement);
 
         // If `replacement` is a reference, simplify also its dereferentiations
-        if let vir::Expr::AddrOf(box ref base_replacement, ref dereferenced_type, ref pos) =
+        if let vir::Expr::AddrOf(box ref base_replacement, ref _dereferenced_type, ref pos) =
             replacement
         {
             trace!("Substitution of a reference. Simplify its dereferentiations.");

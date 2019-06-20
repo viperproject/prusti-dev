@@ -444,10 +444,10 @@ impl Expr {
         impl ExprWalker for PredicateFinder {
             fn walk_predicate_access_predicate(
                 &mut self,
-                name: &str,
+                _name: &str,
                 arg: &Expr,
                 perm_amount: PermAmount,
-                position: &Position
+                _pos: &Position
             ) {
                 if perm_amount == self.perm_amount {
                     self.predicates.push(arg.clone());
@@ -695,7 +695,7 @@ impl Expr {
             found: bool,
         }
         impl ExprWalker for OldLabelFinder {
-            fn walk_labelled_old(&mut self, x: &str, y: &Expr, p: &Position) {
+            fn walk_labelled_old(&mut self, _label: &str, _body: &Expr, _pos: &Position) {
                 self.found = true;
             }
         }
@@ -735,14 +735,19 @@ impl Expr {
         impl ExprWalker for PurityFinder {
             fn walk_predicate_access_predicate(
                 &mut self,
-                x: &str,
-                y: &Expr,
-                z: PermAmount,
-                p: &Position,
+                _name: &str,
+                _arg: &Expr,
+                _perm_amount: PermAmount,
+                _pos: &Position
             ) {
                 self.non_pure = true;
             }
-            fn walk_field_access_predicate(&mut self, x: &Expr, y: PermAmount, p: &Position) {
+            fn walk_field_access_predicate(
+                &mut self,
+                _receiver: &Expr,
+                _perm_amount: PermAmount,
+                _pos: &Position
+            ) {
                 self.non_pure = true;
             }
         }
@@ -1477,84 +1482,111 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
 }
 
 pub trait ExprWalker: Sized {
-    fn walk(&mut self, e: &Expr) {
-        default_walk_expr(self, e);
+    fn walk(&mut self, expr: &Expr) {
+        default_walk_expr(self, expr);
     }
 
-    fn walk_local_var(&mut self, v: &LocalVar) {}
+    fn walk_local_var(&mut self, _var: &LocalVar) {}
 
-    fn walk_local(&mut self, x: &LocalVar, p: &Position) {
-        self.walk_local_var(x);
+    fn walk_local(&mut self, var: &LocalVar, _pos: &Position) {
+        self.walk_local_var(var);
     }
-    fn walk_variant(&mut self, base: &Expr, variant: &Field, p: &Position) {
+    fn walk_variant(&mut self, base: &Expr, _variant: &Field, _pos: &Position) {
         self.walk(base);
     }
-    fn walk_field(&mut self, e: &Expr, f: &Field, p: &Position) {
-        self.walk(e);
+    fn walk_field(&mut self, receiver: &Expr, _field: &Field, _pos: &Position) {
+        self.walk(receiver);
     }
-    fn walk_addr_of(&mut self, e: &Expr, t: &Type, p: &Position) {
-        self.walk(e);
+    fn walk_addr_of(&mut self, receiver: &Expr, _typ: &Type, _pos: &Position) {
+        self.walk(receiver);
     }
-    fn walk_const(&mut self, x: &Const, p: &Position) {}
-    fn walk_old(&mut self, x: &Expr, p: &Position) {
-        self.walk(x);
-    }
-    fn walk_labelled_old(&mut self, label: &str, body: &Expr, pos: &Position) {
+    fn walk_const(&mut self, _const: &Const, _pos: &Position) {}
+    fn walk_labelled_old(&mut self, _label: &str, body: &Expr, _pos: &Position) {
         self.walk(body);
     }
-    fn walk_magic_wand(&mut self, x: &Expr, y: &Expr, b: &Option<Borrow>, p: &Position) {
-        self.walk(x);
-        self.walk(y);
+    fn walk_magic_wand(
+        &mut self,
+        lhs: &Expr,
+        rhs: &Expr,
+        _borrow: &Option<Borrow>,
+        _pos: &Position
+    ) {
+        self.walk(lhs);
+        self.walk(rhs);
     }
-    fn walk_predicate_access_predicate(&mut self, x: &str, y: &Expr, z: PermAmount, p: &Position) {
-        self.walk(y)
+    fn walk_predicate_access_predicate(
+        &mut self,
+        _name: &str,
+        arg: &Expr,
+        _perm_amount: PermAmount,
+        _pos: &Position
+    ) {
+        self.walk(arg)
     }
-    fn walk_field_access_predicate(&mut self, x: &Expr, y: PermAmount, p: &Position) {
-        self.walk(x)
+    fn walk_field_access_predicate(
+        &mut self,
+        receiver: &Expr,
+        _perm_amount: PermAmount,
+        _pos: &Position
+    ) {
+        self.walk(receiver)
     }
-    fn walk_unary_op(&mut self, x: UnaryOpKind, y: &Expr, p: &Position) {
-        self.walk(y)
+    fn walk_unary_op(&mut self, _op: UnaryOpKind, arg: &Expr, _pos: &Position) {
+        self.walk(arg)
     }
-    fn walk_bin_op(&mut self, x: BinOpKind, y: &Expr, z: &Expr, p: &Position) {
-        self.walk(y);
-        self.walk(z);
+    fn walk_bin_op(&mut self, _op: BinOpKind, arg1: &Expr, arg2: &Expr, _pos: &Position) {
+        self.walk(arg1);
+        self.walk(arg2);
     }
     fn walk_unfolding(
         &mut self,
-        name: &str,
+        _name: &str,
         args: &Vec<Expr>,
         body: &Expr,
-        perm: PermAmount,
-        variant: &MaybeEnumVariantIndex,
-        pos: &Position
+        _perm: PermAmount,
+        _variant: &MaybeEnumVariantIndex,
+        _pos: &Position
     ) {
         for arg in args {
             self.walk(arg);
         }
         self.walk(body);
     }
-    fn walk_cond(&mut self, x: &Expr, y: &Expr, z: &Expr, p: &Position) {
-        self.walk(x);
-        self.walk(y);
-        self.walk(z);
+    fn walk_cond(&mut self, guard: &Expr, then_expr: &Expr, else_expr: &Expr, _pos: &Position) {
+        self.walk(guard);
+        self.walk(then_expr);
+        self.walk(else_expr);
     }
-    fn walk_forall(&mut self, x: &Vec<LocalVar>, y: &Vec<Trigger>, z: &Expr, p: &Position) {
-        for a in x {
-            self.walk_local_var(a);
+    fn walk_forall(
+        &mut self,
+        vars: &Vec<LocalVar>,
+        _triggers: &Vec<Trigger>,
+        body: &Expr,
+        _pos: &Position
+    ) {
+        for var in vars {
+            self.walk_local_var(var);
         }
-        self.walk(z);
+        self.walk(body);
     }
-    fn walk_let_expr(&mut self, x: &LocalVar, y: &Expr, z: &Expr, p: &Position) {
-        self.walk_local_var(x);
-        self.walk(y);
-        self.walk(z);
+    fn walk_let_expr(&mut self, bound_var: &LocalVar, expr: &Expr, body: &Expr, _pos: &Position) {
+        self.walk_local_var(bound_var);
+        self.walk(expr);
+        self.walk(body);
     }
-    fn walk_func_app(&mut self, x: &str, y: &Vec<Expr>, z: &Vec<LocalVar>, k: &Type, p: &Position) {
-        for e in y {
-            self.walk(e)
+    fn walk_func_app(
+        &mut self,
+        _name: &str,
+        args: &Vec<Expr>,
+        formal_args: &Vec<LocalVar>,
+        _return_type: &Type,
+        _pos: &Position
+    ) {
+        for arg in args {
+            self.walk(arg)
         }
-        for p in z {
-            self.walk_local_var(p);
+        for arg in formal_args {
+            self.walk_local_var(arg);
         }
     }
 }

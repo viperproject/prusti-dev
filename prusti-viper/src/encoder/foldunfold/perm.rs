@@ -120,8 +120,8 @@ impl Perm {
         trace!("[enter] init_perm_amount({}, {})", self, new_perm);
         assert!(new_perm.is_valid_for_specs());
         match self {
-            Perm::Acc(expr, PermAmount::Remaining) => unreachable!(),
-            Perm::Pred(expr, PermAmount::Remaining) => unreachable!(),
+            Perm::Acc(_expr, PermAmount::Remaining) => unreachable!(),
+            Perm::Pred(_expr, PermAmount::Remaining) => unreachable!(),
             Perm::Acc(expr, _) => Perm::Acc(expr, new_perm),
             Perm::Pred(expr, _) => Perm::Pred(expr, new_perm),
         }

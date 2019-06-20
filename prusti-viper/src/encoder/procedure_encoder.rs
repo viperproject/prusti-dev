@@ -616,7 +616,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             mir::StatementKind::Assign(ref lhs, ref rhs) => {
                 let (encoded_lhs, ty, _) = self.mir_encoder.encode_place(lhs);
-                let type_name = self.encoder.encode_type_predicate_use(ty);
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         self.encode_assign_operand(&encoded_lhs, operand, location)
@@ -875,7 +874,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn construct_vir_reborrowing_node_for_assignment(
         &mut self,
-        mir_dag: &ReborrowingDAG,
+        _mir_dag: &ReborrowingDAG,
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
         location: mir::Location,
@@ -903,7 +902,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ));
             for &in_loan in node.reborrowing_loans.iter() {
                 let in_location = self.polonius_info.get_loan_location(&in_loan);
-                let in_node = mir_dag.get_node(in_loan);
                 let in_label =
                     self.label_after_location
                         .get(&in_location)
@@ -984,10 +982,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn construct_vir_reborrowing_node_for_call(
         &mut self,
-        mir_dag: &ReborrowingDAG,
+        _mir_dag: &ReborrowingDAG,
         loan: facts::Loan,
         node: &ReborrowingDAGNode,
-        location: mir::Location,
+        _location: mir::Location,
     ) -> vir::borrows::Node {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
 
@@ -1028,17 +1026,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
             if node.incoming_zombies {
-                let lhs_label = self
-                    .label_after_location
-                    .get(&loan_location)
-                    .cloned()
-                    .expect(&format!(
-                        "No label has been saved for location {:?} ({:?})",
-                        loan_location, self.label_after_location
-                    ));
                 for &in_loan in node.reborrowing_loans.iter() {
                     let in_location = self.polonius_info.get_loan_location(&in_loan);
-                    let in_node = mir_dag.get_node(in_loan);
                     let in_label =
                         self.label_after_location
                             .get(&in_location)
@@ -1549,7 +1538,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             stmts.push(vir::Stmt::Label(label.clone()));
 
                             // Havoc the content of the lhs
-                            let (target_place, target_ty, _) = match destination.as_ref() {
+                            let (target_place, _target_ty, _) = match destination.as_ref() {
                                 Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
                                 None => unreachable!(),
                             };
@@ -2184,7 +2173,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// `state_label` – the label of the state in which the place should
     /// be evaluated (the place expression is wrapped in the labelled old).
     fn encode_pred_permission(&self, place: &Place<'tcx>, state_label: Option<&str>) -> vir::Expr {
-        let (encoded_place, ty, _) = self.encode_generic_place(place);
+        let (encoded_place, _, _) = self.encode_generic_place(place);
         vir::Expr::pred_permission(encoded_place.maybe_old(state_label), vir::PermAmount::Write)
             .unwrap()
     }
@@ -2362,7 +2351,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         pre_label: &str,
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
-        diverging: bool,
+        _diverging: bool,
         loan: Option<facts::Loan>,
         function_end: bool,
     ) -> (
@@ -2601,9 +2590,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let (deref_place, ..) =
                         self.mir_encoder.encode_deref(encoded_arg.into(), arg_ty);
                     let old_deref_place = deref_place.clone().old(&pre_label);
-                    let deref_pred =
-                        vir::Expr::pred_permission(old_deref_place.clone(), vir::PermAmount::Write)
-                            .unwrap();
                     package_stmts.extend(self.encode_transfer_permissions(
                         deref_place,
                         old_deref_place.clone(),
@@ -4034,12 +4020,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// a Rust move assignment, and not a copy assignment.
     fn encode_copy(
         &mut self,
-        src: vir::Expr,
-        dst: vir::Expr,
-        self_ty: ty::Ty<'tcx>,
-        is_move: bool,
-        is_inner_ty: bool,
-        location: mir::Location,
+        _src: vir::Expr,
+        _dst: vir::Expr,
+        _self_ty: ty::Ty<'tcx>,
+        _is_move: bool,
+        _is_inner_ty: bool,
+        _location: mir::Location,
     ) -> Vec<vir::Stmt> {
         unreachable!();
     }

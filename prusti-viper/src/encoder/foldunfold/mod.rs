@@ -602,9 +602,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
     }
 
-    fn check_compatible_back_edge(left: &BranchCtxt<'p>, right: &BranchCtxt<'p>) {
-        let left_state = left.state();
-        let right_state = right.state();
+    fn check_compatible_back_edge(_left: &BranchCtxt<'p>, _right: &BranchCtxt<'p>) {
+        //let left_state = left.state();
+        //let right_state = right.state();
 
         // TODO: re-enable this consistency check, discarding all places for which `.is_simple_place()` is false
         //debug_assert_eq!(left_state.acc(), right_state.acc(), "back edge (acc)");
@@ -657,7 +657,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                     lhs.clone(),
                     vir::FoldingBehaviour::Expr,
                 ).apply_on_state(labelled_state, bctxt.predicates());
-                if let vir::Expr::PredicateAccessPredicate(ref name, box ref arg, perm_amount, _) =
+                if let vir::Expr::PredicateAccessPredicate(ref _name, box ref arg, perm_amount, _) =
                     lhs
                 {
                     labelled_state.insert_acc(arg.clone(), *perm_amount);

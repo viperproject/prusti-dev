@@ -169,7 +169,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 .unwrap()
                 .local_decls
                 .iter_enumerated()
-                .find(|(local, local_decl)| match local_decl.name {
+                .find(|(_local, local_decl)| match local_decl.name {
                     None => false,
                     Some(name) => &format!("{:?}", name) == &original_var_name,
                 })
@@ -220,7 +220,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         trace!("encode_hir_path: {:?}", base_expr.node);
         let base_ty = self.encoder.env().hir_id_to_type(base_expr.hir_id);
         match base_expr.node {
-            hir::Expr_::ExprField(ref expr, field_id) => {
+            hir::Expr_::ExprField(ref expr, _field_id) => {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
                 self.encode_hir_field(place, base_expr)
@@ -230,7 +230,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let place = self.encode_hir_path(expr);
                 assert!(place.get_type().is_ref());
                 match place {
-                    vir::Expr::AddrOf(box base, typ, _) => base,
+                    vir::Expr::AddrOf(box base, _typ, _) => base,
                     _ => {
                         let type_name: String = self.encoder.encode_type_predicate_use(base_ty);
                         place.field(vir::Field::new("val_ref", vir::Type::TypedRef(type_name)))
@@ -304,7 +304,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 encoded_expr
             }
 
-            hir::Expr_::ExprCall(ref callee, ref arguments) => {
+            hir::Expr_::ExprCall(ref callee, ref _arguments) => {
                 match callee.node {
                     hir::Expr_::ExprPath(hir::QPath::Resolved(_, ref fn_path)) => {
                         let fn_name = self.path_to_string(fn_path);
@@ -389,7 +389,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
         // Find the MIR of the first closure that encodes the assertions
         let mut curr_node_id = assertion_expr.expr.id;
-        for i in 0..1 {
+        for _ in 0..1 {
             curr_node_id = tcx.hir.get_parent_node(curr_node_id);
         }
         let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
@@ -443,7 +443,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 .encoder
                 .get_closure_instantiations(outer_def_id)
                 .is_empty();
-            let outer_node_id = tcx.hir.as_local_node_id(outer_def_id).unwrap();
             let outer_procedure = self.encoder.env().get_procedure(outer_def_id);
             let outer_mir = outer_procedure.get_mir();
             // HACK: don't use a namespace for the last iteration if we are encoding a loop invariant

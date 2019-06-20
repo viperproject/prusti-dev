@@ -386,7 +386,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
     fn apply_terminator(
         &self,
-        bb: mir::BasicBlock,
+        _bb: mir::BasicBlock,
         term: &mir::Terminator<'tcx>,
         states: HashMap<mir::BasicBlock, &Self::State>,
     ) -> Self::State {
@@ -551,12 +551,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::DropAndReplace {
-                ref target,
-                ref location,
-                ref value,
-                ..
-            } => unimplemented!(),
+            TerminatorKind::DropAndReplace { ..  } => {
+                unimplemented!()
+            },
 
             TerminatorKind::Call {
                 ref args,
@@ -677,9 +674,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             // args[0]: message
                             // args[1]: position of failing assertions
 
-                            // Example of args[0]: 'const "internal error: entered unreachable code"'
-                            let panic_message = format!("{:?}", args[0]);
-
                             // Pattern match on the macro that generated the panic
                             // TODO: use a better approach to match macros
                             let macro_backtrace = term.source_info.span.macro_backtrace();
@@ -791,8 +785,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     states[target]
                         .exprs()
                         .iter()
-                        .enumerate()
-                        .map(|(index, expr)| {
+                        .map(|expr| {
                             let failure_result = if self.is_encoding_assertion {
                                 // We are encoding an assertion, so all failures should be
                                 // equivalent to false.
@@ -816,8 +809,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
     fn apply_statement(
         &self,
-        bb: mir::BasicBlock,
-        stmt_index: usize,
+        _bb: mir::BasicBlock,
+        _stmt_index: usize,
         stmt: &mir::Statement<'tcx>,
         state: &mut Self::State,
     ) {
@@ -853,7 +846,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     _ => None,
                 };
 
-                let type_name = self.encoder.encode_type_predicate_use(ty);
                 match rhs {
                     &mir::Rvalue::Use(ref operand) => {
                         let opt_encoded_rhs = self.mir_encoder.encode_operand_place(operand);
@@ -1027,7 +1019,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
                     }
 
-                    &mir::Rvalue::NullaryOp(op, ref op_ty) => unimplemented!(),
+                    &mir::Rvalue::NullaryOp(_op, ref _op_ty) => unimplemented!(),
 
                     &mir::Rvalue::Discriminant(ref src) => {
                         let (encoded_src, src_ty, _) = self.mir_encoder.encode_place(src);
@@ -1076,7 +1068,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             vir::Expr::Field(
                                 box ref base,
                                 vir::Field { ref name, .. },
-                                ref pos,
+                                ref _pos,
                             ) if name == "val_ref" => {
                                 // Simplify "address of reference"
                                 base.clone()

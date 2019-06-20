@@ -85,7 +85,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         self.mir
             .local_decls
             .iter_enumerated()
-            .find(|(index, decl)| decl.name.is_some() && decl.name.unwrap().to_string() == name)
+            .find(|(_, decl)| decl.name.is_some() && decl.name.unwrap().to_string() == name)
             .map(|(index, decl)| {
                 let var_name = format!("{}{:?}", self.namespace, index);
                 let type_name = self.encoder.encode_type_predicate_use(decl.ty);
@@ -276,7 +276,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 };
                 (access, ty, None)
             }
-            ty::TypeVariants::TyAdt(ref adt_def, ref subst) if adt_def.is_box() => {
+            ty::TypeVariants::TyAdt(ref adt_def, ref _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {
                     encoded_base.get_parent().unwrap()
                 } else {
@@ -301,7 +301,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         trace!("Encode operand expr {:?}", operand);
         match operand {
             &mir::Operand::Constant(box mir::Constant {
-                ty,
                 literal: mir::Literal::Value { value },
                 ..
             }) => self.encoder.encode_const_expr(value),
@@ -311,7 +310,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             }
             &mir::Operand::Constant(box mir::Constant {
                 ty,
-                literal: mir::Literal::Promoted { index },
+                literal: mir::Literal::Promoted { .. },
                 ..
             }) => {
                 debug!("Incomplete encoding of promoted literal {:?}", operand);

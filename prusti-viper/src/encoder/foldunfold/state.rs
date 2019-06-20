@@ -287,8 +287,8 @@ impl State {
     /// Note: the permission amount is currently ignored
     pub fn contains_perm(&self, item: &Perm) -> bool {
         match item {
-            &Perm::Acc(ref place, _) => self.contains_acc(item.get_place()),
-            &Perm::Pred(ref place, _) => self.contains_pred(item.get_place()),
+            &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
+            &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
         }
     }
 

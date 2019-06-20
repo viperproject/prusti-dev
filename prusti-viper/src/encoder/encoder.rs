@@ -509,7 +509,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         } else {
             // An enum.
             let discr_field = self.encode_discriminant_field();
-            let typ = first.get_type().clone();
             let first_discriminant = first.clone().field(discr_field.clone());
             let second_discriminant = second.clone().field(discr_field);
             conjuncts.push(vir::Expr::eq_cmp(first_discriminant.clone(), second_discriminant));
@@ -1054,7 +1053,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
         trace!("encode_int_cast {:?} as {:?}", value, ty);
-        let usize_bits = mem::size_of::<usize>() * 8;
 
         let expr = match ty.sty {
             ty::TypeVariants::TyBool => (value != 0).into(),
@@ -1296,7 +1294,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 map.insert(typ.clone(), subst.clone());
                 let additional_substs: Vec<_> = map
                     .iter()
-                    .filter(|(typ1, typ2)| typ2 == &typ)
+                    .filter(|(_typ1, typ2)| typ2 == &typ)
                     .map(|(typ1, typ2)| (typ1.clone(), typ2.clone()))
                     .collect();
                 for (typ, subst) in additional_substs {

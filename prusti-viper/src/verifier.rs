@@ -185,7 +185,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
             if support_status.is_partially_supported() {
                 let reasons = support_status.get_partially_supported_reasons();
-                let proc_name = self.env.get_item_name(proc_id);
                 for reason in &reasons {
                     debug!("Partially supported reason: {:?}", reason);
                     let message = format!(
@@ -196,7 +195,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 }
             } else if support_status.is_unsupported() {
                 let reasons = support_status.get_unsupported_reasons();
-                let proc_name = self.env.get_item_name(proc_id);
                 for reason in &reasons {
                     debug!("Unsupported reason: {:?}", reason);
                     let message = format!(
@@ -312,7 +310,6 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             duration.as_secs(),
             duration.subsec_millis() / 10
         );
-        let start = Instant::now();
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,

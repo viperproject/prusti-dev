@@ -86,7 +86,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                 )
             }
 
-            &vir::Stmt::Assign(ref lhs, ref rhs, kind) => {
+            &vir::Stmt::Assign(ref lhs, ref rhs, _kind) => {
                 let mut res = rhs.get_required_permissions(predicates);
                 res.insert(Acc(lhs.clone(), PermAmount::Write));
                 res
@@ -125,7 +125,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
                     .collect()
             }
 
-            &vir::Stmt::WeakObtain(ref expr) => HashSet::new(),
+            &vir::Stmt::WeakObtain(ref _expr) => HashSet::new(),
 
             &vir::Stmt::Havoc | &vir::Stmt::BeginFrame | &vir::Stmt::EndFrame => HashSet::new(),
 
@@ -232,7 +232,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 req_places.into_iter().collect()
             }
 
-            vir::Expr::LabelledOld(ref label, expr, _) => HashSet::new(),
+            vir::Expr::LabelledOld(_label, _expr, _) => HashSet::new(),
 
             vir::Expr::PredicateAccessPredicate(_, box place, _perm_amount, _) => {
                 debug_assert!(place.is_place());
@@ -284,7 +284,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            vir::Expr::ForAll(vars, triggers, box body, _) => {
+            vir::Expr::ForAll(vars, _triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
 
                 let vars_places: HashSet<_> = vars
@@ -306,12 +306,12 @@ impl RequiredPermissionsGetter for vir::Expr {
                 .into_iter()
                 .collect(),
 
-            vir::Expr::MagicWand(ref lhs, ref _rhs, ref _borrow, _) => {
+            vir::Expr::MagicWand(ref _lhs, ref _rhs, ref _borrow, _) => {
                 // Not exactly Viper's semantics
                 HashSet::new()
             }
 
-            vir::Expr::FuncApp(ref name, ref args, ..) => {
+            vir::Expr::FuncApp(ref _name, ref args, ..) => {
                 args.iter()
                     .map(|arg| {
                         if arg.is_place() && arg.get_type().is_ref() {
@@ -406,7 +406,7 @@ impl vir::Expr {
                 &right.get_permissions(predicates),
             ),
 
-            vir::Expr::ForAll(vars, triggers, box body, _) => {
+            vir::Expr::ForAll(vars, _triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
                 let vars_places: HashSet<Perm> = vars
                     .iter()

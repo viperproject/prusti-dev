@@ -153,7 +153,7 @@ impl vir::Stmt {
                 // Do nothing.
             }
 
-            &vir::Stmt::Fold(ref pred_name, ref args, perm_amount, ref variant, _) => {
+            &vir::Stmt::Fold(ref _pred_name, ref args, perm_amount, ref variant, _) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());
@@ -184,7 +184,7 @@ impl vir::Stmt {
                 state.insert_pred(place.clone(), perm_amount);
             }
 
-            &vir::Stmt::Unfold(ref pred_name, ref args, perm_amount, ref variant) => {
+            &vir::Stmt::Unfold(ref _pred_name, ref args, perm_amount, ref variant) => {
                 assert_eq!(args.len(), 1);
                 let place = &args[0];
                 debug_assert!(place.is_place());

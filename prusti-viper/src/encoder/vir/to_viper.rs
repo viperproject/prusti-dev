@@ -102,11 +102,11 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     perm.to_viper(ast),
                 ))
             }
-            &Stmt::Obtain(ref expr, _) => {
+            &Stmt::Obtain(ref _expr, _) => {
                 // Skip
                 ast.comment(&self.to_string())
             }
-            &Stmt::WeakObtain(ref expr) => {
+            &Stmt::WeakObtain(ref _expr) => {
                 // Skip
                 ast.comment(&self.to_string())
             }

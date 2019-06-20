@@ -28,7 +28,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
     */
 
     /// Callback method called each time the CFG is modified. Useful for debugging purposes.
-    fn current_cfg(&self, cfg: &CfgMethod) {}
+    fn current_cfg(&self, _cfg: &CfgMethod) {}
 
     /// Are two branch context compatible for a back edge?
     fn check_compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt);
