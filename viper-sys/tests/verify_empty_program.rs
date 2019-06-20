@@ -32,9 +32,10 @@ fn verify_empty_program() {
         .filter(|x| !x.contains("carbon"))
         .collect();
 
+    let classpath_separator = if cfg!(windows) { ";" } else { ":" };
     let jvm_args = InitArgsBuilder::new()
         .version(JNIVersion::V8)
-        .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
+        .option(&format!("-Djava.class.path={}", jar_paths.join(classpath_separator)))
         .option("-Xdebug")
         //.option("-verbose:gc")
         //.option("-Xcheck:jni")

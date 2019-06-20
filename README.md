@@ -22,14 +22,14 @@ The following instructions has been tested on Ubuntu 16.04:
     ```bash
     wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
     echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
-    sudo apt-get update  
-    sudo apt-get install viper
+    sudo apt-get update
+    sudo apt-get install -y viper
     ```
 
 - Install Java 8 or a later version.
 
     ```bash
-    sudo apt-get install default-jdk
+    sudo apt-get install -y default-jdk
     ```
 
 - Install Rustup
@@ -42,7 +42,7 @@ The following instructions has been tested on Ubuntu 16.04:
 - Install the dependencies required by some Rust libraries
 
     ```bash
-    sudo apt-get install build-essential pkg-config gcc libssl-dev
+    sudo apt-get install -y build-essential pkg-config gcc libssl-dev
     ```
 
 - Download this Prusti repository and move to the `prusti-dev` folder
@@ -97,7 +97,7 @@ The following instructions has been tested on Ubuntu 16.04:
 - (Optional) To install additional tools required by some scripts in the evaluation folder:
 
     ```bash
-    sudo apt-get install jq
+    sudo apt-get install -y jq
     ```
 
 

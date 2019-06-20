@@ -15,7 +15,6 @@ extern crate env_logger;
 #[macro_use]
 extern crate log;
 extern crate rustc;
-extern crate rustc_plugin;
 extern crate syntax;
 
 extern crate serde;
