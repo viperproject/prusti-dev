@@ -33,7 +33,7 @@ prusti/tests/verify/pass-overflow/rosetta/100_doors_generic.rs
 prusti/tests/verify/pass-overflow/rosetta/Binary_search_shared.rs
 prusti/tests/verify/pass-overflow/rosetta/Heapsort_generic.rs
 prusti/tests/verify/pass-overflow/rosetta/Knights_tour_generic.rs
-prusti/tests/verify/long-pass-overflow/rosetta/Knuth_shuffle.rs
+prusti/tests/verify/pass-overflow/rosetta/Knuth_shuffle.rs
 prusti/tests/verify/pass-overflow/rosetta/Langtons_ant.rs
 prusti/tests/verify/pass-overflow/rosetta/Selection_sort_generic.rs
 
