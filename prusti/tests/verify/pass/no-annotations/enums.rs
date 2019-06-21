@@ -103,6 +103,12 @@ fn test5() -> S2 {
     }
 }
 
+struct NotUsed {
+    f: T1,
+    g: T2,
+    h: T2,
+}
+
 /* TODO: Uncomment.
 fn get_t2() -> T2 {
     unimplemented!();

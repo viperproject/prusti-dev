@@ -235,6 +235,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     }
                     let mut predicates: Vec<_> = variants
                         .iter()
+                        .filter(|(_, _, predicate)| !predicate.has_empty_body())
                         .map(|(_, _, predicate)| vir::Predicate::Struct(predicate.clone()))
                         .collect();
                     let enum_predicate = vir::Predicate::new_enum(
