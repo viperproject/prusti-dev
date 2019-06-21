@@ -50,5 +50,6 @@ pub mod environment;
 pub mod parser;
 pub mod report;
 pub mod specifications;
+pub mod sysroot;
 pub mod utils;
 pub mod verifier;

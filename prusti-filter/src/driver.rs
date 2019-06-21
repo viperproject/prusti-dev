@@ -15,6 +15,7 @@ extern crate env_logger;
 extern crate log;
 extern crate rustc;
 extern crate rustc_driver;
+extern crate rustc_plugin;
 extern crate syntax;
 
 extern crate serde;
@@ -29,6 +30,7 @@ mod validators;
 
 use self::crate_visitor::{CrateStatus, CrateVisitor};
 use prusti_interface::config;
+use prusti_interface::sysroot::current_sysroot;
 use rustc::hir::intravisit::Visitor;
 use rustc_driver::driver::{CompileController, CompileState};
 use rustc_driver::RustcDefaultCalls;
@@ -36,7 +38,6 @@ use std::env;
 use std::fs;
 use std::path::Path;
 use validators::Validator;
-use std::process::Command;
 
 fn main() {
     env_logger::init();
@@ -65,17 +66,7 @@ fn main() {
         // this conditional check for the --sysroot flag is there so users can call
         // `prusti-filter` directly without having to pass --sysroot or anything
         if !args.iter().any(|s| s == "--sysroot") {
-            let sys_root = env::var("SYSROOT").ok()
-                .or_else(|| {
-                    Command::new("rustc")
-                        .arg(format!("+{}", include_str!("../../rust-toolchain")))
-                        .arg("--print")
-                        .arg("sysroot")
-                        .output()
-                        .ok()
-                        .and_then(|out| String::from_utf8(out.stdout).ok())
-                        .map(|s| s.trim().to_owned())
-                })
+            let sys_root = current_sysroot()
                 .expect("need to specify SYSROOT env var during prusti-driver compilation, or use rustup or multirust");
             debug!("Using sys_root='{}'", sys_root);
             args.push("--sysroot".to_owned());
