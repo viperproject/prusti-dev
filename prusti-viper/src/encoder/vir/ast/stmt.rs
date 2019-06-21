@@ -284,8 +284,8 @@ pub trait StmtFolder {
         }
     }
 
-    fn fold_expr(&mut self, e: Expr) -> Expr {
-        e
+    fn fold_expr(&mut self, expr: Expr) -> Expr {
+        expr
     }
 
     fn fold_comment(&mut self, s: String) -> Stmt {

@@ -171,6 +171,13 @@ impl StructPredicate {
             Position::default(),
         )
     }
+    /// Is the predicate's body just `true`?
+    pub fn has_empty_body(&self) -> bool {
+        match self.body {
+            Some(Expr::Const(Const::Bool(true), _)) => true,
+            _ => false,
+        }
+    }
 }
 
 impl WithIdentifier for StructPredicate {
@@ -236,6 +243,9 @@ impl EnumPredicate {
         let discriminant_perm = Expr::acc_permission(self.discriminant.clone(), PermAmount::Write);
         let mut parts = vec![discriminant_perm, self.discriminant_bounds.clone()];
         for (guard, name, variant) in self.variants.iter() {
+            if variant.has_empty_body() {
+                continue;
+            }
             let field = Field::new(format!("enum_{}", name), variant.this.typ.clone());
             let location: Expr = Expr::from(self.this.clone()).field(field).into();
             let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);

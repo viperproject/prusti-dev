@@ -391,6 +391,13 @@ impl Expr {
         Expr::Unfolding(pred_name, args, box expr, perm, variant, Position::default())
     }
 
+    /// Create `unfolding T(arg) in body` where `T` is the type of `arg`.
+    pub fn wrap_in_unfolding(arg: Expr, body: Expr) -> Expr {
+        let type_name = arg.get_type().name();
+        let pos = body.pos().clone();
+        Expr::Unfolding(type_name, vec![arg], box body, PermAmount::Read, None, pos)
+    }
+
     pub fn func_app(
         name: String,
         args: Vec<Expr>,

@@ -217,19 +217,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().clone()
     }
 
-    pub fn get_used_viper_methods(&self) -> Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> {
-        let mut methods: Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> = vec![];
-        let mut builtin_methods: Vec<_> = self.builtin_methods.borrow().values().cloned().collect();
-        let mut procedures: Vec<_> = self.procedures.borrow().values().cloned().collect();
-        builtin_methods.sort_by_key(|f| f.get_identifier());
-        procedures.sort_by_key(|f| f.get_identifier());
-        for item in builtin_methods.drain(..) {
-            methods.push(Box::new(item));
-        }
-        for item in procedures.drain(..) {
-            methods.push(Box::new(item));
-        }
-        methods
+    pub fn get_used_builtin_methods(&self) -> Vec<vir::BodylessMethod> {
+        self.builtin_methods.borrow().values().cloned().collect()
+    }
+
+    pub fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
+        self.procedures.borrow().values().cloned().collect()
     }
 
     fn collect_closure_instantiations(&mut self) {
@@ -540,7 +533,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         second: vir::Expr,
         self_ty: ty::Ty<'tcx>
     ) -> Option<vir::Expr> {
-        match self_ty.sty {
+        let eq = match self_ty.sty {
             ty::TypeVariants::TyBool
             | ty::TypeVariants::TyInt(_)
             | ty::TypeVariants::TyUint(_)
@@ -553,19 +546,24 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
                 // TODO: If adt_def contains fields of unsupported type,
                 // we should return None.
-                Some(self.encode_memory_eq_adt(first, second, adt_def, subst))
+                Some(self.encode_memory_eq_adt(first.clone(), second.clone(), adt_def, subst))
             }
             ty::TypeVariants::TyTuple(elems) => {
-                Some(self.encode_memory_eq_tuple(first, second, elems))
+                Some(self.encode_memory_eq_tuple(first.clone(), second.clone(), elems))
             }
             ty::TypeVariants::TyParam(_) => {
                 None
             },
 
             ref x => unimplemented!("{:?}", x),
-        }
+        };
+        eq.map(|body| {
+            vir::Expr::wrap_in_unfolding(first, vir::Expr::wrap_in_unfolding(second, body))
+        })
     }
 
+    /// Note: We generate functions already with the required unfoldings because some types are
+    /// huge and fold unfold is too slow for them.
     fn encode_memory_eq_func(&self, name: String, self_ty: ty::Ty<'tcx>) {
         assert!(!self.memory_eq_funcs.borrow().contains_key(&name));
         // Mark that we started encoding this function to avoid infinite recursion.
@@ -597,13 +595,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             posts: vec![],
             body: body,
         };
-        let final_function = foldunfold::add_folding_unfolding_to_function(
-            function,
-            self.get_used_viper_predicates_map(),
-        );
-        self.memory_eq_funcs.borrow_mut().insert(name, Some(final_function));
+        self.memory_eq_funcs.borrow_mut().insert(name, Some(function));
     }
 
+    /// Note: We generate functions already with the required unfoldings because some types are
+    /// huge and fold unfold is too slow for them.
     fn encode_memory_eq_func_variant(
         &self,
         name: String,
@@ -643,7 +639,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 self.encode_memory_eq_func_app(
                     first_field, second_field, field_ty, vir::Position::default())
             });
-        let body = Some(vir::ExprIterator::conjoin(&mut conjuncts));
+        let conjunction = vir::ExprIterator::conjoin(&mut conjuncts);
+        let unfolded_second = vir::Expr::wrap_in_unfolding(
+            second_local_var.clone().into(), conjunction);
+        let unfolded_first = vir::Expr::wrap_in_unfolding(
+            first_local_var.clone().into(), unfolded_second);
+        let body = Some(unfolded_first);
         let function = vir::Function {
             name: name.clone(),
             formal_args: vec![first_local_var, second_local_var],
@@ -652,11 +653,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             posts: vec![],
             body: body,
         };
-        let final_function = foldunfold::add_folding_unfolding_to_function(
-            function,
-            self.get_used_viper_predicates_map(),
-        );
-        self.memory_eq_funcs.borrow_mut().insert(name, Some(final_function));
+        self.memory_eq_funcs.borrow_mut().insert(name, Some(function));
     }
 
     pub fn encode_memory_eq_func_app(
