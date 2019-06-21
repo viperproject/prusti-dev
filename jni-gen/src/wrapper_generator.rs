@@ -56,12 +56,14 @@ impl WrapperGenerator {
         self
     }
 
-    pub fn generate(&mut self, out_dir: &str) -> LocalResult<()> {
-        debug!("Generate JNI wrappers in '{}'", out_dir);
+    pub fn generate(&mut self, out_dir: &Path) -> LocalResult<()> {
+        debug!("Generate JNI wrappers in '{}'", out_dir.display());
+
+        let classpath_separator = if cfg!(windows) { ";" } else { ":" };
 
         let jvm_args = InitArgsBuilder::new()
             .version(JNIVersion::V8)
-            .option(&format!("-Djava.class.path={}", self.jars.join(":")))
+            .option(&format!("-Djava.class.path={}", self.jars.join(classpath_separator)))
             .build()?;
 
         let jvm = JavaVM::new(jvm_args)?;
@@ -105,7 +107,7 @@ impl WrapperGenerator {
         {
             let class_names: Vec<&ClassName> = self.classes.iter().map(|x| x.get_name()).collect();
             let mod_code = generate_module(class_names);
-            let mod_path = format!("{}/mod.rs", out_dir);
+            let mod_path = out_dir.join("mod.rs");
             let mut mod_file = OpenOptions::new()
                 .read(true)
                 .write(true)

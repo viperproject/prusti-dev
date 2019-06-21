@@ -17,10 +17,11 @@ use std::fs;
 use std::fs::File;
 use std::io::copy;
 use tempdir::TempDir;
+use std::path::Path;
 
 fn main() {
     env_logger::init();
-    let generated_dir = format!("{}/gen", env::var("CARGO_MANIFEST_DIR").unwrap());
+    let generated_dir = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("gen");
 
     let deps_dir = TempDir::new("deps").unwrap_or_else(|e| {
         panic!(e.to_string());

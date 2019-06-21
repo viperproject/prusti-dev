@@ -43,20 +43,21 @@ impl Viper {
 
         debug!("Java classpath: {}", jar_paths.clone().join(":"));
 
+        let classpath_separator = if cfg!(windows) { ";" } else { ":" };
         let init_args = InitArgsBuilder::new()
             .version(JNIVersion::V8)
-            .option(&format!("-Djava.class.path={}", jar_paths.join(":")))
+            .option(&format!("-Djava.class.path={}", jar_paths.join(classpath_separator)))
             // maximum heap size
             .option(&format!("-Xmx{}m", heap_size))
             // stack size
             .option("-Xss1024m");
-        //.option("-Xdebug")
-        //.option("-verbose:gc")
-        //.option("-Xcheck:jni")
-        //.option("-XX:+CheckJNICalls")
-        //.option("-Djava.security.debug=all")
-        //.option("-verbose:jni")
-        //.option("-XX:+TraceJNICalls")
+            //.option("-Xdebug")
+            //.option("-verbose:gc")
+            //.option("-Xcheck:jni")
+            //.option("-XX:+CheckJNICalls")
+            //.option("-Djava.security.debug=all")
+            //.option("-verbose:jni")
+            //.option("-XX:+TraceJNICalls")
         let jvm_args = java_args
             .into_iter()
             .fold(init_args, |curr_args, opt| curr_args.option(&opt))
