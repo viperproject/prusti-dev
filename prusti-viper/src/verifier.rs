@@ -222,37 +222,34 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
 
             let domains = self.encoder.get_used_viper_domains();
             let fields = self.encoder.get_used_viper_fields().to_viper(ast);
-            let unoptimized_functions = self.encoder.get_used_viper_functions();
-            let mut functions: Vec<_> = if config::simplify_functions() {
-                optimisations::functions::inline_constant_functions(unoptimized_functions)
+            let builtin_methods = self.encoder.get_used_builtin_methods();
+            let mut methods = self.encoder.get_used_viper_methods();
+            let mut functions = self.encoder.get_used_viper_functions();
+            if config::simplify_functions() {
+                let (new_methods, new_functions) = optimisations::functions::inline_constant_functions(
+                    methods, functions);
+                methods = new_methods;
+                functions = new_functions
                     .into_iter()
                     .map(|mut f| {
                         optimisations::functions::simplify(&mut f);
                         optimisations::folding::FoldingOptimiser::optimise(f)
                     })
-                    .map(|f| f.to_viper(ast))
-                    .collect()
-            } else {
-                unoptimized_functions
-                    .into_iter()
-                    .map(|f| f.to_viper(ast))
-                    .collect()
-            };
+                    .collect();
+            }
+            let mut viper_functions: Vec<_> = functions.into_iter().map(|f| f.to_viper(ast)).collect();
+            let mut viper_methods: Vec<_> = methods.into_iter().map(|m| m.to_viper(ast)).collect();
+            viper_methods.extend(builtin_methods.into_iter().map(|m| m.to_viper(ast)));
             let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
-            let methods = self
-                .encoder
-                .get_used_viper_methods()
-                .into_iter()
-                .map(|m| m.to_viper(ast))
-                .collect::<Vec<_>>();
 
             info!(
                 "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
-                domains.len(), fields.len(), functions.len(), predicates.len(), methods.len()
+                domains.len(), fields.len(), viper_functions.len(), predicates.len(),
+                viper_methods.len()
             );
 
             // Add a function that represents the symbolic read permission amount.
-            functions.push(ast.function(
+            viper_functions.push(ast.function(
                 "read$",
                 &[],
                 ast.perm_type(),
@@ -278,7 +275,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                 ),
             );
 
-            ast.program(&domains, &fields, &functions, &predicates, &methods)
+            ast.program(&domains, &fields, &viper_functions, &predicates, &viper_methods)
         };
 
         if config::dump_viper_program() {

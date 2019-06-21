@@ -6,8 +6,10 @@
 
 //! Inliner of pure functions.
 
-use super::super::super::ast::{self, ExprFolder};
+use super::super::super::ast;
+use super::super::super::cfg;
 use std::collections::HashMap;
+use std::mem;
 
 /// Convert functions whose body does not depend on arguments such as
 ///
@@ -31,9 +33,11 @@ use std::collections::HashMap;
 /// And then inline them on call sites.
 ///
 /// The optimisation is performed until a fix-point.
-pub fn inline_constant_functions(mut functions: Vec<ast::Function>) -> Vec<ast::Function> {
+pub fn inline_constant_functions(
+    mut methods: Vec<cfg::CfgMethod>,
+    mut functions: Vec<ast::Function>
+) -> (Vec<cfg::CfgMethod>, Vec<ast::Function>) {
     trace!("[enter] purify_constant_functions");
-    let mut pure_functions = Vec::new();
     let mut non_pure_functions = Vec::new();
     let mut pure_function_map = HashMap::new();
     let mut changed = true;
@@ -42,7 +46,6 @@ pub fn inline_constant_functions(mut functions: Vec<ast::Function>) -> Vec<ast::
         for mut function in functions.into_iter() {
             if let Some(body) = try_purify(&mut function) {
                 pure_function_map.insert(function.name.clone(), body);
-                pure_functions.push(function);
                 changed = true;
             } else {
                 non_pure_functions.push(function);
@@ -54,8 +57,8 @@ pub fn inline_constant_functions(mut functions: Vec<ast::Function>) -> Vec<ast::
             .collect();
         non_pure_functions = Vec::new();
     }
-    functions.extend(pure_functions);
-    functions
+    methods = inline_into_methods(methods, pure_function_map);
+    (methods, functions)
 }
 
 /// Try converting the function to pure by removing permissions from the
@@ -111,12 +114,18 @@ fn inline_into(
         let mut inliner = ConstantFunctionInliner {
             pure_function_map,
         };
-        inliner.fold(body)
+        ast::ExprFolder::fold(&mut inliner, body)
     });
     function
 }
 
-impl<'a> ExprFolder for ConstantFunctionInliner<'a> {
+impl<'a> ast::StmtFolder for ConstantFunctionInliner<'a> {
+    fn fold_expr(&mut self, expr: ast::Expr) -> ast::Expr {
+        ast::ExprFolder::fold(self, expr)
+    }
+}
+
+impl<'a> ast::ExprFolder for ConstantFunctionInliner<'a> {
     fn fold_func_app(
         &mut self,
         name: String,
@@ -161,4 +170,27 @@ impl<'a> ExprFolder for ConstantFunctionInliner<'a> {
         }
     }
 
+}
+
+fn inline_into_methods(
+    methods: Vec<cfg::CfgMethod>,
+    pure_function_map: HashMap<String, ast::Expr>
+) -> Vec<cfg::CfgMethod> {
+    let mut inliner = ConstantFunctionInliner {
+        pure_function_map: &pure_function_map,
+    };
+    methods
+        .into_iter()
+        .map(|mut method| {
+            let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+            for block in &mut method.basic_blocks {
+                for stmt in &mut block.stmts {
+                    mem::swap(&mut sentinel_stmt, stmt);
+                    sentinel_stmt = ast::StmtFolder::fold(&mut inliner, sentinel_stmt);
+                    mem::swap(&mut sentinel_stmt, stmt);
+                }
+            }
+            method
+        })
+        .collect()
 }

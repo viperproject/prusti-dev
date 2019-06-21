@@ -217,19 +217,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().clone()
     }
 
-    pub fn get_used_viper_methods(&self) -> Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> {
-        let mut methods: Vec<Box<vir::ToViper<'v, viper::Method<'v>>>> = vec![];
-        let mut builtin_methods: Vec<_> = self.builtin_methods.borrow().values().cloned().collect();
-        let mut procedures: Vec<_> = self.procedures.borrow().values().cloned().collect();
-        builtin_methods.sort_by_key(|f| f.get_identifier());
-        procedures.sort_by_key(|f| f.get_identifier());
-        for item in builtin_methods.drain(..) {
-            methods.push(Box::new(item));
-        }
-        for item in procedures.drain(..) {
-            methods.push(Box::new(item));
-        }
-        methods
+    pub fn get_used_builtin_methods(&self) -> Vec<vir::BodylessMethod> {
+        self.builtin_methods.borrow().values().cloned().collect()
+    }
+
+    pub fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
+        self.procedures.borrow().values().cloned().collect()
     }
 
     fn collect_closure_instantiations(&mut self) {
