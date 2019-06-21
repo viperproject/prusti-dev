@@ -140,8 +140,10 @@ fn find_java_home() -> Option<PathBuf> {
 
 /// Find Prusti's sysroot
 fn prusti_sysroot() -> Option<PathBuf> {
-    Command::new("rustc")
-        .arg(format!("+{}", include_str!("../../rust-toolchain").trim()))
+    Command::new("rustup")
+        .arg("run")
+        .arg(include_str!("../../rust-toolchain").trim())
+        .arg("rustc")
         .arg("--print")
         .arg("sysroot")
         .output()
