@@ -156,7 +156,12 @@ fn check_requirements_conflict(reqs1: &RequirementSet, reqs2: &RequirementSet) -
                                 if name == "discriminant" {
                                     // If we are checking discriminant, this means that the
                                     // permission is guarded.
-                                    return true;
+                                    if len1 != 0 || len2 != 0 {
+                                        // However, if the variant is the last component of the
+                                        // place, then we are still fine because we will try to
+                                        // unfold under implication.
+                                        return true;
+                                    }
                                 }
                             }
                             _ => {}
