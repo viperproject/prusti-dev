@@ -45,22 +45,27 @@ impl<'a> VerificationContext<'a> {
             Some("/usr/bin/viper-z3".to_string()),
             Some("/usr/local/bin/z3".to_string()),
             Some("/usr/bin/z3".to_string()),
+            Some("z3".to_string()),
         ]
         .into_iter()
         .flatten()
         .find(|path| Path::new(path).exists())
         .expect("No valid Z3 path has been found. Please set Z3_EXE.");
 
+        let boogie_path = "boogie".to_string();
+        /*
         let boogie_path = vec![
             env::var("BOOGIE_PATH").ok(),
             env::var("BOOGIE_EXE").ok(),
             Some("/usr/local/bin/boogie".to_string()),
             Some("/usr/bin/boogie".to_string()),
+            Some("boogie".to_string()),
         ]
         .into_iter()
         .flatten()
         .find(|path| Path::new(path).exists())
         .expect("No valid Boogie path has been found. Please set BOOGIE_EXE.");
+        */
 
         info!("Using Z3 path: '{}'", &z3_path);
         info!("Using BOOGIE path: '{}'", &boogie_path);
