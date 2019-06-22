@@ -34,6 +34,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
+        settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -231,5 +232,14 @@ pub fn assert_timeout() -> u64 {
         .read()
         .unwrap()
         .get::<u64>("ASSERT_TIMEOUT")
+        .unwrap()
+}
+
+/// Use the Silicon configuration option `--enableMoreCompleteExhale`.
+pub fn use_more_complete_exhale() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("USE_MORE_COMPLETE_EXHALE")
         .unwrap()
 }
