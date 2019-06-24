@@ -1,7 +1,7 @@
 use std::process::Command;
 
 fn main(){
-    if let Err(code) = process(std::env::args().skip(2)) {
+    if let Err(code) = process(std::env::args().skip(1)) {
         std::process::exit(code);
     }
 }

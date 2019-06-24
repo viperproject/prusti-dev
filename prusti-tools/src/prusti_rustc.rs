@@ -1,8 +1,10 @@
 extern crate walkdir;
 
 use std::path::{PathBuf, Path};
-use std::env;
+use std::{env, io};
 use std::process::Command;
+use std::str;
+use std::io::Write;
 
 fn main(){
     if let Err(code) = process(std::env::args().skip(1)) {
@@ -49,15 +51,23 @@ where
 
     add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
 
-    let exit_status = cmd.spawn()
-        .expect("could not run prusti-driver")
-        .wait()
-        .expect("failed to wait for prusti-driver?");
+    let output = cmd.output().expect("could not run prusti-driver");
 
-    if exit_status.success() {
+    // HACK: filter unwanted output (to be avoided as soon as possible, using `cmd.spawn()`)
+    let stdout_str = str::from_utf8(&output.stdout).expect("could not parse stdout");
+    for line in stdout_str.lines() {
+        if line.starts_with("borrow_live_at is complete") { continue; }
+        if line.starts_with("Could not resolve expression") { continue; }
+        println!("{}", line);
+    }
+
+    // There is no need to filter stderr
+    io::stderr().write_all(&output.stderr).expect("could not write stderr");
+
+    if output.status.success() {
         Ok(())
     } else {
-        Err(exit_status.code().unwrap_or(-1))
+        Err(output.status.code().unwrap_or(-1))
     }
 }
 
@@ -140,8 +150,10 @@ fn find_java_home() -> Option<PathBuf> {
 
 /// Find Prusti's sysroot
 fn prusti_sysroot() -> Option<PathBuf> {
-    Command::new("rustc")
-        .arg(format!("+{}", include_str!("../../rust-toolchain").trim()))
+    Command::new("rustup")
+        .arg("run")
+        .arg(include_str!("../../rust-toolchain").trim())
+        .arg("rustc")
         .arg("--print")
         .arg("sysroot")
         .output()
