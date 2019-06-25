@@ -124,6 +124,11 @@ run-release-flamegraph: release
 		${RUN_FILE}
 	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
 
+run-release-prusti-rustc-flamegraph: release
+	perf record -F 99 --call-graph=dwarf,32000 \
+	    ./target/release/prusti-rustc ${RUN_FILE}
+	@echo "Now run 'flamegraph-rust-perf > flame.svg'"
+
 update:
 	cargo update
 

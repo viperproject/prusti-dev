@@ -54,6 +54,7 @@ where
     let output = cmd.output().expect("could not run prusti-driver");
 
     // HACK: filter unwanted output (to be avoided as soon as possible, using `cmd.spawn()`)
+    // This is needed by cargo-prusti
     let stdout_str = str::from_utf8(&output.stdout).expect("could not parse stdout");
     for line in stdout_str.lines() {
         if line.starts_with("borrow_live_at is complete") { continue; }
