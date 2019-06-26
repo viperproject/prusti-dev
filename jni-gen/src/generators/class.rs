@@ -58,6 +58,7 @@ impl<'a> ClassGenerator<'a> {
             "use jni::JNIEnv;",
             "use jni::objects::JObject;",
             "use jni::objects::JValue;",
+            "use jni::objects::JClass;",
             "use jni::errors::Result as JNIResult;",
             "use jni::sys::*;",
             "use jni::signature::*;",

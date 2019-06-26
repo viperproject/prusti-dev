@@ -167,19 +167,21 @@ fn generate(
     }
 
     code.push(") -> JNIResult<JObject<'a>> {".to_string());
-    code.push(format!(
-        "    let class = self.env.find_class(\"{}\")?;",
-        class.path()
-    ));
+
+    code.push(format!("    let class = self.env.find_class(\"{}\")?;", class.path()));
+
     code.push(format!(
         "    let method_signature = \"{}\";",
         constructor_signature
     ));
-    code.push(
-        "    let method_id = self.env.get_method_id(class, \"<init>\", method_signature)?;"
-            .to_string(),
-    );
-    code.push("    self.env.new_object_unchecked(".to_string());
+
+    code.push("    let method_id = self.env.get_method_id(".to_string());
+    code.push("        class,".to_string());
+    code.push("        \"<init>\",".to_string());
+    code.push("        method_signature".to_string());
+    code.push("    )?;".to_string());
+
+    code.push("    let result = self.env.new_object_unchecked(".to_string());
     code.push("        class,".to_string());
     code.push("        method_id,".to_string());
     code.push("        &[".to_string());
@@ -192,7 +194,10 @@ fn generate(
     }
 
     code.push("        ]".to_string());
-    code.push("    )".to_string());
+    code.push("    );".to_string());
+
+    code.push("    self.env.delete_local_ref(class.into()).unwrap();".to_string());
+    code.push("    result".to_string());
     code.push("}".to_string());
 
     code.join("\n") + "\n"
