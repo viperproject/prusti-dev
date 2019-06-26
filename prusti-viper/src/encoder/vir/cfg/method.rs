@@ -39,6 +39,8 @@ pub struct CfgBlock {
 pub enum Successor {
     Undefined,
     Return,
+    /// A loop back-edge.
+    BackEdge(CfgBlockIndex),
     Goto(CfgBlockIndex),
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
@@ -66,6 +68,7 @@ impl Successor {
     pub fn get_following(&self) -> Vec<CfgBlockIndex> {
         match self {
             &Successor::Undefined | &Successor::Return => vec![],
+            &Successor::BackEdge(target) => vec![target],
             &Successor::Goto(target) => vec![target],
             &Successor::GotoSwitch(ref guarded_targets, default_target) => {
                 let mut res: Vec<CfgBlockIndex> = guarded_targets.iter().map(|g| g.1).collect();
