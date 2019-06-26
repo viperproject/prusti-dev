@@ -50,14 +50,16 @@ where
     cmd.env("SYSROOT", &prusti_sysroot);
     cmd.env("PRUSTI_CONTRACTS_LIB", &prusti_contracts_lib);
 
-    add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
     if let Some(target) = option_env!("TARGET") {
         let rustlib_path = prusti_sysroot
             .join("lib")
             .join("rustlib")
             .join(target)
             .join("lib");
-        add_to_loader_path(vec![rustlib_path], &mut cmd);
+        add_to_loader_path(vec![rustlib_path, compiler_lib, libjvm_path], &mut cmd);
+    } else {
+        add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
+
     }
 
     let output = cmd.output().expect("could not run prusti-driver");

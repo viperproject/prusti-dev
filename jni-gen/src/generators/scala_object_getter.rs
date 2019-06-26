@@ -27,15 +27,14 @@ pub fn generate_scala_object_getter(env: &JNIEnv, class_name: &ClassName) -> Res
             class_name.path()
         ),
         "pub fn singleton(&self) -> JNIResult<JObject<'a>> {".to_string(),
-        format!(
-            "    let class = self.env.find_class(\"{}\")?;",
-            class_name.path()
-        ),
-        "    self.env.get_static_field(".to_string(),
+        format!( "    let class = self.env.find_class(\"{}\")?;", class_name.path()),
+        "    let result = self.env.get_static_field(".to_string(),
         "        class,".to_string(),
         "        \"MODULE$\",".to_string(),
         format!("        \"L{};\",", class_name.path()),
-        "    ).and_then(|x| x.l())".to_string(),
+        "    ).and_then(|x| x.l());".to_string(),
+        "    self.env.delete_local_ref(class.into()).unwrap();".to_string(),
+        "    result".to_string(),
         "}".to_string(),
     ]
     .join("\n")

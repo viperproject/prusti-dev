@@ -245,10 +245,7 @@ fn generate(
         }
     }*/
 
-    code.push(format!(
-        "    let class = self.env.find_class(\"{}\")?;",
-        class.path()
-    ));
+    code.push(format!("    let class = self.env.find_class(\"{}\")?;", class.path()));
 
     // Generate dynamic type check for `receiver`
     /*code.push("    debug_assert!(".to_string());
@@ -264,12 +261,15 @@ fn generate(
         "    let return_signature = \"{}\";",
         return_signature
     ));
-    code.push(
-        "    let method_id = self.env.get_method_id(class, method_name, method_signature)?;"
-            .to_string(),
-    );
+
+    code.push("    let method_id = self.env.get_method_id(".to_string());
+    code.push("        class,".to_string());
+    code.push("        method_name,".to_string());
+    code.push("        method_signature".to_string());
+    code.push("    )?;".to_string());
+
     code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
-    code.push("    self.env.call_method_unchecked(".to_string());
+    code.push("    let result = self.env.call_method_unchecked(".to_string());
     code.push("        receiver,".to_string());
     code.push("        method_id,".to_string());
     code.push("        return_type,".to_string());
@@ -284,7 +284,7 @@ fn generate(
 
     code.push("        ]".to_string());
     code.push(format!(
-        "    ).and_then(|x| x.{}())",
+        "    ).and_then(|x| x.{}());",
         generate_jni_type_char(&return_signature)
     ));
 
@@ -299,6 +299,8 @@ fn generate(
         code.push("    );".to_string());
     }*/
 
+    code.push("    self.env.delete_local_ref(class.into()).unwrap();".to_string());
+    code.push("    result".to_string());
     code.push("}".to_string());
 
     code.join("\n") + "\n"
@@ -371,9 +373,10 @@ fn generate_static(
     }*/
 
     code.push(format!(
-        "    let class = self.env.find_class(\"{}\")?;",
+        "    let class =self.env.find_class(\"{}\")?;",
         class.path()
     ));
+
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(
         "    let method_signature = \"{}\";",
@@ -383,12 +386,15 @@ fn generate_static(
         "    let return_signature = \"{}\";",
         return_signature
     ));
-    code.push(
-        "    let method_id = self.env.get_static_method_id(class, method_name, method_signature)?;"
-            .to_string(),
-    );
+
+    code.push("    let method_id = self.env.get_static_method_id(".to_string());
+    code.push("        class,".to_string());
+    code.push("        method_name,".to_string());
+    code.push("        method_signature".to_string());
+    code.push("    )?;".to_string());
+
     code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
-    code.push("    self.env.call_static_method_unchecked(".to_string());
+    code.push("    let result = self.env.call_static_method_unchecked(".to_string());
     code.push("        class,".to_string());
     code.push("        method_id,".to_string());
     code.push("        return_type,".to_string());
@@ -403,7 +409,7 @@ fn generate_static(
 
     code.push("        ]".to_string());
     code.push(format!(
-        "    ).and_then(|x| x.{}())",
+        "    ).and_then(|x| x.{}());",
         generate_jni_type_char(&return_signature)
     ));
 
@@ -418,6 +424,8 @@ fn generate_static(
         code.push("    );".to_string());
     }*/
 
+    code.push("    self.env.delete_local_ref(class.into()).unwrap();".to_string());
+    code.push("    result".to_string());
     code.push("}".to_string());
 
     code.join("\n") + "\n"
