@@ -35,6 +35,7 @@ lazy_static! {
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
+        settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", true).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -241,5 +242,14 @@ pub fn use_more_complete_exhale() -> bool {
         .read()
         .unwrap()
         .get::<bool>("USE_MORE_COMPLETE_EXHALE")
+        .unwrap()
+}
+
+/// Replace all back-edges with `assume false`.
+pub fn use_assume_false_back_edges() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("USE_ASSUME_FALSE_BACK_EDGES")
         .unwrap()
 }

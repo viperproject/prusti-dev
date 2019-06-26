@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::vir::ast::*;
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 use std::iter::FromIterator;
 use uuid::Uuid;
@@ -32,13 +32,15 @@ pub struct CfgBlock {
     // FIXME: Hack, should be pub(super).
     pub(super) invs: Vec<Expr>,
     pub stmts: Vec<Stmt>, // FIXME: Hack, should be pub(super).
-    pub(super) successor: Successor,
+    pub(in super::super) successor: Successor,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Successor {
     Undefined,
     Return,
+    /// A loop back-edge.
+    BackEdge(CfgBlockIndex),
     Goto(CfgBlockIndex),
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
@@ -46,7 +48,7 @@ pub enum Successor {
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub struct CfgBlockIndex {
     pub(super) method_uuid: Uuid,
-    pub(super) block_index: usize,
+    pub(in super::super) block_index: usize,
 }
 
 impl fmt::Debug for CfgBlockIndex {
@@ -66,6 +68,7 @@ impl Successor {
     pub fn get_following(&self) -> Vec<CfgBlockIndex> {
         match self {
             &Successor::Undefined | &Successor::Return => vec![],
+            &Successor::BackEdge(target) => vec![target],
             &Successor::Goto(target) => vec![target],
             &Successor::GotoSwitch(ref guarded_targets, default_target) => {
                 let mut res: Vec<CfgBlockIndex> = guarded_targets.iter().map(|g| g.1).collect();
@@ -279,6 +282,17 @@ impl CfgMethod {
             .filter(|x| x.1.successor.get_following().contains(&target_index))
             .map(|x| self.block_index(x.0))
             .collect()
+    }
+
+    pub fn predecessors(&self) -> HashMap<usize, Vec<usize>> {
+        let mut result = HashMap::new();
+        for (index, block) in self.basic_blocks.iter().enumerate() {
+            for successor in block.successor.get_following() {
+                let entry = result.entry(successor.block_index).or_insert_with(|| {Vec::new()});
+                entry.push(index);
+            }
+        }
+        result
     }
 
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {

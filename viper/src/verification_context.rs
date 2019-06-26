@@ -52,21 +52,21 @@ impl<'a> VerificationContext<'a> {
         .find(|path| Path::new(path).exists())
         .expect("No valid Z3 path has been found. Please set Z3_EXE.");
 
-        let boogie_path = "boogie".to_string();
-        /*
-        let boogie_path = vec![
-            env::var("BOOGIE_PATH").ok(),
-            env::var("BOOGIE_EXE").ok(),
-            Some("/usr/local/bin/boogie".to_string()),
-            Some("/usr/bin/boogie".to_string()),
-            Some("boogie".to_string()),
-        ]
-        .into_iter()
-        .flatten()
-        .find(|path| Path::new(path).exists())
-        .expect("No valid Boogie path has been found. Please set BOOGIE_EXE.");
-        */
-
+        let boogie_path = if VerificationBackend::Carbon == backend {
+            vec![
+                env::var("BOOGIE_PATH").ok(),
+                env::var("BOOGIE_EXE").ok(),
+                Some("/usr/local/bin/boogie".to_string()),
+                Some("/usr/bin/boogie".to_string()),
+                Some("boogie".to_string()),
+            ]
+            .into_iter()
+            .flatten()
+            .find(|path| Path::new(path).exists())
+            .expect("No valid Boogie path has been found. Please set BOOGIE_EXE.")
+        } else {
+            "boogie".to_string()
+        };
         info!("Using Z3 path: '{}'", &z3_path);
         info!("Using BOOGIE path: '{}'", &boogie_path);
 

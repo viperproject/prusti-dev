@@ -15,7 +15,7 @@ use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 use encoder::optimiser;
 use encoder::places::{Local, LocalVariableManager, Place};
-use encoder::vir::fixes::fix_ghost_vars;
+use encoder::vir::fixes::{fix_ghost_vars, havoc_assigned_locals};
 use encoder::vir::optimisations::methods::{remove_trivial_assertions, remove_unused_vars};
 use encoder::vir::ExprIterator;
 use encoder::vir::{self, CfgBlockIndex, Successor};
@@ -220,10 +220,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             bbi, bbi_successor
                         ))],
                     );
-                    self.cfg_method.set_successor(
-                        cfg_edge,
-                        Successor::Goto(self.mir_to_vir_blocks[&bbi_successor]),
-                    );
+                    let is_back_edge = self.loop_encoder.is_loop_head(bbi_successor) &&
+                        self.loop_encoder.get_loop_head(bbi) == Some(bbi_successor);
+                    let successor = if is_back_edge {
+                        Successor::BackEdge(self.mir_to_vir_blocks[&bbi_successor])
+                    } else {
+                        Successor::Goto(self.mir_to_vir_blocks[&bbi_successor])
+                    };
+                    self.cfg_method.set_successor(cfg_edge, successor);
                     cfg_successors.insert(bbi_successor, cfg_edge);
                 }
             }
@@ -278,168 +282,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Encode statements
         for bbi in self.procedure.get_reachable_cfg_blocks() {
-            let bb_data = &self.mir.basic_blocks()[bbi];
-            let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
-            let bb_pos = self
-                .mir_encoder
-                .encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
-
-            // Store a flag that becomes true the first time the block is executed
-            let executed_flag_var = self.cfg_block_has_been_executed[&bbi].clone();
-            self.cfg_method.add_stmt(
-                cfg_block,
-                vir::Stmt::Assign(
-                    vir::Expr::local(executed_flag_var).set_pos(bb_pos),
-                    true.into(),
-                    vir::AssignKind::Copy,
-                ),
-            );
-
-            // Inhale the loop invariant if this is a loop head
-            if self.loop_encoder.is_loop_head(bbi) {
-                for (successor, cfg_successor) in &cfg_edges[&bbi] {
-                    let after_loop = self.loop_encoder.get_loop_head(*successor) != Some(bbi);
-                    let stmts = self.encode_loop_invariant_inhale(bbi, after_loop);
-                    for stmt in stmts.iter() {
-                        self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
-                    }
-                }
-            }
-
-            // Encode statements of the block, if this is not a "spec" block
-            if !self.procedure.is_spec_block(bbi) {
-                if self.loop_encoder.is_loop_head(bbi) {
-                    for cfg_successor in cfg_edges[&bbi].values() {
-                        self.encode_block_statements(bbi, *cfg_successor);
-                    }
-                } else {
-                    self.encode_block_statements(bbi, cfg_block);
-                }
-            } else {
-                // Any spec block must be unreachable
-                self.cfg_method.add_stmt(
-                    cfg_block,
-                    vir::Stmt::comment("Unreachable block, used for type-checking specifications"),
-                );
-                self.cfg_method.add_stmt(
-                    cfg_block,
-                    vir::Stmt::Assert(
-                        false.into(),
-                        vir::FoldingBehaviour::Expr,
-                        vir::Position::default()
-                    ),
-                );
-            }
-
-            // Encode terminators and set CFG edges
-            if let Some(ref term) = bb_data.terminator {
-                trace!("Encode terminator of {:?}", bbi);
-                let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
-                self.cfg_method.add_stmt(
-                    cfg_block,
-                    vir::Stmt::comment(format!("[mir] {:?}", term.kind)),
-                );
-                let location = mir::Location {
-                    block: bbi,
-                    statement_index: bb_data.statements.len(),
-                };
-                let (stmts, successor) = self.encode_terminator(
-                    term,
-                    location,
-                    cfg_edges
-                        .get(&bbi)
-                        .expect(&format!("CFG block {:?} has no entry in 'cfg_edges'", bbi)),
-                    return_cfg_block,
-                    &mut procedure_contract,
-                );
-                if self.loop_encoder.is_loop_head(bbi) {
-                    for cfg_successor in cfg_edges[&bbi].values() {
-                        for stmt in stmts.iter() {
-                            self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
-                        }
-                    }
-                    match successor {
-                        Successor::GotoSwitch(cfg_targets, cfg_default_target) => {
-                            let mut new_cfg_targets = Vec::new();
-                            let mut default_condition_conjuncts = Vec::new();
-                            for (expr, cfg_target) in cfg_targets {
-                                // Make the jump non-deterministic.
-                                let new_local =
-                                    self.cfg_method.add_fresh_local_var(vir::Type::Bool);
-                                new_cfg_targets.push((new_local.into(), cfg_target));
-
-                                // Assume the condition under which the jump happened.
-                                let stmt = vir::Stmt::Inhale(
-                                    expr.clone(),
-                                    vir::FoldingBehaviour::Stmt,
-                                );
-                                default_condition_conjuncts.push(expr);
-                                self.cfg_method.add_stmt(cfg_target, stmt);
-                            }
-                            let default_condition = vir::Expr::UnaryOp(
-                                vir::UnaryOpKind::Not,
-                                box default_condition_conjuncts.into_iter().conjoin(),
-                                vir::Position::default(),
-                            );
-                            let stmt = vir::Stmt::Inhale(
-                                default_condition,
-                                vir::FoldingBehaviour::Stmt
-                            );
-                            self.cfg_method.add_stmt(cfg_default_target, stmt);
-                            let new_successor =
-                                Successor::GotoSwitch(new_cfg_targets, cfg_default_target);
-                            self.cfg_method.set_successor(cfg_block, new_successor);
-                        }
-                        Successor::Goto(cfg_target) => {
-                            let new_successor = Successor::Goto(cfg_target);
-                            self.cfg_method.set_successor(cfg_block, new_successor);
-                        }
-                        x => unreachable!("{:?}", x),
-                    }
-                } else {
-                    for stmt in stmts.into_iter() {
-                        self.cfg_method.add_stmt(cfg_block, stmt);
-                    }
-                    if successor != vir::Successor::Return {
-                        for successor in self.procedure.successors(bbi) {
-                            if self.procedure.is_reachable_block(successor) {
-                                let succ_location = mir::Location {
-                                    block: successor,
-                                    statement_index: 0,
-                                };
-                                let cfg_edge_block = cfg_edges[&bbi][&successor];
-                                for stmt in self
-                                    .encode_expiring_borrows_between(location, succ_location)
-                                    .drain(..)
-                                {
-                                    self.cfg_method.add_stmt(cfg_edge_block, stmt);
-                                }
-                            }
-                        }
-                    }
-                    self.cfg_method.set_successor(cfg_block, successor);
-                }
-            }
-
-            // Exhale the loop invariant if the successor is a loop head
-            // Add an `BeginFrame` statement if the outgoing edge is an *in* edge
-            for successor in self.procedure.successors(bbi) {
-                if self.loop_encoder.is_loop_head(successor) {
-                    let cfg_edge_block = cfg_edges[&bbi][&successor];
-                    let after_loop_iteration =
-                        self.loop_encoder.get_loop_head(bbi) == Some(successor);
-                    let stmts = self.encode_loop_invariant_exhale(successor, after_loop_iteration);
-                    for stmt in stmts.into_iter() {
-                        self.cfg_method.add_stmt(cfg_edge_block, stmt);
-                    }
-                    let is_edge_in_loop = self.loop_encoder.get_loop_depth(successor)
-                        > self.loop_encoder.get_loop_depth(bbi);
-                    if is_edge_in_loop {
-                        self.cfg_method
-                            .add_stmt(cfg_edge_block, vir::Stmt::BeginFrame);
-                    }
-                }
-            }
+            self.encode_block(bbi, &cfg_edges, &mut procedure_contract, return_cfg_block);
         }
 
         let local_vars: Vec<_> = self
@@ -549,7 +392,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.encoder, self.cfg_method, loan_positions, method_pos);
 
         // Fix variable declarations.
-        let fixed_method = fix_ghost_vars(method_with_fold_unfold);
+        let mut fixed_method = fix_ghost_vars(method_with_fold_unfold);
+
+        if config::use_assume_false_back_edges() {
+            let havoc_methods = self.encoder.encode_havoc_methods();
+            havoc_assigned_locals(&mut fixed_method, &havoc_methods);
+        }
 
         // Optimise encoding a bit
         let method_without_unused_vars = remove_unused_vars(fixed_method);
@@ -567,6 +415,216 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         final_method
+    }
+
+    fn encode_block(
+        &mut self,
+        bbi: mir::BasicBlock,
+        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+        procedure_contract: &mut ProcedureContract<'tcx>,
+        return_cfg_block: vir::CfgBlockIndex,
+    ) {
+        let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
+        let bb_pos = self
+            .mir_encoder
+            .encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
+
+        self.encode_execution_flag(bbi, cfg_block, bb_pos);
+        if self.loop_encoder.is_loop_head(bbi) {
+            self.encode_loop_invariant_inhale(bbi, cfg_edges);
+        }
+        self.encode_statements(bbi, cfg_block, cfg_edges);
+        self.encode_terminators(bbi, cfg_edges, procedure_contract, return_cfg_block);
+        self.encode_loop_invariant_exhale(bbi, cfg_edges);
+    }
+
+    /// Store a flag that becomes true the first time the block is executed
+    fn encode_execution_flag(
+        &mut self,
+        bbi: BasicBlockIndex,
+        cfg_block: vir::CfgBlockIndex,
+        pos: vir::Position
+    ) {
+        let executed_flag_var = self.cfg_block_has_been_executed[&bbi].clone();
+        self.cfg_method.add_stmt(
+            cfg_block,
+            vir::Stmt::Assign(
+                vir::Expr::local(executed_flag_var).set_pos(pos),
+                true.into(),
+                vir::AssignKind::Copy,
+            ),
+        );
+    }
+
+    fn encode_loop_invariant_inhale(
+        &mut self,
+        bbi: BasicBlockIndex,
+        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+    ) {
+        for (successor, cfg_successor) in &cfg_edges[&bbi] {
+            let after_loop = self.loop_encoder.get_loop_head(*successor) != Some(bbi);
+            let stmts = self.encode_loop_invariant_inhale_stmts(bbi, after_loop);
+            for stmt in stmts.iter() {
+                self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
+            }
+        }
+    }
+
+    /// Exhale the loop invariant if the successor is a loop head
+    /// Add an `BeginFrame` statement if the outgoing edge is an *in* edge
+    fn encode_loop_invariant_exhale(
+        &mut self,
+        bbi: BasicBlockIndex,
+        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+    ) {
+        for successor in self.procedure.successors(bbi) {
+            if self.loop_encoder.is_loop_head(successor) {
+                let cfg_edge_block = cfg_edges[&bbi][&successor];
+                let after_loop_iteration =
+                    self.loop_encoder.get_loop_head(bbi) == Some(successor);
+                let stmts = self.encode_loop_invariant_exhale_stmts(successor, after_loop_iteration);
+                for stmt in stmts.into_iter() {
+                    self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                }
+                let is_edge_in_loop = self.loop_encoder.get_loop_depth(successor)
+                    > self.loop_encoder.get_loop_depth(bbi);
+                if is_edge_in_loop {
+                    self.cfg_method
+                        .add_stmt(cfg_edge_block, vir::Stmt::BeginFrame);
+                }
+            }
+        }
+    }
+
+    /// Encode statements of the block, if this is not a "spec" block
+    fn encode_statements(
+        &mut self,
+        bbi: BasicBlockIndex,
+        cfg_block: vir::CfgBlockIndex,
+        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+    ) {
+        if !self.procedure.is_spec_block(bbi) {
+            if self.loop_encoder.is_loop_head(bbi) {
+                for cfg_successor in cfg_edges[&bbi].values() {
+                    self.encode_block_statements(bbi, *cfg_successor);
+                }
+            } else {
+                self.encode_block_statements(bbi, cfg_block);
+            }
+        } else {
+            // Any spec block must be unreachable
+            self.cfg_method.add_stmt(
+                cfg_block,
+                vir::Stmt::comment("Unreachable block, used for type-checking specifications"),
+            );
+            self.cfg_method.add_stmt(
+                cfg_block,
+                vir::Stmt::Assert(
+                    false.into(),
+                    vir::FoldingBehaviour::Expr,
+                    vir::Position::default()
+                ),
+            );
+        }
+    }
+
+    /// Encode terminators and set CFG edges
+    fn encode_terminators(
+        &mut self,
+        bbi: BasicBlockIndex,
+        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+        procedure_contract: &mut ProcedureContract<'tcx>,
+        return_cfg_block: vir::CfgBlockIndex,
+    ) {
+        let bb_data = &self.mir.basic_blocks()[bbi];
+        if let Some(ref term) = bb_data.terminator {
+            trace!("Encode terminator of {:?}", bbi);
+            let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
+            self.cfg_method.add_stmt(
+                cfg_block,
+                vir::Stmt::comment(format!("[mir] {:?}", term.kind)),
+            );
+            let location = mir::Location {
+                block: bbi,
+                statement_index: bb_data.statements.len(),
+            };
+            let (stmts, successor) = self.encode_terminator(
+                term,
+                location,
+                cfg_edges
+                    .get(&bbi)
+                    .expect(&format!("CFG block {:?} has no entry in 'cfg_edges'", bbi)),
+                return_cfg_block,
+                procedure_contract,
+            );
+            if self.loop_encoder.is_loop_head(bbi) {
+                for cfg_successor in cfg_edges[&bbi].values() {
+                    for stmt in stmts.iter() {
+                        self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
+                    }
+                }
+                match successor {
+                    Successor::GotoSwitch(cfg_targets, cfg_default_target) => {
+                        let mut new_cfg_targets = Vec::new();
+                        let mut default_condition_conjuncts = Vec::new();
+                        for (expr, cfg_target) in cfg_targets {
+                            // Make the jump non-deterministic.
+                            let new_local =
+                                self.cfg_method.add_fresh_local_var(vir::Type::Bool);
+                            new_cfg_targets.push((new_local.into(), cfg_target));
+
+                            // Assume the condition under which the jump happened.
+                            let stmt = vir::Stmt::Inhale(
+                                expr.clone(),
+                                vir::FoldingBehaviour::Stmt,
+                            );
+                            default_condition_conjuncts.push(expr);
+                            self.cfg_method.add_stmt(cfg_target, stmt);
+                        }
+                        let default_condition = vir::Expr::UnaryOp(
+                            vir::UnaryOpKind::Not,
+                            box default_condition_conjuncts.into_iter().conjoin(),
+                            vir::Position::default(),
+                        );
+                        let stmt = vir::Stmt::Inhale(
+                            default_condition,
+                            vir::FoldingBehaviour::Stmt
+                        );
+                        self.cfg_method.add_stmt(cfg_default_target, stmt);
+                        let new_successor =
+                            Successor::GotoSwitch(new_cfg_targets, cfg_default_target);
+                        self.cfg_method.set_successor(cfg_block, new_successor);
+                    }
+                    Successor::Goto(cfg_target) => {
+                        let new_successor = Successor::Goto(cfg_target);
+                        self.cfg_method.set_successor(cfg_block, new_successor);
+                    }
+                    x => unreachable!("{:?}", x),
+                }
+            } else {
+                for stmt in stmts.into_iter() {
+                    self.cfg_method.add_stmt(cfg_block, stmt);
+                }
+                if successor != vir::Successor::Return {
+                    for successor in self.procedure.successors(bbi) {
+                        if self.procedure.is_reachable_block(successor) {
+                            let succ_location = mir::Location {
+                                block: successor,
+                                statement_index: 0,
+                            };
+                            let cfg_edge_block = cfg_edges[&bbi][&successor];
+                            for stmt in self
+                                .encode_expiring_borrows_between(location, succ_location)
+                                .drain(..)
+                            {
+                                self.cfg_method.add_stmt(cfg_edge_block, stmt);
+                            }
+                        }
+                    }
+                }
+                self.cfg_method.set_successor(cfg_block, successor);
+            }
+        }
     }
 
     fn encode_block_statements(&mut self, bbi: BasicBlockIndex, cfg_block: CfgBlockIndex) {
@@ -3098,13 +3156,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_specs
     }
 
-    fn encode_loop_invariant_exhale(
+    fn encode_loop_invariant_exhale_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
         after_loop_iteration: bool,
     ) -> Vec<vir::Stmt> {
         trace!(
-            "[enter] encode_loop_invariant_exhale loop_head={:?} \
+            "[enter] encode_loop_invariant_exhale_stmts loop_head={:?} \
              after_loop_iteration={}",
             loop_head,
             after_loop_iteration
@@ -3177,13 +3235,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmts
     }
 
-    fn encode_loop_invariant_inhale(
+    fn encode_loop_invariant_inhale_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
         after_loop: bool,
     ) -> Vec<vir::Stmt> {
         trace!(
-            "[enter] encode_loop_invariant_inhale loop_head={:?} after_loop={}",
+            "[enter] encode_loop_invariant_inhale_stmts loop_head={:?} after_loop={}",
             loop_head,
             after_loop
         );

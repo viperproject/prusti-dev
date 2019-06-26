@@ -143,6 +143,13 @@ pub enum Type {
     TypedRef(String),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TypeId {
+    Int,
+    Bool,
+    Ref,
+}
+
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -194,6 +201,14 @@ impl Type {
                 }
                 Type::TypedRef(predicate_name)
             }
+        }
+    }
+
+    pub fn get_id(&self) -> TypeId {
+        match self {
+            Type::Bool => TypeId::Bool,
+            Type::Int => TypeId::Int,
+            Type::TypedRef(_) => TypeId::Ref,
         }
     }
 }

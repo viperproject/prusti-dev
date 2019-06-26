@@ -24,10 +24,10 @@ impl Default for Viper {
 
 impl Viper {
     pub fn new() -> Self {
-        Self::new_with_args(vec![])
+        Self::new_with_args(vec![], "silicon")
     }
 
-    pub fn new_with_args(java_args: Vec<String>) -> Self {
+    pub fn new_with_args(java_args: Vec<String>, viper_backend: &str) -> Self {
         let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
         let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "4096".to_string());
 
@@ -36,9 +36,15 @@ impl Viper {
         let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap()
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
-            // TODO: make this dependent on a configuration flag, or make Viper work fine with
-            // both backends in path.
-            .filter(|x| !x.contains("carbon"))
+            .filter(|path| {
+                if viper_backend == "carbon" {
+                    !path.contains("silicon")
+                } else if viper_backend == "silicon" {
+                    !path.contains("carbon")
+                } else {
+                    true
+                }
+            })
             .collect();
 
         debug!("Java classpath: {}", jar_paths.clone().join(":"));

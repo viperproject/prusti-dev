@@ -284,6 +284,7 @@ pub trait SuccessorFolder {
         match s {
             Successor::Undefined => self.fold_undefined(),
             Successor::Return => self.fold_return(),
+            Successor::BackEdge(target) => self.fold_backedge(target),
             Successor::Goto(target) => self.fold_goto(target),
             Successor::GotoSwitch(guarded_targets, default_target) => {
                 self.fold_goto_switch(guarded_targets, default_target)
@@ -305,6 +306,10 @@ pub trait SuccessorFolder {
 
     fn fold_return(&mut self) -> Successor {
         Successor::Undefined
+    }
+
+    fn fold_backedge(&mut self, target: CfgBlockIndex) -> Successor {
+        Successor::Goto(self.fold_target(target))
     }
 
     fn fold_goto(&mut self, target: CfgBlockIndex) -> Successor {
