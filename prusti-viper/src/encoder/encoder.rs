@@ -707,6 +707,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         )
     }
 
+    pub fn encode_havoc_methods(&self) -> HashMap<vir::TypeId, String> {
+        lazy_static! {
+            static ref TYPES: Vec<(vir::TypeId, BuiltinMethodKind)> = vec![
+                (vir::TypeId::Bool, BuiltinMethodKind::HavocBool),
+                (vir::TypeId::Int, BuiltinMethodKind::HavocInt),
+                (vir::TypeId::Ref, BuiltinMethodKind::HavocRef),
+            ];
+        }
+        TYPES.iter()
+            .map(|(type_id, kind)| {
+                (*type_id, self.encode_builtin_method_use(*kind))
+            })
+            .collect()
+    }
+
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
         trace!("encode_builtin_method_def({:?})", method_kind);
         if !self.builtin_methods.borrow().contains_key(&method_kind) {

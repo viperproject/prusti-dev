@@ -8,6 +8,8 @@ use encoder::vir;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum BuiltinMethodKind {
+    HavocBool,
+    HavocInt,
     HavocRef,
 }
 
@@ -29,20 +31,22 @@ impl BuiltinEncoder {
 
     pub fn encode_builtin_method_name(&self, method: BuiltinMethodKind) -> String {
         match method {
+            BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
+            BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
         }
     }
 
     pub fn encode_builtin_method_def(&self, method: BuiltinMethodKind) -> vir::BodylessMethod {
-        match method {
-            BuiltinMethodKind::HavocRef => vir::BodylessMethod {
-                name: self.encode_builtin_method_name(method),
-                formal_args: vec![],
-                formal_returns: vec![vir::LocalVar::new(
-                    "ret",
-                    vir::Type::TypedRef("".to_string()),
-                )],
-            },
+        let return_type = match method {
+            BuiltinMethodKind::HavocBool => vir::Type::Bool,
+            BuiltinMethodKind::HavocInt => vir::Type::Int,
+            BuiltinMethodKind::HavocRef => vir::Type::TypedRef("".to_string()),
+        };
+        vir::BodylessMethod {
+            name: self.encode_builtin_method_name(method),
+            formal_args: vec![],
+            formal_returns: vec![vir::LocalVar::new("ret", return_type)],
         }
     }
 
