@@ -9,7 +9,7 @@ use rustc::hir;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use syntax::codemap::Span;
 use validators::common_validator::CommonValidator;
 use validators::unsafety_validator::contains_unsafe;
@@ -207,20 +207,54 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     fn check_loops(&mut self, procedure: &Procedure<'a, 'tcx>) {
         let mir = procedure.get_mir();
         let loops = ProcedureLoops::new(mir);
+        let mut reborrowing_hints: HashMap<mir::Local, HashMap<usize, Span>> = HashMap::new();
 
         for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
                 continue;
             }
-            if !procedure.is_panic_block(bbi) && loops.get_loop_head(bbi).is_some() {
-                for stmt in &basic_block_data.statements {
-                    self.check_mir_stmt_in_loop(mir, stmt);
+
+            // Detect likely reborrowing
+            if !procedure.is_panic_block(bbi) {
+                if let Some(loop_head) = loops.get_loop_head(bbi) {
+                    let loop_depth = loops.get_loop_head_depth(loop_head);
+                    for stmt in &basic_block_data.statements {
+                        if let mir::StatementKind::Assign(ref lhs_place, _) = stmt.kind {
+                            if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
+                                let lhs_ty = self.get_place_ty(mir, lhs_place);
+                                if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
+                                    // may reborrow inside a loop
+                                    let local_levels = reborrowing_hints
+                                        .entry(*place_base)
+                                        .or_insert(HashMap::new());
+                                    local_levels.insert(loop_depth, stmt.source_info.span);
+                                }
+                            }
+                        }
+                    }
+                    let term = basic_block_data.terminator.as_ref().unwrap();
+                    match term.kind {
+                        mir::TerminatorKind::DropAndReplace { location: ref lhs_place, .. } |
+                        mir::TerminatorKind::Call { destination: Some((ref lhs_place, _)), .. } => {
+                            let lhs_ty = self.get_place_ty(mir, lhs_place);
+                            if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
+                                let lhs_ty = self.get_place_ty(mir, lhs_place);
+                                if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
+                                    // may reborrow inside a loop
+                                    let local_levels = reborrowing_hints
+                                        .entry(*place_base)
+                                        .or_insert(HashMap::new());
+                                    local_levels.insert(loop_depth, term.source_info.span);
+                                }
+                            }
+                        }
+
+                        _ => {} // OK
+                    }
                 }
-                self.check_mir_terminator_in_loop(
-                    mir,
-                    basic_block_data.terminator.as_ref().unwrap()
-                );
             }
+
+            // Detect return, break, continue inside loops
             for successor in basic_block_data.terminator().successors() {
                 if !procedure.is_reachable_block(*successor) || procedure.is_spec_block(*successor)
                 {
@@ -245,42 +279,13 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 }
             }
         }
-    }
 
-    fn check_mir_stmt_in_loop(&mut self, mir: &mir::Mir<'tcx>, stmt: &mir::Statement<'tcx>) {
-        trace!("check_mir_stmt_in_loop {:?}", stmt);
-        let span = stmt.source_info.span;
-
-        match stmt.kind {
-            mir::StatementKind::Assign(ref place, _) => {
-                let lhs_ty = self.get_place_ty(mir, place);
-                self.check_lhs_ty_in_loop(lhs_ty, span);
+        for (local, local_levels) in &reborrowing_hints {
+            if local_levels.keys().len() > 1 {
+                for (level, span) in local_levels {
+                    partially!(self, *span, "may reborrow inside a loop");
+                }
             }
-
-            _ => {} // OK
-        }
-    }
-
-    fn check_mir_terminator_in_loop(&mut self, mir: &mir::Mir<'tcx>, term: &mir::Terminator<'tcx>) {
-        trace!("check_mir_terminator_in_loop {:?}", term);
-        let span = term.source_info.span;
-
-        match term.kind {
-            mir::TerminatorKind::DropAndReplace { location: ref lhs_place, .. } |
-            mir::TerminatorKind::Call { destination: Some((ref lhs_place, _)), .. } => {
-                let lhs_ty = self.get_place_ty(mir, lhs_place);
-                self.check_lhs_ty_in_loop(lhs_ty, span);
-            }
-
-            _ => {} // OK
-        }
-    }
-
-    // Check lhs type of assignments in loops
-    fn check_lhs_ty_in_loop(&mut self, ty: ty::Ty<'tcx>, span: Span) {
-        trace!("check_lhs_ty_in_loop {:?} {:?}", ty, span);
-        if let ty::TypeVariants::TyRef(_, _, _) = ty.sty {
-            partially!(self, span, "may reborrow inside a loop")
         }
     }
 
