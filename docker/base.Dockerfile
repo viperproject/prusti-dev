@@ -56,13 +56,13 @@ RUN mkdir /tmp/z3 && \
     cd / && \
     rm -r /tmp/z3
 
-# Install Viper
+# Install Viper, with Mono for Carbon
 RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
 RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
 # A new release will trigger these lines to run again, forcing a new installation of Viper.
 ADD https://pmserver.inf.ethz.ch/viper/debs/xenial/Packages /root/viper-xenial-packages.txt
 RUN apt-get update && \
-    apt-get install -y viper && \
+    apt-get install -y viper mono-complete && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
