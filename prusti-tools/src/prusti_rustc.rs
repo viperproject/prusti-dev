@@ -59,7 +59,6 @@ where
         add_to_loader_path(vec![rustlib_path, compiler_lib, libjvm_path], &mut cmd);
     } else {
         add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
-
     }
 
     let output = cmd.output().expect("could not run prusti-driver");
