@@ -212,6 +212,15 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
                 continue;
             }
+            if !procedure.is_panic_block(bbi) && loops.get_loop_head(bbi).is_some() {
+                for stmt in &basic_block_data.statements {
+                    self.check_mir_stmt_in_loop(mir, stmt);
+                }
+                self.check_mir_terminator_in_loop(
+                    mir,
+                    basic_block_data.terminator.as_ref().unwrap()
+                );
+            }
             for successor in basic_block_data.terminator().successors() {
                 if !procedure.is_reachable_block(*successor) || procedure.is_spec_block(*successor)
                 {
@@ -235,6 +244,43 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     partially!(self, span, "causes abrupt loop terminations");
                 }
             }
+        }
+    }
+
+    fn check_mir_stmt_in_loop(&mut self, mir: &mir::Mir<'tcx>, stmt: &mir::Statement<'tcx>) {
+        trace!("check_mir_stmt_in_loop {:?}", stmt);
+        let span = stmt.source_info.span;
+
+        match stmt.kind {
+            mir::StatementKind::Assign(ref place, _) => {
+                let lhs_ty = self.get_place_ty(mir, place);
+                self.check_lhs_ty_in_loop(lhs_ty, span);
+            }
+
+            _ => {} // OK
+        }
+    }
+
+    fn check_mir_terminator_in_loop(&mut self, mir: &mir::Mir<'tcx>, term: &mir::Terminator<'tcx>) {
+        trace!("check_mir_terminator_in_loop {:?}", term);
+        let span = term.source_info.span;
+
+        match term.kind {
+            mir::TerminatorKind::DropAndReplace { location: ref lhs_place, .. } |
+            mir::TerminatorKind::Call { destination: Some((ref lhs_place, _)), .. } => {
+                let lhs_ty = self.get_place_ty(mir, lhs_place);
+                self.check_lhs_ty_in_loop(lhs_ty, span);
+            }
+
+            _ => {} // OK
+        }
+    }
+
+    // Check lhs type of assignments in loops
+    fn check_lhs_ty_in_loop(&mut self, ty: ty::Ty<'tcx>, span: Span) {
+        trace!("check_lhs_ty_in_loop {:?} {:?}", ty, span);
+        if let ty::TypeVariants::TyRef(_, _, _) = ty.sty {
+            partially!(self, span, "may reborrow inside a loop")
         }
     }
 
