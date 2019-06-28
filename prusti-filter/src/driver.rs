@@ -9,6 +9,7 @@
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
+#![feature(nll)]
 
 extern crate env_logger;
 #[macro_use]
@@ -38,6 +39,7 @@ use std::env;
 use std::fs;
 use std::path::Path;
 use validators::Validator;
+use prusti_interface::environment::Environment;
 
 fn main() {
     env_logger::init();
@@ -110,16 +112,17 @@ fn main() {
             //let crate_name_env = env::var("CARGO_PKG_NAME").unwrap_or_default();
             //let crate_version_env = env::var("CARGO_PKG_VERSION").unwrap_or_default();
             let crate_name = state.crate_name.unwrap();
-            let tcx = state.tcx.expect("no valid tcx");
+            let env = Environment::new(state);
+            let tcx = env.tcx();
             let mut crate_visitor = CrateVisitor {
-                crate_name: crate_name,
+                crate_name,
+                env: &env,
                 tcx,
                 validator: Validator::new(tcx),
                 crate_status: CrateStatus {
                     crate_name: String::from(crate_name),
                     functions: Vec::new(),
                 },
-                source_map: state.session.parse_sess.codemap(),
             };
 
             // **Deep visit**: Want to scan for specific kinds of HIR nodes within
@@ -129,26 +132,31 @@ fn main() {
                 .krate()
                 .visit_all_item_likes(&mut crate_visitor.as_deep_visitor());
 
-            let data = serde_json::to_string_pretty(&crate_visitor.crate_status).unwrap();
-            //let path = fs::canonicalize("../prusti-filter-results.json").unwrap();
 
-            // For rosetta without deleting root Cargo.toml:
-            //let mut file = fs::OpenOptions::new()
-            //.append(true)
-            //.create(true)
-            //.open("prusti-filter-results.json")
-            //.unwrap();
-            //file.write_all(b"\n====================\n").unwrap();
-            //file.write_all(&data.into_bytes()).unwrap();
+            if config::report_support_status() {
+                // Report support status
+                for function in &crate_visitor.crate_status.functions {
+                    let is_pure_function = function.has_pure_attr;
 
-            // Write result
-            let result_path = "prusti-filter-results.json";
-            fs::write(result_path, data).expect("Unable to write file");
+                    let support_status = if is_pure_function {
+                        &function.pure_function
+                    } else {
+                        &function.procedure
+                    };
 
-            info!(
-                "Filtering successful. The result of the filtering has been stored to '{}'.",
-                result_path
-            );
+                    support_status.report_support_status(&env, is_pure_function, true);
+                }
+            } else {
+                // Write result
+                let data = serde_json::to_string_pretty(&crate_visitor.crate_status).unwrap();
+                let result_path = "prusti-filter-results.json";
+                fs::write(result_path, data).expect("Unable to write file");
+                info!(
+                    "Filtering successful. The result of the filtering has been stored to '{}'.",
+                    result_path
+                );
+            }
+            
             old(state);
         };
 

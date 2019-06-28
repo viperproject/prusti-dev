@@ -21,7 +21,7 @@ use encoder::vir::WithIdentifier;
 use prusti_interface::config;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::EnvironmentImpl;
+use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::{
     SpecID, SpecificationSet, TypedAssertion,
@@ -43,7 +43,7 @@ use syntax::ast;
 use viper;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
-    env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    env: &'v Environment<'r, 'a, 'tcx>,
     spec: &'v TypedSpecificationMap,
     error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
@@ -81,7 +81,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
-    pub fn new(env: &'v EnvironmentImpl<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Self {
+    pub fn new(env: &'v Environment<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         let vir_program_before_foldunfold_writer = RefCell::new(
@@ -161,7 +161,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.collect_closure_instantiations();
     }
 
-    pub fn env(&self) -> &'v EnvironmentImpl<'r, 'a, 'tcx> {
+    pub fn env(&self) -> &'v Environment<'r, 'a, 'tcx> {
         self.env
     }
 

@@ -36,6 +36,7 @@ lazy_static! {
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
         settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", true).unwrap();
+        settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -251,5 +252,14 @@ pub fn use_assume_false_back_edges() -> bool {
         .read()
         .unwrap()
         .get::<bool>("USE_ASSUME_FALSE_BACK_EDGES")
+        .unwrap()
+}
+
+/// Report the support status of functions using the compiler's error messages
+pub fn report_support_status() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("REPORT_SUPPORT_STATUS")
         .unwrap()
 }

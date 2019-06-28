@@ -7,7 +7,7 @@
 //! This module defines the verifier's interface.
 
 use data::{VerificationResult, VerificationTask};
-use environment::EnvironmentImpl;
+use environment::Environment;
 use specifications::TypedSpecificationMap;
 
 /// A verifier builder is an object that lives entire program's
@@ -36,7 +36,7 @@ pub trait VerificationContext<'v, 'r, 'a, 'tcx> {
     /// Construct a new verifier object.
     fn new_verifier(
         &'v self,
-        env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        env: &'v Environment<'r, 'a, 'tcx>,
         spec: &'v TypedSpecificationMap,
     ) -> Self::VerifierImpl;
 }

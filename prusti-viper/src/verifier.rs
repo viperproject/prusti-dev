@@ -10,7 +10,7 @@ use prusti_filter::validators::Validator;
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
-use prusti_interface::environment::EnvironmentImpl;
+use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
 use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
@@ -71,7 +71,7 @@ where
 
     fn new_verifier(
         &'v self,
-        env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        env: &'v Environment<'r, 'a, 'tcx>,
         spec: &'v TypedSpecificationMap,
     ) -> Verifier<'v, 'r, 'a, 'tcx> {
         let backend = VerificationBackend::from_str(&config::viper_backend());
@@ -130,7 +130,7 @@ where
     ast_utils: viper::AstUtils<'v>,
     ast_factory: viper::AstFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
-    env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    env: &'v Environment<'r, 'a, 'tcx>,
     encoder: Encoder<'v, 'r, 'a, 'tcx>,
 }
 
@@ -139,7 +139,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         ast_utils: viper::AstUtils<'v>,
         ast_factory: viper::AstFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
-        env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        env: &'v Environment<'r, 'a, 'tcx>,
         spec: &'v TypedSpecificationMap,
     ) -> Self {
         Verifier {
@@ -170,39 +170,19 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
         }
 
-        for &proc_id in &task.procedures {
-            // Do some checks
-            let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
-            let extra_msg: &str;
+        // Report support status
+        if config::report_support_status() {
+            for &proc_id in &task.procedures {
+                // Do some checks
+                let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
 
-            let support_status = if is_pure_function {
-                extra_msg = " in pure functions";
-                validator.pure_function_support_status(proc_id)
-            } else {
-                extra_msg = "";
-                validator.procedure_support_status(proc_id)
-            };
+                let support_status = if is_pure_function {
+                    validator.pure_function_support_status(proc_id)
+                } else {
+                    validator.procedure_support_status(proc_id)
+                };
 
-            if support_status.is_partially_supported() {
-                let reasons = support_status.get_partially_supported_reasons();
-                for reason in &reasons {
-                    debug!("Partially supported reason: {:?}", reason);
-                    let message = format!(
-                        "[Prusti] the following is partially supported{}, because it {}",
-                        extra_msg, reason.reason
-                    );
-                    self.env.span_warn(reason.position, &message);
-                }
-            } else if support_status.is_unsupported() {
-                let reasons = support_status.get_unsupported_reasons();
-                for reason in &reasons {
-                    debug!("Unsupported reason: {:?}", reason);
-                    let message = format!(
-                        "[Prusti] the following is unsupported{}, because it {}",
-                        extra_msg, reason.reason
-                    );
-                    self.env.span_err(reason.position, &message);
-                }
+                support_status.report_support_status(&self.env, is_pure_function, false);
             }
         }
 
