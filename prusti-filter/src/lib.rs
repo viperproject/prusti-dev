@@ -6,6 +6,7 @@
 
 #![deny(unused_imports)]
 #![deny(dead_code)]
+#![deny(warnings)]
 
 #![feature(rustc_private)]
 #![feature(box_syntax)]

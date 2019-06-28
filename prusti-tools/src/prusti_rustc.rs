@@ -9,15 +9,12 @@ use std::str;
 use std::io::{BufRead, BufReader};
 
 fn main(){
-    if let Err(code) = process(std::env::args().skip(1)) {
+    if let Err(code) = process(std::env::args().skip(1).collect()) {
         std::process::exit(code);
     }
 }
 
-fn process<I>(args: I) -> Result<(), i32>
-where
-    I: IntoIterator<Item = String>,
-{
+fn process(args: Vec<String>) -> Result<(), i32> {
     let mut prusti_driver_path = std::env::current_exe()
         .expect("current executable path invalid")
         .with_file_name("prusti-driver");
@@ -47,8 +44,11 @@ where
     );
 
     let mut cmd = Command::new(&prusti_driver_path);
+    let has_color_arg = args.iter().find(|&x| x == "--color").is_none();
     cmd.args(args);
-    cmd.args(&["--color", "always"]);
+    if has_color_arg {
+        cmd.args(&["--color", "always"]);
+    }
     cmd.env("SYSROOT", &prusti_sysroot);
     cmd.env("PRUSTI_CONTRACTS_LIB", &prusti_contracts_lib);
 

@@ -216,41 +216,42 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
             // Detect likely reborrowing
             if !procedure.is_panic_block(bbi) {
-                if let Some(loop_head) = loops.get_loop_head(bbi) {
-                    let loop_depth = loops.get_loop_head_depth(loop_head);
-                    for stmt in &basic_block_data.statements {
-                        if let mir::StatementKind::Assign(ref lhs_place, _) = stmt.kind {
-                            if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
-                                let lhs_ty = self.get_place_ty(mir, lhs_place);
-                                if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
-                                    // may reborrow inside a loop
-                                    let local_levels = reborrowing_hints
-                                        .entry(*place_base)
-                                        .or_insert(HashMap::new());
-                                    local_levels.insert(loop_depth, stmt.source_info.span);
-                                }
-                            }
-                        }
-                    }
-                    let term = basic_block_data.terminator.as_ref().unwrap();
-                    match term.kind {
-                        mir::TerminatorKind::DropAndReplace { location: ref lhs_place, .. } |
-                        mir::TerminatorKind::Call { destination: Some((ref lhs_place, _)), .. } => {
+                let loop_depth = if let Some(loop_head) = loops.get_loop_head(bbi) {
+                    loops.get_loop_head_depth(loop_head)
+                } else {
+                    0
+                };
+                for stmt in &basic_block_data.statements {
+                    if let mir::StatementKind::Assign(ref lhs_place, _) = stmt.kind {
+                        if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
                             let lhs_ty = self.get_place_ty(mir, lhs_place);
-                            if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
-                                let lhs_ty = self.get_place_ty(mir, lhs_place);
-                                if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
-                                    // may reborrow inside a loop
-                                    let local_levels = reborrowing_hints
-                                        .entry(*place_base)
-                                        .or_insert(HashMap::new());
-                                    local_levels.insert(loop_depth, term.source_info.span);
-                                }
+                            if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
+                                // may reborrow inside a loop
+                                let local_levels = reborrowing_hints
+                                    .entry(*place_base)
+                                    .or_insert(HashMap::new());
+                                local_levels.insert(loop_depth, stmt.source_info.span);
                             }
                         }
-
-                        _ => {} // OK
                     }
+                }
+                let term = basic_block_data.terminator.as_ref().unwrap();
+                match term.kind {
+                    mir::TerminatorKind::DropAndReplace { location: ref lhs_place, .. } |
+                    mir::TerminatorKind::Call { destination: Some((ref lhs_place, _)), .. } => {
+                        if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
+                            let lhs_ty = self.get_place_ty(mir, lhs_place);
+                            if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
+                                // may reborrow inside a loop
+                                let local_levels = reborrowing_hints
+                                    .entry(*place_base)
+                                    .or_insert(HashMap::new());
+                                local_levels.insert(loop_depth, term.source_info.span);
+                            }
+                        }
+                    }
+
+                    _ => {} // OK
                 }
             }
 
@@ -280,10 +281,12 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
             }
         }
 
-        for (local, local_levels) in &reborrowing_hints {
+        for (_, local_levels) in &reborrowing_hints {
             if local_levels.keys().len() > 1 {
                 for (level, span) in local_levels {
-                    partially!(self, *span, "may reborrow inside a loop");
+                    if *level > 0 {
+                        partially!(self, *span, "may reborrow inside a loop");
+                    }
                 }
             }
         }

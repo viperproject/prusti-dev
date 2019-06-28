@@ -132,7 +132,6 @@ fn main() {
                 .krate()
                 .visit_all_item_likes(&mut crate_visitor.as_deep_visitor());
 
-
             if config::report_support_status() {
                 // Report support status
                 for function in &crate_visitor.crate_status.functions {
@@ -156,7 +155,7 @@ fn main() {
                     result_path
                 );
             }
-            
+
             old(state);
         };
 

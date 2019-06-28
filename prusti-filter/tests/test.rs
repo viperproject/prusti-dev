@@ -18,7 +18,7 @@ fn get_driver_path() -> PathBuf {
     unreachable!();
 }
 
-fn run_verification(group_name: &str) {
+fn run_filter(group_name: &str) {
     set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB);
 
     let mut config = Config::default();
@@ -51,5 +51,5 @@ fn run_verification(group_name: &str) {
 
 #[test]
 fn test_runner() {
-    run_verification("filter");
+    run_filter("filter");
 }
