@@ -207,7 +207,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     fn check_loops(&mut self, procedure: &Procedure<'a, 'tcx>) {
         let mir = procedure.get_mir();
         let loops = ProcedureLoops::new(mir);
-        let mut reborrowing_hints: HashMap<mir::Local, HashMap<usize, Span>> = HashMap::new();
+        let mut reborrowing_hints: HashMap<mir::Local, HashMap<usize, HashSet<Span>>> = HashMap::new();
 
         for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
@@ -230,7 +230,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                 let local_levels = reborrowing_hints
                                     .entry(*place_base)
                                     .or_insert(HashMap::new());
-                                local_levels.insert(loop_depth, stmt.source_info.span);
+                                let spans = local_levels.entry(loop_depth)
+                                    .or_insert(HashSet::new());
+                                spans.insert(stmt.source_info.span);
                             }
                         }
                     }
@@ -246,7 +248,9 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                                 let local_levels = reborrowing_hints
                                     .entry(*place_base)
                                     .or_insert(HashMap::new());
-                                local_levels.insert(loop_depth, term.source_info.span);
+                                let spans = local_levels.entry(loop_depth)
+                                    .or_insert(HashSet::new());
+                                spans.insert(term.source_info.span);
                             }
                         }
                     }
@@ -283,9 +287,11 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
 
         for (_, local_levels) in &reborrowing_hints {
             if local_levels.keys().len() > 1 {
-                for (level, span) in local_levels {
+                for (level, spans) in local_levels {
                     if *level > 0 {
-                        partially!(self, *span, "may reborrow inside a loop");
+                        for span in spans {
+                            partially!(self, *span, "may reborrow inside a loop");
+                        }
                     }
                 }
             }
