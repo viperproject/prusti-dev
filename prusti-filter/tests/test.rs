@@ -1,7 +1,7 @@
 extern crate compiletest_rs;
 
 use compiletest_rs::{common, run_tests, Config};
-use std::env::{remove_var, set_var, var};
+use std::env::{set_var, var};
 use std::path::PathBuf;
 
 static LOCAL_DRIVER_PATH: &'static str = "target/debug/prusti-filter";
