@@ -132,6 +132,12 @@ run-release-prusti-rustc-flamegraph: release
 run-release-prusti-rustc-timechart: release
 	perf timechart record \
 	    ./target/release/prusti-rustc ${RUN_FILE}
+	@echo "Now run 'perf timechart'"
+
+run-release-prusti-rustc-timechart-io: release
+	perf timechart record -I \
+	    ./target/release/prusti-rustc ${RUN_FILE}
+	@echo "Now run 'perf timechart'"
 
 update:
 	cargo update
