@@ -137,7 +137,7 @@ fn main() {
             ]),
             // Silver
             java_class!("viper.silver.reporter.CSVReporter", vec![
-                constructor!("()V"),
+                constructor!("(Ljava/lang/String;Ljava/lang/String;)V"),
             ]),
             java_class!("viper.silver.verifier.Verifier", vec![
                 method!("name"),

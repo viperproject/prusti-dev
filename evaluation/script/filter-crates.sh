@@ -77,10 +77,12 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 		continue
 	fi
 
+	export PRUSTI_REPORT_SUPPORT_STATUS=0
 	exit_status="0"
 	SECONDS=0
 	timeout -k 10 "$FILTERING_TIMEOUT" "$CARGO_PRUSTI_FILTER" -j 1 || exit_status="$?"
 	duration="$SECONDS"
+	unset PRUSTI_REPORT_SUPPORT_STATUS
 	if [[ "$exit_status" == "0" ]]; then
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
 		info "Successful filtering"

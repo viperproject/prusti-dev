@@ -8,7 +8,7 @@ use ast_factory::*;
 use ast_utils::*;
 use jni::AttachGuard;
 use std::env;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use verification_backend::VerificationBackend;
 use verifier::state;
 use verifier::Verifier;
@@ -30,14 +30,15 @@ impl<'a> VerificationContext<'a> {
         AstUtils::new(&self.env)
     }
 
-    pub fn new_verifier(&self, backend: VerificationBackend) -> Verifier<state::Started> {
-        self.new_verifier_with_args(backend, vec![])
+    pub fn new_verifier(&self, backend: VerificationBackend, log_path: PathBuf) -> Verifier<state::Started> {
+        self.new_verifier_with_args(backend, vec![], log_path)
     }
 
     pub fn new_verifier_with_args(
         &self,
         backend: VerificationBackend,
         args: Vec<String>,
+        log_path: PathBuf,
     ) -> Verifier<state::Started> {
         let z3_path = vec![
             env::var("Z3_PATH").ok(),
@@ -83,7 +84,7 @@ impl<'a> VerificationContext<'a> {
             verifier_args.iter().cloned().collect::<Vec<_>>().join(" ")
         );
 
-        Verifier::<state::Uninitialized>::new(&self.env, backend)
+        Verifier::<state::Uninitialized>::new(&self.env, backend, log_path)
             .parse_command_line(&verifier_args)
             .start()
     }

@@ -91,11 +91,13 @@ info "Filter supported procedures"
 if [[ ! -r "$CRATE_ROOT/prusti-filter-results.json" ]] || [[ "$FORCE_PRUSTI_FILTER" == "true" ]] ; then
 	rm -f "$CRATE_ROOT/prusti-filter-results.json"
 	export RUST_BACKTRACE=1
+	export PRUSTI_REPORT_SUPPORT_STATUS=0
 	exit_status="0"
 	cargoclean
 	# Timeout in seconds
 	timeout -k 10 $EVALUATION_TIMEOUT "$CARGO_PRUSTI_FILTER" -j 1 || exit_status="$?"
 	unset RUST_BACKTRACE
+	unset PRUSTI_REPORT_SUPPORT_STATUS
 	if [[ "$exit_status" != "0" ]]; then
 		info "The automatic filtering of verifiable functions failed with exit status $exit_status."
 		exit 43

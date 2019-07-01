@@ -18,6 +18,7 @@ use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
+use std::path::PathBuf;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -77,6 +78,8 @@ where
         let backend = VerificationBackend::from_str(&config::viper_backend());
 
         let mut verifier_args: Vec<String> = vec![];
+        let log_dir_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
+        let log_dir_str = log_dir_path.to_str().unwrap();
         if let VerificationBackend::Silicon = backend {
             if config::use_more_complete_exhale() {
                 verifier_args.push("--enableMoreCompleteExhale".to_string()); // Buggy :(
@@ -85,14 +88,14 @@ where
                 "--assertTimeout".to_string(),
                 config::assert_timeout().to_string(),
                 "--tempDirectory".to_string(),
-                "./log/viper_tmp".to_string(),
+                log_dir_str.to_string(),
                 //"--logLevel".to_string(), "WARN".to_string(),
             ]);
         } else {
             verifier_args.extend(vec![
                 "--disableAllocEncoding".to_string(),
                 "--boogieOpt".to_string(),
-                "/logPrefix ./log/viper_tmp".to_string(),
+                format!("/logPrefix {}", log_dir_str),
             ]);
         }
         if config::dump_debug_info() {
@@ -114,7 +117,7 @@ where
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
             self.verification_ctx
-                .new_verifier_with_args(backend, verifier_args),
+                .new_verifier_with_args(backend, verifier_args, log_dir_path),
             env,
             spec,
         )

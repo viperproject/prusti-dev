@@ -17,6 +17,7 @@ use verification_backend::VerificationBackend;
 use verification_result::VerificationError;
 use verification_result::VerificationResult;
 use viper_sys::wrappers::viper::*;
+use std::path::PathBuf;
 
 pub mod state {
     pub struct Uninitialized;
@@ -36,12 +37,16 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
     pub fn new(
         env: &'a JNIEnv,
         backend: VerificationBackend,
+        log_path: PathBuf,
     ) -> Verifier<'a, state::Uninitialized> {
         let jni = JniUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let verifier_instance = jni.unwrap_result(match backend {
             VerificationBackend::Silicon => {
-                let reporter = silver::reporter::CSVReporter::with(env).new().unwrap();
+                let reporter = silver::reporter::CSVReporter::with(env).new(
+                    jni.new_string("csv_reporter"),
+                    jni.new_string(log_path.join("report.csv").to_str().unwrap()),
+                ).unwrap();
                 let utils = JniUtils::new(env);
                 let debug_info = utils.new_seq(&[]);
                 silicon::Silicon::with(env).new(reporter, debug_info)
