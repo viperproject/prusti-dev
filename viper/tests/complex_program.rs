@@ -176,7 +176,7 @@ fn success_with_complex_program() {
         &[method],
     );
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, "log".into());
 
     let verification_result = verifier.verify(program);
 

@@ -65,7 +65,7 @@ fn concurrent_verifier_initialization() {
                 let program = ast.program(&[], &[], &[], &[], &[method]);
 
                 let verifier =
-                    verification_context.new_verifier(viper::VerificationBackend::Silicon);
+                    verification_context.new_verifier(viper::VerificationBackend::Silicon, "log".into());
 
                 let verification_result = verifier.verify(program);
 

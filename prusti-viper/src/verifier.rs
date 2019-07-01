@@ -19,6 +19,7 @@ use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
 use std::path::PathBuf;
+use std::fs::create_dir_all;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -78,8 +79,9 @@ where
         let backend = VerificationBackend::from_str(&config::viper_backend());
 
         let mut verifier_args: Vec<String> = vec![];
-        let log_dir_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
-        let log_dir_str = log_dir_path.to_str().unwrap();
+        let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
+        create_dir_all(&log_path).unwrap();
+        let log_dir_str = log_path.to_str().unwrap();
         if let VerificationBackend::Silicon = backend {
             if config::use_more_complete_exhale() {
                 verifier_args.push("--enableMoreCompleteExhale".to_string()); // Buggy :(
@@ -117,7 +119,7 @@ where
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
             self.verification_ctx
-                .new_verifier_with_args(backend, verifier_args, log_dir_path),
+                .new_verifier_with_args(backend, verifier_args, log_path),
             env,
             spec,
         )
