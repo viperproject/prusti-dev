@@ -28,7 +28,10 @@ pub struct VerifierBuilder {
 impl VerifierBuilder {
     pub fn new() -> Self {
         VerifierBuilder {
-            viper: Viper::new_with_args(config::extra_jvm_args(), &config::viper_backend()),
+            viper: Viper::new_with_args(
+                config::extra_jvm_args(),
+                VerificationBackend::from_str(&config::viper_backend())
+            ),
         }
     }
 }

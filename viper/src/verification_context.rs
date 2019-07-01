@@ -37,46 +37,40 @@ impl<'a> VerificationContext<'a> {
     pub fn new_verifier_with_args(
         &self,
         backend: VerificationBackend,
-        args: Vec<String>,
+        extra_args: Vec<String>,
         log_path: PathBuf,
     ) -> Verifier<state::Started> {
+        let mut verifier_args: Vec<String> = vec![];
+
+        // Set Z3 binary
         let z3_path = vec![
             env::var("Z3_PATH").ok(),
             env::var("Z3_EXE").ok(),
-            Some("/usr/bin/viper-z3".to_string()),
-            Some("/usr/local/bin/z3".to_string()),
-            Some("/usr/bin/z3".to_string()),
             Some("z3".to_string()),
         ]
         .into_iter()
         .flatten()
         .find(|path| Path::new(path).exists())
         .expect("No valid Z3 path has been found. Please set Z3_EXE.");
+        info!("Using Z3 path: '{}'", &z3_path);
+        verifier_args.extend(vec!["--z3Exe".to_string(), z3_path]);
 
-        let boogie_path = if VerificationBackend::Carbon == backend {
-            vec![
+        // Set Boogie binary
+        if let VerificationBackend::Carbon = backend {
+            let boogie_path = vec![
                 env::var("BOOGIE_PATH").ok(),
                 env::var("BOOGIE_EXE").ok(),
-                Some("/usr/local/bin/boogie".to_string()),
-                Some("/usr/bin/boogie".to_string()),
                 Some("boogie".to_string()),
             ]
             .into_iter()
             .flatten()
             .find(|path| Path::new(path).exists())
-            .expect("No valid Boogie path has been found. Please set BOOGIE_EXE.")
-        } else {
-            "boogie".to_string()
-        };
-        info!("Using Z3 path: '{}'", &z3_path);
-        info!("Using BOOGIE path: '{}'", &boogie_path);
-
-        let mut verifier_args: Vec<String> = vec![];
-        if let VerificationBackend::Carbon = backend {
+            .expect("No valid Boogie path has been found. Please set BOOGIE_EXE.");
+            info!("Using BOOGIE path: '{}'", &boogie_path);
             verifier_args.extend(vec!["--boogieExe".to_string(), boogie_path]);
         }
-        verifier_args.extend(vec!["--z3Exe".to_string(), z3_path]);
-        verifier_args.extend(args);
+
+        verifier_args.extend(extra_args);
         verifier_args.push("dummy-program.sil".to_string());
 
         debug!(

@@ -14,7 +14,7 @@ pub enum VerificationBackend {
 
 impl VerificationBackend {
     pub fn from_str(backend: &str) -> Self {
-        match backend {
+        match backend.to_lowercase().as_str() {
             "silicon" => VerificationBackend::Silicon,
             "carbon" => VerificationBackend::Carbon,
             _ => panic!(
