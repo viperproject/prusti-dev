@@ -25,7 +25,7 @@ fn bench_verify_program(bench: &mut Bencher) {
     let verification_context: VerificationContext = VIPER.new_verification_context();
     let ast_factory = verification_context.new_ast_factory();
     let backend = VerificationBackend::Silicon;
-    let verifier = verification_context.new_verifier(backend, "log".into());
+    let verifier = verification_context.new_verifier(backend, None);
     let program = build_program(&ast_factory);
 
     bench.iter(move || verifier.verify(program));
