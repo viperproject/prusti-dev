@@ -9,7 +9,7 @@ use rustc::hir;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use syntax::codemap::Span;
 use validators::common_validator::CommonValidator;
 use validators::unsafety_validator::contains_unsafe;
@@ -207,11 +207,59 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
     fn check_loops(&mut self, procedure: &Procedure<'a, 'tcx>) {
         let mir = procedure.get_mir();
         let loops = ProcedureLoops::new(mir);
+        let mut reborrowing_hints: HashMap<mir::Local, HashMap<usize, HashSet<Span>>> = HashMap::new();
 
         for (bbi, basic_block_data) in mir.basic_blocks().iter_enumerated() {
             if !procedure.is_reachable_block(bbi) || procedure.is_spec_block(bbi) {
                 continue;
             }
+
+            // Detect likely reborrowing
+            if !procedure.is_panic_block(bbi) {
+                let loop_depth = if let Some(loop_head) = loops.get_loop_head(bbi) {
+                    loops.get_loop_head_depth(loop_head)
+                } else {
+                    0
+                };
+                for stmt in &basic_block_data.statements {
+                    if let mir::StatementKind::Assign(ref lhs_place, _) = stmt.kind {
+                        if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
+                            let lhs_ty = self.get_place_ty(mir, lhs_place);
+                            if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
+                                // may reborrow inside a loop
+                                let local_levels = reborrowing_hints
+                                    .entry(*place_base)
+                                    .or_insert(HashMap::new());
+                                let spans = local_levels.entry(loop_depth)
+                                    .or_insert(HashSet::new());
+                                spans.insert(stmt.source_info.span);
+                            }
+                        }
+                    }
+                }
+                let term = basic_block_data.terminator.as_ref().unwrap();
+                match term.kind {
+                    mir::TerminatorKind::DropAndReplace { location: ref lhs_place, .. } |
+                    mir::TerminatorKind::Call { destination: Some((ref lhs_place, _)), .. } => {
+                        if let mir::Place::Local(place_base) = lhs_place { // TODO: is this enough?
+                            let lhs_ty = self.get_place_ty(mir, lhs_place);
+                            if let ty::TypeVariants::TyRef(_, _, _) = lhs_ty.sty {
+                                // may reborrow inside a loop
+                                let local_levels = reborrowing_hints
+                                    .entry(*place_base)
+                                    .or_insert(HashMap::new());
+                                let spans = local_levels.entry(loop_depth)
+                                    .or_insert(HashSet::new());
+                                spans.insert(term.source_info.span);
+                            }
+                        }
+                    }
+
+                    _ => {} // OK
+                }
+            }
+
+            // Detect return, break, continue inside loops
             for successor in basic_block_data.terminator().successors() {
                 if !procedure.is_reachable_block(*successor) || procedure.is_spec_block(*successor)
                 {
@@ -233,6 +281,18 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         .source_info
                         .span;
                     partially!(self, span, "causes abrupt loop terminations");
+                }
+            }
+        }
+
+        for (_, local_levels) in &reborrowing_hints {
+            if local_levels.keys().len() > 1 {
+                for (level, spans) in local_levels {
+                    if *level > 0 {
+                        for span in spans {
+                            partially!(self, *span, "may reborrow inside a loop");
+                        }
+                    }
                 }
             }
         }

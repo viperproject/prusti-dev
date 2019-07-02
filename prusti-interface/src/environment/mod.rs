@@ -38,14 +38,15 @@ use syntax::codemap::Span;
 use utils::get_attr_value;
 
 /// Facade to the Rust compiler.
-pub struct EnvironmentImpl<'r, 'a: 'r, 'tcx: 'a> {
+// #[derive(Copy, Clone)]
+pub struct Environment<'r, 'a: 'r, 'tcx: 'a> {
     state: &'r mut driver::CompileState<'a, 'tcx>,
 }
 
-impl<'r, 'a, 'tcx> EnvironmentImpl<'r, 'a, 'tcx> {
+impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     /// Builds an environment given a compiler state.
     pub fn new(state: &'r mut driver::CompileState<'a, 'tcx>) -> Self {
-        EnvironmentImpl { state }
+        Environment { state }
     }
 
     /// Returns the path of the source that is being compiled

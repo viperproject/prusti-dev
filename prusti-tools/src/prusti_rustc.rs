@@ -1,21 +1,20 @@
+#![feature(nll)]
+
 extern crate walkdir;
 
 use std::path::{PathBuf, Path};
-use std::{env, io};
-use std::process::Command;
+use std::env;
+use std::process::{Command, Stdio};
 use std::str;
-use std::io::Write;
+use std::io::{BufRead, BufReader};
 
 fn main(){
-    if let Err(code) = process(std::env::args().skip(1)) {
+    if let Err(code) = process(std::env::args().skip(1).collect()) {
         std::process::exit(code);
     }
 }
 
-fn process<I>(args: I) -> Result<(), i32>
-where
-    I: IntoIterator<Item = String>,
-{
+fn process(args: Vec<String>) -> Result<(), i32> {
     let mut prusti_driver_path = std::env::current_exe()
         .expect("current executable path invalid")
         .with_file_name("prusti-driver");
@@ -45,8 +44,11 @@ where
     );
 
     let mut cmd = Command::new(&prusti_driver_path);
+    let has_color_arg = args.iter().find(|&x| x == "--color").is_none();
     cmd.args(args);
-    cmd.args(&["--color", "always"]);
+    if has_color_arg {
+        cmd.args(&["--color", "always"]);
+    }
     cmd.env("SYSROOT", &prusti_sysroot);
     cmd.env("PRUSTI_CONTRACTS_LIB", &prusti_contracts_lib);
 
@@ -59,27 +61,29 @@ where
         add_to_loader_path(vec![rustlib_path, compiler_lib, libjvm_path], &mut cmd);
     } else {
         add_to_loader_path(vec![compiler_lib, libjvm_path], &mut cmd);
-
     }
 
-    let output = cmd.output().expect("could not run prusti-driver");
+    let mut child = cmd
+        .stdout(Stdio::piped())   // filter stdout
+        .stderr(Stdio::inherit()) // do not filter stderr
+        .spawn().expect("could not run prusti-driver");
 
-    // HACK: filter unwanted output (to be avoided as soon as possible, using `cmd.spawn()`)
-    // This is needed by cargo-prusti
-    let stdout_str = str::from_utf8(&output.stdout).expect("could not parse stdout");
-    for line in stdout_str.lines() {
+    // HACK: filter unwanted output
+    let stdout = child.stdout.as_mut().expect("failed to open stdout");
+    let stdout_reader = BufReader::new(stdout);
+    for maybe_line in stdout_reader.lines() {
+        let line = maybe_line.expect("failed to read line from stdout");
         if line.starts_with("borrow_live_at is complete") { continue; }
         if line.starts_with("Could not resolve expression") { continue; }
         println!("{}", line);
     }
 
-    // There is no need to filter stderr
-    io::stderr().write_all(&output.stderr).expect("could not write stderr");
+    let exit_status = child.wait().expect("failed to wait for prusti-driver?");
 
-    if output.status.success() {
+    if exit_status.success() {
         Ok(())
     } else {
-        Err(output.status.code().unwrap_or(-1))
+        Err(exit_status.code().unwrap_or(-1))
     }
 }
 

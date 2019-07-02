@@ -73,6 +73,7 @@ fn run_verification(group_name: &str) {
     set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
     set_var("PRUSTI_DUMP_DEBUG_INFO", "false");
     set_var("PRUSTI_DUMP_BORROWCK_INFO", "false");
+    set_var("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true");
 
     remove_var("PRUSTI_NO_VERIFY");
 

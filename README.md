@@ -70,7 +70,14 @@ The following instructions has been tested on Ubuntu 16.04:
     make test
     ```
 
-- To run Prusti and verify a program (without overflow checks) there are two options:
+- To run Prusti and verify a program (without overflow checks) there are three options:
+
+    ```bash
+    # Recommended, cross-platform
+    ./target/debug/prusti-rustc path/to/the/program_to_be_verified.rs
+    ```
+
+    or
 
     ```bash
     ./bin/prusti path/to/the/program_to_be_verified.rs
@@ -82,17 +89,7 @@ The following instructions has been tested on Ubuntu 16.04:
     make run RUN_FILE=path/to/the/program_to_be_verified.rs
     ```
 
-- Similarly, to run Prusti and verify a program including overflow checks:
-
-    ```bash
-    PRUSTI_CHECK_BINARY_OPERATIONS=true ./bin/prusti path/to/the/program_to_be_verified.rs
-    ```
-
-    or
-
-    ```bash
-    PRUSTI_CHECK_BINARY_OPERATIONS=true make run RUN_FILE=path/to/the/program_to_be_verified.rs
-    ```
+- To enable overflow checks, run the previous commands with the environment variable `PRUSTI_CHECK_BINARY_OPERATIONS` set to `true`.
 
 - (Optional) To install additional tools required by some scripts in the evaluation folder:
 

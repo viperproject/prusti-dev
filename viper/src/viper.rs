@@ -11,6 +11,7 @@ use std::env;
 use std::fs;
 use verification_context::*;
 use viper_sys::wrappers::*;
+use VerificationBackend;
 
 pub struct Viper {
     jvm: JavaVM,
@@ -24,10 +25,10 @@ impl Default for Viper {
 
 impl Viper {
     pub fn new() -> Self {
-        Self::new_with_args(vec![], "silicon")
+        Self::new_with_args(vec![], VerificationBackend::Silicon)
     }
 
-    pub fn new_with_args(java_args: Vec<String>, viper_backend: &str) -> Self {
+    pub fn new_with_args(java_args: Vec<String>, viper_backend: VerificationBackend) -> Self {
         let viper_home = env::var("VIPER_HOME").unwrap_or_else(|_| "/usr/lib/viper/".to_string());
         let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "4096".to_string());
 
@@ -36,15 +37,12 @@ impl Viper {
         let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap()
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
-            .filter(|path| {
-                if viper_backend == "carbon" {
-                    !path.contains("silicon")
-                } else if viper_backend == "silicon" {
-                    !path.contains("carbon")
-                } else {
-                    true
+            .filter(|path|
+                match viper_backend {
+                    VerificationBackend::Silicon => !path.contains("carbon"),
+                    VerificationBackend::Carbon => !path.contains("silicon"),
                 }
-            })
+            )
             .collect();
 
         debug!("Java classpath: {}", jar_paths.clone().join(":"));

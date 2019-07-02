@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config;
-use environment::EnvironmentImpl;
+use environment::Environment;
 use rustc::hir;
 use rustc::hir::def_id::DefId;
 use rustc::hir::itemlikevisit::ItemLikeVisitor;
@@ -15,7 +15,7 @@ use std::iter::FromIterator;
 use syntax::attr;
 
 pub struct CollectPrustiSpecVisitor<'r, 'a: 'r, 'tcx: 'a> {
-    env: &'r EnvironmentImpl<'r, 'a, 'tcx>,
+    env: &'r Environment<'r, 'a, 'tcx>,
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     result: &'r mut Vec<DefId>,
     use_whitelist: bool,
@@ -23,7 +23,7 @@ pub struct CollectPrustiSpecVisitor<'r, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'r, 'a, 'tcx> CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
-    pub fn new(env: &'r EnvironmentImpl<'r, 'a, 'tcx>, result: &'r mut Vec<DefId>) -> Self {
+    pub fn new(env: &'r Environment<'r, 'a, 'tcx>, result: &'r mut Vec<DefId>) -> Self {
         CollectPrustiSpecVisitor {
             env,
             tcx: env.tcx(),

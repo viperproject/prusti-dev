@@ -18,7 +18,7 @@ use rustc_errors as errors;
 use std::panic;
 use syntax_pos::MultiSpan;
 
-static PRUSTI_BUG_REPORT_URL: &str = "<URL placeholder>";
+static PRUSTI_BUG_REPORT_URL: &str = "<https://github.com/viperproject/prusti-dev/issues>";
 
 /// Run a procedure which will detect panics in the compiler and print nicer
 /// error messages rather than just failing the test.

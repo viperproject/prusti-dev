@@ -8,6 +8,7 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::collections::HashSet;
 use std::hash::Hash;
 use syntax::codemap::Span;
+use prusti_interface::environment::Environment;
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Reason {
@@ -138,5 +139,35 @@ impl SupportStatus {
             .filter(|s| s.is_unsupported())
             .map(|s| s.reason().clone())
             .collect()
+    }
+
+    pub fn report_support_status(&self, env: &Environment, is_pure_function: bool, error_on_partially_supported: bool) {
+        let extra_msg = if is_pure_function {
+            " in pure functions"
+        } else {
+            ""
+        };
+        let partially_supported_reasons = self.get_partially_supported_reasons();
+        for reason in &partially_supported_reasons {
+            debug!("Partially supported reason: {:?}", reason);
+            let message = format!(
+                "[Prusti] this is partially supported{}, because it {}",
+                extra_msg, reason.reason
+            );
+            if error_on_partially_supported {
+                env.span_err(reason.position, &message);
+            } else {
+                env.span_warn(reason.position, &message);
+            }
+        }
+        let unsupported_reasons = self.get_unsupported_reasons();
+        for reason in &unsupported_reasons {
+            debug!("Unsupported reason: {:?}", reason);
+            let message = format!(
+                "[Prusti] this is unsupported{}, because it {}",
+                extra_msg, reason.reason
+            );
+            env.span_err(reason.position, &message);
+        }
     }
 }

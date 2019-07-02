@@ -21,6 +21,7 @@ use rustc_driver::RustcDefaultCalls;
 use std::env;
 use std::path::Path;
 use std::process::exit;
+use prusti_interface::cargo::is_rustc_compiling_a_dependency_crate;
 
 pub fn main() {
     env_logger::init();
@@ -40,7 +41,7 @@ pub fn main() {
             // this is not the final rustc invocation, thus we are compiling a dependency
             // See: https://github.com/rust-lang-nursery/rust-clippy/issues/1066#issuecomment-440393949
             //&& !args.iter().any(|s| s.starts_with("--emit=dep-info,metadata"));
-            && false;
+            && is_rustc_compiling_a_dependency_crate(&args);
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this

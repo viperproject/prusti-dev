@@ -10,7 +10,7 @@ use prusti_filter::validators::Validator;
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
-use prusti_interface::environment::EnvironmentImpl;
+use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
 use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
@@ -18,6 +18,8 @@ use prusti_interface::verifier::Verifier as VerifierSpec;
 use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
+use std::path::PathBuf;
+use std::fs::create_dir_all;
 
 pub struct VerifierBuilder {
     viper: Viper,
@@ -26,7 +28,10 @@ pub struct VerifierBuilder {
 impl VerifierBuilder {
     pub fn new() -> Self {
         VerifierBuilder {
-            viper: Viper::new_with_args(config::extra_jvm_args(), &config::viper_backend()),
+            viper: Viper::new_with_args(
+                config::extra_jvm_args(),
+                VerificationBackend::from_str(&config::viper_backend())
+            ),
         }
     }
 }
@@ -71,12 +76,16 @@ where
 
     fn new_verifier(
         &'v self,
-        env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        env: &'v Environment<'r, 'a, 'tcx>,
         spec: &'v TypedSpecificationMap,
     ) -> Verifier<'v, 'r, 'a, 'tcx> {
         let backend = VerificationBackend::from_str(&config::viper_backend());
 
         let mut verifier_args: Vec<String> = vec![];
+        let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
+        create_dir_all(&log_path).unwrap();
+        let report_path: PathBuf = log_path.join("report.csv");
+        let log_dir_str = log_path.to_str().unwrap();
         if let VerificationBackend::Silicon = backend {
             if config::use_more_complete_exhale() {
                 verifier_args.push("--enableMoreCompleteExhale".to_string()); // Buggy :(
@@ -85,14 +94,14 @@ where
                 "--assertTimeout".to_string(),
                 config::assert_timeout().to_string(),
                 "--tempDirectory".to_string(),
-                "./log/viper_tmp".to_string(),
+                log_dir_str.to_string(),
                 //"--logLevel".to_string(), "WARN".to_string(),
             ]);
         } else {
             verifier_args.extend(vec![
                 "--disableAllocEncoding".to_string(),
                 "--boogieOpt".to_string(),
-                "/logPrefix ./log/viper_tmp".to_string(),
+                format!("/logPrefix {}", log_dir_str),
             ]);
         }
         if config::dump_debug_info() {
@@ -114,7 +123,7 @@ where
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
             self.verification_ctx
-                .new_verifier_with_args(backend, verifier_args),
+                .new_verifier_with_args(backend, verifier_args, Some(report_path)),
             env,
             spec,
         )
@@ -130,7 +139,7 @@ where
     ast_utils: viper::AstUtils<'v>,
     ast_factory: viper::AstFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
-    env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+    env: &'v Environment<'r, 'a, 'tcx>,
     encoder: Encoder<'v, 'r, 'a, 'tcx>,
 }
 
@@ -139,7 +148,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         ast_utils: viper::AstUtils<'v>,
         ast_factory: viper::AstFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
-        env: &'v EnvironmentImpl<'r, 'a, 'tcx>,
+        env: &'v Environment<'r, 'a, 'tcx>,
         spec: &'v TypedSpecificationMap,
     ) -> Self {
         Verifier {
@@ -170,39 +179,19 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
         }
 
-        for &proc_id in &task.procedures {
-            // Do some checks
-            let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
-            let extra_msg: &str;
+        // Report support status
+        if config::report_support_status() {
+            for &proc_id in &task.procedures {
+                // Do some checks
+                let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
 
-            let support_status = if is_pure_function {
-                extra_msg = " in pure functions";
-                validator.pure_function_support_status(proc_id)
-            } else {
-                extra_msg = "";
-                validator.procedure_support_status(proc_id)
-            };
+                let support_status = if is_pure_function {
+                    validator.pure_function_support_status(proc_id)
+                } else {
+                    validator.procedure_support_status(proc_id)
+                };
 
-            if support_status.is_partially_supported() {
-                let reasons = support_status.get_partially_supported_reasons();
-                for reason in &reasons {
-                    debug!("Partially supported reason: {:?}", reason);
-                    let message = format!(
-                        "[Prusti] the following is partially supported{}, because it {}",
-                        extra_msg, reason.reason
-                    );
-                    self.env.span_warn(reason.position, &message);
-                }
-            } else if support_status.is_unsupported() {
-                let reasons = support_status.get_unsupported_reasons();
-                for reason in &reasons {
-                    debug!("Unsupported reason: {:?}", reason);
-                    let message = format!(
-                        "[Prusti] the following is unsupported{}, because it {}",
-                        extra_msg, reason.reason
-                    );
-                    self.env.span_err(reason.position, &message);
-                }
+                support_status.report_support_status(&self.env, is_pure_function, false);
             }
         }
 

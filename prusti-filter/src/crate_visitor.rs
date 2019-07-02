@@ -4,22 +4,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_interface::environment::{Procedure, ProcedureLoops};
+use prusti_interface::environment::{Procedure, ProcedureLoops, Environment};
 use rustc::hir;
 use rustc::hir::intravisit::*;
 use rustc::hir::intravisit::{NestedVisitorMap, Visitor};
 use rustc::ty::TyCtxt;
 use syntax::ast::NodeId;
-use syntax::codemap::{CodeMap, Span};
+use syntax::codemap::Span;
 use validators::SupportStatus;
 use validators::Validator;
 
-pub struct CrateVisitor<'tcx: 'a, 'a> {
+pub struct CrateVisitor<'r, 'a: 'r, 'tcx: 'a> {
     pub crate_name: &'a str,
     pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    pub env: &'r Environment<'r, 'a, 'tcx>,
     pub validator: Validator<'a, 'tcx>,
     pub crate_status: CrateStatus,
-    pub source_map: &'tcx CodeMap,
 }
 
 #[derive(Serialize)]
@@ -32,6 +32,7 @@ pub struct CrateStatus {
 pub struct FunctionStatus {
     pub crate_name: String,
     pub node_path: String,
+    pub has_pure_attr: bool,
     pub procedure: SupportStatus,
     pub pure_function: SupportStatus,
     pub lines_of_code: usize,
@@ -43,9 +44,9 @@ pub struct FunctionStatus {
     pub source_code: Option<String>,
 }
 
-impl<'tcx: 'a, 'a> CrateVisitor<'tcx, 'a> {}
+impl<'r, 'a: 'r, 'tcx: 'a> CrateVisitor<'r, 'a, 'tcx> {}
 
-impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
+impl<'r, 'a: 'r, 'tcx: 'a> Visitor<'tcx> for CrateVisitor<'r, 'a, 'tcx> {
     fn visit_fn(
         &mut self,
         fk: FnKind<'tcx>,
@@ -69,7 +70,7 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
         let max_loop_nesting = loop_info.max_loop_nesting();
 
         let from_macro_expansion = s.parent().is_some();
-        let source_code = self.source_map.span_to_snippet(s).unwrap();
+        let source_code = self.env.codemap().span_to_snippet(s).unwrap();
         let lines_of_code = source_code.lines().count();
         let show_source_code =
             procedure_support_status.is_supported() || pure_function_support_status.is_supported();
@@ -77,6 +78,7 @@ impl<'tcx: 'a, 'a> Visitor<'tcx> for CrateVisitor<'tcx, 'a> {
         let function_status = FunctionStatus {
             crate_name: String::from(self.crate_name),
             node_path: node_path,
+            has_pure_attr: self.env.has_attribute_name(def_id, "pure"),
             procedure: procedure_support_status,
             pure_function: pure_function_support_status,
             lines_of_code,

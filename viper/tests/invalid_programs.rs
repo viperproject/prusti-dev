@@ -50,7 +50,7 @@ fn panic_on_consistency_error() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let _verification_result = verifier.verify(program);
 }
@@ -82,7 +82,7 @@ fn panic_on_type_error() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let _verification_result = verifier.verify(program);
 }

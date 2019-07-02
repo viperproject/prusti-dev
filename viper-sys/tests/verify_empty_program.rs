@@ -57,8 +57,8 @@ fn verify_empty_program() {
         .expect("failed to attach jvm thread");
 
     env.with_local_frame(32, || {
-        let reporter = viper::silver::reporter::CSVReporter::with(&env)
-            .new()
+        let reporter = viper::silver::reporter::NoopReporter_object::with(&env)
+            .singleton()
             .unwrap();
         let debug_info = scala::collection::mutable::ArraySeq::with(&env)
             .new(0)

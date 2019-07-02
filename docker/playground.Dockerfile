@@ -31,6 +31,9 @@ ENV RUSTC_WRAPPER /usr/local/bin/prusti
 # Continue compilation after the verification succeeds
 ENV PRUSTI_FULL_COMPILATION true
 
+# Prusti configuration
+ENV PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT true
+
 # Reduce log level
 ENV RUST_LOG warn
 

@@ -30,7 +30,7 @@ fn success_with_empty_program() {
 
     let program = ast.program(&[], &[], &[], &[], &[]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let verification_result = verifier.verify(program);
 
@@ -56,7 +56,7 @@ fn failure_with_assert_false() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let verification_result = verifier.verify(program);
 
@@ -99,7 +99,7 @@ fn success_with_assert_with_boolean_operations() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let verification_result = verifier.verify(program);
 
@@ -128,7 +128,7 @@ fn success_with_assert_false_in_dead_code() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let verification_result = verifier.verify(program);
 
@@ -161,7 +161,7 @@ fn success_with_assign_if_and_assert() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let verification_result = verifier.verify(program);
 
@@ -200,7 +200,7 @@ fn failure_with_assign_if_and_assert() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let verification_result = verifier.verify(program);
 
@@ -251,7 +251,7 @@ fn success_with_complex_post_condition() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon);
+    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
     let verification_result = verifier.verify(program);
 
