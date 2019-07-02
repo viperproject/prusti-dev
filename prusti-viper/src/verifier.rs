@@ -84,6 +84,7 @@ where
         let mut verifier_args: Vec<String> = vec![];
         let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
         create_dir_all(&log_path).unwrap();
+        let report_path: PathBuf = log_path.join("report.csv");
         let log_dir_str = log_path.to_str().unwrap();
         if let VerificationBackend::Silicon = backend {
             if config::use_more_complete_exhale() {
@@ -122,7 +123,7 @@ where
             self.verification_ctx.new_ast_utils(),
             self.verification_ctx.new_ast_factory(),
             self.verification_ctx
-                .new_verifier_with_args(backend, verifier_args, log_path),
+                .new_verifier_with_args(backend, verifier_args, Some(report_path)),
             env,
             spec,
         )

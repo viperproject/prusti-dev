@@ -30,15 +30,15 @@ impl<'a> VerificationContext<'a> {
         AstUtils::new(&self.env)
     }
 
-    pub fn new_verifier(&self, backend: VerificationBackend, log_path: PathBuf) -> Verifier<state::Started> {
-        self.new_verifier_with_args(backend, vec![], log_path)
+    pub fn new_verifier(&self, backend: VerificationBackend, report_path: Option<PathBuf>) -> Verifier<state::Started> {
+        self.new_verifier_with_args(backend, vec![], report_path)
     }
 
     pub fn new_verifier_with_args(
         &self,
         backend: VerificationBackend,
         extra_args: Vec<String>,
-        log_path: PathBuf,
+        report_path: Option<PathBuf>,
     ) -> Verifier<state::Started> {
         let mut verifier_args: Vec<String> = vec![];
 
@@ -78,7 +78,7 @@ impl<'a> VerificationContext<'a> {
             verifier_args.iter().cloned().collect::<Vec<_>>().join(" ")
         );
 
-        Verifier::<state::Uninitialized>::new(&self.env, backend, log_path)
+        Verifier::<state::Uninitialized>::new(&self.env, backend, report_path)
             .parse_command_line(&verifier_args)
             .start()
     }

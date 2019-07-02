@@ -37,16 +37,24 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
     pub fn new(
         env: &'a JNIEnv,
         backend: VerificationBackend,
-        log_path: PathBuf,
+        report_path: Option<PathBuf>,
     ) -> Verifier<'a, state::Uninitialized> {
         let jni = JniUtils::new(env);
         let verifier_wrapper = silver::verifier::Verifier::with(env);
         let verifier_instance = jni.unwrap_result(match backend {
             VerificationBackend::Silicon => {
-                let reporter = silver::reporter::CSVReporter::with(env).new(
-                    jni.new_string("csv_reporter"),
-                    jni.new_string(log_path.join("report.csv").to_str().unwrap()),
-                ).unwrap();
+                let reporter = if let Some(real_report_path) = report_path {
+                    jni.unwrap_result(
+                        silver::reporter::CSVReporter::with(env).new(
+                            jni.new_string("csv_reporter"),
+                            jni.new_string(real_report_path.to_str().unwrap()),
+                        )
+                    )
+                } else {
+                    jni.unwrap_result(
+                        silver::reporter::NoopReporter_object::with(env).singleton()
+                    )
+                };
                 let utils = JniUtils::new(env);
                 let debug_info = utils.new_seq(&[]);
                 silicon::Silicon::with(env).new(reporter, debug_info)
