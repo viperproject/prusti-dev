@@ -10,4 +10,4 @@ mod inliner;
 mod simplifier;
 
 pub use self::inliner::inline_constant_functions;
-pub use self::simplifier::simplify;
+pub use self::simplifier::Simplifier;

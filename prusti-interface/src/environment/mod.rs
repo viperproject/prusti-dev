@@ -207,8 +207,12 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         self.tcx().hir.span_if_local(def_id).unwrap()
     }
 
-    pub fn get_item_name(&self, def_id: DefId) -> String {
+    pub fn get_absolute_item_name(&self, def_id: DefId) -> String {
         self.tcx().absolute_item_path_str(def_id)
+    }
+
+    pub fn get_item_name(&self, def_id: DefId) -> String {
+        self.tcx().item_path_str(def_id)
     }
 
     /// Get a Procedure.

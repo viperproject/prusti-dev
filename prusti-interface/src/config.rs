@@ -37,6 +37,7 @@ lazy_static! {
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
         settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", true).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
+        settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -261,5 +262,17 @@ pub fn report_support_status() -> bool {
         .read()
         .unwrap()
         .get::<bool>("REPORT_SUPPORT_STATUS")
+        .unwrap()
+}
+
+/// Disable mangling of generated Viper names.
+///
+/// **Note:** This is very likely to result in invalid programs being
+/// generated because of name collisions.
+pub fn disable_name_mangling() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("DISABLE_NAME_MANGLING")
         .unwrap()
 }

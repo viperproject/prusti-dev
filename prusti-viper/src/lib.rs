@@ -8,6 +8,7 @@
 #![feature(box_patterns)]
 #![feature(nll)]
 #![feature(box_syntax)]
+#![feature(slice_sort_by_cached_key)]
 
 #![deny(unreachable_patterns)]
 #![cfg_attr(debug_assertions, deny(dead_code))]

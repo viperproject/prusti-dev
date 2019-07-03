@@ -59,6 +59,7 @@ pub enum UnaryOpKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinOpKind {
     EqCmp,
+    NeCmp,
     GtCmp,
     GeCmp,
     LtCmp,
@@ -176,6 +177,7 @@ impl fmt::Display for BinOpKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &BinOpKind::EqCmp => write!(f, "=="),
+            &BinOpKind::NeCmp => write!(f, "!="),
             &BinOpKind::GtCmp => write!(f, ">"),
             &BinOpKind::GeCmp => write!(f, ">="),
             &BinOpKind::LtCmp => write!(f, "<"),
@@ -804,6 +806,32 @@ impl Expr {
                 base.get_type()
             }
             _ => panic!(),
+        }
+    }
+
+    /// If returns true, then the expression is guaranteed to be boolean. However, it may return
+    /// false even for boolean expressions.
+    pub fn is_bool(&self) -> bool {
+        if self.is_place() {
+            self.get_type() == &Type::Bool
+        } else {
+            match self {
+                Expr::Const(Const::Bool(_), _) |
+                Expr::UnaryOp(UnaryOpKind::Not, _, _) |
+                Expr::FuncApp(_, _, _, Type::Bool, _) |
+                Expr::ForAll(..) => {
+                    true
+                },
+                Expr::BinOp(kind, _, _, _) => {
+                    use self::BinOpKind::*;
+                    *kind == EqCmp || *kind == NeCmp ||
+                    *kind == GtCmp || *kind == GeCmp || *kind == LtCmp || *kind == LeCmp ||
+                    *kind == And || *kind == Or || *kind == Implies
+                },
+                _ => {
+                    false
+                }
+            }
         }
     }
 
