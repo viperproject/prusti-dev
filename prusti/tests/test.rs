@@ -28,6 +28,7 @@ fn run_no_verification(group_name: &str) {
     set_var("PRUSTI_TEST", "true");
 
     set_var("PRUSTI_NO_VERIFY", "true");
+    set_var("PRUSTI_QUIET", "true");
 
     let mut config = Config::default();
     config.rustc_path = get_driver_path();
@@ -76,6 +77,7 @@ fn run_verification(group_name: &str) {
     set_var("PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT", "true");
 
     remove_var("PRUSTI_NO_VERIFY");
+    remove_var("PRUSTI_QUIET");
 
     let mut config = Config::default();
     config.rustc_path = get_driver_path();

@@ -39,23 +39,6 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
         };
         debug!("Verification task: {:?}", &verification_task);
 
-        let header = vec![
-            r"  __          __        __  ___             ",
-            r" |__)  _\/_  |__) |  | /__`  |   ____\/_  | ",
-            r" |      /\   |  \ \__/ .__/  |       /\   | ",
-        ];
-        user::message(header[0]);
-        user::message(format!(
-            "{} Hash:  {}",
-            header[1],
-            option_env!("GIT_HASH").unwrap_or("<unknown>")
-        ));
-        user::message(format!(
-            "{} Build: {}",
-            header[2],
-            option_env!("BUILD_TIME").unwrap_or("<unknown>")
-        ));
-        user::message(r"");
         user::message(format!(
             "Verification of {} items...",
             verification_task.procedures.len()

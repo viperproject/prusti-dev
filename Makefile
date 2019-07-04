@@ -43,6 +43,10 @@ test:
 	$(SET_ENV_VARS) \
 	cargo test --all
 
+test-examples:
+	$(SET_ENV_VARS) \
+	cargo test -p prusti
+
 build-profile:
 	$(SET_ENV_VARS) \
 	CARGO_INCREMENTAL=0 \
