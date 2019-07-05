@@ -308,8 +308,13 @@ pub trait StmtFolder {
         Stmt::Assert(self.fold_expr(expr), folding, pos)
     }
 
-    fn fold_method_call(&mut self, s: String, ve: Vec<Expr>, vv: Vec<LocalVar>) -> Stmt {
-        Stmt::MethodCall(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), vv)
+    fn fold_method_call(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        targets: Vec<LocalVar>
+    ) -> Stmt {
+        Stmt::MethodCall(name, args.into_iter().map(|e| self.fold_expr(e)).collect(), targets)
     }
 
     fn fold_assign(&mut self, p: Expr, e: Expr, k: AssignKind) -> Stmt {
