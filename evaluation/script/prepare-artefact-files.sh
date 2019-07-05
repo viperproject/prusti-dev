@@ -31,12 +31,19 @@ mkdir "$ARTEFACT_DIR/evaluation-3/without-overflow-checks"
 
 ########## evaluation 1 ##########
 
-cat "$DIR/../crates/supported-crates.csv" | while read crate
+(cd "$ARTEFACT_DIR/top-500"; ls) | while read crate
 do
     echo === $crate ===
     cp -r "$ARTEFACT_DIR/top-500/$crate/source" "$ARTEFACT_DIR/evaluation-1/$crate"
+done
+
+cat "$DIR/../crates/supported-crates.csv" | while read crate
+do
+    echo === $crate ===
     cp "$DIR/../crates/coarse-grained-config/$crate.Prusti.toml" "$ARTEFACT_DIR/evaluation-1/$crate/Prusti.toml"
 done
+
+cp  "$DIR/../crates/supported-crates.csv" "$ARTEFACT_DIR/evaluation-1/supported-crates.csv"
 
 ########## evaluation 2 ##########
 
@@ -48,6 +55,8 @@ do
     cp -r "$ARTEFACT_DIR/top-500/$crate/source" "$ARTEFACT_DIR/evaluation-2/${crate}_${num}"
     cp "$DIR/../crates/fine-grained-config/$config_file" "$ARTEFACT_DIR/evaluation-2/${crate}_${num}/Prusti.toml"
 done
+
+cp "$DIR/../crates/successful-fine-grained.csv" "$ARTEFACT_DIR/evaluation-2/successful.csv"
 
 ########## evaluation 3 ##########
 
