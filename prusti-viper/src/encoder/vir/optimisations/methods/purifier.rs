@@ -168,10 +168,23 @@ impl ast::ExprWalker for VarCollector {
         body: &ast::Expr,
         _pos: &ast::Position
     ) {
-        self.all_vars.insert(bound_var.clone());
-        self.impure_vars.insert(bound_var.clone());
         self.walk(expr);
         self.walk(body);
+        // TODO: This is not bullet proof against name collisions.
+        self.all_vars.remove(bound_var);
+    }
+    fn walk_forall(
+        &mut self,
+        vars: &Vec<ast::LocalVar>,
+        _triggers: &Vec<ast::Trigger>,
+        body: &ast::Expr,
+        _pos: &ast::Position
+    ) {
+        self.walk(body);
+        for var in vars {
+            // TODO: This is not bullet proof against name collisions.
+            self.all_vars.remove(var);
+        }
     }
 }
 
