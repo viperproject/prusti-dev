@@ -221,7 +221,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                     methods, functions);
                 methods = new_methods
                     .into_iter()
-                    .map(|m| optimisations::methods::purify_vars(m))
+                    .map(|m| {
+                        let purified = optimisations::methods::purify_vars(m);
+                        optimisations::folding::FoldingOptimiser::optimise(purified)
+                    })
                     .collect();
                 functions = new_functions
                     .into_iter()

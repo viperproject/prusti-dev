@@ -13,7 +13,7 @@
 //! 2.  There is an implication that branches on a enum discriminant.
 
 
-use super::super::super::{ast, borrows};
+use super::super::super::{ast, borrows, cfg};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::mem;
@@ -21,6 +21,21 @@ use std::mem;
 
 pub trait FoldingOptimiser {
     fn optimise(self) -> Self;
+}
+
+impl FoldingOptimiser for cfg::CfgMethod {
+    fn optimise(mut self) -> Self {
+        let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+        let mut optimiser = StmtOptimiser {};
+        for block in &mut self.basic_blocks {
+            for stmt in &mut block.stmts {
+                mem::swap(&mut sentinel_stmt, stmt);
+                sentinel_stmt = ast::StmtFolder::fold(&mut optimiser, sentinel_stmt);
+                mem::swap(&mut sentinel_stmt, stmt);
+            }
+        }
+        self
+    }
 }
 
 impl FoldingOptimiser for ast::Function {
@@ -43,6 +58,20 @@ impl FoldingOptimiser for ast::Expr {
         let r = restore_unfoldings(optimiser.get_unfoldings(), new_expr);
         trace!("[exit] FoldingOptimiser::optimise = \n{}", r);
         r
+    }
+}
+
+struct StmtOptimiser {
+}
+
+impl ast::StmtFolder for StmtOptimiser {
+    fn fold_inhale(&mut self, expr: ast::Expr, folding: ast::FoldingBehaviour) -> ast::Stmt {
+        let new_expr = if folding == ast::FoldingBehaviour::Expr {
+            expr.optimise()
+        } else {
+            expr
+        };
+        ast::Stmt::Inhale(new_expr, folding)
     }
 }
 
