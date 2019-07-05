@@ -147,21 +147,16 @@ fn check_requirements_conflict(
     for place1 in reqs1 {
         for place2 in reqs2 {
             // Check if we require the same place to be unfolded at a different depth.
+            let (base1, components1) = place1.explode_place();
+            let (base2, components2) = place2.explode_place();
             if place1.has_proper_prefix(place2) && !reqs1.contains(place2) {
                 debug!("{} has_proper_prefix {}", place1, place2);
-                conflict_set.insert(place2.get_base().into());
-            }
-            if place2.has_proper_prefix(place1) && !reqs2.contains(place1) {
+                conflict_set.insert(base2);
+            } else if place2.has_proper_prefix(place1) && !reqs2.contains(place1) {
                 debug!("{} has_proper_prefix {}", place2, place1);
-                conflict_set.insert(place1.get_base().into());
-            }
-            // Check if we have different variants.
-            if place1.get_base() == place2.get_base() &&
-                !place1.has_prefix(place2) &&
-                !place2.has_prefix(place1) {
-                let (base1, components1) = place1.explode_place();
-                let (base2, components2) = place2.explode_place();
-                assert!(base1 == base2);
+                conflict_set.insert(base1);
+            } else if base1 == base2 && !place1.has_prefix(place2) && !place2.has_prefix(place1) {
+                // Check if we have different variants.
                 let mut len1 = components1.len();
                 let mut len2 = components2.len();
                 for (part1, part2) in components1.into_iter().zip(components2.into_iter()) {
@@ -175,7 +170,7 @@ fn check_requirements_conflict(
                                     debug!("different variants: {} {}", place1, place2);
                                     // If variant is the last component of the place, then we are
                                     // still fine because we will try to unfold under implication.
-                                    conflict_set.insert(base1.into());
+                                    conflict_set.insert(base1);
                                 }
                             }
                             (ast::PlaceComponent::Field(ast::Field { name, .. }, _),
@@ -190,7 +185,7 @@ fn check_requirements_conflict(
                                         // However, if the variant is the last component of the
                                         // place, then we are still fine because we will try to
                                         // unfold under implication.
-                                        conflict_set.insert(base1.into());
+                                        conflict_set.insert(base1);
                                     }
                                 }
                             }
@@ -337,7 +332,12 @@ impl ast::ExprFolder for ExprOptimiser {
 
     fn fold(&mut self, expr: ast::Expr) -> ast::Expr {
         match expr {
-            ast::Expr::LabelledOld(..) => expr,
+            ast::Expr::LabelledOld(..) => {
+                if expr.is_place() {
+                    self.requirements.insert(expr.clone());
+                }
+                expr
+            },
             ast::Expr::Unfolding(name, mut args, box body, perm, variant, _) => {
                 assert!(args.len() == 1);
                 let new_expr = self.fold(body);
