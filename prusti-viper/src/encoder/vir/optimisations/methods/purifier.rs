@@ -22,6 +22,14 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         is_pure_context: false,
         replacements: HashMap::new(),
     };
+    // TODO: Hack: Mark arguments and return types as impure so that we
+    // get their invariants. A proper way would be to use type
+    // invariant for usize and inline it when a variable is purified.
+    for i in 0..method.formal_arg_count+1 {
+        let name = format!("_{}", i);
+        let var = ast::LocalVar::new(name, ast::Type::TypedRef("".to_string()));
+        collector.impure_vars.insert(var);
+    }
     method.walk_statements(|stmt| {
         ast::StmtWalker::walk(&mut collector, stmt);
     });
@@ -59,8 +67,6 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
             var
         }
     };
-    method.formal_args = method.formal_args.into_iter().map(fix_var).collect();
-    method.formal_returns = method.formal_returns.into_iter().map(fix_var).collect();
     method.local_vars = method.local_vars.into_iter().map(fix_var).collect();
     method
 }
