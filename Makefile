@@ -154,9 +154,11 @@ clippy: clean
 
 publish-docker-images:
 	docker push fpoli/prusti-base
+	docker push fpoli/prusti
 
 build-docker-images:
 	docker build -t fpoli/prusti-base --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/base.Dockerfile docker/
+	docker build -t fpoli/prusti -f docker/app.Dockerfile docker/
 	docker build -t rust-nightly -f docker/playground.Dockerfile .
 
 clean:
