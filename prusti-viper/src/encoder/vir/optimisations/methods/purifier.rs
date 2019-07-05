@@ -155,6 +155,18 @@ impl ast::ExprWalker for VarCollector {
         self.walk(receiver);
         self.is_pure_context = old_pure_context;
     }
+    fn walk_let_expr(
+        &mut self,
+        bound_var: &ast::LocalVar,
+        expr: &ast::Expr,
+        body: &ast::Expr,
+        _pos: &ast::Position
+    ) {
+        self.all_vars.insert(bound_var.clone());
+        self.impure_vars.insert(bound_var.clone());
+        self.walk(expr);
+        self.walk(body);
+    }
 }
 
 impl ast::StmtWalker for VarCollector {

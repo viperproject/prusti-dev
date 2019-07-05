@@ -12,6 +12,8 @@ use std::mem;
 ///
 /// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.
 /// 2.  Pull out all `unfolding ... in` that are inside `forall` to outside of `forall`.
+/// 3.  Replace all arithmetic expressions inside `forall` that do not depend on bound variables
+///     with `let tmp == (...) in forall ..`.
 ///
 /// Note: this seems to be required to workaround some Silicon incompleteness.
 pub fn rewrite(cfg: vir::CfgMethod) -> vir::CfgMethod {
@@ -65,9 +67,9 @@ impl vir::StmtFolder for Optimiser {
         folding: vir::FoldingBehaviour,
         pos: vir::Position
     ) -> vir::Stmt {
-        let replaced_old = self.replace_expr_old(expr);
-        let pulled_unfodling = self.replace_expr_unfolding(replaced_old);
-        vir::Stmt::Assert(pulled_unfodling, folding, pos)
+        let pulled_unfodling = self.replace_expr_unfolding(expr);
+        let replaced_old = self.replace_expr_old(pulled_unfodling);
+        vir::Stmt::Assert(replaced_old, folding, pos)
     }
     fn fold_inhale(&mut self, expr: vir::Expr, folding: vir::FoldingBehaviour) -> vir::Stmt {
         let pulled_unfodling = self.replace_expr_unfolding(expr);
@@ -84,7 +86,7 @@ impl vir::ExprFolder for Optimiser {
         pos: vir::Position,
     ) -> vir::Expr {
         debug!("original body: {}", body);
-        let mut replacer = OldPlaceReplacer::new();
+        let mut replacer = Replacer::new(&variables);
         let replaced_body = replacer.fold_boxed(body);
         debug!("replaced body: {}", replaced_body);
         let mut forall = vir::Expr::ForAll(variables, triggers, replaced_body, pos.clone());
@@ -100,16 +102,18 @@ impl vir::ExprFolder for Optimiser {
     }
 }
 
-struct OldPlaceReplacer {
+struct Replacer {
     counter: u32,
     map: HashMap<vir::Expr, vir::LocalVar>,
+    bound_vars: Vec<vir::Expr>,
 }
 
-impl OldPlaceReplacer {
-    fn new() -> Self {
+impl Replacer {
+    fn new(bound_vars: &Vec<vir::LocalVar>) -> Self {
         Self {
             counter: 0,
             map: HashMap::new(),
+            bound_vars: bound_vars.iter().cloned().map(|v| v.into()).collect(),
         }
     }
 
@@ -123,7 +127,7 @@ impl OldPlaceReplacer {
     }
 }
 
-impl vir::ExprFolder for OldPlaceReplacer {
+impl vir::ExprFolder for Replacer {
     fn fold_labelled_old(
         &mut self,
         label: String,
@@ -137,6 +141,34 @@ impl vir::ExprFolder for OldPlaceReplacer {
             } else {
                 let ty = expr.get_type();
                 let local = self.construct_fresh_local(ty);
+                self.map.insert(original_expr, local.clone());
+                vir::Expr::Local(local, pos)
+            }
+        } else {
+            original_expr
+        }
+    }
+    fn fold_bin_op(
+        &mut self,
+        kind: vir::BinOpKind,
+        first: Box<vir::Expr>,
+        second: Box<vir::Expr>,
+        pos: vir::Position
+    ) -> vir::Expr {
+        let folded_first = self.fold_boxed(first);
+        let folded_second = self.fold_boxed(second);
+        let original_expr = vir::Expr::BinOp(kind, folded_first, folded_second, pos.clone());
+        if (kind == vir::BinOpKind::Add ||
+            kind == vir::BinOpKind::Sub ||
+            kind == vir::BinOpKind::Mul ||
+            kind == vir::BinOpKind::Div ||
+            kind == vir::BinOpKind::Mod) &&
+            !self.bound_vars.iter().any(|v| original_expr.find(v))
+        {
+            if let Some(local) = self.map.get(&original_expr) {
+                vir::Expr::Local(local.clone(), pos)
+            } else {
+                let local = self.construct_fresh_local(&vir::Type::Int);
                 self.map.insert(original_expr, local.clone());
                 vir::Expr::Local(local, pos)
             }
