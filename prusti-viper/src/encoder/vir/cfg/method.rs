@@ -16,8 +16,8 @@ pub(super) const RETURN_LABEL: &str = "end_of_method";
 pub struct CfgMethod {
     pub(super) uuid: Uuid,
     pub(super) method_name: String,
-    pub(super) formal_args: Vec<LocalVar>,
-    pub(super) formal_returns: Vec<LocalVar>,
+    pub(in super::super) formal_args: Vec<LocalVar>,
+    pub(in super::super) formal_returns: Vec<LocalVar>,
     pub(in super::super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     pub(super) reserved_labels: HashSet<String>,

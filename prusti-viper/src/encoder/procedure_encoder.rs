@@ -392,19 +392,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.encoder, self.cfg_method, loan_positions, method_pos);
 
         // Fix variable declarations.
-        let fixed_method = fix_ghost_vars(method_with_fold_unfold);
-
-        // Optimise encoding a bit
-        let method_without_unused_vars = remove_unused_vars(fixed_method);
-        let mut method_without_trivial_assertions = remove_trivial_assertions(
-                method_without_unused_vars);
+        let mut fixed_method = fix_ghost_vars(method_with_fold_unfold);
 
         if config::use_assume_false_back_edges() {
             let havoc_methods = self.encoder.encode_havoc_methods();
-            havoc_assigned_locals(&mut method_without_trivial_assertions, &havoc_methods);
+            havoc_assigned_locals(&mut fixed_method, &havoc_methods);
         }
 
         // Optimise encoding a bit
+        let method_without_unused_vars = remove_unused_vars(fixed_method);
+        let method_without_trivial_assertions =
+            remove_trivial_assertions(method_without_unused_vars);
         let final_method = optimiser::rewrite(method_without_trivial_assertions);
 
         // Dump final CFG

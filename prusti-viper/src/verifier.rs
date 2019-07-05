@@ -219,7 +219,10 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             if config::simplify_functions() {
                 let (new_methods, new_functions) = optimisations::functions::inline_constant_functions(
                     methods, functions);
-                methods = new_methods;
+                methods = new_methods
+                    .into_iter()
+                    .map(|m| optimisations::methods::purify_vars(m))
+                    .collect();
                 functions = new_functions
                     .into_iter()
                     .map(|f| {

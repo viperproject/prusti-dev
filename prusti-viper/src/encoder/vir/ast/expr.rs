@@ -1298,8 +1298,8 @@ pub trait ExprFolder: Sized {
     fn fold_variant(&mut self, base: Box<Expr>, variant: Field, p: Position) -> Expr {
         Expr::Variant(self.fold_boxed(base), variant, p)
     }
-    fn fold_field(&mut self, e: Box<Expr>, f: Field, p: Position) -> Expr {
-        Expr::Field(self.fold_boxed(e), f, p)
+    fn fold_field(&mut self, receiver: Box<Expr>, field: Field, pos: Position) -> Expr {
+        Expr::Field(self.fold_boxed(receiver), field, pos)
     }
     fn fold_addr_of(&mut self, e: Box<Expr>, t: Type, p: Position) -> Expr {
         Expr::AddrOf(self.fold_boxed(e), t, p)
