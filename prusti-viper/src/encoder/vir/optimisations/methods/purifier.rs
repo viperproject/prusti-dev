@@ -270,6 +270,19 @@ impl VarPurifier {
             unreachable!()
         }
     }
+    fn get_replacement_bounds(&self, var_expr: &ast::Expr) -> ast::Expr {
+        let replacement = self.get_replacement(var_expr);
+        if config::check_binary_operations() {
+            ast::Expr::and(
+                ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
+                ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
+            )
+        } else if config::encode_unsigned_num_constraint() {
+            ast::Expr::ge_cmp(replacement.into(), 0.into())
+        } else {
+            true.into()
+        }
+    }
 }
 
 impl ast::ExprFolder for VarPurifier {
@@ -285,7 +298,7 @@ impl ast::ExprFolder for VarPurifier {
         pos: ast::Position,
     ) -> ast::Expr {
         if is_purifiable_predicate(&name) && self.is_pure(&arg) {
-            true.into()
+            self.get_replacement_bounds(&arg)
         } else {
             ast::Expr::PredicateAccessPredicate(name, self.fold_boxed(arg), perm_amount, pos)
         }
@@ -354,17 +367,7 @@ impl ast::StmtFolder for VarPurifier {
     ) -> ast::Stmt {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            let replacement = self.get_replacement(&args[0]);
-            let new_expr = if config::check_binary_operations() {
-                ast::Expr::and(
-                    ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
-                    ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
-                )
-            } else if config::encode_unsigned_num_constraint() {
-                ast::Expr::ge_cmp(replacement.into(), 0.into())
-            } else {
-                true.into()
-            };
+            let new_expr = self.get_replacement_bounds(&args[0]);
             ast::Stmt::Inhale(new_expr, ast::FoldingBehaviour::Stmt)
         } else {
             ast::Stmt::Unfold(
@@ -386,17 +389,7 @@ impl ast::StmtFolder for VarPurifier {
     ) -> ast::Stmt {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            let replacement = self.get_replacement(&args[0]);
-            let new_expr = if config::check_binary_operations() {
-                ast::Expr::and(
-                    ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
-                    ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
-                )
-            } else if config::encode_unsigned_num_constraint() {
-                ast::Expr::ge_cmp(replacement.into(), 0.into())
-            } else {
-                true.into()
-            };
+            let new_expr = self.get_replacement_bounds(&args[0]);
             ast::Stmt::Assert(new_expr, ast::FoldingBehaviour::Stmt, pos)
         } else {
             ast::Stmt::Fold(
@@ -408,7 +401,6 @@ impl ast::StmtFolder for VarPurifier {
             )
         }
     }
-
 
     fn fold_method_call(
         &mut self,
