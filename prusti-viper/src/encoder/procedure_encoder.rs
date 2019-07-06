@@ -96,7 +96,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             // method name
             encoder.encode_item_name(def_id),
             // formal args
-            vec![],
+            mir.arg_count,
             // formal returns
             vec![],
             // local vars
@@ -394,8 +394,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Fix variable declarations.
         let mut fixed_method = fix_ghost_vars(method_with_fold_unfold);
 
+        let havoc_methods = self.encoder.encode_havoc_methods();
         if config::use_assume_false_back_edges() {
-            let havoc_methods = self.encoder.encode_havoc_methods();
             havoc_assigned_locals(&mut fixed_method, &havoc_methods);
         }
 

@@ -112,10 +112,6 @@ fn selection_sort(mut array: &mut VecWrapperI32) {
                      (i <= k && k < j && k < array.len()) ==>
                      array.lookup(min) <= array.lookup(k)"]
         while continue_loop_2 {
-            let _ = &mut array; // TODO: A workaround for the bug in the back-end tool
-                                // https://bitbucket.org/viperproject/silicon/issues/387/incompleteness-in-morecompleteexhale
-                                // To verify the program without this workaround, set
-                                // USE_MORE_COMPLETE_EXHALE to false in Prusti.toml
             if *array.index(j) < *array.index(min) {
                 min = j;
             }

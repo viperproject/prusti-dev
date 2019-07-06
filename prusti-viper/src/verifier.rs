@@ -173,7 +173,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         info!("Received {} items to be verified:", task.procedures.len());
 
         for &proc_id in &task.procedures {
-            let proc_name = self.env.get_item_name(proc_id);
+            let proc_name = self.env.get_absolute_item_name(proc_id);
             let proc_def_path = self.env.get_item_def_path(proc_id);
             let proc_span = self.env.get_item_span(proc_id);
             info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
@@ -219,11 +219,16 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
             if config::simplify_functions() {
                 let (new_methods, new_functions) = optimisations::functions::inline_constant_functions(
                     methods, functions);
-                methods = new_methods;
+                methods = new_methods
+                    .into_iter()
+                    .map(|m| {
+                        let purified = optimisations::methods::purify_vars(m);
+                        optimisations::folding::FoldingOptimiser::optimise(purified)
+                    })
+                    .collect();
                 functions = new_functions
                     .into_iter()
-                    .map(|mut f| {
-                        optimisations::functions::simplify(&mut f);
+                    .map(|f| {
                         optimisations::folding::FoldingOptimiser::optimise(f)
                     })
                     .collect();

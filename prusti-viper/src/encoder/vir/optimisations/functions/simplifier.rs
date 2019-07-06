@@ -6,43 +6,160 @@
 
 //! Function simplifier that simplifies expressions.
 
-use super::super::super::ast;
-use std::mem;
+use super::super::super::ast::{self, ExprFolder};
 
-/// Simplify functions by doing some constant evaluation.
-/// TODO: This is also done by Viper. We should consider disabling/removing this functionality from here.
-pub fn simplify(function: &mut ast::Function) {
-    if let Some(ref mut body) = function.body {
-        body.simplify();
-    }
-    debug!("Simplified function: {}", function);
+pub trait Simplifier {
+    /// Simplify by doing constant evaluation.
+    fn simplify(self) -> Self;
 }
 
-trait Simplifier {
-    /// Simplify by doing constant evaluation.
-    fn simplify(&mut self);
+impl Simplifier for ast::Function {
+    /// Simplify functions in a way that tries to work-around regressions caused by
+    /// https://bitbucket.org/viperproject/silicon/issues/387/incompleteness-in-morecompleteexhale
+    fn simplify(mut self) -> Self {
+        trace!("[enter] simplify = {}", self);
+        let new_body = self.body.map(|b| b.simplify());
+        self.body = new_body;
+        trace!("[exit] simplify = {}", self);
+        self
+    }
 }
 
 impl Simplifier for ast::Expr {
-    fn simplify(&mut self) {
-        match self {
-            ast::Expr::BinOp(_, box subexpr1, box subexpr2, _) => {
-                subexpr1.simplify();
-                subexpr2.simplify();
-            }
-            _ => {}
-        }
-        match self {
+    fn simplify(self) -> Self {
+        let mut folder = ExprSimplifier {};
+        folder.fold(self)
+    }
+}
+
+struct ExprSimplifier {}
+
+impl ExprSimplifier {
+    fn apply_rules(&self, e: ast::Expr) -> ast::Expr {
+        trace!("[enter] apply_rules={}", e);
+        let result = match e {
+            ast::Expr::UnaryOp(
+                ast::UnaryOpKind::Not,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                pos,
+            ) => {
+                ast::Expr::Const(ast::Const::Bool(!b), pos)
+            },
+            ast::Expr::UnaryOp(
+                ast::UnaryOpKind::Not,
+                box ast::Expr::BinOp(ast::BinOpKind::EqCmp, box left, box right, pos),
+                _,
+            ) => {
+                ast::Expr::BinOp(ast::BinOpKind::NeCmp, box left, box right, pos)
+            },
             ast::Expr::BinOp(
                 ast::BinOpKind::And,
                 box ast::Expr::Const(ast::Const::Bool(b1), _),
                 box ast::Expr::Const(ast::Const::Bool(b2), _),
                 pos,
             ) => {
-                let mut new_value = ast::Expr::Const(ast::Const::Bool(*b1 && *b2), pos.clone());
-                mem::swap(self, &mut new_value);
-            }
-            _ => {}
-        }
+                ast::Expr::Const(ast::Const::Bool(b1 && b2), pos)
+            },
+            ast::Expr::BinOp(
+                ast::BinOpKind::And,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                box conjunct,
+                pos,
+            ) |
+            ast::Expr::BinOp(
+                ast::BinOpKind::And,
+                box conjunct,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                pos,
+            ) => {
+                if b {
+                    conjunct
+                } else {
+                    ast::Expr::Const(ast::Const::Bool(false.into()), pos)
+                }
+            },
+            ast::Expr::BinOp(
+                ast::BinOpKind::Implies,
+                guard,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                pos,
+            ) => {
+                if b {
+                    ast::Expr::Const(ast::Const::Bool(true.into()), pos)
+                } else {
+                    ast::Expr::UnaryOp(
+                        ast::UnaryOpKind::Not,
+                        guard,
+                        pos,
+                    )
+                }
+            },
+            ast::Expr::BinOp(
+                ast::BinOpKind::Implies,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                box body,
+                pos,
+            ) => {
+                if b {
+                    body
+                } else {
+                    ast::Expr::Const(ast::Const::Bool(true.into()), pos)
+                }
+            },
+            ast::Expr::BinOp(ast::BinOpKind::And, box op1, box op2, pos) => {
+                ast::Expr::BinOp(
+                    ast::BinOpKind::And,
+                    box self.apply_rules(op1),
+                    box self.apply_rules(op2),
+                    pos,
+                )
+            },
+            r => r,
+        };
+        trace!("[exit] apply_rules={}", result);
+        result
+    }
+}
+
+impl ExprFolder for ExprSimplifier {
+    fn fold(&mut self, e: ast::Expr) -> ast::Expr {
+        let folded_expr = ast::default_fold_expr(self, e);
+        self.apply_rules(folded_expr)
+    }
+    fn fold_cond(
+        &mut self,
+        guard: Box<ast::Expr>,
+        then_expr: Box<ast::Expr>,
+        else_expr: Box<ast::Expr>,
+        pos: ast::Position
+    ) -> ast::Expr {
+        let simplified_guard = self.fold_boxed(guard);
+        let simplified_then = self.fold_boxed(then_expr);
+        let simplified_else = self.fold_boxed(else_expr);
+        let result = if simplified_then.is_bool() || simplified_else.is_bool() {
+            ast::Expr::BinOp(
+                ast::BinOpKind::And,
+                box ast::Expr::BinOp(
+                    ast::BinOpKind::Implies,
+                    simplified_guard.clone(),
+                    simplified_then,
+                    pos.clone(),
+                ),
+                box ast::Expr::BinOp(
+                    ast::BinOpKind::Implies,
+                    box ast::Expr::UnaryOp(
+                        ast::UnaryOpKind::Not,
+                        simplified_guard,
+                        pos.clone(),
+                    ),
+                    simplified_else,
+                    pos.clone(),
+                ),
+                pos,
+            )
+        } else {
+            ast::Expr::Cond(simplified_guard, simplified_then, simplified_else, pos)
+        };
+        self.apply_rules(result)
     }
 }

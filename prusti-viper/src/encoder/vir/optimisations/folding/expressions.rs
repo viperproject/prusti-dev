@@ -13,7 +13,7 @@
 //! 2.  There is an implication that branches on a enum discriminant.
 
 
-use super::super::super::{ast, borrows};
+use super::super::super::{ast, borrows, cfg};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::mem;
@@ -23,24 +23,55 @@ pub trait FoldingOptimiser {
     fn optimise(self) -> Self;
 }
 
+impl FoldingOptimiser for cfg::CfgMethod {
+    fn optimise(mut self) -> Self {
+        let mut sentinel_stmt = ast::Stmt::Comment(String::from("moved out stmt"));
+        let mut optimiser = StmtOptimiser {};
+        for block in &mut self.basic_blocks {
+            for stmt in &mut block.stmts {
+                mem::swap(&mut sentinel_stmt, stmt);
+                sentinel_stmt = ast::StmtFolder::fold(&mut optimiser, sentinel_stmt);
+                mem::swap(&mut sentinel_stmt, stmt);
+            }
+        }
+        self
+    }
+}
+
 impl FoldingOptimiser for ast::Function {
     fn optimise(mut self) -> Self {
-        trace!("function name={}", self.name);
+        trace!("[enter] FoldingOptimiser function_name={}", self.name);
         self.body = self.body.map(|e| e.optimise());
-        trace!("end function name={}", self.name);
+        trace!("[exit] FoldingOptimiser function_name={}", self.name);
         self
     }
 }
 
 impl FoldingOptimiser for ast::Expr {
     fn optimise(self) -> Self {
+        trace!("[enter] FoldingOptimiser::optimise = \n{}", self);
         let mut optimiser = ExprOptimiser {
             unfoldings: HashMap::new(),
             requirements: HashSet::new(),
         };
         let new_expr = ast::ExprFolder::fold(&mut optimiser, self);
-        restore_unfoldings(optimiser.get_unfoldings(), new_expr)
-        //new_expr
+        let r = restore_unfoldings(optimiser.get_unfoldings(), new_expr);
+        trace!("[exit] FoldingOptimiser::optimise = \n{}", r);
+        r
+    }
+}
+
+struct StmtOptimiser {
+}
+
+impl ast::StmtFolder for StmtOptimiser {
+    fn fold_inhale(&mut self, expr: ast::Expr, folding: ast::FoldingBehaviour) -> ast::Stmt {
+        let new_expr = if folding == ast::FoldingBehaviour::Expr {
+            expr.optimise()
+        } else {
+            expr
+        };
+        ast::Stmt::Inhale(new_expr, folding)
     }
 }
 
@@ -60,17 +91,6 @@ impl ExprOptimiser {
     }
     fn get_requirements(&mut self) -> RequirementSet {
         mem::replace(&mut self.requirements, HashSet::new())
-    }
-    fn add_requirements(&mut self, requirements: impl Iterator<Item=ast::Expr>) {
-        self.requirements.extend(requirements);
-    }
-    /// Same as add_requirements, just drops all places that have the added places as prefixes.
-    fn update_requirements<'a>(&mut self, requirements: impl Iterator<Item=&'a ast::Expr>) {
-        for place in requirements {
-            assert!(place.is_place());
-            self.requirements.retain(|p| !p.has_prefix(place));
-            self.requirements.insert(place.clone());
-        }
     }
 }
 
@@ -117,23 +137,26 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
 }
 
 /// Check whether the requirements are conflicting.
-fn check_requirements_conflict(reqs1: &RequirementSet, reqs2: &RequirementSet) -> bool {
+///
+/// Returns a set of conflicting bases. The empty set means no conflicts.
+fn check_requirements_conflict(
+    reqs1: &RequirementSet,
+    reqs2: &RequirementSet
+) -> HashSet<ast::Expr> {
+    let mut conflict_set = HashSet::new();
     for place1 in reqs1 {
         for place2 in reqs2 {
             // Check if we require the same place to be unfolded at a different depth.
+            let (base1, components1) = place1.explode_place();
+            let (base2, components2) = place2.explode_place();
             if place1.has_proper_prefix(place2) && !reqs1.contains(place2) {
-                return true;
-            }
-            if place2.has_proper_prefix(place1) && !reqs2.contains(place1) {
-                return true;
-            }
-            // Check if we have different variants.
-            if place1.get_base() == place2.get_base() &&
-                !place1.has_prefix(place2) &&
-                !place2.has_prefix(place1) {
-                let (base1, components1) = place1.explode_place();
-                let (base2, components2) = place2.explode_place();
-                assert!(base1 == base2);
+                debug!("{} has_proper_prefix {}", place1, place2);
+                conflict_set.insert(base2);
+            } else if place2.has_proper_prefix(place1) && !reqs2.contains(place1) {
+                debug!("{} has_proper_prefix {}", place2, place1);
+                conflict_set.insert(base1);
+            } else if base1 == base2 && !place1.has_prefix(place2) && !place2.has_prefix(place1) {
+                // Check if we have different variants.
                 let mut len1 = components1.len();
                 let mut len2 = components2.len();
                 for (part1, part2) in components1.into_iter().zip(components2.into_iter()) {
@@ -144,9 +167,10 @@ fn check_requirements_conflict(reqs1: &RequirementSet, reqs2: &RequirementSet) -
                             (ast::PlaceComponent::Variant(..),
                              ast::PlaceComponent::Variant(..)) => {
                                 if len1 != 0 || len2 != 0 {
+                                    debug!("different variants: {} {}", place1, place2);
                                     // If variant is the last component of the place, then we are
                                     // still fine because we will try to unfold under implication.
-                                    return true;
+                                    conflict_set.insert(base1);
                                 }
                             }
                             (ast::PlaceComponent::Field(ast::Field { name, .. }, _),
@@ -154,13 +178,14 @@ fn check_requirements_conflict(reqs1: &RequirementSet, reqs2: &RequirementSet) -
                             (ast::PlaceComponent::Variant(..),
                              ast::PlaceComponent::Field(ast::Field { name, .. }, _)) => {
                                 if name == "discriminant" {
+                                    debug!("guarded permission: {} {}", place1, place2);
                                     // If we are checking discriminant, this means that the
                                     // permission is guarded.
                                     if len1 != 0 || len2 != 0 {
                                         // However, if the variant is the last component of the
                                         // place, then we are still fine because we will try to
                                         // unfold under implication.
-                                        return true;
+                                        conflict_set.insert(base1);
                                     }
                                 }
                             }
@@ -172,14 +197,147 @@ fn check_requirements_conflict(reqs1: &RequirementSet, reqs2: &RequirementSet) -
             }
         }
     }
-    false
+    conflict_set
+}
+
+/// Split the unfoldings map into two: to restore and to keep.
+fn split_unfoldings(
+    unfoldings: UnfoldingMap,
+    conflicts: &HashSet<ast::Expr>
+) -> (UnfoldingMap, UnfoldingMap) {
+    let mut to_restore = HashMap::new();
+    let mut to_keep = HashMap::new();
+    for (place, data) in unfoldings {
+        if conflicts.iter().any(|c| place.has_prefix(c)) {
+            to_restore.insert(place, data);
+        } else {
+            to_keep.insert(place, data);
+        }
+    }
+    (to_restore, to_keep)
+}
+
+/// Find unfoldings that are in both sets.
+fn find_common_unfoldings2(
+    first: UnfoldingMap,
+    mut second: UnfoldingMap,
+) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap) {
+    let mut common = HashMap::new();
+    let mut new_first = HashMap::new();
+    for (place, data) in first {
+        if second.contains_key(&place) {
+            second.remove(&place);
+            common.insert(place, data);
+        } else {
+            new_first.insert(place, data);
+        }
+    }
+    (common, new_first, second)
+}
+
+/// Find unfoldings that are in all three sets.
+fn find_common_unfoldings3<'a>(
+    mut first: UnfoldingMap,
+    mut first_reqs: &'a RequirementSet,
+    mut second: UnfoldingMap,
+    mut second_reqs: &'a RequirementSet,
+    mut third: UnfoldingMap,
+    third_reqs: &'a RequirementSet,
+) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap, UnfoldingMap) {
+    let mut common = HashMap::new();
+    let mut new_first = HashMap::new();
+    let swap = first.is_empty();
+    if swap {
+        mem::swap(&mut first, &mut second);
+        mem::swap(&mut first_reqs, &mut second_reqs);
+    }
+    for (place, data) in first {
+        let second_agrees = second.contains_key(&place) ||
+            second_reqs.iter().all(|p| !p.has_prefix(&place));
+        let third_agrees = third.contains_key(&place) ||
+            third_reqs.iter().all(|p| !p.has_prefix(&place));
+        if second_agrees && third_agrees {
+            second.remove(&place);
+            third.remove(&place);
+            common.insert(place, data);
+        } else {
+            new_first.insert(place, data);
+        }
+    }
+    if swap {
+        (common, second, new_first, third)
+    } else {
+        (common, new_first, second, third)
+    }
+}
+
+fn update_requirements(requirements: &mut RequirementSet, mut new_requirements: Vec<ast::Expr>) {
+    new_requirements.sort_by_cached_key(|place| -(place.place_depth() as i32));
+    for place in new_requirements {
+        requirements.retain(|p| !p.has_prefix(&place));
+        requirements.insert(place);
+    }
+}
+
+fn merge_requirements_and_unfoldings2(
+    first: Box<ast::Expr>,
+    mut first_unfoldings: UnfoldingMap,
+    mut first_requirements: RequirementSet,
+    second: Box<ast::Expr>,
+    second_unfoldings: UnfoldingMap,
+    second_requirements: RequirementSet,
+) -> (RequirementSet, UnfoldingMap, Box<ast::Expr>, Box<ast::Expr>) {
+
+    trace!("[enter] merge_requirements_and_unfoldings");
+    use utils::to_string::ToString;
+    trace!("reqs: {}", first_requirements.iter().to_sorted_multiline_string());
+    trace!("unfoldings: {}", first_unfoldings.keys().to_sorted_multiline_string());
+    trace!("reqs: {}", second_requirements.iter().to_sorted_multiline_string());
+    trace!("unfoldings: {}", second_unfoldings.keys().to_sorted_multiline_string());
+
+    let conflicts = check_requirements_conflict(&first_requirements, &second_requirements);
+    trace!("conflicts: {}", conflicts.iter().to_sorted_multiline_string());
+
+    if conflicts.is_empty() {
+        first_requirements.extend(second_requirements);
+        first_unfoldings.extend(second_unfoldings);
+        (first_requirements, first_unfoldings, first, second)
+    } else {
+
+        let (common, first_unfoldings, second_unfoldings) = find_common_unfoldings2(
+            first_unfoldings, second_unfoldings);
+
+        let (first_to_restore, first_to_keep) = split_unfoldings(
+            first_unfoldings, &conflicts);
+        let (second_to_restore, second_to_keep) = split_unfoldings(
+            second_unfoldings, &conflicts);
+
+        let mut new_requirements = first_requirements;
+        new_requirements.extend(second_requirements);
+        update_requirements(&mut new_requirements, first_to_restore.keys().cloned().collect());
+        update_requirements(&mut new_requirements, second_to_restore.keys().cloned().collect());
+
+        let first_restored = restore_unfoldings_boxed(first_to_restore, first);
+        let second_restored = restore_unfoldings_boxed(second_to_restore, second);
+
+        let mut new_unfoldings = common;
+        new_unfoldings.extend(first_to_keep);
+        new_unfoldings.extend(second_to_keep);
+
+        (new_requirements, new_unfoldings, first_restored, second_restored)
+    }
 }
 
 impl ast::ExprFolder for ExprOptimiser {
 
     fn fold(&mut self, expr: ast::Expr) -> ast::Expr {
         match expr {
-            ast::Expr::LabelledOld(..) => expr,
+            ast::Expr::LabelledOld(..) => {
+                if expr.is_place() {
+                    self.requirements.insert(expr.clone());
+                }
+                expr
+            },
             ast::Expr::Unfolding(name, mut args, box body, perm, variant, _) => {
                 assert!(args.len() == 1);
                 let new_expr = self.fold(body);
@@ -248,25 +406,25 @@ impl ast::ExprFolder for ExprOptimiser {
         second: Box<ast::Expr>,
         pos: ast::Position
     ) -> ast::Expr {
+        let f = first.clone();
+        let s = second.clone();
         let first_folded = self.fold_boxed(first);
         let first_unfoldings = self.get_unfoldings();
         let first_requirements = self.get_requirements();
 
         let second_folded = self.fold_boxed(second);
+        let second_unfoldings = self.get_unfoldings();
+        let second_requirements = self.get_requirements();
 
-        if check_requirements_conflict(&first_requirements, &self.requirements) {
-            let second_unfoldings = self.get_unfoldings();
-            self.add_requirements(first_requirements.into_iter());
-            self.update_requirements(first_unfoldings.keys());
-            self.update_requirements(second_unfoldings.keys());
-            let first_restored = restore_unfoldings_boxed(first_unfoldings, first_folded);
-            let second_restored = restore_unfoldings_boxed(second_unfoldings, second_folded);
-            ast::Expr::BinOp(kind, first_restored, second_restored, pos)
-        } else {
-            self.requirements.extend(first_requirements);
-            self.unfoldings.extend(first_unfoldings);
-            ast::Expr::BinOp(kind, first_folded, second_folded, pos)
-        }
+        trace!("fold_bin_op: {} {} {}", kind, f, s);
+
+        let (new_reqs, new_unfoldings, new_first, new_second) = merge_requirements_and_unfoldings2(
+            first_folded, first_unfoldings, first_requirements,
+            second_folded, second_unfoldings, second_requirements);
+
+        self.requirements = new_reqs;
+        self.unfoldings = new_unfoldings;
+        ast::Expr::BinOp(kind, new_first, new_second, pos)
     }
     fn fold_cond(
         &mut self,
@@ -275,6 +433,9 @@ impl ast::ExprFolder for ExprOptimiser {
         else_expr: Box<ast::Expr>,
         pos: ast::Position
     ) -> ast::Expr {
+        let g = guard.clone();
+        let f = then_expr.clone();
+        let s = else_expr.clone();
         let guard_folded = self.fold_boxed(guard);
         let guard_unfoldings = self.get_unfoldings();
         let guard_requirements = self.get_requirements();
@@ -284,65 +445,76 @@ impl ast::ExprFolder for ExprOptimiser {
         let then_requirements = self.get_requirements();
 
         let else_folded = self.fold_boxed(else_expr);
+        let else_unfoldings = self.get_unfoldings();
+        let else_requirements = self.get_requirements();
 
-        if check_requirements_conflict(&guard_requirements, &self.requirements) ||
-            check_requirements_conflict(&guard_requirements, &then_requirements) ||
-            check_requirements_conflict(&then_requirements, &self.requirements) {
+        trace!("\n\nfold_cond:\ng = {}\nt = {}\ne = {}", g, f, s);
 
-            let else_unfoldings = self.get_unfoldings();
-            self.add_requirements(guard_requirements.into_iter());
-            self.add_requirements(then_requirements.into_iter());
-            self.update_requirements(guard_unfoldings.keys());
-            self.update_requirements(then_unfoldings.keys());
-            self.update_requirements(else_unfoldings.keys());
+        let mut conflicts = check_requirements_conflict(&guard_requirements, &then_requirements);
+        conflicts.extend(check_requirements_conflict(&guard_requirements, &else_requirements));
+        conflicts.extend(check_requirements_conflict(&then_requirements, &else_requirements));
 
-            let guard_restored = restore_unfoldings_boxed(guard_unfoldings, guard_folded);
-            let then_restored = restore_unfoldings_boxed(then_unfoldings, then_folded);
-            let else_restored = restore_unfoldings_boxed(else_unfoldings, else_folded);
-            ast::Expr::Cond(
-                guard_restored,
-                then_restored,
-                else_restored,
-                pos,
-            )
-        } else {
-            self.requirements.extend(guard_requirements);
+        if conflicts.is_empty() {
+
+            self.requirements = guard_requirements;
             self.requirements.extend(then_requirements);
-            self.unfoldings.extend(guard_unfoldings);
+            self.requirements.extend(else_requirements);
+
+            self.unfoldings = guard_unfoldings;
             self.unfoldings.extend(then_unfoldings);
+            self.unfoldings.extend(else_unfoldings);
+
             ast::Expr::Cond(
                 guard_folded,
                 then_folded,
                 else_folded,
                 pos,
             )
+        } else {
+            let (common, guard_unfoldings, then_unfoldings, else_unfoldings
+                 ) = find_common_unfoldings3(
+                guard_unfoldings, &guard_requirements,
+                then_unfoldings, &then_requirements,
+                else_unfoldings, &else_requirements);
+
+            let (guard_to_restore, guard_to_keep) = split_unfoldings(
+                guard_unfoldings, &conflicts);
+            let (then_to_restore, then_to_keep) = split_unfoldings(
+                then_unfoldings, &conflicts);
+            let (else_to_restore, else_to_keep) = split_unfoldings(
+                else_unfoldings, &conflicts);
+
+            self.requirements = guard_requirements;
+            self.requirements.extend(then_requirements);
+            self.requirements.extend(else_requirements);
+            update_requirements(&mut self.requirements, guard_to_restore.keys().cloned().collect());
+            update_requirements(&mut self.requirements, then_to_restore.keys().cloned().collect());
+            update_requirements(&mut self.requirements, else_to_restore.keys().cloned().collect());
+
+            let guard_restored = restore_unfoldings_boxed(guard_to_restore, guard_folded);
+            let then_restored = restore_unfoldings_boxed(then_to_restore, then_folded);
+            let else_restored = restore_unfoldings_boxed(else_to_restore, else_folded);
+
+            self.unfoldings = common;
+            self.unfoldings.extend(guard_to_keep);
+            self.unfoldings.extend(then_to_keep);
+            self.unfoldings.extend(else_to_keep);
+
+            ast::Expr::Cond(
+                guard_restored,
+                then_restored,
+                else_restored,
+                pos,
+            )
         }
     }
     fn fold_let_expr(
         &mut self,
-        var: ast::LocalVar,
-        expr: Box<ast::Expr>,
-        body: Box<ast::Expr>,
-        pos: ast::Position
+        _var: ast::LocalVar,
+        _expr: Box<ast::Expr>,
+        _body: Box<ast::Expr>,
+        _pos: ast::Position
     ) -> ast::Expr {
-        let expr_folded = self.fold_boxed(expr);
-        let expr_unfoldings = self.get_unfoldings();
-        let expr_requirements = self.get_requirements();
-
-        let body_folded = self.fold_boxed(body);
-
-        if check_requirements_conflict(&expr_requirements, &self.requirements) {
-            let body_unfoldings = self.get_unfoldings();
-            self.add_requirements(expr_requirements.into_iter());
-            self.update_requirements(expr_unfoldings.keys());
-            self.update_requirements(body_unfoldings.keys());
-            let expr_restored = restore_unfoldings_boxed(expr_unfoldings, expr_folded);
-            let body_restored = restore_unfoldings_boxed(body_unfoldings, body_folded);
-            ast::Expr::LetExpr(var, expr_restored, body_restored, pos)
-        } else {
-            self.requirements.extend(expr_requirements);
-            self.unfoldings.extend(expr_unfoldings);
-            ast::Expr::LetExpr(var, expr_folded, body_folded, pos)
-        }
+        unreachable!();
     }
 }

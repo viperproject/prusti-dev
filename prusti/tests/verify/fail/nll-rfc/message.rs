@@ -22,7 +22,7 @@ extern crate prusti_contracts;
 use std::sync::mpsc;
 
 struct StringWrapper {
-    //value: String,
+    value: String,
 }
 
 impl StringWrapper {
@@ -30,7 +30,7 @@ impl StringWrapper {
     #[pure]
     #[trusted]
     fn equals(&self, other: &StringWrapper) -> bool {
-        unimplemented!();
+        self.value == other.value
     }
 }
 
@@ -38,52 +38,55 @@ enum Message {
     Letter { recipient: StringWrapper, data: StringWrapper },
 }
 
-struct Receiver {
-    //receiver: mpsc::Receiver<Message>,
+struct Receiver<T> {
+    receiver: mpsc::Receiver<T>,
 }
 
-impl Receiver {
+impl Receiver<Message> {
 
     #[trusted]
     pub fn recv(&mut self) -> MessageOption {
-        unimplemented!();
-        //MessageOption {
-            //value: self.receiver.recv().ok(),
-        //}
+        match self.receiver.recv().ok() {
+            Some(msg) => MessageOption::Some(msg),
+            None => MessageOption::None,
+        }
     }
+
 }
 
-struct Sender {
-    //sender: mpsc::Sender<Message>,
+struct Sender<T> {
+    sender: mpsc::Sender<T>,
 }
 
-enum Result<T> {
+enum SResult<T> {
     Ok(T),
     Err,
 }
 
-impl<T> Result<T> {
+impl<T> SResult<T> {
     #[pure]
     fn is_ok(&self) -> bool {
         match self {
-            Result::Ok(_) => true,
-            Result::Err => false,
+            SResult::Ok(_) => true,
+            SResult::Err => false,
         }
     }
     #[requires="self.is_ok()"]
     fn unwrap(self) -> T {
         match self {
-            Result::Ok(v) => v,
-            Result::Err => unreachable!(),
+            SResult::Ok(v) => v,
+            SResult::Err => unreachable!(),
         }
     }
 }
 
-impl Sender {
+impl Sender<Message> {
     #[trusted]
-    pub fn send(&mut self, t: Message) -> Result<()> {
-        unimplemented!();
-        //tx.send(message).unwrap();
+    pub fn send(&mut self, msg: Message) -> SResult<()> {
+        match self.sender.send(msg) {
+            Result::Ok(_) => SResult::Ok(()),
+            Result::Err(_) => SResult::Err,
+        }
     }
 }
 
@@ -114,11 +117,7 @@ impl MessageOption {
 
 }
 
-fn router(
-    me: &mut StringWrapper,
-    rx: Receiver,
-    tx: Sender
-) {
+fn router(me: &StringWrapper, rx: Receiver<Message>, tx: Sender<Message>) {
     let mut rx = rx;
     let mut tx = tx;
     let mut message_option = rx.recv();

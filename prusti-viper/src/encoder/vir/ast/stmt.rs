@@ -308,8 +308,13 @@ pub trait StmtFolder {
         Stmt::Assert(self.fold_expr(expr), folding, pos)
     }
 
-    fn fold_method_call(&mut self, s: String, ve: Vec<Expr>, vv: Vec<LocalVar>) -> Stmt {
-        Stmt::MethodCall(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), vv)
+    fn fold_method_call(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        targets: Vec<LocalVar>
+    ) -> Stmt {
+        Stmt::MethodCall(name, args.into_iter().map(|e| self.fold_expr(e)).collect(), targets)
     }
 
     fn fold_assign(&mut self, p: Expr, e: Expr, k: AssignKind) -> Stmt {
@@ -318,29 +323,34 @@ pub trait StmtFolder {
 
     fn fold_fold(
         &mut self,
-        s: String,
-        ve: Vec<Expr>,
-        perm: PermAmount,
+        predicate_name: String,
+        args: Vec<Expr>,
+        perm_amount: PermAmount,
         variant: MaybeEnumVariantIndex,
-        p: Position
+        pos: Position
     ) -> Stmt {
         Stmt::Fold(
-            s,
-            ve.into_iter().map(|e| self.fold_expr(e)).collect(),
-            perm,
+            predicate_name,
+            args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            perm_amount,
             variant,
-            p,
+            pos,
         )
     }
 
     fn fold_unfold(
         &mut self,
-        s: String,
-        ve: Vec<Expr>,
-        perm: PermAmount,
+        predicate_name: String,
+        args: Vec<Expr>,
+        perm_amount: PermAmount,
         variant: MaybeEnumVariantIndex,
     ) -> Stmt {
-        Stmt::Unfold(s, ve.into_iter().map(|e| self.fold_expr(e)).collect(), perm, variant)
+        Stmt::Unfold(
+            predicate_name,
+            args.into_iter().map(|e| self.fold_expr(e)).collect(),
+            perm_amount,
+            variant,
+        )
     }
 
     fn fold_obtain(&mut self, e: Expr, p: Position) -> Stmt {

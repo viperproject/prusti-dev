@@ -1064,11 +1064,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
         // Rule: the rhs must always have an even number of "$"
-        let mut name = "m_".to_string();
-        name.push_str(
-            &self
-                .env
-                .get_item_def_path(def_id)
+        let mut final_name = "m_".to_string();
+        let name = if config::disable_name_mangling() {
+            self.env.get_item_name(def_id)
+        } else {
+            self.env.get_item_def_path(def_id)
+        };
+        final_name.push_str(
+            &name
                 .replace("::", "$$")
                 .replace("<", "$openang$")
                 .replace(">", "$closeang$")
@@ -1082,7 +1085,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 .replace(";", "$semic$")
                 .replace(" ", "$space$"),
         );
-        name
+        final_name
     }
 
     pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
@@ -1227,7 +1230,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.initialize();
         while !self.encoding_queue.borrow().is_empty() {
             let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
-            let proc_name = self.env.get_item_name(proc_def_id);
+            let proc_name = self.env.get_absolute_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             let proc_span = self.env.get_item_span(proc_def_id);
             info!(

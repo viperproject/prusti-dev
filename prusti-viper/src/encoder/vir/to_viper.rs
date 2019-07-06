@@ -295,6 +295,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 BinOpKind::EqCmp => {
                     ast.eq_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }
+                BinOpKind::NeCmp => {
+                    ast.ne_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
+                }
                 BinOpKind::GtCmp => {
                     ast.gt_cmp_with_pos(left.to_viper(ast), right.to_viper(ast), pos.to_viper(ast))
                 }

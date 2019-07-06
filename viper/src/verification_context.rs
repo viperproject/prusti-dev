@@ -47,6 +47,7 @@ impl<'a> VerificationContext<'a> {
             env::var("Z3_PATH").ok(),
             env::var("Z3_EXE").ok(),
             Some("z3".to_string()),
+            Some("/usr/bin/viper-z3".to_string()),
         ]
         .into_iter()
         .flatten()
