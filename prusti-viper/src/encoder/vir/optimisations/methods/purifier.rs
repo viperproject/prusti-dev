@@ -12,7 +12,7 @@
 use super::super::super::ast;
 use super::super::super::cfg;
 use std::collections::{HashSet, HashMap};
-use std::mem;
+use std::{self, mem};
 use prusti_interface::config;
 
 /// Purify vars.
@@ -354,15 +354,18 @@ impl ast::StmtFolder for VarPurifier {
     ) -> ast::Stmt {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            if config::encode_unsigned_num_constraint() && !config::check_binary_operations() {
-                let replacement = self.get_replacement(&args[0]);
-                ast::Stmt::Inhale(
-                    ast::Expr::ge_cmp(replacement.into(), 0.into()),
-                    ast::FoldingBehaviour::Stmt
+            let replacement = self.get_replacement(&args[0]);
+            let new_expr = if config::check_binary_operations() {
+                ast::Expr::and(
+                    ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
+                    ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
                 )
+            } else if config::encode_unsigned_num_constraint() {
+                ast::Expr::ge_cmp(replacement.into(), 0.into())
             } else {
-                ast::Stmt::Inhale(true.into(), ast::FoldingBehaviour::Stmt)
-            }
+                true.into()
+            };
+            ast::Stmt::Inhale(new_expr, ast::FoldingBehaviour::Stmt)
         } else {
             ast::Stmt::Unfold(
                 predicate_name,
@@ -383,16 +386,18 @@ impl ast::StmtFolder for VarPurifier {
     ) -> ast::Stmt {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            if config::encode_unsigned_num_constraint() && !config::check_binary_operations() {
-                let replacement = self.get_replacement(&args[0]);
-                ast::Stmt::Assert(
-                    ast::Expr::ge_cmp(replacement.into(), 0.into()),
-                    ast::FoldingBehaviour::Stmt,
-                    pos
+            let replacement = self.get_replacement(&args[0]);
+            let new_expr = if config::check_binary_operations() {
+                ast::Expr::and(
+                    ast::Expr::ge_cmp(replacement.clone().into(), 0.into()),
+                    ast::Expr::ge_cmp(std::usize::MAX.into(), replacement.into()),
                 )
+            } else if config::encode_unsigned_num_constraint() {
+                ast::Expr::ge_cmp(replacement.into(), 0.into())
             } else {
-                ast::Stmt::Inhale(true.into(), ast::FoldingBehaviour::Stmt)
-            }
+                true.into()
+            };
+            ast::Stmt::Assert(new_expr, ast::FoldingBehaviour::Stmt, pos)
         } else {
             ast::Stmt::Fold(
                 predicate_name,
