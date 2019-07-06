@@ -13,6 +13,7 @@ use super::super::super::ast;
 use super::super::super::cfg;
 use std::collections::{HashSet, HashMap};
 use std::mem;
+use prusti_interface::config;
 
 /// Purify vars.
 pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
@@ -22,14 +23,6 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         is_pure_context: false,
         replacements: HashMap::new(),
     };
-    // TODO: Hack: Mark arguments and return types as impure so that we
-    // get their invariants. A proper way would be to use type
-    // invariant for usize and inline it when a variable is purified.
-    for i in 0..method.formal_arg_count+1 {
-        let name = format!("_{}", i);
-        let var = ast::LocalVar::new(name, ast::Type::TypedRef("".to_string()));
-        collector.impure_vars.insert(var);
-    }
     method.walk_statements(|stmt| {
         ast::StmtWalker::walk(&mut collector, stmt);
     });
@@ -263,6 +256,17 @@ impl VarPurifier {
             false
         }
     }
+    fn get_replacement(&self, expr: &ast::Expr) -> ast::Expr {
+        if let ast::Expr::Local(var, pos) = expr {
+            let replacement = self.replacements
+                .get(&var)
+                .expect(&format!("key: {}", var))
+                .clone();
+            ast::Expr::Local(replacement, pos.clone())
+        } else {
+            unreachable!()
+        }
+    }
 }
 
 impl ast::ExprFolder for VarPurifier {
@@ -326,16 +330,10 @@ impl ast::ExprFolder for VarPurifier {
         pos: ast::Position
     ) -> ast::Expr {
         if self.is_pure(&receiver) {
-            if let box ast::Expr::Local(var, _) = receiver {
-                let replacement = self.replacements
-                    .get(&var)
-                    .expect(&format!("key: {}", var))
-                    .clone();
-                return ast::Expr::Local(replacement, pos);
-            }
-            unreachable!();
+            self.get_replacement(&receiver)
+        } else {
+            ast::Expr::Field(self.fold_boxed(receiver), field, pos)
         }
-        ast::Expr::Field(self.fold_boxed(receiver), field, pos)
     }
 }
 
@@ -353,7 +351,15 @@ impl ast::StmtFolder for VarPurifier {
     ) -> ast::Stmt {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            ast::Stmt::Inhale(true.into(), ast::FoldingBehaviour::Stmt)
+            if config::encode_unsigned_num_constraint() && !config::check_binary_operations() {
+                let replacement = self.get_replacement(&args[0]);
+                ast::Stmt::Inhale(
+                    ast::Expr::ge_cmp(replacement.into(), 0.into()),
+                    ast::FoldingBehaviour::Stmt
+                )
+            } else {
+                ast::Stmt::Inhale(true.into(), ast::FoldingBehaviour::Stmt)
+            }
         } else {
             ast::Stmt::Unfold(
                 predicate_name,
@@ -374,7 +380,16 @@ impl ast::StmtFolder for VarPurifier {
     ) -> ast::Stmt {
         assert!(args.len() == 1);
         if is_purifiable_predicate(&predicate_name) && self.is_pure(&args[0]) {
-            ast::Stmt::Inhale(true.into(), ast::FoldingBehaviour::Stmt)
+            if config::encode_unsigned_num_constraint() && !config::check_binary_operations() {
+                let replacement = self.get_replacement(&args[0]);
+                ast::Stmt::Assert(
+                    ast::Expr::ge_cmp(replacement.into(), 0.into()),
+                    ast::FoldingBehaviour::Stmt,
+                    pos
+                )
+            } else {
+                ast::Stmt::Inhale(true.into(), ast::FoldingBehaviour::Stmt)
+            }
         } else {
             ast::Stmt::Fold(
                 predicate_name,
