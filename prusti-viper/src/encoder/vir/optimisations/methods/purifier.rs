@@ -23,6 +23,9 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         is_pure_context: false,
         replacements: HashMap::new(),
     };
+    // Since we cannot purify the return value, mark it as impure.
+    let return_var = ast::LocalVar::new("_0".to_string(), ast::Type::TypedRef("".to_string()));
+    collector.impure_vars.insert(return_var);
     method.walk_statements(|stmt| {
         ast::StmtWalker::walk(&mut collector, stmt);
     });
