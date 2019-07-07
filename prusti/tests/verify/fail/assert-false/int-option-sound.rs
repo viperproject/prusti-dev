@@ -13,7 +13,7 @@ fn foo(x: IntOption) -> i32 {
         IntOption::Some(y) => y,
         IntOption::None => 456
     };
-    assert!(false);  //~ ERROR assert!(..) statement might not hold
+    assert!(false);  //~ ERROR the asserted expression might not hold
     ret
 }
 

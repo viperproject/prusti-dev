@@ -20,7 +20,7 @@ fn test<U>(u: &mut U) {
     read(u);
     assert!(valid(u));
     write(u);
-    assert!(valid(u)); //~ ERROR assert!(..) statement might not hold
+    assert!(valid(u)); //~ ERROR the asserted expression might not hold
 }
 
 fn main() {}

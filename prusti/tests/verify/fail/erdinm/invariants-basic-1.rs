@@ -9,7 +9,7 @@ struct Percentage {
 
 impl Percentage {
     fn incr(&mut self) {
-        assert!(self.value <= 100); //~ ERROR assert!(..) statement might not hold
+        assert!(self.value <= 100); //~ ERROR the asserted expression might not hold
         if self.value < 100 {
             self.value += 1;
         }

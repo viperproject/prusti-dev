@@ -1,7 +1,7 @@
 extern crate prusti_contracts;
 
 fn foo(x: bool) {
-    assert!(x);  //~ ERROR assert!(..) statement might not hold
+    assert!(x);  //~ ERROR the asserted expression might not hold
 }
 
 fn main() {

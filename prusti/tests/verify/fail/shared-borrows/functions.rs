@@ -8,24 +8,24 @@ pub fn test1() {
     let a = 5;
     let x = &a;
     borrow(x);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test2(x: &u32) {
     let a = *x;
     let y = &a;
     borrow(y);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test3(x: &u32) {
     borrow(x);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test4(x: &mut u32) {
     borrow(x);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test5() {
@@ -34,18 +34,18 @@ pub fn test5() {
     let x = &a;
     let y = &b;
     borrow2(x, y);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 #[requires="*x == 5"]
 #[ensures="*x == 5"]
 pub fn test6(x: &u32) {
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 #[ensures="*x == old(*x)"]
 pub fn test7(x: &u32) {
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test8() {
@@ -57,7 +57,7 @@ pub fn test8() {
     borrow2(x, &a);
     assert!(a == 5);
     assert!(*x == 5);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 fn main() {

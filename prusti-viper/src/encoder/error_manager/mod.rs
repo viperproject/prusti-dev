@@ -87,6 +87,7 @@ pub struct CompilerError {
     pub message: String,
     pub span: MultiSpan,
     pub reason_span: Option<MultiSpan>,
+    pub help: Option<String>,
 }
 
 impl CompilerError {
@@ -95,7 +96,12 @@ impl CompilerError {
             message: message.to_string(),
             span,
             reason_span,
+            help: None,
         }
+    }
+    pub fn set_help<S: ToString>(mut self, message: S) -> Self {
+        self.help = Some(message.to_string());
+        self
     }
 }
 
@@ -194,7 +200,7 @@ impl<'tcx> ErrorManager<'tcx> {
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => {
                 CompilerError::new(
-                    "assert!(..) statement might not hold",
+                    "the asserted expression might not hold",
                     error_span,
                     reason_span,
                 )
@@ -351,7 +357,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
             ) => CompilerError::new(
-                "assert!(..) statement in pure function might not hold",
+                "asserted expression might not hold",
                 error_span,
                 reason_span,
             ),
@@ -434,7 +440,9 @@ impl<'tcx> ErrorManager<'tcx> {
                 ),
                 error_span,
                 reason_span,
-            ),
+            ).set_help("This could be caused by too small assertion timeout. \
+                       Try increasing it by setting the configuration parameter \
+                       ASSERT_TIMEOUT to a larger value."),
 
             (full_err_id, _) => {
                 debug!(
@@ -448,7 +456,9 @@ impl<'tcx> ErrorManager<'tcx> {
                     ),
                     error_span,
                     reason_span,
-                )
+                ).set_help("This could be caused by too small assertion timeout. \
+                       Try increasing it by setting the configuration parameter \
+                       ASSERT_TIMEOUT to a larger value.")
             }
         }
     }

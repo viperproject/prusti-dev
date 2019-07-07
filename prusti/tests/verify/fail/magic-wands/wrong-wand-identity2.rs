@@ -53,7 +53,7 @@ fn identity_use3() {
     let x = identity2(z, 7);
     let v = identity3(x, 8);
     assert!(*v == 8);
-    assert!(t.val == 9);    //~ ERROR: assert!(..) statement might not hold
+    assert!(t.val == 9);    //~ ERROR: the asserted expression might not hold
 }
 
 fn main() {}

@@ -43,7 +43,7 @@ fn prepend_list(x: u32, tail: List, check: bool) -> List {
         next: Some(Box::new(tail)),
     };
     if check {
-        assert!(lookup(&mut result, 0) == 123); //~ ERROR assert!(..) statement might not hold
+        assert!(lookup(&mut result, 0) == 123); //~ ERROR the asserted expression might not hold
         diverging()
     }
     result
