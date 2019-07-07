@@ -28,7 +28,7 @@ impl Percentage {
     }
 
     fn incr_fail1(&mut self) {
-        assert!(self.value <= 99); //~ ERROR assert!(..) statement might not hold
+        assert!(self.value <= 99); //~ ERROR the asserted expression might not hold
         if self.value < 100 {
             self.value += 1;
         }
@@ -50,7 +50,7 @@ fn test1(x: u8) {
 #[requires="x <= 100"]
 fn test1_fail(x: u8) {
     let perc = Percentage::new(x);
-    assert!(perc.value <= 99); //~ ERROR assert!(..) statement might not hold
+    assert!(perc.value <= 99); //~ ERROR the asserted expression might not hold
 }
 
 #[requires="x <= 100"]
@@ -76,7 +76,7 @@ fn test3(x: u8) {
 fn test3_fail(x: u8) {
     let mut perc = Percentage { value: x };
     perc.incr();
-    assert!(perc.value <= 99); //~ ERROR assert!(..) statement might not hold
+    assert!(perc.value <= 99); //~ ERROR the asserted expression might not hold
 }
 
 fn main() {}

@@ -45,7 +45,7 @@ fn test1(int: &mut Int<Even>) {
 }
 
 fn test2(int: &mut Int<Odd>) {
-    assert!(int.i % 2 != 0); //~ ERROR assert!(..) statement might not hold
+    assert!(int.i % 2 != 0); //~ ERROR the asserted expression might not hold
 }
 
 #[requires="i % 2 == 0"]

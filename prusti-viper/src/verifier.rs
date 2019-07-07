@@ -321,11 +321,13 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                         compilation_error.span,
                         &format!("[Prusti] {}", compilation_error.message),
                         reason_span,
+                        &compilation_error.help,
                     )
                 } else {
-                    self.env.span_err(
+                    self.env.span_err_with_help(
                         compilation_error.span,
                         &format!("[Prusti] {}", compilation_error.message),
+                        &compilation_error.help,
                     )
                 }
             }

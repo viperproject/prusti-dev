@@ -10,14 +10,14 @@ pub fn test1(a: u32, b: u32, cond: bool) {
         x = &b;
     }
     borrow(x);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test1_1(a: u32, b: u32, cond: bool) {
     let x;
     if cond {
         x = &a;
-        assert!(false); //~ ERROR assert!(..) statement might not hold
+        assert!(false); //~ ERROR the asserted expression might not hold
     } else {
         x = &b;
     }
@@ -30,7 +30,7 @@ pub fn test1_2(a: u32, b: u32, cond: bool) {
         x = &a;
     } else {
         x = &b;
-        assert!(false); //~ ERROR assert!(..) statement might not hold
+        assert!(false); //~ ERROR the asserted expression might not hold
     }
     borrow(x);
 }
@@ -43,7 +43,7 @@ pub fn test2(a: u32, b: u32, cond: bool) {
         x = &b;
     }
     let _y = x;
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test3(cond: bool) {
@@ -64,7 +64,7 @@ pub fn test3(cond: bool) {
     a = 7;
     b = 8;
     assert!(a == 7 && b == 8);
-    assert!(false); //~ ERROR assert!(..) statement might not hold
+    assert!(false); //~ ERROR the asserted expression might not hold
 }
 
 pub fn test3_1(cond: bool) {
@@ -79,7 +79,7 @@ pub fn test3_1(cond: bool) {
     borrow(x);
     if cond {
         assert!(*x == 5);
-        assert!(false); //~ ERROR assert!(..) statement might not hold
+        assert!(false); //~ ERROR the asserted expression might not hold
     } else {
         assert!(*x == 6);
     }
@@ -102,7 +102,7 @@ pub fn test3_2(cond: bool) {
         assert!(*x == 5);
     } else {
         assert!(*x == 6);
-        assert!(false); //~ ERROR assert!(..) statement might not hold
+        assert!(false); //~ ERROR the asserted expression might not hold
     }
     a = 7;
     b = 8;

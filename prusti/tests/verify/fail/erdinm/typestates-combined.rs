@@ -69,7 +69,7 @@ fn test1(int: &mut Int<Even>) {
 }
 
 fn test1_fail<S: IntState>(int: &mut Int<S>) {
-    assert!(int.i % 2 == 0); //~ ERROR assert!(..) statement might not hold
+    assert!(int.i % 2 == 0); //~ ERROR the asserted expression might not hold
 }
 
 fn test2(int: &mut Int<Odd>) {
@@ -77,7 +77,7 @@ fn test2(int: &mut Int<Odd>) {
 }
 
 fn test2_fail<S: IntState>(int: &mut Int<S>) {
-    assert!(int.i % 2 != 0); //~ ERROR assert!(..) statement might not hold
+    assert!(int.i % 2 != 0); //~ ERROR the asserted expression might not hold
 }
 
 #[requires="i % 2 == 0"] // even

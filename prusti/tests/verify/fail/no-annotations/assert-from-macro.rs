@@ -2,7 +2,7 @@ extern crate prusti_contracts;
 
 macro_rules! my_assert {
     ( $( $args:expr ),* ) => {
-        assert!( $( $args ),* ) //~ ERROR assert!(..) statement might not hold
+        assert!( $( $args ),* ) //~ ERROR the asserted expression might not hold
     };
 }
 
