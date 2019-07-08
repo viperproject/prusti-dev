@@ -26,7 +26,7 @@ ENV_VARS = dict(os.environ,
     # Z3_EXE='/home/software/z3/z3-4.8.3.74db2f250907-x64-ubuntu-14.04/bin/z3',
     # Z3_EXE=os.path.abspath(os.path.join(ROOT, '../../z3/bin/z3')),
     # VIPER_HOME=os.path.abspath(os.path.join(ROOT, '../../viper')),
-    LOG_LEVEL="prusti_viper=info"
+    RUST_LOG="prusti_viper=info"
 )
 
 MANUAL_EVALUATION="""
