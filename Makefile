@@ -158,7 +158,7 @@ publish-docker-images:
 build-docker-images:
 	docker build -t fpoli/prusti-base --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/base.Dockerfile docker/
 	docker build -t rust-nightly -f docker/playground.Dockerfile .
-	docker build -t artefact -f docker/artefact.Dockerfile .
+	docker build -t fpoli/prusti-artefact -f docker/artefact.Dockerfile .
 
 clean:
 	cargo clean
