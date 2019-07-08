@@ -2,7 +2,7 @@ extern crate prusti_contracts;
 
 /*
 struct F<'a> {
-    f: &'a mut u32,
+    f: &'a mut u32, TODO: Implement support for reference-typed fields.
 }
 
 struct T<'a> {
