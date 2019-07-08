@@ -44,7 +44,7 @@ fn compute(expr: Expr) -> i32 {
         Expr::Constant(IntBox { val }) => val
     };
 
-    assert!(false);  //~ ERROR assert!(..) statement might not hold
+    assert!(false);  //~ ERROR the asserted expression might not hold
 
     value
 }

@@ -28,7 +28,7 @@ fn test3<X>(arg: &mut Number<Number<i8, i32, u8>, Number<i16, i32, i64>, Number<
     test2(arg);
     //assert!(arg.a.b == 2000);
     assert!(arg.b.b == 4000);
-    assert!(arg.c.b == 6000); //~ ERROR assert!(..) statement might not hold
+    assert!(arg.c.b == 6000); //~ ERROR the asserted expression might not hold
 }
 
 fn main() {}

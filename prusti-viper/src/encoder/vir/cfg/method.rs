@@ -16,8 +16,8 @@ pub(super) const RETURN_LABEL: &str = "end_of_method";
 pub struct CfgMethod {
     pub(super) uuid: Uuid,
     pub(super) method_name: String,
-    pub(super) formal_args: Vec<LocalVar>,
-    pub(super) formal_returns: Vec<LocalVar>,
+    pub(in super::super) formal_arg_count: usize,
+    pub(in super::super) formal_returns: Vec<LocalVar>,
     pub(in super::super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     pub(super) reserved_labels: HashSet<String>,
@@ -130,7 +130,7 @@ impl CfgBlockIndex {
 impl CfgMethod {
     pub fn new(
         method_name: String,
-        formal_args: Vec<LocalVar>,
+        formal_arg_count: usize,
         formal_returns: Vec<LocalVar>,
         local_vars: Vec<LocalVar>,
         reserved_labels: Vec<String>,
@@ -138,7 +138,7 @@ impl CfgMethod {
         CfgMethod {
             uuid: Uuid::new_v4(),
             method_name,
-            formal_args,
+            formal_arg_count,
             formal_returns,
             local_vars,
             labels: HashSet::new(),
@@ -162,8 +162,7 @@ impl CfgMethod {
     }
 
     fn is_fresh_local_name(&self, name: &str) -> bool {
-        self.formal_args.iter().all(|x| x.name != name)
-            && self.formal_returns.iter().all(|x| x.name != name)
+        self.formal_returns.iter().all(|x| x.name != name)
             && self.local_vars.iter().all(|x| x.name != name)
             && !self.labels.contains(name)
             && self.basic_blocks_labels.iter().all(|x| x != name)
@@ -196,7 +195,6 @@ impl CfgMethod {
     /// Returns all formal arguments, formal returns, and local variables
     pub fn get_all_vars(&self) -> Vec<LocalVar> {
         let mut vars: Vec<LocalVar> = vec![];
-        vars.extend(self.formal_args.clone());
         vars.extend(self.formal_returns.clone());
         vars.extend(self.local_vars.clone());
         vars

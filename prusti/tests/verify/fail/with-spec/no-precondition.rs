@@ -26,7 +26,7 @@ fn foo2(x: i64, y: bool) -> i64 {
 
     // ...more code...
 
-    assert!(return_value >= 0);  //~ ERROR assert!(..) statement might not hold
+    assert!(return_value >= 0);  //~ ERROR the asserted expression might not hold
     return_value
 }
 

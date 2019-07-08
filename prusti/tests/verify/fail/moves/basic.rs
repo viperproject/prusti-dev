@@ -9,7 +9,7 @@ pub fn test4() -> S2 {
         f: 8,
     };
     let y = x;
-    assert!(y.f == 9);  //~ ERROR assert!(..) statement might not hold
+    assert!(y.f == 9);  //~ ERROR the asserted expression might not hold
     y
 }
 

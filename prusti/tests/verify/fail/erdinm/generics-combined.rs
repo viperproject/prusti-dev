@@ -41,7 +41,7 @@ fn test2<X, Y>(arg: &mut Number<Number<Y, i32, u8>, Number<i16, i32, Y>, Number<
     assert!(arg.b.b == 5000);
     assert!(arg.c.b == 6000);
     decr2(arg);
-    assert!(arg.a.b == 2000); //~ ERROR assert!(..) statement might not hold
+    assert!(arg.a.b == 2000); //~ ERROR the asserted expression might not hold
     assert!(arg.b.b == 4000);
     //assert!(arg.c.b == 6000);
 }
@@ -58,7 +58,7 @@ fn test3<X, Y, Z>(arg: &mut Number<Number<X, i32, Z>, Number<i16, i32, Z>, Numbe
     decr2(arg);
     //assert!(arg.a.b == 2000);
     assert!(arg.b.b == 4000);
-    assert!(arg.c.b == 6000); //~ ERROR assert!(..) statement might not hold
+    assert!(arg.c.b == 6000); //~ ERROR the asserted expression might not hold
 }
 
 fn main() {}

@@ -9,7 +9,7 @@ struct Effective {}
 
 impl Percentage for Effective {
     fn set(&mut self, arg: u8) {
-        assert!(arg <= 99); //~ ERROR assert!(..) statement might not hold
+        assert!(arg <= 99); //~ ERROR the asserted expression might not hold
     }
 }
 

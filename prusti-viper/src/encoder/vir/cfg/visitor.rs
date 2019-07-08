@@ -84,7 +84,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
         // Initialize the variables of the new cfg
         let mut new_cfg = CfgMethod::new(
             cfg.method_name.clone(),
-            cfg.formal_args.clone(),
+            cfg.formal_arg_count,
             cfg.formal_returns.clone(),
             cfg.local_vars.clone(),
             cfg.get_all_labels(),

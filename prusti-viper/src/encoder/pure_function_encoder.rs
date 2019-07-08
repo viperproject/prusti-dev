@@ -57,7 +57,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
     /// Used to encode expressions in assertions
     pub fn encode_body(&self) -> vir::Expr {
-        let function_name = self.encoder.env().get_item_name(self.proc_def_id);
+        let function_name = self.encoder.env().get_absolute_item_name(self.proc_def_id);
         debug!("Encode body of pure function {}", function_name);
 
         let state = run_backward_interpretation(self.mir, &self.interpreter)
@@ -208,7 +208,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             postcondition
         );
 
-        let function = vir::Function {
+        let mut function = vir::Function {
             name: function_name.clone(),
             formal_args,
             return_type,
@@ -219,6 +219,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
         self.encoder
             .log_vir_program_before_foldunfold(function.to_string());
+
+        if config::simplify_functions() {
+            function = vir::optimisations::functions::Simplifier::simplify(function);
+        }
 
         // Add folding/unfolding
         foldunfold::add_folding_unfolding_to_function(

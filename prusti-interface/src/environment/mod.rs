@@ -100,6 +100,16 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Emits an error message.
+    pub fn span_err_with_help<S: Into<MultiSpan>>(&self, sp: S, msg: &str, help: &Option<String>) {
+        let mut diagnostic = self.state.session.struct_err(msg);
+        diagnostic.set_span(sp);
+        if let Some(ref help_text) = help {
+            diagnostic.help(help_text);
+        }
+        diagnostic.emit();
+    }
+
+    /// Emits an error message.
     pub fn span_err_with_code<S: Into<MultiSpan>>(&self, sp: S, msg: &str, code: String) {
         self.state
             .session
@@ -129,10 +139,19 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Emits an error message.
-    pub fn span_err_with_reason<S: Into<MultiSpan>>(&self, sp: S, msg: &str, reason_sp: S) {
+    pub fn span_err_with_reason<S: Into<MultiSpan>>(
+        &self,
+        sp: S,
+        msg: &str,
+        reason_sp: S,
+        help: &Option<String>,
+    ) {
         let mut diagnostic = self.state.session.struct_err(msg);
         diagnostic.set_span(sp);
         diagnostic.span_note(reason_sp, "the failing assertion is this one");
+        if let Some(ref help_text) = help {
+            diagnostic.help(help_text);
+        }
         diagnostic.emit();
     }
 
@@ -207,8 +226,12 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         self.tcx().hir.span_if_local(def_id).unwrap()
     }
 
-    pub fn get_item_name(&self, def_id: DefId) -> String {
+    pub fn get_absolute_item_name(&self, def_id: DefId) -> String {
         self.tcx().absolute_item_path_str(def_id)
+    }
+
+    pub fn get_item_name(&self, def_id: DefId) -> String {
+        self.tcx().item_path_str(def_id)
     }
 
     /// Get a Procedure.

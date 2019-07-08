@@ -19,7 +19,7 @@ impl Percentage {
 fn test(x: u8) {
     let mut perc = Percentage { value: x };
     perc.incr();
-    assert!(perc.value <= 100); //~ ERROR assert!(..) statement might not hold
+    assert!(perc.value <= 100); //~ ERROR the asserted expression might not hold
 }
 
 fn main() {}
