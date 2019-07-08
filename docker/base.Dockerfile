@@ -45,17 +45,6 @@ ENV PATH /usr/local/cargo/bin:$PATH
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path --default-toolchain "$RUST_TOOLCHAIN" && \
     rm -rf ~/.rustup/toolchains/*/share/doc
 
-# Install Z3
-ENV Z3_EXE /usr/local/bin/z3
-RUN mkdir /tmp/z3 && \
-    cd /tmp/z3 && \
-    wget -q 'https://github.com/Z3Prover/z3/releases/download/z3-4.8.3/z3-4.8.3.7f5d66c3c299-x64-ubuntu-16.04.zip' -O z3.zip && \
-    unzip z3.zip && \
-    cp z3-*/bin/z3 "$Z3_EXE" && \
-    chmod +x "$Z3_EXE" && \
-    cd / && \
-    rm -r /tmp/z3
-
 # Install Viper, with Mono for Carbon
 RUN wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | apt-key add -
 RUN echo "deb http://pmserver.inf.ethz.ch/viper/debs/xenial /" | tee /etc/apt/sources.list.d/viper.list
@@ -64,5 +53,6 @@ ADD https://pmserver.inf.ethz.ch/viper/debs/xenial/Packages /root/viper-xenial-p
 RUN apt-get update && \
     apt-get install -y viper mono-complete && \
     rm -rf /var/lib/apt/lists/*
+ENV Z3_EXE /usr/bin/viper-z3
 
 WORKDIR /
