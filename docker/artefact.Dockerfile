@@ -3,7 +3,7 @@ MAINTAINER Vytautas Astrauskas "vastrauskas@gmail.com"
 
 # Install prerequisites
 RUN apt-get update && \
-    apt-get install -y jq && \
+    apt-get install -y jq python3 && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Prusti.
@@ -18,3 +18,5 @@ RUN cd /tmp/prusti-dev && \
 	cp target/release/libprusti_contracts.rlib /usr/local/prusti/libprusti_contracts.rlib
 
 ENV PATH "/usr/local/prusti/:${PATH}"
+
+WORKDIR /tmp/prusti-dev

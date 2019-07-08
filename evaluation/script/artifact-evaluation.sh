@@ -17,6 +17,6 @@ mkdir -p "$CRATES_DIR"
 
 ln -s /usr/lib/viper "$VIPER_DIR"
 mkdir -p "$(dirname "$Z3_EXE")"
-ln -s /usr/local/bin/z3 "$Z3_EXE"
+ln -s /usr/bin/viper-z3 "$Z3_EXE"
 
 "$DIR/full-evaluation.sh" "$CRATES_DIR"
