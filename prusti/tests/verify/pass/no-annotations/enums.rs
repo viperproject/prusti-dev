@@ -109,13 +109,13 @@ struct NotUsed {
     h: T2,
 }
 
-/* TODO: Uncomment.
+/*
 fn get_t2() -> T2 {
     unimplemented!();
 }
 */
 
-/* TODO: Uncomment.
+/* TODO: Uncomment this when we have support for loops with complex heads.
 fn _test2(x: T3) {
     let mut curr = x;
     while let T2::E2c(T1 { f: z, .. }) = curr.g {

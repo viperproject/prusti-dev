@@ -6,7 +6,8 @@ fn test(n: i32, k: i32) -> i32 {
     let mut res = 0;
     let mut ia = 0;
 
-    #[invariant="n == old(n)"] // TODO: remove this
+    #[invariant="n == old(n)"] // TODO: remove this once encoding of
+                               // loops without back-edges is stable.
     #[invariant="k == old(k)"] // TODO: remove this
     #[invariant="ia <= n"]
     #[invariant="k >= 0 ==> res >= 0"]

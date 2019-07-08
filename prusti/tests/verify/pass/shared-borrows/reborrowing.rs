@@ -48,10 +48,11 @@ pub fn index_test(v: &Vector, index: usize) -> &u32 {
 
 #[requires="0 <= index && index < 2"]
 #[ensures="is_equal(v, index, result)"]
-#[trusted]  // TODO: Find a way to support the is_equal postcondition or
-            // reject it.
-            // The problem with it is that v and index are from the
-            // pre-state while result is from the post state.
+#[trusted]  // TODO: Replace is_equal with the memory equality once we
+            // have it implemented. The problem why we cannot use Rust
+            // equality here is that v and index are from the pre-state
+            // while result is from the post state and &u32 is not a
+            // primitive Viper type.
 pub fn index(v: &Vector, index: usize) -> &u32 {
     if index == 0 {
         &v.f

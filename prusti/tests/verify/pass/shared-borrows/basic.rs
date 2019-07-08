@@ -21,7 +21,8 @@ pub fn test3() {
 
 /*
 pub fn test3() {
-    TODO: Implement without killing for now.
+    TODO: Implement without killing for now because we have not seen
+    anyone to write code like this in practice.
     let mut a = 5;
     let mut b = 5;
     let mut x = &mut a;
