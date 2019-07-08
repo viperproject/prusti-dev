@@ -26,6 +26,7 @@ ENV_VARS = dict(os.environ,
     # Z3_EXE='/home/software/z3/z3-4.8.3.74db2f250907-x64-ubuntu-14.04/bin/z3',
     # Z3_EXE=os.path.abspath(os.path.join(ROOT, '../../z3/bin/z3')),
     # VIPER_HOME=os.path.abspath(os.path.join(ROOT, '../../viper')),
+    LOG_LEVEL="prusti_viper=info"
 )
 
 MANUAL_EVALUATION="""
@@ -59,6 +60,7 @@ DUMP_BORROWCK_INFO = false
 CHECK_BINARY_OPERATIONS = {}
 '''.format(check_binary))
 
+
 def build_project():
     cmd = [
             "make",
@@ -74,7 +76,7 @@ def build_project():
     subprocess.run(
         [
             "make",
-            "build_release",
+            "release",
             ] + MAKE_FLAGS,
         cwd=ROOT,
         check=True,
@@ -132,10 +134,9 @@ def run_benchmark(file_path):
     print(timestamp, file_path)
     start_time = time.time()
     cmd = [
-            "make", "run-release",
-            "LOG_LEVEL=prusti_viper=info",
-            "RUN_FILE=" + file_path,
-            ] + MAKE_FLAGS
+        "target/release/prusti-rustc",
+        file_path,
+    ] + MAKE_FLAGS
     print(' '.join(cmd))
     check_exit_status = 'verify/fail' not in file_path
     result = subprocess.run(
