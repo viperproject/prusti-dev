@@ -9,7 +9,7 @@ RUN apt-get update && \
 # Install Prusti.
 ADD . /tmp/prusti-dev
 RUN cd /tmp/prusti-dev && \
-    cargo build --release && \
+    make release && \
 	mkdir -p /usr/local/prusti/lib && \
 	cp rust-toolchain /usr/local/prusti/rust-toolchain && \
 	cp target/release/cargo-prusti /usr/local/prusti/cargo-prusti && \
