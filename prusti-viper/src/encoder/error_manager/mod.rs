@@ -174,7 +174,9 @@ impl<'tcx> ErrorManager<'tcx> {
                     ),
                             MultiSpan::new(),
                             None,
-                        )
+                        ).set_help("This could be caused by too small assertion timeout. \
+                            Try increasing it by setting the configuration parameter \
+                            ASSERT_TIMEOUT to a larger value.")
                     }
                     None => {
                         return CompilerError::new(
@@ -184,7 +186,9 @@ impl<'tcx> ErrorManager<'tcx> {
                         ),
                             MultiSpan::new(),
                             None,
-                        )
+                        ).set_help("This could be caused by too small assertion timeout. \
+                            Try increasing it by setting the configuration parameter \
+                            ASSERT_TIMEOUT to a larger value.")
                     }
                 }
             };
