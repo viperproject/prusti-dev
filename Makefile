@@ -154,6 +154,7 @@ clippy: clean
 
 publish-docker-images:
 	docker push fpoli/prusti-base
+	docker push fpoli/prusti-artefact
 
 build-docker-images:
 	docker build -t fpoli/prusti-base --build-arg RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN}" -f docker/base.Dockerfile docker/

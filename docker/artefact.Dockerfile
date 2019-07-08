@@ -1,6 +1,11 @@
 FROM fpoli/prusti-base:latest
 MAINTAINER Vytautas Astrauskas "vastrauskas@gmail.com"
 
+# Install prerequisites
+RUN apt-get update && \
+    apt-get install -y jq && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install Prusti.
 ADD . /tmp/prusti-dev
 RUN cd /tmp/prusti-dev && \
