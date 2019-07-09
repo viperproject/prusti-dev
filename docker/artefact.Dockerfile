@@ -3,7 +3,7 @@ MAINTAINER Vytautas Astrauskas "vastrauskas@gmail.com"
 
 # Install prerequisites
 RUN apt-get update && \
-    apt-get install -y jq python3 && \
+    apt-get install -y jq python3 bc && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Prusti.
