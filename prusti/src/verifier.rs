@@ -11,10 +11,7 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::user;
 use prusti_interface::specifications::TypedSpecificationMap;
-use prusti_interface::verifier::VerificationContext;
-use prusti_interface::verifier::Verifier;
-use prusti_interface::verifier::VerifierBuilder;
-use prusti_viper::verifier::VerifierBuilder as ViperVerifierBuilder;
+use prusti_viper::verifier::VerifierBuilder;
 use rustc_driver::driver;
 use std::time::Instant;
 
@@ -52,8 +49,8 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
             debug!("Prepare verifier...");
             let jvm_start = Instant::now();
-            let verifier_builder = ViperVerifierBuilder::new();
-            let verification_context = VerifierBuilder::new_verification_context(&verifier_builder);
+            let verifier_builder = VerifierBuilder::new();
+            let verification_context = verifier_builder.new_verification_context();
             let jvm_duration = jvm_start.elapsed();
             info!(
                 "JVM startup ({}.{} seconds)",

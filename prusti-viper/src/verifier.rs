@@ -13,14 +13,17 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
-use prusti_interface::verifier::VerificationContext as VerificationContextSpec;
-use prusti_interface::verifier::Verifier as VerifierSpec;
-use prusti_interface::verifier::VerifierBuilder as VerifierBuilderSpec;
 use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
 use std::path::PathBuf;
 use std::fs::create_dir_all;
 
+/// A verifier builder is an object that lives entire program's
+/// lifetime, has no mutable state, and is responsible for constructing
+/// verification context instances. The user of this interface is supposed
+/// to create a new verifier for each crate he or she wants to verify.
+/// The main motivation for having a builder is to be able to cache the JVM
+/// initialization.
 pub struct VerifierBuilder {
     viper: Viper,
 }
@@ -34,6 +37,11 @@ impl VerifierBuilder {
             ),
         }
     }
+
+    pub fn new_verification_context(&self) -> VerificationContext {
+        let verification_ctx = self.viper.new_verification_context();
+        VerificationContext::new(verification_ctx)
+    }
 }
 
 impl Default for VerifierBuilder {
@@ -42,39 +50,25 @@ impl Default for VerifierBuilder {
     }
 }
 
-impl<'v, 'r, 'a, 'tcx> VerifierBuilderSpec<'v, 'r, 'a, 'tcx> for VerifierBuilder
-where
-    'r: 'v,
-    'a: 'r,
-    'tcx: 'a,
-{
-    type VerificationContextImpl = VerificationContext<'v>;
-
-    fn new_verification_context(&'v self) -> VerificationContext<'v> {
-        let verification_ctx = self.viper.new_verification_context();
-        VerificationContext::new(verification_ctx)
-    }
-}
-
+/// A verification context is an object that lives entire verification's lifetime.
+/// Its main purpose is to build verifiers.
+/// The main motivation for having a verification context is to be able to detach the current
+/// thread from the JVM when the verification context goes out of scope.
 pub struct VerificationContext<'v> {
     verification_ctx: viper::VerificationContext<'v>,
 }
 
-impl<'v> VerificationContext<'v> {
-    pub fn new(verification_ctx: viper::VerificationContext<'v>) -> Self {
+impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
+    where
+        'r: 'v,
+        'a: 'r,
+        'tcx: 'a,
+{
+    fn new(verification_ctx: viper::VerificationContext<'v>) -> Self {
         VerificationContext { verification_ctx }
     }
-}
 
-impl<'v, 'r, 'a, 'tcx> VerificationContextSpec<'v, 'r, 'a, 'tcx> for VerificationContext<'v>
-where
-    'r: 'v,
-    'a: 'r,
-    'tcx: 'a,
-{
-    type VerifierImpl = Verifier<'v, 'r, 'a, 'tcx>;
-
-    fn new_verifier(
+    pub fn new_verifier(
         &'v self,
         env: &'v Environment<'r, 'a, 'tcx>,
         spec: &'v TypedSpecificationMap,
@@ -130,6 +124,8 @@ where
     }
 }
 
+/// A verifier is an object for verifying a single crate, potentially
+/// many times.
 pub struct Verifier<'v, 'r, 'a, 'tcx>
 where
     'r: 'v,
@@ -144,7 +140,7 @@ where
 }
 
 impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
-    pub fn new(
+    fn new(
         ast_utils: viper::AstUtils<'v>,
         ast_factory: viper::AstFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
@@ -159,10 +155,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             encoder: Encoder::new(env, spec),
         }
     }
-}
 
-impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
-    fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+    pub fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
         let start = Instant::now();
 
         // Dump the configuration
@@ -266,7 +260,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
                         name: "borrow".to_string(),
                         typ: vir::Type::Int,
                     }
-                    .to_viper_decl(ast)],
+                        .to_viper_decl(ast)],
                     None,
                 ),
             );
@@ -335,7 +329,7 @@ impl<'v, 'r, 'a, 'tcx> VerifierSpec for Verifier<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn invalidate_all(&mut self) {
+    pub fn invalidate_all(&mut self) {
         unimplemented!()
     }
 }
