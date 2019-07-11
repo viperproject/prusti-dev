@@ -13,7 +13,7 @@ use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_errors;
 use std;
 use std::cell::Cell;
-use std::env::{set_var, var};
+use std::env::var;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Instant;
@@ -67,11 +67,6 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         odir: &Option<PathBuf>,
         ofile: &Option<PathBuf>,
     ) -> Compilation {
-        if Ok(String::from("true")) == var("PRUSTI_TEST") {
-            if let rustc::session::config::Input::File(ref path) = input {
-                set_var("PRUSTI_TEST_FILE", path.to_str().unwrap());
-            }
-        }
         self.default
             .late_callback(trans, matches, sess, crate_stores, input, odir, ofile)
     }

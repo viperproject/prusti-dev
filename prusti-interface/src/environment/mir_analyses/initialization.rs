@@ -22,7 +22,6 @@ use csv::{ReaderBuilder, WriterBuilder};
 use rustc::ty::TyCtxt;
 use rustc::{hir, mir};
 use rustc_data_structures::indexed_vec::Idx;
-use std::env;
 use std::path::Path;
 
 /// The result of the definitely initialized analysis.
@@ -360,10 +359,9 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
     analysis.run(JoinOperation::Union);
     analysis.propagate_work_queue();
     analysis.run(JoinOperation::Intersect);
-    if let Ok(path) = env::var("PRUSTI_TEST_FILE") {
-        // We are running tests, compare computed initialization results
-        // with the expected ones.
-        analysis.result.compare_with_expected(def_path, path);
+    if let Some(ref path) = tcx.sess.local_crate_source_file {
+        let path_to_source = path.to_str().unwrap().to_owned();
+        analysis.result.compare_with_expected(def_path, path_to_source);
     }
     analysis.result
 }
