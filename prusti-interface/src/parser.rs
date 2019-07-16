@@ -199,7 +199,7 @@ pub fn register_attributes(state: &mut driver::CompileState) {
 
 /// Log the rewritten crate for debugging.
 fn log_crate(krate: &ast::Crate, source_filename: &str) {
-    let mut writer = log::build_writer("rust_crate_before_typechecking_writer", source_filename)
+    let mut writer = log::build_writer("rust_crate_before_typechecking", source_filename)
         .ok()
         .unwrap();
     let krate_str = syntax::print::pprust::to_string(|s| s.print_mod(&krate.module, &krate.attrs));
