@@ -4,18 +4,26 @@ use compiletest_rs::{common, run_tests, Config};
 use std::env::{remove_var, set_var, var};
 use std::path::PathBuf;
 
-static LOCAL_DRIVER_PATH: &'static str = "target/debug/prusti-driver";
-static WORKSPACE_DRIVER_PATH: &'static str = "../target/debug/prusti-driver";
 static PRUSTI_CONTRACTS_LIB: &'static str = "../target/debug/libprusti_contracts.rlib";
 
 fn get_driver_path() -> PathBuf {
-    if PathBuf::from(LOCAL_DRIVER_PATH).exists() {
-        return PathBuf::from(LOCAL_DRIVER_PATH);
+    let local_driver_path = if cfg!(windows) {
+        PathBuf::from("target/debug/prusti-driver.exe")
+    } else {
+        PathBuf::from("target/debug/prusti-driver")
+    };
+    let workspace_driver_path = if cfg!(windows) {
+        PathBuf::from("../target/debug/prusti-driver.exe")
+    } else {
+        PathBuf::from("../target/debug/prusti-driver")
+    };
+    if local_driver_path.exists() {
+        return local_driver_path;
     }
-    if PathBuf::from(WORKSPACE_DRIVER_PATH).exists() {
-        return PathBuf::from(WORKSPACE_DRIVER_PATH);
+    if workspace_driver_path.exists() {
+        return workspace_driver_path;
     }
-    unreachable!();
+    panic!("Could not find the prusti-driver binary to be used in tests");
 }
 
 fn run_no_verification(group_name: &str) {
