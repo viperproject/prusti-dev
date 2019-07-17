@@ -7,15 +7,15 @@ use std::path::PathBuf;
 static PRUSTI_CONTRACTS_LIB: &'static str = "../target/debug/libprusti_contracts.rlib";
 
 fn get_driver_path() -> PathBuf {
-    let local_driver_path = if cfg!(windows) {
-        PathBuf::from("target/debug/prusti-driver.exe")
+    let local_driver_path: PathBuf = if cfg!(windows) {
+        ["target", "debug", "prusti-driver.exe"].iter().collect()
     } else {
-        PathBuf::from("target/debug/prusti-driver")
+        ["target", "debug", "prusti-driver"].iter().collect()
     };
-    let workspace_driver_path = if cfg!(windows) {
-        PathBuf::from("../target/debug/prusti-driver.exe")
+    let workspace_driver_path: PathBuf = if cfg!(windows) {
+        ["..", "target", "debug", "prusti-driver.exe"].iter().collect()
     } else {
-        PathBuf::from("../target/debug/prusti-driver")
+        ["..", "target", "debug", "prusti-driver"].iter().collect()
     };
     if local_driver_path.exists() {
         return local_driver_path;
