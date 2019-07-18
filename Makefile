@@ -39,50 +39,19 @@ test-deep:
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
 	cargo test --all
 
-test:
+test: build
 	$(SET_ENV_VARS) \
 	cargo test --all
 
-test-examples:
+test-examples: build
 	$(SET_ENV_VARS) \
-	cargo test -p prusti
+	cargo test -p prusti-tests
 
 build-profile:
 	$(SET_ENV_VARS) \
 	CARGO_INCREMENTAL=0 \
 	RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads" \
 	cargo build --all
-
-long-test: build
-	find prusti/tests/verify/long-pass/ -name '*.rs' | while read run_file; do \
-		echo "Testing '$$run_file'..."; \
-		START=$$(date +%s); \
-		$(SET_ENV_VARS) RUST_BACKTRACE=1\
-		$(PRUSTI_DRIVER) \
-			-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-			--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
-			"$$run_file" \
-			|| exit 1; \
-		END=$$(date +%s); \
-		DIFF=$$(( $$END - $$START )); \
-		echo "$$run_file $$DIFF" >> timings; \
-	done
-
-long-test-overflow: build
-	find prusti/tests/verify/long-pass-overflow/ -name '*.rs' | while read run_file; do \
-		echo "Testing '$$run_file'..."; \
-		START=$$(date +%s); \
-		$(SET_ENV_VARS) RUST_BACKTRACE=1 \
-		PRUSTI_CHECK_BINARY_OPERATIONS=1 \
-		$(PRUSTI_DRIVER) \
-			-L ${COMPILER_PATH}/lib/rustlib/x86_64-unknown-linux-gnu/lib/ \
-			--extern prusti_contracts=$(wildcard ./target/debug/deps/libprusti_contracts-*.rlib) \
-			"$$run_file" \
-			|| exit 1; \
-		END=$$(date +%s); \
-		DIFF=$$(( $$END - $$START )); \
-		echo "$$run_file $$DIFF" >> timings; \
-	done
 
 bench:
 	$(SET_ENV_VARS) cargo bench --all

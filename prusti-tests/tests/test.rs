@@ -1,38 +1,31 @@
-#[macro_use]
-extern crate lazy_static;
 extern crate compiletest_rs;
+extern crate test;
 
 use compiletest_rs::{common, run_tests, Config};
 use std::env::{remove_var, set_var, var};
 use std::path::PathBuf;
 
-lazy_static! {
-    static ref PRUSTI_CONTRACTS_LIB: PathBuf =
-        ["..", "target", "debug", "libprusti_contracts.rlib"].iter().collect();
-}
-
-fn get_driver_path() -> PathBuf {
-    let local_driver_path: PathBuf = if cfg!(windows) {
-        ["target", "debug", "prusti-driver.exe"].iter().collect()
+fn get_prusti_rustc_path() -> PathBuf {
+    let local_prusti_rustc_path: PathBuf = if cfg!(windows) {
+        ["target", "debug", "prusti-rustc.exe"].iter().collect()
     } else {
-        ["target", "debug", "prusti-driver"].iter().collect()
+        ["target", "debug", "prusti-rustc"].iter().collect()
     };
-    let workspace_driver_path: PathBuf = if cfg!(windows) {
-        ["..", "target", "debug", "prusti-driver.exe"].iter().collect()
+    let workspace_prusti_rustc_path: PathBuf = if cfg!(windows) {
+        ["..", "target", "debug", "prusti-rustc.exe"].iter().collect()
     } else {
-        ["..", "target", "debug", "prusti-driver"].iter().collect()
+        ["..", "target", "debug", "prusti-rustc"].iter().collect()
     };
-    if local_driver_path.exists() {
-        return local_driver_path;
+    if local_prusti_rustc_path.exists() {
+        return local_prusti_rustc_path;
     }
-    if workspace_driver_path.exists() {
-        return workspace_driver_path;
+    if workspace_prusti_rustc_path.exists() {
+        return workspace_prusti_rustc_path;
     }
-    panic!("Could not find the prusti-driver binary to be used in tests");
+    panic!("Could not find the prusti-rustc binary to be used in tests");
 }
 
 fn run_no_verification(group_name: &str) {
-    set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB.to_str().unwrap());
     set_var("PRUSTI_FULL_COMPILATION", "true");
 
     // This flag informs the driver that we are running the test suite, so that some additional
@@ -44,8 +37,7 @@ fn run_no_verification(group_name: &str) {
     set_var("PRUSTI_QUIET", "true");
 
     let mut config = Config::default();
-    config.rustc_path = get_driver_path();
-    config.link_deps();
+    config.rustc_path = get_prusti_rustc_path();
 
     // Filter the tests to run
     if let Ok(name) = var::<&str>("TESTNAME") {
@@ -55,6 +47,7 @@ fn run_no_verification(group_name: &str) {
 
     let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
     if path.exists() {
+        config.target_rustcflags = Some("--color=never".to_string());
         config.mode = common::Mode::Ui;
         config.src_base = path;
         run_tests(&config);
@@ -76,7 +69,6 @@ fn run_no_verification(group_name: &str) {
 }
 
 fn run_verification(group_name: &str) {
-    set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB.to_str().unwrap());
     set_var("PRUSTI_FULL_COMPILATION", "true");
 
     // This flag informs the driver that we are running the test suite, so that some additional
@@ -94,8 +86,7 @@ fn run_verification(group_name: &str) {
     remove_var("PRUSTI_QUIET");
 
     let mut config = Config::default();
-    config.rustc_path = get_driver_path();
-    config.link_deps();
+    config.rustc_path = get_prusti_rustc_path();
 
     // Disable warnings
     config.target_rustcflags = Some("-A warnings".to_string());
@@ -108,6 +99,7 @@ fn run_verification(group_name: &str) {
 
     let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
     if path.exists() {
+        config.target_rustcflags = Some("--color=never".to_string());
         config.mode = common::Mode::Ui;
         config.src_base = path;
         run_tests(&config);
