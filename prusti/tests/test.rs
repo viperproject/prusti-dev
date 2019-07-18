@@ -1,10 +1,15 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate compiletest_rs;
 
 use compiletest_rs::{common, run_tests, Config};
 use std::env::{remove_var, set_var, var};
 use std::path::PathBuf;
 
-static PRUSTI_CONTRACTS_LIB: &'static str = "../target/debug/libprusti_contracts.rlib";
+lazy_static! {
+    static ref PRUSTI_CONTRACTS_LIB: PathBuf =
+        ["..", "target", "debug", "libprusti_contracts.rlib"].iter().collect();
+}
 
 fn get_driver_path() -> PathBuf {
     let local_driver_path: PathBuf = if cfg!(windows) {
@@ -27,7 +32,7 @@ fn get_driver_path() -> PathBuf {
 }
 
 fn run_no_verification(group_name: &str) {
-    set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB);
+    set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB.to_str().unwrap());
     set_var("PRUSTI_FULL_COMPILATION", "true");
 
     // This flag informs the driver that we are running the test suite, so that some additional
@@ -48,21 +53,21 @@ fn run_no_verification(group_name: &str) {
         config.filter = Some(s)
     }
 
-    let path = PathBuf::from(format!("tests/{}/ui", group_name));
+    let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::Ui;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path = PathBuf::from(format!("tests/{}/pass", group_name));
+    let path: PathBuf = ["tests", group_name, "pass"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::RunPass;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path = PathBuf::from(format!("tests/{}/fail", group_name));
+    let path: PathBuf = ["tests", group_name, "fail"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::CompileFail;
         config.src_base = path;
@@ -71,7 +76,7 @@ fn run_no_verification(group_name: &str) {
 }
 
 fn run_verification(group_name: &str) {
-    set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB);
+    set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB.to_str().unwrap());
     set_var("PRUSTI_FULL_COMPILATION", "true");
 
     // This flag informs the driver that we are running the test suite, so that some additional
@@ -101,21 +106,21 @@ fn run_verification(group_name: &str) {
         config.filter = Some(s)
     }
 
-    let path = PathBuf::from(format!("tests/{}/ui", group_name));
+    let path: PathBuf = ["tests", group_name, "ui"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::Ui;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path = PathBuf::from(format!("tests/{}/pass", group_name));
+    let path: PathBuf = ["tests", group_name, "pass"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::RunPass;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path = PathBuf::from(format!("tests/{}/pass-overflow", group_name));
+    let path: PathBuf = ["tests", group_name, "pass-overflow"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::RunPass;
         config.src_base = path;
@@ -124,14 +129,14 @@ fn run_verification(group_name: &str) {
         set_var("PRUSTI_CHECK_BINARY_OPERATIONS", "false");
     }
 
-    let path = PathBuf::from(format!("tests/{}/fail", group_name));
+    let path: PathBuf = ["tests", group_name, "fail"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::CompileFail;
         config.src_base = path;
         run_tests(&config);
     }
 
-    let path = PathBuf::from(format!("tests/{}/fail-overflow", group_name));
+    let path: PathBuf = ["tests", group_name, "fail-overflow"].iter().collect();
     if path.exists() {
         config.mode = common::Mode::CompileFail;
         config.src_base = path;
