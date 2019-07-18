@@ -2,7 +2,7 @@ SHELL := /bin/bash
 RUST_LOG ?= prusti=info
 RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
-RUN_FILE ?= prusti/tests/typecheck/pass/lint.rs
+RUN_FILE ?= prusti-tests/tests/typecheck/pass/lint.rs
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
 JAVA_LIBJVM_DIR=$(shell dirname "$(shell find "$(shell readlink -f ${JAVA_HOME})" -name "libjvm.so")")
 RUSTUP_TOOLCHAIN=$(shell cat rust-toolchain)

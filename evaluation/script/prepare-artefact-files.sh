@@ -62,13 +62,13 @@ cp "$DIR/../crates/successful-fine-grained.csv" "$ARTEFACT_DIR/evaluation-2/succ
 
 cp -r "$DIR/../artifact/examples/"*.orig "$ARTEFACT_DIR/evaluation-3/originals"
 
-cat "$DIR/../benchmark/benchmark.py" | grep "prusti/tests/verify" | grep -v "overflow" | while read file
+cat "$DIR/../benchmark/benchmark.py" | grep "prusti-tests/tests/verify" | grep -v "overflow" | while read file
 do
     echo === $file ===
     cp -r "$DIR/../../$file" "$ARTEFACT_DIR/evaluation-3/without-overflow-checks/"
 done
 
-cat "$DIR/../benchmark/benchmark.py" | grep "prusti/tests/verify" | grep "overflow" | while read file
+cat "$DIR/../benchmark/benchmark.py" | grep "prusti-tests/tests/verify" | grep "overflow" | while read file
 do
     echo === $file ===
     cp -r "$DIR/../../$file" "$ARTEFACT_DIR/evaluation-3/with-overflow-checks/"

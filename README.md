@@ -9,7 +9,7 @@ Overflow checking can be enabled with a configuration flag, otherwise all intege
 In Prusti, the functional behaviour of a function can be specified by using preconditions, postconditions, and loop invariants.
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
-To see examples of programs annotated with specifications, look into the [`prusti/tests/verify/pass/rosetta`](prusti/tests/verify/pass/rosetta) and [`prusti/tests/verify/pass-overflow/rosetta`](prusti/tests/verify/pass-overflow/rosetta) folders.
+To see examples of programs annotated with specifications, look into the [`prusti-tests/tests/verify/pass/rosetta`](prusti-tests/tests/verify/pass/rosetta) and [`prusti-tests/tests/verify/pass-overflow/rosetta`](prusti-tests/tests/verify/pass-overflow/rosetta) folders.
 
 
 Build for local development
