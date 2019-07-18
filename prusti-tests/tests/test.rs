@@ -1,5 +1,4 @@
 extern crate compiletest_rs;
-extern crate test;
 
 use compiletest_rs::{common, run_tests, Config};
 use std::env::{remove_var, set_var, var};
