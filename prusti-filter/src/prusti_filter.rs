@@ -4,7 +4,7 @@ extern crate walkdir;
 
 use std::path::{PathBuf, Path};
 use std::env;
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::str;
 
 fn main(){
@@ -34,11 +34,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
     );
 
     let mut cmd = Command::new(&prusti_driver_path);
-    let has_no_color_arg = args.iter().find(|&x| x == "--color" || x.starts_with("--color=")).is_none();
     cmd.args(args);
-    if has_no_color_arg {
-        cmd.args(&["--color", "always"]);
-    }
     cmd.env("SYSROOT", &prusti_sysroot);
     cmd.env("PRUSTI_CONTRACTS_LIB", &prusti_contracts_lib);
 
@@ -53,12 +49,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         add_to_loader_path(vec![compiler_lib], &mut cmd);
     }
 
-    let mut child = cmd
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .spawn().expect("could not run prusti-filter-driver");
-
-    let exit_status = child.wait().expect("failed to wait for prusti-filter-driver?");
+    let exit_status = cmd.status().expect("could not run prusti-filter-driver");
 
     if exit_status.success() {
         Ok(())
