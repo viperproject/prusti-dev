@@ -4,6 +4,11 @@ use chrono::prelude::Utc;
 use std::process::Command;
 
 fn main() {
+    println!(
+        "cargo:rustc-env=TARGET={}",
+        std::env::var("TARGET").unwrap()
+    );
+
     if let Some(git_hash) = Command::new("git")
         .args(&["rev-parse", "--short=19", "HEAD"])
         .output()
