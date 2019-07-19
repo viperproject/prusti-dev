@@ -73,15 +73,6 @@ build:
 	$(SET_ENV_VARS) \
 	cargo build --all
 
-test-deep:
-	$(SET_ENV_VARS) \
-	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
-	cargo test
-
-test: build
-	$(SET_ENV_VARS) \
-	cargo test
-
 clean:
 	cargo clean
 	rm -f lint

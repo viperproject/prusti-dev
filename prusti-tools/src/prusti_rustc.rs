@@ -44,9 +44,9 @@ fn process(args: Vec<String>) -> Result<(), i32> {
     );
 
     let mut cmd = Command::new(&prusti_driver_path);
-    let has_color_arg = args.iter().find(|&x| x == "--color").is_none();
+    let has_no_color_arg = args.iter().find(|&x| x == "--color" || x.starts_with("--color=")).is_none();
     cmd.args(args);
-    if has_color_arg {
+    if has_no_color_arg {
         cmd.args(&["--color", "always"]);
     }
     cmd.env("SYSROOT", &prusti_sysroot);
