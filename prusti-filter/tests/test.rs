@@ -1,29 +1,32 @@
 extern crate compiletest_rs;
 
 use compiletest_rs::{common, run_tests, Config};
-use std::env::{set_var, var};
+use std::env::var;
 use std::path::PathBuf;
 
-static LOCAL_DRIVER_PATH: &'static str = "target/debug/prusti-filter";
-static WORKSPACE_DRIVER_PATH: &'static str = "../target/debug/prusti-filter";
-static PRUSTI_CONTRACTS_LIB: &'static str = "../target/debug/libprusti_contracts.rlib";
-
-fn get_driver_path() -> PathBuf {
-    if PathBuf::from(LOCAL_DRIVER_PATH).exists() {
-        return PathBuf::from(LOCAL_DRIVER_PATH);
+fn get_prusti_filter_path() -> PathBuf {
+    let local_prusti_filter_path: PathBuf = if cfg!(windows) {
+        ["target", "debug", "prusti-filter.exe"].iter().collect()
+    } else {
+        ["target", "debug", "prusti-filter"].iter().collect()
+    };
+    let workspace_prusti_filter_path: PathBuf = if cfg!(windows) {
+        ["..", "target", "debug", "prusti-filter.exe"].iter().collect()
+    } else {
+        ["..", "target", "debug", "prusti-filter"].iter().collect()
+    };
+    if local_prusti_filter_path.exists() {
+        return local_prusti_filter_path;
     }
-    if PathBuf::from(WORKSPACE_DRIVER_PATH).exists() {
-        return PathBuf::from(WORKSPACE_DRIVER_PATH);
+    if workspace_prusti_filter_path.exists() {
+        return workspace_prusti_filter_path;
     }
-    unreachable!();
+    panic!("Could not find the prusti-filter binary to be used in tests");
 }
 
 fn run_filter(group_name: &str) {
-    set_var("PRUSTI_CONTRACTS_LIB", PRUSTI_CONTRACTS_LIB);
-
     let mut config = Config::default();
-    config.rustc_path = get_driver_path();
-    config.link_deps();
+    config.rustc_path = get_prusti_filter_path();
 
     // Disable warnings
     config.target_rustcflags = Some("-A warnings".to_string());
