@@ -10,18 +10,17 @@ fn process<I>(args: I) -> Result<(), i32>
 where
     I: Iterator<Item = String>,
 {
-    let mut prusti_rustc_path = std::env::current_exe()
+    let mut prusti_filter_path = std::env::current_exe()
         .expect("current executable path invalid")
-        .with_file_name("prusti-rustc");
+        .with_file_name("prusti-filter");
     if cfg!(windows) {
-        prusti_rustc_path.set_extension("exe");
+        prusti_filter_path.set_extension("exe");
     }
 
     let exit_status = Command::new("cargo".to_string())
         .arg("check")
         .args(args)
-        .env("PRUSTI_FULL_COMPILATION", "true")
-        .env("RUSTC_WRAPPER", prusti_rustc_path)
+        .env("RUSTC_WRAPPER", prusti_filter_path)
         .status()
         .expect("could not run cargo");
 
