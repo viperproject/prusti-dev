@@ -231,6 +231,9 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             let mut viper_methods: Vec<_> = methods.into_iter().map(|m| m.to_viper(ast)).collect();
             viper_methods.extend(builtin_methods.into_iter().map(|m| m.to_viper(ast)));
             let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
+            if config::verify_only_preamble() {
+                viper_methods = Vec::new();
+            }
 
             info!(
                 "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",

@@ -21,7 +21,7 @@ pub struct CfgMethod {
     pub(in super::super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     pub(super) reserved_labels: HashSet<String>,
-    pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
+    pub(crate) basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(super) basic_blocks_labels: Vec<String>,
     fresh_var_index: i32,
     fresh_label_index: i32,
