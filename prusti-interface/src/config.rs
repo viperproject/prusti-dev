@@ -39,7 +39,13 @@ lazy_static! {
         // purification optimisation.
         settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", false).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
+
+        // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
+        settings.set_default("VERIFY_ONLY_PREAMBLE", false).unwrap();
+        settings.set_default("ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH", false).unwrap();
+        settings.set_default::<Vec<String>>("VERIFY_ONLY_BASIC_BLOCK_PATH", vec![]).unwrap();
+        settings.set_default::<Vec<String>>("DELETE_BASIC_BLOCKS", vec![]).unwrap();
 
         // 2. Override with the optional TOML file "Prusti.toml" (if there is any)
         settings.merge(
@@ -276,5 +282,50 @@ pub fn disable_name_mangling() -> bool {
         .read()
         .unwrap()
         .get::<bool>("DISABLE_NAME_MANGLING")
+        .unwrap()
+}
+
+/// Verify only the preamble: domains, functions, and predicates.
+///
+/// **Note:** With this flag enabled, no methods are verified!
+pub fn verify_only_preamble() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("VERIFY_ONLY_PREAMBLE")
+        .unwrap()
+}
+
+/// Verify only the path given in ``VERIFY_ONLY_BASIC_BLOCK_PATH``.
+///
+/// **Note:** This flag is only for debugging Prusti!
+pub fn enable_verify_only_basic_block_path() -> bool {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<bool>("ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH")
+        .unwrap()
+}
+
+/// Verify only the single execution path goes through the given basic blocks.
+///
+/// All basic blocks not on this execution path are replaced with
+/// ``assume false``.
+///
+/// **Note:** This flag is only for debugging Prusti!
+pub fn verify_only_basic_block_path() -> Vec<String> {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<Vec<String>>("VERIFY_ONLY_BASIC_BLOCK_PATH")
+        .unwrap()
+}
+
+/// Replace the given basic blocks with ``assume false``.
+pub fn delete_basic_blocks() -> Vec<String> {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<Vec<String>>("DELETE_BASIC_BLOCKS")
         .unwrap()
 }

@@ -35,9 +35,7 @@ use rustc::mir::interpret::GlobalId;
 use rustc::ty;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::io::Write;
-use std::iter::FromIterator;
 use std::mem;
 use syntax::ast;
 use viper;
@@ -75,8 +73,6 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
-    use_whitelist: bool,
-    whitelist: HashSet<String>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
 }
 
@@ -125,8 +121,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             encoding_queue: RefCell::new(vec![]),
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
-            use_whitelist: config::enable_whitelist(),
-            whitelist: HashSet::from_iter(config::verification_whitelist()),
             typaram_repl: RefCell::new(Vec::new()),
         }
     }
@@ -1256,11 +1250,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
         trace!("is_trusted {:?}", def_id);
-        let result = self.env().has_attribute_name(def_id, "trusted")
-            || (self.use_whitelist
-                && !self
-                    .whitelist
-                    .contains(&self.env().get_item_def_path(def_id)));
+        let result = self.env().has_attribute_name(def_id, "trusted");
         trace!("is_trusted {:?} = {}", def_id, result);
         result
     }
