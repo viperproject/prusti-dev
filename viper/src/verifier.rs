@@ -125,7 +125,14 @@ impl<'a> Verifier<'a, state::Started> {
             ast_utils.pretty_print(program)
         );
 
+        let start_consistency_checks = Instant::now();
         let consistency_errors = ast_utils.check_consistency(program);
+        let duration = start_consistency_checks.elapsed();
+        debug!(
+            "Viper consistency checs took {}.{} seconds",
+            duration.as_secs(),
+            duration.subsec_millis() / 10
+        );
 
         if !consistency_errors.is_empty() {
             error!(
