@@ -697,7 +697,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
                         // On crate `078_crossbeam` the `const_eval` call fails with
                         // "can't type-check body of DefId(0/0:18 ~ lock_api[964c]::mutex[0]::RawMutex[0]::INIT[0])"
                         // at "const INIT: Self;"
-                        partially!(self, span, "uses unevaluated constant");
+                        partially!(self, span, "uses unevaluated constants");
                         /*
                         let param_env = self.tcx().param_env(def_id);
                         let cid = GlobalId {
