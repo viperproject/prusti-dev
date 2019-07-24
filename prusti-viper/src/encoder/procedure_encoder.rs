@@ -3091,7 +3091,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the functional specification of a loop
-    fn encode_loop_invariant_specs(&self, loop_head: BasicBlockIndex) -> Vec<vir::Expr> {
+    fn encode_loop_invariant_specs(&self, loop_head: BasicBlockIndex) -> (Vec<vir::Expr>, MultiSpan) {
         let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!(
             "loop head {:?} has spec blocks {:?}",
@@ -3123,6 +3123,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         assert!(spec_ids.len() <= 1, "a loop has multiple specification ids");
 
         let mut encoded_specs = vec![];
+        let mut encoded_spec_spans = vec![];
         if !spec_ids.is_empty() {
             let encoded_args: Vec<vir::Expr> = self
                 .mir
@@ -3144,7 +3145,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 false,
                                 Some(loop_head),
                             );
-                            encoded_specs.push(encoded_spec)
+                            encoded_specs.push(encoded_spec);
+                            encoded_spec_spans.extend(spec.assertion.get_spans());
                         }
                     }
                     ref x => unreachable!("{:?}", x),
@@ -3153,7 +3155,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             trace!("encoded_specs: {:?}", encoded_specs);
         }
 
-        encoded_specs
+        (encoded_specs, MultiSpan::from_spans(encoded_spec_spans))
     }
 
     fn encode_loop_invariant_exhale_stmts(
@@ -3173,14 +3175,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
         let (permissions, equalities) = self.encode_loop_invariant_permissions(
             loop_head, !after_loop_iteration);
-        let func_spec = self.encode_loop_invariant_specs(loop_head);
+        let (func_spec, func_spec_span) = self.encode_loop_invariant_specs(loop_head);
 
         // TODO: use different positions, and generate different error messages, for the exhale
         // before the loop and after the loop body
 
         let assert_pos = self.encoder.error_manager().register(
             // TODO: choose a proper error span
-            self.mir.span,
+            func_spec_span.clone(),
             if after_loop_iteration {
                 ErrorCtxt::AssertLoopInvariantAfterIteration
             } else {
@@ -3190,7 +3192,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let exhale_pos = self.encoder.error_manager().register(
             // TODO: choose a proper error span
-            self.mir.span,
+            func_spec_span,
             if after_loop_iteration {
                 ErrorCtxt::ExhaleLoopInvariantAfterIteration
             } else {
@@ -3247,7 +3249,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         let (permissions, equalities) = self.encode_loop_invariant_permissions(
             loop_head, after_loop);
-        let func_spec = self.encode_loop_invariant_specs(loop_head);
+        let (func_spec, _func_spec_span) = self.encode_loop_invariant_specs(loop_head);
 
         let permission_expr = permissions.into_iter().conjoin();
         let equality_expr = equalities.into_iter().conjoin();

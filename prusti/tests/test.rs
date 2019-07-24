@@ -82,7 +82,7 @@ fn run_verification(group_name: &str) {
     set_var("PRUSTI_REPORT_SUPPORT_STATUS", "false");
 
     remove_var("PRUSTI_NO_VERIFY");
-    remove_var("PRUSTI_QUIET");
+    set_var("PRUSTI_QUIET", "true");
 
     let mut config = Config::default();
     config.rustc_path = get_prusti_rustc_path();
