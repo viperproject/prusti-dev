@@ -669,14 +669,26 @@ impl<'a> AstFactory<'a> {
         self.forall_with_pos(variables, triggers, expr, self.no_position())
     }
 
-    pub fn exists(&self, variables: &[LocalVarDecl], expr: Expr) -> Expr<'a> {
-        build_ast_node!(
+    pub fn exists_with_pos(
+        &self,
+        variables: &[LocalVarDecl],
+        triggers: &[Trigger],
+        expr: Expr,
+        pos: Position
+    ) -> Expr<'a> {
+        build_ast_node_with_pos!(
             self,
             Expr,
             ast::Exists,
             self.jni.new_seq(&map_to_jobjects!(variables)),
-            expr.to_jobject()
+            self.jni.new_seq(&map_to_jobjects!(triggers)),
+            expr.to_jobject(),
+            self.no_position().to_jobject()
         )
+    }
+
+    pub fn exists(&self, variables: &[LocalVarDecl], triggers: &[Trigger], expr: Expr) -> Expr<'a> {
+        self.exists_with_pos(variables, triggers, expr, self.no_position())
     }
 
     pub fn for_perm(
