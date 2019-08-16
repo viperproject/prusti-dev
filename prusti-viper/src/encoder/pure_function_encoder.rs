@@ -430,7 +430,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
             }
 
             TerminatorKind::Drop { ref target, .. } => {
-                assert_eq!(states.len(), 2);
+                assert!(1 <= states.len() && states.len() <= 2);
                 states[target].clone()
             }
 
