@@ -470,69 +470,93 @@ impl<'tcx> SpecParser<'tcx> {
         postconditions: &[UntypedSpecification],
     ) -> ast::Item {
         let mut name = item.ident.to_string();
+        let unit_type = self.ast_builder.ty(item.span, ast::TyKind::Tup(Vec::new()));
+        let spec_only_attr = self.ast_builder.attribute_name_value(
+            item.span,
+            "__PRUSTI_SPEC_ONLY",
+            &spec_id.to_string(),
+        );
+
+        name.push_str("__spec");
+
         match item.node {
             ast::ItemKind::Fn(ref decl, ref _header, ref generics, ref _body) => {
-                let mut statements = vec![];
-
-                // Add preconditions.
-                statements.extend(self.convert_to_statements(preconditions));
-
-                // Add postconditions.
-                statements.extend(self.convert_to_statements(postconditions));
-
-                // Import contracts, if needed
-                if !statements.is_empty() {
-                    statements.insert(0, self.build_prusti_contract_import(item.span));
-                }
-
-                // Add result to arguments
-                let unit_type = self.ast_builder.ty(item.span, ast::TyKind::Tup(Vec::new()));
-                let return_type = match decl.output.clone() {
-                    ast::FunctionRetTy::Ty(ret_ty) => match ret_ty.node {
-                        ast::TyKind::Never => unit_type.clone(),
-                        _ => ret_ty,
-                    },
-                    ast::FunctionRetTy::Default(_) => unit_type.clone(),
+                // TODO: add check for result parameter and issue warning if its the case
+                let fn_pre = {
+                    let mut statements = self.convert_to_statements(preconditions);
+                    // Import contracts, if needed
+                    if !statements.is_empty() {
+                        statements.insert(0, self.build_prusti_contract_import(item.span));
+                    }
+                    let mut name = name.to_owned();
+                    name.push_str("__pre");
+                    self.ast_builder.stmt_item(item.span, self.ast_builder.item_fn_attributes(
+                            item.span,
+                            ast::Ident::from_str(&name),
+                            decl.inputs.clone(),
+                            unit_type.clone(),
+                            generics.clone(),
+                            vec![spec_only_attr.clone()],
+                            self.ast_builder.block(item.span, statements),
+                        ))
                 };
-                let mut inputs_with_result: Vec<ast::Arg> = decl.inputs.clone();
-                inputs_with_result.push(self.ast_builder.arg(
-                    item.span,
-                    ast::Ident::from_str("result"),
-                    return_type.clone(),
-                ));
 
-                // Glue everything.
-                name.push_str("__spec");
-                let mut spec_item = self
-                    .ast_builder
-                    .item_fn_poly(
+                let fn_post = {
+                    let mut statements = self.convert_to_statements(postconditions);
+                    // Import contracts, if needed
+                    if !statements.is_empty() {
+                        statements.insert(0, self.build_prusti_contract_import(item.span));
+                    }
+                    let mut name = name.to_owned();
+                    name.push_str("__post");
+                    let return_type = match decl.output.clone() {
+                        ast::FunctionRetTy::Ty(ret_ty) => match ret_ty.node {
+                            ast::TyKind::Never => unit_type.clone(),
+                            _ => ret_ty,
+                        },
+                        ast::FunctionRetTy::Default(_) => unit_type.clone(),
+                    };
+                    // Add result to arguments
+                    let mut inputs_with_result: Vec<ast::Arg> = decl.inputs.clone();
+                    inputs_with_result.push(self.ast_builder.arg(
+                        item.span,
+                        ast::Ident::from_str("result"),
+                        return_type.clone(),
+                    ));
+                    self.ast_builder.stmt_item(item.span, self.ast_builder.item_fn_attributes(
                         item.span,
                         ast::Ident::from_str(&name),
                         inputs_with_result,
-                        unit_type,
+                        unit_type.clone(),
                         generics.clone(),
+                        vec![spec_only_attr.clone()],
                         self.ast_builder.block(item.span, statements),
-                    )
-                    .into_inner();
-                mem::replace(
-                    &mut spec_item.attrs,
+                    ))
+                };
+                let statements = vec![fn_pre, fn_post];
+
+                // Attributes for the spec method
+                let spec_attr =
                     vec![
-                        self.ast_builder.attribute_name_value(
-                            item.span,
-                            "__PRUSTI_SPEC_ONLY",
-                            &spec_id.to_string(),
-                        ),
+                        spec_only_attr,
                         self.ast_builder.attribute_allow(item.span, "unused_mut"),
                         self.ast_builder.attribute_allow(item.span, "dead_code"),
-                        self.ast_builder
-                            .attribute_allow(item.span, "non_snake_case"),
-                        self.ast_builder
-                            .attribute_allow(item.span, "unused_imports"),
-                        self.ast_builder
-                            .attribute_allow(item.span, "unused_variables"),
-                    ],
-                );
-                spec_item
+                        self.ast_builder.attribute_allow(item.span, "non_snake_case"),
+                        self.ast_builder.attribute_allow(item.span, "unused_imports"),
+                        self.ast_builder.attribute_allow(item.span, "unused_variables"),
+                    ];
+
+                // Glue everything
+                self.ast_builder.item_fn_attributes(
+                    item.span,
+                    ast::Ident::from_str(&name),
+                    vec![],
+                    unit_type,
+                    generics.clone(),
+                    spec_attr,
+                    self.ast_builder.block(item.span, statements),
+                )
+                .into_inner()
             }
             _ => {
                 unreachable!();
