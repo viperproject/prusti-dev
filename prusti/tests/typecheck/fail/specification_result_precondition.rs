@@ -6,3 +6,6 @@ extern crate prusti_contracts;
 pub fn fun() -> i32 {
     42
 }
+
+#[trusted]
+fn main() {}
