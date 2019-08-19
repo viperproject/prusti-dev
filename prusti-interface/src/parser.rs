@@ -275,6 +275,12 @@ impl<'tcx> SpecParser<'tcx> {
         err.emit();
     }
 
+    fn report_warn(&self, span: Span, message: &str, note: &str) {
+        let mut warn = self.session.struct_span_warn(span, message);
+        warn.note(note);
+        warn.emit();
+    }
+
     /// Construct a lambda function with an attribute that identifies the spec id of the loop
     fn build_loop_mark(&self, spec_id: SpecID) -> ast::Stmt {
         let builder = &self.ast_builder;
@@ -460,6 +466,18 @@ impl<'tcx> SpecParser<'tcx> {
         builder.stmt_item(span, ptr::P(item))
     }
 
+    fn check_for_result_in_params(
+        &mut self,
+        params: &Vec<ast::Arg>,
+    ) -> bool {
+        params
+            .iter()
+            .any(|p| match (*p.pat).node {
+                ast::PatKind::Ident(_, id, _) => id.name.as_str() == "result",
+                _ => false,
+            })
+    }
+
     /// Generate a function that contains only the precondition and postcondition
     /// for type-checking.
     fn generate_spec_item(
@@ -481,7 +499,14 @@ impl<'tcx> SpecParser<'tcx> {
 
         match item.node {
             ast::ItemKind::Fn(ref decl, ref _header, ref generics, ref _body) => {
-                // TODO: add check for result parameter and issue warning if its the case
+                let result_as_param = self.check_for_result_in_params(&decl.inputs);
+                if result_as_param {
+                    self.report_warn(item.span,
+                                     "parameter `result` found",
+                                     "Using parameter `result` in specifications instead of the return value."
+                    );
+                }
+
                 let fn_pre = {
                     let mut statements = self.convert_to_statements(preconditions);
                     // Import contracts, if needed
@@ -518,11 +543,13 @@ impl<'tcx> SpecParser<'tcx> {
                     };
                     // Add result to arguments
                     let mut inputs_with_result: Vec<ast::Arg> = decl.inputs.clone();
-                    inputs_with_result.push(self.ast_builder.arg(
-                        item.span,
-                        ast::Ident::from_str("result"),
-                        return_type.clone(),
-                    ));
+                    if !result_as_param {
+                        inputs_with_result.push(self.ast_builder.arg(
+                            item.span,
+                            ast::Ident::from_str("result"),
+                            return_type.clone(),
+                        ));
+                    }
                     self.ast_builder.stmt_item(item.span, self.ast_builder.item_fn_attributes(
                         item.span,
                         ast::Ident::from_str(&name),
