@@ -70,26 +70,38 @@
 //!         Finally, for each ``Expression`` generate a unique
 //!         ``ExpressionId``.
 //!     4.  Rewrite the program to add additional function, with “dummy”
-//!         assertions wrapping the Rust expressions used in
+//!         closure wrapping the Rust expressions used in
 //!         specifications; these are then automatically type checked by
 //!         the Rust compiler. This is necessary because it seems that
 //!         there is no way to call a type checker on an AST manually.
 //!         The example above would be rewritten as follows:
 //!
 //!         ```rust,ignore
-//!         #[__PRUSTI_SPEC = "101"]
+//!         #[requires = "0 < n && n < 10"]
+//!         #[ensures = "result > 0"]
+//!         #[__PRUSTI_SPEC = r#"102"#]
 //!         fn fib(mut n: i32) -> i32 {
 //!             let mut i = 1;
 //!             let mut j = 1;
 //!
-//!             #[__PRUSTI_SPEC = "102"]
-//!             while n > 2 {
-//!                 #[__PRUSTI_SPEC_ONLY = "103"]
-//!                 {
-//!                     if false {
-//!                         use prusti_contracts::internal::* ;
-//!                         __assertion(104, i > 0);
-//!                         __assertion(105, j > 0);
+//!             #[__PRUSTI_SPEC = r#"101"#]
+//!                 while n > 2 {
+//!
+//!                 #[__PRUSTI_SPEC_ONLY = r#"101"#]
+//!                 if false {
+//!                     {
+//!                         #[__PRUSTI_LOOP_SPEC_ID = r#"101"#]
+//!                             || { };
+//!                         #[allow(unused_imports)]
+//!                         use prusti_contracts::internal::*;
+//!
+//!                         #[__PRUSTI_EXPR_ID = r#"101"#]
+//!                             #[pure]
+//!                             || -> bool { i > 0 };
+//!
+//!                         #[__PRUSTI_EXPR_ID = r#"102"#]
+//!                             #[pure]
+//!                             || -> bool { j > 0 };
 //!                     }
 //!                 }
 //!                 let tmp = i + j;
@@ -100,33 +112,45 @@
 //!             i
 //!         }
 //!
+//!         #[__PRUSTI_SPEC_ONLY = r#"102"#]
 //!         #[allow(unused_mut)]
 //!         #[allow(dead_code)]
 //!         #[allow(non_snake_case)]
-//!         #[__PRUSTI_SPEC_ONLY = "106"]
-//!         fn fib__spec(mut n: i32) -> i32 {
-//!             use prusti_contracts::internal::* ;
-//!             __assertion(107, 0 < n);
-//!             __assertion(108, n < 10);
-//!             let result = fib(n);
-//!             __assertion(109, result > 0);
-//!             result
+//!         #[allow(unused_imports)]
+//!         #[allow(unused_variables)]
+//!         fn fib__spec() -> () {
+//!             #[__PRUSTI_SPEC_ONLY = r#"102"#]
+//!             fn fib__spec__pre(mut n: i32) -> () {
+//!                 #[allow(unused_imports)]
+//!                 use prusti_contracts::internal::*;
+//!
+//!                 #[__PRUSTI_EXPR_ID = r#"103"#]
+//!                 #[pure]
+//!                 || -> bool { 0 < n };
+//!
+//!                 #[__PRUSTI_EXPR_ID = r#"104"#]
+//!                 #[pure]
+//!                 || -> bool { n < 10 };
+//!             }
+//!             #[__PRUSTI_SPEC_ONLY = r#"102"#]
+//!             fn fib__spec__post(mut n: i32, result: i32) -> () {
+//!                 #[allow(unused_imports)]
+//!                 use prusti_contracts::internal::*;
+//!
+//!                 #[__PRUSTI_EXPR_ID = r#"105"#]
+//!                 #[pure]
+//!                 || -> bool { result > 0 };
+//!             }
 //!         }
 //!         ```
 //!
-//!         The first argument to `__assertion` is an `ExpressionId` of
-//!         the corresponding expression.
-//!
 //! 3.  When the ``after_analysis`` callback is invoked:
 //!
-//!     1.  Traverse HIR and create a map from `ExpressionId` (first
-//!         argument of `__assertion`) to HIR `Expr` (second argument of
-//!         `__assertion`).
+//!     1.  Traverse HIR and create a map from `ExpressionId` (argument of
+//!         `__PRUSTI_EXPR_ID` attribute) to HIR `Expr`.
 //!     2.  Construct `TypedAssertion` by traversing `UntypedAssertion`
 //!         and inserting HIR expressions based on `ExpressionId`.
 //!
-//! Note: AST/HIR nodes are linked to assertions by specification
-//! identifier that is stored as a ``__PRUSTI_SPEC`` attribute.
 
 use ast_builder::MinimalAstBuilder;
 use constants::PRUSTI_SPEC_ATTR;
