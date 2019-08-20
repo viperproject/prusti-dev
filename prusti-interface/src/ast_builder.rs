@@ -28,6 +28,7 @@ use syntax::symbol::{keywords, Symbol};
 use syntax_pos::{Pos, Span, DUMMY_SP};
 
 use std::iter;
+use std::mem;
 use std::path::PathBuf;
 use std::rc::Rc;
 
@@ -128,6 +129,24 @@ impl<'a> MinimalAstBuilder<'a> {
             None => self.ty(span, ast::TyKind::Tup(Vec::new())),
         };
         self.item_fn_poly(span, name, inputs, output, generics, body)
+    }
+
+    pub fn item_fn_attributes(
+        &self,
+        span: Span,
+        name: Ident,
+        inputs: Vec<ast::Arg>,
+        output: P<ast::Ty>,
+        generics: Generics,
+        attributes: Vec<ast::Attribute>,
+        body: P<ast::Block>,
+    ) -> P<ast::Item> {
+        let mut item = self.item_fn_poly(span, name, inputs, output, generics, body).into_inner();
+        mem::replace(
+            &mut item.attrs,
+            attributes,
+        );
+        P(item)
     }
 
     pub fn lambda_fn_decl_by_value(
