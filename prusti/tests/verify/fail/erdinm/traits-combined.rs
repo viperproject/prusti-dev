@@ -1,7 +1,7 @@
 extern crate prusti_contracts;
 
 trait Percentage {
-    #[ensures="result <= 100"]
+    #[ensures="result <= 100"] //~ ERROR postcondition might not hold
     fn get(&self) -> u8;
 
     #[requires="arg <= 100"]
@@ -11,7 +11,7 @@ trait Percentage {
 struct Fail {}
 
 impl Percentage for Fail {
-    fn get(&self) -> u8 { //~ ERROR postcondition might not hold
+    fn get(&self) -> u8 { // originates here
         101
     }
     fn set(&mut self, arg: u8) {

@@ -6,8 +6,8 @@ struct S {
 
 impl S {
     #[requires="true"]
-    #[ensures="false"]
-    pub fn test(self) {} //~ ERROR postcondition
+    #[ensures="false"] //~ ERROR postcondition
+    pub fn test(self) {}
 }
 
 fn main() {}

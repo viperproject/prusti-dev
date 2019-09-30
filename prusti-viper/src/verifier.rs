@@ -313,20 +313,12 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 debug!("Verification error: {:?}", verification_error);
                 let compilation_error = error_manager.translate(&verification_error);
                 debug!("Compilation error: {:?}", compilation_error);
-                if let Some(reason_span) = compilation_error.reason_span {
-                    self.env.span_err_with_reason(
-                        compilation_error.span,
-                        &format!("[Prusti] {}", compilation_error.message),
-                        reason_span,
-                        &compilation_error.help,
-                    )
-                } else {
-                    self.env.span_err_with_help(
-                        compilation_error.span,
-                        &format!("[Prusti] {}", compilation_error.message),
-                        &compilation_error.help,
-                    )
-                }
+                self.env.span_err_with_help_and_note(
+                    compilation_error.span,
+                    &format!("[Prusti] {}", compilation_error.message),
+                    &compilation_error.help,
+                    &compilation_error.note,
+                );
             }
             VerificationResult::Failure
         }

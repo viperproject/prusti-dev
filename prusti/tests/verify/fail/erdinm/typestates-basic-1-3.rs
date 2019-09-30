@@ -14,9 +14,9 @@ impl<X> Number<X> {
     #[requires="X == Neg ~~> self.i < 0"]
     #[requires="X == Pos ~~> self.i > 0"]
     #[ensures="X == Neg ~~> self.i < 0"]
-    #[ensures="X == Pos ~~> self.i > 0"]
+    #[ensures="X == Pos ~~> self.i > 0"] //~ ERROR postcondition might not hold
     #[ensures="self.i >= -1 && self.i <= 1"]
-    fn to_sign(&mut self) { //~ ERROR postcondition might not hold
+    fn to_sign(&mut self) {
         if self.i <= -1 {
             self.i = 1;
         } else if self.i >= 1 {
