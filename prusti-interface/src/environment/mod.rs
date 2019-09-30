@@ -133,8 +133,8 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
             .state
             .session
             .struct_err_with_code(msg, DiagnosticId::Error(code));
-        diagnostic.set_span(sp);
-        diagnostic.span_note(reason_sp, "the failing assertion is this one");
+        diagnostic.set_span(reason_sp);
+        diagnostic.span_note(sp, "the error happens here");
         diagnostic.emit();
     }
 
@@ -147,8 +147,8 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         help: &Option<String>,
     ) {
         let mut diagnostic = self.state.session.struct_err(msg);
-        diagnostic.set_span(sp);
-        diagnostic.span_note(reason_sp, "the failing assertion is this one");
+        diagnostic.set_span(reason_sp);
+        diagnostic.span_note(sp, "the error happens here");
         if let Some(ref help_text) = help {
             diagnostic.help(help_text);
         }
