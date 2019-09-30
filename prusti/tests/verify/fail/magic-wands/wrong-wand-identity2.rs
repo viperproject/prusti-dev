@@ -11,7 +11,7 @@ fn identity(x: &mut T) -> &mut T {
     x
 }
 
-#[ensures="result.val == v"]    // TODO x.val is illegal, but we crash instead of giving a proper error.
+#[ensures="result.val == v"] // TODO x.val is illegal, but we crash instead of giving a proper error.
 #[ensures="after_expiry(x.val == before_expiry(result.val))"]
 fn identity2(x: &mut T, v: i32) -> &mut T {
     x.val = v;
@@ -25,13 +25,13 @@ fn identity3(x: &mut T, v: i32) -> &mut i32 {
     &mut x.val
 }
 
-#[ensures="after_expiry(x.val == 5)"]
-fn identity4(x: &mut T) -> &mut T { //~ ERROR pledge
+#[ensures="after_expiry(x.val == 5)"] //~ ERROR pledge
+fn identity4(x: &mut T) -> &mut T {
     x
 }
 
-#[ensures="after_expiry(x.val != before_expiry(result.val))"]
-fn identity5(x: &mut T) -> &mut T { //~ ERROR pledge
+#[ensures="after_expiry(x.val != before_expiry(result.val))"] //~ ERROR pledge
+fn identity5(x: &mut T) -> &mut T {
     x
 }
 
@@ -53,7 +53,7 @@ fn identity_use3() {
     let x = identity2(z, 7);
     let v = identity3(x, 8);
     assert!(*v == 8);
-    assert!(t.val == 9);    //~ ERROR: the asserted expression might not hold
+    assert!(t.val == 9); //~ ERROR: the asserted expression might not hold
 }
 
 fn main() {}
