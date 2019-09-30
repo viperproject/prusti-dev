@@ -62,15 +62,15 @@ impl ExprSimplifier {
             },
             ast::Expr::BinOp(
                 ast::BinOpKind::And,
-                box ast::Expr::Const(ast::Const::Bool(b), _),
+                box ast::Expr::Const(ast::Const::Bool(b), pos),
                 box conjunct,
-                pos,
+                _,
             ) |
             ast::Expr::BinOp(
                 ast::BinOpKind::And,
                 box conjunct,
-                box ast::Expr::Const(ast::Const::Bool(b), _),
-                pos,
+                box ast::Expr::Const(ast::Const::Bool(b), pos),
+                _,
             ) => {
                 if b {
                     conjunct
@@ -79,10 +79,28 @@ impl ExprSimplifier {
                 }
             },
             ast::Expr::BinOp(
+                ast::BinOpKind::Or,
+                box ast::Expr::Const(ast::Const::Bool(b), pos),
+                box disjunct,
+                _,
+            ) |
+            ast::Expr::BinOp(
+                ast::BinOpKind::Or,
+                box disjunct,
+                box ast::Expr::Const(ast::Const::Bool(b), pos),
+                _,
+            ) => {
+                if b {
+                    ast::Expr::Const(ast::Const::Bool(true.into()), pos)
+                } else {
+                    disjunct
+                }
+            },
+            ast::Expr::BinOp(
                 ast::BinOpKind::Implies,
                 guard,
-                box ast::Expr::Const(ast::Const::Bool(b), _),
-                pos,
+                box ast::Expr::Const(ast::Const::Bool(b), pos),
+                _,
             ) => {
                 if b {
                     ast::Expr::Const(ast::Const::Bool(true.into()), pos)
@@ -96,9 +114,9 @@ impl ExprSimplifier {
             },
             ast::Expr::BinOp(
                 ast::BinOpKind::Implies,
-                box ast::Expr::Const(ast::Const::Bool(b), _),
+                box ast::Expr::Const(ast::Const::Bool(b), pos),
                 box body,
-                pos,
+                _,
             ) => {
                 if b {
                     body
