@@ -42,6 +42,7 @@ pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {
     args.push("-Zidentify-regions".to_owned());
     args.push("-Zdump-mir-dir=log/mir/".to_owned());
     args.push("-Zdump-mir=renumber".to_owned());
+    args.push("-Zalways-encode-mir".to_owned());
 
     if config::dump_debug_info() {
         args.push("-Zdump-mir=all".to_owned());
