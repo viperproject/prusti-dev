@@ -386,7 +386,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             }
         };
-        if config::simplify_expressions() {
+        if config::simplify_encoding() {
             ast.simplified_expression(expr)
         } else {
             expr

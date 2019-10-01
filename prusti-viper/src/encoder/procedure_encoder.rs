@@ -16,7 +16,9 @@ use encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 use encoder::optimiser;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::vir::fixes::{fix_ghost_vars, havoc_assigned_locals};
-use encoder::vir::optimisations::methods::{remove_trivial_assertions, remove_unused_vars};
+use encoder::vir::optimisations::methods::{
+    remove_trivial_assertions, remove_unused_vars, remove_empty_if
+};
 use encoder::vir::ExprIterator;
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::Encoder;
@@ -43,7 +45,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::attr::SignedInt;
-use syntax::codemap::{MultiSpan, Span};
+use syntax::codemap::MultiSpan;
 use utils::to_string::ToString;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
@@ -399,11 +401,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             havoc_assigned_locals(&mut fixed_method, &havoc_methods);
         }
 
-        // Optimise encoding a bit
-        let method_without_unused_vars = remove_unused_vars(fixed_method);
-        let method_without_trivial_assertions =
-            remove_trivial_assertions(method_without_unused_vars);
-        let final_method = optimiser::rewrite(method_without_trivial_assertions);
+        // Do some optimizations
+        let final_method = if config::simplify_encoding() {
+            optimiser::rewrite(
+                remove_trivial_assertions(
+                    remove_unused_vars(
+                        remove_empty_if(
+                            fixed_method
+                        )
+                    )
+                )
+            )
+        } else {
+            fixed_method
+        };
 
         // Dump final CFG
         if config::dump_debug_info() {
@@ -2355,18 +2366,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         assertion.remove_redundant_old()
     }
 
-    /// Get the span of a postcondition.
-    fn get_postcondition_span(&mut self, contract: &ProcedureContract<'tcx>) -> Vec<Span> {
-        contract
-            .functional_postcondition()
-            .iter()
-            .map(|spec| spec.assertion.get_spans())
-            .fold(vec![], |mut a, b| {
-                a.extend(b);
-                a
-            })
-    }
-
     /// Encode the postcondition with three expressions:
     /// - one for the type encoding
     /// - one for the type invariants
@@ -2470,6 +2469,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Encode functional specification
         let mut func_spec = vec![];
+        let mut func_spec_spans = vec![];
         for item in contract.functional_postcondition() {
             let mut assertion = self.encoder.encode_assertion(
                 &item.assertion,
@@ -2480,15 +2480,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 false,
                 None,
             );
+            func_spec_spans.extend(item.assertion.get_spans());
             assertion = self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args);
             func_spec.push(assertion);
         }
-
+        let func_spec_pos = self.encoder.error_manager().register_span(func_spec_spans);
         (
             type_spec.into_iter().conjoin(),
             return_perm,
             invs_spec.into_iter().conjoin(),
-            func_spec.into_iter().conjoin(),
+            func_spec.into_iter().conjoin().set_default_pos(func_spec_pos),
             magic_wands,
             read_transfer,
         )
@@ -2803,13 +2804,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Assert functional specification of postcondition
         let func_pos = self.encoder.error_manager().register(
-            {
-                let mut multi_span = MultiSpan::from_span(self.mir.span);
-                for span in self.get_postcondition_span(contract).into_iter() {
-                    multi_span.push_span_label(span, "".to_string());
-                }
-                multi_span
-            },
+            self.mir.span,
             ErrorCtxt::AssertMethodPostcondition,
         );
         let patched_func_spec = self.replace_old_places_with_ghost_vars(None, func_spec);
@@ -3145,8 +3140,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 false,
                                 Some(loop_head),
                             );
-                            encoded_specs.push(encoded_spec);
-                            encoded_spec_spans.extend(spec.assertion.get_spans());
+                            let spec_spans = spec.assertion.get_spans();
+                            let spec_pos = self.encoder.error_manager().register_span(
+                                spec_spans.clone()
+                            );
+                            encoded_specs.push(encoded_spec.set_default_pos(spec_pos));
+                            encoded_spec_spans.extend(spec_spans);
                         }
                     }
                     ref x => unreachable!("{:?}", x),

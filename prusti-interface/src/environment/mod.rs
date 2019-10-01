@@ -13,7 +13,6 @@ use rustc::ty::TyCtxt;
 use rustc_driver::driver;
 use std::path::PathBuf;
 use syntax::attr;
-use syntax::errors::DiagnosticId;
 use syntax_pos::FileName;
 use syntax_pos::MultiSpan;
 
@@ -100,57 +99,20 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Emits an error message.
-    pub fn span_err_with_help<S: Into<MultiSpan>>(&self, sp: S, msg: &str, help: &Option<String>) {
-        let mut diagnostic = self.state.session.struct_err(msg);
-        diagnostic.set_span(sp);
-        if let Some(ref help_text) = help {
-            diagnostic.help(help_text);
-        }
-        diagnostic.emit();
-    }
-
-    /// Emits an error message.
-    pub fn span_err_with_code<S: Into<MultiSpan>>(&self, sp: S, msg: &str, code: String) {
-        self.state
-            .session
-            .span_err_with_code(sp, msg, DiagnosticId::Error(code));
-    }
-
-    /// Emits an error message.
-    pub fn err_with_code(&self, msg: &str, code: String) {
-        self.span_err_with_code(MultiSpan::new(), msg, code);
-    }
-
-    /// Emits an error message.
-    pub fn span_err_with_code_with_reason<S: Into<MultiSpan>>(
+    pub fn span_err_with_help_and_note<S: Into<MultiSpan> + Clone>(
         &self,
         sp: S,
         msg: &str,
-        code: String,
-        reason_sp: S,
-    ) {
-        let mut diagnostic = self
-            .state
-            .session
-            .struct_err_with_code(msg, DiagnosticId::Error(code));
-        diagnostic.set_span(sp);
-        diagnostic.span_note(reason_sp, "the failing assertion is this one");
-        diagnostic.emit();
-    }
-
-    /// Emits an error message.
-    pub fn span_err_with_reason<S: Into<MultiSpan>>(
-        &self,
-        sp: S,
-        msg: &str,
-        reason_sp: S,
         help: &Option<String>,
+        note: &Option<(String, S)>
     ) {
         let mut diagnostic = self.state.session.struct_err(msg);
         diagnostic.set_span(sp);
-        diagnostic.span_note(reason_sp, "the failing assertion is this one");
-        if let Some(ref help_text) = help {
-            diagnostic.help(help_text);
+        if let Some(help_msg) = help {
+            diagnostic.help(help_msg);
+        }
+        if let Some((note_msg, note_sp)) = note {
+            diagnostic.span_note(note_sp.clone(), note_msg);
         }
         diagnostic.emit();
     }

@@ -6,9 +6,9 @@ pub fn reborrow(x: &u32) -> &u32 {
     x
 }
 
+#[ensures="false"] //~ ERROR postcondition might not hold.
 #[ensures="*result == old(*x)"]
-#[ensures="false"]
-pub fn reborrow2(x: &u32) -> &u32 { //~ ERROR postcondition might not hold.
+pub fn reborrow2(x: &u32) -> &u32 {
     x
 }
 

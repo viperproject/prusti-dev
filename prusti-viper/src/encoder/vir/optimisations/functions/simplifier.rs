@@ -47,8 +47,8 @@ impl ExprSimplifier {
             },
             ast::Expr::UnaryOp(
                 ast::UnaryOpKind::Not,
-                box ast::Expr::BinOp(ast::BinOpKind::EqCmp, box left, box right, pos),
-                _,
+                box ast::Expr::BinOp(ast::BinOpKind::EqCmp, box left, box right, _),
+                pos,
             ) => {
                 ast::Expr::BinOp(ast::BinOpKind::NeCmp, box left, box right, pos)
             },
@@ -76,6 +76,24 @@ impl ExprSimplifier {
                     conjunct
                 } else {
                     ast::Expr::Const(ast::Const::Bool(false.into()), pos)
+                }
+            },
+            ast::Expr::BinOp(
+                ast::BinOpKind::Or,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                box disjunct,
+                pos,
+            ) |
+            ast::Expr::BinOp(
+                ast::BinOpKind::Or,
+                box disjunct,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                pos,
+            ) => {
+                if b {
+                    ast::Expr::Const(ast::Const::Bool(true.into()), pos)
+                } else {
+                    disjunct
                 }
             },
             ast::Expr::BinOp(

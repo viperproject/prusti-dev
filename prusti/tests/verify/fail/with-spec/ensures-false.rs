@@ -1,5 +1,5 @@
 extern crate prusti_contracts;
 
-#[ensures="false"]
-fn main() { //~ ERROR postcondition
+#[ensures="false"] //~ ERROR postcondition
+fn main() {
 }

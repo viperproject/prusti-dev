@@ -31,8 +31,8 @@ impl Example {
     #[ensures="assert_on_expiry(
         true,
         self.valid()
-    )"]
-    fn m3_mut_fail(&mut self) -> &mut u32 { //~ ERROR pledge in the postcondition might not hold
+    )"] //~^^ ERROR pledge in the postcondition might not hold
+    fn m3_mut_fail(&mut self) -> &mut u32 {
         &mut self.m3
     }
 }
