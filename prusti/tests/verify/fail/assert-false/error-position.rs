@@ -27,4 +27,23 @@ fn foo8(x: bool) {}
 #[ensures="x || true ==> !(x || !x)"] //~ ERROR postcondition
 fn foo9(x: bool) {}
 
+#[ensures="x == x"]
+#[ensures="false"] //~ ERROR postcondition
+fn foo10(x: bool) {}
+
+#[ensures="false"] //~ ERROR postcondition
+#[ensures="x == x"]
+fn foo11(x: bool) {}
+
+#[ensures="x == x"]
+#[ensures="!true"] //~ ERROR postcondition
+#[ensures="x == x"]
+fn foo12(x: bool) {}
+
+#[ensures="false"] //~ ERROR postcondition
+#[ensures="result == x"]
+pub fn foo13(x: u32) -> u32 {
+    x
+}
+
 fn main() {}
