@@ -19,8 +19,7 @@ lazy_static! {
         settings.set_default("CHECK_BINARY_OPERATIONS", false).unwrap();
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
-        settings.set_default("SIMPLIFY_EXPRESSIONS", true).unwrap();
-        settings.set_default("SIMPLIFY_FUNCTIONS", true).unwrap();
+        settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
         settings.set_default("ENABLE_WHITELIST", false).unwrap();
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
@@ -101,12 +100,12 @@ pub fn check_panics() -> bool {
         .unwrap()
 }
 
-/// Should we simplify expressions?
-pub fn simplify_expressions() -> bool {
+/// Should we simplify the encoding before passing it to Viper?
+pub fn simplify_encoding() -> bool {
     SETTINGS
         .read()
         .unwrap()
-        .get::<bool>("SIMPLIFY_EXPRESSIONS")
+        .get::<bool>("SIMPLIFY_ENCODING")
         .unwrap()
 }
 
@@ -220,15 +219,6 @@ pub fn extra_verifier_args() -> Vec<String> {
         .read()
         .unwrap()
         .get::<Vec<String>>("EXTRA_VERIFIER_ARGS")
-        .unwrap()
-}
-
-/// Should we simplify functions?
-pub fn simplify_functions() -> bool {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<bool>("SIMPLIFY_FUNCTIONS")
         .unwrap()
 }
 

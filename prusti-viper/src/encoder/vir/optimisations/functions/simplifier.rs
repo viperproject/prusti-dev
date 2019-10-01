@@ -47,8 +47,8 @@ impl ExprSimplifier {
             },
             ast::Expr::UnaryOp(
                 ast::UnaryOpKind::Not,
-                box ast::Expr::BinOp(ast::BinOpKind::EqCmp, box left, box right, pos),
-                _,
+                box ast::Expr::BinOp(ast::BinOpKind::EqCmp, box left, box right, _),
+                pos,
             ) => {
                 ast::Expr::BinOp(ast::BinOpKind::NeCmp, box left, box right, pos)
             },
@@ -62,15 +62,15 @@ impl ExprSimplifier {
             },
             ast::Expr::BinOp(
                 ast::BinOpKind::And,
-                box ast::Expr::Const(ast::Const::Bool(b), pos),
+                box ast::Expr::Const(ast::Const::Bool(b), _),
                 box conjunct,
-                _,
+                pos,
             ) |
             ast::Expr::BinOp(
                 ast::BinOpKind::And,
                 box conjunct,
-                box ast::Expr::Const(ast::Const::Bool(b), pos),
-                _,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                pos,
             ) => {
                 if b {
                     conjunct
@@ -80,15 +80,15 @@ impl ExprSimplifier {
             },
             ast::Expr::BinOp(
                 ast::BinOpKind::Or,
-                box ast::Expr::Const(ast::Const::Bool(b), pos),
+                box ast::Expr::Const(ast::Const::Bool(b), _),
                 box disjunct,
-                _,
+                pos,
             ) |
             ast::Expr::BinOp(
                 ast::BinOpKind::Or,
                 box disjunct,
-                box ast::Expr::Const(ast::Const::Bool(b), pos),
-                _,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                pos,
             ) => {
                 if b {
                     ast::Expr::Const(ast::Const::Bool(true.into()), pos)
@@ -99,8 +99,8 @@ impl ExprSimplifier {
             ast::Expr::BinOp(
                 ast::BinOpKind::Implies,
                 guard,
-                box ast::Expr::Const(ast::Const::Bool(b), pos),
-                _,
+                box ast::Expr::Const(ast::Const::Bool(b), _),
+                pos,
             ) => {
                 if b {
                     ast::Expr::Const(ast::Const::Bool(true.into()), pos)
@@ -114,9 +114,9 @@ impl ExprSimplifier {
             },
             ast::Expr::BinOp(
                 ast::BinOpKind::Implies,
-                box ast::Expr::Const(ast::Const::Bool(b), pos),
+                box ast::Expr::Const(ast::Const::Bool(b), _),
                 box body,
-                _,
+                pos,
             ) => {
                 if b {
                     body
