@@ -222,23 +222,4 @@ impl<'a> AstFactory<'a> {
     pub fn goto(&self, target: &str) -> Stmt<'a> {
         build_ast_node!(self, Stmt, ast::Goto, self.jni.new_string(target))
     }
-
-    pub fn fresh(&self, vars: &[Expr]) -> Stmt<'a> {
-        build_ast_node!(
-            self,
-            Stmt,
-            ast::Fresh,
-            self.jni.new_seq(&map_to_jobjects!(vars))
-        )
-    }
-
-    pub fn constraining(&self, vars: &[Expr], body: Stmt) -> Stmt<'a> {
-        build_ast_node!(
-            self,
-            Stmt,
-            ast::Constraining,
-            self.jni.new_seq(&map_to_jobjects!(vars)),
-            body.to_jobject()
-        )
-    }
 }
