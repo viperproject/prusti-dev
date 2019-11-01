@@ -203,9 +203,6 @@ fn main() {
             java_class!("viper.silver.ast.CondExp", vec![
                 constructor!(),
             ]),
-            java_class!("viper.silver.ast.Constraining", vec![
-                constructor!(),
-            ]),
             java_class!("viper.silver.ast.CurrentPerm", vec![
                 constructor!(),
             ]),
@@ -292,9 +289,6 @@ fn main() {
                 object_getter!(),
             ]),
             java_class!("viper.silver.ast.FractionalPerm", vec![
-                constructor!(),
-            ]),
-            java_class!("viper.silver.ast.Fresh", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.FullPerm", vec![
