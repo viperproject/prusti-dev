@@ -16,7 +16,7 @@ lazy_static! {
 fn sequential_verifier_initialization() {
     env_logger::init();
 
-    for iteration in 0..10 {
+    for iteration in 0..5 {
         println!("Iteration #{}...", iteration);
         let verification_context: VerificationContext = VIPER.new_verification_context();
 
