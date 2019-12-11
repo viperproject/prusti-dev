@@ -36,7 +36,8 @@ impl<'a> AstFactory<'a> {
             self.jni.new_seq(&map_to_jobjects!(fields)),
             self.jni.new_seq(&map_to_jobjects!(functions)),
             self.jni.new_seq(&map_to_jobjects!(predicates)),
-            self.jni.new_seq(&map_to_jobjects!(methods))
+            self.jni.new_seq(&map_to_jobjects!(methods)),
+            self.jni.new_seq(&[])
         )
     }
 
