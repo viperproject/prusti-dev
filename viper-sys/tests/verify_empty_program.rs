@@ -99,6 +99,7 @@ fn verify_empty_program() {
             scala::collection::mutable::ArraySeq::with(&env).new(0)?,
             scala::collection::mutable::ArraySeq::with(&env).new(0)?,
             scala::collection::mutable::ArraySeq::with(&env).new(0)?,
+            scala::collection::mutable::ArraySeq::with(&env).new(0)?,
             viper::silver::ast::NoPosition_object::with(&env).singleton()?,
             viper::silver::ast::NoInfo_object::with(&env).singleton()?,
             viper::silver::ast::NoTrafos_object::with(&env).singleton()?,
