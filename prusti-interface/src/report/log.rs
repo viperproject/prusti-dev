@@ -26,7 +26,9 @@ pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<Wri
         Some(log_dir) => {
             let mut path = log_dir.join(namespace);
             fs::create_dir_all(&path)?;
-            path.push(&name.to_string());
+            let name_path = PathBuf::from(name.to_string());
+            debug_assert!(!name_path.is_absolute(), "The name cannot be absolute");
+            path.push(name_path);
             Box::new(fs::File::create(path)?)
         }
         // fallback
