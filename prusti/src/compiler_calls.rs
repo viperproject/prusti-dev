@@ -42,9 +42,11 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         descriptions: &rustc_errors::registry::Registry,
         output: session::config::ErrorOutputType,
     ) -> Compilation {
+
         self.default
             .early_callback(matches, sopts, cfg, descriptions, output)
     }
+
     fn no_input(
         &mut self,
         matches: &getopts::Matches,
@@ -57,6 +59,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         self.default
             .no_input(matches, sopts, cfg, odir, ofile, descriptions)
     }
+
     fn late_callback(
         &mut self,
         trans: &CodegenBackend,
@@ -70,6 +73,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         self.default
             .late_callback(trans, matches, sess, crate_stores, input, odir, ofile)
     }
+
     fn build_controller(
         self: Box<Self>,
         sess: &session::Session,

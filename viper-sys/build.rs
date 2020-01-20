@@ -31,7 +31,7 @@ fn main() {
     let asm_jar = match env::var("ASM_JAR").ok() {
         Some(location) => location,
         None => {
-            let target = "http://central.maven.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar";
+            let target = "https://repo.maven.apache.org/maven2/asm/asm/3.3.1/asm-3.3.1.jar";
             let mut response = reqwest::get(target).unwrap_or_else(|e| {
                 panic!(e.to_string());
             });
