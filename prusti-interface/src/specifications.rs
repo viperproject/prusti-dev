@@ -196,7 +196,7 @@ pub enum AssertionKind<ET, AT> {
     /// Conjunction &&.
     And(Vec<Assertion<ET, AT>>),
     /// Implication ==>
-    Implies(Expression<ET>, Assertion<ET, AT>),
+    Implies(Assertion<ET, AT>, Assertion<ET, AT>),
     /// TODO < Even > ==> x % 2 == 0
     TypeCond(ForAllVars<AT>, Assertion<ET, AT>),
     /// Quantifier (forall vars :: {triggers} filter ==> body)
@@ -289,7 +289,7 @@ impl TypedAssertion {
                     })
             }
             AssertionKind::Implies(ref lhs, ref rhs) => {
-                let mut spans = vec![lhs.expr.span.clone()];
+                let mut spans = lhs.get_spans();
                 spans.extend(rhs.get_spans());
                 spans
             }

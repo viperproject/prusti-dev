@@ -387,10 +387,9 @@ impl<'tcx> SpecParser<'tcx> {
                     self.populate_statements(assertion, statements);
                 }
             }
-            AssertionKind::Implies(ref expression, ref assertion) => {
-                let stmt = self.build_assertion(expression);
-                statements.push(stmt);
-                self.populate_statements(assertion, statements);
+            AssertionKind::Implies(ref lhs_assertion, ref rhs_assertion) => {
+                self.populate_statements(lhs_assertion, statements);
+                self.populate_statements(rhs_assertion, statements);
             }
             AssertionKind::TypeCond(ref vars, ref assertion) => {
                 // TODO deduplicate (see below...)
@@ -1736,9 +1735,11 @@ impl<'tcx> SpecParser<'tcx> {
                     triggers,
                     UntypedAssertion {
                         kind: box AssertionKind::Implies(
-                            Expression {
-                                id: self.get_new_expression_id(),
-                                expr: filter,
+                            UntypedAssertion {
+                                kind: box AssertionKind::Expr(Expression {
+                                    id: self.get_new_expression_id(),
+                                    expr: filter,
+                                })
                             },
                             UntypedAssertion {
                                 kind: box AssertionKind::Expr(Expression {
@@ -1829,7 +1830,10 @@ impl<'tcx> SpecParser<'tcx> {
                     // gives a compiler error.
                     //let kind = UntypedAssertionKind::Implies(precondition, assertion);
                     return Ok(UntypedAssertion {
-                        kind: box AssertionKind::Implies(precondition, assertion),
+                        kind: box AssertionKind::Implies(
+                            Assertion { kind: box AssertionKind::Expr(precondition) },
+                            assertion
+                        ),
                     });
                 }
                 last2 = last1;

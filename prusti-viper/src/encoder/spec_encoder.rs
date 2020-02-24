@@ -352,7 +352,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 .into_iter()
                 .conjoin(),
             box AssertionKind::Implies(ref lhs, ref rhs) => {
-                vir::Expr::implies(self.encode_expression(lhs), self.encode_assertion(rhs))
+                vir::Expr::implies(self.encode_assertion(lhs), self.encode_assertion(rhs))
             }
             box AssertionKind::TypeCond(ref vars, ref assertion) => {
                 let enc = |hir_id: hir::HirId| -> vir::Expr {

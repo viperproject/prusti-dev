@@ -19,7 +19,7 @@ use encoder::vir::fixes::{fix_ghost_vars, havoc_assigned_locals};
 use encoder::vir::optimisations::methods::{
     remove_trivial_assertions, remove_unused_vars, remove_empty_if
 };
-use encoder::vir::ExprIterator;
+use encoder::vir::{ExprIterator, FoldingBehaviour};
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::Encoder;
 use prusti_interface::config;
@@ -140,6 +140,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .encoder
             .get_procedure_contract_for_def(self.proc_def_id);
 
+        let mut precondition_weakening: Option<TypedAssertion> = None;
+        let mut postcondition_strengthening: Option<TypedAssertion> = None;
         debug!("procedure_contract: {:?}", &procedure_contract);
         //trace!("def_id of proc: {:?}", &self.proc_def_id);
         let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
@@ -147,6 +149,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         if let Some(id) = impl_def_id {
             let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
             //trace!("def_id of trait: {:?}", &def_id_trait);
+            // Trait implementation method refinement
+            // Choosing alternative C as discussed in
+            // https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+            // pp 19-23
             if let Some(id) = def_id_trait {
                 let proc_name = self
                     .encoder
@@ -157,17 +163,71 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 //trace!("proc_name: {:?}", proc_name);
                 let assoc_items: Vec<_> = self.encoder.env().tcx().associated_items(id).collect();
                 //trace!("assoc items: {:?}", &assoc_items);
-                if procedure_contract.functional_precondition().len() != 0
-                    || procedure_contract.functional_postcondition().len() != 0
-                {
-                    unimplemented!("Refinement of trait specifications is not supported.");
-                }
                 for assoc_item in assoc_items {
                     if assoc_item.name == proc_name {
                         // TODO use the impl's specs if there are any (separately replace pre/post!)
-                        procedure_contract = self
+                        let procedure_trait_contract = self
                             .encoder
                             .get_procedure_contract_for_def(assoc_item.def_id);
+                        let (proc_pre_specs, proc_post_specs) = {
+                            if let SpecificationSet::Procedure(ref mut pre, ref mut post) = procedure_contract.specification {
+                                (pre, post)
+                            } else {
+                                unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
+                            }
+                        };
+
+                        if proc_pre_specs.is_empty() {
+                            proc_pre_specs.extend_from_slice(procedure_trait_contract.functional_precondition())
+                        } else {
+                            let proc_pre = Assertion {
+                                kind: Box::new(AssertionKind::And(
+                                    proc_pre_specs.iter()
+                                        .map(|spe| spe.assertion.clone())
+                                        .collect()
+                                ))
+                            };
+                            let proc_trait_pre = Assertion {
+                                kind: Box::new(AssertionKind::And(
+                                    procedure_trait_contract.functional_precondition()
+                                        .iter()
+                                        .map(|spe| spe.assertion.clone())
+                                        .collect()
+                                ))
+                            };
+                            precondition_weakening = Some(Assertion {
+                                kind: Box::new(AssertionKind::Implies(
+                                    proc_trait_pre,
+                                    proc_pre,
+                                ))
+                            });
+                        }
+
+                        if proc_post_specs.is_empty() {
+                            proc_post_specs.extend_from_slice(procedure_trait_contract.functional_postcondition())
+                        } else {
+                            let proc_post = Assertion {
+                                kind: Box::new(AssertionKind::And(
+                                    proc_post_specs.iter()
+                                        .map(|spe| spe.assertion.clone())
+                                        .collect()
+                                ))
+                            };
+                            let proc_trait_post = Assertion {
+                                kind: Box::new(AssertionKind::And(
+                                    procedure_trait_contract.functional_postcondition()
+                                        .iter()
+                                        .map(|spe| spe.assertion.clone())
+                                        .collect()
+                                ))
+                            };
+                            postcondition_strengthening = Some(Assertion {
+                                kind: Box::new(AssertionKind::Implies(
+                                    proc_post,
+                                    proc_trait_post,
+                                ))
+                            });
+                        }
                     }
                 }
             }
@@ -277,10 +337,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Encode preconditions
-        self.encode_preconditions(start_cfg_block, &mut procedure_contract);
+        self.encode_preconditions(start_cfg_block, &mut procedure_contract, precondition_weakening);
 
         // Encode postcondition
-        self.encode_postconditions(return_cfg_block, &mut procedure_contract);
+        self.encode_postconditions(return_cfg_block, &mut procedure_contract, postcondition_strengthening);
 
         // Encode statements
         for bbi in self.procedure.get_reachable_cfg_blocks() {
@@ -1835,7 +1895,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 pre_mandatory_type_spec,
                                 pre_invs_spec,
                                 pre_func_spec,
-                            ) = self.encode_precondition_expr(&procedure_contract);
+                                _ // We don't care about verifying that the weakening is valid,
+                                  // since it isn't the task of the caller
+                            ) = self.encode_precondition_expr(&procedure_contract, None);
                             let pos = self.encoder.error_manager().register(
                                 term.source_info.span,
                                 ErrorCtxt::ExhaleMethodPrecondition,
@@ -1904,8 +1966,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 post_func_spec,
                                 magic_wands,
                                 read_transfer,
+                                _ // We don't care about verifying that the strengthening is valid,
+                                  // since it isn't the task of the caller
                             ) = self.encode_postcondition_expr(
                                 &procedure_contract,
+                                None,
                                 &pre_label,
                                 &post_label,
                                 Some((location, &fake_exprs)),
@@ -2100,7 +2165,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_precondition_expr(
         &self,
         contract: &ProcedureContract<'tcx>,
-    ) -> (vir::Expr, Vec<vir::Expr>, vir::Expr, vir::Expr) {
+        precondition_weakening: Option<TypedAssertion>
+    ) -> (vir::Expr, Vec<vir::Expr>, vir::Expr, vir::Expr, Option<vir::Expr>) {
         let borrow_infos = &contract.borrow_infos;
         let maybe_blocked_paths = if !borrow_infos.is_empty() {
             assert_eq!(
@@ -2180,12 +2246,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             //warn!("after:  {:?}", &value);
             func_spec.push(value);
         }
-
+        let precondition_weakening = precondition_weakening
+            .map(|pw| self.encoder.encode_assertion(
+                &pw,
+                &self.mir,
+                &"",
+                &encoded_args,
+                None,
+                false,
+                None,
+            ));
         (
             type_spec.into_iter().conjoin(),
             mandatory_type_spec,
             invs_spec.into_iter().conjoin(),
             func_spec.into_iter().conjoin(),
+            precondition_weakening
         )
     }
 
@@ -2194,11 +2270,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         start_cfg_block: CfgBlockIndex,
         contract: &ProcedureContract<'tcx>,
+        precondition_weakening: Option<TypedAssertion>
     ) {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
-        let (type_spec, mandatory_type_spec, invs_spec, func_spec) =
-            self.encode_precondition_expr(contract);
+        let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
+            self.encode_precondition_expr(contract, precondition_weakening);
         self.cfg_method
             .add_stmt(
                 start_cfg_block,
@@ -2216,6 +2293,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 start_cfg_block,
                 vir::Stmt::Inhale(invs_spec, vir::FoldingBehaviour::Stmt)
             );
+        // Weakening assertion must be put before inhaling the precondition, otherwise the weakening
+        // soundness check becomes trivially satisfied.
+        if let Some(weakening_spec) = weakening_spec {
+            let pos = weakening_spec.pos().clone();
+            self.cfg_method
+                .add_stmt(
+                    start_cfg_block,
+                    vir::Stmt::Assert(weakening_spec, FoldingBehaviour::None, pos)
+                );
+        }
         self.cfg_method
             .add_stmt(
                 start_cfg_block,
@@ -2377,6 +2464,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_postcondition_expr(
         &mut self,
         contract: &ProcedureContract<'tcx>,
+        postcondition_strengthening: Option<TypedAssertion>,
         pre_label: &str,
         post_label: &str,
         magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
@@ -2390,6 +2478,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         vir::Expr,                   // Functional specification.
         Vec<vir::Expr>,              // Magic wands.
         Vec<(vir::Expr, vir::Expr)>, // Read permissions that need to be transferred to a new place.
+        Option<vir::Expr>            // Specification strengthening, in case of trait method implementation.
     ) {
         let mut type_spec = vec![];
         let mut invs_spec = vec![];
@@ -2485,6 +2574,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             func_spec.push(assertion);
         }
         let func_spec_pos = self.encoder.error_manager().register_span(func_spec_spans);
+
+        // Encode possible strengthening, in case of trait method implementation
+        let strengthening_spec = postcondition_strengthening
+            .map(|ps| {
+                let assertion = self.encoder.encode_assertion(
+                    &ps,
+                    &self.mir,
+                    pre_label,
+                    &encoded_args,
+                    Some(&encoded_return),
+                    false,
+                    None,
+                );
+                self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args)
+            });
+
         (
             type_spec.into_iter().conjoin(),
             return_perm,
@@ -2492,6 +2597,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             func_spec.into_iter().conjoin().set_default_pos(func_spec_pos),
             magic_wands,
             read_transfer,
+            strengthening_spec
         )
     }
 
@@ -2670,6 +2776,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         return_cfg_block: CfgBlockIndex,
         contract: &ProcedureContract<'tcx>,
+        postcondition_strengthening: Option<TypedAssertion>,
     ) {
         self.cfg_method
             .add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
@@ -2679,9 +2786,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::AssertMethodPostconditionTypeInvariants,
         );
 
-        let (type_spec, return_type_spec, invs_spec, func_spec, magic_wands, _) = self
+        let (type_spec, return_type_spec, invs_spec, func_spec, magic_wands, _, strengthening_spec) = self
             .encode_postcondition_expr(
                 contract,
+                postcondition_strengthening,
                 PRECONDITION_LABEL,
                 POSTCONDITION_LABEL,
                 None,
@@ -2802,6 +2910,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let obtain_return_stmt = vir::Stmt::Obtain(return_pred, type_inv_pos.clone());
         self.cfg_method.add_stmt(return_cfg_block, obtain_return_stmt);
 
+        // Assert possible strengthening
+        if let Some(strengthening_spec) = strengthening_spec {
+            let patched_strengthening_spec = self.replace_old_places_with_ghost_vars(None, strengthening_spec);
+            let pos = patched_strengthening_spec.pos().clone();
+            self.cfg_method
+                .add_stmt(
+                    return_cfg_block,
+                    vir::Stmt::Assert(patched_strengthening_spec, FoldingBehaviour::None, pos)
+                );
+        }
         // Assert functional specification of postcondition
         let func_pos = self.encoder.error_manager().register(
             self.mir.span,
