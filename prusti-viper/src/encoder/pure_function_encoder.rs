@@ -269,6 +269,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 None,
                 true,
                 None,
+                ErrorCtxt::GenericExpression,
             ));
         }
 
@@ -300,6 +301,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
                 Some(&encoded_return.clone().into()),
                 true,
                 None,
+                ErrorCtxt::GenericExpression,
             );
             debug_assert!(!encoded_postcond.pos().is_default());
             func_spec.push(encoded_postcond);

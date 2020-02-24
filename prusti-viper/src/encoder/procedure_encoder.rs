@@ -2242,6 +2242,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 None,
                 false,
                 None,
+                ErrorCtxt::GenericExpression,
             );
             //warn!("after:  {:?}", &value);
             func_spec.push(value);
@@ -2255,6 +2256,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 None,
                 false,
                 None,
+                ErrorCtxt::AssertMethodPreconditionWeakening
             ));
         (
             type_spec.into_iter().conjoin(),
@@ -2385,6 +2387,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     Some(&encoded_return),
                     false,
                     None,
+                    ErrorCtxt::GenericExpression,
                 );
                 let mut assertion_rhs = self.encoder.encode_assertion(
                     &body_rhs,
@@ -2394,6 +2397,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     Some(&encoded_return),
                     false,
                     None,
+                    ErrorCtxt::GenericExpression,
                 );
                 assertion_lhs =
                     self.wrap_arguments_into_old(assertion_lhs, pre_label, contract, &encoded_args);
@@ -2568,6 +2572,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 Some(&encoded_return),
                 false,
                 None,
+                ErrorCtxt::GenericExpression,
             );
             func_spec_spans.extend(item.assertion.get_spans());
             assertion = self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args);
@@ -2586,6 +2591,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     Some(&encoded_return),
                     false,
                     None,
+                    ErrorCtxt::AssertMethodPostconditionStrengthening
                 );
                 self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args)
             });
@@ -3257,6 +3263,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 None,
                                 false,
                                 Some(loop_head),
+                                ErrorCtxt::GenericExpression,
                             );
                             let spec_spans = spec.assertion.get_spans();
                             let spec_pos = self.encoder.error_manager().register_span(

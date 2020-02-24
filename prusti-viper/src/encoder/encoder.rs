@@ -808,6 +808,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         encoded_return: Option<&vir::Expr>,
         targets_are_values: bool,
         stop_at_bbi: Option<mir::BasicBlock>,
+        error: ErrorCtxt,
     ) -> vir::Expr {
         let spec_encoder = SpecEncoder::new(
             self,
@@ -820,7 +821,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         );
         spec_encoder.encode_assertion(assertion).set_default_pos(
             self.error_manager()
-                .register(assertion.get_spans(), ErrorCtxt::GenericExpression),
+                .register(assertion.get_spans(), error),
         )
     }
 
