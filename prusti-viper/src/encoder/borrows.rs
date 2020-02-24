@@ -88,7 +88,7 @@ where
     /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
     pub borrow_infos: Vec<BorrowInfo<P>>,
     /// The functional specification: precondition and postcondition
-    specification: TypedSpecificationSet,
+    pub specification: TypedSpecificationSet,
 }
 
 impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
