@@ -2302,7 +2302,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method
                 .add_stmt(
                     start_cfg_block,
-                    vir::Stmt::Assert(weakening_spec, FoldingBehaviour::None, pos)
+                    vir::Stmt::Assert(weakening_spec, FoldingBehaviour::Expr, pos)
                 );
         }
         self.cfg_method
@@ -2923,7 +2923,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method
                 .add_stmt(
                     return_cfg_block,
-                    vir::Stmt::Assert(patched_strengthening_spec, FoldingBehaviour::None, pos)
+                    vir::Stmt::Assert(patched_strengthening_spec, FoldingBehaviour::Expr, pos)
                 );
         }
         // Assert functional specification of postcondition
