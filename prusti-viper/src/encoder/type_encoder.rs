@@ -47,7 +47,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyAdt(_, _) |
             ty::TypeVariants::TyTuple(_) |
             ty::TypeVariants::TyNever |
-            ty::TypeVariants::TyParam(_) => {
+            ty::TypeVariants::TyParam(_) |
+            // TODO: inner type + const
+            ty::TypeVariants::TyArray(_, _) => {
                 true
             }
             _ => {
@@ -139,6 +141,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
+            }
+            // TODO: size?
+            ty::TypeVariants::TyArray(ref ty, _) => {
+                let type_name = self.encoder.encode_type_predicate_use(ty);
+                vir::Field::new("val_array", vir::Type::TypedSeq(type_name))
             }
 
             ref x => unimplemented!("{:?}", x),
@@ -335,6 +342,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyParam(_) => {
                 // special case: type parameters shall be encoded as *abstract* predicates
                 vec![vir::Predicate::new_abstract(typ)]
+            }
+
+            // TODO: inner type + size
+            ty::TypeVariants::TyArray(_, _) => {
+                vec![vir::Predicate::new_array(
+                    typ,
+                    self.encoder.encode_value_field(self.ty)
+                )]
             }
 
             ref ty_variant => {

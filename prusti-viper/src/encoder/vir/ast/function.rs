@@ -72,6 +72,7 @@ pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Ty
             Type::Int => "$int$",
             Type::Bool => "$bool$",
             Type::TypedRef(ref name) => name,
+            Type::TypedSeq(ref _name) => "$seq$" // TODO: is this ok?
         }
     }
     for arg in formal_args {

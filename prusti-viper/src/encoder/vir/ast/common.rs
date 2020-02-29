@@ -141,6 +141,7 @@ pub enum Type {
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
+    TypedSeq(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -148,6 +149,7 @@ pub enum TypeId {
     Int,
     Bool,
     Ref,
+    Seq,
 }
 
 impl fmt::Display for Type {
@@ -157,11 +159,13 @@ impl fmt::Display for Type {
             &Type::Bool => write!(f, "Bool"),
             //&Type::Ref => write!(f, "Ref"),
             &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
+            &Type::TypedSeq(ref name) => write!(f, "Seq({})", name),
         }
     }
 }
 
 impl Type {
+    // TODO: Do we consider TypedSeq a ref ?
     pub fn is_ref(&self) -> bool {
         match self {
             //&Type::Ref |
@@ -175,6 +179,7 @@ impl Type {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
+            &Type::TypedSeq(ref pred_name) => format!("seq{}", pred_name), // TODO: is this ok?
         }
     }
 
@@ -201,6 +206,12 @@ impl Type {
                 }
                 Type::TypedRef(predicate_name)
             }
+            Type::TypedSeq(mut predicate_name) => {
+                for (typ, subst) in substs {
+                    predicate_name = predicate_name.replace(typ, subst);
+                }
+                Type::TypedSeq(predicate_name)
+            }
         }
     }
 
@@ -209,6 +220,7 @@ impl Type {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
             Type::TypedRef(_) => TypeId::Ref,
+            Type::TypedSeq(_) => TypeId::Seq,
         }
     }
 }
@@ -280,6 +292,7 @@ impl Field {
         }
     }
 
+    // TODO: adapt to take into account arrays
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.typ {
             Type::TypedRef(ref name) => Some(name.clone()),

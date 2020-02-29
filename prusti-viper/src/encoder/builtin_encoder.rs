@@ -11,6 +11,7 @@ pub enum BuiltinMethodKind {
     HavocBool,
     HavocInt,
     HavocRef,
+    HavocSeq,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -34,6 +35,7 @@ impl BuiltinEncoder {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
+            BuiltinMethodKind::HavocSeq => "builtin$havoc_seq".to_string(),
         }
     }
 
@@ -42,6 +44,7 @@ impl BuiltinEncoder {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
             BuiltinMethodKind::HavocInt => vir::Type::Int,
             BuiltinMethodKind::HavocRef => vir::Type::TypedRef("".to_string()),
+            BuiltinMethodKind::HavocSeq => vir::Type::TypedSeq("".to_string()),
         };
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),
@@ -57,9 +60,11 @@ impl BuiltinEncoder {
             BuiltinFunctionKind::Unreachable(vir::Type::TypedRef(_)) => {
                 format!("builtin$unreach_ref")
             }
+            BuiltinFunctionKind::Unreachable(vir::Type::TypedSeq(_)) => format!("builtin$unreach_seq"),
             BuiltinFunctionKind::Undefined(vir::Type::Int) => format!("builtin$undef_int"),
             BuiltinFunctionKind::Undefined(vir::Type::Bool) => format!("builtin$undef_bool"),
             BuiltinFunctionKind::Undefined(vir::Type::TypedRef(_)) => format!("builtin$undef_ref"),
+            BuiltinFunctionKind::Undefined(vir::Type::TypedSeq(_)) => format!("builtin$undef_seq"),
         }
     }
 

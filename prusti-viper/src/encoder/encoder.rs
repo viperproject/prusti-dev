@@ -707,6 +707,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 (vir::TypeId::Bool, BuiltinMethodKind::HavocBool),
                 (vir::TypeId::Int, BuiltinMethodKind::HavocInt),
                 (vir::TypeId::Ref, BuiltinMethodKind::HavocRef),
+                (vir::TypeId::Seq, BuiltinMethodKind::HavocSeq),
             ];
         }
         TYPES.iter()

@@ -91,6 +91,22 @@ impl Predicate {
             variants: variants,
         })
     }
+    // TODO: generalize that to accept slices
+    /// Construct a new predicate that represents an array
+    pub fn new_array(
+        typ: Type,
+        field: Field
+    ) -> Predicate {
+        let predicate_name = typ.name();
+        let this = Self::construct_this(typ);
+        let val_field = Expr::from(this.clone()).field(field);
+        let body = Expr::acc_permission(val_field.clone(), PermAmount::Write);
+        Predicate::Struct(StructPredicate {
+            name: predicate_name,
+            this: this,
+            body: Some(body),
+        })
+    }
     /// A `self` place getter.
     pub fn self_place(&self) -> Expr {
         match self {

@@ -775,6 +775,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     &mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
                         self.encode_cast(operand, dst_ty, encoded_lhs, ty, location)
                     }
+                    &mir::Rvalue::Len(ref place) => {
+                        self.encode_assign_len(place, encoded_lhs, ty, location)
+                    }
                     ref rhs => {
                         unimplemented!("encoding of '{:?}'", rhs);
                     }
@@ -3951,6 +3954,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         let encoded_val = self.mir_encoder.encode_cast_expr(operand, dst_ty);
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
+    }
+
+    fn encode_assign_len(
+        &mut self,
+        place: &mir::Place<'tcx>,
+        encoded_lhs: vir::Expr,
+        ty: ty::Ty<'tcx>,
+        location: mir::Location,
+    ) -> Vec<vir::Stmt> {
+        info!("[enter] encode_assign_len(place={:?})", place);
+        let (encoded_val, _, _) = self.mir_encoder.encode_place(place);
+        self.encode_copy_value_assign(encoded_lhs, vir::Expr::seq_len(encoded_val), ty, location)
     }
 
     pub fn get_auxiliar_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {

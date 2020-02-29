@@ -148,9 +148,9 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             ty::TypeVariants::TyStr => partially!(self, span, "uses `str` types"),
 
+            // TODO: size value
             ty::TypeVariants::TyArray(inner_ty, ..) => {
                 self.check_inner_ty(inner_ty, span);
-                unsupported!(self, span, "uses `array` types");
             }
 
             ty::TypeVariants::TySlice(inner_ty, ..) => {

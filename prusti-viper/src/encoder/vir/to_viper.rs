@@ -31,6 +31,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             &Type::Bool => ast.bool_type(),
             //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
+            &Type::TypedSeq(_) => ast.seq_type(ast.ref_type()),
         }
     }
 }
@@ -385,6 +386,10 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             }
+            &Expr::SeqIndex(ref seq, ref index, _) =>
+                ast.seq_index(seq.to_viper(ast), index.to_viper(ast)),
+            &Expr::SeqLen(ref seq, _) =>
+                ast.seq_length(seq.to_viper(ast)),
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

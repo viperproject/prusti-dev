@@ -41,6 +41,10 @@ pub enum Expr {
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
+    /// An indexing into a Seq: sequence, index, position
+    SeqIndex(Box<Expr>, Box<Expr>, Position),
+    /// Length of the given sequence
+    SeqLen(Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -48,6 +52,7 @@ pub enum Expr {
 pub enum PlaceComponent {
     Field(Field, Position),
     Variant(Field, Position),
+    SeqIndex(Box<Expr>, Position),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -160,6 +165,8 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
+            Expr::SeqIndex(ref seq, ref index, _) => write!(f, "{}[{}]", seq, index),
+            Expr::SeqLen(ref seq, _) => write!(f, "|{}|", seq),
         }
     }
 }
@@ -223,6 +230,8 @@ impl Expr {
             Expr::ForAll(_, _, _, ref p) => p,
             Expr::LetExpr(_, _, _, ref p) => p,
             Expr::FuncApp(_, _, _, _, ref p) => p,
+            Expr::SeqIndex(_, _, ref p) => p,
+            Expr::SeqLen(_, ref p) => p,
         }
     }
 
@@ -248,6 +257,8 @@ impl Expr {
             Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
+            Expr::SeqIndex(x, y, _) => Expr::SeqIndex(x, y, pos),
+            Expr::SeqLen(x, _) => Expr::SeqLen(x, pos),
         }
     }
 
@@ -410,6 +421,10 @@ impl Expr {
         Expr::FuncApp(name, args, internal_args, return_type, pos)
     }
 
+    pub fn seq_len(seq: Expr) -> Self {
+        Expr::SeqLen(box seq, Position::default())
+    }
+
     pub fn magic_wand(lhs: Expr, rhs: Expr, borrow: Option<Borrow>) -> Self {
         Expr::MagicWand(box lhs, box rhs, borrow, Position::default())
     }
@@ -479,6 +494,11 @@ impl Expr {
                 components.push(PlaceComponent::Field(field.clone(), pos.clone()));
                 (base_base, components)
             }
+            Expr::SeqIndex(ref base, ref index, ref pos) => {
+                let (base_base, mut components) = base.explode_place();
+                components.push(PlaceComponent::SeqIndex(index.clone(), pos.clone()));
+                (base_base, components)
+            }
             _ => (self.clone(), vec![]),
         }
     }
@@ -490,6 +510,7 @@ impl Expr {
             .fold(self, |acc, component| match component {
                 PlaceComponent::Variant(variant, pos) => Expr::Variant(box acc, variant, pos),
                 PlaceComponent::Field(field, pos) => Expr::Field(box acc, field, pos),
+                PlaceComponent::SeqIndex(index, pos) => Expr::SeqIndex(box acc, index, pos),
             })
     }
 
@@ -534,7 +555,8 @@ impl Expr {
             | &Expr::Field(ref base, _, _)
             | &Expr::AddrOf(ref base, _, _)
             | &Expr::LabelledOld(_, ref base, _)
-            | &Expr::Unfolding(_, _, ref base, _, _, _) => base.is_place(),
+            | &Expr::Unfolding(_, _, ref base, _, _, _)
+            | &Expr::SeqIndex(ref base, _, _) => base.is_place(),
             _ => false,
         }
     }
@@ -554,7 +576,8 @@ impl Expr {
             | &Expr::Field(ref base, _, _)
             | &Expr::AddrOf(ref base, _, _)
             | &Expr::LabelledOld(_, ref base, _)
-            | &Expr::Unfolding(_, _, ref base, _, _, _) => base.place_depth() + 1,
+            | &Expr::Unfolding(_, _, ref base, _, _, _)
+            | &Expr::SeqIndex(ref base, _, _) => base.place_depth() + 1,
             x => unreachable!("{:?}", x),
         }
     }
@@ -562,7 +585,9 @@ impl Expr {
     pub fn is_simple_place(&self) -> bool {
         match self {
             &Expr::Local(_, _) => true,
-            &Expr::Variant(ref base, _, _) | &Expr::Field(ref base, _, _) => base.is_simple_place(),
+            &Expr::Variant(ref base, _, _)
+            | &Expr::Field(ref base, _, _)
+            | &Expr::SeqIndex(ref base, _, _) => base.is_simple_place(),
             _ => false,
         }
     }
@@ -574,7 +599,8 @@ impl Expr {
             &Expr::Local(_, _) => None,
             &Expr::Variant(box ref base, _, _)
             | &Expr::Field(box ref base, _, _)
-            | &Expr::AddrOf(box ref base, _, _) => Some(base),
+            | &Expr::AddrOf(box ref base, _, _)
+            | &Expr::SeqIndex(box ref base, _, _) => Some(base),
             &Expr::LabelledOld(_, _, _) => None,
             &Expr::Unfolding(_, _, _, _, _, _) => None,
             ref x => unreachable!("{}", x),
@@ -802,7 +828,9 @@ impl Expr {
                 &typ
             },
             &Expr::LabelledOld(_, box ref base, _)
-            | &Expr::Unfolding(_, _, box ref base, _, _, _) => {
+            | &Expr::Unfolding(_, _, box ref base, _, _, _)
+            // TODO: Or should we instead get the type of the overall expression ? i.e. TypedRef
+            | &Expr::SeqIndex(box ref base, _, _)=> {
                 base.get_type()
             }
             _ => panic!(),
@@ -904,6 +932,7 @@ impl Expr {
                             }
                             Expr::Field(expr, field, pos)
                         }
+                        // TODO: should we replace SeqIndex too ?
                         x => {
                             self.subst = false;
                             x
@@ -1012,7 +1041,9 @@ impl Expr {
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
                     | Expr::LetExpr(..)
-                    | Expr::FuncApp(..) => true.into(),
+                    | Expr::FuncApp(..)
+                    | Expr::SeqIndex(..)
+                    | Expr::SeqLen(..) => true.into(),
                 }
             }
         }
@@ -1073,6 +1104,7 @@ impl Expr {
         match &self {
             Expr::Local(localvar, _) => match &localvar.typ {
                 Type::TypedRef(str) => str.clone(),
+                // TODO: we do not care about TypedSeq here, right?
                 _ => panic!("expected Type::TypedRef"),
             },
             _ => panic!("expected Expr::Local"),
@@ -1240,6 +1272,14 @@ impl PartialEq for Expr {
                 (self_name, self_args, self_base, self_perm, self_variant)
                     == (other_name, other_args, other_base, other_perm, other_variant)
             }
+            (
+                Expr::SeqIndex(ref self_seq, ref self_index, _),
+                Expr::SeqIndex(ref other_seq, ref other_index, _),
+            ) => (self_seq, self_index) == (other_seq, other_index),
+            (
+                Expr::SeqLen(ref self_seq, _),
+                Expr::SeqLen(ref other_seq, _),
+            ) => self_seq == other_seq,
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -1279,6 +1319,8 @@ impl Hash for Expr {
             Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
                 (name, args, base, perm, variant).hash(state)
             }
+            Expr::SeqIndex(ref seq, ref index, _) => (seq, index).hash(state),
+            Expr::SeqLen(ref seq, _) => seq.hash(state),
         }
     }
 }
@@ -1419,6 +1461,12 @@ pub trait ExprFolder: Sized {
             pos
         )
     }
+    fn fold_seq_index(&mut self, seq: Box<Expr>, index: Box<Expr>, p: Position) -> Expr {
+        Expr::SeqIndex(self.fold_boxed(seq), self.fold_boxed(index), p)
+    }
+    fn fold_seq_len(&mut self, seq: Box<Expr>, p: Position) -> Expr {
+        Expr::SeqLen(self.fold_boxed(seq), p)
+    }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -1443,6 +1491,8 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::ForAll(x, y, z, p) => this.fold_forall(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
+        Expr::SeqIndex(x, y, p) => this.fold_seq_index(x, y, p),
+        Expr::SeqLen(x, p) => this.fold_seq_len(x, p),
     }
 }
 
@@ -1554,6 +1604,13 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(arg);
         }
     }
+    fn walk_seq_index(&mut self, base: &Expr, index: &Expr, _pos: &Position) {
+        self.walk(base);
+        self.walk(index);
+    }
+    fn walk_seq_len(&mut self, arg: &Expr, _pos: &Position) {
+        self.walk(arg)
+    }
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -1578,6 +1635,8 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::ForAll(ref x, ref y, ref z, ref p) => this.walk_forall(x, y, z, p),
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
+        Expr::SeqIndex(ref x, ref y, ref p) => this.walk_seq_index(x, y, p),
+        Expr::SeqLen(ref x, ref p) => this.walk_seq_len(x, p),
     }
 }
 
