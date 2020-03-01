@@ -95,12 +95,34 @@ impl Predicate {
     /// Construct a new predicate that represents an array
     pub fn new_array(
         typ: Type,
-        field: Field
+        elem_field: Field,
+        array_field: Field,
     ) -> Predicate {
         let predicate_name = typ.name();
         let this = Self::construct_this(typ);
-        let val_field = Expr::from(this.clone()).field(field);
-        let body = Expr::acc_permission(val_field.clone(), PermAmount::Write);
+        let val_field = Expr::from(this.clone()).field(array_field);
+        // acc(self.val_array)
+        let val_field_acc = Expr::acc_permission(val_field.clone(), PermAmount::Write);
+        // forall i: Int :: 0 <= i < |self.val_array| ==> acc(self.val_array[i].val_*)
+        let elems_acc = {
+            let idx_local = LocalVar::new("i", Type::Int);
+            let idx = Expr::local(idx_local.clone());
+            let idx_bounds = Expr::and(
+                Expr::le_cmp(Expr::Const(Const::Int(0), Position::default()), idx.clone()),
+                Expr::lt_cmp(idx.clone(), Expr::seq_len(val_field.clone()))
+            );
+            let elems_acc = Expr::acc_permission(
+                // self.val_array[i].val_*
+                Expr::field(Expr::seq_index(val_field.clone(), idx.clone()), elem_field),
+                PermAmount::Write
+            );
+            Expr::forall(
+                vec![idx_local],
+                vec![Trigger::new(vec![idx])],
+                Expr::implies(idx_bounds, elems_acc)
+            )
+        };
+        let body = Expr::and(val_field_acc, elems_acc);
         Predicate::Struct(StructPredicate {
             name: predicate_name,
             this: this,

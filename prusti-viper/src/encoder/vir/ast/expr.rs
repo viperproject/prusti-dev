@@ -421,6 +421,16 @@ impl Expr {
         Expr::FuncApp(name, args, internal_args, return_type, pos)
     }
 
+    // TODO: do same check for seq len
+    pub fn seq_index(seq: Expr, index: Expr) -> Self {
+        assert!(match &seq {
+            Expr::Field(_, Field { name, typ }, _) =>
+                name.as_str() == "val_array" && typ.get_id() == TypeId::Seq,
+            _ => false
+        }, "`seq` must be a field access of val_array");
+        Expr::SeqIndex(box seq, box index, Position::default())
+    }
+
     pub fn seq_len(seq: Expr) -> Self {
         Expr::SeqLen(box seq, Position::default())
     }
@@ -818,20 +828,24 @@ impl Expr {
         res
     }
 
-    pub fn get_type(&self) -> &Type {
+    pub fn get_type(&self) -> Type {
         debug_assert!(self.is_place());
         match self {
             &Expr::Local(LocalVar { ref typ, .. }, _)
             | &Expr::Variant(_, Field { ref typ, .. }, _)
             | &Expr::Field(_, Field { ref typ, .. }, _)
             | &Expr::AddrOf(_, ref typ, _) => {
-                &typ
+                typ.clone()
             },
             &Expr::LabelledOld(_, box ref base, _)
-            | &Expr::Unfolding(_, _, box ref base, _, _, _)
-            // TODO: Or should we instead get the type of the overall expression ? i.e. TypedRef
-            | &Expr::SeqIndex(box ref base, _, _)=> {
+            | &Expr::Unfolding(_, _, box ref base, _, _, _) => {
                 base.get_type()
+            }
+            &Expr::SeqIndex(box ref base, _, _)=> {
+                return match base.get_type() {
+                    Type::TypedSeq(struct_pred) => Type::TypedRef(struct_pred),
+                    x => unreachable!("Got {:?}", x),
+                }
             }
             _ => panic!(),
         }
@@ -841,7 +855,7 @@ impl Expr {
     /// false even for boolean expressions.
     pub fn is_bool(&self) -> bool {
         if self.is_place() {
-            self.get_type() == &Type::Bool
+            self.get_type() == Type::Bool
         } else {
             match self {
                 Expr::Const(Const::Bool(_), _) |
@@ -865,7 +879,7 @@ impl Expr {
 
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.get_type() {
-            &Type::TypedRef(ref name) => Some(name.clone()),
+            Type::TypedRef(name) => Some(name),
             _ => None,
         }
     }

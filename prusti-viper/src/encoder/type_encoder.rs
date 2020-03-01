@@ -344,10 +344,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
-            // TODO: inner type + size
-            ty::TypeVariants::TyArray(_, _) => {
+            // TODO: size?
+            ty::TypeVariants::TyArray(inner, _) => {
                 vec![vir::Predicate::new_array(
                     typ,
+                    self.encoder.encode_value_field(inner),
                     self.encoder.encode_value_field(self.ty)
                 )]
             }

@@ -16,6 +16,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use std;
 use syntax::ast;
 use syntax::codemap::Span;
+use encoder::type_encoder::TypeEncoder;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static POSTCONDITION_LABEL: &'static str = "post";
@@ -70,10 +71,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn encode_local(&self, local: mir::Local) -> vir::LocalVar {
         let var_name = self.encode_local_var_name(local);
-        let type_name = self
-            .encoder
-            .encode_type_predicate_use(self.get_local_ty(local));
-        vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+        let local_ty = self.get_local_ty(local);
+        match local_ty.sty {
+            ty::TypeVariants::TyArray(inner, _)
+            | ty::TypeVariants::TySlice(inner) => {
+                let type_name = self
+                    .encoder
+                    .encode_type_predicate_use(inner);
+                vir::LocalVar::new(var_name, vir::Type::TypedSeq(type_name))
+            }
+            _ => {
+                let type_name = self
+                    .encoder
+                    .encode_type_predicate_use(local_ty);
+                vir::LocalVar::new(var_name, vir::Type::TypedRef(type_name))
+            }
+        }
     }
 
     /// Returns
@@ -180,7 +193,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("Rust closure projection {:?}", place_projection);
                         debug!("encoded_projection: {:?}", encoded_projection);
 
-                        assert_eq!(encoded_projection.get_type(), &encoded_field_type);
+                        assert_eq!(encoded_projection.get_type(), encoded_field_type);
 
                         (encoded_projection, field_ty, None)
                     }
@@ -194,6 +207,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             &mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
                 (encoded_base, base_ty, Some(variant_index))
+            }
+
+            &mir::ProjectionElem::Index(index) => {
+                let projection_ty = match base_ty.sty {
+                    ty::TypeVariants::TyArray(ty, _)
+                    | ty::TypeVariants::TySlice(ty) => ty,
+                    _ => unreachable!()
+                };
+                let encoded_index = self.encode_local(index);
+                let val_array_field = TypeEncoder::new(self.encoder, base_ty)
+                    .encode_value_field();
+                let encoded_projection = vir::Expr::seq_index(
+                    vir::Expr::field(encoded_base, val_array_field),
+                    vir::Expr::local(encoded_index)
+                );
+                (encoded_projection, projection_ty, None)
             }
 
             x => unimplemented!("{:?}", x),

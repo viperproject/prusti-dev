@@ -140,7 +140,7 @@ impl vir::ExprFolder for Replacer {
                 vir::Expr::Local(local.clone(), pos)
             } else {
                 let ty = expr.get_type();
-                let local = self.construct_fresh_local(ty);
+                let local = self.construct_fresh_local(&ty);
                 self.map.insert(original_expr, local.clone());
                 vir::Expr::Local(local, pos)
             }

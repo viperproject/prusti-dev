@@ -311,10 +311,16 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .get_required_permissions(predicates)
             }
 
-            vir::Expr::SeqIndex(ref seq, ref index, _) => {
+            vir::Expr::SeqIndex(ref _seq, ref _index, _) => {
+                /*info!("REQUIRING PERMISSIONS FOR {}", self);
+                // Permission for the seq instance
                 let mut result = seq.get_required_permissions(predicates);
+                // Permission for index
                 result.extend(index.get_required_permissions(predicates).into_iter());
-                result
+                // Permission for indexing into the seq
+                result.insert(Acc(self.clone(), PermAmount::Read));
+                result*/
+                unimplemented!()
             }
 
             vir::Expr::SeqLen(ref seq, _) => seq.get_required_permissions(predicates)
@@ -340,8 +346,10 @@ impl vir::Expr {
             | vir::Expr::AddrOf(_, _, _)
             | vir::Expr::LabelledOld(_, _, _)
             | vir::Expr::Const(_, _)
-            | vir::Expr::FuncApp(..)
-            | vir::Expr::SeqIndex(_, _, _)
+            | vir::Expr::FuncApp(..) => HashSet::new(),
+
+            // TODO: Is this correct?
+            vir::Expr::SeqIndex(_, _, _)
             | vir::Expr::SeqLen(_, _) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {

@@ -658,7 +658,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         position: vir::Position,
     ) -> vir::Expr {
         let typ = first.get_type().clone();
-        assert!(&typ == second.get_type());
+        assert!(typ == second.get_type());
         let mut name = typ.name();
         name.push_str("$$memory_eq$$");
         if !self.memory_eq_funcs.borrow().contains_key(&name) {
@@ -684,7 +684,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         position: vir::Position,
     ) -> vir::Expr {
         let typ = first.get_type().clone();
-        assert!(&typ == second.get_type());
+        assert!(typ == second.get_type());
         let mut name = typ.name();
         name.push_str("$$memory_eq$$");
         if !self.memory_eq_funcs.borrow().contains_key(&name) {
