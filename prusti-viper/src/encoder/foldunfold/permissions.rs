@@ -323,7 +323,9 @@ impl RequiredPermissionsGetter for vir::Expr {
                 unimplemented!()
             }
 
-            vir::Expr::SeqLen(ref seq, _) => seq.get_required_permissions(predicates)
+            vir::Expr::SeqLen(ref seq, _) => seq.get_required_permissions(predicates),
+
+            vir::Expr::CondResourceAccess(..) => unimplemented!(),
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",
@@ -431,6 +433,8 @@ impl vir::Expr {
             vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
+
+            vir::Expr::CondResourceAccess(..) => unimplemented!(),
         }
     }
 }

@@ -46,22 +46,23 @@ pub enum Expr {
     SeqIndex(Box<Expr>, Box<Expr>, Position),
     /// Length of the given sequence
     SeqLen(Box<Expr>, Position),
+    CondResourceAccess(CondResourceAccess, Position),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ResourceAccess {
     PredicateAccessPredicate(PredicateAccessPredicate),
     FieldAccessPredicate(FieldAccessPredicate)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PredicateAccessPredicate {
     pub predicate_name: String,
     pub arg: Box<Expr>,
     pub perm: PermAmount
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FieldAccessPredicate {
     pub place: Box<Expr>,
     pub perm: PermAmount
@@ -73,14 +74,13 @@ pub struct FieldAccessPredicate {
 ///
 /// This is a more specified version of the following expression:
 /// `forall vars :: { triggers } cond ==> resource`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CondResourceAccess {
     pub vars: Vec<LocalVar>,
     pub triggers: Vec<Trigger>,
     pub cond: Box<Expr>,
     /// The resource being guarded by requirements.
-    // TODO: Generalize this to ResourceAccess
-    pub resource: FieldAccessPredicate,
+    pub resource: ResourceAccess,
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -203,6 +203,7 @@ impl fmt::Display for Expr {
             ),
             Expr::SeqIndex(ref seq, ref index, _) => write!(f, "{}[{}]", seq, index),
             Expr::SeqLen(ref seq, _) => write!(f, "|{}|", seq),
+            Expr::CondResourceAccess(ref cond, _) => cond.fmt(f),
         }
     }
 }
@@ -247,6 +248,41 @@ impl fmt::Display for Const {
     }
 }
 
+impl fmt::Display for ResourceAccess {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ResourceAccess::FieldAccessPredicate(fa) =>
+                write!(f, "acc({}, {})", fa.place, fa.perm),
+            ResourceAccess::PredicateAccessPredicate(pa) =>
+                write!(f, "acc({}({}), {})", pa.predicate_name, pa.arg, pa.perm),
+        }
+    }
+}
+
+impl fmt::Display for CondResourceAccess {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.vars.is_empty() {
+            write!(f, "{} ==> {}", self.cond, self.resource)
+        } else {
+            write!(
+                f,
+                "forall {} {} :: {} ==> {}",
+                self.vars.iter()
+                    .map(|x| format!("{:?}", x))
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                self.triggers
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                self.cond,
+                self.resource
+            )
+        }
+    }
+}
+
 impl Expr {
     pub fn pos(&self) -> &Position {
         match self {
@@ -268,6 +304,7 @@ impl Expr {
             Expr::FuncApp(_, _, _, _, ref p) => p,
             Expr::SeqIndex(_, _, ref p) => p,
             Expr::SeqLen(_, ref p) => p,
+            Expr::CondResourceAccess(_, ref p) => p,
         }
     }
 
@@ -295,6 +332,7 @@ impl Expr {
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
             Expr::SeqIndex(x, y, _) => Expr::SeqIndex(x, y, pos),
             Expr::SeqLen(x, _) => Expr::SeqLen(x, pos),
+            Expr::CondResourceAccess(x, _) => Expr::CondResourceAccess(x, pos),
         }
     }
 
@@ -586,7 +624,8 @@ impl Expr {
     pub fn is_only_permissions(&self) -> bool {
         match self {
             Expr::PredicateAccessPredicate(..) |
-            Expr::FieldAccessPredicate(..) => true,
+            Expr::FieldAccessPredicate(..) |
+            Expr::CondResourceAccess(..) => true,
             Expr::BinOp(BinOpKind::And, box lhs, box rhs, _) => {
                 lhs.is_only_permissions() && rhs.is_only_permissions()
             }
@@ -737,6 +776,7 @@ impl Expr {
         match self {
             Expr::PredicateAccessPredicate(_, ref arg, _, _) => Some(arg),
             Expr::FieldAccessPredicate(box ref arg, _, _) => Some(arg),
+            Expr::CondResourceAccess(cond, _) => Some(cond.resource.expression()),
             _ => None,
         }
     }
@@ -745,6 +785,7 @@ impl Expr {
         match self {
             Expr::PredicateAccessPredicate(_, _, perm_amount, _) => *perm_amount,
             Expr::FieldAccessPredicate(_, perm_amount, _) => *perm_amount,
+            Expr::CondResourceAccess(cond, _) => cond.resource.get_perm_amount(),
             x => unreachable!("{}", x),
         }
     }
@@ -1074,6 +1115,8 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
+                    // TODO: this is likely wrong
+                    f @ Expr::CondResourceAccess(..) => f,
                     Expr::BinOp(BinOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinOpKind::And, y, z, p)
                     }
@@ -1295,6 +1338,8 @@ impl Expr {
                 1 + args.iter().map(|e| e.depth()).max().unwrap_or(0),
             Expr::SeqIndex(seq, index, _) =>  1 + max(seq.depth(), index.depth()),
             Expr::SeqLen(seq, _) => 1 + seq.depth(),
+            Expr::CondResourceAccess(cond, _) =>
+                1 + max(cond.cond.depth(), cond.resource.expression().depth()),
         }
     }
 }
@@ -1374,6 +1419,10 @@ impl PartialEq for Expr {
                 Expr::SeqLen(ref self_seq, _),
                 Expr::SeqLen(ref other_seq, _),
             ) => self_seq == other_seq,
+            (
+                Expr::CondResourceAccess(self_cond,_),
+                Expr::CondResourceAccess(other_cond,_),
+            ) => self_cond == other_cond,
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -1415,6 +1464,7 @@ impl Hash for Expr {
             }
             Expr::SeqIndex(ref seq, ref index, _) => (seq, index).hash(state),
             Expr::SeqLen(ref seq, _) => seq.hash(state),
+            Expr::CondResourceAccess(ref cond, _) => cond.hash(state),
         }
     }
 }
@@ -1561,6 +1611,14 @@ pub trait ExprFolder: Sized {
     fn fold_seq_len(&mut self, seq: Box<Expr>, p: Position) -> Expr {
         Expr::SeqLen(self.fold_boxed(seq), p)
     }
+    fn fold_cond_resource_access(&mut self, cond: CondResourceAccess, p: Position)-> Expr {
+        Expr::CondResourceAccess(CondResourceAccess {
+            vars: cond.vars,
+            triggers: cond.triggers,
+            cond: self.fold_boxed(cond.cond),
+            resource: cond.resource.map_expression(|e| self.fold(e))
+        }, p)
+    }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -1587,6 +1645,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
         Expr::SeqIndex(x, y, p) => this.fold_seq_index(x, y, p),
         Expr::SeqLen(x, p) => this.fold_seq_len(x, p),
+        Expr::CondResourceAccess(x, p) => this.fold_cond_resource_access(x, p),
     }
 }
 
@@ -1705,6 +1764,13 @@ pub trait ExprWalker: Sized {
     fn walk_seq_len(&mut self, arg: &Expr, _pos: &Position) {
         self.walk(arg)
     }
+    fn walk_cond_resource_access(&mut self, cond: &CondResourceAccess, _pos: &Position) {
+        for var in &cond.vars {
+            self.walk_local_var(var);
+        }
+        self.walk(&*cond.cond);
+        self.walk(cond.resource.expression());
+    }
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -1731,6 +1797,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
         Expr::SeqIndex(ref x, ref y, ref p) => this.walk_seq_index(x, y, p),
         Expr::SeqLen(ref x, ref p) => this.walk_seq_len(x, p),
+        Expr::CondResourceAccess(ref x, ref p) => this.walk_cond_resource_access(x, p),
     }
 }
 
@@ -1774,6 +1841,52 @@ impl Expr {
     }
 }
 
+impl ResourceAccess {
+    pub fn expression(&self) -> &Box<Expr> {
+        match self {
+            ResourceAccess::PredicateAccessPredicate(p) => &p.arg,
+            ResourceAccess::FieldAccessPredicate(f) => &f.place,
+        }
+    }
+
+    pub fn get_perm_amount(&self) -> PermAmount {
+        match self {
+            ResourceAccess::PredicateAccessPredicate(p) => p.perm,
+            ResourceAccess::FieldAccessPredicate(f) => f.perm,
+        }
+    }
+
+    pub fn map_expression<F>(self, mut f: F) -> Self
+        where F: FnMut(Expr) -> Expr
+    {
+        match self {
+            ResourceAccess::PredicateAccessPredicate(pa) =>
+                ResourceAccess::PredicateAccessPredicate(PredicateAccessPredicate {
+                    predicate_name: pa.predicate_name,
+                    arg: box f(*pa.arg),
+                    perm: pa.perm
+                }),
+            ResourceAccess::FieldAccessPredicate(fa) =>
+                ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+                    place: box f(*fa.place),
+                    perm: PermAmount::Read,
+                }),
+        }
+    }
+}
+
+impl CondResourceAccess {
+    pub fn to_plain_expression(&self) -> Expr {
+        let body = Expr::BinOp(BinOpKind::Implies, self.cond.clone(), self.resource.expression().clone(), Position::default());
+        if self.vars.is_empty() {
+            body
+        } else {
+            Expr::ForAll(self.vars.clone(), self.triggers.clone(), box body, Position::default())
+        }
+    }
+}
+
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ForallInstantiation {
     vars_mapping: HashMap<LocalVar, Box<Expr>>,
@@ -1807,7 +1920,6 @@ fn unify(
     ) -> Result<(), UnificationResult> { // We return Result for the `?` operator convenience
         match (subject, target) {
             (Expr::Local(lv, _), _) if free_vars.contains(lv) => {
-
                 match vars_mapping.entry(lv.clone()) {
                     Entry::Vacant(e) => {
                         e.insert(box target.clone());
@@ -1953,6 +2065,9 @@ fn unify(
             (Expr::SeqLen(lseq, _), Expr::SeqLen(rseq, _)) =>
                 do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping),
 
+            (Expr::CondResourceAccess(..), Expr::CondResourceAccess(..)) =>
+                unimplemented!("Unifying CondResourceAccess unimplemented"),
+
             _ => Err(UnificationResult::Unmatched),
         }
     }
@@ -2074,6 +2189,9 @@ fn forall_instantiation(
 
             Expr::SeqLen(seq, _) =>
                 inner(seq, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::CondResourceAccess(..) =>
+                unimplemented!("CondResourceAccess are unsupported for now"),
         }
     }
 
@@ -2099,10 +2217,6 @@ fn forall_instantiation(
         }
     }
     None
-}
-
-impl CondResourceAccess {
-//
 }
 
 pub trait ExprIterator {
@@ -2152,7 +2266,7 @@ where
 mod tests {
     use super::*;
 
-// TODO: test renaming
+// TODO: test renaming of let variables & cie.
 
     #[test]
     fn test_unify_success_simple() {

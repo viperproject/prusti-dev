@@ -103,7 +103,7 @@ impl Predicate {
         let val_field = Expr::from(this.clone()).field(array_field);
         // acc(self.val_array)
         let val_field_acc = Expr::acc_permission(val_field.clone(), PermAmount::Write);
-        // forall i: Int :: 0 <= i < |self.val_array| ==> acc(self.val_array[i].val_*)
+        // forall i: Int :: { self.val_array[i] } 0 <= i < |self.val_array| ==> acc(self.val_array[i].val_*)
         let elems_acc = {
             let idx_local = LocalVar::new("i", Type::Int);
             let idx = Expr::local(idx_local.clone());
@@ -111,15 +111,17 @@ impl Predicate {
                 Expr::le_cmp(Expr::Const(Const::Int(0), Position::default()), idx.clone()),
                 Expr::lt_cmp(idx.clone(), Expr::seq_len(val_field.clone()))
             );
-            let elems_acc = Expr::acc_permission(
+            // self.val_array[i]
+            let elems_acc = Expr::seq_index(val_field.clone(), idx.clone());
+            let elems_acc_field = Expr::acc_permission(
                 // self.val_array[i].val_*
-                Expr::field(Expr::seq_index(val_field.clone(), idx.clone()), elem_field),
+                Expr::field(elems_acc.clone(), elem_field),
                 PermAmount::Write
             );
             Expr::forall(
                 vec![idx_local],
-                vec![Trigger::new(vec![idx])],
-                Expr::implies(idx_bounds, elems_acc)
+                vec![Trigger::new(vec![elems_acc])],
+                Expr::implies(idx_bounds, elems_acc_field)
             )
         };
         let body = Expr::and(val_field_acc, elems_acc);
