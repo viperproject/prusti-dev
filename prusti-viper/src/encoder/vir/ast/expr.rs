@@ -1266,6 +1266,37 @@ impl Expr {
     pub fn subst(self, subst_map: &HashMap<Expr, Expr>) -> Self {
         self.fold_expr(|e| subst_map.get(&e).unwrap_or(&e).clone())
     }
+
+    pub fn depth(&self) -> usize {
+        use std::cmp::max;
+        match self {
+            Expr::Local(_, _) => 1,
+            Expr::Variant(base, _, _) => 1 + base.depth(),
+            Expr::Field(base, _, _) => 1 + base.depth(),
+            Expr::AddrOf(base, _, _) => 1 + base.depth(),
+            Expr::LabelledOld(_, base, _) => 1 + base.depth(),
+            Expr::Const(_, _) => 1,
+            Expr::MagicWand(lhs, rhs, _, _) => 1 + max(lhs.depth(), rhs.depth()),
+            Expr::PredicateAccessPredicate(_, arg, _, _) => 1 + arg.depth(),
+            Expr::FieldAccessPredicate(arg, _, _) => 1 + arg.depth(),
+            Expr::UnaryOp(_, arg, _) => 1 + arg.depth(),
+            Expr::BinOp(_, lhs, rhs, _) => 1 + max(lhs.depth(), rhs.depth()),
+            Expr::Unfolding(_, predicate_args, in_expr, _, _, _) =>
+                1 + max(
+                    in_expr.depth(),
+                    predicate_args.iter().map(|e| e.depth()).max().unwrap_or(0)
+                ),
+            Expr::Cond(guard, then_expr, else_expr, _) =>
+                1 + max(guard.depth(), max(then_expr.depth(), else_expr.depth())),
+            Expr::ForAll(_, _, body, _) => 1 + body.depth(),
+            Expr::LetExpr(_, defexpr, body, _) =>
+                1 + max(defexpr.depth(), body.depth()),
+            Expr::FuncApp(_, args, _, _, _) =>
+                1 + args.iter().map(|e| e.depth()).max().unwrap_or(0),
+            Expr::SeqIndex(seq, index, _) =>  1 + max(seq.depth(), index.depth()),
+            Expr::SeqLen(seq, _) => 1 + seq.depth(),
+        }
+    }
 }
 
 impl PartialEq for Expr {
@@ -1743,7 +1774,7 @@ impl Expr {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct ForallInstantiation {
     vars_mapping: HashMap<LocalVar, Box<Expr>>,
     body: Box<Expr>,
@@ -1752,188 +1783,322 @@ struct ForallInstantiation {
 #[derive(Debug, Clone)]
 struct ForallInstantiations(Vec<ForallInstantiation>);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum UnificationResult {
+    Success,
+    Unmatched,
+    Conflict,
+}
 
 fn unify(
     subject: &Expr,
     target: &Expr,
     free_vars: &HashSet<LocalVar>,
-    mut vars_mapping: HashMap<LocalVar, Box<Expr>>,
-) -> Option<HashMap<LocalVar, Box<Expr>>> {
-    match (subject, target) {
-        (Expr::Local(lv, _), _) if free_vars.contains(lv) => {
-            match vars_mapping.entry(lv.clone()) {
-                Entry::Vacant(e) => {
-                    e.insert(box target.clone());
-                    Some(vars_mapping)
-                }
-                Entry::Occupied(e) => {
-                    // We already have registered a mapping for this free var.
-                    // If the expressions don't correspond, the unification failed.
-                    // This can arise if we have e.g.:
-                    // target = f(v, v)  with fv = {v}
-                    // subject = f(5, 19)
-                    // In that case, we can't unify the expression so we return false.
-                    if &**e.get() == target {
-                        Some(vars_mapping)
-                    } else {
-                        None
+    vars_mapping: &mut HashMap<LocalVar, Box<Expr>>,
+) -> UnificationResult {
+    fn do_unify(
+        subject: &Expr,
+        target: &Expr,
+        free_vars: &HashSet<LocalVar>,
+        // The original mapping that we were passed.
+        // We will modify it at the end once we are sure the unification succeeded
+        orig_mapping: &HashMap<LocalVar, Box<Expr>>,
+        vars_mapping: &mut HashMap<LocalVar, Box<Expr>>,
+    ) -> Result<(), UnificationResult> { // We return Result for the `?` operator convenience
+        match (subject, target) {
+            (Expr::Local(lv, _), _) if free_vars.contains(lv) => {
+
+                match vars_mapping.entry(lv.clone()) {
+                    Entry::Vacant(e) => {
+                        e.insert(box target.clone());
+                        Ok(())
+                    }
+                    Entry::Occupied(e) => {
+                        // We already have registered a mapping for this free var.
+                        // If the expressions don't correspond, the unification failed.
+                        // This can arise if we have e.g.:
+                        // target = f(v, v)  with fv = {v}
+                        // subject = f(5, 19)
+                        // In that case, we can't unify the expression so we return UnificationResult::Conflict.
+                        if &**e.get() == target {
+                            // Do the same for the original mapping
+                            if let Some(expr_in_original) = orig_mapping.get(&lv) {
+                                if e.get() == expr_in_original {
+                                    Ok(())
+                                } else {
+                                    Err(UnificationResult::Conflict)
+                                }
+                            } else {
+                                Ok(())
+                            }
+                        } else {
+                            Err(UnificationResult::Conflict)
+                        }
                     }
                 }
             }
-        }
 
-        (Expr::Local(rlv, _), Expr::Local(llv, _)) =>
-            if rlv == llv { Some(vars_mapping) } else { None },
+            (Expr::Local(rlv, _), Expr::Local(llv, _)) =>
+                if rlv == llv { Ok(()) } else { Err(UnificationResult::Unmatched) },
 
-        (Expr::Variant(lbase, lfield, _), Expr::Variant(rbase, rfield, _)) if lfield == rfield =>
-            unify(lbase, rbase, free_vars, vars_mapping),
+            (Expr::Variant(lbase, lfield, _), Expr::Variant(rbase, rfield, _)) if lfield == rfield =>
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
 
-        (Expr::Field(lbase, lfield, _), Expr::Field(rbase, rfield, _)) if lfield == rfield =>
-            unify(lbase, rbase, free_vars, vars_mapping),
+            (Expr::Field(lbase, lfield, _), Expr::Field(rbase, rfield, _)) if lfield == rfield =>
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
 
-        (Expr::AddrOf(lbase, lty, _), Expr::AddrOf(rbase, rty, _)) if lty == rty =>
-            unify(lbase, rbase, free_vars, vars_mapping),
+            (Expr::AddrOf(lbase, lty, _), Expr::AddrOf(rbase, rty, _)) if lty == rty =>
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
 
-        (Expr::LabelledOld(llabel, lbase, _), Expr::LabelledOld(rlabel, rbase, _)) if llabel == rlabel =>
-            unify(lbase, rbase, free_vars, vars_mapping),
+            (Expr::LabelledOld(llabel, lbase, _), Expr::LabelledOld(rlabel, rbase, _)) if llabel == rlabel =>
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
 
-        (Expr::Const(lconst, _), Expr::Const(rconst, _)) =>
-            if lconst == rconst { Some(vars_mapping) } else { None },
+            (Expr::Const(lconst, _), Expr::Const(rconst, _)) =>
+                if lconst == rconst { Ok(()) } else { Err(UnificationResult::Unmatched) },
 
-        // Not sure about this one
-        (Expr::MagicWand(llhs, lrhs, lborrow, _), Expr::MagicWand(rlhs, rrhs, rborrow, _)) if lborrow == rborrow => {
-            vars_mapping = unify(llhs, rlhs, free_vars, vars_mapping)?;
-            unify(lrhs, rrhs, free_vars, vars_mapping)
-        }
-
-        (Expr::PredicateAccessPredicate(lname, larg, lperm, _),
-            Expr::PredicateAccessPredicate(rname, rarg, rperm, _)) if lname == rname && lperm == rperm =>
-            unify(larg, rarg, free_vars, vars_mapping),
-
-        (Expr::FieldAccessPredicate(larg, lperm, _),
-            Expr::FieldAccessPredicate(rarg, rperm, _)) if lperm == rperm =>
-            unify(larg, rarg, free_vars, vars_mapping),
-
-        (Expr::UnaryOp(lop, larg, _), Expr::UnaryOp(rop, rarg, _)) if lop == rop =>
-            unify(larg, rarg, free_vars, vars_mapping),
-
-        (Expr::BinOp(lop, larg1, larg2, _), Expr::BinOp(rop, rarg1, rarg2, _)) if lop == rop => {
-            vars_mapping = unify(larg1, rarg1, free_vars, vars_mapping)?;
-            unify(larg2, rarg2, free_vars, vars_mapping)
-        }
-
-        (
-            Expr::Unfolding(lname, largs, lin_expr, lperm, lenum, _),
-            Expr::Unfolding(rname, rargs, rin_expr, rperm, renum, _)
-        ) if lname == rname && lperm == rperm && lenum == renum => {
-            if largs.len() != rargs.len() {
-                return None;
+            // Not sure about this one
+            (Expr::MagicWand(llhs, lrhs, lborrow, _), Expr::MagicWand(rlhs, rrhs, rborrow, _)) if lborrow == rborrow => {
+                do_unify(llhs, rlhs, free_vars, orig_mapping, vars_mapping)?;
+                do_unify(lrhs, rrhs, free_vars, orig_mapping, vars_mapping)
             }
 
-            vars_mapping = largs.iter()
-                .zip(rargs.iter())
-                .try_fold(vars_mapping, |vars_mapping, (larg, rarg)|
-                    unify(larg, rarg, free_vars, vars_mapping)
-                )?;
-            unify(lin_expr, rin_expr, free_vars, vars_mapping)
-        }
+            (
+                Expr::PredicateAccessPredicate(lname, larg, lperm, _),
+                Expr::PredicateAccessPredicate(rname, rarg, rperm, _)
+            ) if lname == rname && lperm == rperm =>
+                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping),
 
+            (
+                Expr::FieldAccessPredicate(larg, lperm, _),
+                Expr::FieldAccessPredicate(rarg, rperm, _)
+            ) if lperm == rperm =>
+                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping),
 
-        (Expr::Cond(lguard, lthen, lelse, _), Expr::Cond(rguard, rthen, relse, _)) => {
-            vars_mapping = unify(lguard, rguard, free_vars, vars_mapping)?;
-            vars_mapping = unify(lthen, rthen, free_vars, vars_mapping)?;
-            unify(lelse, relse, free_vars, vars_mapping)
-        }
+            (Expr::UnaryOp(lop, larg, _), Expr::UnaryOp(rop, rarg, _)) if lop == rop =>
+                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping),
 
-        // Since the local vars of one may not be the same as the other one,
-        // we would need to rename them to a same base, without conflicting
-        // with free vars.
-        // A bit tricky to implement, thus left out for now.
-        (Expr::ForAll(..), Expr::ForAll(..)) =>
-            unimplemented!("Unifying forall unimplemented"),
-
-        (Expr::LetExpr(lvar, lexpr, lbody, _), Expr::LetExpr(rvar, rexpr, rbody, _)) if lvar.typ == rvar.typ => {
-            vars_mapping = unify(lexpr, rexpr, free_vars, vars_mapping)?;
-
-            let mut lnewbody: Option<Box<Expr>> = None;
-            let mut rnewbody: Option<Box<Expr>> = None;
-            if lvar != rvar {
-                // We need to rename things out
-                let common_name = "__".to_owned() + &lvar.name + "$" + &rvar.name + "__";
-                let newvar = LocalVar::new(common_name, lvar.typ.clone());
-                lnewbody = Some(box lbody.clone().rename(lvar, newvar.clone()));
-                rnewbody = Some(box rbody.clone().rename(rvar, newvar.clone()));
-                assert!(!free_vars.contains(&newvar));
+            (Expr::BinOp(lop, larg1, larg2, _), Expr::BinOp(rop, rarg1, rarg2, _)) if lop == rop => {
+                do_unify(larg1, rarg1, free_vars, orig_mapping, vars_mapping)?;
+                do_unify(larg2, rarg2, free_vars, orig_mapping, vars_mapping)
             }
-            // Get the renamed bodies, or the original one if we don't need renaming
-            let (lbody, rbody) = match (&lnewbody, &rnewbody) {
-                (Some(l), Some(r)) => (l, r),
-                _ => (lbody, rbody)
-            };
-            unify(lbody, rbody, free_vars, vars_mapping)
+
+            (
+                Expr::Unfolding(lname, largs, lin_expr, lperm, lenum, _),
+                Expr::Unfolding(rname, rargs, rin_expr, rperm, renum, _)
+            ) if lname == rname && lperm == rperm && lenum == renum => {
+                if largs.len() != rargs.len() {
+                    return Err(UnificationResult::Unmatched);
+                }
+
+                largs.iter()
+                    .zip(rargs.iter())
+                    .try_fold((), |(), (larg, rarg)|
+                        do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping)
+                    )?;
+                do_unify(lin_expr, rin_expr, free_vars, orig_mapping, vars_mapping)
+            }
+
+            (Expr::Cond(lguard, lthen, lelse, _), Expr::Cond(rguard, rthen, relse, _)) => {
+                do_unify(lguard, rguard, free_vars, orig_mapping, vars_mapping)?;
+                do_unify(lthen, rthen, free_vars, orig_mapping, vars_mapping)?;
+                do_unify(lelse, relse, free_vars, orig_mapping, vars_mapping)
+            }
+
+            // Since the local vars of one may not be the same as the other one,
+            // we would need to rename them to a same base, without conflicting
+            // with free vars.
+            // A bit tricky to implement, thus left out for now.
+            (Expr::ForAll(..), Expr::ForAll(..)) =>
+                unimplemented!("Unifying forall unimplemented"),
+
+            (Expr::LetExpr(lvar, lexpr, lbody, _), Expr::LetExpr(rvar, rexpr, rbody, _)) if lvar.typ == rvar.typ => {
+                do_unify(lexpr, rexpr, free_vars, orig_mapping, vars_mapping)?;
+
+                let mut lnewbody: Option<Box<Expr>> = None;
+                let mut rnewbody: Option<Box<Expr>> = None;
+                if lvar != rvar {
+                    // We need to rename things out
+                    let common_name = "__".to_owned() + &lvar.name + "$" + &rvar.name + "__";
+                    let newvar = LocalVar::new(common_name, lvar.typ.clone());
+                    lnewbody = Some(box lbody.clone().rename(lvar, newvar.clone()));
+                    rnewbody = Some(box rbody.clone().rename(rvar, newvar.clone()));
+                    assert!(!free_vars.contains(&newvar));
+                }
+                // Get the renamed bodies, or the original one if we don't need renaming
+                let (lbody, rbody) = match (&lnewbody, &rnewbody) {
+                    (Some(l), Some(r)) => (l, r),
+                    _ => (lbody, rbody)
+                };
+                do_unify(lbody, rbody, free_vars, orig_mapping, vars_mapping)
+            }
+
+            (
+                Expr::FuncApp(lname, largs, lformal_args, lrettype, _),
+                Expr::FuncApp(rname, rargs, rformal_args, rrettype, _)
+            ) if lname == rname && lformal_args == rformal_args && lrettype == rrettype => { // TODO: is comparing the formal arguments a bit too restrictive?
+                assert_eq!(largs.len(), rargs.len());
+
+                largs.iter()
+                    .zip(rargs.iter())
+                    .try_fold((), |(), (larg, rarg)|
+                        do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping)
+                    )
+            }
+
+            (Expr::SeqIndex(lseq, lindex, _), Expr::SeqIndex(rseq, rindex, _)) => {
+                do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping)?;
+                do_unify(lindex, rindex, free_vars, orig_mapping, vars_mapping)
+            }
+
+            (Expr::SeqLen(lseq, _), Expr::SeqLen(rseq, _)) =>
+                do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping),
+
+            _ => Err(UnificationResult::Unmatched),
         }
+    }
 
-        (
-            Expr::FuncApp(lname, largs, lformal_args, lrettype, _),
-            Expr::FuncApp(rname, rargs, rformal_args, rrettype, _)
-        ) if lname == rname && lformal_args == rformal_args && lrettype == rrettype => { // TODO: is comparing the formal arguments a bit too restrictive?
-            assert_eq!(largs.len(), rargs.len());
-
-            largs.iter()
-                .zip(rargs.iter())
-                .try_fold(vars_mapping, |vars_mapping, (larg, rarg)|
-                    unify(larg, rarg, free_vars, vars_mapping)
-                )
+    let mut temp_mapping = HashMap::new();
+    match do_unify(subject, target, free_vars, vars_mapping, &mut temp_mapping) {
+        Ok(()) => {
+            vars_mapping.extend(temp_mapping);
+            UnificationResult::Success
         }
-
-        (Expr::SeqIndex(lseq, lindex, _), Expr::SeqIndex(rseq, rindex, _)) => {
-            vars_mapping = unify(lseq, rseq, free_vars, vars_mapping)?;
-            unify(lindex, rindex, free_vars, vars_mapping)
-        }
-
-        (Expr::SeqLen(lseq, _), Expr::SeqLen(rseq, _)) =>
-            unify(lseq, rseq, free_vars, vars_mapping),
-
-        _ => None,
+        Err(e) => e
     }
 }
 
-// TODO: wrong. Too naive!
 fn forall_instantiation(
-    subject: &Expr,
+    target: &Expr,
     // forall params: vars, triggers and its body
     vars: &HashSet<LocalVar>,
     triggers: &Vec<Trigger>,
     body: &Expr,
 ) -> Option<ForallInstantiation> {
-    fn helper(
-        subject: &Expr,
+    fn inner(
+        target: &Expr,
         vars: &HashSet<LocalVar>,
-        trigger: &[Expr],
-        body: &Expr,
-    ) -> Option<ForallInstantiation> {
-        trigger.iter().try_fold(
-            HashMap::new(),
-            |vars_mapping, trigger_exp| unify(subject, trigger_exp, vars, vars_mapping),
-        ).map(|vars_mapping| {
+        trigger: &Vec<Expr>,
+        matched_trigger: &mut Vec<bool>,
+        vars_mapping: &mut HashMap<LocalVar, Box<Expr>>,
+    ) -> Result<(), ()> { // Ok -> may or may not have matched all trigger. Err -> unification conflict
+        let target_depth = target.depth();
+        for (trigger, matched) in trigger.iter().zip(matched_trigger.iter_mut()) {
+            let trigger_depth = trigger.depth();
+
+            if *matched || trigger_depth > target_depth {
+                continue;
+            } else {
+                match unify(trigger, target, vars, vars_mapping) {
+                    UnificationResult::Success => *matched = true,
+                    UnificationResult::Unmatched => (),
+                    UnificationResult::Conflict => return Err(()),
+                };
+            }
+        }
+
+        if matched_trigger.iter().all(|b| *b) {
+            return Ok(());
+        }
+
+        match target {
+            Expr::Local(_, _) =>
+                Ok(()), // Nothing to do
+
+            Expr::Variant(base, _, _) =>
+                inner(base, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::Field(base, _, _) =>
+                inner(base, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::AddrOf(base, _, _) =>
+                inner(base, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::LabelledOld(_, base, _) =>
+                inner(base, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::Const(_, _) =>
+                Ok(()), // Nothing to do
+
+            Expr::MagicWand(lhs, rhs, _, _) => {
+                inner(lhs, vars, trigger, matched_trigger, vars_mapping)?;
+                inner(rhs, vars, trigger, matched_trigger, vars_mapping)
+            }
+
+            Expr::PredicateAccessPredicate(_, arg, _, _) =>
+                inner(arg, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::FieldAccessPredicate(arg, _, _) =>
+                inner(arg, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::UnaryOp(_, arg, _) =>
+                inner(arg, vars, trigger, matched_trigger, vars_mapping),
+
+            Expr::BinOp(_, lhs, rhs, _) => {
+                inner(lhs, vars, trigger, matched_trigger, vars_mapping)?;
+                inner(rhs, vars, trigger, matched_trigger, vars_mapping)
+            }
+
+            Expr::Unfolding(_, predicate_args, in_expr, _, _, _) => {
+                predicate_args.iter()
+                    .try_for_each(|arg|
+                        inner(arg, vars, trigger, matched_trigger, vars_mapping)
+                    )?;
+                inner(in_expr, vars, trigger, matched_trigger, vars_mapping)
+            }
+
+            Expr::Cond(guard, then_expr, else_expr, _) => {
+                inner(guard, vars, trigger, matched_trigger, vars_mapping)?;
+                inner(then_expr, vars, trigger, matched_trigger, vars_mapping)?;
+                inner(else_expr, vars, trigger, matched_trigger, vars_mapping)
+            }
+
+            Expr::ForAll(..) => unimplemented!("Nested foralls are unsupported for now"),
+
+            // TODO: we should remove the let variable from the free vars
+            Expr::LetExpr(_, defexpr, body, _) => {
+                inner(defexpr, vars, trigger, matched_trigger, vars_mapping)?;
+                inner(body, vars, trigger, matched_trigger, vars_mapping)
+            }
+
+            Expr::FuncApp(_, args, _, _, _) => {
+                args.iter()
+                    .try_for_each(|arg|
+                        inner(arg, vars, trigger, matched_trigger, vars_mapping)
+                    )
+            }
+
+            Expr::SeqIndex(seq, index, _) => {
+                inner(seq, vars, trigger, matched_trigger, vars_mapping)?;
+                inner(index, vars, trigger, matched_trigger, vars_mapping)
+            }
+
+            Expr::SeqLen(seq, _) =>
+                inner(seq, vars, trigger, matched_trigger, vars_mapping),
+        }
+    }
+
+    let mut vars_mapping = HashMap::new();
+    let mut matched_trigger = Vec::new();
+    // TODO: that's not idiomatic Rust
+    for trigger in triggers {
+        matched_trigger.resize(trigger.elements().len(), false);
+        matched_trigger.iter_mut().for_each(|b| *b = false);
+        vars_mapping.clear();
+
+        if inner(target, vars, trigger.elements(), &mut matched_trigger, &mut vars_mapping).is_ok()
+         && matched_trigger.iter().all(|b| *b)
+        {
             let subst_map = vars_mapping.iter()
                 .map(|(lv, e)| (Expr::local(lv.clone()), (&**e).clone()))
                 .collect::<HashMap<Expr, Expr>>();
 
-            ForallInstantiation {
+            return Some(ForallInstantiation {
                 vars_mapping,
                 body: box body.clone().subst(&subst_map)
-            }
-        })
+            });
+        }
     }
-
-    match triggers.iter()
-        .map(|trigger| helper(subject, vars, trigger.elements(), body))
-        .find(|p| p.is_some())
-    {
-        Some(Some(r)) => Some(r),
-        _ => None
-    }
+    None
 }
 
 impl CondResourceAccess {
@@ -2037,11 +2202,14 @@ mod tests {
         let mut fvs = HashSet::new();
         fvs.insert(fv1.clone());
         fvs.insert(fv2.clone());
-        let got = unify(&subject, &target, &fvs, HashMap::new());
+        let mut got = HashMap::new();
+        let ok = unify(&subject, &target, &fvs, &mut got);
+        assert_eq!(UnificationResult::Success, ok);
+
         let mut expected = HashMap::new();
         expected.insert(fv1, box fv1subst);
         expected.insert(fv2, box fv2subst);
-        assert_eq!(Some(expected), got);
+        assert_eq!(expected, got);
     }
 
     #[test]
@@ -2102,11 +2270,14 @@ mod tests {
         let mut fvs = HashSet::new();
         fvs.insert(fv1.clone());
         fvs.insert(fv2.clone());
-        let got = unify(&subject, &target, &fvs, HashMap::new());
+        let mut got = HashMap::new();
+        let ok = unify(&subject, &target, &fvs, &mut got);
+        assert_eq!(UnificationResult::Success, ok);
+
         let mut expected = HashMap::new();
         expected.insert(fv1, box fv1subst);
         expected.insert(fv2, box fv2subst);
-        assert_eq!(Some(expected), got);
+        assert_eq!(expected, got);
     }
 
     #[test]
@@ -2151,12 +2322,16 @@ mod tests {
         );
         let mut fvs = HashSet::new();
         fvs.insert(fv1.clone());
-        let got = unify(&subject, &target, &fvs, HashMap::new());
-        assert_eq!(None, got);
+        let mut got = HashMap::new();
+        let ok = unify(&subject, &target, &fvs, &mut got);
+        assert_eq!(UnificationResult::Conflict, ok);
+        assert!(got.is_empty()); // Must be unchanged
     }
 
     #[test]
     fn test_forall_instantiation_simple() {
+        // From http://viper.ethz.ch/tutorial/
+
         let magic_call = |arg: Expr| {
             Expr::FuncApp(
                 "magic".into(),
@@ -2166,56 +2341,88 @@ mod tests {
                 Position::default(),
             )
         };
-
-        // forall i: Int :: { magic(i) }
-        //      magic(magic(i)) == magic(2 * i) + i
-        let (forall_vars, forall_triggers, forall_body) = {
-            let i = LocalVar::new("i", Type::Int);
-            let triggers = vec![Trigger::new(vec![magic_call(Expr::local(i.clone()))])];
-            let body = Expr::BinOp(
+        // magic(magic(arg)) == magic(2 * arg) + arg
+        let magic_property_body = |arg: Expr| {
+            Expr::BinOp(
                 BinOpKind::EqCmp,
-                box magic_call(magic_call(Expr::local(i.clone()))),
+                box magic_call(magic_call(arg.clone())),
                 box Expr::BinOp(
                     BinOpKind::Add,
                     box magic_call(
                         Expr::BinOp(
                             BinOpKind::Mul,
                             box Expr::Const(Const::Int(2), Position::default()),
-                            box Expr::local(i.clone()),
+                            box arg.clone(),
                             Position::default(),
                         )
                     ),
-                    box Expr::local(i.clone()),
+                    box arg,
                     Position::default(),
                 ),
                 Position::default(),
-            );
+            )
+        };
+
+        // forall i: Int :: { magic(magic(i)) }
+        //      magic(magic(i)) == magic(2 * i) + i
+        let (forall_vars, forall_triggers, forall_body) = {
+            let i = LocalVar::new("i", Type::Int);
+            let triggers = vec![Trigger::new(vec![magic_call(magic_call(Expr::local(i.clone())))])];
+            let body = magic_property_body(Expr::local(i.clone()));
             let mut vars = HashSet::new();
-            vars.insert(i.clone());
+            vars.insert(i);
             (vars, triggers, body)
         };
 
-        let expr = Expr::BinOp(
-            BinOpKind::EqCmp,
-            box magic_call(magic_call(Expr::Const(Const::Int(10), Position::default()))),
-            box Expr::BinOp(
-                BinOpKind::Add,
-                box magic_call(
-                    Expr::BinOp(
-                        BinOpKind::Mul,
-                        box Expr::Const(Const::Int(2), Position::default()),
-                        box Expr::Const(Const::Int(10), Position::default()),
-                        Position::default(),
-                    )
-                ),
-                box Expr::Const(Const::Int(10), Position::default()),
-                Position::default(),
-            ),
-            Position::default(),
-        );
+        // 1
+        {
+            // magic(magic(10)) == magic(2 * 10) + 10
+            let expr = magic_property_body(Expr::Const(Const::Int(10), Position::default()));
+            let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
+            let expected = {
+                let mut mapping = HashMap::new();
+                mapping.insert(LocalVar::new("i", Type::Int), box Expr::Const(Const::Int(10), Position::default()));
+                ForallInstantiation {
+                    vars_mapping: mapping,
+                    body: box expr // We get back the same expression for that specific example
+                }
+            };
+            assert_eq!(Some(expected), got);
+        }
 
-        let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
-        eprintln!("AAAAAAAAAAAAAAAAAAAAAAA {:?}", got);
-        assert!(false);
+        // 2
+        {
+            let x = Expr::local(LocalVar::new("x", Type::Int));
+            let y = Expr::local(LocalVar::new("y", Type::Int));
+            let z = Expr::local(LocalVar::new("z", Type::Int));
+            let x_plus_z = Expr::BinOp(BinOpKind::Add, box x.clone(), box z.clone(), Position::default());
+
+            // 42 + magic(magic(magic(x+z))) * y
+            let expr = Expr::BinOp(
+                BinOpKind::Add,
+                box Expr::Const(Const::Int(42), Position::default()),
+                box Expr::BinOp(
+                    BinOpKind::Mul,
+                    box magic_call(magic_call(magic_call(x_plus_z.clone()))),
+                    box y,
+                    Position::default()
+                ),
+                Position::default()
+            );
+            // Mapping: i -> magic(x+z)
+            // Forall body: magic(magic(magic(x+z))) == magic(2 * magic(x+z)) + magic(x+z)
+            let expected = {
+                let magic_x_plus_z = magic_call(x_plus_z.clone());
+                let mut mapping = HashMap::new();
+                mapping.insert(LocalVar::new("i", Type::Int), box magic_x_plus_z.clone());
+                let body = magic_property_body(magic_x_plus_z);
+                ForallInstantiation {
+                    vars_mapping: mapping,
+                    body: box body
+                }
+            };
+            let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
+            assert_eq!(Some(expected), got);
+        }
     }
 }
