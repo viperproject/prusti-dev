@@ -6,7 +6,8 @@
 
 use super::super::borrows::Borrow;
 use encoder::vir::ast::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::Entry;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
@@ -45,6 +46,41 @@ pub enum Expr {
     SeqIndex(Box<Expr>, Box<Expr>, Position),
     /// Length of the given sequence
     SeqLen(Box<Expr>, Position),
+}
+
+#[derive(Debug, Clone)]
+pub enum ResourceAccess {
+    PredicateAccessPredicate(PredicateAccessPredicate),
+    FieldAccessPredicate(FieldAccessPredicate)
+}
+
+#[derive(Debug, Clone)]
+pub struct PredicateAccessPredicate {
+    pub predicate_name: String,
+    pub arg: Box<Expr>,
+    pub perm: PermAmount
+}
+
+#[derive(Debug, Clone)]
+pub struct FieldAccessPredicate {
+    pub place: Box<Expr>,
+    pub perm: PermAmount
+}
+
+/// A resource that can be accessed only if some requirements are satisfied.
+/// In a typical case, we `assert` that we satisfy the requirements before accessing
+/// (by inhaling) the resource. Viper will then check whether the assertion is satisfied.
+///
+/// This is a more specified version of the following expression:
+/// `forall vars :: { triggers } cond ==> resource`
+#[derive(Debug, Clone)]
+pub struct CondResourceAccess {
+    pub vars: Vec<LocalVar>,
+    pub triggers: Vec<Trigger>,
+    pub cond: Box<Expr>,
+    /// The resource being guarded by requirements.
+    // TODO: Generalize this to ResourceAccess
+    pub resource: FieldAccessPredicate,
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -1217,6 +1253,19 @@ impl Expr {
         let mut patcher = TypePatcher { substs: substs };
         patcher.fold(self)
     }
+
+    // TODO: Folding won't work in case of conflict with bound variables
+    pub fn rename(self, old: &LocalVar, new: LocalVar) -> Self {
+        self.fold_expr(|e| match e {
+            Expr::Local(ref lv, ref p) if old == lv =>
+                Expr::Local(new.clone(), p.clone()),
+            _ => e
+        })
+    }
+
+    pub fn subst(self, subst_map: &HashMap<Expr, Expr>) -> Self {
+        self.fold_expr(|e| subst_map.get(&e).unwrap_or(&e).clone())
+    }
 }
 
 impl PartialEq for Expr {
@@ -1694,6 +1743,203 @@ impl Expr {
     }
 }
 
+#[derive(Debug, Clone)]
+struct ForallInstantiation {
+    vars_mapping: HashMap<LocalVar, Box<Expr>>,
+    body: Box<Expr>,
+}
+
+#[derive(Debug, Clone)]
+struct ForallInstantiations(Vec<ForallInstantiation>);
+
+
+fn unify(
+    subject: &Expr,
+    target: &Expr,
+    free_vars: &HashSet<LocalVar>,
+    mut vars_mapping: HashMap<LocalVar, Box<Expr>>,
+) -> Option<HashMap<LocalVar, Box<Expr>>> {
+    match (subject, target) {
+        (Expr::Local(lv, _), _) if free_vars.contains(lv) => {
+            match vars_mapping.entry(lv.clone()) {
+                Entry::Vacant(e) => {
+                    e.insert(box target.clone());
+                    Some(vars_mapping)
+                }
+                Entry::Occupied(e) => {
+                    // We already have registered a mapping for this free var.
+                    // If the expressions don't correspond, the unification failed.
+                    // This can arise if we have e.g.:
+                    // target = f(v, v)  with fv = {v}
+                    // subject = f(5, 19)
+                    // In that case, we can't unify the expression so we return false.
+                    if &**e.get() == target {
+                        Some(vars_mapping)
+                    } else {
+                        None
+                    }
+                }
+            }
+        }
+
+        (Expr::Local(rlv, _), Expr::Local(llv, _)) =>
+            if rlv == llv { Some(vars_mapping) } else { None },
+
+        (Expr::Variant(lbase, lfield, _), Expr::Variant(rbase, rfield, _)) if lfield == rfield =>
+            unify(lbase, rbase, free_vars, vars_mapping),
+
+        (Expr::Field(lbase, lfield, _), Expr::Field(rbase, rfield, _)) if lfield == rfield =>
+            unify(lbase, rbase, free_vars, vars_mapping),
+
+        (Expr::AddrOf(lbase, lty, _), Expr::AddrOf(rbase, rty, _)) if lty == rty =>
+            unify(lbase, rbase, free_vars, vars_mapping),
+
+        (Expr::LabelledOld(llabel, lbase, _), Expr::LabelledOld(rlabel, rbase, _)) if llabel == rlabel =>
+            unify(lbase, rbase, free_vars, vars_mapping),
+
+        (Expr::Const(lconst, _), Expr::Const(rconst, _)) =>
+            if lconst == rconst { Some(vars_mapping) } else { None },
+
+        // Not sure about this one
+        (Expr::MagicWand(llhs, lrhs, lborrow, _), Expr::MagicWand(rlhs, rrhs, rborrow, _)) if lborrow == rborrow => {
+            vars_mapping = unify(llhs, rlhs, free_vars, vars_mapping)?;
+            unify(lrhs, rrhs, free_vars, vars_mapping)
+        }
+
+        (Expr::PredicateAccessPredicate(lname, larg, lperm, _),
+            Expr::PredicateAccessPredicate(rname, rarg, rperm, _)) if lname == rname && lperm == rperm =>
+            unify(larg, rarg, free_vars, vars_mapping),
+
+        (Expr::FieldAccessPredicate(larg, lperm, _),
+            Expr::FieldAccessPredicate(rarg, rperm, _)) if lperm == rperm =>
+            unify(larg, rarg, free_vars, vars_mapping),
+
+        (Expr::UnaryOp(lop, larg, _), Expr::UnaryOp(rop, rarg, _)) if lop == rop =>
+            unify(larg, rarg, free_vars, vars_mapping),
+
+        (Expr::BinOp(lop, larg1, larg2, _), Expr::BinOp(rop, rarg1, rarg2, _)) if lop == rop => {
+            vars_mapping = unify(larg1, rarg1, free_vars, vars_mapping)?;
+            unify(larg2, rarg2, free_vars, vars_mapping)
+        }
+
+        (
+            Expr::Unfolding(lname, largs, lin_expr, lperm, lenum, _),
+            Expr::Unfolding(rname, rargs, rin_expr, rperm, renum, _)
+        ) if lname == rname && lperm == rperm && lenum == renum => {
+            if largs.len() != rargs.len() {
+                return None;
+            }
+
+            vars_mapping = largs.iter()
+                .zip(rargs.iter())
+                .try_fold(vars_mapping, |vars_mapping, (larg, rarg)|
+                    unify(larg, rarg, free_vars, vars_mapping)
+                )?;
+            unify(lin_expr, rin_expr, free_vars, vars_mapping)
+        }
+
+
+        (Expr::Cond(lguard, lthen, lelse, _), Expr::Cond(rguard, rthen, relse, _)) => {
+            vars_mapping = unify(lguard, rguard, free_vars, vars_mapping)?;
+            vars_mapping = unify(lthen, rthen, free_vars, vars_mapping)?;
+            unify(lelse, relse, free_vars, vars_mapping)
+        }
+
+        // Since the local vars of one may not be the same as the other one,
+        // we would need to rename them to a same base, without conflicting
+        // with free vars.
+        // A bit tricky to implement, thus left out for now.
+        (Expr::ForAll(..), Expr::ForAll(..)) =>
+            unimplemented!("Unifying forall unimplemented"),
+
+        (Expr::LetExpr(lvar, lexpr, lbody, _), Expr::LetExpr(rvar, rexpr, rbody, _)) if lvar.typ == rvar.typ => {
+            vars_mapping = unify(lexpr, rexpr, free_vars, vars_mapping)?;
+
+            let mut lnewbody: Option<Box<Expr>> = None;
+            let mut rnewbody: Option<Box<Expr>> = None;
+            if lvar != rvar {
+                // We need to rename things out
+                let common_name = "__".to_owned() + &lvar.name + "$" + &rvar.name + "__";
+                let newvar = LocalVar::new(common_name, lvar.typ.clone());
+                lnewbody = Some(box lbody.clone().rename(lvar, newvar.clone()));
+                rnewbody = Some(box rbody.clone().rename(rvar, newvar.clone()));
+                assert!(!free_vars.contains(&newvar));
+            }
+            // Get the renamed bodies, or the original one if we don't need renaming
+            let (lbody, rbody) = match (&lnewbody, &rnewbody) {
+                (Some(l), Some(r)) => (l, r),
+                _ => (lbody, rbody)
+            };
+            unify(lbody, rbody, free_vars, vars_mapping)
+        }
+
+        (
+            Expr::FuncApp(lname, largs, lformal_args, lrettype, _),
+            Expr::FuncApp(rname, rargs, rformal_args, rrettype, _)
+        ) if lname == rname && lformal_args == rformal_args && lrettype == rrettype => { // TODO: is comparing the formal arguments a bit too restrictive?
+            assert_eq!(largs.len(), rargs.len());
+
+            largs.iter()
+                .zip(rargs.iter())
+                .try_fold(vars_mapping, |vars_mapping, (larg, rarg)|
+                    unify(larg, rarg, free_vars, vars_mapping)
+                )
+        }
+
+        (Expr::SeqIndex(lseq, lindex, _), Expr::SeqIndex(rseq, rindex, _)) => {
+            vars_mapping = unify(lseq, rseq, free_vars, vars_mapping)?;
+            unify(lindex, rindex, free_vars, vars_mapping)
+        }
+
+        (Expr::SeqLen(lseq, _), Expr::SeqLen(rseq, _)) =>
+            unify(lseq, rseq, free_vars, vars_mapping),
+
+        _ => None,
+    }
+}
+
+// TODO: wrong. Too naive!
+fn forall_instantiation(
+    subject: &Expr,
+    // forall params: vars, triggers and its body
+    vars: &HashSet<LocalVar>,
+    triggers: &Vec<Trigger>,
+    body: &Expr,
+) -> Option<ForallInstantiation> {
+    fn helper(
+        subject: &Expr,
+        vars: &HashSet<LocalVar>,
+        trigger: &[Expr],
+        body: &Expr,
+    ) -> Option<ForallInstantiation> {
+        trigger.iter().try_fold(
+            HashMap::new(),
+            |vars_mapping, trigger_exp| unify(subject, trigger_exp, vars, vars_mapping),
+        ).map(|vars_mapping| {
+            let subst_map = vars_mapping.iter()
+                .map(|(lv, e)| (Expr::local(lv.clone()), (&**e).clone()))
+                .collect::<HashMap<Expr, Expr>>();
+
+            ForallInstantiation {
+                vars_mapping,
+                body: box body.clone().subst(&subst_map)
+            }
+        })
+    }
+
+    match triggers.iter()
+        .map(|trigger| helper(subject, vars, trigger.elements(), body))
+        .find(|p| p.is_some())
+    {
+        Some(Some(r)) => Some(r),
+        _ => None
+    }
+}
+
+impl CondResourceAccess {
+//
+}
+
 pub trait ExprIterator {
     /// Conjoin a sequence of expressions into a single expression.
     /// Returns true if the sequence has no elements.
@@ -1734,5 +1980,242 @@ where
             }
         }
         rfold(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+// TODO: test renaming
+
+    #[test]
+    fn test_unify_success_simple() {
+        let x = Expr::local(LocalVar::new("x", Type::Int));
+        let y = Expr::local(LocalVar::new("y", Type::Int));
+        let z = Expr::local(LocalVar::new("z", Type::Int));
+        let a = Expr::local(LocalVar::new("a", Type::Int));
+        let b = Expr::local(LocalVar::new("b", Type::Int));
+        let c = Expr::local(LocalVar::new("c", Type::Int));
+        let fv1 = LocalVar::new("fv1", Type::Int);
+        let fv2 = LocalVar::new("fv2", Type::Int);
+        let subject = Expr::BinOp(
+            BinOpKind::Mul,
+            box Expr::BinOp(
+                BinOpKind::Add,
+                box x.clone(),
+                box Expr::BinOp(
+                    BinOpKind::Div,
+                    box y.clone(),
+                    box Expr::Cond(box Expr::local(fv1.clone()), box z.clone(), box Expr::local(fv2.clone()), Position::default()),
+                    Position::default()
+                ),
+                Position::default(),
+            ),
+            box Expr::local(fv1.clone()),
+            Position::default(),
+        );
+        let fv1subst = Expr::BinOp(BinOpKind::Add, box z.clone(), box a.clone(), Position::default());
+        let fv2subst = Expr::BinOp(BinOpKind::Mul, box b.clone(), box c.clone(), Position::default());
+        // (x + (y / (fv1 ? z : fv2))) * fv1
+        let target = Expr::BinOp(
+            BinOpKind::Mul,
+            box Expr::BinOp(
+                BinOpKind::Add,
+                box x.clone(),
+                box Expr::BinOp(
+                    BinOpKind::Div,
+                    box y.clone(),
+                    box Expr::Cond(box fv1subst.clone(), box z.clone(), box fv2subst.clone(), Position::default()),
+                    Position::default()
+                ),
+                Position::default(),
+            ),
+            box fv1subst.clone(),
+            Position::default(),
+        );
+        let mut fvs = HashSet::new();
+        fvs.insert(fv1.clone());
+        fvs.insert(fv2.clone());
+        let got = unify(&subject, &target, &fvs, HashMap::new());
+        let mut expected = HashMap::new();
+        expected.insert(fv1, box fv1subst);
+        expected.insert(fv2, box fv2subst);
+        assert_eq!(Some(expected), got);
+    }
+
+    #[test]
+    fn test_unify_success_call() {
+        let x = Expr::local(LocalVar::new("x", Type::Int));
+        let y = Expr::local(LocalVar::new("y", Type::Int));
+        let z = Expr::local(LocalVar::new("z", Type::Int));
+        let a = Expr::local(LocalVar::new("a", Type::Int));
+        let b = Expr::local(LocalVar::new("b", Type::Int));
+        let c = Expr::local(LocalVar::new("c", Type::Int));
+        let fv1 = LocalVar::new("fv1", Type::Int);
+        let fv2 = LocalVar::new("fv2", Type::Int);
+        // x + f(fv1, fv2, y * fv2)
+        let subject = Expr::BinOp(
+            BinOpKind::Add,
+            box x.clone(),
+            box Expr::FuncApp(
+                "f".to_owned(),
+                vec![
+                    Expr::local(fv1.clone()),
+                    Expr::local(fv2.clone()),
+                    Expr::BinOp(BinOpKind::Mul, box y.clone(), box Expr::local(fv2.clone()), Position::default())
+                ],
+                vec![
+                    LocalVar::new("arg1", Type::Int),
+                    LocalVar::new("arg2", Type::Int),
+                    LocalVar::new("arg3", Type::Int),
+                ],
+                Type::Int,
+                Position::default()
+            ),
+            Position::default()
+        );
+
+        let fv1subst = Expr::BinOp(BinOpKind::Add, box z.clone(), box a.clone(), Position::default());
+        let fv2subst = Expr::BinOp(BinOpKind::Mul, box b.clone(), box c.clone(), Position::default());
+        let target = Expr::BinOp(
+            BinOpKind::Add,
+            box x.clone(),
+            box Expr::FuncApp(
+                "f".to_owned(),
+                vec![
+                    fv1subst.clone(),
+                    fv2subst.clone(),
+                    Expr::BinOp(BinOpKind::Mul, box y.clone(), box fv2subst.clone(), Position::default())
+                ],
+                vec![
+                    LocalVar::new("arg1", Type::Int),
+                    LocalVar::new("arg2", Type::Int),
+                    LocalVar::new("arg3", Type::Int),
+                ],
+                Type::Int,
+                Position::default()
+            ),
+            Position::default()
+        );
+
+        let mut fvs = HashSet::new();
+        fvs.insert(fv1.clone());
+        fvs.insert(fv2.clone());
+        let got = unify(&subject, &target, &fvs, HashMap::new());
+        let mut expected = HashMap::new();
+        expected.insert(fv1, box fv1subst);
+        expected.insert(fv2, box fv2subst);
+        assert_eq!(Some(expected), got);
+    }
+
+    #[test]
+    fn test_unify_failure_simple() {
+        let y = Expr::local(LocalVar::new("y", Type::Int));
+        let z = Expr::local(LocalVar::new("z", Type::Int));
+        let a = Expr::local(LocalVar::new("a", Type::Int));
+        let b = Expr::local(LocalVar::new("b", Type::Int));
+        let fv1 = LocalVar::new("fv1", Type::Int);
+
+        let subject = Expr::BinOp(
+            BinOpKind::Mul,
+            box Expr::BinOp(
+                BinOpKind::Add,
+                box Expr::local(fv1.clone()),
+                box Expr::BinOp(
+                    BinOpKind::Div,
+                    box y.clone(),
+                    box z.clone(),
+                    Position::default()
+                ),
+                Position::default(),
+            ),
+            box Expr::local(fv1.clone()),
+            Position::default(),
+        );
+        let target = Expr::BinOp(
+            BinOpKind::Mul,
+            box Expr::BinOp(
+                BinOpKind::Add,
+                box a,
+                box Expr::BinOp(
+                    BinOpKind::Div,
+                    box y.clone(),
+                    box z.clone(),
+                    Position::default()
+                ),
+                Position::default(),
+            ),
+            box b,
+            Position::default(),
+        );
+        let mut fvs = HashSet::new();
+        fvs.insert(fv1.clone());
+        let got = unify(&subject, &target, &fvs, HashMap::new());
+        assert_eq!(None, got);
+    }
+
+    #[test]
+    fn test_forall_instantiation_simple() {
+        let magic_call = |arg: Expr| {
+            Expr::FuncApp(
+                "magic".into(),
+                vec![arg],
+                vec![LocalVar::new("magic_arg", Type::Int)],
+                Type::Int,
+                Position::default(),
+            )
+        };
+
+        // forall i: Int :: { magic(i) }
+        //      magic(magic(i)) == magic(2 * i) + i
+        let (forall_vars, forall_triggers, forall_body) = {
+            let i = LocalVar::new("i", Type::Int);
+            let triggers = vec![Trigger::new(vec![magic_call(Expr::local(i.clone()))])];
+            let body = Expr::BinOp(
+                BinOpKind::EqCmp,
+                box magic_call(magic_call(Expr::local(i.clone()))),
+                box Expr::BinOp(
+                    BinOpKind::Add,
+                    box magic_call(
+                        Expr::BinOp(
+                            BinOpKind::Mul,
+                            box Expr::Const(Const::Int(2), Position::default()),
+                            box Expr::local(i.clone()),
+                            Position::default(),
+                        )
+                    ),
+                    box Expr::local(i.clone()),
+                    Position::default(),
+                ),
+                Position::default(),
+            );
+            let mut vars = HashSet::new();
+            vars.insert(i.clone());
+            (vars, triggers, body)
+        };
+
+        let expr = Expr::BinOp(
+            BinOpKind::EqCmp,
+            box magic_call(magic_call(Expr::Const(Const::Int(10), Position::default()))),
+            box Expr::BinOp(
+                BinOpKind::Add,
+                box magic_call(
+                    Expr::BinOp(
+                        BinOpKind::Mul,
+                        box Expr::Const(Const::Int(2), Position::default()),
+                        box Expr::Const(Const::Int(10), Position::default()),
+                        Position::default(),
+                    )
+                ),
+                box Expr::Const(Const::Int(10), Position::default()),
+                Position::default(),
+            ),
+            Position::default(),
+        );
+
+        let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
+        eprintln!("AAAAAAAAAAAAAAAAAAAAAAA {:?}", got);
+        assert!(false);
     }
 }
