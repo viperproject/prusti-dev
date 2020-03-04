@@ -47,7 +47,7 @@ fn success_with_complex_program() {
     let wrapper_domain = ast.domain(
         "Wrapper",
         &[wrap_domain_function, unwrap_domain_function],
-        &[ast.domain_axiom(
+        &[ast.named_domain_axiom(
             "unwrap_wrapper",
             // forall x: T :: unwrap(wrap(x)) == x
             ast.forall(
