@@ -11,7 +11,7 @@ jobject_wrapper!(Trigger);
 jobject_wrapper!(Position);
 jobject_wrapper!(Domain);
 jobject_wrapper!(DomainFunc);
-jobject_wrapper!(DomainAxiom);
+jobject_wrapper!(NamedDomainAxiom);
 jobject_wrapper!(Function);
 jobject_wrapper!(Method);
 jobject_wrapper!(Field);

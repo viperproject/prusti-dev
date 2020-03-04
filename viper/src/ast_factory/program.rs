@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use ast_factory::structs::Domain;
-use ast_factory::structs::DomainAxiom;
+use ast_factory::structs::NamedDomainAxiom;
 use ast_factory::structs::DomainFunc;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Field;
@@ -137,7 +137,7 @@ impl<'a> AstFactory<'a> {
         &self,
         name: &str,
         functions: &[DomainFunc],
-        axioms: &[DomainAxiom],
+        axioms: &[NamedDomainAxiom],
         type_vars: &[Type],
     ) -> Domain<'a> {
         build_ast_node!(
@@ -172,8 +172,8 @@ impl<'a> AstFactory<'a> {
         DomainFunc::new(obj)
     }
 
-    pub fn domain_axiom(&self, name: &str, expr: Expr, domain_name: &str) -> DomainAxiom<'a> {
-        let obj = self.jni.unwrap_result(ast::DomainAxiom::with(self.env).new(
+    pub fn named_domain_axiom(&self, name: &str, expr: Expr, domain_name: &str) -> NamedDomainAxiom<'a> {
+        let obj = self.jni.unwrap_result(ast::NamedDomainAxiom::with(self.env).new(
             self.jni.new_string(name),
             expr.to_jobject(),
             self.no_position().to_jobject(),
@@ -181,6 +181,6 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string(domain_name),
             self.no_trafos(),
         ));
-        DomainAxiom::new(obj)
+        NamedDomainAxiom::new(obj)
     }
 }

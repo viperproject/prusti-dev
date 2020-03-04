@@ -215,7 +215,7 @@ fn main() {
             java_class!("viper.silver.ast.Domain", vec![
                 constructor!(),
             ]),
-            java_class!("viper.silver.ast.DomainAxiom", vec![
+            java_class!("viper.silver.ast.NamedDomainAxiom", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.DomainFunc", vec![
