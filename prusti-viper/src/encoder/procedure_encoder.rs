@@ -3963,9 +3963,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        info!("[enter] encode_assign_len(place={:?})", place);
-        let (encoded_val, _, _) = self.mir_encoder.encode_place(place);
-        self.encode_copy_value_assign(encoded_lhs, vir::Expr::seq_len(encoded_val), ty, location)
+        trace!("[enter] encode_assign_len(place={:?})", place);
+        let (encoded_val, place_ty, _) = self.mir_encoder.encode_place(place);
+        let base = encoded_val.field(self.encoder.encode_value_field(place_ty));
+        self.encode_copy_value_assign(encoded_lhs, vir::Expr::seq_len(base), ty, location)
     }
 
     pub fn get_auxiliar_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {

@@ -142,7 +142,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
             }
-            // TODO: size?
+
             ty::TypeVariants::TyArray(ref ty, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(ty);
                 vir::Field::new("val_array", vir::Type::TypedSeq(type_name))
@@ -344,12 +344,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
-            // TODO: size?
-            ty::TypeVariants::TyArray(inner, _) => {
-                vec![vir::Predicate::new_array(
+            ty::TypeVariants::TyArray(inner, size) => {
+                vec![vir::Predicate::new_slice_or_array(
                     typ,
                     self.encoder.encode_value_field(inner),
-                    self.encoder.encode_value_field(self.ty)
+                    self.encoder.encode_value_field(self.ty),
+                    size.assert_usize(self.encoder.env().tcx()),
                 )]
             }
 

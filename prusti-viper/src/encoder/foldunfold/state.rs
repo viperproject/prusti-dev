@@ -6,7 +6,7 @@
 
 use encoder::foldunfold::perm::*;
 use encoder::vir;
-use encoder::vir::ExprIterator;
+use encoder::vir::{ExprIterator, CondResourceAccess};
 use encoder::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -18,6 +18,7 @@ pub struct State {
     acc: HashMap<vir::Expr, PermAmount>,
     /// paths on which we (may) have a full predicate permission
     pred: HashMap<vir::Expr, PermAmount>,
+    cond: Vec<CondResourceAccess>,
     /// paths that have been "moved out" (for sure)
     moved: HashSet<vir::Expr>,
     /// Permissions currently framed
@@ -25,6 +26,12 @@ pub struct State {
     /// Permissions that should be removed from the state
     /// This is a hack for restoring borrows
     dropped: HashSet<Perm>,
+}
+
+pub enum ContainsCondPerm {
+    Yes,
+    No,
+    RequiredCondition(vir::Expr),
 }
 
 impl State {
@@ -36,6 +43,7 @@ impl State {
         State {
             acc,
             pred,
+            cond: Vec::new(),
             moved,
             framing_stack: vec![],
             dropped: HashSet::new(),
@@ -234,10 +242,20 @@ impl State {
     }
 
     /// Note: the permission amount is currently ignored
-    pub fn contains_perm(&self, item: &Perm) -> bool {
-        match item {
+    pub fn contains_perm(&self, item: &Perm) -> ContainsCondPerm {
+        let contained = match item {
             &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
             &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
+        };
+        if contained {
+            ContainsCondPerm::Yes
+        } else {
+            for cond in &self.cond {
+                if let Some(requirements) = cond.try_access(item.get_place()) {
+                    return ContainsCondPerm::RequiredCondition(requirements);
+                }
+            }
+            ContainsCondPerm::No
         }
     }
 
@@ -245,7 +263,10 @@ impl State {
     where
         I: Iterator<Item = &'a Perm>,
     {
-        items.all(|x| self.contains_perm(x))
+        items.all(|x| match self.contains_perm(x) {
+            ContainsCondPerm::Yes | ContainsCondPerm::RequiredCondition(_) => true,
+            ContainsCondPerm::No => false,
+        })
     }
 
     pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Expr) -> bool {
@@ -338,6 +359,16 @@ impl State {
         info.join(",\n")
     }
 
+    pub fn display_cond(&self) -> String {
+        let mut info = self
+            .cond
+            .iter()
+            .map(|p| format!("{}", p))
+            .collect::<Vec<String>>();
+        info.sort();
+        info.join(",\n")
+    }
+
     pub fn display_moved(&self) -> String {
         let mut info = self
             .moved
@@ -420,6 +451,18 @@ impl State {
     {
         for item in items {
             self.insert_perm(item);
+        }
+    }
+
+    pub fn insert_all_available_perms<I>(&mut self, items: I)
+    where
+        I: Iterator<Item = AvailablePerm>,
+    {
+        for item in items {
+            match item {
+                AvailablePerm::Perm(p) => self.insert_perm(p),
+                AvailablePerm::Cond(cond) => self.cond.push(cond),
+            }
         }
     }
 

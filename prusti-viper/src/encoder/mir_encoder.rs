@@ -125,6 +125,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let (encoded_base, base_ty, opt_variant_index) = self.encode_place(&place_projection.base);
 
         trace!("place_projection: {:?}", place_projection);
+        trace!("encoded_base: {:?}", encoded_base);
         trace!("base_ty: {:?}", base_ty);
 
         match &place_projection.elem {
@@ -215,12 +216,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     | ty::TypeVariants::TySlice(ty) => ty,
                     _ => unreachable!()
                 };
-                let encoded_index = self.encode_local(index);
+                let encoded_index = vir::Expr::local(self.encode_local(index));
                 let val_array_field = TypeEncoder::new(self.encoder, base_ty)
                     .encode_value_field();
+                let val_int_field = TypeEncoder::new(self.encoder, self.get_local_ty(index))
+                    .encode_value_field();
                 let encoded_projection = vir::Expr::seq_index(
-                    vir::Expr::field(encoded_base, val_array_field),
-                    vir::Expr::local(encoded_index)
+                    encoded_base.field(val_array_field),
+                    encoded_index.field(val_int_field),
                 );
                 (encoded_projection, projection_ty, None)
             }

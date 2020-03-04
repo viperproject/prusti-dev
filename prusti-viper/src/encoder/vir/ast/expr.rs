@@ -495,17 +495,14 @@ impl Expr {
         Expr::FuncApp(name, args, internal_args, return_type, pos)
     }
 
-    // TODO: do same check for seq len
     pub fn seq_index(seq: Expr, index: Expr) -> Self {
-        assert!(match &seq {
-            Expr::Field(_, Field { name, typ }, _) =>
-                name.as_str() == "val_array" && typ.get_id() == TypeId::Seq,
-            _ => false
-        }, "`seq` must be a field access of val_array");
+        Expr::check_seq_access(&seq);
+        assert_eq!(index.get_type(), Type::Int);
         Expr::SeqIndex(box seq, box index, Position::default())
     }
 
     pub fn seq_len(seq: Expr) -> Self {
+        Expr::check_seq_access(&seq);
         Expr::SeqLen(box seq, Position::default())
     }
 
@@ -776,7 +773,7 @@ impl Expr {
         match self {
             Expr::PredicateAccessPredicate(_, ref arg, _, _) => Some(arg),
             Expr::FieldAccessPredicate(box ref arg, _, _) => Some(arg),
-            Expr::CondResourceAccess(cond, _) => Some(cond.resource.expression()),
+            Expr::CondResourceAccess(cond, _) => Some(cond.resource.inner_expression()),
             _ => None,
         }
     }
@@ -1310,6 +1307,14 @@ impl Expr {
         self.fold_expr(|e| subst_map.get(&e).unwrap_or(&e).clone())
     }
 
+    pub fn subst_vars(self, subst_map: &HashMap<LocalVar, Expr>) -> Self {
+        self.fold_expr(|e| match &e {
+            Expr::Local(ref lv, _) =>
+                subst_map.get(lv).unwrap_or(&e).clone(),
+            _ => e.clone()
+        })
+    }
+
     pub fn depth(&self) -> usize {
         use std::cmp::max;
         match self {
@@ -1339,8 +1344,16 @@ impl Expr {
             Expr::SeqIndex(seq, index, _) =>  1 + max(seq.depth(), index.depth()),
             Expr::SeqLen(seq, _) => 1 + seq.depth(),
             Expr::CondResourceAccess(cond, _) =>
-                1 + max(cond.cond.depth(), cond.resource.expression().depth()),
+                1 + max(cond.cond.depth(), cond.resource.inner_expression().depth()),
         }
+    }
+
+    fn check_seq_access(seq: &Expr) {
+        assert!(match seq {
+            Expr::Field(_, Field { name, typ }, _) =>
+                name.as_str() == "val_array" && typ.get_id() == TypeId::Seq,
+            _ => false
+        }, "`seq` must be a field access of val_array");
     }
 }
 
@@ -1769,7 +1782,7 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(var);
         }
         self.walk(&*cond.cond);
-        self.walk(cond.resource.expression());
+        self.walk(cond.resource.inner_expression());
     }
 }
 
@@ -1841,11 +1854,78 @@ impl Expr {
     }
 }
 
+impl CondResourceAccess {
+    pub fn try_access(&self, perm: &Expr) -> Option<Expr> {
+        // TODO: This is horrendous
+        // TODO: `Hash` is not implemented for `HashSet`, which is needed for CondResourceAccess
+        let vars = self.vars.iter().cloned().collect();
+        let forall_body = Expr::BinOp(
+            BinOpKind::Implies,
+            self.cond.clone(),
+            box self.resource.to_expression(),
+            Position::default()
+        );
+        forall_instantiation(perm, &vars, &self.triggers, &forall_body)
+            .map(|fi| {
+                match *fi.body {
+                    Expr::BinOp(BinOpKind::Implies, box cond, box rhs, _) => {
+                        // Sanity check: the returned rhs implication should be the same as `perm`
+                        match &rhs {
+                            Expr::FieldAccessPredicate(box ref place, _, _) =>
+                                assert_eq!(perm, place),
+                            Expr::PredicateAccessPredicate(_, box ref arg, _, _) =>
+                                assert_eq!(perm, arg),
+                            x => unreachable!("forall_instantiation altered rhs condition: {}", x),
+                        }
+                        cond.subst_vars(&fi.vars_mapping)
+                    }
+                    x => unreachable!("We have given an implication, but forall_instantiation gave us back {}", x),
+                }
+            })
+    }
+
+    pub fn get_perm_amount(&self) -> PermAmount {
+        self.resource.get_perm_amount()
+    }
+
+    pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
+        CondResourceAccess {
+            vars: self.vars,
+            triggers: self.triggers,
+            cond: self.cond,
+            resource: self.resource.update_perm_amount(new_perm)
+        }
+    }
+
+    pub fn map_place<F>(self, f: F) -> Self
+        where F: Fn(Expr) -> Expr
+    {
+        let triggers = self.triggers.into_iter()
+            .map(|trigger| trigger.map_all(&f))
+            .collect();
+        CondResourceAccess {
+            vars: self.vars,
+            triggers,
+            cond: box f(*self.cond),
+            resource: self.resource.map_expression(f)
+        }
+    }
+}
+
 impl ResourceAccess {
-    pub fn expression(&self) -> &Box<Expr> {
+    pub fn inner_expression(&self) -> &Box<Expr> {
         match self {
             ResourceAccess::PredicateAccessPredicate(p) => &p.arg,
             ResourceAccess::FieldAccessPredicate(f) => &f.place,
+        }
+    }
+
+    pub fn to_expression(&self) -> Expr {
+        match self {
+            ResourceAccess::PredicateAccessPredicate(p) =>
+                Expr::PredicateAccessPredicate(p.predicate_name.clone(), p.arg.clone(), p.perm, Position::default()),
+            ResourceAccess::FieldAccessPredicate(f) =>
+                Expr::FieldAccessPredicate(f.place.clone(), f.perm, Position::default()),
         }
     }
 
@@ -1856,8 +1936,24 @@ impl ResourceAccess {
         }
     }
 
+    pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
+        match self {
+            ResourceAccess::PredicateAccessPredicate(p) =>
+                ResourceAccess::PredicateAccessPredicate(PredicateAccessPredicate {
+                    predicate_name: p.predicate_name,
+                    arg: p.arg,
+                    perm: new_perm
+                }),
+            ResourceAccess::FieldAccessPredicate(f) =>
+                ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+                    place: f.place,
+                    perm: new_perm
+                }),
+        }
+    }
+
     pub fn map_expression<F>(self, mut f: F) -> Self
-        where F: FnMut(Expr) -> Expr
+        where F: FnOnce(Expr) -> Expr
     {
         match self {
             ResourceAccess::PredicateAccessPredicate(pa) =>
@@ -1877,7 +1973,12 @@ impl ResourceAccess {
 
 impl CondResourceAccess {
     pub fn to_plain_expression(&self) -> Expr {
-        let body = Expr::BinOp(BinOpKind::Implies, self.cond.clone(), self.resource.expression().clone(), Position::default());
+        let body = Expr::BinOp(
+            BinOpKind::Implies,
+            self.cond.clone(),
+            box self.resource.to_expression(),
+            Position::default()
+        );
         if self.vars.is_empty() {
             body
         } else {
@@ -1889,7 +1990,7 @@ impl CondResourceAccess {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ForallInstantiation {
-    vars_mapping: HashMap<LocalVar, Box<Expr>>,
+    vars_mapping: HashMap<LocalVar, Expr>,
     body: Box<Expr>,
 }
 
@@ -1907,7 +2008,7 @@ fn unify(
     subject: &Expr,
     target: &Expr,
     free_vars: &HashSet<LocalVar>,
-    vars_mapping: &mut HashMap<LocalVar, Box<Expr>>,
+    vars_mapping: &mut HashMap<LocalVar, Expr>,
 ) -> UnificationResult {
     fn do_unify(
         subject: &Expr,
@@ -1915,14 +2016,14 @@ fn unify(
         free_vars: &HashSet<LocalVar>,
         // The original mapping that we were passed.
         // We will modify it at the end once we are sure the unification succeeded
-        orig_mapping: &HashMap<LocalVar, Box<Expr>>,
-        vars_mapping: &mut HashMap<LocalVar, Box<Expr>>,
+        orig_mapping: &HashMap<LocalVar, Expr>,
+        vars_mapping: &mut HashMap<LocalVar, Expr>,
     ) -> Result<(), UnificationResult> { // We return Result for the `?` operator convenience
         match (subject, target) {
             (Expr::Local(lv, _), _) if free_vars.contains(lv) => {
                 match vars_mapping.entry(lv.clone()) {
                     Entry::Vacant(e) => {
-                        e.insert(box target.clone());
+                        e.insert(target.clone());
                         Ok(())
                     }
                     Entry::Occupied(e) => {
@@ -1932,7 +2033,7 @@ fn unify(
                         // target = f(v, v)  with fv = {v}
                         // subject = f(5, 19)
                         // In that case, we can't unify the expression so we return UnificationResult::Conflict.
-                        if &**e.get() == target {
+                        if &*e.get() == target {
                             // Do the same for the original mapping
                             if let Some(expr_in_original) = orig_mapping.get(&lv) {
                                 if e.get() == expr_in_original {
@@ -2094,7 +2195,7 @@ fn forall_instantiation(
         vars: &HashSet<LocalVar>,
         trigger: &Vec<Expr>,
         matched_trigger: &mut Vec<bool>,
-        vars_mapping: &mut HashMap<LocalVar, Box<Expr>>,
+        vars_mapping: &mut HashMap<LocalVar, Expr>,
     ) -> Result<(), ()> { // Ok -> may or may not have matched all trigger. Err -> unification conflict
         let target_depth = target.depth();
         for (trigger, matched) in trigger.iter().zip(matched_trigger.iter_mut()) {
@@ -2207,7 +2308,7 @@ fn forall_instantiation(
          && matched_trigger.iter().all(|b| *b)
         {
             let subst_map = vars_mapping.iter()
-                .map(|(lv, e)| (Expr::local(lv.clone()), (&**e).clone()))
+                .map(|(lv, e)| (Expr::local(lv.clone()), (&*e).clone()))
                 .collect::<HashMap<Expr, Expr>>();
 
             return Some(ForallInstantiation {
@@ -2321,8 +2422,8 @@ mod tests {
         assert_eq!(UnificationResult::Success, ok);
 
         let mut expected = HashMap::new();
-        expected.insert(fv1, box fv1subst);
-        expected.insert(fv2, box fv2subst);
+        expected.insert(fv1, fv1subst);
+        expected.insert(fv2, fv2subst);
         assert_eq!(expected, got);
     }
 
@@ -2389,8 +2490,8 @@ mod tests {
         assert_eq!(UnificationResult::Success, ok);
 
         let mut expected = HashMap::new();
-        expected.insert(fv1, box fv1subst);
-        expected.insert(fv2, box fv2subst);
+        expected.insert(fv1, fv1subst);
+        expected.insert(fv2, fv2subst);
         assert_eq!(expected, got);
     }
 
@@ -2495,7 +2596,7 @@ mod tests {
             let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
             let expected = {
                 let mut mapping = HashMap::new();
-                mapping.insert(LocalVar::new("i", Type::Int), box Expr::Const(Const::Int(10), Position::default()));
+                mapping.insert(LocalVar::new("i", Type::Int), Expr::Const(Const::Int(10), Position::default()));
                 ForallInstantiation {
                     vars_mapping: mapping,
                     body: box expr // We get back the same expression for that specific example
@@ -2528,7 +2629,7 @@ mod tests {
             let expected = {
                 let magic_x_plus_z = magic_call(x_plus_z.clone());
                 let mut mapping = HashMap::new();
-                mapping.insert(LocalVar::new("i", Type::Int), box magic_x_plus_z.clone());
+                mapping.insert(LocalVar::new("i", Type::Int), magic_x_plus_z.clone());
                 let body = magic_property_body(magic_x_plus_z);
                 ForallInstantiation {
                     vars_mapping: mapping,

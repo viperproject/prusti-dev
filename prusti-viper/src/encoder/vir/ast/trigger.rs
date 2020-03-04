@@ -41,4 +41,16 @@ impl Trigger {
                 .collect(),
         )
     }
+
+    pub fn map_all<F>(self, f: F) -> Self
+        where F: Fn(Expr) -> Expr
+    {
+        Trigger::new(self.0.into_iter().map(f).collect())
+    }
+}
+
+impl Into<Vec<Expr>> for Trigger {
+    fn into(self) -> Vec<Expr> {
+        self.0
+    }
 }

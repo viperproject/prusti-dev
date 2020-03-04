@@ -91,15 +91,16 @@ impl Predicate {
             variants: variants,
         })
     }
-    // TODO: generalize that to accept slices
-    /// Construct a new predicate that represents an array
-    pub fn new_array(
+    /// Construct a new predicate that represents an array or a slice
+    pub fn new_slice_or_array(
         typ: Type,
         elem_field: Field,
         array_field: Field,
+        len: Option<u64>,
     ) -> Predicate {
         let predicate_name = typ.name();
         let this = Self::construct_this(typ);
+        // self.val_array
         let val_field = Expr::from(this.clone()).field(array_field);
         // acc(self.val_array)
         let val_field_acc = Expr::acc_permission(val_field.clone(), PermAmount::Write);
@@ -107,27 +108,45 @@ impl Predicate {
         let elems_acc = {
             let idx_local = LocalVar::new("i", Type::Int);
             let idx = Expr::local(idx_local.clone());
+            // 0 <= i < |self.val_array|
             let idx_bounds = Expr::and(
                 Expr::le_cmp(Expr::Const(Const::Int(0), Position::default()), idx.clone()),
                 Expr::lt_cmp(idx.clone(), Expr::seq_len(val_field.clone()))
             );
             // self.val_array[i]
             let elems_acc = Expr::seq_index(val_field.clone(), idx.clone());
-            let elems_acc_field = Expr::acc_permission(
+            let elems_acc_field = ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
                 // self.val_array[i].val_*
-                Expr::field(elems_acc.clone(), elem_field),
-                PermAmount::Write
-            );
-            Expr::forall(
-                vec![idx_local],
-                vec![Trigger::new(vec![elems_acc])],
-                Expr::implies(idx_bounds, elems_acc_field)
+                place: box Expr::field(elems_acc.clone(), elem_field),
+                perm: PermAmount::Write
+            });
+            Expr::CondResourceAccess(
+                CondResourceAccess {
+                    vars: vec![idx_local],
+                    triggers: vec![Trigger::new(vec![elems_acc])],
+                    cond: box idx_bounds,
+                    resource: elems_acc_field,
+                },
+                Position::default()
             )
         };
-        let body = Expr::and(val_field_acc, elems_acc);
+        // Combining everything, and specifying the size of the array if it is known
+        let body = {
+            if let Some(len) = len {
+                // |self.val_array| == len
+                let len_is = Expr::eq_cmp(
+                    Expr::seq_len(val_field),
+                    Expr::Const(Const::BigInt(len.to_string()), Position::default())
+                );
+                Expr::and(val_field_acc, Expr::and(len_is, elems_acc))
+            } else {
+                Expr::and(val_field_acc, elems_acc)
+            }
+        };
+
         Predicate::Struct(StructPredicate {
             name: predicate_name,
-            this: this,
+            this,
             body: Some(body),
         })
     }

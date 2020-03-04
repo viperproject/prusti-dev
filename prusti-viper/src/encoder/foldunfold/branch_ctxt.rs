@@ -77,14 +77,13 @@ impl<'a> BranchCtxt<'a> {
         let predicate = self.predicates.get(&predicate_name).unwrap();
 
         let pred_self_place: vir::Expr = predicate.self_place();
-        let places_in_pred: Vec<Perm> = predicate
-            .get_permissions_with_variant(&variant)
+        let places_in_pred = predicate
+            .get_available_permissions_with_variant(&variant)
             .into_iter()
             .map(|perm| {
                 perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
                     .update_perm_amount(perm_amount)
-            })
-            .collect();
+            });
 
         trace!(
             "Pred state before unfold: {{\n{}\n}}",
@@ -93,7 +92,7 @@ impl<'a> BranchCtxt<'a> {
 
         // Simulate unfolding of `pred_place`
         self.state.remove_pred(&pred_place, perm_amount);
-        self.state.insert_all_perms(places_in_pred.into_iter());
+        self.state.insert_all_available_perms(places_in_pred);
 
         debug!("We unfolded {}", pred_place);
 
@@ -483,11 +482,19 @@ impl<'a> BranchCtxt<'a> {
         trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
         // 1. Check if the requirement is satisfied
-        if self.state.contains_perm(req) {
-            // `req` is satisfied, so we can remove it from `reqs`
-            trace!("[exit] obtain: Requirement {} is satisfied", req);
-            return ObtainResult::Success(actions);
+        match self.state.contains_perm(req) {
+            ContainsCondPerm::Yes => {
+                trace!("[exit] obtain: Requirement {} is satisfied", req);
+                return ObtainResult::Success(actions);
+            }
+            ContainsCondPerm::RequiredCondition(requirements) => {
+                trace!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, requirements);
+                actions.push(Action::Assertion(requirements));
+                return ObtainResult::Success(actions);
+            }
+            ContainsCondPerm::No => (),
         }
+
         if req.is_acc() && req.is_local() {
             // access permissions on local variables are always satisfied
             trace!("[exit] obtain: Requirement {} is satisfied", req);
@@ -543,8 +550,15 @@ impl<'a> BranchCtxt<'a> {
 
             let pred_self_place: vir::Expr = predicate.self_place();
             let places_in_pred: Vec<Perm> = predicate
-                .get_permissions_with_variant(&variant)
+                .get_available_permissions_with_variant(&variant)
                 .into_iter()
+                .filter_map(|ap| match ap {
+                    AvailablePerm::Perm(p) => Some(p),
+                    // `CondResourceAccess` is always an implication (==>)
+                    // Since the implication is always true, we always have that "permission"
+                    // so we filter it out.
+                    AvailablePerm::Cond(_) => None,
+                })
                 .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
                 .collect();
 
@@ -659,11 +673,16 @@ Access permissions: {{
 Predicates: {{
 {}
 }}
+
+Conditional permission: {{
+{}
+}}
 ",
                 req,
                 req,
                 self.state.display_acc(),
-                self.state.display_pred()
+                self.state.display_pred(),
+                self.state.display_cond(),
             );
             return ObtainResult::Failure(req.clone());
         };

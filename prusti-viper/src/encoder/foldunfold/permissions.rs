@@ -325,7 +325,8 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::SeqLen(ref seq, _) => seq.get_required_permissions(predicates),
 
-            vir::Expr::CondResourceAccess(..) => unimplemented!(),
+            vir::Expr::CondResourceAccess(..) =>
+                panic!("Conditional resource access should have been eliminated earlier before calling get_required_permissions"),
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",
@@ -434,7 +435,87 @@ impl vir::Expr {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            vir::Expr::CondResourceAccess(..) => unimplemented!(),
+            vir::Expr::CondResourceAccess(..) =>
+                panic!("Conditional resource access should have been eliminated earlier before calling get_permissions"),
+        }
+    }
+
+    pub fn get_available_permissions(&self) -> HashSet<AvailablePerm> {
+        trace!("get_available_permissions {}", self);
+        match self {
+            vir::Expr::Local(_, _)
+            | vir::Expr::Field(_, _, _)
+            | vir::Expr::Variant(_, _, _)
+            | vir::Expr::AddrOf(_, _, _)
+            | vir::Expr::LabelledOld(_, _, _)
+            | vir::Expr::Const(_, _)
+            | vir::Expr::FuncApp(..) => HashSet::new(),
+
+            // TODO: Is this correct?
+            vir::Expr::SeqIndex(_, _, _)
+            | vir::Expr::SeqLen(_, _) => HashSet::new(),
+
+            vir::Expr::Unfolding(..) =>
+                panic!("A predicate body should not contain unfolding expression"),
+
+            vir::Expr::UnaryOp(_, ref expr, _) => expr.get_available_permissions(),
+
+            vir::Expr::BinOp(_, box left, box right, _) => union(
+                &left.get_available_permissions(),
+                &right.get_available_permissions(),
+            ),
+
+            vir::Expr::Cond(box guard, box left, box right, _) => union3(
+                &guard.get_available_permissions(),
+                &left.get_available_permissions(),
+                &right.get_available_permissions(),
+            ),
+
+            vir::Expr::ForAll(vars, _triggers, box body, _) => {
+                /*assert!(vars.iter().all(|var| !var.typ.is_ref()));
+                let vars_places: HashSet<Perm> = vars
+                    .iter()
+                    .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
+                    .collect();
+                perm_difference(body.get_available_permissions(), vars_places)*/
+                unimplemented!()
+            }
+
+            vir::Expr::PredicateAccessPredicate(_, box ref arg, perm_amount, _) => {
+                let opt_perm = if arg.is_place() {
+                    Some(match arg.get_label() {
+                        None => AvailablePerm::Perm(Perm::Pred(arg.clone(), *perm_amount)),
+                        Some(label) => AvailablePerm::Perm(Perm::Pred(arg.clone().old(label), *perm_amount)),
+                    })
+                } else {
+                    None
+                };
+
+                opt_perm.into_iter().collect()
+            }
+
+            vir::Expr::FieldAccessPredicate(box ref place, perm_amount, _) => {
+                // In Prusti we assume to have only places here
+                debug_assert!(place.is_place());
+                debug_assert!(place.is_curr());
+
+                let perm = AvailablePerm::Perm(Perm::Acc(place.clone(), *perm_amount));
+
+                Some(perm).into_iter().collect()
+            }
+
+            vir::Expr::MagicWand(ref _lhs, ref _rhs, _borrow, _) => {
+                // We don't track magic wands resources
+                HashSet::new()
+            }
+
+            vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
+                unreachable!("Let expressions should be introduced after fold/unfold.");
+            }
+
+            vir::Expr::CondResourceAccess(cond, _) => {
+                Some(AvailablePerm::Cond(cond.clone())).into_iter().collect()
+            }
         }
     }
 }
@@ -461,6 +542,21 @@ impl vir::Predicate {
         };
         perms
     }
+
+    pub fn get_available_permissions_with_variant(
+        &self,
+        maybe_variant: &vir::MaybeEnumVariantIndex
+    ) -> HashSet<AvailablePerm> {
+        match self {
+            vir::Predicate::Struct(p) => {
+                assert!(maybe_variant.is_none());
+                p.get_available_permissions()
+            }
+            vir::Predicate::Enum(p) => {
+                unimplemented!()
+            }
+        }
+    }
 }
 
 impl vir::StructPredicate {
@@ -474,6 +570,11 @@ impl vir::StructPredicate {
             }
             None => HashSet::new(),
         }
+    }
+
+    pub fn get_available_permissions(&self) -> HashSet<AvailablePerm> {
+        self.body.as_ref().map(|b| b.get_available_permissions())
+            .unwrap_or_else(|| HashSet::new())
     }
 }
 

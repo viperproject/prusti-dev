@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::vir;
-use encoder::vir::PermAmount;
+use encoder::vir::{PermAmount, CondResourceAccess};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
@@ -15,6 +15,12 @@ use std::fmt;
 pub enum Perm {
     Acc(vir::Expr, PermAmount),
     Pred(vir::Expr, PermAmount),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum AvailablePerm {
+    Perm(Perm),
+    Cond(CondResourceAccess),
 }
 
 impl Perm {
@@ -107,6 +113,58 @@ impl Perm {
         match self {
             Perm::Acc(expr, perm) => Perm::Acc(expr.set_default_pos(pos), perm),
             Perm::Pred(expr, perm) => Perm::Pred(expr.set_default_pos(pos), perm),
+        }
+    }
+}
+
+impl AvailablePerm {
+    pub fn map_place<F>(self, f: F) -> Self
+        where
+            F: Fn(vir::Expr) -> vir::Expr,
+    {
+        match self {
+            AvailablePerm::Perm(p) =>
+                AvailablePerm::Perm(p.map_place(f)),
+            AvailablePerm::Cond(cond) =>
+                AvailablePerm::Cond(cond.map_place(f))
+        }
+    }
+
+    pub fn get_place(&self) -> &vir::Expr {
+        match self {
+            AvailablePerm::Perm(p) => p.get_place(),
+            AvailablePerm::Cond(cond) => &*cond.resource.inner_expression()
+        }
+    }
+
+    pub fn get_perm_amount(&self) -> PermAmount {
+        match self {
+            AvailablePerm::Perm(Perm::Acc(_, p)) => *p,
+            AvailablePerm::Perm(Perm::Pred(_, p)) => *p,
+            AvailablePerm::Cond(cond) => cond.get_perm_amount(),
+        }
+    }
+
+    pub fn set_default_pos(self, pos: vir::Position) -> Self {
+        match self {
+            AvailablePerm::Perm(p) => AvailablePerm::Perm(p.set_default_pos(pos)),
+            AvailablePerm::Cond(cond) => AvailablePerm::Cond(CondResourceAccess {
+                vars: cond.vars,
+                triggers: cond.triggers,
+                cond: cond.cond,
+                resource: cond.resource.map_expression(|e| e.set_default_pos(pos))
+            })
+        }
+    }
+
+    pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
+        assert!(self.get_perm_amount().is_valid_for_specs()); // Just a sanity check.
+        assert!(new_perm.is_valid_for_specs());
+        match self {
+            AvailablePerm::Perm(p) =>
+                AvailablePerm::Perm(p.update_perm_amount(new_perm)),
+            AvailablePerm::Cond(cond) =>
+                AvailablePerm::Cond(cond.update_perm_amount(new_perm)),
         }
     }
 }

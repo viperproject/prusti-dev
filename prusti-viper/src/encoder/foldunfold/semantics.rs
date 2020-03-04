@@ -201,9 +201,10 @@ impl vir::Stmt {
                     .map(|aop| aop.map_place(|p| p.replace_place(&pred_self_place, place)))
                     .collect();
 
-                for contained_place in &places_in_pred {
-                    assert!(!state.contains_perm(contained_place));
-                }
+                // TODO: restore this
+                // for contained_place in &places_in_pred {
+                //     assert!(!state.contains_perm(contained_place));
+                // }
 
                 // Simulate unfolding of `place`
                 state.remove_pred(place, perm_amount);

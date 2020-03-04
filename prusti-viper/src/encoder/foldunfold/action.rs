@@ -6,7 +6,7 @@
 
 use encoder::foldunfold::perm::*;
 use encoder::vir;
-use encoder::vir::PermAmount;
+use encoder::vir::{PermAmount, FoldingBehaviour, Position};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -16,6 +16,7 @@ pub enum Action {
     /// The dropped perm and the missing permission that caused this
     /// perm to be dropped.
     Drop(Perm, Perm),
+    Assertion(vir::Expr),
 }
 
 impl Action {
@@ -34,6 +35,7 @@ impl Action {
                 vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount, variant.clone())
             }
             Action::Drop(..) => vir::Stmt::comment(self.to_string()),
+            Action::Assertion(assertion) => vir::Stmt::Assert(assertion.clone(), FoldingBehaviour::Expr, Position::default()),
         }
     }
 
@@ -50,6 +52,8 @@ impl Action {
             }
 
             Action::Drop(..) => inner_expr,
+
+            Action::Assertion(_) => inner_expr, // TODO: what should we do here?
         }
     }
 }
@@ -61,6 +65,7 @@ impl fmt::Display for Action {
             Action::Drop(ref perm, ref missing_perm) => {
                 write!(f, "drop {} ({})", perm, missing_perm)
             }
+            Action::Assertion(assertion) => write!(f, "assert {}", assertion),
         }
     }
 }
