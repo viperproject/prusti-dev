@@ -471,7 +471,7 @@ impl vir::Expr {
                 &right.get_available_permissions(),
             ),
 
-            vir::Expr::ForAll(vars, _triggers, box body, _) => {
+            vir::Expr::ForAll(..) => {
                 /*assert!(vars.iter().all(|var| !var.typ.is_ref()));
                 let vars_places: HashSet<Perm> = vars
                     .iter()
@@ -543,6 +543,8 @@ impl vir::Predicate {
         perms
     }
 
+    // TODO: find a better name, and distinguish better with get_permissions_with_variant & cie
+    // TODO: reduce copy/paste
     pub fn get_available_permissions_with_variant(
         &self,
         maybe_variant: &vir::MaybeEnumVariantIndex
@@ -553,7 +555,17 @@ impl vir::Predicate {
                 p.get_available_permissions()
             }
             vir::Predicate::Enum(p) => {
-                unimplemented!()
+                // TODO: this could potentially fail with a
+                //  "Conditional resource access should have been eliminated [..]"
+                let perms = {
+                    if let Some(variant) = maybe_variant {
+                        p.get_permissions(variant)
+                    } else {
+                        // We must be doing fold/unfold for a pure function.
+                        p.get_all_permissions()
+                    }
+                };
+                perms.into_iter().map(AvailablePerm::Perm).collect()
             }
         }
     }

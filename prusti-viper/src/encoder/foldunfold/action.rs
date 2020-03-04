@@ -53,7 +53,7 @@ impl Action {
 
             Action::Drop(..) => inner_expr,
 
-            Action::Assertion(_) => inner_expr, // TODO: what should we do here?
+            Action::Assertion(_) => inner_expr, // The assertion has already been taken care of.
         }
     }
 }
