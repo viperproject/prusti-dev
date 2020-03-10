@@ -30,10 +30,11 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
 
 impl vir::Stmt {
     pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
-        debug!("apply_on_state '{}'", self);
-        trace!("State acc before {{\n{}\n}}", state.display_acc());
-        trace!("State pred before {{\n{}\n}}", state.display_pred());
-        trace!("State moved before {{\n{}\n}}", state.display_moved());
+        info!("apply_on_state '{}'", self);
+        // info!("State acc before {{\n{}\n}}", state.display_acc());
+        // info!("State pred before {{\n{}\n}}", state.display_pred());
+        // info!("State cond before {{\n{}\n}}", state.display_cond());
+        // info!("State moved before {{\n{}\n}}", state.display_moved());
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
@@ -45,6 +46,7 @@ impl vir::Stmt {
             }
 
             &vir::Stmt::Exhale(ref expr, _) => {
+                // info!("EXHALE {:?}", predicates);
                 exhale_expr(expr, state, predicates);
             }
 

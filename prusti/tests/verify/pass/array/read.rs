@@ -1,9 +1,18 @@
 extern crate prusti_contracts;
 
-fn return_fixed(arr: &[isize; 64]) -> isize {
-    return arr[42];
+/*struct Foo {
+    foo_field: isize,
 }
+fn simple(foo: &Foo) -> isize {
+    let dummy = foo.foo_field;
+    return 1;
+}*/
 
+fn read_fixed(arr: &[isize; 64]) -> isize {
+    let dummy = arr[1];
+    return 1;
+}
+/*
 // We need i >= 0 because unsigned integers bounds are not encoded by default
 #[requires="0 <= i && i < 64"]
 fn return_nth(arr: &[isize; 64], i: usize) -> isize {
@@ -28,6 +37,6 @@ fn sum_alternate(arr: &[isize; 65]) -> isize {
         i += 2;
     }
     return sum;
-}
+}*/
 
 fn main() {}

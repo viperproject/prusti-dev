@@ -6,7 +6,7 @@
 
 use encoder::foldunfold::perm::*;
 use encoder::vir;
-use encoder::vir::{ExprIterator, CondResourceAccess};
+use encoder::vir::{ExprIterator, CondResourceAccess, ResourceAccessResult};
 use encoder::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -31,7 +31,7 @@ pub struct State {
 pub enum ContainsCondPerm {
     Yes,
     No,
-    RequiredCondition(vir::Expr),
+    Partially(Vec<ResourceAccessResult>),
 }
 
 impl State {
@@ -51,12 +51,14 @@ impl State {
     }
 
     // Skip consistency checks in release mode
-    #[cfg(not(debug_assertions))]
+    // #[cfg(not(debug_assertions))]
+    #[cfg(debug_assertions)]
     pub fn check_consistency(&self) {
         // Nothing
     }
 
-    #[cfg(debug_assertions)]
+    // #[cfg(debug_assertions)]
+    #[cfg(not(debug_assertions))]
     pub fn check_consistency(&self) {
         // Check access permissions
         for place in self.pred.keys() {
@@ -242,20 +244,29 @@ impl State {
     }
 
     /// Note: the permission amount is currently ignored
-    pub fn contains_perm(&self, item: &Perm) -> ContainsCondPerm {
-        let contained = match item {
+    pub fn contains_perm(&self, item: &Perm) -> bool {
+        match item {
             &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
             &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
-        };
-        if contained {
+        }
+    }
+
+    // TODO: Some of these methods must be adapted for cond. perm. too
+
+    // TODO: should we also look for prefixes or is it "up to the caller"?  <- if it gives access to _1.val_array[..].val_int, we should first look for _1, _1.val_array, and the index
+    pub fn contains_cond_perm(&self, item: &Perm) -> ContainsCondPerm {
+        if self.contains_perm(item) {
             ContainsCondPerm::Yes
         } else {
-            for cond in &self.cond {
-                if let Some(requirements) = cond.try_access(item.get_place()) {
-                    return ContainsCondPerm::RequiredCondition(requirements);
-                }
+            let conds = self.cond
+                .iter()
+                .filter_map(|cond| cond.try_instantiate(item.get_place()))
+                .collect::<Vec<_>>();
+            if conds.is_empty() {
+                ContainsCondPerm::No
+            } else {
+                ContainsCondPerm::Partially(conds)
             }
-            ContainsCondPerm::No
         }
     }
 
@@ -263,9 +274,10 @@ impl State {
     where
         I: Iterator<Item = &'a Perm>,
     {
-        items.all(|x| match self.contains_perm(x) {
-            ContainsCondPerm::Yes | ContainsCondPerm::RequiredCondition(_) => true,
-            ContainsCondPerm::No => false,
+        items.all(|x| match self.contains_cond_perm(x) {
+            ContainsCondPerm::Yes => true,
+            // If we don't have the permission in acc or pred, then we don't have it "right now" (so Partially doesn't count)
+            ContainsCondPerm::No | ContainsCondPerm::Partially(_) => false,
         })
     }
 
@@ -459,6 +471,7 @@ impl State {
         I: Iterator<Item = AvailablePerm>,
     {
         for item in items {
+            info!("INSERT {:?}", item);
             match item {
                 AvailablePerm::Perm(p) => self.insert_perm(p),
                 AvailablePerm::Cond(cond) => self.cond.push(cond),
@@ -485,30 +498,43 @@ impl State {
     }
 
     pub fn remove_acc(&mut self, place: &vir::Expr, perm: PermAmount) {
+        info!("remove_acc {}, {}", place, perm);
+        info!("Acc state before: {{\n{}\n}}", self.display_acc());
+        info!("Pred state before: {{\n{}\n}}", self.display_pred());
+        info!("Cond state before: {{\n{}\n}}", self.display_cond());
         assert!(
             self.acc.contains_key(place),
             "Place {} is not in state (acc), so it can not be removed.",
             place
         );
-        if self.acc[place] == perm {
+        if self.acc[place] <= perm {
             self.acc.remove(place);
         } else {
             self.acc.insert(place.clone(), self.acc[place] - perm);
         }
+        info!("Acc state after: {{\n{}\n}}", self.display_acc());
+        info!("Pred state after: {{\n{}\n}}", self.display_pred());
+        info!("Cond state after: {{\n{}\n}}", self.display_cond());
     }
 
     pub fn remove_pred(&mut self, place: &vir::Expr, perm: PermAmount) {
-        trace!("remove_pred {}, {}", place, perm);
+        info!("remove_pred {}, {}", place, perm);
+        info!("Acc state before: {{\n{}\n}}", self.display_acc());
+        info!("Pred state before: {{\n{}\n}}", self.display_pred());
+        info!("Cond state before: {{\n{}\n}}", self.display_cond());
         assert!(
             self.pred.contains_key(place),
             "Place {} is not in state (pred), so it can not be removed.",
             place
         );
-        if self.pred[place] == perm {
+        if self.pred[place] <= perm {
             self.pred.remove(place);
         } else {
             self.pred.insert(place.clone(), self.pred[place] - perm);
         }
+        info!("Acc state after: {{\n{}\n}}", self.display_acc());
+        info!("Pred state after: {{\n{}\n}}", self.display_pred());
+        info!("Cond state after: {{\n{}\n}}", self.display_cond());
     }
 
     pub fn remove_perm(&mut self, item: &Perm) {

@@ -80,6 +80,7 @@ pub struct CondResourceAccess {
     pub triggers: Vec<Trigger>,
     pub cond: Box<Expr>,
     /// The resource being guarded by requirements.
+    // TODO: have a smarter encoding so that we can have multiple resources in one forall
     pub resource: ResourceAccess,
 }
 
@@ -669,6 +670,7 @@ impl Expr {
             &Expr::Local(_, _) => true,
             &Expr::Variant(ref base, _, _)
             | &Expr::Field(ref base, _, _)
+            // TODO: is SeqIndex a simple place?
             | &Expr::SeqIndex(ref base, _, _) => base.is_simple_place(),
             _ => false,
         }
@@ -870,6 +872,8 @@ impl Expr {
     pub fn has_proper_prefix(&self, other: &Expr) -> bool {
         debug_assert!(self.is_place(), "self={} other={}", self, other);
         debug_assert!(other.is_place(), "self={} other={}", self, other);
+        // info!("PROPER PREFIX {}  {}", self, other);
+        // info!("PROPER PREFIX {}", self.has_prefix(other));
         self != other && self.has_prefix(other)
     }
 
@@ -899,6 +903,34 @@ impl Expr {
         debug_assert!(self.is_place());
         let mut res = self.all_proper_prefixes();
         res.push(self.clone());
+        res
+    }
+
+    // Returns all places.
+    // For fields access like `x.a.b.c`, this corresponds to `all_prefixes()`
+    // The main difference is for sequence index e.g. x.a.b[y.c.d], where this method
+    // will return the prefixes of x.a.b and of y.c.d
+    pub fn all_proper_places(&self) -> Vec<Expr> {
+        fn inner(e: &Expr, res: &mut Vec<Expr>) {
+            match e {
+                &Expr::Local(_, _)
+                | &Expr::LabelledOld(_, _, _)
+                | &Expr::Unfolding(_, _, _, _, _, _) => (),
+                &Expr::Variant(box ref base, _, _)
+                | &Expr::Field(box ref base, _, _)
+                | &Expr::AddrOf(box ref base, _, _) => inner(base, res),
+                &Expr::SeqIndex(box ref base, box ref index, _) => {
+                    inner(base, res);
+                    inner(index, res);
+                }
+                ref x => unreachable!("{}", x),
+            }
+            res.push(e.clone());
+        }
+        debug_assert!(self.is_place());
+        let mut res = Vec::new();
+        inner(self, &mut res);
+        res.pop(); // Remove self
         res
     }
 
@@ -1854,9 +1886,23 @@ impl Expr {
     }
 }
 
+pub enum ResourceAccessResult {
+    Complete {
+        requirements: Expr,
+    },
+    FieldAccessPrefixOnly {
+        requirements: Expr,
+        prefix: FieldAccessPredicate,
+    },
+    Predicate {
+        requirements: Expr,
+        predicate: PredicateAccessPredicate
+    },
+}
+
 impl CondResourceAccess {
-    pub fn try_access(&self, perm: &Expr) -> Option<Expr> {
-        // TODO: This is horrendous
+    pub fn try_instantiate(&self, perm_expr: &Expr) -> Option<ResourceAccessResult> {
+        // TODO: This vars transformation into HashSet is horrendous
         // TODO: `Hash` is not implemented for `HashSet`, which is needed for CondResourceAccess
         let vars = self.vars.iter().cloned().collect();
         let forall_body = Expr::BinOp(
@@ -1865,19 +1911,43 @@ impl CondResourceAccess {
             box self.resource.to_expression(),
             Position::default()
         );
-        forall_instantiation(perm, &vars, &self.triggers, &forall_body)
+        forall_instantiation(perm_expr, &vars, &self.triggers, &forall_body)
             .map(|fi| {
                 match *fi.body {
                     Expr::BinOp(BinOpKind::Implies, box cond, box rhs, _) => {
-                        // Sanity check: the returned rhs implication should be the same as `perm`
-                        match &rhs {
-                            Expr::FieldAccessPredicate(box ref place, _, _) =>
-                                assert_eq!(perm, place),
-                            Expr::PredicateAccessPredicate(_, box ref arg, _, _) =>
-                                assert_eq!(perm, arg),
+                        let requirements = cond.subst_vars(&fi.vars_mapping);
+                        info!("WE HAVE PERM={}", perm_expr);
+                        info!("WE HAVE RHS={}", rhs);
+                        match rhs {
+                            Expr::FieldAccessPredicate(place, perm, _) => {
+                                if perm_expr == &*place {
+                                    ResourceAccessResult::Complete {
+                                        requirements,
+                                    }
+                                } else {
+                                    assert!(perm_expr.has_proper_prefix(&place));
+                                    ResourceAccessResult::FieldAccessPrefixOnly {
+                                        requirements,
+                                        prefix: FieldAccessPredicate {
+                                            place,
+                                            perm,
+                                        }
+                                    }
+                                }
+                            }
+                            Expr::PredicateAccessPredicate(predicate_name, arg, perm, _) => {
+                                assert!(perm_expr.has_prefix(&arg));
+                                ResourceAccessResult::Predicate {
+                                    requirements,
+                                    predicate: PredicateAccessPredicate {
+                                        predicate_name,
+                                        arg,
+                                        perm,
+                                    }
+                                }
+                            }
                             x => unreachable!("forall_instantiation altered rhs condition: {}", x),
                         }
-                        cond.subst_vars(&fi.vars_mapping)
                     }
                     x => unreachable!("We have given an implication, but forall_instantiation gave us back {}", x),
                 }
@@ -1952,7 +2022,7 @@ impl ResourceAccess {
         }
     }
 
-    pub fn map_expression<F>(self, mut f: F) -> Self
+    pub fn map_expression<F>(self, f: F) -> Self
         where F: FnOnce(Expr) -> Expr
     {
         match self {
@@ -1983,6 +2053,29 @@ impl CondResourceAccess {
             body
         } else {
             Expr::ForAll(self.vars.clone(), self.triggers.clone(), box body, Position::default())
+        }
+    }
+}
+
+impl ResourceAccessResult {
+    pub fn is_complete(&self) -> bool {
+        match self {
+            ResourceAccessResult::Complete {..} => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_field_access_prefix(&self) -> bool {
+        match self {
+            ResourceAccessResult::FieldAccessPrefixOnly {..} => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_predicate(&self) -> bool {
+        match self {
+            ResourceAccessResult::Predicate {..} => true,
+            _ => false,
         }
     }
 }

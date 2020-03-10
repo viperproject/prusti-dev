@@ -116,7 +116,15 @@ impl<'a> Verifier<'a, state::Stopped> {
     }
 }
 
+use std::fs::File;
+use std::io::prelude::*;
+
 impl<'a> Verifier<'a, state::Started> {
+    fn write_to_file(&self, str: String) -> () {
+        let mut file = File::create("program.vpr").unwrap();
+        file.write_all(str.as_bytes()).unwrap();
+    }
+
     pub fn verify(&self, program: Program) -> VerificationResult {
         let ast_utils = AstUtils::new(self.env);
 
@@ -124,6 +132,7 @@ impl<'a> Verifier<'a, state::Started> {
             "Program to be verified:\n{}",
             ast_utils.pretty_print(program)
         );
+        self.write_to_file(ast_utils.pretty_print(program));
 
         let start_consistency_checks = Instant::now();
         let consistency_errors = ast_utils.check_consistency(program);

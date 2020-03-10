@@ -121,12 +121,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         &self,
         place_projection: &mir::PlaceProjection<'tcx>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-        trace!("Encode projection {:?}", place_projection);
+        info!("Encode projection {:?}", place_projection);
         let (encoded_base, base_ty, opt_variant_index) = self.encode_place(&place_projection.base);
 
-        trace!("place_projection: {:?}", place_projection);
-        trace!("encoded_base: {:?}", encoded_base);
-        trace!("base_ty: {:?}", base_ty);
+        info!("place_projection: {:?}", place_projection);
+        info!("encoded_base: {:?}", encoded_base);
+        info!("base_ty: {:?}", base_ty);
 
         match &place_projection.elem {
             &mir::ProjectionElem::Field(ref field, _) => {
@@ -221,10 +221,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     .encode_value_field();
                 let val_int_field = TypeEncoder::new(self.encoder, self.get_local_ty(index))
                     .encode_value_field();
+                let val_ref_field = self.encoder.encode_dereference_field(projection_ty); //self.encoder.encode_value_field(projection_ty); //
                 let encoded_projection = vir::Expr::seq_index(
                     encoded_base.field(val_array_field),
                     encoded_index.field(val_int_field),
-                );
+                ).field(val_ref_field);
                 (encoded_projection, projection_ty, None)
             }
 

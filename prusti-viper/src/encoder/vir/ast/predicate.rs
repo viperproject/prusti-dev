@@ -94,41 +94,68 @@ impl Predicate {
     /// Construct a new predicate that represents an array or a slice
     pub fn new_slice_or_array(
         typ: Type,
-        elem_field: Field,
+        inner_type_predicate_name: String,
+        elem_ref_field: Field,
         array_field: Field,
         len: Option<u64>,
     ) -> Predicate {
+        // TODO: acc(usize(self.val_array[i].val_ref))
         let predicate_name = typ.name();
         let this = Self::construct_this(typ);
         // self.val_array
         let val_field = Expr::from(this.clone()).field(array_field);
         // acc(self.val_array)
         let val_field_acc = Expr::acc_permission(val_field.clone(), PermAmount::Write);
-        // forall i: Int :: { self.val_array[i] } 0 <= i < |self.val_array| ==> acc(self.val_array[i].val_*)
+        // Accessing elements from the array
+        // We need two foralls:
+        // -One for the referenced value (self.val_array[i].val_ref)
+        // -One for the struct predicate of the referenced value.
+        //  e.g. if we have an array of usize, the struct predicate would be acc(usize(self.val_array[i].val_ref))
+        //
+        // forall i: Int :: { self.val_array[i] } 0 <= i < |self.val_array|
+        //      ==> acc(self.val_array[i].val_ref)
+        // && forall i: Int :: { self.val_array[i] } 0 <= i < |self.val_array|
+        //      ==> acc(TypePredicate(self.val_array[i].val_ref))
         let elems_acc = {
             let idx_local = LocalVar::new("i", Type::Int);
             let idx = Expr::local(idx_local.clone());
-            // 0 <= i < |self.val_array|
-            let idx_bounds = Expr::and(
-                Expr::le_cmp(Expr::Const(Const::Int(0), Position::default()), idx.clone()),
-                Expr::lt_cmp(idx.clone(), Expr::seq_len(val_field.clone()))
-            );
             // self.val_array[i]
-            let elems_acc = Expr::seq_index(val_field.clone(), idx.clone());
-            let elems_acc_field = ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
-                // self.val_array[i].val_*
-                place: box Expr::field(elems_acc.clone(), elem_field),
-                perm: PermAmount::Write
-            });
-            Expr::CondResourceAccess(
-                CondResourceAccess {
-                    vars: vec![idx_local],
-                    triggers: vec![Trigger::new(vec![elems_acc])],
-                    cond: box idx_bounds,
-                    resource: elems_acc_field,
-                },
-                Position::default()
-            )
+            let elems = Expr::seq_index(val_field.clone(), idx.clone());
+            // self.val_array[i].val_ref
+            let elems_field = elems.clone().field(elem_ref_field);
+
+            // forall i: Int :: { self.val_array[i] } 0 <= i < |self.val_array| ==> resource
+            let forall_body = |resource: ResourceAccess| {
+                // 0 <= i < |self.val_array|
+                let idx_bounds = Expr::and(
+                    Expr::le_cmp(Expr::Const(Const::Int(0), Position::default()), idx.clone()),
+                    Expr::lt_cmp(idx.clone(), Expr::seq_len(val_field.clone()))
+                );
+                Expr::CondResourceAccess(
+                    CondResourceAccess {
+                        vars: vec![idx_local.clone()],
+                        triggers: vec![Trigger::new(vec![elems.clone()])],
+                        cond: box idx_bounds,
+                        resource,
+                    },
+                    Position::default()
+                )
+            };
+            let elems_field_acc = ResourceAccess::FieldAccessPredicate(
+                FieldAccessPredicate {
+                    place: box elems_field.clone(),
+                    perm: PermAmount::Write
+                }
+            );
+            let inner_type_pred = ResourceAccess::PredicateAccessPredicate(
+                PredicateAccessPredicate {
+                    predicate_name: inner_type_predicate_name,
+                    arg: box elems_field.clone(),
+                    perm: PermAmount::Write
+                }
+            );
+            // forall_body(inner_type_pred)
+            Expr::and(forall_body(elems_field_acc), forall_body(inner_type_pred))
         };
         // Combining everything, and specifying the size of the array if it is known
         let body = {

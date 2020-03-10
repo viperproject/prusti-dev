@@ -347,7 +347,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyArray(inner, size) => {
                 vec![vir::Predicate::new_slice_or_array(
                     typ,
-                    self.encoder.encode_value_field(inner),
+                    TypeEncoder::new(self.encoder, inner).encode_predicate_use(),
+                    self.encoder.encode_dereference_field(inner),
                     self.encoder.encode_value_field(self.ty),
                     size.assert_usize(self.encoder.env().tcx()),
                 )]

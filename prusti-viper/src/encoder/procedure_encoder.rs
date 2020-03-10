@@ -726,7 +726,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmt: &mir::Statement<'tcx>,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        debug!(
+        info!(
             "Encode statement '{:?}', span: {:?}",
             stmt.kind, stmt.source_info.span
         );
@@ -3072,7 +3072,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     continue;
                 }
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
-                debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
+                info!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 if let ty::TypeVariants::TyClosure(..) = ty.sty {
                     // Do not encode closures
                     continue;
@@ -3196,7 +3196,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
 
-        trace!(
+        info!(
             "[exit] encode_loop_invariant_permissions permissions={}",
             permissions
                 .iter()
@@ -3544,7 +3544,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
         debug!(
-            "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
+            "[enter] encode_assign_operand(lhs={:?}, operand={:?}, location={:?})",
             lhs, operand, location
         );
         let stmts = match operand {
@@ -3905,7 +3905,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
-        trace!(
+        info!(
             "[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})",
             mir_borrow_kind,
             place,

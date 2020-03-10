@@ -169,7 +169,7 @@ impl RequiredPermissionsGetter for vir::Expr {
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        trace!("[enter] get_required_permissions(expr={})", self);
+        info!("[enter] get_required_permissions(expr={})", self);
         let permissions = match self {
             vir::Expr::Const(_, _) => HashSet::new(),
 
@@ -311,24 +311,16 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .get_required_permissions(predicates)
             }
 
-            vir::Expr::SeqIndex(ref _seq, ref _index, _) => {
-                /*info!("REQUIRING PERMISSIONS FOR {}", self);
-                // Permission for the seq instance
-                let mut result = seq.get_required_permissions(predicates);
-                // Permission for index
-                result.extend(index.get_required_permissions(predicates).into_iter());
-                // Permission for indexing into the seq
-                result.insert(Acc(self.clone(), PermAmount::Read));
-                result*/
-                unimplemented!()
-            }
+            vir::Expr::SeqIndex(box seq, box index, _) =>
+                vec![seq, index].get_required_permissions(predicates),
 
-            vir::Expr::SeqLen(ref seq, _) => seq.get_required_permissions(predicates),
+            vir::Expr::SeqLen(ref seq, _) =>
+                seq.get_required_permissions(predicates),
 
             vir::Expr::CondResourceAccess(..) =>
                 panic!("Conditional resource access should have been eliminated earlier before calling get_required_permissions"),
         };
-        trace!(
+        info!(
             "[exit] get_required_permissions(expr={}): {:#?}",
             self,
             permissions
@@ -351,9 +343,9 @@ impl vir::Expr {
             | vir::Expr::Const(_, _)
             | vir::Expr::FuncApp(..) => HashSet::new(),
 
-            // TODO: Is this correct?
+            // TODO
             vir::Expr::SeqIndex(_, _, _)
-            | vir::Expr::SeqLen(_, _) => HashSet::new(),
+            | vir::Expr::SeqLen(_, _) => unimplemented!(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
                 assert_eq!(args.len(), 1);
@@ -451,10 +443,6 @@ impl vir::Expr {
             | vir::Expr::Const(_, _)
             | vir::Expr::FuncApp(..) => HashSet::new(),
 
-            // TODO: Is this correct?
-            vir::Expr::SeqIndex(_, _, _)
-            | vir::Expr::SeqLen(_, _) => HashSet::new(),
-
             vir::Expr::Unfolding(..) =>
                 panic!("A predicate body should not contain unfolding expression"),
 
@@ -511,6 +499,20 @@ impl vir::Expr {
 
             vir::Expr::LetExpr(ref _variable, ref _expr, ref _body, _) => {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
+            }
+
+            vir::Expr::SeqLen(ref seq, _) => seq.get_available_permissions(),
+
+            vir::Expr::SeqIndex(ref seq, ref index, _) => {
+                /*info!("REQUIRING PERMISSIONS FOR {}", self);
+                // Permission for the seq instance
+                let mut result = seq.get_available_permissions();
+                // Permission for index
+                result.extend(index.get_available_permissions().into_iter());
+                // Permission for indexing into the seq
+                result.insert(AvailablePerm::Perm(Acc(self.clone(), PermAmount::Write)));
+                result*/
+                unimplemented!()
             }
 
             vir::Expr::CondResourceAccess(cond, _) => {

@@ -9,11 +9,12 @@ use encoder::foldunfold::perm::*;
 use encoder::foldunfold::places_utils::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
-use encoder::vir::PermAmount;
+use encoder::vir::{PermAmount, ResourceAccessResult, ResourceAccess};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use utils::to_string::ToString;
+use std::ops::Try;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BranchCtxt<'a> {
@@ -60,7 +61,7 @@ impl<'a> BranchCtxt<'a> {
         perm_amount: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
     ) -> Action {
-        debug!("We want to unfold {} with {}", pred_place, perm_amount);
+        info!("We want to unfold {} with {}", pred_place, perm_amount);
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
         assert!(
             self.state.contains_pred(pred_place),
@@ -474,34 +475,26 @@ impl<'a> BranchCtxt<'a> {
     ///
     /// ``in_join`` – are we currently trying to join branches?
     fn obtain(&mut self, req: &Perm, in_join: bool) -> ObtainResult {
-        trace!("[enter] obtain(req={})", req);
+        info!("[enter] obtain(req={})", req);
 
         let mut actions: Vec<Action> = vec![];
 
-        trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
-        trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
+        // info!("Acc state before: {{\n{}\n}}", self.state.display_acc());
+        // info!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
         // 1. Check if the requirement is satisfied
-        match self.state.contains_perm(req) {
-            ContainsCondPerm::Yes => {
-                trace!("[exit] obtain: Requirement {} is satisfied", req);
-                return ObtainResult::Success(actions);
-            }
-            ContainsCondPerm::RequiredCondition(requirements) => {
-                trace!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, requirements);
-                actions.push(Action::Assertion(requirements));
-                return ObtainResult::Success(actions);
-            }
-            ContainsCondPerm::No => (),
+        if self.state.contains_perm(req) {
+            info!("[exit] obtain: Requirement {} is satisfied", req);
+            return ObtainResult::Success(actions);
         }
 
         if req.is_acc() && req.is_local() {
             // access permissions on local variables are always satisfied
-            trace!("[exit] obtain: Requirement {} is satisfied", req);
+            info!("[exit] obtain: Requirement {} is satisfied", req);
             return ObtainResult::Success(actions);
         }
 
-        debug!("Try to satisfy requirement {}", req);
+        info!("Try to satisfy requirement {}", req);
 
         // 3. Obtain with an unfold
         // Find a predicate on a proper prefix of req
@@ -513,7 +506,7 @@ impl<'a> BranchCtxt<'a> {
             .cloned();
         if let Some(existing_pred_to_unfold) = existing_prefix_pred_opt {
             let perm_amount = self.state.pred()[&existing_pred_to_unfold];
-            debug!(
+            info!(
                 "We want to unfold {} with permission {} (we need at least {})",
                 existing_pred_to_unfold,
                 perm_amount,
@@ -523,19 +516,22 @@ impl<'a> BranchCtxt<'a> {
             let variant = self.find_variant(&existing_pred_to_unfold, req.get_place());
             let action = self.unfold(&existing_pred_to_unfold, perm_amount, variant);
             actions.push(action);
-            debug!("We unfolded {}", existing_pred_to_unfold);
+            info!("We unfolded {}", existing_pred_to_unfold);
 
             // Check if we are done
-            let new_actions = self.obtain(req, false).unwrap();
+            let new_actions = self.obtain(req, false).or_else(|_| ObtainResult::Failure(req.clone()))?;
             actions.extend(new_actions);
-            trace!("[exit] obtain");
+            info!("[exit] obtain");
             return ObtainResult::Success(actions);
         }
 
         // 4. Obtain with a fold
         if req.is_pred() {
             // We want to fold `req`
-            debug!("We want to fold {}", req);
+            info!("We want to fold {}", req);
+            info!("We have: acc state: {{\n{}\n}}", self.state.display_acc());
+            info!("We have: pred state: {{\n{}\n}}", self.state.display_pred());
+            info!("We have: cond state: {{\n{}\n}}", self.state.display_cond());
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
@@ -547,21 +543,58 @@ impl<'a> BranchCtxt<'a> {
                 .acc_places()
                 .into_iter()
                 .find(|p| p.has_proper_prefix(req.get_place()));
-
+            info!("predicate is {}", predicate);
+            info!("existing_proper_perm_extension_opt is {:?}", existing_proper_perm_extension_opt);
             let pred_self_place: vir::Expr = predicate.self_place();
+            info!("pred_self_place is {}", pred_self_place);
             let places_in_pred: Vec<Perm> = predicate
                 .get_available_permissions_with_variant(&variant)
                 .into_iter()
+                .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
                 .filter_map(|ap| match ap {
-                    AvailablePerm::Perm(p) => Some(p),
+                    AvailablePerm::Perm(p) => {
+                        info!("Simple perm {}", p);
+                        Some(p)
+                    },
+                    // TODO: comment below is wrong
                     // `CondResourceAccess` is always an implication (==>)
                     // Since the implication is always true, we always have that "permission"
                     // so we filter it out.
-                    AvailablePerm::Cond(_) => None,
-                })
-                .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
-                .collect();
+                    // TODO: for things in acc, we must verify that they verify the cond. Maybe let Viper do that with fold
+                    AvailablePerm::Cond(a) => {
+                        match &a.resource {
+                            ResourceAccess::PredicateAccessPredicate(pred) => {
+                                info!("Resource {} {}", pred.predicate_name, pred.arg);
+                                for (pred, p) in self.state.acc().clone() {
+                                    info!("Pred {}", pred);
 
+                                    // TODO: deal with required prefixes
+                                    match a.try_instantiate(&pred) { // TODO: pred? it's acc!
+                                        Some(ResourceAccessResult::Predicate {requirements, predicate}) => {
+                                            let req = Perm::Pred(*predicate.arg.clone(), p);
+                                            info!("REQ {}", req);
+                                            info!("PRED {} {}", predicate.predicate_name, predicate.arg);
+                                            return Some(req);
+                                        }
+                                        // TODO: Rest !!
+                                        _ => (),
+                                    }
+                                }
+                                None
+                            }
+                            ResourceAccess::FieldAccessPredicate(f) => {
+                                // TODO: for things satisfying the condition, try to obtain the acc of the field in question
+                                None
+                            }
+                        }
+                    }
+                })
+                .collect();
+            info!("PLACE IN PRED BEGIN");
+            for place in &places_in_pred {
+                info!("   {}", place)
+            }
+            info!("PLACE IN PRED END");
             // Check that there exists something that would make the fold possible.
             // We don't want to end up in an infinite recursion, trying to obtain the
             // predicates in the body.
@@ -588,7 +621,7 @@ impl<'a> BranchCtxt<'a> {
                     })
                     .min()
                     .unwrap_or(PermAmount::Write);
-                debug!(
+                info!(
                     "We want to fold {} with permission {} (we need at least {})",
                     req,
                     perm_amount,
@@ -603,7 +636,7 @@ impl<'a> BranchCtxt<'a> {
                         ObtainResult::Success(new_actions) => {
                             actions.extend(new_actions);
                         }
-                        ObtainResult::Failure(_) => {
+                        ObtainResult::Failure(ref x) => {
                             return obtain_result;
                         }
                     }
@@ -626,12 +659,13 @@ impl<'a> BranchCtxt<'a> {
 
                 // Simulate folding of `req`
                 assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
-                assert!(
+                // TODO: This can fail. Fix
+                /*assert!(
                     !req.get_place().is_simple_place() || self.state.contains_acc(req.get_place()),
                     "req={} state={}",
                     req.get_place(),
                     self.state
-                );
+                );*/
                 assert!(!self.state.contains_pred(req.get_place()));
                 self.state.remove_all_perms(scaled_places_in_pred.iter());
                 self.state.insert_pred(req.get_place().clone(), perm_amount);
@@ -641,8 +675,27 @@ impl<'a> BranchCtxt<'a> {
                 trace!("[exit] obtain");
                 return ObtainResult::Success(actions);
             } else {
-                debug!(
-                    r"It is not possible to obtain {} ({:?}).
+                info!("Cannot fold; trying contains_cond_perm");
+                let result = match self.state.contains_cond_perm(req) {
+                    ContainsCondPerm::Yes =>
+                        unreachable!("This case should have been covered earlier"),
+                    ContainsCondPerm::Partially(mut access_results) => {
+                        access_results.retain(ResourceAccessResult::is_predicate);
+                        match self.handle_resource_access_results(req, access_results) {
+                            ObtainResult::Success(new_actions) => {
+                                actions.extend(new_actions);
+                                ObtainResult::Success(actions)
+                            }
+                            ObtainResult::Failure(_) =>
+                                ObtainResult::Failure(req.clone())
+                        }
+                    }
+                    ContainsCondPerm::No =>
+                        ObtainResult::Failure(req.clone())
+                };
+                if !result.is_success() {
+                    info!(
+                        r"It is not possible to obtain {} ({:?}).
 Access permissions: {{
 {}
 }}
@@ -651,21 +704,32 @@ Predicates: {{
 {}
 }}
 ",
-                    req,
-                    req,
-                    self.state.display_acc(),
-                    self.state.display_pred()
-                );
-                return ObtainResult::Failure(req.clone());
+                        req,
+                        req,
+                        self.state.display_acc(),
+                        self.state.display_pred()
+                    );
+                }
+                info!("[exit] obtain: Requirement {} satisfied", req);
+                return result;
             }
         } else if in_join && req.get_perm_amount() == vir::PermAmount::Read {
             // Permissions held by shared references can be dropped
             // without being explicitly moved becauce &T implements Copy.
             return ObtainResult::Failure(req.clone());
         } else {
-            // We have no predicate to obtain the access permission `req`
-            debug!(
-                r"There is no access permission to obtain {} ({:?}).
+            return match self.state.contains_cond_perm(req) {
+                ContainsCondPerm::Yes =>
+                    unreachable!("This case should have been covered earlier"),
+                ContainsCondPerm::Partially(access_results) => {
+                    // info!("Pred state: {{\n{}\n}}", self.state.display_pred());
+                    actions.extend(self.handle_resource_access_results(req, access_results)?);
+                    ObtainResult::Success(actions)
+                }
+                ContainsCondPerm::No => {
+                    // We have no predicate to obtain the access permission `req`
+                    info!(
+                        r"There is no access permission to obtain {} ({:?}).
 Access permissions: {{
 {}
 }}
@@ -678,48 +742,122 @@ Conditional permission: {{
 {}
 }}
 ",
-                req,
-                req,
-                self.state.display_acc(),
-                self.state.display_pred(),
-                self.state.display_cond(),
-            );
-            return ObtainResult::Failure(req.clone());
+                        req,
+                        req,
+                        self.state.display_acc(),
+                        self.state.display_pred(),
+                        self.state.display_cond(),
+                    );
+                    ObtainResult::Failure(req.clone())
+                }
+            }
         };
+    }
+
+    fn handle_resource_access_results(&mut self, req: &Perm, mut access_results: Vec<ResourceAccessResult>) -> ObtainResult {
+        fn to_ordinal(ressource_access: &ResourceAccessResult) -> usize {
+            match ressource_access {
+                ResourceAccessResult::Complete {..} => 0,
+                ResourceAccessResult::Predicate {..} => 1,
+                ResourceAccessResult::FieldAccessPrefixOnly {..} => 2,
+            }
+        }
+
+        access_results.sort_by(|lhs, rhs| to_ordinal(lhs).cmp(&to_ordinal(rhs)));
+        access_results.into_iter()
+            .map(|res| self.handle_resource_access_result(req, res))
+            .find(|obtain_res| obtain_res.is_success())
+            .unwrap_or_else(|| ObtainResult::Failure(req.clone()))
+    }
+
+    fn handle_resource_access_result(&mut self, req: &Perm, access_result: ResourceAccessResult) -> ObtainResult {
+        let mut actions = Vec::new();
+        match access_result {
+            ResourceAccessResult::Complete { requirements } => {
+                // TODO: We could self.obtain over the requirements:
+                //  -If we succeed, good
+                //  -Otherwise, we assert the requirements
+                info!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, requirements);
+                // TODO: pull out this
+                actions.push(Action::Assertion(requirements));
+                // TODO: insert "assertions" ?
+                self.state.insert_perm(req.clone());
+                ObtainResult::Success(actions)
+            }
+            ResourceAccessResult::Predicate { requirements, predicate } => {
+                info!("obtain: Required permission {} may be satisfied with predicate {}", req, predicate.predicate_name);
+                actions.push(Action::Assertion(requirements));
+                if req.is_pred() {
+                    if &*predicate.arg == req.get_place() {
+                        // TODO: nothing else to do?
+                        self.state.insert_pred(req.get_place().clone(), req.get_perm_amount());
+                        ObtainResult::Success(actions)
+                    } else {
+                        // TODO: this is too harsh. Maybe try to obtain acc on prefix
+                        ObtainResult::Failure(req.clone())
+                    }
+                } else {
+                    // let predicate_perm = Perm::Pred(*predicate.arg, predicate.perm); // TODO: Predicate body or argument?
+                    // actions.extend(self.obtain(&predicate_perm, false).unwrap());
+                    self.state.insert_pred(*predicate.arg.clone(), predicate.perm);
+                    actions.push(self.unfold(&*predicate.arg, predicate.perm, None));
+                    // self.state.insert_perm(req.clone());
+                    info!("[exit] obtain: Required permission {} satisfied", req);
+                    ObtainResult::Success(actions)
+                }
+            }
+            ResourceAccessResult::FieldAccessPrefixOnly { requirements, prefix } => {
+                info!("REQUEST {}    prefix {}", req, prefix.place);
+                // TODO: get the prefix then retry
+                unimplemented!()
+                /*let prefix_perm = Perm::Acc(*prefix.place, prefix.perm);
+                let new_actions = self.obtain(&prefix_perm, false).unwrap();
+                info!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, requirements);
+                actions.extend(new_actions);
+                // TODO: pull out this
+                actions.push(Action::Assertion(requirements));
+                self.state.insert_perm(req.clone());
+                ObtainResult::Success(actions)*/
+            }
+        }
     }
 
     /// Returns some of the dropped permissions
     pub fn apply_stmt(&mut self, stmt: &vir::Stmt) {
-        debug!("apply_stmt: {}", stmt);
+        info!("apply_stmt: {}", stmt);
 
-        trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
-        trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
+        // info!("Acc state before: {{\n{}\n}}", self.state.display_acc());
+        // info!("Pred state before: {{\n{}\n}}", self.state.display_pred());
+        // info!("Cond state before: {{\n{}\n}}", self.state.display_cond());
 
         self.state.check_consistency();
 
         stmt.apply_on_state(&mut self.state, self.predicates);
 
-        trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
-        trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
+        // info!("Acc state after: {{\n{}\n}}", self.state.display_acc());
+        // info!("Pred state after: {{\n{}\n}}", self.state.display_pred());
+        // info!("Cond state after: {{\n{}\n}}", self.state.display_cond());
 
         self.state.check_consistency();
     }
 
     pub fn obtain_permissions(&mut self, permissions: Vec<Perm>) -> Vec<Action> {
-        trace!(
-            "[enter] obtain_permissions: {}",
-            permissions.iter().to_string()
-        );
+        // info!(
+        //     "[enter] obtain_permissions: {}",
+        //     permissions.iter().to_string()
+        // );
 
-        trace!("Acc state before: {{\n{}\n}}", self.state.display_acc());
-        trace!("Pred state before: {{\n{}\n}}", self.state.display_pred());
+        // info!("Acc state before: {{\n{}\n}}", self.state.display_acc());
+        // info!("Pred state before: {{\n{}\n}}", self.state.display_pred());
+        // info!("Cond state before: {{\n{}\n}}", self.state.display_cond());
 
         self.state.check_consistency();
 
         let actions = self.obtain_all(permissions);
 
-        trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
-        trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
+        // info!("Acc state after: {{\n{}\n}}", self.state.display_acc());
+        // info!("Pred state after: {{\n{}\n}}", self.state.display_pred());
+        // info!("Cond state after: {{\n{}\n}}", self.state.display_cond());
 
         self.state.check_consistency();
 
@@ -857,5 +995,41 @@ impl ObtainResult {
             ObtainResult::Success(actions) => actions,
             ObtainResult::Failure(_) => unreachable!(),
         }
+    }
+
+    pub fn is_success(&self) -> bool {
+        match self {
+            ObtainResult::Success(_) => true,
+            ObtainResult::Failure(_) => false,
+        }
+    }
+
+    pub fn or_else<F>(self, on_failure: F) -> Self
+        where F: FnOnce(Perm) -> Self
+    {
+        match self {
+            ObtainResult::Success(v) => ObtainResult::Success(v),
+            ObtainResult::Failure(p) => on_failure(p),
+        }
+    }
+}
+
+impl Try for ObtainResult {
+    type Ok = Vec<Action>;
+    type Error = Perm;
+
+    fn into_result(self) -> Result<Self::Ok, Self::Error> {
+        match self {
+            ObtainResult::Success(v) => Ok(v),
+            ObtainResult::Failure(p) => Err(p)
+        }
+    }
+
+    fn from_error(p: Self::Error) -> Self {
+        ObtainResult::Failure(p)
+    }
+
+    fn from_ok(v: Self::Ok) -> Self {
+        ObtainResult::Success(v)
     }
 }
