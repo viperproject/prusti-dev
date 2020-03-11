@@ -251,6 +251,22 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 &[
                     ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
                     ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+                    // See https://github.com/viperproject/silicon/issues/481
+                    // forall p: Perm :: p != none ==> p * result > none
+                    ast.forall(
+                        &[ast.local_var_decl("p", ast.perm_type())],
+                        &[],
+                        ast.implies(
+                            ast.ne_cmp(ast.local_var("p", ast.perm_type()), ast.no_perm()),
+                            ast.gt_cmp(
+                                ast.mul(
+                                    ast.local_var("p", ast.perm_type()),
+                                    ast.result(ast.perm_type())
+                                ),
+                                ast.no_perm()
+                            )
+                        )
+                    )
                 ],
                 ast.no_position(),
                 None,

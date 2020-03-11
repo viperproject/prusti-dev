@@ -343,9 +343,9 @@ impl vir::Expr {
             | vir::Expr::Const(_, _)
             | vir::Expr::FuncApp(..) => HashSet::new(),
 
-            // TODO
+            // TODO: is this correct?
             vir::Expr::SeqIndex(_, _, _)
-            | vir::Expr::SeqLen(_, _) => unimplemented!(),
+            | vir::Expr::SeqLen(_, _) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
                 assert_eq!(args.len(), 1);

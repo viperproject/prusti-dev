@@ -1336,15 +1336,23 @@ impl Expr {
     }
 
     pub fn subst(self, subst_map: &HashMap<Expr, Expr>) -> Self {
-        self.fold_expr(|e| subst_map.get(&e).unwrap_or(&e).clone())
+        if subst_map.is_empty() {
+            self
+        } else {
+            self.fold_expr(|e| subst_map.get(&e).unwrap_or(&e).clone())
+        }
     }
 
     pub fn subst_vars(self, subst_map: &HashMap<LocalVar, Expr>) -> Self {
-        self.fold_expr(|e| match &e {
-            Expr::Local(ref lv, _) =>
-                subst_map.get(lv).unwrap_or(&e).clone(),
-            _ => e.clone()
-        })
+        if subst_map.is_empty() {
+            self
+        } else {
+            self.fold_expr(|e| match &e {
+                Expr::Local(ref lv, _) =>
+                    subst_map.get(lv).unwrap_or(&e).clone(),
+                _ => e.clone()
+            })
+        }
     }
 
     pub fn depth(&self) -> usize {
@@ -1381,11 +1389,11 @@ impl Expr {
     }
 
     fn check_seq_access(seq: &Expr) {
-        assert!(match seq {
-            Expr::Field(_, Field { name, typ }, _) =>
-                name.as_str() == "val_array" && typ.get_id() == TypeId::Seq,
-            _ => false
-        }, "`seq` must be a field access of val_array");
+        match seq {
+            Expr::Field(_, Field { name, typ }, _)
+                if name.as_str() == "val_array" && typ.get_id() == TypeId::Seq => (),
+            x => panic!("`seq` must be a field access of val_array (got {})", x)
+        }
     }
 }
 
