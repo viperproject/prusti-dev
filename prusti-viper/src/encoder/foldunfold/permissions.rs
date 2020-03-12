@@ -69,6 +69,7 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::Exhale(ref expr, ref pos)
             | &vir::Stmt::Assert(ref expr, _, ref pos)
             | &vir::Stmt::Obtain(ref expr, ref pos) => {
+                info!("OBTAIN PERM FOR {}", expr);
                 let perms = expr.get_required_permissions(predicates);
                 perms
                     .into_iter()
@@ -169,7 +170,7 @@ impl RequiredPermissionsGetter for vir::Expr {
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        info!("[enter] get_required_permissions(expr={})", self);
+        // info!("[enter] get_required_permissions(expr={})", self);
         let permissions = match self {
             vir::Expr::Const(_, _) => HashSet::new(),
 
@@ -232,15 +233,43 @@ impl RequiredPermissionsGetter for vir::Expr {
                 result
             }
 
-            vir::Expr::FieldAccessPredicate(expr, _perm_amount, _) => expr
-                .get_required_permissions(predicates)
-                .into_iter()
-                .collect(),
+            vir::Expr::FieldAccessPredicate(expr, _, _) => {
+                // TODO: this is wrong
+                let mut sub_expr = expr.get_required_permissions(predicates);
+                // Remove the permission added by the recursive call.
+                // If we have Acc(x.f.g.h), the recursive call will add
+                // (among other things) Acc(x.f.g.h, read).
+                // But we don't need the permission of x.f.g.h because we have it here!
+                sub_expr.remove(&Acc(*expr.clone(), PermAmount::Read));
+                sub_expr
+            }
 
             vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates),
 
-            vir::Expr::BinOp(_, box left, box right, _) => {
-                vec![left, right].get_required_permissions(predicates)
+            vir::Expr::BinOp(bin_op, box left, box right, _) => {
+                info!("REQUIREMENTS FOR {}", self);
+                let printer = |perms: &HashSet<Perm>, msg: &'static str|
+                    info!(
+                        "{}\n{}",
+                        msg,
+                        perms.iter()
+                            .map(|p| format!("  {}", p))
+                            .collect::<Vec<String>>()
+                            .join(",\n")
+                    );
+                let left_required_perms = left.get_required_permissions(predicates);
+                printer(&left_required_perms, "LEFT REQUIRES");
+                let mut right_required_perms = right.get_required_permissions(predicates);
+                printer(&right_required_perms, "RIGHT REQUIRES");
+
+                if *bin_op == vir::BinOpKind::And {
+                    let left_perms = left.get_permissions(predicates);
+                    printer(&left_perms, "LEFT OFFERS");
+                    left_perms.iter().for_each(|lp| { right_required_perms.remove(lp); });
+                }
+                right_required_perms.extend(left_required_perms);
+                printer(&right_required_perms, "FINAL RESULT REQUIRES");
+                right_required_perms
             }
 
             vir::Expr::Cond(box guard, box left, box right, _) => {
@@ -320,11 +349,15 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::CondResourceAccess(..) =>
                 panic!("Conditional resource access should have been eliminated earlier before calling get_required_permissions"),
         };
-        info!(
-            "[exit] get_required_permissions(expr={}): {:#?}",
-            self,
-            permissions
-        );
+        // info!(
+        //     "[exit] get_required_permissions(expr={}):\n{}",
+        //     self,
+        //     permissions
+        //         .iter()
+        //         .map(|p| format!("  {}", p))
+        //         .collect::<Vec<String>>()
+        //         .join(",\n")
+        // );
         permissions
     }
 }
@@ -341,10 +374,8 @@ impl vir::Expr {
             | vir::Expr::AddrOf(_, _, _)
             | vir::Expr::LabelledOld(_, _, _)
             | vir::Expr::Const(_, _)
-            | vir::Expr::FuncApp(..) => HashSet::new(),
-
-            // TODO: is this correct?
-            vir::Expr::SeqIndex(_, _, _)
+            | vir::Expr::FuncApp(..)
+            | vir::Expr::SeqIndex(_, _, _)
             | vir::Expr::SeqLen(_, _) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {

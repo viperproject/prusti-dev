@@ -10,7 +10,7 @@ use encoder::error_manager::ErrorCtxt;
 use encoder::error_manager::PanicCause;
 use encoder::foldunfold;
 use encoder::initialisation::InitInfo;
-use encoder::loop_encoder::LoopEncoder;
+use encoder::loop_encoder::{LoopEncoder, TreePermissionEncodingState};
 use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 use encoder::optimiser;
@@ -3048,133 +3048,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         loop_head: BasicBlockIndex,
         drop_read_references: bool,
     ) -> (Vec<vir::Expr>, Vec<vir::Expr>) {
-        #[derive(Debug)]
-        struct TreePermissionEncodingState<'tcx> {
-            non_quantified: Vec<vir::Expr>,
-            quantified: Vec<Vec<vir::Expr>>,
-            quantified_vars: Vec<vir::LocalVar>,
-            subst: HashMap<vir::Expr, vir::Expr>,
-            preconds_and_triggers: HashMap<vir::LocalVar, (vir::Expr, Vec<vir::Trigger>)>,
-            loop_head: BasicBlockIndex,
-            seen: HashSet<mir::Place<'tcx>>,
-            counter: usize,
-        }
-        impl<'tcx> TreePermissionEncodingState<'tcx> {
-            fn new(loop_head: BasicBlockIndex) -> Self {
-                TreePermissionEncodingState {
-                    non_quantified: Vec::new(),
-                    quantified: Vec::new(),
-                    quantified_vars: Vec::new(),
-                    subst: HashMap::new(),
-                    preconds_and_triggers: HashMap::new(),
-                    loop_head,
-                    seen: HashSet::new(),
-                    counter: 0,
-                }
-            }
-            fn encode_place<'slf>(
-                &'slf mut self,
-                encoder: &'slf Encoder<'_, '_, '_, 'tcx>,
-                mir_encoder: &'slf MirEncoder<'_, '_, '_, '_, 'tcx>,
-                loop_encoder: &'slf LoopEncoder<'_, 'tcx>,
-                place: &mir::Place<'tcx>,
-            ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-                if let Some((array, index)) = Self::indexing_suffix(place) {
-                    if self.seen.insert(place.clone()) && !loop_encoder.is_definitely_initialised(&mir::Place::Local(index), self.loop_head) {
-                        // TODO: can we be certain that the index translated alone will
-                        //  be the same when it is translated with the array indexing?
-                        //  (ditto for array)
-                        let (encoded_array, array_ty, _) = mir_encoder.encode_place(array);
-                        //info!("AAA {:?}", array_ty);
-                        let encoded_array = encoded_array.field(
-                            TypeEncoder::new(encoder, array_ty)
-                                .encode_value_field()
-                        );
-                        //info!("BBB {}", encoded_array);
-                        let encoded_index = mir_encoder.encode_local(index);
-                        let quantified_index = self.fresh_index_local_var();
-                        let quantified_index_expr = vir::Expr::local(quantified_index.clone());
-
-                        // 0 <= i && i < |array|
-                        let precondition = vir::Expr::and(
-                            vir::Expr::le_cmp(
-                                vir::Expr::Const(vir::Const::Int(0), vir::Position::default()),
-                                quantified_index_expr.clone()
-                            ),
-                            vir::Expr::lt_cmp(
-                                quantified_index_expr.clone(),
-                                vir::Expr::seq_len(encoded_array.clone())
-                            )
-                        );
-                        let trigger = vir::Trigger::new(vec![vir::Expr::seq_index(encoded_array, quantified_index_expr.clone())]);
-                        self.preconds_and_triggers.insert(
-                            quantified_index.clone(),
-                            (precondition, vec![trigger])
-                        );
-                        self.subst.insert(vir::Expr::local(encoded_index), quantified_index_expr);
-                        self.quantified.push(Vec::new());
-                        self.quantified_vars.push(quantified_index);
-                    }
-                }
-                let (encoded_place, ty, variant) = mir_encoder.encode_place(place);
-                (encoded_place.subst(&self.subst), ty, variant)
-            }
-
-            fn push(&mut self, expr: vir::Expr) {
-                if self.subst.is_empty() {
-                    self.non_quantified.push(expr);
-                } else {
-                    self.quantified.last_mut().expect("Cannot be None")
-                        .push(expr);
-                }
-            }
-
-            fn get_permissions(mut self) -> Vec<vir::Expr> {
-                let mut result = Vec::new();
-                result.extend(self.non_quantified);
-                assert_eq!(self.quantified.len(), self.quantified_vars.len());
-
-                let mut previous_forall_level: Option<vir::Expr> = None;
-                for (var, exprs) in self.quantified_vars.into_iter().rev().zip(self.quantified.into_iter().rev()) {
-                    let (_, (precond, triggers)) = self.preconds_and_triggers.remove_entry(&var)
-                        .expect("Cannot be None");
-                    let conjunct = exprs.into_iter().conjoin();
-                    let forall_body = match previous_forall_level.take() {
-                        Some(previous_level) => vir::Expr::and(conjunct, previous_level),
-                        None => conjunct
-                    };
-                    let forall_expr = vir::Expr::forall(vec![var], triggers, vir::Expr::implies(precond, forall_body));
-                    previous_forall_level = Some(forall_expr);
-                }
-
-                if let Some(foralls) = previous_forall_level.take() {
-                    result.push(foralls);
-                }
-
-                result
-            }
-
-            fn fresh_index_local_var(&mut self) -> vir::LocalVar {
-                let result = vir::LocalVar::new(format!("__i_{}", self.counter), vir::Type::Int);
-                self.counter += 1;
-                result
-            }
-
-            fn indexing_suffix<'a>(place: &'a mir::Place<'tcx>) -> Option<(&'a mir::Place<'tcx>, mir::Local)>
-                where 'tcx: 'a
-            {
-                match place {
-                    mir::Place::Projection(box mir::Projection {
-                        ref base,
-                        elem: mir::ProjectionElem::Index(index),
-                    }) => Some((base, *index)),
-                    _ => None
-                }
-            }
-        }
-
-        /////////////////////////////////////////////////////////
-
         trace!(
             "[enter] encode_loop_invariant_permissions \
              loop_head={:?} drop_read_references={}",
@@ -3213,14 +3086,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 match kind {
                     // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
-                        let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Read);
-                        tree_perms_state.push(perm);
+                        tree_perms_state.add(
+                            vir::ResourceAccess::field(encoded_place, vir::PermAmount::Read)
+                        );
                     }
 
                     // Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
-                        let perm = vir::Expr::acc_permission(encoded_place, vir::PermAmount::Write);
-                        tree_perms_state.push(perm);
+                        tree_perms_state.add(
+                            vir::ResourceAccess::field(encoded_place, vir::PermAmount::Write)
+                        );
                     }
 
                     // Gives read or write permission to the entire
@@ -3264,17 +3139,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             }
                         }
 
-                        /*if let mir::Place::Projection(box mir::Projection {
-                            elem: mir::ProjectionElem::Index(idx_local),
-                            ref base,
-                        }) = mir_place {
-                            let idx_local = mir::Place::Local(idx_local);
-                            info!("Aha! index: {:?}", idx_local);
-                            if !self.loop_encoder.is_definitely_initialised(&idx_local, loop_head) {
-                                info!("index {:?} is not init", idx_local);
-                            }
-                        }*/
-
                         match ty.sty {
                             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl })
                             | ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
@@ -3287,8 +3151,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 // Use unfolded references.
                                 let field = self.encoder.encode_dereference_field(ty);
                                 let field_place = vir::Expr::from(encoded_place).field(field);
-                                // acc(_1.val_ref, read)
-                                tree_perms_state.push(vir::Expr::acc_permission(
+                                tree_perms_state.add(vir::ResourceAccess::field(
                                     field_place.clone(),
                                     perm_amount,
                                 ));
@@ -3303,36 +3166,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 if def_init
                                     && !(mutbl == Mutability::MutImmutable && drop_read_references)
                                 {
-                                    // acc(_1.val_ref.val_array[_17.val_int].val_ref, write)
-                                    tree_perms_state.push(
-                                        vir::Expr::pred_permission(field_place, perm_amount)
-                                            .unwrap(),
+                                    tree_perms_state.add(
+                                        vir::ResourceAccess::predicate(field_place, perm_amount)
+                                            .unwrap()
                                     );
                                 }
                             }
                             _ => {
-                                // TODO: we only need access to the array, not the indexing!
-                                match &encoded_place {
-                                    // If it is an indexing, also add the permission
-                                    // to access the index and the underlying sequence.
-                                    vir::Expr::Field(box vir::Expr::SeqIndex(ref seq, ref index, _), _, _) => {
-                                        // acc(_1.val_ref.val_array, write)
-                                        tree_perms_state.push(
-                                            vir::Expr::acc_permission(*seq.clone(), perm_amount)
-                                        );
-                                        // TODO: why does the uncommenting of this line cause "no permission for acc(...)"?
-                                        // permissions.push(
-                                        //     vir::Expr::acc_permission(
-                                        //         *index.clone(),
-                                        //         vir::PermAmount::Read
-                                        //     )
-                                        // );
-                                    }
-                                    _ => (),
-                                }
-                                // acc(isize(_1.val_ref.val_array[_17.val_int].val_ref), write)
-                                tree_perms_state.push(
-                                    vir::Expr::pred_permission(encoded_place, perm_amount).unwrap(),
+                                tree_perms_state.add(
+                                    vir::ResourceAccess::predicate(encoded_place, perm_amount)
+                                        .unwrap()
                                 );
                                 if let Some(forest) = &enclosing_permission_forest {
                                     for child_place in forest.get_children(&mir_place) {

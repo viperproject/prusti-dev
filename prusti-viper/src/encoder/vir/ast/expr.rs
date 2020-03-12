@@ -1991,20 +1991,34 @@ impl CondResourceAccess {
 }
 
 impl ResourceAccess {
-    pub fn inner_expression(&self) -> &Box<Expr> {
+    pub fn field(place: Expr, perm: PermAmount) -> Self {
+        ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+            place: box place,
+            perm,
+        })
+    }
+
+    pub fn predicate(place: Expr, perm: PermAmount) -> Option<Self> {
+        place
+            .typed_ref_name()
+            .map(|pred_name|
+                ResourceAccess::PredicateAccessPredicate(PredicateAccessPredicate {
+                    predicate_name: pred_name,
+                    arg: box place,
+                    perm
+                })
+            )
+    }
+
+    pub fn inner_expression(&self) -> &Expr {
         match self {
-            ResourceAccess::PredicateAccessPredicate(p) => &p.arg,
-            ResourceAccess::FieldAccessPredicate(f) => &f.place,
+            ResourceAccess::PredicateAccessPredicate(p) => &*p.arg,
+            ResourceAccess::FieldAccessPredicate(f) => &*f.place,
         }
     }
 
     pub fn to_expression(&self) -> Expr {
-        match self {
-            ResourceAccess::PredicateAccessPredicate(p) =>
-                Expr::PredicateAccessPredicate(p.predicate_name.clone(), p.arg.clone(), p.perm, Position::default()),
-            ResourceAccess::FieldAccessPredicate(f) =>
-                Expr::FieldAccessPredicate(f.place.clone(), f.perm, Position::default()),
-        }
+        self.clone().into()
     }
 
     pub fn get_perm_amount(&self) -> PermAmount {
@@ -2045,6 +2059,17 @@ impl ResourceAccess {
                     place: box f(*fa.place),
                     perm: PermAmount::Read,
                 }),
+        }
+    }
+}
+
+impl Into<Expr> for ResourceAccess {
+    fn into(self) -> Expr {
+        match self {
+            ResourceAccess::PredicateAccessPredicate(p) =>
+                Expr::PredicateAccessPredicate(p.predicate_name, p.arg, p.perm, Position::default()),
+            ResourceAccess::FieldAccessPredicate(f) =>
+                Expr::FieldAccessPredicate(f.place, f.perm, Position::default()),
         }
     }
 }

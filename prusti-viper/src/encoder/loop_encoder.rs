@@ -15,6 +15,11 @@ use prusti_interface::utils;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
+use encoder::{vir, Encoder};
+use std::collections::{HashMap, HashSet};
+use encoder::type_encoder::TypeEncoder;
+use encoder::vir::ExprIterator;
+use encoder::mir_encoder::MirEncoder;
 
 pub struct LoopEncoder<'a, 'tcx: 'a> {
     mir: &'a mir::Mir<'tcx>,
@@ -115,5 +120,167 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
             .get_before_block(bbi)
             .iter()
             .any(|def_init_place| utils::is_prefix(place, def_init_place))
+    }
+
+    // pub fn new_tree_permissions_state(&self, loop_head: BasicBlockIndex) -> TreePermissionEncodingState<'_, 'tcx> {
+    //     unimplemented!()
+    // }
+}
+
+pub struct TreePermissionEncodingState<'tcx> {
+    loop_head: BasicBlockIndex,
+    non_quantified: Vec<vir::ResourceAccess>,
+    quantified: Vec<Vec<vir::ResourceAccess>>,
+    quantified_vars: Vec<vir::LocalVar>,
+    subst: HashMap<vir::Expr, vir::Expr>,
+    preconds_and_triggers: HashMap<vir::LocalVar, (vir::Expr, Vec<vir::Trigger>)>,
+    seen_places: HashSet<mir::Place<'tcx>>,
+    seen_permissions: HashSet<vir::ResourceAccess>,
+    uninits: HashSet<vir::Expr>,
+    counter: usize,
+}
+
+impl<'tcx> TreePermissionEncodingState<'tcx> {
+    pub fn new(loop_head: BasicBlockIndex) -> Self {
+        TreePermissionEncodingState {
+            loop_head,
+            non_quantified: Vec::new(),
+            quantified: Vec::new(),
+            quantified_vars: Vec::new(),
+            subst: HashMap::new(),
+            preconds_and_triggers: HashMap::new(),
+            seen_places: HashSet::new(),
+            seen_permissions: HashSet::new(),
+            uninits: HashSet::new(),
+            counter: 0,
+        }
+    }
+
+    pub fn encode_place<'slf>(
+        &mut self,
+        encoder: &'slf Encoder<'_, '_, '_, 'tcx>,
+        mir_encoder: &'slf MirEncoder<'_, '_, '_, '_, 'tcx>,
+        loop_encoder: &'slf LoopEncoder<'_, 'tcx>,
+        place: &mir::Place<'tcx>,
+    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
+        if let Some((array, index)) = Self::indexing_suffix(place) {
+            // TODO: insert index place and not the whole place
+            //  Also rename "seen_places" to something else
+            let is_new = self.seen_places.insert(place.clone());
+            let is_init = || loop_encoder.is_definitely_initialised(&mir::Place::Local(index), self.loop_head);
+            if is_new && !is_init() {
+                // TODO: can we be certain that the index translated alone will
+                //  be the same when it is translated with the array indexing?
+                //  (ditto for array)
+                let (encoded_array, array_ty, _) = mir_encoder.encode_place(array);
+                info!("AAA {:?}", array_ty);
+                let encoded_array = encoded_array.field(
+                    TypeEncoder::new(encoder, array_ty)
+                        .encode_value_field()
+                );
+                info!("BBB {}", encoded_array);
+                let encoded_index = vir::Expr::local(mir_encoder.encode_local(index))
+                    .field(TypeEncoder::new(encoder, mir_encoder.get_local_ty(index)).encode_value_field());
+                // self.uninits.insert(vir::Expr::local(encoded_index.clone()));
+                self.uninits.insert(encoded_index.clone());
+                let quantified_index = self.fresh_index_local_var();
+                let quantified_index_expr = vir::Expr::local(quantified_index.clone());
+
+                // 0 <= i && i < |array|
+                let precondition = vir::Expr::and(
+                    vir::Expr::le_cmp(
+                        vir::Expr::Const(vir::Const::Int(0), vir::Position::default()),
+                        quantified_index_expr.clone()
+                    ),
+                    vir::Expr::lt_cmp(
+                        quantified_index_expr.clone(),
+                        vir::Expr::seq_len(encoded_array.clone())
+                    )
+                );
+                let trigger = vir::Trigger::new(vec![vir::Expr::seq_index(encoded_array, quantified_index_expr.clone())]);
+                self.preconds_and_triggers.insert(
+                    quantified_index.clone(),
+                    (precondition, vec![trigger])
+                );
+                info!("CCC {}", encoded_index);
+                // self.subst.insert(vir::Expr::local(encoded_index), quantified_index_expr);
+                self.subst.insert(encoded_index, quantified_index_expr);
+                self.quantified.push(Vec::new());
+                self.quantified_vars.push(quantified_index);
+            }
+        }
+        let (encoded_place, ty, variant) = mir_encoder.encode_place(place);
+        info!("DDDD {}", encoded_place);
+        let other = self.subst.iter().fold(encoded_place.clone(), |expr, (a, b)| expr.replace_place(a, b));
+        info!("EEEE {}", other);
+        (encoded_place.subst(&self.subst), ty, variant)
+    }
+
+    pub fn add(&mut self, access: vir::ResourceAccess) {
+        if !self.seen_permissions.insert(access.clone()) {
+            return;
+        }
+        match access.inner_expression() {
+            vir::Expr::SeqIndex(box ref seq, box ref index, _)
+          | vir::Expr::Field(box vir::Expr::SeqIndex(box ref seq, box ref index, _), _, _) => {
+                if !self.uninits.contains(index) && index.is_place() { // TODO: is is_place ok?
+                    // TODO
+                    // self.add(vir::ResourceAccess::field(index.clone(), vir::PermAmount::Read));
+                }
+                self.add(vir::ResourceAccess::field(seq.clone(), access.get_perm_amount()));
+            }
+            _ => (),
+        }
+        info!("PUSHING {}", access);
+        if self.subst.is_empty() {
+            self.non_quantified.push(access);
+        } else {
+            self.quantified.last_mut().expect("Cannot be None")
+                .push(access);
+        }
+    }
+
+    // TODO: flatten forall and return vec of vir::ResourceAccess
+    pub fn get_permissions(mut self) -> Vec<vir::Expr> {
+        let mut result = Vec::new();
+        result.extend(self.non_quantified.into_iter().map(|access| access.into()));
+        assert_eq!(self.quantified.len(), self.quantified_vars.len());
+
+        let mut previous_forall_level: Option<vir::Expr> = None;
+        for (var, accesses) in self.quantified_vars.into_iter().rev().zip(self.quantified.into_iter().rev()) {
+            let (_, (precond, triggers)) = self.preconds_and_triggers.remove_entry(&var)
+                .expect("Cannot be None");
+            let conjunct = accesses.into_iter().map(|access| access.into()).conjoin();
+            let forall_body = match previous_forall_level.take() {
+                Some(previous_level) => vir::Expr::and(conjunct, previous_level),
+                None => conjunct
+            };
+            let forall_expr = vir::Expr::forall(vec![var], triggers, vir::Expr::implies(precond, forall_body));
+            previous_forall_level = Some(forall_expr);
+        }
+
+        if let Some(foralls) = previous_forall_level.take() {
+            result.push(foralls);
+        }
+
+        result
+    }
+
+    fn fresh_index_local_var(&mut self) -> vir::LocalVar {
+        let result = vir::LocalVar::new(format!("__i_{}", self.counter), vir::Type::Int);
+        self.counter += 1;
+        result
+    }
+
+    fn indexing_suffix<'a>(place: &'a mir::Place<'tcx>) -> Option<(&'a mir::Place<'tcx>, mir::Local)>
+        where 'tcx: 'a
+    {
+        match place {
+            mir::Place::Projection(box mir::Projection {
+                ref base,
+                elem: mir::ProjectionElem::Index(index),
+            }) => Some((base, *index)),
+            _ => None
+        }
     }
 }
