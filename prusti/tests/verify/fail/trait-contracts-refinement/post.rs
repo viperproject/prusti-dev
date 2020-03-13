@@ -20,8 +20,7 @@ fn abs(a: isize) -> isize {
 }
 
 impl Foo for Dummy {
-    // TODO: why is this the only error that gets reported on the test suite?
-    #[ensures="result.0 < a"] //~ ERROR
+    #[ensures="result.0 < a"] //~ ERROR trait's precondition does not imply
     #[ensures="result.1 == 3"]
     #[ensures="self.d1 == a"]
     #[ensures="self.d2 == b"]

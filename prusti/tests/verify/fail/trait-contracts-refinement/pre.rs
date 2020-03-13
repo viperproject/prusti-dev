@@ -1,8 +1,7 @@
 extern crate prusti_contracts;
 
 trait Foo {
-    // TODO: why is this the only error that gets reported on the test suite?
-    #[requires="-5 <= a && a <= 10"] //~ ERROR
+    #[requires="-5 <= a && a <= 10"] //~ ERROR does not imply trait's postcondition
     #[requires="-25 <= b && b <= 30"]
     #[ensures="result.0 >= a"]
     #[ensures="result.1 >= b"]

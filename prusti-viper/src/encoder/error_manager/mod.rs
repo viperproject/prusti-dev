@@ -457,13 +457,13 @@ impl<'tcx> ErrorManager<'tcx> {
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening) => {
                 CompilerError::new(format!("precondition may not be a valid weakening."), error_span)
                     .set_failing_assertion(opt_cause_span)
-                    .set_help("The trait's preconditions must imply (==>) the implemented method's preconditions.")
+                    .set_help("the trait's precondition might not imply the implemented method's precondition.")
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening) => {
                 CompilerError::new(format!("postcondition may not be a valid strengthening."), error_span)
                     .set_failing_assertion(opt_cause_span)
-                    .set_help("The implemented method's postcondition must imply (==>) the trait's postcondition.")
+                    .set_help("the implemented method's postcondition might not imply the trait's postcondition.")
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {
