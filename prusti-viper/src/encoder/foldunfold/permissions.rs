@@ -240,13 +240,15 @@ impl RequiredPermissionsGetter for vir::Expr {
                 // If we have Acc(x.f.g.h), the recursive call will add
                 // (among other things) Acc(x.f.g.h, read).
                 // But we don't need the permission of x.f.g.h because we have it here!
-                sub_expr.remove(&Acc(*expr.clone(), PermAmount::Read));
+                // sub_expr.remove(&Acc(*expr.clone(), PermAmount::Read));
                 sub_expr
             }
 
             vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates),
 
-            vir::Expr::BinOp(bin_op, box left, box right, _) => {
+            vir::Expr::BinOp(_, box left, box right, _) => {
+                vec![left, right].get_required_permissions(predicates)
+                /*
                 info!("REQUIREMENTS FOR {}", self);
                 let printer = |perms: &HashSet<Perm>, msg: &'static str|
                     info!(
@@ -269,7 +271,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                 }
                 right_required_perms.extend(left_required_perms);
                 printer(&right_required_perms, "FINAL RESULT REQUIRES");
-                right_required_perms
+                right_required_perms*/
             }
 
             vir::Expr::Cond(box guard, box left, box right, _) => {
@@ -349,15 +351,15 @@ impl RequiredPermissionsGetter for vir::Expr {
             vir::Expr::CondResourceAccess(..) =>
                 panic!("Conditional resource access should have been eliminated earlier before calling get_required_permissions"),
         };
-        // info!(
-        //     "[exit] get_required_permissions(expr={}):\n{}",
-        //     self,
-        //     permissions
-        //         .iter()
-        //         .map(|p| format!("  {}", p))
-        //         .collect::<Vec<String>>()
-        //         .join(",\n")
-        // );
+        info!(
+            "[exit] get_required_permissions(expr={}):\n{}",
+            self,
+            permissions
+                .iter()
+                .map(|p| format!("  {}", p))
+                .collect::<Vec<String>>()
+                .join(",\n")
+        );
         permissions
     }
 }

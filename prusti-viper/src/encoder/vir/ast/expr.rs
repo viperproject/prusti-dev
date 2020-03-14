@@ -80,7 +80,6 @@ pub struct CondResourceAccess {
     pub triggers: Vec<Trigger>,
     pub cond: Box<Expr>,
     /// The resource being guarded by requirements.
-    // TODO: have a smarter encoding so that we can have multiple resources in one forall
     pub resource: ResourceAccess,
 }
 
@@ -498,7 +497,6 @@ impl Expr {
 
     pub fn seq_index(seq: Expr, index: Expr) -> Self {
         Expr::check_seq_access(&seq);
-        assert_eq!(index.get_type(), Type::Int);
         Expr::SeqIndex(box seq, box index, Position::default())
     }
 
@@ -1962,6 +1960,31 @@ impl CondResourceAccess {
             })
     }
 
+    /// Check that two conditional resource accesses are the same
+    /// (up to the names of the quantified variables).
+    pub fn is_similar_to(&self, other: &CondResourceAccess, check_perm: bool) -> bool {
+        unify(
+            &Expr::CondResourceAccess(self.clone(), Position::default()),
+            &Expr::CondResourceAccess(other.clone(), Position::default()),
+            &HashSet::new(),
+            &mut HashMap::new()
+        ).is_success() && (!check_perm || self.get_perm_amount() == other.get_perm_amount())
+    }
+
+    pub fn to_plain_expression(&self) -> Expr {
+        let body = Expr::BinOp(
+            BinOpKind::Implies,
+            self.cond.clone(),
+            box self.resource.to_expression(),
+            Position::default()
+        );
+        if self.vars.is_empty() {
+            body
+        } else {
+            Expr::ForAll(self.vars.clone(), self.triggers.clone(), box body, Position::default())
+        }
+    }
+
     pub fn get_perm_amount(&self) -> PermAmount {
         self.resource.get_perm_amount()
     }
@@ -2074,22 +2097,6 @@ impl Into<Expr> for ResourceAccess {
     }
 }
 
-impl CondResourceAccess {
-    pub fn to_plain_expression(&self) -> Expr {
-        let body = Expr::BinOp(
-            BinOpKind::Implies,
-            self.cond.clone(),
-            box self.resource.to_expression(),
-            Position::default()
-        );
-        if self.vars.is_empty() {
-            body
-        } else {
-            Expr::ForAll(self.vars.clone(), self.triggers.clone(), box body, Position::default())
-        }
-    }
-}
-
 impl ResourceAccessResult {
     pub fn is_complete(&self) -> bool {
         match self {
@@ -2128,6 +2135,15 @@ enum UnificationResult {
     Success,
     Unmatched,
     Conflict,
+}
+
+impl UnificationResult {
+    fn is_success(&self) -> bool {
+        match self {
+            UnificationResult::Success => true,
+            _ => false,
+        }
+    }
 }
 
 fn unify(
@@ -2243,12 +2259,35 @@ fn unify(
                 do_unify(lelse, relse, free_vars, orig_mapping, vars_mapping)
             }
 
-            // Since the local vars of one may not be the same as the other one,
-            // we would need to rename them to a same base, without conflicting
-            // with free vars.
-            // A bit tricky to implement, thus left out for now.
-            (Expr::ForAll(..), Expr::ForAll(..)) =>
-                unimplemented!("Unifying forall unimplemented"),
+            (
+                Expr::ForAll(lvars, ltrigs, lbody, _),
+                Expr::ForAll(rvars, rtrigs, rbody, _)
+            ) if lvars.len() == rvars.len() && ltrigs.len() == rtrigs.len() => {
+                let mut new_free_vars = free_vars.clone();
+                new_free_vars.extend(lvars.iter().cloned());
+                // Implementation limitation: we do not support renaming
+                assert_eq!(new_free_vars.len(), free_vars.len() + lvars.len());
+
+                // TODO: unify triggers too!
+
+                do_unify(lbody, rbody, &new_free_vars, orig_mapping, vars_mapping)?;
+                let mut matched_rvars = HashSet::new();
+                for lv in lvars {
+                    match vars_mapping.remove(lv) {
+                        Some(Expr::Local(rv, _)) => {
+                            if !matched_rvars.insert(rv) {
+                                // Matched to the same variable more than once
+                                return Err(UnificationResult::Unmatched);
+                            }
+                        }
+                        Some(_) =>
+                            // Matched to something other than the variables of the rhs forall
+                            return Err(UnificationResult::Unmatched),
+                        None => (), // The variable was unused
+                    }
+                }
+                Ok(())
+            }
 
             (Expr::LetExpr(lvar, lexpr, lbody, _), Expr::LetExpr(rvar, rexpr, rbody, _)) if lvar.typ == rvar.typ => {
                 do_unify(lexpr, rexpr, free_vars, orig_mapping, vars_mapping)?;
@@ -2292,8 +2331,14 @@ fn unify(
             (Expr::SeqLen(lseq, _), Expr::SeqLen(rseq, _)) =>
                 do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping),
 
-            (Expr::CondResourceAccess(..), Expr::CondResourceAccess(..)) =>
-                unimplemented!("Unifying CondResourceAccess unimplemented"),
+            (Expr::CondResourceAccess(lcond, _), Expr::CondResourceAccess(rcond, _)) =>
+                do_unify(
+                    &lcond.to_plain_expression(),
+                    &rcond.to_plain_expression(),
+                    free_vars,
+                    orig_mapping,
+                    vars_mapping
+                ),
 
             _ => Err(UnificationResult::Unmatched),
         }
@@ -2622,6 +2667,72 @@ mod tests {
     }
 
     #[test]
+    fn test_unify_success_forall_simple() {
+        let x = Expr::local(LocalVar::new("x", Type::Int));
+        let y = Expr::local(LocalVar::new("y", Type::Int));
+        let z = Expr::local(LocalVar::new("z", Type::Int));
+        let a = Expr::local(LocalVar::new("a", Type::Int));
+        let b = Expr::local(LocalVar::new("b", Type::Int));
+        let c = Expr::local(LocalVar::new("c", Type::Int));
+
+        // i, j: forall vars
+        // ph1, ph2: placeholders
+        let forall_builder = |i: &LocalVar, j: &LocalVar, ph1: &Expr, ph2: &Expr, vars_in_order: bool| {
+            let vars = if vars_in_order {
+                vec![i.clone(), j.clone()]
+            } else {
+                vec![j.clone(), i.clone()]
+            };
+            // (x + (j / (ph1 ? i : ph2))) * ph1
+            Expr::ForAll(vars, vec![],
+                 box Expr::BinOp(
+                     BinOpKind::Mul,
+                     box Expr::BinOp(
+                         BinOpKind::Add,
+                         box x.clone(),
+                         box Expr::BinOp(
+                             BinOpKind::Div,
+                             box Expr::local(j.clone()),
+                             box Expr::Cond(box ph1.clone(), box Expr::local(i.clone()), box ph2.clone(), Position::default()),
+                             Position::default()
+                         ),
+                         Position::default(),
+                     ),
+                     box ph1.clone(),
+                     Position::default(),
+                 ),
+                 Position::default()
+            )
+        };
+
+        let subject_i = LocalVar::new("i", Type::Int);
+        let subject_j = LocalVar::new("j", Type::Int);
+        let fv1 = LocalVar::new("fv1", Type::Int);
+        let fv2 = LocalVar::new("fv2", Type::Int);
+        let fv1_expr = Expr::local(fv1.clone());
+        let fv2_expr = Expr::local(fv2.clone());
+        let subject = forall_builder(&subject_i, &subject_j, &fv1_expr, &fv2_expr, true);
+
+        let target_i = LocalVar::new("i", Type::Int);
+        let target_j = LocalVar::new("j", Type::Int);
+        let fv1subst = Expr::BinOp(BinOpKind::Add, box z.clone(), box a.clone(), Position::default());
+        let fv2subst = Expr::BinOp(BinOpKind::Mul, box b.clone(), box c.clone(), Position::default());
+        let target = forall_builder(&target_i, &target_j, &fv1subst, &fv2subst, false);
+
+        let mut fvs = HashSet::new();
+        fvs.insert(fv1.clone());
+        fvs.insert(fv2.clone());
+        let mut got = HashMap::new();
+        let ok = unify(&subject, &target, &fvs, &mut got);
+        assert_eq!(UnificationResult::Success, ok);
+
+        let mut expected = HashMap::new();
+        expected.insert(fv1, fv1subst);
+        expected.insert(fv2, fv2subst);
+        assert_eq!(expected, got);
+    }
+
+    #[test]
     fn test_unify_failure_simple() {
         let y = Expr::local(LocalVar::new("y", Type::Int));
         let z = Expr::local(LocalVar::new("z", Type::Int));
@@ -2764,6 +2875,93 @@ mod tests {
             };
             let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
             assert_eq!(Some(expected), got);
+        }
+    }
+
+    // i < j ==> acc(base.a.val_array[i + 2 * j])
+    fn cond_resource_builder(
+        i: &LocalVar,
+        j: &LocalVar,
+        base: &Expr,
+        vars_in_order: bool
+    ) -> CondResourceAccess {
+        let vars = if vars_in_order {
+            vec![i.clone(), j.clone()]
+        } else {
+            vec![j.clone(), i.clone()]
+        };
+        let a = Field {
+            name: "a".to_string(),
+            typ: Type::TypedRef("t1".into()),
+        };
+        let b = Field {
+            name: "val_array".to_string(),
+            typ: Type::TypedSeq("t2".into()),
+        };
+        let idx = Expr::BinOp(
+            BinOpKind::Add,
+            box Expr::local(i.clone()),
+            box Expr::BinOp(
+                BinOpKind::Mul,
+                box Expr::Const(Const::Int(2), Position::default()),
+                box Expr::local(j.clone()),
+                Position::default()
+            ),
+            Position::default()
+        );
+
+        CondResourceAccess {
+            vars,
+            triggers: vec![],
+            cond: box Expr::lt_cmp(Expr::local(i.clone()), Expr::local(j.clone())),
+            resource: ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+                place: box Expr::seq_index(base.clone().field(a).field(b), idx),
+                perm: PermAmount::Write,
+            })
+        }
+    }
+
+    #[test]
+    fn test_cond_resource_access_similarity_success_simple() {
+        let common_base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
+        let cond1_i = LocalVar::new("a", Type::Int);
+        let cond1_j = LocalVar::new("b", Type::Int);
+        let cond2_i = LocalVar::new("i", Type::Int);
+        let cond2_j = LocalVar::new("j", Type::Int);
+        let cond1 = cond_resource_builder(&cond1_i, &cond1_j, &common_base, true);
+        let cond2 = cond_resource_builder(&cond2_i, &cond2_j, &common_base, false);
+        assert!(cond1.is_similar_to(&cond2, false));
+    }
+
+    #[test]
+    fn test_cond_resource_access_similarity_failure_simple() {
+        // 1
+        {
+            let base_1 = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
+            let base_2 = Expr::local(LocalVar::new("baaaaase", Type::TypedRef("t0".into())));
+            let cond1_i = LocalVar::new("a", Type::Int);
+            let cond1_j = LocalVar::new("b", Type::Int);
+            let cond2_i = LocalVar::new("i", Type::Int);
+            let cond2_j = LocalVar::new("j", Type::Int);
+            let cond1 = cond_resource_builder(&cond1_i, &cond1_j, &base_1, true);
+            let cond2 = cond_resource_builder(&cond2_i, &cond2_j, &base_2, false);
+            assert!(!cond1.is_similar_to(&cond2, false));
+        }
+        // 2
+        {
+            let base_1 = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
+            let base_2 = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())))
+                .field(Field {
+                    name: "x".to_string(),
+                    typ: Type::TypedSeq("tt".into())
+                });
+            let cond1_i = LocalVar::new("a", Type::Int);
+            let cond1_j = LocalVar::new("b", Type::Int);
+            let cond2_i = LocalVar::new("i", Type::Int);
+            let cond2_j = LocalVar::new("j", Type::Int);
+            let cond1 = cond_resource_builder(&cond1_i, &cond1_j, &base_1, true);
+            let cond2 = cond_resource_builder(&cond2_i, &cond2_j, &base_2, false);
+            assert!(!cond1.is_similar_to(&cond2, false));
         }
     }
 }
