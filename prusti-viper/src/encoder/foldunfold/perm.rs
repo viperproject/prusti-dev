@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::vir;
-use encoder::vir::{PermAmount, CondResourceAccess};
+use encoder::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
@@ -15,12 +15,7 @@ use std::fmt;
 pub enum Perm {
     Acc(vir::Expr, PermAmount),
     Pred(vir::Expr, PermAmount),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum AvailablePerm {
-    Perm(Perm),
-    Cond(CondResourceAccess),
+    Quantified(vir::QuantifiedResourceAccess),
 }
 
 impl Perm {
@@ -30,6 +25,10 @@ impl Perm {
 
     pub fn pred(place: vir::Expr, perm_amount: PermAmount) -> Self {
         Perm::Pred(place, perm_amount)
+    }
+
+    pub fn quantified(quant: vir::QuantifiedResourceAccess) -> Self {
+        Perm::Quantified(quant)
     }
 
     pub fn is_acc(&self) -> bool {
@@ -43,6 +42,20 @@ impl Perm {
         match self {
             Perm::Pred(_, _) => true,
             _ => false,
+        }
+    }
+
+    pub fn is_quantified(&self) -> bool {
+        match self {
+            Perm::Quantified(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn into_quantified(self) -> Option<vir::QuantifiedResourceAccess> {
+        match self {
+            Perm::Quantified(quant) => Some(quant),
+            _ => None,
         }
     }
 
@@ -66,12 +79,14 @@ impl Perm {
         match self {
             Perm::Acc(_, p) => *p,
             Perm::Pred(_, p) => *p,
+            Perm::Quantified(quant) => quant.get_perm_amount(),
         }
     }
 
     pub fn get_place(&self) -> &vir::Expr {
         match self {
             &Perm::Acc(ref place, _) | &Perm::Pred(ref place, _) => place,
+            &Perm::Quantified(ref quant) => quant.resource.get_place(),
         }
     }
 
@@ -82,6 +97,7 @@ impl Perm {
         match self {
             Perm::Acc(place, fr) => Perm::Acc(f(place), fr),
             Perm::Pred(place, fr) => Perm::Pred(f(place), fr),
+            Perm::Quantified(quant) => Perm::Quantified(quant.map_place(f))
         }
     }
 
@@ -97,6 +113,7 @@ impl Perm {
             Perm::Pred(_expr, PermAmount::Remaining) => unreachable!(),
             Perm::Acc(expr, _) => Perm::Acc(expr, new_perm),
             Perm::Pred(expr, _) => Perm::Pred(expr, new_perm),
+            Perm::Quantified(quant) => Perm::Quantified(quant.update_perm_amount(new_perm)),
         }
     }
 
@@ -106,6 +123,7 @@ impl Perm {
         match self {
             Perm::Acc(expr, _) => Perm::Acc(expr, new_perm),
             Perm::Pred(expr, _) => Perm::Pred(expr, new_perm),
+            Perm::Quantified(quant) => Perm::Quantified(quant.update_perm_amount(new_perm)),
         }
     }
 
@@ -113,58 +131,7 @@ impl Perm {
         match self {
             Perm::Acc(expr, perm) => Perm::Acc(expr.set_default_pos(pos), perm),
             Perm::Pred(expr, perm) => Perm::Pred(expr.set_default_pos(pos), perm),
-        }
-    }
-}
-
-impl AvailablePerm {
-    pub fn map_place<F>(self, f: F) -> Self
-        where
-            F: Fn(vir::Expr) -> vir::Expr,
-    {
-        match self {
-            AvailablePerm::Perm(p) =>
-                AvailablePerm::Perm(p.map_place(f)),
-            AvailablePerm::Cond(cond) =>
-                AvailablePerm::Cond(cond.map_place(f))
-        }
-    }
-
-    pub fn get_place(&self) -> &vir::Expr {
-        match self {
-            AvailablePerm::Perm(p) => p.get_place(),
-            AvailablePerm::Cond(cond) => &*cond.resource.inner_expression()
-        }
-    }
-
-    pub fn get_perm_amount(&self) -> PermAmount {
-        match self {
-            AvailablePerm::Perm(Perm::Acc(_, p)) => *p,
-            AvailablePerm::Perm(Perm::Pred(_, p)) => *p,
-            AvailablePerm::Cond(cond) => cond.get_perm_amount(),
-        }
-    }
-
-    pub fn set_default_pos(self, pos: vir::Position) -> Self {
-        match self {
-            AvailablePerm::Perm(p) => AvailablePerm::Perm(p.set_default_pos(pos)),
-            AvailablePerm::Cond(cond) => AvailablePerm::Cond(CondResourceAccess {
-                vars: cond.vars,
-                triggers: cond.triggers,
-                cond: cond.cond,
-                resource: cond.resource.map_expression(|e| e.set_default_pos(pos))
-            })
-        }
-    }
-
-    pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
-        assert!(self.get_perm_amount().is_valid_for_specs()); // Just a sanity check.
-        assert!(new_perm.is_valid_for_specs());
-        match self {
-            AvailablePerm::Perm(p) =>
-                AvailablePerm::Perm(p.update_perm_amount(new_perm)),
-            AvailablePerm::Cond(cond) =>
-                AvailablePerm::Cond(cond.update_perm_amount(new_perm)),
+            Perm::Quantified(quant) => Perm::Quantified(quant.map_place(|e| e.set_default_pos(pos.clone()))),
         }
     }
 }
@@ -174,6 +141,7 @@ impl fmt::Display for Perm {
         match self {
             &Perm::Acc(ref place, perm_amount) => write!(f, "Acc({}, {})", place, perm_amount),
             &Perm::Pred(ref place, perm_amount) => write!(f, "Pred({}, {})", place, perm_amount),
+            &Perm::Quantified(ref quant) => write!(f, "Quantified({})", quant),
         }
     }
 }
@@ -183,6 +151,7 @@ impl fmt::Debug for Perm {
         match self {
             &Perm::Acc(ref place, perm_amount) => write!(f, "Acc({:?}, {})", place, perm_amount),
             &Perm::Pred(ref place, perm_amount) => write!(f, "Pred({:?}, {})", place, perm_amount),
+            &Perm::Quantified(ref quant) => write!(f, "Quantified({:?})", quant),
         }
     }
 }
@@ -192,6 +161,9 @@ impl fmt::Debug for Perm {
 pub struct PermSet {
     acc_perms: HashMap<vir::Expr, PermAmount>,
     pred_perms: HashMap<vir::Expr, PermAmount>,
+    // IMPORTANT NOTE: Since two similar QRAs with different var names end up being not equal,
+    // one should use `iter().find(|x| x.is_similar_to(y))` instead of `contains(y)`!
+    quant_perms: HashSet<vir::QuantifiedResourceAccess>,
 }
 
 impl PermSet {
@@ -199,6 +171,7 @@ impl PermSet {
         PermSet {
             acc_perms: HashMap::new(),
             pred_perms: HashMap::new(),
+            quant_perms: HashSet::new(),
         }
     }
 
@@ -206,8 +179,9 @@ impl PermSet {
     /// Note: the amount of the permission is actually ignored
     pub fn add(&mut self, perm: Perm) {
         match perm {
-            Perm::Acc(place, perm_amount) => self.acc_perms.insert(place, perm_amount),
-            Perm::Pred(place, perm_amount) => self.pred_perms.insert(place, perm_amount),
+            Perm::Acc(place, perm_amount) => { self.acc_perms.insert(place, perm_amount); }
+            Perm::Pred(place, perm_amount) => { self.pred_perms.insert(place, perm_amount); }
+            Perm::Quantified(quant) => { self.quant_perms.insert(quant); }
         };
     }
 
@@ -218,6 +192,9 @@ impl PermSet {
         }
         for (place, perm_amount) in self.pred_perms.drain() {
             perms.push(Perm::pred(place, perm_amount));
+        }
+        for quant in self.quant_perms.drain() {
+            perms.push(Perm::quantified(quant));
         }
         perms
     }
@@ -284,6 +261,30 @@ fn place_perm_difference(
     }
     left
 }
+/// Similar to `place_perm_difference`, but for quantified permissions
+fn place_quantified_perm_difference(
+    mut left: HashSet<vir::QuantifiedResourceAccess>,
+    mut right: HashSet<vir::QuantifiedResourceAccess>,
+) -> HashSet<vir::QuantifiedResourceAccess> {
+    for right_quant in right.drain() {
+        match left.iter().find(|left_quant| left_quant.is_similar_to(&right_quant, false)).cloned() {
+            Some(left_quant) => match (left_quant.get_perm_amount(), right_quant.get_perm_amount()) {
+                (PermAmount::Read, PermAmount::Read)
+                | (PermAmount::Read, PermAmount::Write)
+                | (PermAmount::Write, PermAmount::Write) => {
+                    left.remove(&left_quant);
+                }
+                _ => unreachable!(
+                    "left={} right={}",
+                    left_quant.get_perm_amount(),
+                    right_quant.get_perm_amount()
+                ),
+            },
+            None => {}
+        }
+    }
+    left
+}
 
 /// Set difference that takes into account that removing `x.f` also removes any `x.f.g.h`
 pub fn perm_difference(left: HashSet<Perm>, right: HashSet<Perm>) -> HashSet<Perm> {
@@ -294,8 +295,10 @@ pub fn perm_difference(left: HashSet<Perm>, right: HashSet<Perm>) -> HashSet<Per
     );
     let left_acc = left.iter().filter(|x| x.is_acc()).cloned();
     let left_pred = left.iter().filter(|x| x.is_pred()).cloned();
+    let left_quant = left.iter().filter_map(|x| x.clone().into_quantified()).collect();
     let right_acc = right.iter().filter(|x| x.is_acc()).cloned();
     let right_pred = right.iter().filter(|x| x.is_pred()).cloned();
+    let right_quant = right.iter().filter_map(|x| x.clone().into_quantified()).collect();
     let mut res = vec![];
     res.extend(
         place_perm_difference(
@@ -322,6 +325,11 @@ pub fn perm_difference(left: HashSet<Perm>, right: HashSet<Perm>) -> HashSet<Per
         .drain()
         .map(|(place, amount)| Perm::Pred(place, amount))
         .collect::<Vec<_>>(),
+    );
+    res.extend(
+        place_quantified_perm_difference(left_quant, right_quant)
+            .into_iter()
+            .map(Perm::quantified)
     );
     res.into_iter().collect()
 }

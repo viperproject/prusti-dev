@@ -129,13 +129,13 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
 pub struct TreePermissionEncodingState<'tcx> {
     loop_head: BasicBlockIndex,
-    non_quantified: Vec<vir::ResourceAccess>,
-    quantified: Vec<Vec<vir::ResourceAccess>>,
+    non_quantified: Vec<vir::PlainResourceAccess>,
+    quantified: Vec<Vec<vir::PlainResourceAccess>>,
     quantified_vars: Vec<vir::LocalVar>,
     subst: HashMap<vir::Expr, vir::Expr>,
     preconds_and_triggers: HashMap<vir::LocalVar, (vir::Expr, Vec<vir::Trigger>)>,
     seen_places: HashSet<mir::Place<'tcx>>,
-    seen_permissions: HashSet<vir::ResourceAccess>,
+    seen_permissions: HashSet<vir::PlainResourceAccess>,
     uninits: HashSet<vir::Expr>,
     counter: usize,
 }
@@ -216,18 +216,18 @@ impl<'tcx> TreePermissionEncodingState<'tcx> {
         (encoded_place.subst(&self.subst), ty, variant)
     }
 
-    pub fn add(&mut self, access: vir::ResourceAccess) {
+    pub fn add(&mut self, access: vir::PlainResourceAccess) {
         if !self.seen_permissions.insert(access.clone()) {
             return;
         }
-        match access.inner_expression() {
+        match access.get_place() {
             vir::Expr::SeqIndex(box ref seq, box ref index, _)
           | vir::Expr::Field(box vir::Expr::SeqIndex(box ref seq, box ref index, _), _, _) => {
                 if !self.uninits.contains(index) && index.is_place() { // TODO: is is_place ok?
                     // TODO
                     // self.add(vir::ResourceAccess::field(index.clone(), vir::PermAmount::Read));
                 }
-                self.add(vir::ResourceAccess::field(seq.clone(), access.get_perm_amount()));
+                self.add(vir::PlainResourceAccess::field(seq.clone(), access.get_perm_amount()));
             }
             _ => (),
         }

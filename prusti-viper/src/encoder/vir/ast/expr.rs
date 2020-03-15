@@ -46,13 +46,19 @@ pub enum Expr {
     SeqIndex(Box<Expr>, Box<Expr>, Position),
     /// Length of the given sequence
     SeqLen(Box<Expr>, Position),
-    CondResourceAccess(CondResourceAccess, Position),
+    QuantifiedResourceAccess(QuantifiedResourceAccess, Position),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum PlainResourceAccess {
+    Predicate(PredicateAccessPredicate),
+    Field(FieldAccessPredicate)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ResourceAccess {
-    PredicateAccessPredicate(PredicateAccessPredicate),
-    FieldAccessPredicate(FieldAccessPredicate)
+    Plain(PlainResourceAccess),
+    Quantified(QuantifiedResourceAccess)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -68,19 +74,19 @@ pub struct FieldAccessPredicate {
     pub perm: PermAmount
 }
 
-/// A resource that can be accessed only if some requirements are satisfied.
+// TODO: custom impl of Hash and Eq that do not take into account var name?
+/// A quantified resource access assertion.
 /// In a typical case, we `assert` that we satisfy the requirements before accessing
 /// (by inhaling) the resource. Viper will then check whether the assertion is satisfied.
 ///
 /// This is a more specified version of the following expression:
 /// `forall vars :: { triggers } cond ==> resource`
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct CondResourceAccess {
+pub struct QuantifiedResourceAccess {
     pub vars: Vec<LocalVar>,
     pub triggers: Vec<Trigger>,
     pub cond: Box<Expr>,
-    /// The resource being guarded by requirements.
-    pub resource: ResourceAccess,
+    pub resource: PlainResourceAccess,
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -203,7 +209,7 @@ impl fmt::Display for Expr {
             ),
             Expr::SeqIndex(ref seq, ref index, _) => write!(f, "{}[{}]", seq, index),
             Expr::SeqLen(ref seq, _) => write!(f, "|{}|", seq),
-            Expr::CondResourceAccess(ref cond, _) => cond.fmt(f),
+            Expr::QuantifiedResourceAccess(ref quant, _) => quant.fmt(f),
         }
     }
 }
@@ -248,18 +254,18 @@ impl fmt::Display for Const {
     }
 }
 
-impl fmt::Display for ResourceAccess {
+impl fmt::Display for PlainResourceAccess {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ResourceAccess::FieldAccessPredicate(fa) =>
+            PlainResourceAccess::Field(fa) =>
                 write!(f, "acc({}, {})", fa.place, fa.perm),
-            ResourceAccess::PredicateAccessPredicate(pa) =>
+            PlainResourceAccess::Predicate(pa) =>
                 write!(f, "acc({}({}), {})", pa.predicate_name, pa.arg, pa.perm),
         }
     }
 }
 
-impl fmt::Display for CondResourceAccess {
+impl fmt::Display for QuantifiedResourceAccess {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.vars.is_empty() {
             write!(f, "{} ==> {}", self.cond, self.resource)
@@ -304,7 +310,7 @@ impl Expr {
             Expr::FuncApp(_, _, _, _, ref p) => p,
             Expr::SeqIndex(_, _, ref p) => p,
             Expr::SeqLen(_, ref p) => p,
-            Expr::CondResourceAccess(_, ref p) => p,
+            Expr::QuantifiedResourceAccess(_, ref p) => p,
         }
     }
 
@@ -332,7 +338,7 @@ impl Expr {
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
             Expr::SeqIndex(x, y, _) => Expr::SeqIndex(x, y, pos),
             Expr::SeqLen(x, _) => Expr::SeqLen(x, pos),
-            Expr::CondResourceAccess(x, _) => Expr::CondResourceAccess(x, pos),
+            Expr::QuantifiedResourceAccess(x, _) => Expr::QuantifiedResourceAccess(x, pos),
         }
     }
 
@@ -621,7 +627,7 @@ impl Expr {
         match self {
             Expr::PredicateAccessPredicate(..) |
             Expr::FieldAccessPredicate(..) |
-            Expr::CondResourceAccess(..) => true,
+            Expr::QuantifiedResourceAccess(..) => true,
             Expr::BinOp(BinOpKind::And, box lhs, box rhs, _) => {
                 lhs.is_only_permissions() && rhs.is_only_permissions()
             }
@@ -773,7 +779,7 @@ impl Expr {
         match self {
             Expr::PredicateAccessPredicate(_, ref arg, _, _) => Some(arg),
             Expr::FieldAccessPredicate(box ref arg, _, _) => Some(arg),
-            Expr::CondResourceAccess(cond, _) => Some(cond.resource.inner_expression()),
+            Expr::QuantifiedResourceAccess(quant, _) => Some(quant.resource.get_place()),
             _ => None,
         }
     }
@@ -782,7 +788,7 @@ impl Expr {
         match self {
             Expr::PredicateAccessPredicate(_, _, perm_amount, _) => *perm_amount,
             Expr::FieldAccessPredicate(_, perm_amount, _) => *perm_amount,
-            Expr::CondResourceAccess(cond, _) => cond.resource.get_perm_amount(),
+            Expr::QuantifiedResourceAccess(quant, _) => quant.resource.get_perm_amount(),
             x => unreachable!("{}", x),
         }
     }
@@ -1143,7 +1149,7 @@ impl Expr {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     // TODO: this is likely wrong
-                    f @ Expr::CondResourceAccess(..) => f,
+                    f @ Expr::QuantifiedResourceAccess(..) => f,
                     Expr::BinOp(BinOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinOpKind::And, y, z, p)
                     }
@@ -1381,8 +1387,8 @@ impl Expr {
                 1 + args.iter().map(|e| e.depth()).max().unwrap_or(0),
             Expr::SeqIndex(seq, index, _) =>  1 + max(seq.depth(), index.depth()),
             Expr::SeqLen(seq, _) => 1 + seq.depth(),
-            Expr::CondResourceAccess(cond, _) =>
-                1 + max(cond.cond.depth(), cond.resource.inner_expression().depth()),
+            Expr::QuantifiedResourceAccess(quant, _) =>
+                1 + max(quant.cond.depth(), quant.resource.get_place().depth()),
         }
     }
 
@@ -1471,9 +1477,9 @@ impl PartialEq for Expr {
                 Expr::SeqLen(ref other_seq, _),
             ) => self_seq == other_seq,
             (
-                Expr::CondResourceAccess(self_cond,_),
-                Expr::CondResourceAccess(other_cond,_),
-            ) => self_cond == other_cond,
+                Expr::QuantifiedResourceAccess(self_quant, _),
+                Expr::QuantifiedResourceAccess(other_quant, _),
+            ) => self_quant == other_quant,
             (a, b) => {
                 debug_assert_ne!(discriminant(a), discriminant(b));
                 false
@@ -1515,7 +1521,7 @@ impl Hash for Expr {
             }
             Expr::SeqIndex(ref seq, ref index, _) => (seq, index).hash(state),
             Expr::SeqLen(ref seq, _) => seq.hash(state),
-            Expr::CondResourceAccess(ref cond, _) => cond.hash(state),
+            Expr::QuantifiedResourceAccess(ref quant, _) => quant.hash(state),
         }
     }
 }
@@ -1662,12 +1668,12 @@ pub trait ExprFolder: Sized {
     fn fold_seq_len(&mut self, seq: Box<Expr>, p: Position) -> Expr {
         Expr::SeqLen(self.fold_boxed(seq), p)
     }
-    fn fold_cond_resource_access(&mut self, cond: CondResourceAccess, p: Position)-> Expr {
-        Expr::CondResourceAccess(CondResourceAccess {
-            vars: cond.vars,
-            triggers: cond.triggers,
-            cond: self.fold_boxed(cond.cond),
-            resource: cond.resource.map_expression(|e| self.fold(e))
+    fn fold_quantified_resource_access(&mut self, quant: QuantifiedResourceAccess, p: Position) -> Expr {
+        Expr::QuantifiedResourceAccess(QuantifiedResourceAccess {
+            vars: quant.vars,
+            triggers: quant.triggers,
+            cond: self.fold_boxed(quant.cond),
+            resource: quant.resource.map_expression(|e| self.fold(e))
         }, p)
     }
 }
@@ -1696,7 +1702,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
         Expr::SeqIndex(x, y, p) => this.fold_seq_index(x, y, p),
         Expr::SeqLen(x, p) => this.fold_seq_len(x, p),
-        Expr::CondResourceAccess(x, p) => this.fold_cond_resource_access(x, p),
+        Expr::QuantifiedResourceAccess(x, p) => this.fold_quantified_resource_access(x, p),
     }
 }
 
@@ -1815,12 +1821,12 @@ pub trait ExprWalker: Sized {
     fn walk_seq_len(&mut self, arg: &Expr, _pos: &Position) {
         self.walk(arg)
     }
-    fn walk_cond_resource_access(&mut self, cond: &CondResourceAccess, _pos: &Position) {
-        for var in &cond.vars {
+    fn walk_quantified_resource_access(&mut self, quant: &QuantifiedResourceAccess, _pos: &Position) {
+        for var in &quant.vars {
             self.walk_local_var(var);
         }
-        self.walk(&*cond.cond);
-        self.walk(cond.resource.inner_expression());
+        self.walk(&*quant.cond);
+        self.walk(quant.resource.get_place());
     }
 }
 
@@ -1848,7 +1854,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
         Expr::SeqIndex(ref x, ref y, ref p) => this.walk_seq_index(x, y, p),
         Expr::SeqLen(ref x, ref p) => this.walk_seq_len(x, p),
-        Expr::CondResourceAccess(ref x, ref p) => this.walk_cond_resource_access(x, p),
+        Expr::QuantifiedResourceAccess(ref x, ref p) => this.walk_quantified_resource_access(x, p),
     }
 }
 
@@ -1892,6 +1898,7 @@ impl Expr {
     }
 }
 
+// TODO: rename
 pub enum ResourceAccessResult {
     Complete {
         requirements: Expr,
@@ -1906,10 +1913,10 @@ pub enum ResourceAccessResult {
     },
 }
 
-impl CondResourceAccess {
+impl QuantifiedResourceAccess {
     pub fn try_instantiate(&self, perm_expr: &Expr) -> Option<ResourceAccessResult> {
         // TODO: This vars transformation into HashSet is horrendous
-        // TODO: `Hash` is not implemented for `HashSet`, which is needed for CondResourceAccess
+        // TODO: `Hash` is not implemented for `HashSet`, which is needed for QuantifiedResourceAccess
         let vars = self.vars.iter().cloned().collect();
         let forall_body = Expr::BinOp(
             BinOpKind::Implies,
@@ -1960,12 +1967,12 @@ impl CondResourceAccess {
             })
     }
 
-    /// Check that two conditional resource accesses are the same
+    /// Check that two quantified resource accesses are the same
     /// (up to the names of the quantified variables).
-    pub fn is_similar_to(&self, other: &CondResourceAccess, check_perm: bool) -> bool {
+    pub fn is_similar_to(&self, other: &QuantifiedResourceAccess, check_perm: bool) -> bool {
         unify(
-            &Expr::CondResourceAccess(self.clone(), Position::default()),
-            &Expr::CondResourceAccess(other.clone(), Position::default()),
+            &Expr::QuantifiedResourceAccess(self.clone(), Position::default()),
+            &Expr::QuantifiedResourceAccess(other.clone(), Position::default()),
             &HashSet::new(),
             &mut HashMap::new()
         ).is_success() && (!check_perm || self.get_perm_amount() == other.get_perm_amount())
@@ -1990,7 +1997,7 @@ impl CondResourceAccess {
     }
 
     pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
-        CondResourceAccess {
+        QuantifiedResourceAccess {
             vars: self.vars,
             triggers: self.triggers,
             cond: self.cond,
@@ -2004,7 +2011,7 @@ impl CondResourceAccess {
         let triggers = self.triggers.into_iter()
             .map(|trigger| trigger.map_all(&f))
             .collect();
-        CondResourceAccess {
+        QuantifiedResourceAccess {
             vars: self.vars,
             triggers,
             cond: box f(*self.cond),
@@ -2013,9 +2020,9 @@ impl CondResourceAccess {
     }
 }
 
-impl ResourceAccess {
+impl PlainResourceAccess {
     pub fn field(place: Expr, perm: PermAmount) -> Self {
-        ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+        PlainResourceAccess::Field(FieldAccessPredicate {
             place: box place,
             perm,
         })
@@ -2025,7 +2032,7 @@ impl ResourceAccess {
         place
             .typed_ref_name()
             .map(|pred_name|
-                ResourceAccess::PredicateAccessPredicate(PredicateAccessPredicate {
+                PlainResourceAccess::Predicate(PredicateAccessPredicate {
                     predicate_name: pred_name,
                     arg: box place,
                     perm
@@ -2033,10 +2040,10 @@ impl ResourceAccess {
             )
     }
 
-    pub fn inner_expression(&self) -> &Expr {
+    pub fn get_place(&self) -> &Expr {
         match self {
-            ResourceAccess::PredicateAccessPredicate(p) => &*p.arg,
-            ResourceAccess::FieldAccessPredicate(f) => &*f.place,
+            PlainResourceAccess::Predicate(p) => &*p.arg,
+            PlainResourceAccess::Field(f) => &*f.place,
         }
     }
 
@@ -2046,21 +2053,21 @@ impl ResourceAccess {
 
     pub fn get_perm_amount(&self) -> PermAmount {
         match self {
-            ResourceAccess::PredicateAccessPredicate(p) => p.perm,
-            ResourceAccess::FieldAccessPredicate(f) => f.perm,
+            PlainResourceAccess::Predicate(p) => p.perm,
+            PlainResourceAccess::Field(f) => f.perm,
         }
     }
 
     pub fn update_perm_amount(self, new_perm: PermAmount) -> Self {
         match self {
-            ResourceAccess::PredicateAccessPredicate(p) =>
-                ResourceAccess::PredicateAccessPredicate(PredicateAccessPredicate {
+            PlainResourceAccess::Predicate(p) =>
+                PlainResourceAccess::Predicate(PredicateAccessPredicate {
                     predicate_name: p.predicate_name,
                     arg: p.arg,
                     perm: new_perm
                 }),
-            ResourceAccess::FieldAccessPredicate(f) =>
-                ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+            PlainResourceAccess::Field(f) =>
+                PlainResourceAccess::Field(FieldAccessPredicate {
                     place: f.place,
                     perm: new_perm
                 }),
@@ -2071,14 +2078,14 @@ impl ResourceAccess {
         where F: FnOnce(Expr) -> Expr
     {
         match self {
-            ResourceAccess::PredicateAccessPredicate(pa) =>
-                ResourceAccess::PredicateAccessPredicate(PredicateAccessPredicate {
+            PlainResourceAccess::Predicate(pa) =>
+                PlainResourceAccess::Predicate(PredicateAccessPredicate {
                     predicate_name: pa.predicate_name,
                     arg: box f(*pa.arg),
                     perm: pa.perm
                 }),
-            ResourceAccess::FieldAccessPredicate(fa) =>
-                ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+            PlainResourceAccess::Field(fa) =>
+                PlainResourceAccess::Field(FieldAccessPredicate {
                     place: box f(*fa.place),
                     perm: PermAmount::Read,
                 }),
@@ -2086,12 +2093,12 @@ impl ResourceAccess {
     }
 }
 
-impl Into<Expr> for ResourceAccess {
+impl Into<Expr> for PlainResourceAccess {
     fn into(self) -> Expr {
         match self {
-            ResourceAccess::PredicateAccessPredicate(p) =>
+            PlainResourceAccess::Predicate(p) =>
                 Expr::PredicateAccessPredicate(p.predicate_name, p.arg, p.perm, Position::default()),
-            ResourceAccess::FieldAccessPredicate(f) =>
+            PlainResourceAccess::Field(f) =>
                 Expr::FieldAccessPredicate(f.place, f.perm, Position::default()),
         }
     }
@@ -2331,10 +2338,10 @@ fn unify(
             (Expr::SeqLen(lseq, _), Expr::SeqLen(rseq, _)) =>
                 do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping),
 
-            (Expr::CondResourceAccess(lcond, _), Expr::CondResourceAccess(rcond, _)) =>
+            (Expr::QuantifiedResourceAccess(lquant, _), Expr::QuantifiedResourceAccess(rquant, _)) =>
                 do_unify(
-                    &lcond.to_plain_expression(),
-                    &rcond.to_plain_expression(),
+                    &lquant.to_plain_expression(),
+                    &rquant.to_plain_expression(),
                     free_vars,
                     orig_mapping,
                     vars_mapping
@@ -2462,8 +2469,8 @@ fn forall_instantiation(
             Expr::SeqLen(seq, _) =>
                 inner(seq, vars, trigger, matched_trigger, vars_mapping),
 
-            Expr::CondResourceAccess(..) =>
-                unimplemented!("CondResourceAccess are unsupported for now"),
+            Expr::QuantifiedResourceAccess(..) =>
+                unimplemented!("QuantifiedResourceAccess are unsupported for now"),
         }
     }
 
@@ -2879,12 +2886,12 @@ mod tests {
     }
 
     // i < j ==> acc(base.a.val_array[i + 2 * j])
-    fn cond_resource_builder(
+    fn quant_resource_builder(
         i: &LocalVar,
         j: &LocalVar,
         base: &Expr,
         vars_in_order: bool
-    ) -> CondResourceAccess {
+    ) -> QuantifiedResourceAccess {
         let vars = if vars_in_order {
             vec![i.clone(), j.clone()]
         } else {
@@ -2910,7 +2917,7 @@ mod tests {
             Position::default()
         );
 
-        CondResourceAccess {
+        QuantifiedResourceAccess {
             vars,
             triggers: vec![],
             cond: box Expr::lt_cmp(Expr::local(i.clone()), Expr::local(j.clone())),
@@ -2922,30 +2929,30 @@ mod tests {
     }
 
     #[test]
-    fn test_cond_resource_access_similarity_success_simple() {
+    fn test_quant_resource_access_similarity_success_simple() {
         let common_base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
-        let cond1_i = LocalVar::new("a", Type::Int);
-        let cond1_j = LocalVar::new("b", Type::Int);
-        let cond2_i = LocalVar::new("i", Type::Int);
-        let cond2_j = LocalVar::new("j", Type::Int);
-        let cond1 = cond_resource_builder(&cond1_i, &cond1_j, &common_base, true);
-        let cond2 = cond_resource_builder(&cond2_i, &cond2_j, &common_base, false);
-        assert!(cond1.is_similar_to(&cond2, false));
+        let quant1_i = LocalVar::new("a", Type::Int);
+        let quant1_j = LocalVar::new("b", Type::Int);
+        let quant2_i = LocalVar::new("i", Type::Int);
+        let quant2_j = LocalVar::new("j", Type::Int);
+        let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &common_base, true);
+        let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &common_base, false);
+        assert!(quant1.is_similar_to(&quant2, false));
     }
 
     #[test]
-    fn test_cond_resource_access_similarity_failure_simple() {
+    fn test_quant_resource_access_similarity_failure_simple() {
         // 1
         {
             let base_1 = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
             let base_2 = Expr::local(LocalVar::new("baaaaase", Type::TypedRef("t0".into())));
-            let cond1_i = LocalVar::new("a", Type::Int);
-            let cond1_j = LocalVar::new("b", Type::Int);
-            let cond2_i = LocalVar::new("i", Type::Int);
-            let cond2_j = LocalVar::new("j", Type::Int);
-            let cond1 = cond_resource_builder(&cond1_i, &cond1_j, &base_1, true);
-            let cond2 = cond_resource_builder(&cond2_i, &cond2_j, &base_2, false);
-            assert!(!cond1.is_similar_to(&cond2, false));
+            let quant1_i = LocalVar::new("a", Type::Int);
+            let quant1_j = LocalVar::new("b", Type::Int);
+            let quant2_i = LocalVar::new("i", Type::Int);
+            let quant2_j = LocalVar::new("j", Type::Int);
+            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &base_1, true);
+            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &base_2, false);
+            assert!(!quant1.is_similar_to(&quant2, false));
         }
         // 2
         {
@@ -2955,13 +2962,13 @@ mod tests {
                     name: "x".to_string(),
                     typ: Type::TypedSeq("tt".into())
                 });
-            let cond1_i = LocalVar::new("a", Type::Int);
-            let cond1_j = LocalVar::new("b", Type::Int);
-            let cond2_i = LocalVar::new("i", Type::Int);
-            let cond2_j = LocalVar::new("j", Type::Int);
-            let cond1 = cond_resource_builder(&cond1_i, &cond1_j, &base_1, true);
-            let cond2 = cond_resource_builder(&cond2_i, &cond2_j, &base_2, false);
-            assert!(!cond1.is_similar_to(&cond2, false));
+            let quant1_i = LocalVar::new("a", Type::Int);
+            let quant1_j = LocalVar::new("b", Type::Int);
+            let quant2_i = LocalVar::new("i", Type::Int);
+            let quant2_j = LocalVar::new("j", Type::Int);
+            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &base_1, true);
+            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &base_2, false);
+            assert!(!quant1.is_similar_to(&quant2, false));
         }
     }
 }

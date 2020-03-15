@@ -9,7 +9,7 @@ use encoder::foldunfold::perm::*;
 use encoder::foldunfold::places_utils::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
-use encoder::vir::{PermAmount, ResourceAccessResult, ResourceAccess};
+use encoder::vir::{PermAmount, ResourceAccessResult, PlainResourceAccess};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -79,7 +79,7 @@ impl<'a> BranchCtxt<'a> {
 
         let pred_self_place: vir::Expr = predicate.self_place();
         let places_in_pred = predicate
-            .get_available_permissions_with_variant(&variant)
+            .get_permissions_with_variant(&variant)
             .into_iter()
             .map(|perm| {
                 perm.map_place(|p| p.replace_place(&pred_self_place, pred_place))
@@ -93,7 +93,7 @@ impl<'a> BranchCtxt<'a> {
 
         // Simulate unfolding of `pred_place`
         self.state.remove_pred(&pred_place, perm_amount);
-        self.state.insert_all_available_perms(places_in_pred);
+        self.state.insert_all_perms(places_in_pred);
 
         debug!("We unfolded {}", pred_place);
 
@@ -483,7 +483,7 @@ impl<'a> BranchCtxt<'a> {
         // info!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
         // 1. Check if the requirement is satisfied
-        if self.state.contains_perm(req) {
+        if self.state.contains_perm(req).yes() {
             info!("[exit] obtain: Requirement {} is satisfied", req);
             return ObtainResult::Success(actions);
         }
@@ -531,7 +531,7 @@ impl<'a> BranchCtxt<'a> {
             info!("We want to fold {}", req);
             info!("We have: acc state: {{\n{}\n}}", self.state.display_acc());
             info!("We have: pred state: {{\n{}\n}}", self.state.display_pred());
-            info!("We have: cond state: {{\n{}\n}}", self.state.display_cond());
+            info!("We have: cond state: {{\n{}\n}}", self.state.display_quant());
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 
@@ -548,22 +548,27 @@ impl<'a> BranchCtxt<'a> {
             let pred_self_place: vir::Expr = predicate.self_place();
             info!("pred_self_place is {}", pred_self_place);
             let places_in_pred: Vec<Perm> = predicate
-                .get_available_permissions_with_variant(&variant)
+                .get_permissions_with_variant(&variant)
                 .into_iter()
                 .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
-                .filter_map(|ap| match ap {
-                    AvailablePerm::Perm(p) => {
+                .filter_map(|p| match p {
+                    Perm::Acc(..) => {
                         info!("Simple perm {}", p);
                         Some(p)
                     },
+                    Perm::Pred(..) => {
+                        info!("Simple perm {}", p);
+                        Some(p)
+                    },
+                    // TODO: things below are wrong
                     // TODO: comment below is wrong
                     // `CondResourceAccess` is always an implication (==>)
                     // Since the implication is always true, we always have that "permission"
                     // so we filter it out.
                     // TODO: for things in acc, we must verify that they verify the cond. Maybe let Viper do that with fold
-                    AvailablePerm::Cond(a) => {
+                    Perm::Quantified(a) => {
                         match &a.resource {
-                            ResourceAccess::PredicateAccessPredicate(pred) => {
+                            PlainResourceAccess::Predicate(pred) => {
                                 info!("Resource {} {}", pred.predicate_name, pred.arg);
                                 for (pred, p) in self.state.acc().clone() {
                                     info!("Pred {}", pred);
@@ -582,7 +587,7 @@ impl<'a> BranchCtxt<'a> {
                                 }
                                 None
                             }
-                            ResourceAccess::FieldAccessPredicate(f) => {
+                            PlainResourceAccess::Field(f) => {
                                 // TODO: for things satisfying the condition, try to obtain the acc of the field in question
                                 None
                             }
@@ -676,10 +681,10 @@ impl<'a> BranchCtxt<'a> {
                 return ObtainResult::Success(actions);
             } else {
                 info!("Cannot fold; trying contains_cond_perm");
-                let result = match self.state.contains_cond_perm(req) {
-                    ContainsCondPerm::Yes =>
+                let result = match self.state.contains_perm(req) {
+                    ContainsPermResult::Yes =>
                         unreachable!("This case should have been covered earlier"),
-                    ContainsCondPerm::Partially(mut access_results) => {
+                    ContainsPermResult::Quantified(mut access_results) => {
                         access_results.retain(ResourceAccessResult::is_predicate);
                         match self.handle_resource_access_results(req, access_results) {
                             ObtainResult::Success(new_actions) => {
@@ -690,7 +695,7 @@ impl<'a> BranchCtxt<'a> {
                                 ObtainResult::Failure(req.clone())
                         }
                     }
-                    ContainsCondPerm::No =>
+                    ContainsPermResult::No =>
                         ObtainResult::Failure(req.clone())
                 };
                 if !result.is_success() {
@@ -718,15 +723,15 @@ Predicates: {{
             // without being explicitly moved becauce &T implements Copy.
             return ObtainResult::Failure(req.clone());
         } else {
-            return match self.state.contains_cond_perm(req) {
-                ContainsCondPerm::Yes =>
+            return match self.state.contains_perm(req) {
+                ContainsPermResult::Yes =>
                     unreachable!("This case should have been covered earlier"),
-                ContainsCondPerm::Partially(access_results) => {
+                ContainsPermResult::Quantified(access_results) => {
                     // info!("Pred state: {{\n{}\n}}", self.state.display_pred());
                     actions.extend(self.handle_resource_access_results(req, access_results)?);
                     ObtainResult::Success(actions)
                 }
-                ContainsCondPerm::No => {
+                ContainsPermResult::No => {
                     // We have no predicate to obtain the access permission `req`
                     info!(
                         r"There is no access permission to obtain {} ({:?}).
@@ -746,7 +751,7 @@ Conditional permission: {{
                         req,
                         self.state.display_acc(),
                         self.state.display_pred(),
-                        self.state.display_cond(),
+                        self.state.display_quant(),
                     );
                     ObtainResult::Failure(req.clone())
                 }

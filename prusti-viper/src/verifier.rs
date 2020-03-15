@@ -251,8 +251,9 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 &[
                     ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
                     ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+                    /*// TODO: This causes wrong program to be verified
                     // See https://github.com/viperproject/silicon/issues/481
-                    // forall p: Perm :: p != none ==> p * result > none
+                    // forall p: Perm :: p != none ==> p * result != none // TODO: was >
                     ast.forall(
                         &[ast.local_var_decl("p", ast.perm_type())],
                         &[],
@@ -266,9 +267,10 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                                 ast.no_perm()
                             )
                         )
-                    )
+                    )*/
                 ],
                 ast.no_position(),
+                // Some(ast.fractional_perm(ast.int_lit(1), ast.int_lit(1024)))
                 None,
             ));
 

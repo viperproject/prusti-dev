@@ -6,7 +6,7 @@
 
 use encoder::foldunfold::perm::*;
 use encoder::vir;
-use encoder::vir::{ExprIterator, CondResourceAccess, ResourceAccessResult};
+use encoder::vir::ExprIterator;
 use encoder::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -18,7 +18,7 @@ pub struct State {
     acc: HashMap<vir::Expr, PermAmount>,
     /// paths on which we (may) have a full predicate permission
     pred: HashMap<vir::Expr, PermAmount>,
-    cond: Vec<CondResourceAccess>,
+    quant: HashSet<vir::QuantifiedResourceAccess>,
     /// paths that have been "moved out" (for sure)
     moved: HashSet<vir::Expr>,
     /// Permissions currently framed
@@ -28,10 +28,11 @@ pub struct State {
     dropped: HashSet<Perm>,
 }
 
-pub enum ContainsCondPerm {
+pub enum ContainsPermResult {
+    // TODO: the names are soooo bad
     Yes,
     No,
-    Partially(Vec<ResourceAccessResult>),
+    Quantified(Vec<vir::ResourceAccessResult>),
 }
 
 impl State {
@@ -43,7 +44,7 @@ impl State {
         State {
             acc,
             pred,
-            cond: Vec::new(),
+            quant: HashSet::new(),
             moved,
             framing_stack: vec![],
             dropped: HashSet::new(),
@@ -243,29 +244,29 @@ impl State {
         self.pred.contains_key(&place)
     }
 
-    /// Note: the permission amount is currently ignored
-    pub fn contains_perm(&self, item: &Perm) -> bool {
-        match item {
-            &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
-            &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
-        }
+    pub fn contains_quantified(&self, quant: &vir::QuantifiedResourceAccess) -> bool {
+        self.quant.iter().find(|x| x.is_similar_to(quant, false)).is_some()
     }
 
-    // TODO: Some of these methods must be adapted for cond. perm. too
-
+    /// Note: the permission amount is currently ignored
     // TODO: should we also look for prefixes or is it "up to the caller"?  <- if it gives access to _1.val_array[..].val_int, we should first look for _1, _1.val_array, and the index
-    pub fn contains_cond_perm(&self, item: &Perm) -> ContainsCondPerm {
-        if self.contains_perm(item) {
-            ContainsCondPerm::Yes
+    pub fn contains_perm(&self, item: &Perm) -> ContainsPermResult {
+        let contained = match item {
+            &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
+            &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
+            &Perm::Quantified(ref cond_perm) => self.contains_quantified(cond_perm)
+        };
+        if contained {
+            ContainsPermResult::Yes
         } else {
-            let conds = self.cond
+            let instances = self.quant
                 .iter()
                 .filter_map(|cond| cond.try_instantiate(item.get_place()))
                 .collect::<Vec<_>>();
-            if conds.is_empty() {
-                ContainsCondPerm::No
+            if instances.is_empty() {
+                ContainsPermResult::No
             } else {
-                ContainsCondPerm::Partially(conds)
+                ContainsPermResult::Quantified(instances)
             }
         }
     }
@@ -274,10 +275,9 @@ impl State {
     where
         I: Iterator<Item = &'a Perm>,
     {
-        items.all(|x| match self.contains_cond_perm(x) {
-            ContainsCondPerm::Yes => true,
-            // If we don't have the permission in acc or pred, then we don't have it "right now" (so Partially doesn't count)
-            ContainsCondPerm::No | ContainsCondPerm::Partially(_) => false,
+        items.all(|x| match self.contains_perm(x) {
+            ContainsPermResult::Yes | ContainsPermResult::Quantified(_) => true,
+            ContainsPermResult::No => false,
         })
     }
 
@@ -328,6 +328,7 @@ impl State {
         self.remove_acc_matching(|x| pred(x));
         self.remove_pred_matching(|x| pred(x));
         self.remove_moved_matching(|x| pred(x));
+        self.remove_quant_matching(|x| pred(x));
     }
 
     pub fn remove_acc_matching<P>(&mut self, pred: P)
@@ -351,6 +352,13 @@ impl State {
         self.moved.retain(|e| !pred(e));
     }
 
+    pub fn remove_quant_matching<P>(&mut self, pred: P)
+    where
+        P: Fn(&vir::Expr) -> bool,
+    {
+        self.quant.retain(|e| !pred(e.resource.get_place()));
+    }
+
     pub fn display_acc(&self) -> String {
         let mut info = self
             .acc
@@ -371,9 +379,9 @@ impl State {
         info.join(",\n")
     }
 
-    pub fn display_cond(&self) -> String {
+    pub fn display_quant(&self) -> String {
         let mut info = self
-            .cond
+            .quant
             .iter()
             .map(|p| format!("{}", p))
             .collect::<Vec<String>>();
@@ -432,6 +440,11 @@ impl State {
         }
     }
 
+    pub fn insert_quant(&mut self, quant: vir::QuantifiedResourceAccess) {
+        assert!(!self.contains_quantified(&quant));
+        self.quant.insert(quant);
+    }
+
     pub fn insert_all_pred<I>(&mut self, items: I)
     where
         I: Iterator<Item = (vir::Expr, PermAmount)>,
@@ -454,6 +467,7 @@ impl State {
         match item {
             Perm::Acc(place, perm) => self.insert_acc(place, perm),
             Perm::Pred(place, perm) => self.insert_pred(place, perm),
+            Perm::Quantified(cond) => self.insert_quant(cond),
         };
     }
 
@@ -463,19 +477,6 @@ impl State {
     {
         for item in items {
             self.insert_perm(item);
-        }
-    }
-
-    pub fn insert_all_available_perms<I>(&mut self, items: I)
-    where
-        I: Iterator<Item = AvailablePerm>,
-    {
-        for item in items {
-            info!("INSERT {:?}", item);
-            match item {
-                AvailablePerm::Perm(p) => self.insert_perm(p),
-                AvailablePerm::Cond(cond) => self.cond.push(cond),
-            }
         }
     }
 
@@ -501,7 +502,7 @@ impl State {
         info!("remove_acc {}, {}", place, perm);
         info!("Acc state before: {{\n{}\n}}", self.display_acc());
         info!("Pred state before: {{\n{}\n}}", self.display_pred());
-        info!("Cond state before: {{\n{}\n}}", self.display_cond());
+        info!("Quant state before: {{\n{}\n}}", self.display_quant());
         assert!(
             self.acc.contains_key(place),
             "Place {} is not in state (acc), so it can not be removed.",
@@ -514,14 +515,14 @@ impl State {
         }
         info!("Acc state after: {{\n{}\n}}", self.display_acc());
         info!("Pred state after: {{\n{}\n}}", self.display_pred());
-        info!("Cond state after: {{\n{}\n}}", self.display_cond());
+        info!("Quant state after: {{\n{}\n}}", self.display_quant());
     }
 
     pub fn remove_pred(&mut self, place: &vir::Expr, perm: PermAmount) {
         info!("remove_pred {}, {}", place, perm);
         info!("Acc state before: {{\n{}\n}}", self.display_acc());
         info!("Pred state before: {{\n{}\n}}", self.display_pred());
-        info!("Cond state before: {{\n{}\n}}", self.display_cond());
+        info!("Quant state before: {{\n{}\n}}", self.display_quant());
         assert!(
             self.pred.contains_key(place),
             "Place {} is not in state (pred), so it can not be removed.",
@@ -534,13 +535,14 @@ impl State {
         }
         info!("Acc state after: {{\n{}\n}}", self.display_acc());
         info!("Pred state after: {{\n{}\n}}", self.display_pred());
-        info!("Cond state after: {{\n{}\n}}", self.display_cond());
+        info!("Quant state after: {{\n{}\n}}", self.display_quant());
     }
 
     pub fn remove_perm(&mut self, item: &Perm) {
         match item {
             &Perm::Acc(_, perm) => self.remove_acc(item.get_place(), perm),
             &Perm::Pred(_, perm) => self.remove_pred(item.get_place(), perm),
+            _ => unimplemented!(),
         };
     }
 
@@ -585,6 +587,7 @@ impl State {
                 self.remove_moved_matching(|p| place.has_prefix(p));
                 self.restore_pred(place, perm);
             }
+            _ => unimplemented!(),
         };
         trace!("[exit] restore_dropped_perm");
     }
@@ -707,6 +710,15 @@ impl State {
     }
 }
 
+impl ContainsPermResult {
+    pub fn yes(&self) -> bool {
+        match self {
+            ContainsPermResult::Yes => true,
+            _ => false,
+        }
+    }
+}
+
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "acc: {{")?;
@@ -714,6 +726,9 @@ impl fmt::Display for State {
         writeln!(f, "}}")?;
         writeln!(f, "pred: {{")?;
         writeln!(f, "  {}", self.display_pred())?;
+        writeln!(f, "}}")?;
+        writeln!(f, "quant: {{")?;
+        writeln!(f, "  {}", self.display_quant())?;
         writeln!(f, "}}")
     }
 }

@@ -125,14 +125,14 @@ impl Predicate {
             let elems_field = elems.clone().field(elem_ref_field);
 
             // forall i: Int :: { self.val_array[i] } 0 <= i < |self.val_array| ==> resource
-            let forall_body = |resource: ResourceAccess| {
+            let forall_body = |resource: PlainResourceAccess| {
                 // 0 <= i < |self.val_array|
                 let idx_bounds = Expr::and(
                     Expr::le_cmp(Expr::Const(Const::Int(0), Position::default()), idx.clone()),
                     Expr::lt_cmp(idx.clone(), Expr::seq_len(val_field.clone()))
                 );
-                Expr::CondResourceAccess(
-                    CondResourceAccess {
+                Expr::QuantifiedResourceAccess(
+                    QuantifiedResourceAccess {
                         vars: vec![idx_local.clone()],
                         triggers: vec![Trigger::new(vec![elems.clone()])],
                         cond: box idx_bounds,
@@ -141,13 +141,13 @@ impl Predicate {
                     Position::default()
                 )
             };
-            let elems_field_acc = ResourceAccess::FieldAccessPredicate(
+            let elems_field_acc = PlainResourceAccess::Field(
                 FieldAccessPredicate {
                     place: box elems_field.clone(),
                     perm: PermAmount::Write
                 }
             );
-            let inner_type_pred = ResourceAccess::PredicateAccessPredicate(
+            let inner_type_pred = PlainResourceAccess::Predicate(
                 PredicateAccessPredicate {
                     predicate_name: inner_type_predicate_name,
                     arg: box elems_field.clone(),

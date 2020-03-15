@@ -390,7 +390,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ast.seq_index(seq.to_viper(ast), index.to_viper(ast)),
             &Expr::SeqLen(ref seq, _) =>
                 ast.seq_length(seq.to_viper(ast)),
-            &Expr::CondResourceAccess(ref cond, _) =>
+            &Expr::QuantifiedResourceAccess(ref cond, _) =>
                 cond.to_plain_expression().to_viper(ast),
         };
         if config::simplify_encoding() {

@@ -3087,14 +3087,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     // Gives read permission to this node. It must not be a leaf node.
                     PermissionKind::ReadNode => {
                         tree_perms_state.add(
-                            vir::ResourceAccess::field(encoded_place, vir::PermAmount::Read)
+                            vir::PlainResourceAccess::field(encoded_place, vir::PermAmount::Read)
                         );
                     }
 
                     // Gives write permission to this node. It must not be a leaf node.
                     PermissionKind::WriteNode => {
                         tree_perms_state.add(
-                            vir::ResourceAccess::field(encoded_place, vir::PermAmount::Write)
+                            vir::PlainResourceAccess::field(encoded_place, vir::PermAmount::Write)
                         );
                     }
 
@@ -3151,7 +3151,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 // Use unfolded references.
                                 let field = self.encoder.encode_dereference_field(ty);
                                 let field_place = vir::Expr::from(encoded_place).field(field);
-                                tree_perms_state.add(vir::ResourceAccess::field(
+                                tree_perms_state.add(vir::PlainResourceAccess::field(
                                     field_place.clone(),
                                     perm_amount,
                                 ));
@@ -3167,14 +3167,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     && !(mutbl == Mutability::MutImmutable && drop_read_references)
                                 {
                                     tree_perms_state.add(
-                                        vir::ResourceAccess::predicate(field_place, perm_amount)
+                                        vir::PlainResourceAccess::predicate(field_place, perm_amount)
                                             .unwrap()
                                     );
                                 }
                             }
                             _ => {
                                 tree_perms_state.add(
-                                    vir::ResourceAccess::predicate(encoded_place, perm_amount)
+                                    vir::PlainResourceAccess::predicate(encoded_place, perm_amount)
                                         .unwrap()
                                 );
                                 if let Some(forest) = &enclosing_permission_forest {
