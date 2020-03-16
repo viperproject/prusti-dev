@@ -560,13 +560,10 @@ impl<'a> BranchCtxt<'a> {
                         info!("Simple perm {}", p);
                         Some(p)
                     },
-                    // TODO: things below are wrong
-                    // TODO: comment below is wrong
-                    // `CondResourceAccess` is always an implication (==>)
-                    // Since the implication is always true, we always have that "permission"
-                    // so we filter it out.
-                    // TODO: for things in acc, we must verify that they verify the cond. Maybe let Viper do that with fold
+                    // TODO: plan: get all accesses that have been instantiated from acc and pred. Requires flatMapping
                     Perm::Quantified(a) => {
+                        None
+                        /*
                         match &a.resource {
                             PlainResourceAccess::Predicate(pred) => {
                                 info!("Resource {} {}", pred.predicate_name, pred.arg);
@@ -579,6 +576,7 @@ impl<'a> BranchCtxt<'a> {
                                             let req = Perm::Pred(*predicate.arg.clone(), p);
                                             info!("REQ {}", req);
                                             info!("PRED {} {}", predicate.predicate_name, predicate.arg);
+                                            // TODO: no, can be several instances, you dummy
                                             return Some(req);
                                         }
                                         // TODO: Rest !!
@@ -591,7 +589,7 @@ impl<'a> BranchCtxt<'a> {
                                 // TODO: for things satisfying the condition, try to obtain the acc of the field in question
                                 None
                             }
-                        }
+                        }*/
                     }
                 })
                 .collect();

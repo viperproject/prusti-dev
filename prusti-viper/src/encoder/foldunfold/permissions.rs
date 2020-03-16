@@ -170,7 +170,7 @@ impl RequiredPermissionsGetter for vir::Expr {
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        // info!("[enter] get_required_permissions(expr={})", self);
+        info!("[enter] get_required_permissions(expr={})", self);
         let permissions = match self {
             vir::Expr::Const(_, _) => HashSet::new(),
 

@@ -746,7 +746,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
 
         // 3. Replace special statements
-        debug!("[step.3] replace_stmt: {}", stmt);
+        info!("[step.3] replace_stmt: {}", stmt);
         stmt = match stmt {
             vir::Stmt::PackageMagicWand(
                 vir::Expr::MagicWand(box ref lhs, box ref rhs, _, _),
@@ -801,11 +801,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         };
 
         // 4. Add "unfolding" expressions in statement. This handles *old* requirements.
-        debug!("[step.4] replace_stmt: Add unfoldings in stmt {}", stmt);
+        info!("[step.4] replace_stmt: Add unfoldings in stmt {}", stmt);
         stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
 
         // 5. Apply effect of statement on state
-        debug!("[step.5] replace_stmt: {}", stmt);
+        info!("[step.5] replace_stmt: {}", stmt);
         bctxt.apply_stmt(&stmt);
         stmts.push(stmt.clone());
 
@@ -845,7 +845,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
 
         // 7. Handle shared borrows.
-        debug!("[step.6] replace_stmt: {}", stmt);
+        info!("[step.6] replace_stmt: {}", stmt);
         if let vir::Stmt::Assign(
             ref lhs_place,
             ref rhs_place,
@@ -975,7 +975,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         // Delete lhs state
         self.bctxt_at_label.remove("lhs");
 
-        debug!(
+        info!(
             "[exit] replace_stmt = [\n{}\n]",
             stmts
                 .iter()

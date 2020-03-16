@@ -3586,6 +3586,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         vec![move_assign]
                     }
                 };
+                // If we are moving into a sequence, we must inhale-exhale write permission.
+                // This is needed to help the prover prove injectivity.
+                match lhs {
+                    vir::Expr::SeqIndex(box seq, ..)
+                    | vir::Expr::Field(box vir::Expr::SeqIndex(box seq, ..), ..) => {
+                        let acc = vir::Expr::acc_permission(lhs.clone(), vir::PermAmount::Write);
+                        stmts.insert(0, vir::Stmt::Inhale(acc.clone(), vir::FoldingBehaviour::None));
+                        stmts.push(vir::Stmt::Exhale(acc, vir::Position::new(0, 0, "dummy-position".into())));
+                    }
+                    _ => ()
+                }
 
                 // Store a label for this state
                 let label = self.cfg_method.get_fresh_label_name();
