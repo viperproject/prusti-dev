@@ -2231,7 +2231,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .iter()
             .map(|local| self.encode_prusti_local(*local).into())
             .collect();
-        for item in contract.functional_precondition() {
+        let func_precondition = contract.functional_precondition();
+        for item in func_precondition {
             // FIXME
             //warn!("before: {:?}", &item.assertion);
             let value = self.encoder.encode_assertion(
@@ -2256,7 +2257,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 None,
                 false,
                 None,
-                ErrorCtxt::AssertMethodPreconditionWeakening
+                ErrorCtxt::AssertMethodPreconditionWeakening(
+                    MultiSpan::from_spans(
+                        func_precondition.iter()
+                            .flat_map(|ts| ts.assertion.get_spans())
+                            .collect()
+                    )
+                )
             ));
         (
             type_spec.into_iter().conjoin(),
@@ -2563,7 +2570,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Encode functional specification
         let mut func_spec = vec![];
         let mut func_spec_spans = vec![];
-        for item in contract.functional_postcondition() {
+        let func_postcondition = contract.functional_postcondition();
+        for item in func_postcondition {
             let mut assertion = self.encoder.encode_assertion(
                 &item.assertion,
                 &self.mir,
@@ -2591,7 +2599,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     Some(&encoded_return),
                     false,
                     None,
-                    ErrorCtxt::AssertMethodPostconditionStrengthening
+                    ErrorCtxt::AssertMethodPostconditionStrengthening(
+                        MultiSpan::from_spans(
+                            func_postcondition.iter()
+                                .flat_map(|ts| ts.assertion.get_spans())
+                                .collect()
+                        )
+                    )
                 );
                 self.wrap_arguments_into_old(assertion, pre_label, contract, &encoded_args)
             });

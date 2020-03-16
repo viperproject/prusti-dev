@@ -1,7 +1,7 @@
 extern crate prusti_contracts;
 
 trait Foo {
-    #[requires="-5 <= a && a <= 10"] //~ ERROR does not imply trait's postcondition
+    #[requires="-5 <= a && a <= 10"]
     #[requires="-25 <= b && b <= 30"]
     #[ensures="result.0 >= a"]
     #[ensures="result.1 >= b"]
@@ -20,7 +20,7 @@ fn abs(a: isize) -> isize {
 }
 
 impl Foo for Dummy {
-    #[requires="-1 <= a && a <= 1"]
+    #[requires="-1 <= a && a <= 1"] //~ ERROR may not be a valid weakening of the trait's precondition
     #[requires="b == 0"]
     fn foo(&mut self, a: isize, b: isize) -> (isize, isize) {
         let a = abs(a);

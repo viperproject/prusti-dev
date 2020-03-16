@@ -81,10 +81,10 @@ pub enum ErrorCtxt {
     PanicInPureFunction(PanicCause),
     /// A Viper `assert e1 ==> e2` that encodes a weakening of the precondition
     /// of a method implementation of a trait
-    AssertMethodPreconditionWeakening,
+    AssertMethodPreconditionWeakening(MultiSpan),
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
-    /// of a method implementation of a trait
-    AssertMethodPostconditionStrengthening,
+    /// of a method implementation of a trait.
+    AssertMethodPostconditionStrengthening(MultiSpan),
 }
 
 /// The Rust error that will be reported from the compiler
@@ -454,16 +454,18 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening) => {
-                CompilerError::new(format!("precondition may not be a valid weakening."), error_span)
-                    .set_failing_assertion(opt_cause_span)
-                    .set_help("the trait's precondition might not imply the implemented method's precondition.")
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening(impl_span)) => {
+                CompilerError::new(format!("the method's precondition may not be a valid weakening of the trait's precondition."), error_span)
+                    //.push_primary_span(opt_cause_span)
+                    .push_primary_span(Some(&impl_span))
+                    .set_help("The trait's precondition should imply the implemented method's precondition.")
             }
 
-            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening) => {
-                CompilerError::new(format!("postcondition may not be a valid strengthening."), error_span)
-                    .set_failing_assertion(opt_cause_span)
-                    .set_help("the implemented method's postcondition might not imply the trait's postcondition.")
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening(impl_span)) => {
+                CompilerError::new(format!("the method's postcondition may not be a valid strengthening of the trait's postcondition."), error_span)
+                    //.push_primary_span(opt_cause_span)
+                    .push_primary_span(Some(&impl_span))
+                    .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {

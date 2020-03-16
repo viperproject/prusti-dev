@@ -20,7 +20,7 @@ fn abs(a: isize) -> isize {
 }
 
 impl Foo for Dummy {
-    #[ensures="result.0 < a"] //~ ERROR trait's precondition does not imply
+    #[ensures="result.0 < a"] //~ ERROR may not be a valid strengthening of the trait's postcondition
     #[ensures="result.1 == 3"]
     #[ensures="self.d1 == a"]
     #[ensures="self.d2 == b"]

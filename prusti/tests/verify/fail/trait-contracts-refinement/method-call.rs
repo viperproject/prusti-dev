@@ -12,7 +12,6 @@ trait Foo {
         100
     }
 
-    // TODO: the following error should be reported in the Dummy::baz implementation, not here
     #[requires="-1 <= c && c <= 1"]
     #[ensures="result > 1"] //~ ERROR postcondition
     fn baz(&self, c: isize) -> isize {
