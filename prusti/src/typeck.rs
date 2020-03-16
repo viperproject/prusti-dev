@@ -85,12 +85,9 @@ fn type_assertion(
                         })
                         .collect(),
                 ),
-                AssertionKind::Implies(expression, assertion) => AssertionKind::Implies(
-                    Expression {
-                        id: expression.id,
-                        expr: typed_expressions[&expression.id].clone(),
-                    },
-                    type_assertion(assertion, typed_expressions, typed_forallargs),
+                AssertionKind::Implies(lhs_assertion, rhs_assertion) => AssertionKind::Implies(
+                    type_assertion(lhs_assertion, typed_expressions, typed_forallargs),
+                    type_assertion(rhs_assertion, typed_expressions, typed_forallargs),
                 ),
                 AssertionKind::TypeCond(vars, assertion) => AssertionKind::TypeCond(
                     ForAllVars {

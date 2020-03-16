@@ -79,6 +79,12 @@ pub enum ErrorCtxt {
     DivergingCallInPureFunction,
     /// A Viper pure function call with `false` precondition that encodes a Rust panic in a pure function
     PanicInPureFunction(PanicCause),
+    /// A Viper `assert e1 ==> e2` that encodes a weakening of the precondition
+    /// of a method implementation of a trait
+    AssertMethodPreconditionWeakening(MultiSpan),
+    /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
+    /// of a method implementation of a trait.
+    AssertMethodPostconditionStrengthening(MultiSpan),
 }
 
 /// The Rust error that will be reported from the compiler
@@ -446,6 +452,20 @@ impl<'tcx> ErrorManager<'tcx> {
                     format!("implicit type invariants might not hold at the end of the method."),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening(impl_span)) => {
+                CompilerError::new(format!("the method's precondition may not be a valid weakening of the trait's precondition."), error_span)
+                    //.push_primary_span(opt_cause_span)
+                    .push_primary_span(Some(&impl_span))
+                    .set_help("The trait's precondition should imply the implemented method's precondition.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening(impl_span)) => {
+                CompilerError::new(format!("the method's postcondition may not be a valid strengthening of the trait's postcondition."), error_span)
+                    //.push_primary_span(opt_cause_span)
+                    .push_primary_span(Some(&impl_span))
+                    .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {
