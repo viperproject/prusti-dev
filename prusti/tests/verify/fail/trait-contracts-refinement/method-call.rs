@@ -61,12 +61,10 @@ fn test_bar_1_post() {
     assert!(res > 10); // Ok
 }
 
-/* TODO: why is this error not reported?
 fn test_bar_2_post() {
     let d = Dummy;
     let res = d.bar(5);
-    assert!(res > 0); // ERROR assertion
+    assert!(res > 100); //~ ERROR
 }
-*/
 
 fn main(){}
