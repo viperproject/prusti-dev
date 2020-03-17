@@ -3076,7 +3076,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 let (encoded_place, ty, _) = tree_perms_state
-                    .encode_place(&self.encoder, &self.mir_encoder, &self.loop_encoder, &mir_place);
+                    .encode_place(&self.mir_encoder, &self.loop_encoder, &mir_place);
 
                 info!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 if let ty::TypeVariants::TyClosure(..) = ty.sty {

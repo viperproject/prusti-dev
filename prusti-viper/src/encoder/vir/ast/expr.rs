@@ -1914,7 +1914,7 @@ pub enum ResourceAccessResult {
 }
 
 impl QuantifiedResourceAccess {
-    pub fn try_instantiate(&self, perm_expr: &Expr) -> Option<ResourceAccessResult> {
+    pub fn try_instantiate(&self, perm_expr: &Expr, check_perms: bool) -> Option<ResourceAccessResult> {
         // TODO: This vars transformation into HashSet is horrendous
         // TODO: `Hash` is not implemented for `HashSet`, which is needed for QuantifiedResourceAccess
         let vars = self.vars.iter().cloned().collect();
@@ -1924,7 +1924,7 @@ impl QuantifiedResourceAccess {
             box self.resource.to_expression(),
             Position::default()
         );
-        forall_instantiation(perm_expr, &vars, &self.triggers, &forall_body)
+        forall_instantiation(perm_expr, &vars, &self.triggers, &forall_body, check_perms)
             .map(|fi| {
                 match *fi.body {
                     Expr::BinOp(BinOpKind::Implies, box cond, box rhs, _) => {
@@ -1967,6 +1967,7 @@ impl QuantifiedResourceAccess {
             })
     }
 
+    // TODO: too weak. Allows at least simplification of true/false and reordering
     /// Check that two quantified resource accesses are the same
     /// (up to the names of the quantified variables).
     pub fn is_similar_to(&self, other: &QuantifiedResourceAccess, check_perm: bool) -> bool {
@@ -1974,8 +1975,9 @@ impl QuantifiedResourceAccess {
             &Expr::QuantifiedResourceAccess(self.clone(), Position::default()),
             &Expr::QuantifiedResourceAccess(other.clone(), Position::default()),
             &HashSet::new(),
-            &mut HashMap::new()
-        ).is_success() && (!check_perm || self.get_perm_amount() == other.get_perm_amount())
+            &mut HashMap::new(),
+            check_perm
+        ).is_success()
     }
 
     pub fn to_plain_expression(&self) -> Expr {
@@ -2104,6 +2106,15 @@ impl Into<Expr> for PlainResourceAccess {
     }
 }
 
+impl Into<Expr> for ResourceAccess {
+    fn into(self) -> Expr {
+        match self {
+            ResourceAccess::Plain(p) => p.into(),
+            ResourceAccess::Quantified(q) => Expr::QuantifiedResourceAccess(q, Position::default()),
+        }
+    }
+}
+
 impl ResourceAccessResult {
     pub fn is_complete(&self) -> bool {
         match self {
@@ -2158,6 +2169,7 @@ fn unify(
     target: &Expr,
     free_vars: &HashSet<LocalVar>,
     vars_mapping: &mut HashMap<LocalVar, Expr>,
+    check_perms: bool,
 ) -> UnificationResult {
     fn do_unify(
         subject: &Expr,
@@ -2167,6 +2179,7 @@ fn unify(
         // We will modify it at the end once we are sure the unification succeeded
         orig_mapping: &HashMap<LocalVar, Expr>,
         vars_mapping: &mut HashMap<LocalVar, Expr>,
+        check_perms: bool,
     ) -> Result<(), UnificationResult> { // We return Result for the `?` operator convenience
         match (subject, target) {
             (Expr::Local(lv, _), _) if free_vars.contains(lv) => {
@@ -2204,44 +2217,44 @@ fn unify(
                 if rlv == llv { Ok(()) } else { Err(UnificationResult::Unmatched) },
 
             (Expr::Variant(lbase, lfield, _), Expr::Variant(rbase, rfield, _)) if lfield == rfield =>
-                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (Expr::Field(lbase, lfield, _), Expr::Field(rbase, rfield, _)) if lfield == rfield =>
-                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (Expr::AddrOf(lbase, lty, _), Expr::AddrOf(rbase, rty, _)) if lty == rty =>
-                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (Expr::LabelledOld(llabel, lbase, _), Expr::LabelledOld(rlabel, rbase, _)) if llabel == rlabel =>
-                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping),
+                do_unify(lbase, rbase, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (Expr::Const(lconst, _), Expr::Const(rconst, _)) =>
                 if lconst == rconst { Ok(()) } else { Err(UnificationResult::Unmatched) },
 
             // Not sure about this one
             (Expr::MagicWand(llhs, lrhs, lborrow, _), Expr::MagicWand(rlhs, rrhs, rborrow, _)) if lborrow == rborrow => {
-                do_unify(llhs, rlhs, free_vars, orig_mapping, vars_mapping)?;
-                do_unify(lrhs, rrhs, free_vars, orig_mapping, vars_mapping)
+                do_unify(llhs, rlhs, free_vars, orig_mapping, vars_mapping, check_perms)?;
+                do_unify(lrhs, rrhs, free_vars, orig_mapping, vars_mapping, check_perms)
             }
 
             (
                 Expr::PredicateAccessPredicate(lname, larg, lperm, _),
                 Expr::PredicateAccessPredicate(rname, rarg, rperm, _)
-            ) if lname == rname && lperm == rperm =>
-                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping),
+            ) if !check_perms || lperm == rperm =>
+                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (
                 Expr::FieldAccessPredicate(larg, lperm, _),
                 Expr::FieldAccessPredicate(rarg, rperm, _)
-            ) if lperm == rperm =>
-                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping),
+            ) if !check_perms || lperm == rperm =>
+                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (Expr::UnaryOp(lop, larg, _), Expr::UnaryOp(rop, rarg, _)) if lop == rop =>
-                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping),
+                do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (Expr::BinOp(lop, larg1, larg2, _), Expr::BinOp(rop, rarg1, rarg2, _)) if lop == rop => {
-                do_unify(larg1, rarg1, free_vars, orig_mapping, vars_mapping)?;
-                do_unify(larg2, rarg2, free_vars, orig_mapping, vars_mapping)
+                do_unify(larg1, rarg1, free_vars, orig_mapping, vars_mapping, check_perms)?;
+                do_unify(larg2, rarg2, free_vars, orig_mapping, vars_mapping, check_perms)
             }
 
             (
@@ -2255,15 +2268,15 @@ fn unify(
                 largs.iter()
                     .zip(rargs.iter())
                     .try_fold((), |(), (larg, rarg)|
-                        do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping)
+                        do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping, check_perms)
                     )?;
-                do_unify(lin_expr, rin_expr, free_vars, orig_mapping, vars_mapping)
+                do_unify(lin_expr, rin_expr, free_vars, orig_mapping, vars_mapping, check_perms)
             }
 
             (Expr::Cond(lguard, lthen, lelse, _), Expr::Cond(rguard, rthen, relse, _)) => {
-                do_unify(lguard, rguard, free_vars, orig_mapping, vars_mapping)?;
-                do_unify(lthen, rthen, free_vars, orig_mapping, vars_mapping)?;
-                do_unify(lelse, relse, free_vars, orig_mapping, vars_mapping)
+                do_unify(lguard, rguard, free_vars, orig_mapping, vars_mapping, check_perms)?;
+                do_unify(lthen, rthen, free_vars, orig_mapping, vars_mapping, check_perms)?;
+                do_unify(lelse, relse, free_vars, orig_mapping, vars_mapping, check_perms)
             }
 
             (
@@ -2277,7 +2290,7 @@ fn unify(
 
                 // TODO: unify triggers too!
 
-                do_unify(lbody, rbody, &new_free_vars, orig_mapping, vars_mapping)?;
+                do_unify(lbody, rbody, &new_free_vars, orig_mapping, vars_mapping, check_perms)?;
                 let mut matched_rvars = HashSet::new();
                 for lv in lvars {
                     match vars_mapping.remove(lv) {
@@ -2297,7 +2310,7 @@ fn unify(
             }
 
             (Expr::LetExpr(lvar, lexpr, lbody, _), Expr::LetExpr(rvar, rexpr, rbody, _)) if lvar.typ == rvar.typ => {
-                do_unify(lexpr, rexpr, free_vars, orig_mapping, vars_mapping)?;
+                do_unify(lexpr, rexpr, free_vars, orig_mapping, vars_mapping, check_perms)?;
 
                 let mut lnewbody: Option<Box<Expr>> = None;
                 let mut rnewbody: Option<Box<Expr>> = None;
@@ -2314,7 +2327,7 @@ fn unify(
                     (Some(l), Some(r)) => (l, r),
                     _ => (lbody, rbody)
                 };
-                do_unify(lbody, rbody, free_vars, orig_mapping, vars_mapping)
+                do_unify(lbody, rbody, free_vars, orig_mapping, vars_mapping, check_perms)
             }
 
             (
@@ -2326,17 +2339,17 @@ fn unify(
                 largs.iter()
                     .zip(rargs.iter())
                     .try_fold((), |(), (larg, rarg)|
-                        do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping)
+                        do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping, check_perms)
                     )
             }
 
             (Expr::SeqIndex(lseq, lindex, _), Expr::SeqIndex(rseq, rindex, _)) => {
-                do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping)?;
-                do_unify(lindex, rindex, free_vars, orig_mapping, vars_mapping)
+                do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping, check_perms)?;
+                do_unify(lindex, rindex, free_vars, orig_mapping, vars_mapping, check_perms)
             }
 
             (Expr::SeqLen(lseq, _), Expr::SeqLen(rseq, _)) =>
-                do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping),
+                do_unify(lseq, rseq, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (Expr::QuantifiedResourceAccess(lquant, _), Expr::QuantifiedResourceAccess(rquant, _)) =>
                 do_unify(
@@ -2344,7 +2357,8 @@ fn unify(
                     &rquant.to_plain_expression(),
                     free_vars,
                     orig_mapping,
-                    vars_mapping
+                    vars_mapping,
+                    check_perms
                 ),
 
             _ => Err(UnificationResult::Unmatched),
@@ -2352,7 +2366,7 @@ fn unify(
     }
 
     let mut temp_mapping = HashMap::new();
-    match do_unify(subject, target, free_vars, vars_mapping, &mut temp_mapping) {
+    match do_unify(subject, target, free_vars, vars_mapping, &mut temp_mapping, check_perms) {
         Ok(()) => {
             vars_mapping.extend(temp_mapping);
             UnificationResult::Success
@@ -2367,6 +2381,7 @@ fn forall_instantiation(
     vars: &HashSet<LocalVar>,
     triggers: &Vec<Trigger>,
     body: &Expr,
+    check_perms: bool,
 ) -> Option<ForallInstantiation> {
     fn inner(
         target: &Expr,
@@ -2374,6 +2389,7 @@ fn forall_instantiation(
         trigger: &Vec<Expr>,
         matched_trigger: &mut Vec<bool>,
         vars_mapping: &mut HashMap<LocalVar, Expr>,
+        check_perms: bool,
     ) -> Result<(), ()> { // Ok -> may or may not have matched all trigger. Err -> unification conflict
         let target_depth = target.depth();
         for (trigger, matched) in trigger.iter().zip(matched_trigger.iter_mut()) {
@@ -2382,7 +2398,7 @@ fn forall_instantiation(
             if *matched || trigger_depth > target_depth {
                 continue;
             } else {
-                match unify(trigger, target, vars, vars_mapping) {
+                match unify(trigger, target, vars, vars_mapping, check_perms) {
                     UnificationResult::Success => *matched = true,
                     UnificationResult::Unmatched => (),
                     UnificationResult::Conflict => return Err(()),
@@ -2399,75 +2415,75 @@ fn forall_instantiation(
                 Ok(()), // Nothing to do
 
             Expr::Variant(base, _, _) =>
-                inner(base, vars, trigger, matched_trigger, vars_mapping),
+                inner(base, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::Field(base, _, _) =>
-                inner(base, vars, trigger, matched_trigger, vars_mapping),
+                inner(base, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::AddrOf(base, _, _) =>
-                inner(base, vars, trigger, matched_trigger, vars_mapping),
+                inner(base, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::LabelledOld(_, base, _) =>
-                inner(base, vars, trigger, matched_trigger, vars_mapping),
+                inner(base, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::Const(_, _) =>
                 Ok(()), // Nothing to do
 
             Expr::MagicWand(lhs, rhs, _, _) => {
-                inner(lhs, vars, trigger, matched_trigger, vars_mapping)?;
-                inner(rhs, vars, trigger, matched_trigger, vars_mapping)
+                inner(lhs, vars, trigger, matched_trigger, vars_mapping, check_perms)?;
+                inner(rhs, vars, trigger, matched_trigger, vars_mapping, check_perms)
             }
 
             Expr::PredicateAccessPredicate(_, arg, _, _) =>
-                inner(arg, vars, trigger, matched_trigger, vars_mapping),
+                inner(arg, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::FieldAccessPredicate(arg, _, _) =>
-                inner(arg, vars, trigger, matched_trigger, vars_mapping),
+                inner(arg, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::UnaryOp(_, arg, _) =>
-                inner(arg, vars, trigger, matched_trigger, vars_mapping),
+                inner(arg, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::BinOp(_, lhs, rhs, _) => {
-                inner(lhs, vars, trigger, matched_trigger, vars_mapping)?;
-                inner(rhs, vars, trigger, matched_trigger, vars_mapping)
+                inner(lhs, vars, trigger, matched_trigger, vars_mapping, check_perms)?;
+                inner(rhs, vars, trigger, matched_trigger, vars_mapping, check_perms)
             }
 
             Expr::Unfolding(_, predicate_args, in_expr, _, _, _) => {
                 predicate_args.iter()
                     .try_for_each(|arg|
-                        inner(arg, vars, trigger, matched_trigger, vars_mapping)
+                        inner(arg, vars, trigger, matched_trigger, vars_mapping, check_perms)
                     )?;
-                inner(in_expr, vars, trigger, matched_trigger, vars_mapping)
+                inner(in_expr, vars, trigger, matched_trigger, vars_mapping, check_perms)
             }
 
             Expr::Cond(guard, then_expr, else_expr, _) => {
-                inner(guard, vars, trigger, matched_trigger, vars_mapping)?;
-                inner(then_expr, vars, trigger, matched_trigger, vars_mapping)?;
-                inner(else_expr, vars, trigger, matched_trigger, vars_mapping)
+                inner(guard, vars, trigger, matched_trigger, vars_mapping, check_perms)?;
+                inner(then_expr, vars, trigger, matched_trigger, vars_mapping, check_perms)?;
+                inner(else_expr, vars, trigger, matched_trigger, vars_mapping, check_perms)
             }
 
             Expr::ForAll(..) => unimplemented!("Nested foralls are unsupported for now"),
 
             // TODO: we should remove the let variable from the free vars
             Expr::LetExpr(_, defexpr, body, _) => {
-                inner(defexpr, vars, trigger, matched_trigger, vars_mapping)?;
-                inner(body, vars, trigger, matched_trigger, vars_mapping)
+                inner(defexpr, vars, trigger, matched_trigger, vars_mapping, check_perms)?;
+                inner(body, vars, trigger, matched_trigger, vars_mapping, check_perms)
             }
 
             Expr::FuncApp(_, args, _, _, _) => {
                 args.iter()
                     .try_for_each(|arg|
-                        inner(arg, vars, trigger, matched_trigger, vars_mapping)
+                        inner(arg, vars, trigger, matched_trigger, vars_mapping, check_perms)
                     )
             }
 
             Expr::SeqIndex(seq, index, _) => {
-                inner(seq, vars, trigger, matched_trigger, vars_mapping)?;
-                inner(index, vars, trigger, matched_trigger, vars_mapping)
+                inner(seq, vars, trigger, matched_trigger, vars_mapping, check_perms)?;
+                inner(index, vars, trigger, matched_trigger, vars_mapping, check_perms)
             }
 
             Expr::SeqLen(seq, _) =>
-                inner(seq, vars, trigger, matched_trigger, vars_mapping),
+                inner(seq, vars, trigger, matched_trigger, vars_mapping, check_perms),
 
             Expr::QuantifiedResourceAccess(..) =>
                 unimplemented!("QuantifiedResourceAccess are unsupported for now"),
@@ -2482,7 +2498,7 @@ fn forall_instantiation(
         matched_trigger.iter_mut().for_each(|b| *b = false);
         vars_mapping.clear();
 
-        if inner(target, vars, trigger.elements(), &mut matched_trigger, &mut vars_mapping).is_ok()
+        if inner(target, vars, trigger.elements(), &mut matched_trigger, &mut vars_mapping, check_perms).is_ok()
          && matched_trigger.iter().all(|b| *b)
         {
             let subst_map = vars_mapping.iter()
@@ -2596,7 +2612,7 @@ mod tests {
         fvs.insert(fv1.clone());
         fvs.insert(fv2.clone());
         let mut got = HashMap::new();
-        let ok = unify(&subject, &target, &fvs, &mut got);
+        let ok = unify(&subject, &target, &fvs, &mut got, false);
         assert_eq!(UnificationResult::Success, ok);
 
         let mut expected = HashMap::new();
@@ -2664,7 +2680,7 @@ mod tests {
         fvs.insert(fv1.clone());
         fvs.insert(fv2.clone());
         let mut got = HashMap::new();
-        let ok = unify(&subject, &target, &fvs, &mut got);
+        let ok = unify(&subject, &target, &fvs, &mut got, false);
         assert_eq!(UnificationResult::Success, ok);
 
         let mut expected = HashMap::new();
@@ -2730,7 +2746,7 @@ mod tests {
         fvs.insert(fv1.clone());
         fvs.insert(fv2.clone());
         let mut got = HashMap::new();
-        let ok = unify(&subject, &target, &fvs, &mut got);
+        let ok = unify(&subject, &target, &fvs, &mut got, false);
         assert_eq!(UnificationResult::Success, ok);
 
         let mut expected = HashMap::new();
@@ -2782,7 +2798,7 @@ mod tests {
         let mut fvs = HashSet::new();
         fvs.insert(fv1.clone());
         let mut got = HashMap::new();
-        let ok = unify(&subject, &target, &fvs, &mut got);
+        let ok = unify(&subject, &target, &fvs, &mut got, false);
         assert_eq!(UnificationResult::Conflict, ok);
         assert!(got.is_empty()); // Must be unchanged
     }
@@ -2837,7 +2853,7 @@ mod tests {
         {
             // magic(magic(10)) == magic(2 * 10) + 10
             let expr = magic_property_body(Expr::Const(Const::Int(10), Position::default()));
-            let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
+            let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body, false);
             let expected = {
                 let mut mapping = HashMap::new();
                 mapping.insert(LocalVar::new("i", Type::Int), Expr::Const(Const::Int(10), Position::default()));
@@ -2880,7 +2896,7 @@ mod tests {
                     body: box body
                 }
             };
-            let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body);
+            let got = forall_instantiation(&expr, &forall_vars, &forall_triggers, &forall_body, false);
             assert_eq!(Some(expected), got);
         }
     }

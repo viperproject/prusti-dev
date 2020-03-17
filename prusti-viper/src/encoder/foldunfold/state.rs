@@ -249,7 +249,6 @@ impl State {
     }
 
     /// Note: the permission amount is currently ignored
-    // TODO: should we also look for prefixes or is it "up to the caller"?  <- if it gives access to _1.val_array[..].val_int, we should first look for _1, _1.val_array, and the index
     pub fn contains_perm(&self, item: &Perm) -> ContainsPermResult {
         let contained = match item {
             &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
@@ -261,7 +260,7 @@ impl State {
         } else {
             let instances = self.quant
                 .iter()
-                .filter_map(|cond| cond.try_instantiate(item.get_place()))
+                .filter_map(|cond| cond.try_instantiate(item.get_place(), false))
                 .collect::<Vec<_>>();
             if instances.is_empty() {
                 ContainsPermResult::No
@@ -538,11 +537,34 @@ impl State {
         info!("Quant state after: {{\n{}\n}}", self.display_quant());
     }
 
+    pub fn remove_quant(&mut self, quant: &vir::QuantifiedResourceAccess) {
+        info!("remove_quant {}", quant);
+        info!("Acc state before: {{\n{}\n}}", self.display_acc());
+        info!("Pred state before: {{\n{}\n}}", self.display_pred());
+        info!("Quant state before: {{\n{}\n}}", self.display_quant());
+
+        let curr_quant_entry = self.quant.iter().find(|x| x.is_similar_to(quant, false))
+            .unwrap_or_else(||
+                panic!("Quantified resource access {} not in state, \
+                        so it can not be removed", quant)
+            ).clone(); // The clone is unfortunate, but we can't self.quant.take(curr_quant_entry)
+                       // because self.quant is already borrowed
+        // Remove the current quant. entry, and add it back if some permission is remaining
+        self.quant.remove(&curr_quant_entry);
+        if curr_quant_entry.get_perm_amount() > quant.get_perm_amount() {
+            let new_perm_amount = curr_quant_entry.get_perm_amount() - quant.get_perm_amount();
+            self.quant.insert(curr_quant_entry.update_perm_amount(new_perm_amount));
+        }
+        info!("Acc state after: {{\n{}\n}}", self.display_acc());
+        info!("Pred state after: {{\n{}\n}}", self.display_pred());
+        info!("Quant state after: {{\n{}\n}}", self.display_quant());
+    }
+
     pub fn remove_perm(&mut self, item: &Perm) {
         match item {
             &Perm::Acc(_, perm) => self.remove_acc(item.get_place(), perm),
             &Perm::Pred(_, perm) => self.remove_pred(item.get_place(), perm),
-            _ => unimplemented!(),
+            Perm::Quantified(quant) => self.remove_quant(quant),
         };
     }
 

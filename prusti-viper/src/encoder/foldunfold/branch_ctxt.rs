@@ -741,7 +741,7 @@ Predicates: {{
 {}
 }}
 
-Conditional permission: {{
+Quantified permission: {{
 {}
 }}
 ",
