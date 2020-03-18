@@ -204,7 +204,17 @@ impl TreePermissionEncodingState {
             if self.is_variable_free(index) && index.is_place() {
                 self.add(vir::PlainResourceAccess::field(index.clone(), vir::PermAmount::Read));
             }
-            self.add(vir::PlainResourceAccess::field(seq.clone(), access.get_perm_amount()));
+            match seq {
+                vir::Expr::Field(seq_re, field, _)
+                    if field.name == "val_array" && field.typ.get_id() == vir::TypeId::Seq =>
+                    self.add(
+                        vir::PlainResourceAccess::predicate(
+                            *seq_re.clone(),
+                            access.get_perm_amount()
+                        ).unwrap()
+                    ),
+                x => unreachable!("{}", x),
+            }
         }
 
         info!("PUSHING {}", access);
@@ -317,7 +327,10 @@ impl TreePermissionEncodingState {
             }
         }
 
-        fn suffixes_of<'a>(exprs: &'a Vec<vir::Expr>, expr: &'a vir::Expr) -> impl Iterator<Item=usize> + 'a {
+        fn suffixes_of<'a>(
+            exprs: &'a Vec<vir::Expr>,
+            expr: &'a vir::Expr
+        ) -> impl Iterator<Item=usize> + 'a {
             exprs.iter().enumerate()
                 .filter(move |(_, e)| has_proper_prefix_resource_access(expr, e))
                 .map(|(index, _)| index)

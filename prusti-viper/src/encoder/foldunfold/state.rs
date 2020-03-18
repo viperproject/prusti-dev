@@ -236,6 +236,10 @@ impl State {
         self.moved = moved
     }
 
+    pub fn quantified(&self) -> &HashSet<vir::QuantifiedResourceAccess> {
+        &self.quant
+    }
+
     pub fn contains_acc(&self, place: &vir::Expr) -> bool {
         self.acc.contains_key(&place)
     }
@@ -244,8 +248,16 @@ impl State {
         self.pred.contains_key(&place)
     }
 
+    pub fn get_quantified(
+        &self,
+        quant: &vir::QuantifiedResourceAccess,
+        check_perms: bool
+    ) -> Option<&vir::QuantifiedResourceAccess> {
+        self.quant.iter().find(|x| x.is_similar_to(quant, check_perms))
+    }
+
     pub fn contains_quantified(&self, quant: &vir::QuantifiedResourceAccess) -> bool {
-        self.quant.iter().find(|x| x.is_similar_to(quant, false)).is_some()
+        self.get_quantified(quant, false).is_some()
     }
 
     /// Note: the permission amount is currently ignored
@@ -440,8 +452,21 @@ impl State {
     }
 
     pub fn insert_quant(&mut self, quant: vir::QuantifiedResourceAccess) {
-        assert!(!self.contains_quantified(&quant));
-        self.quant.insert(quant);
+        info!("insert_quant {}", quant);
+        info!("Quant state before: {{\n{}\n}}", self.display_quant());
+        if let Some(curr_quant) = self.get_quantified(&quant, false).cloned() {
+            let new_perm = curr_quant.get_perm_amount() + quant.get_perm_amount();
+            assert!(
+                new_perm == PermAmount::Write || new_perm == PermAmount::Read,
+                "Trying to inhale {} predicate permission, while there is already {}",
+                quant.get_perm_amount(),
+                curr_quant.get_perm_amount()
+            );
+            self.quant.insert(curr_quant.update_perm_amount(new_perm));
+        } else {
+            self.quant.insert(quant);
+        }
+        info!("Quant state after: {{\n{}\n}}", self.display_quant());
     }
 
     pub fn insert_all_pred<I>(&mut self, items: I)
@@ -500,8 +525,8 @@ impl State {
     pub fn remove_acc(&mut self, place: &vir::Expr, perm: PermAmount) {
         info!("remove_acc {}, {}", place, perm);
         info!("Acc state before: {{\n{}\n}}", self.display_acc());
-        info!("Pred state before: {{\n{}\n}}", self.display_pred());
-        info!("Quant state before: {{\n{}\n}}", self.display_quant());
+        // info!("Pred state before: {{\n{}\n}}", self.display_pred());
+        // info!("Quant state before: {{\n{}\n}}", self.display_quant());
         assert!(
             self.acc.contains_key(place),
             "Place {} is not in state (acc), so it can not be removed.",
@@ -513,15 +538,15 @@ impl State {
             self.acc.insert(place.clone(), self.acc[place] - perm);
         }
         info!("Acc state after: {{\n{}\n}}", self.display_acc());
-        info!("Pred state after: {{\n{}\n}}", self.display_pred());
-        info!("Quant state after: {{\n{}\n}}", self.display_quant());
+        // info!("Pred state after: {{\n{}\n}}", self.display_pred());
+        // info!("Quant state after: {{\n{}\n}}", self.display_quant());
     }
 
     pub fn remove_pred(&mut self, place: &vir::Expr, perm: PermAmount) {
         info!("remove_pred {}, {}", place, perm);
-        info!("Acc state before: {{\n{}\n}}", self.display_acc());
+        // info!("Acc state before: {{\n{}\n}}", self.display_acc());
         info!("Pred state before: {{\n{}\n}}", self.display_pred());
-        info!("Quant state before: {{\n{}\n}}", self.display_quant());
+        // info!("Quant state before: {{\n{}\n}}", self.display_quant());
         assert!(
             self.pred.contains_key(place),
             "Place {} is not in state (pred), so it can not be removed.",
@@ -532,15 +557,15 @@ impl State {
         } else {
             self.pred.insert(place.clone(), self.pred[place] - perm);
         }
-        info!("Acc state after: {{\n{}\n}}", self.display_acc());
+        // info!("Acc state after: {{\n{}\n}}", self.display_acc());
         info!("Pred state after: {{\n{}\n}}", self.display_pred());
-        info!("Quant state after: {{\n{}\n}}", self.display_quant());
+        // info!("Quant state after: {{\n{}\n}}", self.display_quant());
     }
 
     pub fn remove_quant(&mut self, quant: &vir::QuantifiedResourceAccess) {
         info!("remove_quant {}", quant);
-        info!("Acc state before: {{\n{}\n}}", self.display_acc());
-        info!("Pred state before: {{\n{}\n}}", self.display_pred());
+        // info!("Acc state before: {{\n{}\n}}", self.display_acc());
+        // info!("Pred state before: {{\n{}\n}}", self.display_pred());
         info!("Quant state before: {{\n{}\n}}", self.display_quant());
 
         let curr_quant_entry = self.quant.iter().find(|x| x.is_similar_to(quant, false))
@@ -555,8 +580,8 @@ impl State {
             let new_perm_amount = curr_quant_entry.get_perm_amount() - quant.get_perm_amount();
             self.quant.insert(curr_quant_entry.update_perm_amount(new_perm_amount));
         }
-        info!("Acc state after: {{\n{}\n}}", self.display_acc());
-        info!("Pred state after: {{\n{}\n}}", self.display_pred());
+        // info!("Acc state after: {{\n{}\n}}", self.display_acc());
+        // info!("Pred state after: {{\n{}\n}}", self.display_pred());
         info!("Quant state after: {{\n{}\n}}", self.display_quant());
     }
 

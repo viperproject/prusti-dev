@@ -86,7 +86,7 @@ impl<'a> BranchCtxt<'a> {
                     .update_perm_amount(perm_amount)
             });
 
-        trace!(
+        info!(
             "Pred state before unfold: {{\n{}\n}}",
             self.state.display_pred()
         );
@@ -95,15 +95,19 @@ impl<'a> BranchCtxt<'a> {
         self.state.remove_pred(&pred_place, perm_amount);
         self.state.insert_all_perms(places_in_pred);
 
-        debug!("We unfolded {}", pred_place);
+        info!("We unfolded {}", pred_place);
 
-        trace!(
+        info!(
             "Acc state after unfold: {{\n{}\n}}",
             self.state.display_acc()
         );
-        trace!(
+        info!(
             "Pred state after unfold: {{\n{}\n}}",
             self.state.display_pred()
+        );
+        info!(
+            "Quant state after unfold: {{\n{}\n}}",
+            self.state.display_quant()
         );
 
         Action::Unfold(
@@ -119,9 +123,9 @@ impl<'a> BranchCtxt<'a> {
         let mut left_actions: Vec<Action> = vec![];
         let mut right_actions: Vec<Action> = vec![];
 
-        debug!("Join branches");
-        trace!("Left branch: {}", self.state);
-        trace!("Right branch: {}", other.state);
+        info!("Join branches");
+        info!("Left branch: {}", self.state);
+        info!("Right branch: {}", other.state);
         self.state.check_consistency();
 
         // If they are already the same, avoid unnecessary operations
@@ -437,6 +441,42 @@ impl<'a> BranchCtxt<'a> {
                     right_actions.push(Action::Drop(perm.clone(), perm));
                 }
             }
+
+            let drop_quantified =
+                |ctxt_left: &mut BranchCtxt,
+                 ctxt_right: &mut BranchCtxt,
+                 left_actions: &mut Vec<_>,
+                 right_actions: &mut Vec<_>| {
+                    for left_quant in ctxt_left.state.quantified().clone().into_iter() {
+                        match ctxt_right.state.get_quantified(&left_quant, false).cloned() {
+                            Some(right_quant) => {
+                                let left_perm = left_quant.get_perm_amount();
+                                let right_perm = right_quant.get_perm_amount();
+                                if left_perm == PermAmount::Write && right_perm == PermAmount::Read {
+                                    let to_remove = left_quant.clone()
+                                        .update_perm_amount(PermAmount::Remaining);
+                                    ctxt_left.state.remove_quant(&to_remove);
+                                    let perm = Perm::quantified(to_remove);
+                                    left_actions.push(Action::Drop(perm.clone(), perm));
+                                }
+                                if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
+                                    let to_remove = left_quant.clone()
+                                        .update_perm_amount(PermAmount::Remaining);
+                                    ctxt_right.state.remove_quant(&to_remove);
+                                    let perm = Perm::quantified(to_remove);
+                                    right_actions.push(Action::Drop(perm.clone(), perm));
+                                }
+                            }
+                            None => {
+                                ctxt_left.state.remove_quant(&left_quant);
+                                let perm = Perm::quantified(left_quant);
+                                left_actions.push(Action::Drop(perm.clone(), perm));
+                            }
+                        }
+                    }
+                };
+            drop_quantified(self, &mut other, &mut left_actions, &mut right_actions);
+            drop_quantified(&mut other, self, &mut right_actions, &mut left_actions);
 
             trace!(
                 "Actions in left branch: \n{}",

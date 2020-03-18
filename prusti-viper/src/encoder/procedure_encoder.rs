@@ -3142,7 +3142,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         match ty.sty {
                             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl })
                             | ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
-                                debug!(
+                                info!(
                                     "encode_loop_invariant_permissions \
                                      mir_place={:?} mutability={:?} \
                                      drop_read_references={}",

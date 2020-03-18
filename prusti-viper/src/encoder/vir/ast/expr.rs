@@ -910,34 +910,6 @@ impl Expr {
         res
     }
 
-    // Returns all places.
-    // For fields access like `x.a.b.c`, this corresponds to `all_prefixes()`
-    // The main difference is for sequence index e.g. x.a.b[y.c.d], where this method
-    // will return the prefixes of x.a.b and of y.c.d
-    pub fn all_proper_places(&self) -> Vec<Expr> {
-        fn inner(e: &Expr, res: &mut Vec<Expr>) {
-            match e {
-                &Expr::Local(_, _)
-                | &Expr::LabelledOld(_, _, _)
-                | &Expr::Unfolding(_, _, _, _, _, _) => (),
-                &Expr::Variant(box ref base, _, _)
-                | &Expr::Field(box ref base, _, _)
-                | &Expr::AddrOf(box ref base, _, _) => inner(base, res),
-                &Expr::SeqIndex(box ref base, box ref index, _) => {
-                    inner(base, res);
-                    inner(index, res);
-                }
-                ref x => unreachable!("{}", x),
-            }
-            res.push(e.clone());
-        }
-        debug_assert!(self.is_place());
-        let mut res = Vec::new();
-        inner(self, &mut res);
-        res.pop(); // Remove self
-        res
-    }
-
     pub fn get_type(&self) -> Type {
         debug_assert!(self.is_place());
         match self {

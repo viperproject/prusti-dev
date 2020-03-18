@@ -139,6 +139,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 // Compute inner state
                 let mut inner_bctxt = bctxt.clone();
                 let inner_state = inner_bctxt.mut_state();
+                info!("State before unfolding:\n{}", inner_state);
                 inner_state.insert_all_perms(
                     expr.get_permissions(bctxt.predicates())
                         .into_iter()
@@ -701,7 +702,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                     .collect();
 
                 let acc_permissions: Vec<_> = all_perms
-                    .into_iter()
+                    .iter()
+                    .cloned()
                     .filter(|p| {
                         if !p.is_acc() {
                             false
@@ -716,9 +718,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                         }
                     })
                     .collect();
+                let quant_permissions = all_perms
+                    .into_iter()
+                    .filter(|p| p.is_quantified());
 
                 let mut perms = acc_permissions;
                 perms.extend(pred_permissions.into_iter());
+                perms.extend(quant_permissions);
                 info!(
                     "required permissions: {{\n{}\n}}",
                     perms
@@ -1149,7 +1155,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
         field: vir::Field,
         pos: vir::Position,
     ) -> vir::Expr {
-        info!("[enter] fold_field {}, {}", expr, field);
+        debug!("[enter] fold_field {}, {}", expr, field);
 
         let res = if self.wait_old_expr {
             vir::Expr::Field(self.fold_boxed(expr), field, pos)
@@ -1338,7 +1344,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
     }
 
     fn fold(&mut self, expr: vir::Expr) -> vir::Expr {
-        info!("[enter] fold {}", expr);
+        debug!("[enter] fold {}", expr);
 
         let res = if self.wait_old_expr || !expr.is_pure() {
             vir::default_fold_expr(self, expr)
@@ -1351,7 +1357,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
                 .filter(|p| p.is_curr())
                 .collect();
 
-            info!(
+            debug!(
                 "get_required_permissions for {}: {{\n  {}\n}}",
                 inner_expr,
                 perms
@@ -1374,7 +1380,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             result
         };
 
-        info!("[exit] fold = {}", res);
+        debug!("[exit] fold = {}", res);
         res
     }
 
