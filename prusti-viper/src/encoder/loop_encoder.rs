@@ -127,92 +127,32 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
 pub struct TreePermissionEncodingState {
     loop_head: BasicBlockIndex,
-    uninits: HashSet<vir::Expr>,
-    subst: HashMap<vir::Expr, vir::Expr>,
-    quantification: HashMap<vir::LocalVar, (Vec<vir::Trigger>, vir::Expr)>,
     permissions: HashSet<vir::PlainResourceAccess>,
-    counter: usize,
 }
 
 impl TreePermissionEncodingState {
     pub fn new(loop_head: BasicBlockIndex) -> Self {
         TreePermissionEncodingState {
             loop_head,
-            uninits: HashSet::new(),
-            subst: HashMap::new(),
-            quantification: HashMap::new(),
             permissions: HashSet::new(),
-            counter: 0,
         }
-    }
-
-    pub fn encode_place<'slf, 'tcx: 'slf>(
-        &mut self,
-        mir_encoder: &'slf MirEncoder<'_, '_, '_, '_, 'tcx>,
-        loop_encoder: &'slf LoopEncoder<'_, 'tcx>,
-        place: &mir::Place<'tcx>,
-    ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
-        let (encoded_place, ty, variant) = mir_encoder.encode_place(place);
-        if let Some((array, index)) = Self::indexing_suffix(place) {
-            let (encoded_array, encoded_index) =
-                Self::extract_seq_and_index(&encoded_place)
-                    .expect("MIR indexing got converted to something else than SeqIndex");
-            if !self.uninits.contains(&encoded_index) &&
-                !loop_encoder.is_definitely_initialised(&mir::Place::Local(index), self.loop_head) {
-                // Add the index to the uninitialized variables so that we don't repeat the process
-                // again if we see it again it the future.
-                self.uninits.insert(encoded_index.clone());
-                // Creating a fresh quantified index
-                let quantified_index = self.fresh_index_local_var();
-                let quantified_index_expr = vir::Expr::local(quantified_index.clone());
-
-                // Creating the trigger and the precondition
-                let trigger = vir::Trigger::new(vec![
-                    vir::Expr::seq_index(encoded_array.clone(), quantified_index_expr.clone())
-                ]);
-                // 0 <= i && i < |array|
-                let precondition = vir::Expr::and(
-                    vir::Expr::le_cmp(
-                        vir::Expr::Const(vir::Const::Int(0), vir::Position::default()),
-                        quantified_index_expr.clone()
-                    ),
-                    vir::Expr::lt_cmp(
-                        quantified_index_expr.clone(),
-                        vir::Expr::seq_len(encoded_array.clone())
-                    )
-                );
-                self.quantification.insert(quantified_index, (vec![trigger], precondition));
-
-                // Adding the substitution.
-                // Instead of referring to the uninit. index,
-                // expressions will refer to the new quantified index.
-                self.subst.insert(encoded_index.clone(), quantified_index_expr);
-            }
-        }
-        info!("DDDD {}", encoded_place);
-        let other = self.subst.iter().fold(encoded_place.clone(), |expr, (a, b)| expr.replace_place(a, b));
-        info!("EEEE {}", other);
-        (encoded_place.subst(&self.subst), ty, variant)
     }
 
     pub fn add(&mut self, access: vir::PlainResourceAccess) {
-        if !self.permissions.insert(access.clone()) {
-            return;
-        }
         if let Some((seq, index)) = Self::extract_seq_and_index(access.get_place()) {
-            // If the index is free (i.e., not a quantified var), we require a field access
-            if self.is_variable_free(index) && index.is_place() {
-                self.add(vir::PlainResourceAccess::field(index.clone(), vir::PermAmount::Read));
-            }
             match seq {
-                vir::Expr::Field(seq_re, field, _)
-                    if field.name == "val_array" && field.typ.get_id() == vir::TypeId::Seq =>
+                vir::Expr::Field(seq_re, field, _) if field.name == "val_array" && field.typ.get_id() == vir::TypeId::Seq => {
                     self.add(
                         vir::PlainResourceAccess::predicate(
                             *seq_re.clone(),
                             access.get_perm_amount()
                         ).unwrap()
-                    ),
+                    );
+                    // Do not add the indexing itself (e.g. _1.val_ref.val_array[idx])
+                    // into the permissions. It will be handled by the undfolding of the
+                    // array predicate.
+                    return;
+                }
                 x => unreachable!("{}", x),
             }
         }
@@ -222,26 +162,7 @@ impl TreePermissionEncodingState {
     }
 
     pub fn get_permissions(self) -> Vec<vir::Expr> {
-        let quantification = self.quantification;
-        let mut result = self.permissions.into_iter().map(|resource| {
-            let quant_vars = quantification.keys()
-                .filter(|&var| resource.get_place().find(&vir::Expr::local(var.clone())))
-                .collect::<HashSet<_>>();
-            if quant_vars.is_empty() {
-                vir::ResourceAccess::Plain(resource).into()
-            } else {
-                let (triggers, conds): (Vec<_>, Vec<_>) = quantification.iter()
-                    .filter(|(var, _)| quant_vars.contains(var))
-                    .map(|(_, (triggers, cond))| (triggers.clone(), cond.clone()))
-                    .unzip();
-                vir::ResourceAccess::Quantified(vir::QuantifiedResourceAccess {
-                    vars: quant_vars.into_iter().cloned().collect(),
-                    triggers: triggers.into_iter().flat_map(|x| x.into_iter()).collect(),
-                    cond: box Self::conjoin_no_trailing_true(conds),
-                    resource
-                }).into()
-            }
-        }).collect::<Vec<_>>();
+        let mut result = self.permissions.into_iter().map(|r| r.into()).collect::<Vec<_>>();
         Self::simple_sort_by_prefix(&mut result);
         info!("[exit] get_permissions permissions=\n{}",
               result
@@ -253,36 +174,11 @@ impl TreePermissionEncodingState {
         result
     }
 
-    fn fresh_index_local_var(&mut self) -> vir::LocalVar {
-        let result = vir::LocalVar::new(format!("__i_{}", self.counter), vir::Type::Int);
-        self.counter += 1;
-        result
-    }
-
-    fn is_variable_free(&self, index: &vir::Expr) -> bool {
-        match index {
-            vir::Expr::Local(lv, _) => !self.quantification.contains_key(lv),
-            _ => true,
-        }
-    }
-
     fn extract_seq_and_index(expr: &vir::Expr) -> Option<(&vir::Expr, &vir::Expr)> {
         match expr {
             vir::Expr::SeqIndex(box ref seq, box ref index, _)
             | vir::Expr::Field(box vir::Expr::SeqIndex(box ref seq, box ref index, _), _, _) =>
                 Some((seq, index)),
-            _ => None
-        }
-    }
-
-    fn indexing_suffix<'a, 'tcx: 'a>(
-        place: &'a mir::Place<'tcx>
-    ) -> Option<(&'a mir::Place<'tcx>, mir::Local)> {
-        match place {
-            mir::Place::Projection(box mir::Projection {
-                ref base,
-                elem: mir::ProjectionElem::Index(index),
-            }) => Some((base, *index)),
             _ => None
         }
     }
@@ -362,26 +258,5 @@ impl TreePermissionEncodingState {
         }
 
         *exprs = topo_sorted;
-    }
-
-    // Like vir::Expr::conjoin, but without the trailing `&& true` that causes issue with
-    // QuantifiedResourceAccess and its is_similar method
-    fn conjoin_no_trailing_true(exprs: Vec<vir::Expr>) -> vir::Expr {
-        fn rfold<T>(mut s: Peekable<T>) -> vir::Expr
-            where T: Iterator<Item = vir::Expr>
-        {
-            match (s.next(), s.peek()) {
-                (Some(e1), Some(_)) =>
-                    vir::Expr::and(e1, rfold(s)),
-                (Some(e), None) =>
-                    e,
-                _ => unreachable!()
-            }
-        }
-        if exprs.is_empty() {
-            true.into()
-        } else {
-            rfold(exprs.into_iter().peekable())
-        }
     }
 }
