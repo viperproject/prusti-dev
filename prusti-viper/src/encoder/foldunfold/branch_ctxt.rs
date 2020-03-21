@@ -591,45 +591,46 @@ impl<'a> BranchCtxt<'a> {
                 .get_permissions_with_variant(&variant)
                 .into_iter()
                 .map(|perm| perm.map_place(|p| p.replace_place(&pred_self_place, req.get_place())))
-                .filter_map(|p| match p {
+                .flat_map(|p| match p {
                     Perm::Acc(..) => {
                         info!("Simple perm {}", p);
-                        Some(p)
+                        vec![p]
                     },
                     Perm::Pred(..) => {
                         info!("Simple perm {}", p);
-                        Some(p)
+                        vec![p]
                     },
-                    // TODO: plan: get all accesses that have been instantiated from acc and pred. Requires flatMapping
                     Perm::Quantified(a) => {
-                        None
-                        /*
+                        info!("QUANT PERM {}", a);
+                        // We want to fold the predicate and this "place" has the form
+                        // forall vars :: { triggers } cond ==> resource
+                        // If the resource is a predicate access, then we need to fold it.
+                        // For instance, if the resource is acc(P(x.a.b.c)), then we need to
+                        // obtain the permission for folding P(x.a.b.c)
+                        // If the resource is a simple field access, then we don't need
+                        // to do anything special (though I am not sure)
                         match &a.resource {
                             PlainResourceAccess::Predicate(pred) => {
                                 info!("Resource {} {}", pred.predicate_name, pred.arg);
-                                for (pred, p) in self.state.acc().clone() {
-                                    info!("Pred {}", pred);
-
-                                    // TODO: deal with required prefixes
-                                    match a.try_instantiate(&pred) { // TODO: pred? it's acc!
+                                let mut res = Vec::new();
+                                for (acc, p) in self.state.acc().clone() {
+                                    info!("Pred {}", acc);
+                                    match a.try_instantiate(&acc, false) {
                                         Some(ResourceAccessResult::Predicate {requirements, predicate}) => {
                                             let req = Perm::Pred(*predicate.arg.clone(), p);
                                             info!("REQ {}", req);
                                             info!("PRED {} {}", predicate.predicate_name, predicate.arg);
-                                            // TODO: no, can be several instances, you dummy
-                                            return Some(req);
+                                            res.push(req);
                                         }
-                                        // TODO: Rest !!
+                                        // We do not care about other type of resource access,
+                                        // only predicates.
                                         _ => (),
                                     }
                                 }
-                                None
+                                res
                             }
-                            PlainResourceAccess::Field(f) => {
-                                // TODO: for things satisfying the condition, try to obtain the acc of the field in question
-                                None
-                            }
-                        }*/
+                            PlainResourceAccess::Field(f) => vec![]
+                        }
                     }
                 })
                 .collect();
