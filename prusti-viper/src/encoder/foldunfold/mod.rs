@@ -688,6 +688,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         info!("[step.2] replace_stmt: {}", stmt);
+        let mut post_statement_actions = Vec::new();
         match &stmt {
             vir::Stmt::Inhale(_, vir::FoldingBehaviour::Expr) |
             vir::Stmt::Assert(_, vir::FoldingBehaviour::Expr, _) => {
@@ -735,7 +736,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 );
 
                 if !perms.is_empty() {
-                    stmts.extend(bctxt.obtain_permissions(perms).iter().map(|a| a.to_stmt()));
+                    let (perms, to_fold_back) =
+                        action::actions_to_stmts(bctxt.obtain_permissions(perms));
+                    stmts.extend(perms);
+                    post_statement_actions.extend(to_fold_back);
 
                     if self.check_foldunfold_state && !is_last_before_return {
                         stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
@@ -814,6 +818,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         info!("[step.5] replace_stmt: {}", stmt);
         bctxt.apply_stmt(&stmt);
         stmts.push(stmt.clone());
+
+        stmts.extend(post_statement_actions);
 
         // 6. Recombine permissions into full if read was carved out during fold.
         if let vir::Stmt::Inhale(expr, vir::FoldingBehaviour::Stmt) = &stmt {

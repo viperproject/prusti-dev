@@ -60,6 +60,7 @@ impl<'a> BranchCtxt<'a> {
         pred_place: &vir::Expr,
         perm_amount: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
+        temporary_unfold: bool,
     ) -> Action {
         info!("We want to unfold {} with {}", pred_place, perm_amount);
         //assert!(self.state.contains_acc(pred_place), "missing acc({}) in {}", pred_place, self.state);
@@ -110,12 +111,21 @@ impl<'a> BranchCtxt<'a> {
             self.state.display_quant()
         );
 
-        Action::Unfold(
-            predicate_name.clone(),
-            vec![pred_place.clone().into()],
-            perm_amount,
-            variant,
-        )
+        if !temporary_unfold {
+            Action::Unfold(
+                predicate_name.clone(),
+                vec![pred_place.clone().into()],
+                perm_amount,
+                variant,
+            )
+        } else {
+            Action::TemporaryUnfold(
+                predicate_name.clone(),
+                vec![pred_place.clone().into()],
+                perm_amount,
+                variant,
+            )
+        }
     }
 
     /// left is self, right is other
@@ -554,7 +564,7 @@ impl<'a> BranchCtxt<'a> {
             );
             assert!(perm_amount >= req.get_perm_amount());
             let variant = self.find_variant(&existing_pred_to_unfold, req.get_place());
-            let action = self.unfold(&existing_pred_to_unfold, perm_amount, variant);
+            let action = self.unfold(&existing_pred_to_unfold, perm_amount, variant, false);
             actions.push(action);
             info!("We unfolded {}", existing_pred_to_unfold);
 
@@ -852,7 +862,7 @@ Quantified permission: {{
                     // let predicate_perm = Perm::Pred(*predicate.arg, predicate.perm); // TODO: Predicate body or argument?
                     // actions.extend(self.obtain(&predicate_perm, false).unwrap());
                     self.state.insert_pred(*predicate.arg.clone(), predicate.perm);
-                    actions.push(self.unfold(&*predicate.arg, predicate.perm, None));
+                    actions.push(self.unfold(&*predicate.arg, predicate.perm, None, true));
                     // self.state.insert_perm(req.clone());
                     info!("[exit] obtain: Required permission {} satisfied", req);
                     ObtainResult::Success(actions)
