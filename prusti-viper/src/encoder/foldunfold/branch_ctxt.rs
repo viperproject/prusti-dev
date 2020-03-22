@@ -571,7 +571,7 @@ impl<'a> BranchCtxt<'a> {
             info!("We want to fold {}", req);
             info!("We have: acc state: {{\n{}\n}}", self.state.display_acc());
             info!("We have: pred state: {{\n{}\n}}", self.state.display_pred());
-            info!("We have: cond state: {{\n{}\n}}", self.state.display_quant());
+            info!("We have: quant state: {{\n{}\n}}", self.state.display_quant());
             let predicate_name = req.typed_ref_name().unwrap();
             let predicate = self.predicates.get(&predicate_name).unwrap();
 

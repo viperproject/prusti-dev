@@ -1364,6 +1364,74 @@ impl Expr {
         }
     }
 
+    pub fn get_local_vars(&self, lvs: &HashSet<LocalVar>) -> HashSet<LocalVar> {
+        fn inner<'a>(
+            expr: &Expr,
+            lvs: &HashSet<LocalVar>,
+            exclude: &mut HashSet<LocalVar>,
+            result: &mut HashSet<LocalVar>,
+        ) {
+            match expr {
+                Expr::Local(lv, _) => {
+                    if lvs.contains(lv) && !exclude.contains(lv) {
+                        result.insert(lv.clone());
+                    }
+                }
+                Expr::Variant(base, _, _) => inner(base, lvs, exclude, result),
+                Expr::Field(base, _, _) => inner(base, lvs, exclude, result),
+                Expr::AddrOf(base, _, _) => inner(base, lvs, exclude, result),
+                Expr::LabelledOld(_, base, _) => inner(base, lvs, exclude, result),
+                Expr::UnaryOp(_, base, _) => inner(base, lvs, exclude, result),
+                Expr::PredicateAccessPredicate(_, base, _, _) => inner(base, lvs, exclude, result),
+                Expr::FieldAccessPredicate(base, _, _) => inner(base, lvs, exclude, result),
+                Expr::SeqLen(base, _) => inner(base, lvs, exclude, result),
+                Expr::MagicWand(lhs, rhs, _, _) => {
+                    inner(lhs, lvs, exclude, result);
+                    inner(rhs, lvs, exclude, result);
+                }
+                Expr::BinOp(_, lhs, rhs, _) => {
+                    inner(lhs, lvs, exclude, result);
+                    inner(rhs, lvs, exclude, result);
+                },
+                Expr::Unfolding(_, args, expr, _, _, _) => {
+                    args.iter().for_each(|e| inner(e, lvs, exclude, result));
+                    inner(expr, lvs, exclude, result);
+                }
+                Expr::Cond(cond, then, els, _) => {
+                    inner(cond, lvs, exclude, result);
+                    inner(then, lvs, exclude, result);
+                    inner(els, lvs, exclude, result);
+                }
+                Expr::ForAll(vars, _, base, _) => {
+                    vars.iter().for_each(|lv| { exclude.insert(lv.clone()); });
+                    inner(base, lvs, exclude, result);
+                    vars.iter().for_each(|lv| { exclude.remove(lv); });
+                },
+                Expr::LetExpr(var, def, expr, _) => {
+                    exclude.insert(var.clone());
+                    inner(def, lvs, exclude, result);
+                    inner(expr, lvs, exclude, result);
+                    exclude.remove(var);
+                },
+                Expr::FuncApp(_, args, formal_args, _, _) => {
+                    formal_args.iter().for_each(|lv| { exclude.insert(lv.clone()); });
+                    args.iter().for_each(|e| inner(e, lvs, exclude, result));
+                    formal_args.iter().for_each(|lv| { exclude.remove(lv); });
+                },
+                Expr::SeqIndex(seq, index, _) => {
+                    inner(seq, lvs, exclude, result);
+                    inner(index, lvs, exclude, result);
+                }
+                Expr::QuantifiedResourceAccess(quant, _) =>
+                    inner(&quant.to_plain_expression(), lvs, exclude, result),
+                Expr::Const(_, _) => (),
+            }
+        }
+        let mut result = HashSet::new();
+        inner(self, lvs, &mut HashSet::new(), &mut result);
+        result
+    }
+
     fn check_seq_access(seq: &Expr) {
         match seq {
             Expr::Field(_, Field { name, typ }, _)
@@ -1941,8 +2009,7 @@ impl QuantifiedResourceAccess {
             })
     }
 
-    // TODO: too weak. Allows at least simplification of true/false and reordering
-    /// Check that two quantified resource accesses are the same
+    /// Check that two quantified resource accesses are *syntactically* the same
     /// (up to the names of the quantified variables).
     pub fn is_similar_to(&self, other: &QuantifiedResourceAccess, check_perm: bool) -> bool {
         unify(
@@ -2254,9 +2321,9 @@ fn unify(
             }
 
             (
-                Expr::ForAll(lvars, ltrigs, lbody, _),
-                Expr::ForAll(rvars, rtrigs, rbody, _)
-            ) if lvars.len() == rvars.len() && ltrigs.len() == rtrigs.len() => {
+                Expr::ForAll(lvars, _, lbody, _),
+                Expr::ForAll(rvars, _, rbody, _)
+            ) if lvars.len() == rvars.len() => {
                 let mut new_free_vars = free_vars.clone();
                 new_free_vars.extend(lvars.iter().cloned());
                 // Implementation limitation: we do not support renaming
@@ -2911,7 +2978,7 @@ mod tests {
             vars,
             triggers: vec![],
             cond: box Expr::lt_cmp(Expr::local(i.clone()), Expr::local(j.clone())),
-            resource: ResourceAccess::FieldAccessPredicate(FieldAccessPredicate {
+            resource: PlainResourceAccess::Field(FieldAccessPredicate {
                 place: box Expr::seq_index(base.clone().field(a).field(b), idx),
                 perm: PermAmount::Write,
             })
@@ -2928,6 +2995,25 @@ mod tests {
         let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &common_base, true);
         let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &common_base, false);
         assert!(quant1.is_similar_to(&quant2, false));
+    }
+
+    #[test]
+    fn test_quant_resource_access_similarity_success_simple_2() {
+        let common_base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
+        let quant1_i = LocalVar::new("i", Type::Int);
+        let quant1_j = LocalVar::new("j", Type::Int);
+        let quant2_i = LocalVar::new("i", Type::Int);
+        let quant2_j = LocalVar::new("j", Type::Int);
+        {
+            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &common_base, true);
+            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &common_base, false);
+            assert!(quant1.is_similar_to(&quant2, false));
+        }
+        {
+            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &common_base, true);
+            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &common_base, true);
+            assert!(quant1.is_similar_to(&quant2, false));
+        }
     }
 
     #[test]

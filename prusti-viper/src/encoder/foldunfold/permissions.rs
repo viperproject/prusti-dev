@@ -285,13 +285,63 @@ impl RequiredPermissionsGetter for vir::Expr {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
-            // vir::Expr::ForAll(
-            //     vars, _,
-            //     box vir::Expr::BinOp(vir::BinOpKind::Implies, box cond, box body, _), _
-            // ) => {
-            // -Get perms for body
-            // -For perms in body that have a quant. var, transform this into a QuantResAccess, using cond
-            // }
+            // If we have an expr of the form `forall vars :: cond ==> expr`
+            // we convert the required permission into a quantified permission.
+            vir::Expr::ForAll(
+                vars,
+                triggers,
+                box vir::Expr::BinOp(vir::BinOpKind::Implies, box cond, box body, _),
+                _
+            ) => {
+                let vars_places: HashSet<_> = vars
+                    .iter()
+                    .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
+                    .collect();
+                let vars_set = vars.iter().cloned().collect();
+                perm_difference(body.get_required_permissions(predicates), vars_places)
+                    .into_iter().map(|perm| {
+                    let vars_in_perm = perm.get_place().get_local_vars(&vars_set);
+                    if vars_in_perm.is_empty() {
+                        perm
+                    } else {
+                        let plain_perm = match perm {
+                            Acc(place, amount) => vir::PlainResourceAccess::Field(
+                                vir::FieldAccessPredicate {
+                                    place: box place,
+                                    perm: amount
+                                }
+                            ),
+                            Pred(place, amount) => vir::PlainResourceAccess::Predicate(
+                                vir::PredicateAccessPredicate {
+                                    predicate_name: place.typed_ref_name().unwrap(),
+                                    arg: box place,
+                                    perm: amount
+                                }
+                            ),
+                            Quantified(_) => unimplemented!(),
+                        };
+                        let filtered_triggers = triggers.iter()
+                            .map(|trigger|
+                                vir::Trigger::new(trigger.elements()
+                                    .iter()
+                                    .filter(|e|
+                                        e.get_local_vars(&vars_in_perm).len() == vars_in_perm.len()
+                                    ).cloned()
+                                    .collect()
+                                )
+                            ).collect();
+
+                        Perm::Quantified(
+                            vir::QuantifiedResourceAccess {
+                                vars: vars_in_perm.into_iter().collect(),
+                                triggers: filtered_triggers,
+                                cond: box cond.clone(),
+                                resource: plain_perm,
+                            }
+                        )
+                    }
+                }).collect()
+            }
 
             vir::Expr::ForAll(vars, _triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
@@ -299,12 +349,7 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
                     .collect();
-                // TODO: fix this hack as sketched above
-                let sub_body = match body {
-                    vir::Expr::BinOp(vir::BinOpKind::Implies, cond, _, _) => cond,
-                    _ => body,
-                };
-                perm_difference(sub_body.get_required_permissions(predicates), vars_places)
+                perm_difference(body.get_required_permissions(predicates), vars_places)
             }
 
             vir::Expr::Local(..) => HashSet::new(),
