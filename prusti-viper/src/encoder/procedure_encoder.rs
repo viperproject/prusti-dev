@@ -3591,9 +3591,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // This is ensured by Rust's borrowing rule.
                         // -Second, we fold the struct predicate of the assigned index
                         // `fold acc(Type(arr.val_ref.val_array[idx].val_ref))`
-                        match lhs {
-                            vir::Expr::SeqIndex(box seq, box index, _)
-                            | vir::Expr::Field(box vir::Expr::SeqIndex(box seq, box index, _), ..) => {
+                        match lhs.extract_seq_and_index() {
+                            Some((seq, index)) => {
                                 let idx_local = vir::LocalVar::new("i", vir::Type::Int);
                                 let idx_local_expr = vir::Expr::local(idx_local.clone());
                                 // 0 <= i < |seq|
@@ -3635,7 +3634,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 );
                                 vec![inhale, move_assign, fold_struct_pred]
                             }
-                            _ => vec![move_assign]
+                            None => vec![move_assign]
                         }
                     }
                 };
@@ -3670,6 +3669,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else {
                     self.encode_copy2(src, lhs.clone(), ty, location)
                 };
+
+                assert!(
+                    lhs.extract_seq_and_index().is_none(),
+                    "Copying into an array is unsupported"
+                );
 
                 // Store a label for this state
                 let label = self.cfg_method.get_fresh_label_name();
@@ -3720,6 +3724,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         );
                         // Workaround: do not initialize values
                     }
+                }
+                // For array indexing, we must fold the struct predicate.
+                if let Some(_) = lhs.extract_seq_and_index() {
+                    stmts.push(vir::Stmt::Fold(
+                        lhs.typed_ref_name().unwrap(),
+                        vec![lhs.clone()],
+                        vir::PermAmount::Write,
+                        None,
+                        vir::Position::default(),
+                    ));
                 }
                 stmts
             }

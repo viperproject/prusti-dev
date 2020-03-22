@@ -139,7 +139,7 @@ impl TreePermissionEncodingState {
     }
 
     pub fn add(&mut self, access: vir::PlainResourceAccess) {
-        if let Some((seq, index)) = Self::extract_seq_and_index(access.get_place()) {
+        if let Some((seq, index)) = access.get_place().extract_seq_and_index() {
             match seq {
                 vir::Expr::Field(seq_re, field, _) if field.name == "val_array" && field.typ.get_id() == vir::TypeId::Seq => {
                     self.add(
@@ -172,15 +172,6 @@ impl TreePermissionEncodingState {
                 .join("\n")
         );
         result
-    }
-
-    fn extract_seq_and_index(expr: &vir::Expr) -> Option<(&vir::Expr, &vir::Expr)> {
-        match expr {
-            vir::Expr::SeqIndex(box ref seq, box ref index, _)
-            | vir::Expr::Field(box vir::Expr::SeqIndex(box ref seq, box ref index, _), _, _) =>
-                Some((seq, index)),
-            _ => None
-        }
     }
 
     fn simple_sort_by_prefix(exprs: &mut Vec<vir::Expr>) {

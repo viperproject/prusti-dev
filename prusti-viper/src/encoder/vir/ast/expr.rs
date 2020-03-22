@@ -1432,6 +1432,18 @@ impl Expr {
         result
     }
 
+    /// Extract the sequence and the indexing of the expression
+    /// Example: for `x.a.b.val_array[idx]`, it will return `Some((x.a.b.val_array, idx))`
+    /// and for `x.a.b.val_array[idx].val_ref`, it will also return `Some((x.a.b.val_array, idx))`
+    pub fn extract_seq_and_index(&self) -> Option<(&Expr, &Expr)> {
+        match self {
+            Expr::SeqIndex(box ref seq, box ref index, _)
+            | Expr::Field(box Expr::SeqIndex(box ref seq, box ref index, _), _, _) =>
+                Some((seq, index)),
+            _ => None
+        }
+    }
+
     fn check_seq_access(seq: &Expr) {
         match seq {
             Expr::Field(_, Field { name, typ }, _)
