@@ -602,6 +602,8 @@ impl<'a> BranchCtxt<'a> {
                     },
                     Perm::Quantified(a) => {
                         info!("QUANT PERM {}", a);
+                        vec![]
+                        /*
                         // We want to fold the predicate and this "place" has the form
                         // forall vars :: { triggers } cond ==> resource
                         // If the resource is a predicate access, then we need to fold it.
@@ -612,25 +614,31 @@ impl<'a> BranchCtxt<'a> {
                         match &a.resource {
                             PlainResourceAccess::Predicate(pred) => {
                                 info!("Resource {} {}", pred.predicate_name, pred.arg);
-                                let mut res = Vec::new();
+                                let mut res = HashSet::new();
                                 for (acc, p) in self.state.acc().clone() {
                                     info!("Pred {}", acc);
                                     match a.try_instantiate(&acc, false) {
+                                        // TODO: filter out "noisy" predicate instantiation to avoid using the set hack
+                                        //  For instance:
+                                        //  _1.val_ref.val_array[_5.val_int].val_ref.val_int
+                                        //  Legitimately gets instantiated and get isize(_1.val_ref.val_array[_5.val_int].val_ref)
+                                        //  but _1.val_ref.val_array[_5.val_int].val_ref
+                                        //  also gets instantiated but should be filtered out because it is not a valid predicate
                                         Some(ResourceAccessResult::Predicate {requirements, predicate}) => {
                                             let req = Perm::Pred(*predicate.arg.clone(), p);
                                             info!("REQ {}", req);
                                             info!("PRED {} {}", predicate.predicate_name, predicate.arg);
-                                            res.push(req);
+                                            res.insert(req);
                                         }
                                         // We do not care about other type of resource access,
                                         // only predicates.
                                         _ => (),
                                     }
                                 }
-                                res
+                                res.into_iter().collect()
                             }
                             PlainResourceAccess::Field(f) => vec![]
-                        }
+                        }*/
                     }
                 })
                 .collect();

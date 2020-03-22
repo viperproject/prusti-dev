@@ -3580,21 +3580,65 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     _ => {
                         // Just move.
                         let move_assign =
-                            vir::Stmt::Assign(lhs.clone(), src, vir::AssignKind::Move);
-                        vec![move_assign]
+                            vir::Stmt::Assign(lhs.clone(), src.clone(), vir::AssignKind::Move);
+                        // If we are moving into a sequence, we must do a bit more work
+                        // to help the prover prove injectivity.
+                        // In particular:
+                        // -We first assume (by inhaling) that `src` is not included in the array
+                        // That is, we have
+                        // `inhale forall i: Int :: 0 <= i && i < |arr.val_ref.val_array|
+                        //          ==> arr.val_ref.val_array[i].val_ref != src`
+                        // This is ensured by Rust's borrowing rule.
+                        // -Second, we fold the struct predicate of the assigned index
+                        // `fold acc(Type(arr.val_ref.val_array[idx].val_ref))`
+                        match lhs {
+                            vir::Expr::SeqIndex(box seq, box index, _)
+                            | vir::Expr::Field(box vir::Expr::SeqIndex(box seq, box index, _), ..) => {
+                                let idx_local = vir::LocalVar::new("i", vir::Type::Int);
+                                let idx_local_expr = vir::Expr::local(idx_local.clone());
+                                // 0 <= i < |seq|
+                                let idx_bounds = vir::Expr::and(
+                                    vir::Expr::le_cmp(
+                                        vir::Expr::Const(
+                                            vir::Const::Int(0),
+                                            vir::Position::default()
+                                        ),
+                                        idx_local_expr.clone()
+                                    ),
+                                    vir::Expr::lt_cmp(
+                                        idx_local_expr.clone(),
+                                        vir::Expr::seq_len(seq.clone())
+                                    )
+                                );
+                                // Replacing the index by `i`
+                                let lhs_quantified = lhs.clone()
+                                    .replace_place(index, &idx_local_expr);
+                                let forall_body = vir::Expr::BinOp(
+                                    vir::BinOpKind::Implies,
+                                    box idx_bounds,
+                                    box vir::Expr::ne_cmp(lhs_quantified, src.clone()),
+                                    vir::Position::default()
+                                );
+                                let forall = vir::Expr::ForAll(
+                                    vec![idx_local],
+                                    vec![],
+                                    box forall_body,
+                                    vir::Position::default()
+                                );
+                                let inhale = vir::Stmt::Inhale(forall, vir::FoldingBehaviour::None);
+                                let fold_struct_pred = vir::Stmt::Fold(
+                                    lhs.typed_ref_name().unwrap(),
+                                    vec![lhs.clone()],
+                                    vir::PermAmount::Write,
+                                    None,
+                                    vir::Position::default(),
+                                );
+                                vec![inhale, move_assign, fold_struct_pred]
+                            }
+                            _ => vec![move_assign]
+                        }
                     }
                 };
-                // If we are moving into a sequence, we must inhale-exhale write permission.
-                // This is needed to help the prover prove injectivity.
-                match lhs {
-                    vir::Expr::SeqIndex(box seq, ..)
-                    | vir::Expr::Field(box vir::Expr::SeqIndex(box seq, ..), ..) => {
-                        let acc = vir::Expr::acc_permission(lhs.clone(), vir::PermAmount::Write);
-                        stmts.insert(0, vir::Stmt::Inhale(acc.clone(), vir::FoldingBehaviour::None));
-                        stmts.push(vir::Stmt::Exhale(acc, vir::Position::new(0, 0, "dummy-position".into())));
-                    }
-                    _ => ()
-                }
 
                 // Store a label for this state
                 let label = self.cfg_method.get_fresh_label_name();

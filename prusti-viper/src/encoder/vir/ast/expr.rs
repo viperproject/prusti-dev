@@ -1920,6 +1920,8 @@ impl QuantifiedResourceAccess {
                                     }
                                 }
                             }
+                            // TODO: remove predicate access that are illformed.
+                            //  See branch_ctx
                             Expr::PredicateAccessPredicate(predicate_name, arg, perm, _) => {
                                 assert!(perm_expr.has_prefix(&arg));
                                 ResourceAccessResult::Predicate {

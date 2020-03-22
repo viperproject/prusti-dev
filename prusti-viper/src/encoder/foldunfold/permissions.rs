@@ -285,14 +285,26 @@ impl RequiredPermissionsGetter for vir::Expr {
                 unreachable!("Let expressions should be introduced after fold/unfold.");
             }
 
+            // vir::Expr::ForAll(
+            //     vars, _,
+            //     box vir::Expr::BinOp(vir::BinOpKind::Implies, box cond, box body, _), _
+            // ) => {
+            // -Get perms for body
+            // -For perms in body that have a quant. var, transform this into a QuantResAccess, using cond
+            // }
+
             vir::Expr::ForAll(vars, _triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
-
                 let vars_places: HashSet<_> = vars
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
                     .collect();
-                perm_difference(body.get_required_permissions(predicates), vars_places)
+                // TODO: fix this hack as sketched above
+                let sub_body = match body {
+                    vir::Expr::BinOp(vir::BinOpKind::Implies, cond, _, _) => cond,
+                    _ => body,
+                };
+                perm_difference(sub_body.get_required_permissions(predicates), vars_places)
             }
 
             vir::Expr::Local(..) => HashSet::new(),
