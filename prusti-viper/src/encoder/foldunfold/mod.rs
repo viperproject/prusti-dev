@@ -819,7 +819,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         bctxt.apply_stmt(&stmt);
         stmts.push(stmt.clone());
 
-        stmts.extend(post_statement_actions);
+        stmts.extend(post_statement_actions.iter().cloned());
+        post_statement_actions.iter().for_each(|s| bctxt.apply_stmt(s));
 
         // 6. Recombine permissions into full if read was carved out during fold.
         if let vir::Stmt::Inhale(expr, vir::FoldingBehaviour::Stmt) = &stmt {

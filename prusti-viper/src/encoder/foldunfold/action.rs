@@ -91,7 +91,7 @@ impl fmt::Display for Action {
             Action::Assertion(assertion) => write!(f, "assert {}", assertion),
             Action::TemporaryUnfold(ref pred_name, ref args, perm, ref variant) =>
                 write!(
-                    f, "{}",
+                    f, "temp-{}",
                     vir::Stmt::Unfold(pred_name.clone(), args.clone(), *perm, variant.clone())
                         .to_string()
                 )

@@ -813,7 +813,7 @@ Quantified permission: {{
                     ObtainResult::Failure(req.clone())
                 }
             }
-        };
+        }
     }
 
     fn handle_resource_access_results(&mut self, req: &Perm, mut access_results: Vec<ResourceAccessResult>) -> ObtainResult {
@@ -843,7 +843,7 @@ Quantified permission: {{
                 // TODO: pull out this
                 actions.push(Action::Assertion(requirements));
                 // TODO: insert "assertions" ?
-                self.state.insert_perm(req.clone());
+                // self.state.insert_perm(req.clone());
                 ObtainResult::Success(actions)
             }
             ResourceAccessResult::Predicate { requirements, predicate } => {
