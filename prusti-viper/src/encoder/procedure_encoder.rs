@@ -3591,6 +3591,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // This is ensured by Rust's borrowing rule.
                         // -Second, we fold the struct predicate of the assigned index
                         // `fold acc(Type(arr.val_ref.val_array[idx].val_ref))`
+                        // NOTE: A mechanism in `foldunfold` adds the fold in case of unfolding
+                        // the type predicate.
+                        // However, in our case, since we are moving into a sequence,
+                        // we do not unfold the type predicate, so we need to fold it
+                        // back ourselves.
                         match lhs.extract_seq_and_index() {
                             Some((seq, index)) => {
                                 let idx_local = vir::LocalVar::new("i", vir::Type::Int);
@@ -3725,16 +3730,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // Workaround: do not initialize values
                     }
                 }
-                // For array indexing, we must fold the struct predicate.
-                if let Some(_) = lhs.extract_seq_and_index() {
-                    stmts.push(vir::Stmt::Fold(
-                        lhs.typed_ref_name().unwrap(),
-                        vec![lhs.clone()],
-                        vir::PermAmount::Write,
-                        None,
-                        vir::Position::default(),
-                    ));
-                }
+
                 stmts
             }
         };
