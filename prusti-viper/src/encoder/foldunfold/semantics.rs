@@ -182,7 +182,10 @@ impl vir::Stmt {
 
                 // Simulate folding of `place`
                 state.remove_all_perms(places_in_pred.iter());
-                state.insert_pred(place.clone(), perm_amount);
+                // TODO: justify this
+                if !state.is_pred_an_instance(place) {
+                    state.insert_pred(place.clone(), perm_amount);
+                }
             }
 
             &vir::Stmt::Unfold(ref _pred_name, ref args, perm_amount, ref variant) => {

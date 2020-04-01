@@ -451,6 +451,23 @@ impl State {
         }
     }
 
+    pub fn is_pred_an_instance(&self, place: &vir::Expr) -> bool {
+        info!("is_pred_an_instance {}", place);
+        info!("quant {}", self.display_quant());
+        let res = self.quant.iter().any(|quant|
+            quant.try_instantiate(place, false)
+                .map(|res| match res {
+                    vir::ResourceAccessResult::Predicate { predicate, .. } => {
+                        info!("is_pred_an_instance: found pred {}", predicate);
+                        true
+                    }
+                    _ => false,
+                }).unwrap_or(false)
+        );
+        info!("is_pred_an_instance {} : {}", place, res);
+        res
+    }
+
     pub fn insert_quant(&mut self, quant: vir::QuantifiedResourceAccess) {
         info!("insert_quant {}", quant);
         info!("Quant state before: {{\n{}\n}}", self.display_quant());
