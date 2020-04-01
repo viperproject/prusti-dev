@@ -843,7 +843,8 @@ Quantified permission: {{
                 // TODO: pull out this
                 actions.push(Action::Assertion(requirements));
                 // TODO: insert "assertions" ?
-                // self.state.insert_perm(req.clone());
+                // TODO: insert or not??
+                //self.state.insert_perm(req.clone());
                 ObtainResult::Success(actions)
             }
             ResourceAccessResult::Predicate { requirements, predicate } => {

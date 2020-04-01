@@ -854,6 +854,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             }
         }
 
+        stmts.extend(post_statement_actions.iter().cloned());
+        post_statement_actions.iter().for_each(|s| bctxt.apply_stmt(s));
+
         // 7. Handle shared borrows.
         info!("[step.6] replace_stmt: {}", stmt);
         if let vir::Stmt::Assign(
@@ -946,8 +949,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                     assert!(perm_amount.is_valid_for_specs());
                     place.has_prefix(rhs_place)
                 })
-                .map(|(place, perm_amount)| (place.clone(), perm_amount.clone()))
-                .collect();
+                .map(|(place, perm_amount)|
+                    (
+                        place.clone(),
+                        perm_amount.clone(),
+                        None // Option<vir::QuantifiedResourceAccess>
+                    )
+                ).collect();
             let (pred_quant_perms, pred_quant_perms_precond): (Vec<_>, Vec<_>) = bctxt
                 .state()
                 .quantified()
@@ -969,7 +977,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                                 }
                                 vir::ResourceAccessResult::Predicate { requirements, predicate } => {
                                     info!("PRED {}", predicate);
-                                    Some(((*predicate.arg, predicate.perm), requirements))
+                                    Some(((*predicate.arg, predicate.perm, Some(quant.clone())), requirements))
                                 }
                             }
                         })
@@ -989,10 +997,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             let mut pred_perms = pred_plain_perms;
             pred_perms.extend(pred_quant_perms);
 
-            for (place, perm_amount) in pred_perms {
+            for (place, perm_amount, quant_opt) in pred_perms {
                 debug!("pred place: {} {}", place, perm_amount);
                 let predicate_name = place.typed_ref_name().unwrap();
-                if perm_amount == vir::PermAmount::Write {
+                // Do not exhale if it is a quantified predicate,
+                // because the permission isn't actually held.
+                if perm_amount == vir::PermAmount::Write && quant_opt.is_none() {
                     let access = vir::Expr::PredicateAccessPredicate(
                         predicate_name.clone(),
                         box place.clone(),
@@ -1022,9 +1032,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 stmts.push(stmt);
             }
         }
-
-        stmts.extend(post_statement_actions.iter().cloned());
-        post_statement_actions.iter().for_each(|s| bctxt.apply_stmt(s));
 
         // Delete lhs state
         self.bctxt_at_label.remove("lhs");
