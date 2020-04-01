@@ -532,7 +532,7 @@ impl State {
             "Place {} is not in state (acc), so it can not be removed.",
             place
         );
-        if self.acc[place] <= perm {
+        if self.acc[place] == perm {
             self.acc.remove(place);
         } else {
             self.acc.insert(place.clone(), self.acc[place] - perm);
@@ -552,7 +552,7 @@ impl State {
             "Place {} is not in state (pred), so it can not be removed.",
             place
         );
-        if self.pred[place] <= perm {
+        if self.pred[place] == perm {
             self.pred.remove(place);
         } else {
             self.pred.insert(place.clone(), self.pred[place] - perm);

@@ -254,13 +254,23 @@ impl fmt::Display for Const {
     }
 }
 
+impl fmt::Display for FieldAccessPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "acc({}, {})", self.place, self.perm)
+    }
+}
+
+impl fmt::Display for PredicateAccessPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "acc({}({}), {})", self.predicate_name, self.arg, self.perm)
+    }
+}
+
 impl fmt::Display for PlainResourceAccess {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            PlainResourceAccess::Field(fa) =>
-                write!(f, "acc({}, {})", fa.place, fa.perm),
-            PlainResourceAccess::Predicate(pa) =>
-                write!(f, "acc({}({}), {})", pa.predicate_name, pa.arg, pa.perm),
+            PlainResourceAccess::Field(fa) => fa.fmt(f),
+            PlainResourceAccess::Predicate(pa) => pa.fmt(f),
         }
     }
 }
@@ -876,8 +886,6 @@ impl Expr {
     pub fn has_proper_prefix(&self, other: &Expr) -> bool {
         debug_assert!(self.is_place(), "self={} other={}", self, other);
         debug_assert!(other.is_place(), "self={} other={}", self, other);
-        // info!("PROPER PREFIX {}  {}", self, other);
-        // info!("PROPER PREFIX {}", self.has_prefix(other));
         self != other && self.has_prefix(other)
     }
 
@@ -1951,6 +1959,7 @@ impl Expr {
 }
 
 // TODO: rename
+#[derive(Debug, Clone)]
 pub enum ResourceAccessResult {
     Complete {
         requirements: Expr,
@@ -2099,6 +2108,20 @@ impl PlainResourceAccess {
         match self {
             PlainResourceAccess::Predicate(p) => &*p.arg,
             PlainResourceAccess::Field(f) => &*f.place,
+        }
+    }
+
+    pub fn is_pred(&self) -> bool {
+        match self {
+            PlainResourceAccess::Predicate(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_field_acc(&self) -> bool {
+        match self {
+            PlainResourceAccess::Field(_) => true,
+            _ => false,
         }
     }
 

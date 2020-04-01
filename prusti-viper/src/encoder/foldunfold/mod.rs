@@ -10,7 +10,7 @@ use encoder::foldunfold::log::EventLog;
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
 use encoder::vir;
-use encoder::vir::ExprFolder;
+use encoder::vir::{ExprFolder, ResourceAccessResult};
 use encoder::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
 use encoder::Encoder;
 use prusti_interface::config;
@@ -819,9 +819,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         bctxt.apply_stmt(&stmt);
         stmts.push(stmt.clone());
 
-        stmts.extend(post_statement_actions.iter().cloned());
-        post_statement_actions.iter().for_each(|s| bctxt.apply_stmt(s));
-
         // 6. Recombine permissions into full if read was carved out during fold.
         if let vir::Stmt::Inhale(expr, vir::FoldingBehaviour::Stmt) = &stmt {
             // We may need to recombine predicates for which read permission was taking during
@@ -941,7 +938,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 bctxt.apply_stmt(&stmt);
                 stmts.push(stmt);
             }
-            let pred_perms: Vec<_> = bctxt
+            let pred_plain_perms: Vec<_> = bctxt
                 .state()
                 .pred()
                 .iter()
@@ -951,6 +948,47 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 })
                 .map(|(place, perm_amount)| (place.clone(), perm_amount.clone()))
                 .collect();
+            let (pred_quant_perms, pred_quant_perms_precond): (Vec<_>, Vec<_>) = bctxt
+                .state()
+                .quantified()
+                .iter()
+                .filter(|quant| quant.resource.is_pred())
+                .filter_map(|quant| {
+                    assert!(quant.get_perm_amount().is_valid_for_specs());
+                    info!("QUANT: {}", quant);
+                    quant.try_instantiate(&rhs_place, false)
+                        .and_then(|res| {
+                            match res {
+                                vir::ResourceAccessResult::Complete { .. } => {
+                                    info!("COMPLETE");
+                                    unimplemented!()
+                                }
+                                vir::ResourceAccessResult::FieldAccessPrefixOnly { requirements, prefix  } => {
+                                    info!("FIELD ACCESS {}", prefix);
+                                    unimplemented!()
+                                }
+                                vir::ResourceAccessResult::Predicate { requirements, predicate } => {
+                                    info!("PRED {}", predicate);
+                                    Some(((*predicate.arg, predicate.perm), requirements))
+                                }
+                            }
+                        })
+                }).unzip();
+
+            stmts.extend(
+                pred_quant_perms_precond
+                    .into_iter()
+                    .map(|precond|
+                        vir::Stmt::Assert(
+                            precond,
+                            vir::FoldingBehaviour::None,
+                            vir::Position::default()
+                        )
+                    )
+            );
+            let mut pred_perms = pred_plain_perms;
+            pred_perms.extend(pred_quant_perms);
+
             for (place, perm_amount) in pred_perms {
                 debug!("pred place: {} {}", place, perm_amount);
                 let predicate_name = place.typed_ref_name().unwrap();
@@ -984,6 +1022,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 stmts.push(stmt);
             }
         }
+
+        stmts.extend(post_statement_actions.iter().cloned());
+        post_statement_actions.iter().for_each(|s| bctxt.apply_stmt(s));
 
         // Delete lhs state
         self.bctxt_at_label.remove("lhs");
