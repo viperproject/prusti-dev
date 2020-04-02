@@ -612,8 +612,6 @@ impl<'a> BranchCtxt<'a> {
                     },
                     Perm::Quantified(a) => {
                         info!("QUANT PERM {}", a);
-                        vec![]
-                        /*
                         // We want to fold the predicate and this "place" has the form
                         // forall vars :: { triggers } cond ==> resource
                         // If the resource is a predicate access, then we need to fold it.
@@ -648,7 +646,7 @@ impl<'a> BranchCtxt<'a> {
                                 res.into_iter().collect()
                             }
                             PlainResourceAccess::Field(f) => vec![]
-                        }*/
+                        }
                     }
                 })
                 .collect();

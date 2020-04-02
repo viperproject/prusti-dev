@@ -958,30 +958,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 ).collect();
             let (pred_quant_perms, pred_quant_perms_precond): (Vec<_>, Vec<_>) = bctxt
                 .state()
-                .quantified()
-                .iter()
-                .filter(|quant| quant.resource.is_pred())
-                .filter_map(|quant| {
-                    assert!(quant.get_perm_amount().is_valid_for_specs());
-                    info!("QUANT: {}", quant);
-                    quant.try_instantiate(&rhs_place, false)
-                        .and_then(|res| {
-                            match res {
-                                vir::ResourceAccessResult::Complete { .. } => {
-                                    info!("COMPLETE");
-                                    unimplemented!()
-                                }
-                                vir::ResourceAccessResult::FieldAccessPrefixOnly { requirements, prefix  } => {
-                                    info!("FIELD ACCESS {}", prefix);
-                                    unimplemented!()
-                                }
-                                vir::ResourceAccessResult::Predicate { requirements, predicate } => {
-                                    info!("PRED {}", predicate);
-                                    Some(((*predicate.arg, predicate.perm, Some(quant.clone())), requirements))
-                                }
-                            }
-                        })
-                }).unzip();
+                .get_quant_ctor_for_pred(&rhs_place)
+                .map(|(pred, quant, requirements)|
+                    ((*pred.arg, pred.perm, Some(quant)), requirements)
+                ).unzip();
 
             stmts.extend(
                 pred_quant_perms_precond

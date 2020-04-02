@@ -882,6 +882,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::AssignKind::Move,
             )]
         } else {
+            info!("TRANSFER {} {} {:?}", lhs, rhs, location);
             vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
         };
 

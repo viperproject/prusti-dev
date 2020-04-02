@@ -55,6 +55,5 @@ fn swap_elements(arr: &mut [isize; 64], i: usize, j: usize) {
     arr[j] = tmp;
 }
 
-// TODO: assign from &mut
 
 fn main() {}

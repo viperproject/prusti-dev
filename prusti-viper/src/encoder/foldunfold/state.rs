@@ -256,6 +256,35 @@ impl State {
         self.quant.iter().find(|x| x.is_similar_to(quant, check_perms))
     }
 
+    // TODO: name
+    // TODO: explain what it does
+    pub fn get_quant_ctor_for_pred<'a>(
+        &'a self,
+        pred_place: &'a vir::Expr,
+    ) -> impl Iterator<Item=(
+        vir::PredicateAccessPredicate,
+        vir::QuantifiedResourceAccess,
+        vir::Expr
+    )> + 'a {
+        self.quantified()
+            .iter()
+            .filter(|quant| quant.resource.is_pred())
+            .filter_map(move |quant| {
+                assert!(quant.get_perm_amount().is_valid_for_specs());
+                info!("QUANT: {}", quant);
+                quant.try_instantiate(pred_place, false)
+                    .and_then(|res| {
+                        match res {
+                            vir::ResourceAccessResult::Predicate { requirements, predicate } => {
+                                info!("PRED {}", predicate);
+                                Some((predicate, quant.clone(), requirements))
+                            }
+                            _ => None
+                        }
+                    })
+            })
+    }
+
     pub fn contains_quantified(&self, quant: &vir::QuantifiedResourceAccess) -> bool {
         self.get_quantified(quant, false).is_some()
     }

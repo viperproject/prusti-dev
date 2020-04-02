@@ -121,6 +121,11 @@ impl vir::Stmt {
                                 });
                             state.insert_all_pred(new_pred_places);
 
+                            let new_pred_places_quant = original_state
+                                .get_quant_ctor_for_pred(rhs)
+                                .map(|(pred, _, _)| (pred.arg.replace_place(&rhs, lhs_place), pred.perm));
+                            state.insert_all_pred(new_pred_places_quant);
+
                             // Finally, mark the rhs as moved
                             if !rhs.has_prefix(lhs_place) {
                                 state.insert_moved(rhs.clone());
@@ -222,7 +227,7 @@ impl vir::Stmt {
 
             &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place, unchecked) => {
                 let original_state = state.clone();
-
+                info!("State before transferring:\n{}", state);
                 debug_assert!(
                     !lhs_place.is_simple_place() || state.is_prefix_of_some_acc(lhs_place) || state.is_prefix_of_some_pred(lhs_place),
                     "The fold/unfold state does not contain the permission for an expiring borrow: {}",
@@ -272,6 +277,9 @@ impl vir::Stmt {
                         (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
                     })
                     .collect();
+                let new_pred_places_quant = original_state
+                    .get_quant_ctor_for_pred(lhs_place)
+                    .map(|(pred, _, _)| (pred.arg.replace_place(&lhs_place, rhs_place), pred.perm));
 
                 assert!(
                     (lhs_place == lhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
@@ -283,6 +291,7 @@ impl vir::Stmt {
 
                 state.insert_all_acc(new_acc_places.into_iter());
                 state.insert_all_pred(new_pred_places.into_iter());
+                state.insert_all_pred(new_pred_places_quant);
 
                 // Move also the acc permission if the rhs is old.
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {
@@ -323,6 +332,7 @@ impl vir::Stmt {
                 {
                     state.insert_moved(lhs_place.clone());
                 }
+                info!("State after transferring:\n{}", state);
             }
 
             &vir::Stmt::PackageMagicWand(
