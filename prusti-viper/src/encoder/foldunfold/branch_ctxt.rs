@@ -9,7 +9,7 @@ use encoder::foldunfold::perm::*;
 use encoder::foldunfold::places_utils::*;
 use encoder::foldunfold::state::*;
 use encoder::vir;
-use encoder::vir::{PermAmount, ResourceAccessResult, PlainResourceAccess};
+use encoder::vir::{PermAmount, PlainResourceAccess};
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -625,6 +625,8 @@ impl<'a> BranchCtxt<'a> {
                                 let mut res = HashSet::new();
                                 for (acc, p) in self.state.acc().clone() {
                                     info!("Pred {}", acc);
+                                    unimplemented!()
+                                    /*
                                     match a.try_instantiate(&acc, false) {
                                         // TODO: filter out "noisy" predicate instantiation to avoid using the set hack
                                         //  For instance:
@@ -641,7 +643,7 @@ impl<'a> BranchCtxt<'a> {
                                         // We do not care about other type of resource access,
                                         // only predicates.
                                         _ => (),
-                                    }
+                                    }*/
                                 }
                                 res.into_iter().collect()
                             }
@@ -735,6 +737,8 @@ impl<'a> BranchCtxt<'a> {
                 trace!("[exit] obtain");
                 return ObtainResult::Success(actions);
             } else {
+                unimplemented!()
+                /*
                 info!("Cannot fold; trying contains_cond_perm");
                 let result = match self.state.contains_perm(req) {
                     ContainsPermResult::Yes =>
@@ -772,6 +776,7 @@ Predicates: {{
                 }
                 info!("[exit] obtain: Requirement {} satisfied", req);
                 return result;
+                */
             }
         } else if in_join && req.get_perm_amount() == vir::PermAmount::Read {
             // Permissions held by shared references can be dropped
@@ -814,7 +819,9 @@ Quantified permission: {{
         }
     }
 
-    fn handle_resource_access_results(&mut self, req: &Perm, mut access_results: Vec<ResourceAccessResult>) -> ObtainResult {
+    fn handle_resource_access_results(&mut self, req: &Perm, mut access_results: Vec<vir::InstantiationResult>) -> ObtainResult {
+        unimplemented!()
+        /*
         fn to_ordinal(ressource_access: &ResourceAccessResult) -> usize {
             match ressource_access {
                 ResourceAccessResult::Complete {..} => 0,
@@ -828,9 +835,12 @@ Quantified permission: {{
             .map(|res| self.handle_resource_access_result(req, res))
             .find(|obtain_res| obtain_res.is_success())
             .unwrap_or_else(|| ObtainResult::Failure(req.clone()))
+        */
     }
 
-    fn handle_resource_access_result(&mut self, req: &Perm, access_result: ResourceAccessResult) -> ObtainResult {
+    fn handle_resource_access_result(&mut self, req: &Perm, access_result: vir::InstantiationResult) -> ObtainResult {
+        unimplemented!()
+        /*
         let mut actions = Vec::new();
         match access_result {
             ResourceAccessResult::Complete { requirements } => {
@@ -880,7 +890,7 @@ Quantified permission: {{
                 self.state.insert_perm(req.clone());
                 ObtainResult::Success(actions)*/
             }
-        }
+        }*/
     }
 
     /// Returns some of the dropped permissions

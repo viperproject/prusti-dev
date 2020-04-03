@@ -32,7 +32,7 @@ pub enum ContainsPermResult {
     // TODO: the names are soooo bad
     Yes,
     No,
-    Quantified(Vec<vir::ResourceAccessResult>),
+    Quantified(Vec<vir::InstantiationResult>),
 }
 
 impl State {
@@ -272,6 +272,8 @@ impl State {
             .filter_map(move |quant| {
                 assert!(quant.get_perm_amount().is_valid_for_specs());
                 info!("QUANT: {}", quant);
+                unimplemented!()
+                /*
                 quant.try_instantiate(pred_place, false)
                     .and_then(|res| {
                         match res {
@@ -281,7 +283,7 @@ impl State {
                             }
                             _ => None
                         }
-                    })
+                    })*/
             })
     }
 
@@ -299,6 +301,8 @@ impl State {
         if contained {
             ContainsPermResult::Yes
         } else {
+            unimplemented!()
+            /*
             let instances = self.quant
                 .iter()
                 .filter_map(|cond| cond.try_instantiate(item.get_place(), false))
@@ -307,7 +311,7 @@ impl State {
                 ContainsPermResult::No
             } else {
                 ContainsPermResult::Quantified(instances)
-            }
+            }*/
         }
     }
 
@@ -481,7 +485,7 @@ impl State {
     }
 
     pub fn is_pred_an_instance(&self, place: &vir::Expr) -> bool {
-        info!("is_pred_an_instance {}", place);
+        /*info!("is_pred_an_instance {}", place);
         info!("quant {}", self.display_quant());
         let res = self.quant.iter().any(|quant|
             quant.try_instantiate(place, false)
@@ -494,7 +498,8 @@ impl State {
                 }).unwrap_or(false)
         );
         info!("is_pred_an_instance {} : {}", place, res);
-        res
+        res*/
+        unimplemented!()
     }
 
     pub fn insert_quant(&mut self, quant: vir::QuantifiedResourceAccess) {

@@ -121,6 +121,8 @@ impl vir::Stmt {
                                 });
                             state.insert_all_pred(new_pred_places);
 
+                            // TODO: what about the preconditions?
+                            // TODO: Don't do that. Try instantiate all predicates instead
                             let new_pred_places_quant = original_state
                                 .get_quant_ctor_for_pred(rhs)
                                 .map(|(pred, _, _)| (pred.arg.replace_place(&rhs, lhs_place), pred.perm));
@@ -277,6 +279,7 @@ impl vir::Stmt {
                         (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
                     })
                     .collect();
+                // TODO: what about the preconditions?
                 let new_pred_places_quant = original_state
                     .get_quant_ctor_for_pred(lhs_place)
                     .map(|(pred, _, _)| (pred.arg.replace_place(&lhs_place, rhs_place), pred.perm));

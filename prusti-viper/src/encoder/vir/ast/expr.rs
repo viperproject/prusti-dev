@@ -1958,26 +1958,19 @@ impl Expr {
     }
 }
 
-// TODO: rename
 #[derive(Debug, Clone)]
-pub enum ResourceAccessResult {
-    Complete {
-        requirements: Expr,
-    },
-    FieldAccessPrefixOnly {
-        requirements: Expr,
-        prefix: FieldAccessPredicate,
-    },
-    Predicate {
-        requirements: Expr,
-        predicate: PredicateAccessPredicate
-    },
+pub struct InstantiationResult {
+    instantiated: QuantifiedResourceAccess,
+    target_resource: PlainResourceAccess,
 }
 
 impl QuantifiedResourceAccess {
-    pub fn try_instantiate(&self, perm_expr: &Expr, check_perms: bool) -> Option<ResourceAccessResult> {
-        // TODO: This vars transformation into HashSet is horrendous
-        // TODO: `Hash` is not implemented for `HashSet`, which is needed for QuantifiedResourceAccess
+    pub fn try_instantiate(&self, res: &PlainResourceAccess, check_perms: bool) -> Option<InstantiationResult> {
+        match (&self.resource, res) {
+            (PlainResourceAccess::Predicate(_), PlainResourceAccess::Predicate(_))
+            | (PlainResourceAccess::Field(_), PlainResourceAccess::Field(_)) => (),
+            _ => return None
+        }
         let vars = self.vars.iter().cloned().collect();
         let forall_body = Expr::BinOp(
             BinOpKind::Implies,
@@ -1985,44 +1978,57 @@ impl QuantifiedResourceAccess {
             box self.resource.to_expression(),
             Position::default()
         );
-        forall_instantiation(perm_expr, &vars, &self.triggers, &forall_body, check_perms)
-            .map(|fi| {
+        forall_instantiation(&res.to_expression(), &vars, &self.triggers, &forall_body, check_perms)
+            .and_then(|fi| {
+                let remaining_vars = self.vars.iter()
+                    .filter(|&v| !fi.vars_mapping.contains_key(v))
+                    .cloned()
+                    .collect::<Vec<_>>();
+                let substed_triggers = {
+                    if remaining_vars.is_empty() {
+                        Vec::new()
+                    } else {
+                        // TODO: filter out triggers that become "useless"
+                        self.triggers.iter()
+                            .map(|trigger| Trigger::new(
+                                trigger.elements()
+                                    .iter()
+                                    .map(|e| e.clone().subst_vars(&fi.vars_mapping)).collect()
+                            )).collect::<Vec<_>>()
+                    }
+                };
+
                 match *fi.body {
-                    Expr::BinOp(BinOpKind::Implies, box cond, box rhs, _) => {
-                        let requirements = cond.subst_vars(&fi.vars_mapping);
-                        info!("WE HAVE PERM={}", perm_expr);
-                        info!("WE HAVE RHS={}", rhs);
-                        match rhs {
+                    Expr::BinOp(BinOpKind::Implies, cond, box resource, _) => {
+                        match resource {
                             Expr::FieldAccessPredicate(place, perm, _) => {
-                                if perm_expr == &*place {
-                                    ResourceAccessResult::Complete {
-                                        requirements,
-                                    }
-                                } else {
-                                    assert!(perm_expr.has_proper_prefix(&place));
-                                    ResourceAccessResult::FieldAccessPrefixOnly {
-                                        requirements,
-                                        prefix: FieldAccessPredicate {
+                                let instantiated = QuantifiedResourceAccess {
+                                    vars: remaining_vars,
+                                    triggers: substed_triggers,
+                                    cond,
+                                    resource: PlainResourceAccess::Field(
+                                        FieldAccessPredicate {
                                             place,
-                                            perm,
+                                            perm
                                         }
-                                    }
-                                }
+                                    )
+                                };
+                                Some(InstantiationResult::new(instantiated, res.clone()))
                             }
-                            // TODO: remove predicate access that are illformed.
-                            //  See branch_ctx
                             Expr::PredicateAccessPredicate(predicate_name, arg, perm, _) => {
-                                assert!(perm_expr.has_prefix(&arg));
-                                ResourceAccessResult::Predicate {
-                                    requirements,
-                                    predicate: PredicateAccessPredicate {
-                                        predicate_name,
-                                        arg,
-                                        perm,
-                                    }
-                                }
+                                // We could instantiate illformed predicate if we are not careful
+                                PredicateAccessPredicate::new(*arg, perm).map(|pred| {
+                                    assert_eq!(predicate_name, pred.predicate_name);
+                                    let instantiated = QuantifiedResourceAccess {
+                                        vars: remaining_vars,
+                                        triggers: substed_triggers,
+                                        cond,
+                                        resource: PlainResourceAccess::Predicate(pred)
+                                    };
+                                    InstantiationResult::new(instantiated, res.clone())
+                                })
                             }
-                            x => unreachable!("forall_instantiation altered rhs condition: {}", x),
+                            x => unreachable!("forall_instantiation altered resource: {}", x),
                         }
                     }
                     x => unreachable!("We have given an implication, but forall_instantiation gave us back {}", x),
@@ -2084,6 +2090,28 @@ impl QuantifiedResourceAccess {
     }
 }
 
+impl InstantiationResult {
+    fn new(instantiated: QuantifiedResourceAccess,
+           target_resource: PlainResourceAccess) -> Self {
+        // Some sanity checks
+        assert_eq!(instantiated.resource.is_pred(), target_resource.is_pred());
+        assert!(target_resource.get_place().has_prefix(instantiated.resource.get_place()));
+        InstantiationResult { instantiated, target_resource }
+    }
+
+    pub fn instantiated(&self) -> &QuantifiedResourceAccess {
+        &self.instantiated
+    }
+
+    pub fn is_fully_instantiated(&self) -> bool {
+        self.instantiated.vars.is_empty()
+    }
+
+    pub fn is_match_perfect(&self) -> bool {
+        self.target_resource.get_place() == self.instantiated.resource.get_place()
+    }
+}
+
 impl PlainResourceAccess {
     pub fn field(place: Expr, perm: PermAmount) -> Self {
         PlainResourceAccess::Field(FieldAccessPredicate {
@@ -2093,15 +2121,7 @@ impl PlainResourceAccess {
     }
 
     pub fn predicate(place: Expr, perm: PermAmount) -> Option<Self> {
-        place
-            .typed_ref_name()
-            .map(|pred_name|
-                PlainResourceAccess::Predicate(PredicateAccessPredicate {
-                    predicate_name: pred_name,
-                    arg: box place,
-                    perm
-                })
-            )
+        PredicateAccessPredicate::new(place, perm).map(PlainResourceAccess::Predicate)
     }
 
     pub fn get_place(&self) -> &Expr {
@@ -2171,6 +2191,19 @@ impl PlainResourceAccess {
     }
 }
 
+impl PredicateAccessPredicate {
+    pub fn new(place: Expr, perm: PermAmount) -> Option<Self> {
+        place.typed_ref_name()
+            .map(|pred_name|
+                PredicateAccessPredicate {
+                    predicate_name: pred_name,
+                    arg: box place,
+                    perm
+                }
+            )
+    }
+}
+
 impl Into<Expr> for PlainResourceAccess {
     fn into(self) -> Expr {
         match self {
@@ -2191,26 +2224,9 @@ impl Into<Expr> for ResourceAccess {
     }
 }
 
-impl ResourceAccessResult {
-    pub fn is_complete(&self) -> bool {
-        match self {
-            ResourceAccessResult::Complete {..} => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_field_access_prefix(&self) -> bool {
-        match self {
-            ResourceAccessResult::FieldAccessPrefixOnly {..} => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_predicate(&self) -> bool {
-        match self {
-            ResourceAccessResult::Predicate {..} => true,
-            _ => false,
-        }
+impl Into<QuantifiedResourceAccess> for InstantiationResult {
+    fn into(self) -> QuantifiedResourceAccess {
+        self.instantiated
     }
 }
 
@@ -2636,6 +2652,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use encoder::vir::Const::Int;
 
 // TODO: test renaming of let variables & cie.
 
@@ -2977,8 +2994,41 @@ mod tests {
         }
     }
 
+    // i + 2 * j
+    fn index_builder_sample_1(i: &Expr, j: &Expr) -> Expr {
+        Expr::BinOp(
+            BinOpKind::Add,
+            box i.clone(),
+            box Expr::BinOp(
+                BinOpKind::Mul,
+                box Expr::Const(Const::Int(2), Position::default()),
+                box j.clone(),
+                Position::default()
+            ),
+            Position::default()
+        )
+    }
+
+    // base.a.val_array[i + 2 * j]
+    fn array_access_builder_sample_1(
+        i: &Expr,
+        j: &Expr,
+        base: &Expr,
+    ) -> Expr {
+        let a = Field {
+            name: "a".to_string(),
+            typ: Type::TypedRef("t1".into()),
+        };
+        let b = Field {
+            name: "val_array".to_string(),
+            typ: Type::TypedSeq("t2".into()),
+        };
+        let idx = index_builder_sample_1(&i, &j);
+        Expr::seq_index(base.clone().field(a).field(b), idx)
+    }
+
     // i < j ==> acc(base.a.val_array[i + 2 * j])
-    fn quant_resource_builder(
+    fn quant_resource_builder_sample_1(
         i: &LocalVar,
         j: &LocalVar,
         base: &Expr,
@@ -2989,46 +3039,30 @@ mod tests {
         } else {
             vec![j.clone(), i.clone()]
         };
-        let a = Field {
-            name: "a".to_string(),
-            typ: Type::TypedRef("t1".into()),
-        };
-        let b = Field {
-            name: "val_array".to_string(),
-            typ: Type::TypedSeq("t2".into()),
-        };
-        let idx = Expr::BinOp(
-            BinOpKind::Add,
-            box Expr::local(i.clone()),
-            box Expr::BinOp(
-                BinOpKind::Mul,
-                box Expr::Const(Const::Int(2), Position::default()),
-                box Expr::local(j.clone()),
-                Position::default()
-            ),
-            Position::default()
-        );
-
+        let i_expr = Expr::local(i.clone());
+        let j_expr = Expr::local(j.clone());
+        let arr_access = array_access_builder_sample_1(&i_expr, &j_expr, base);
         QuantifiedResourceAccess {
             vars,
-            triggers: vec![],
-            cond: box Expr::lt_cmp(Expr::local(i.clone()), Expr::local(j.clone())),
+            triggers: vec![Trigger::new(vec![arr_access.clone()])],
+            cond: box Expr::lt_cmp(i_expr.clone(), j_expr.clone()),
             resource: PlainResourceAccess::Field(FieldAccessPredicate {
-                place: box Expr::seq_index(base.clone().field(a).field(b), idx),
+                place: box arr_access,
                 perm: PermAmount::Write,
             })
         }
     }
 
     #[test]
-    fn test_quant_resource_access_similarity_success_simple() {
+    fn test_quant_resource_access_similarity_success_simple_1() {
         let common_base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
         let quant1_i = LocalVar::new("a", Type::Int);
         let quant1_j = LocalVar::new("b", Type::Int);
         let quant2_i = LocalVar::new("i", Type::Int);
         let quant2_j = LocalVar::new("j", Type::Int);
-        let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &common_base, true);
-        let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &common_base, false);
+        let quant1 = quant_resource_builder_sample_1(&quant1_i, &quant1_j, &common_base, true);
+        let quant2 = quant_resource_builder_sample_1(&quant2_i, &quant2_j, &common_base, false);
+        // Two quant. access that are similar except in the names of the bound vars.
         assert!(quant1.is_similar_to(&quant2, false));
     }
 
@@ -3040,13 +3074,13 @@ mod tests {
         let quant2_i = LocalVar::new("i", Type::Int);
         let quant2_j = LocalVar::new("j", Type::Int);
         {
-            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &common_base, true);
-            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &common_base, false);
+            let quant1 = quant_resource_builder_sample_1(&quant1_i, &quant1_j, &common_base, true);
+            let quant2 = quant_resource_builder_sample_1(&quant2_i, &quant2_j, &common_base, false);
             assert!(quant1.is_similar_to(&quant2, false));
         }
         {
-            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &common_base, true);
-            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &common_base, true);
+            let quant1 = quant_resource_builder_sample_1(&quant1_i, &quant1_j, &common_base, true);
+            let quant2 = quant_resource_builder_sample_1(&quant2_i, &quant2_j, &common_base, true);
             assert!(quant1.is_similar_to(&quant2, false));
         }
     }
@@ -3061,8 +3095,9 @@ mod tests {
             let quant1_j = LocalVar::new("b", Type::Int);
             let quant2_i = LocalVar::new("i", Type::Int);
             let quant2_j = LocalVar::new("j", Type::Int);
-            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &base_1, true);
-            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &base_2, false);
+            let quant1 = quant_resource_builder_sample_1(&quant1_i, &quant1_j, &base_1, true);
+            let quant2 = quant_resource_builder_sample_1(&quant2_i, &quant2_j, &base_2, false);
+            // Differing in the base
             assert!(!quant1.is_similar_to(&quant2, false));
         }
         // 2
@@ -3077,9 +3112,81 @@ mod tests {
             let quant1_j = LocalVar::new("b", Type::Int);
             let quant2_i = LocalVar::new("i", Type::Int);
             let quant2_j = LocalVar::new("j", Type::Int);
-            let quant1 = quant_resource_builder(&quant1_i, &quant1_j, &base_1, true);
-            let quant2 = quant_resource_builder(&quant2_i, &quant2_j, &base_2, false);
+            let quant1 = quant_resource_builder_sample_1(&quant1_i, &quant1_j, &base_1, true);
+            let quant2 = quant_resource_builder_sample_1(&quant2_i, &quant2_j, &base_2, false);
+            // One quant. has an extra suffix
             assert!(!quant1.is_similar_to(&quant2, false));
         }
+    }
+
+    #[test]
+    fn test_quant_resource_access_try_instantiate_simple_1() {
+        let base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
+        let i = LocalVar::new("i", Type::Int);
+        let j = LocalVar::new("j", Type::Int);
+
+        let quant = quant_resource_builder_sample_1(&i, &j, &base, true);
+        let foo = Expr::local(LocalVar::new("foo", Type::TypedRef("foo".into())))
+            .field(Field { name: "bar".into(), typ: Type::TypedRef("bar".into()) })
+            .field(Field { name: "value".into(), typ: Type::Int });
+        // acc(base.a.val_array[42 + 2 * foo.bar.value])
+        let target = PlainResourceAccess::Field(
+            FieldAccessPredicate {
+                place: box array_access_builder_sample_1(
+                    &Expr::Const(Int(42), Position::default()), &foo, &base
+                ),
+                perm: PermAmount::Write,
+            }
+        );
+        let result = quant.try_instantiate(&target, false);
+        assert!(result.is_some());
+        let result = result.unwrap();
+        assert!(result.is_fully_instantiated());
+        assert!(result.is_match_perfect());
+        assert_eq!(result.target_resource, target); // Will always be true, no matter how it is instantiated
+        assert_eq!(&result.instantiated.resource, &target);
+        assert_eq!(
+            &*result.instantiated.cond,
+            &Expr::lt_cmp(Expr::Const(Int(42), Position::default()), foo.clone())
+        );
+    }
+
+    // Like the previous one, except that the target has an extra suffix
+    #[test]
+    fn test_quant_resource_access_try_instantiate_simple_2() {
+        let base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
+        let i = LocalVar::new("i", Type::Int);
+        let j = LocalVar::new("j", Type::Int);
+
+        let quant = quant_resource_builder_sample_1(&i, &j, &base, true);
+        let foo = Expr::local(LocalVar::new("foo", Type::TypedRef("foo".into())))
+            .field(Field { name: "bar".into(), typ: Type::TypedRef("bar".into()) })
+            .field(Field { name: "value".into(), typ: Type::Int });
+        // base.a.val_array[42 + 2 * foo.bar.value].foo_bar
+        let target_place =
+            array_access_builder_sample_1(
+                &Expr::Const(Int(42), Position::default()), &foo, &base
+            ).field(Field { name: "foo_bar".into(), typ: Type::TypedRef("foo_bar".into()) });
+        // acc(base.a.val_array[42 + 2 * foo.bar.value].foo_bar)
+        let target = PlainResourceAccess::Field(
+            FieldAccessPredicate {
+                place: box target_place.clone(),
+                perm: PermAmount::Write,
+            }
+        );
+        let result = quant.try_instantiate(&target, false);
+        assert!(result.is_some());
+        let result = result.unwrap();
+        assert!(result.is_fully_instantiated());
+        // `target` has an extra `foo_bar`, so the match is not perfect
+        assert!(!result.is_match_perfect());
+        assert_eq!(result.target_resource, target); // Will always be true, no matter how it is instantiated
+        assert_ne!(&result.instantiated.resource, &target);
+        assert!(target.get_place().has_proper_prefix(result.instantiated.resource.get_place()));
+        assert_eq!(result.instantiated.resource.get_place(), target.get_place().get_parent_ref().unwrap());
+        assert_eq!(
+            &*result.instantiated.cond,
+            &Expr::lt_cmp(Expr::Const(Int(42), Position::default()), foo.clone())
+        );
     }
 }
