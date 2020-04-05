@@ -130,6 +130,15 @@ impl<'a> BranchCtxt<'a> {
 
     /// left is self, right is other
     pub fn join(&mut self, mut other: BranchCtxt) -> (Vec<Action>, Vec<Action>) {
+        // TODO: name
+        // TODO: explain
+        fn plain_acc_places(slf: &BranchCtxt) -> HashSet<vir::Expr> {
+            slf.state.acc_places()
+                .iter()
+                .filter(|place| !slf.state.is_acc_an_instance(place))
+                .cloned()
+                .collect()
+        }
         let mut left_actions: Vec<Action> = vec![];
         let mut right_actions: Vec<Action> = vec![];
 
@@ -165,7 +174,7 @@ impl<'a> BranchCtxt<'a> {
             );
             self.state.set_moved(moved_paths.clone());
             other.state.set_moved(moved_paths.clone());
-            debug!("moved_paths: {}", moved_paths.iter().to_string());
+            info!("moved_paths: {}", moved_paths.iter().to_string());
 
             trace!("left acc: {{\n{}\n}}", self.state.display_acc());
             trace!("right acc: {{\n{}\n}}", other.state.display_acc());
@@ -184,7 +193,7 @@ impl<'a> BranchCtxt<'a> {
 
             // Compute which access permissions may be preserved
             let (unfold_potential_acc, fold_potential_pred) =
-                compute_fold_target(&self.state.acc_places(), &other.state.acc_places());
+                compute_fold_target(&plain_acc_places(self), &plain_acc_places(&other));
             debug!(
                 "unfold_potential_acc: {}",
                 unfold_potential_acc.iter().to_sorted_multiline_string()
@@ -284,7 +293,7 @@ impl<'a> BranchCtxt<'a> {
                      left_actions: &mut Vec<_>,
                      right_actions: &mut Vec<_>| {
                         if !ctxt_left.state.acc().contains_key(acc_place) {
-                            debug!(
+                            info!(
                                 "The left branch needs to obtain an access permission: {}",
                                 acc_place
                             );
@@ -363,8 +372,8 @@ impl<'a> BranchCtxt<'a> {
             }
 
             // Drop access permissions that can not be obtained due to a move
-            for acc_place in &filter_proper_extensions_of(&self.state.acc_places(), &moved_paths) {
-                debug!(
+            for acc_place in &filter_proper_extensions_of(&plain_acc_places(self), &moved_paths) {
+                info!(
                     "Drop acc {} in left branch (it is moved out in the other branch)",
                     acc_place
                 );
@@ -373,8 +382,8 @@ impl<'a> BranchCtxt<'a> {
                 let perm = Perm::acc(acc_place.clone(), perm_amount);
                 left_actions.push(Action::Drop(perm.clone(), perm));
             }
-            for acc_place in &filter_proper_extensions_of(&other.state.acc_places(), &moved_paths) {
-                debug!(
+            for acc_place in &filter_proper_extensions_of(&plain_acc_places(&other), &moved_paths) {
+                info!(
                     "Drop acc {} in right branch (it is moved out in the other branch)",
                     acc_place
                 );
@@ -385,12 +394,8 @@ impl<'a> BranchCtxt<'a> {
             }
 
             // Drop access permissions not in `actual_acc`
-            for acc_place in self
-                .state
-                .acc_places()
-                .difference(&other.state.acc_places())
-            {
-                debug!(
+            for acc_place in plain_acc_places(self).difference(&plain_acc_places(&other)) {
+                info!(
                     "Drop acc {} in left branch (not present in the other branch)",
                     acc_place
                 );
@@ -401,12 +406,8 @@ impl<'a> BranchCtxt<'a> {
                 let perm = Perm::acc(acc_place.clone(), perm_amount);
                 left_actions.push(Action::Drop(perm.clone(), perm));
             }
-            for acc_place in other
-                .state
-                .acc_places()
-                .difference(&self.state.acc_places())
-            {
-                debug!(
+            for acc_place in plain_acc_places(&other).difference(&plain_acc_places(self)) {
+                info!(
                     "Drop acc {} in right branch (not present in the other branch)",
                     acc_place
                 );
@@ -420,7 +421,7 @@ impl<'a> BranchCtxt<'a> {
             }
 
             // If we have `Read` and `Write`, make both `Read`.
-            for acc_place in self.state.acc_places() {
+            for acc_place in plain_acc_places(self) {
                 assert!(other.state.acc().contains_key(&acc_place)
                         "acc_place = {}", acc_place);
                 let left_perm = self.state.acc()[&acc_place];
@@ -467,6 +468,7 @@ impl<'a> BranchCtxt<'a> {
                                         .update_perm_amount(PermAmount::Remaining);
                                     ctxt_left.state.remove_quant(&to_remove);
                                     let perm = Perm::quantified(to_remove);
+                                    info!("DROPPING {}", perm);
                                     left_actions.push(Action::Drop(perm.clone(), perm));
                                 }
                                 if left_perm == PermAmount::Read && right_perm == PermAmount::Write {
@@ -474,12 +476,14 @@ impl<'a> BranchCtxt<'a> {
                                         .update_perm_amount(PermAmount::Remaining);
                                     ctxt_right.state.remove_quant(&to_remove);
                                     let perm = Perm::quantified(to_remove);
+                                    info!("DROPPING {}", perm);
                                     right_actions.push(Action::Drop(perm.clone(), perm));
                                 }
                             }
                             None => {
                                 ctxt_left.state.remove_quant(&left_quant);
                                 let perm = Perm::quantified(left_quant);
+                                info!("DROPPING {}", perm);
                                 left_actions.push(Action::Drop(perm.clone(), perm));
                             }
                         }
@@ -488,7 +492,7 @@ impl<'a> BranchCtxt<'a> {
             drop_quantified(self, &mut other, &mut left_actions, &mut right_actions);
             drop_quantified(&mut other, self, &mut right_actions, &mut left_actions);
 
-            trace!(
+            info!(
                 "Actions in left branch: \n{}",
                 left_actions
                     .iter()
@@ -496,7 +500,7 @@ impl<'a> BranchCtxt<'a> {
                     .collect::<Vec<_>>()
                     .join(",\n")
             );
-            trace!(
+            info!(
                 "Actions in right branch: \n{}",
                 right_actions
                     .iter()
@@ -505,8 +509,11 @@ impl<'a> BranchCtxt<'a> {
                     .join(",\n")
             );
 
-            assert_eq!(self.state.acc(), other.state.acc());
+            assert_eq!(plain_acc_places(self), plain_acc_places(&other));
             assert_eq!(self.state.pred(), other.state.pred());
+            assert_eq!(self.state.quantified(), other.state.quantified());
+            info!("left {}", self.state);
+            info!("right {}", other.state);
             self.state.check_consistency();
         }
 
@@ -840,18 +847,44 @@ Predicates: {{
                 return result;
                 */
             }
-        } else if in_join && req.get_perm_amount() == vir::PermAmount::Read {
-            // Permissions held by shared references can be dropped
-            // without being explicitly moved becauce &T implements Copy.
-            return ObtainResult::Failure(req.clone());
-        } else {
-            let all_instances = self.state.get_all_quantified_instances(req);
-            actions.extend(self.handle_resource_access_results(req, all_instances)?);
-            return ObtainResult::Success(actions);
+        }
+
+        // 5. Obtain from a quantified resource
+        let all_instances = self.state.get_all_quantified_instances(req);
+        match self.handle_resource_access_results(req, all_instances) {
+            ObtainResult::Success(new_actions) => {
+                actions.extend(new_actions);
+                ObtainResult::Success(actions)
+            }
+            ObtainResult::Failure(_) if in_join && req.get_perm_amount() == vir::PermAmount::Read => {
+                // Permissions held by shared references can be dropped
+                // without being explicitly moved becauce &T implements Copy.
+                ObtainResult::Failure(req.clone())
+            }
+            ObtainResult::Failure(_) => {
+                info!(
+                    r"There is no access permission to obtain {} ({:?}).
+Access permissions: {{
+{}
+}}
+Predicates: {{
+{}
+}}
+Quantified: {{
+{}
+}}
+",
+                    req,
+                    req,
+                    self.state.display_acc(),
+                    self.state.display_pred(),
+                    self.state.display_quant(),
+                );
+                ObtainResult::Failure(req.clone())
+            }
         }
     }
 
-    // TODO: no, try to do as plain fold and unfold
     fn handle_resource_access_results(
         &mut self,
         req: &Perm,

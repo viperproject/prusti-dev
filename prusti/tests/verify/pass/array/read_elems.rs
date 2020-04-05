@@ -13,6 +13,12 @@ fn return_nth(arr: &[isize; 64], i: usize) -> isize {
 }
 
 #[requires="0 <= i && i < 64"]
+fn return_nth_from_ref(arr: &[isize; 64], i: usize) -> isize {
+    let a = &arr[i];
+    *a
+}
+
+#[requires="0 <= i && i < 64"]
 #[requires="0 <= j && j < 64"]
 #[requires="0 <= k && k < 64"]
 fn sum_many(arr: &[isize; 64], i: usize, j: usize, k: usize) -> isize {
@@ -39,6 +45,12 @@ fn return_fixed_mut(arr: &mut [isize; 64]) -> isize {
 #[requires="0 <= i && i < 64"]
 fn return_nth_mut(arr: &mut [isize; 64], i: usize) -> isize {
     arr[i]
+}
+
+#[requires="0 <= i && i < 64"]
+fn return_nth_from_ref_mut(arr: &mut [isize; 64], i: usize) -> isize {
+    let a = &arr[i];
+    *a
 }
 
 #[requires="0 <= i && i < 64"]

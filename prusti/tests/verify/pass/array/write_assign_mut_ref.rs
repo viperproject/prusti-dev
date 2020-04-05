@@ -21,6 +21,11 @@ fn assign_nth(arr: &mut [isize; 64], i: usize, value: isize) {
     *a = value;
 }
 
+// TODO: this one generate wrong encoding:
+// _11.val_ref := _1.val_ref.val_array[_12].val_ref
+// _11.val_ref := _15
+// Doesn't affect the underlying array
+// Last line should be _11.val_ref.val_int := _15.val_int
 #[requires="0 <= i && i < 64"]
 #[requires="0 <= j && j < 64"]
 #[requires="0 <= k && k < 64"]

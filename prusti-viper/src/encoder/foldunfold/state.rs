@@ -467,15 +467,28 @@ impl State {
     }
 
     pub fn is_pred_an_instance(&self, place: &vir::Expr) -> bool {
-        info!("is_pred_an_instance {}", place);
-        info!("quant {}", self.display_quant());
+        trace!("is_pred_an_instance {}", place);
+        trace!("quant {}", self.display_quant());
         let res = self.quant.iter().any(|quant|
             quant.resource.is_pred() &&
                 quant.try_instantiate(place)
                     .map(|res| res.is_match_perfect())
                     .unwrap_or(false)
         );
-        info!("is_pred_an_instance {} : {}", place, res);
+        trace!("is_pred_an_instance {} : {}", place, res);
+        res
+    }
+
+    pub fn is_acc_an_instance(&self, place: &vir::Expr) -> bool {
+        trace!("is_acc_an_instance {}", place);
+        trace!("quant {}", self.display_quant());
+        let res = self.quant.iter().any(|quant|
+            quant.resource.is_field_acc() &&
+                quant.try_instantiate(place)
+                    .map(|res| res.is_match_perfect())
+                    .unwrap_or(false)
+        );
+        trace!("is_acc_an_instance {} : {}", place, res);
         res
     }
 

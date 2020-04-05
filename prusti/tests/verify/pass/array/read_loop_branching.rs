@@ -1,6 +1,6 @@
 extern crate prusti_contracts;
 
-// ignore-test Some tests fail on Silicon, but all succeed on Carbon (except the last one which takes a lot of time).
+// ignore-test These two tests fail on Silicon, but succeed on Carbon.
 
 fn sum_branching_simple_0(arr: &[isize; 64]) -> isize {
     let mut sum = 0;
@@ -25,6 +25,8 @@ fn sum_branching_simple_1(arr: &[isize; 64]) -> isize {
     sum
 }
 
+// TODO: these take too much time
+/*
 fn sum_branching_simple_2(arr: &[isize; 64]) -> isize {
     let mut i = 0;
     let mut sum = 0;
@@ -58,7 +60,6 @@ fn sum_branching_simple_3(arr: &[isize; 64]) -> isize {
     sum
 }
 
-/*
 fn sum_branching_complex(arr: &[isize; 64]) -> isize {
     let mut sum = 0;
     let mut i = 0;
