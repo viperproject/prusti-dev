@@ -121,12 +121,13 @@ impl vir::Stmt {
                                 });
                             state.insert_all_pred(new_pred_places);
 
-                            // TODO: what about the preconditions?
-                            // TODO: Don't do that. Try instantiate all predicates instead
                             let new_pred_places_quant = original_state
-                                .get_quant_ctor_for_pred(rhs)
-                                .map(|(pred, _, _)| (pred.arg.replace_place(&rhs, lhs_place), pred.perm));
-                            state.insert_all_pred(new_pred_places_quant);
+                                .get_all_quantified_predicate_instances(lhs_place)
+                                .map(|quant|
+                                    quant.into_instantiated()
+                                        .map_place(|e| e.replace_place(&rhs, lhs_place))
+                                );
+                            state.insert_all_quant(new_pred_places_quant);
 
                             // Finally, mark the rhs as moved
                             if !rhs.has_prefix(lhs_place) {
@@ -279,10 +280,10 @@ impl vir::Stmt {
                         (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
                     })
                     .collect();
-                // TODO: what about the preconditions?
+
                 let new_pred_places_quant = original_state
-                    .get_quant_ctor_for_pred(lhs_place)
-                    .map(|(pred, _, _)| (pred.arg.replace_place(&lhs_place, rhs_place), pred.perm));
+                    .get_all_quantified_predicate_instances(lhs_place)
+                    .map(|quant| quant.into_instantiated().map_place(|e| e.replace_place(&lhs_place, rhs_place)));
 
                 assert!(
                     (lhs_place == lhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
@@ -294,7 +295,7 @@ impl vir::Stmt {
 
                 state.insert_all_acc(new_acc_places.into_iter());
                 state.insert_all_pred(new_pred_places.into_iter());
-                state.insert_all_pred(new_pred_places_quant);
+                state.insert_all_quant(new_pred_places_quant);
 
                 // Move also the acc permission if the rhs is old.
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {

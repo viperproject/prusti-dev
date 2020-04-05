@@ -28,13 +28,6 @@ pub struct State {
     dropped: HashSet<Perm>,
 }
 
-pub enum ContainsPermResult {
-    // TODO: the names are soooo bad
-    Yes,
-    No,
-    Quantified(Vec<vir::InstantiationResult>),
-}
-
 impl State {
     pub fn new(
         acc: HashMap<vir::Expr, PermAmount>,
@@ -256,35 +249,42 @@ impl State {
         self.quant.iter().find(|x| x.is_similar_to(quant, check_perms))
     }
 
+    pub fn get_all_quantified_instances(&self, perm: &Perm) -> Vec<vir::InstantiationResult> {
+        use encoder::vir::PlainResourceAccess::*;
+        use std::cmp::Ordering::*;
+        assert!(!perm.is_quantified(), "Nested quantified permissions are unsupported");
+        let mut instances = self.quant
+            .iter()
+            .filter(|quant| perm.is_acc() || (perm.is_pred() && quant.resource.is_pred())) // TODO: explain this
+            .filter_map(|quant| quant.try_instantiate(perm.get_place()))
+            .filter(|inst| inst.is_fully_instantiated())
+            .collect::<Vec<_>>();
+        instances.sort_unstable_by(|a, b| {
+            let a_depth = a.instantiated().resource.get_place().place_depth();
+            let b_depth = b.instantiated().resource.get_place().place_depth();
+            if a_depth != b_depth {
+                a_depth.cmp(&b_depth)
+            } else {
+                match (&a.instantiated().resource, &b.instantiated().resource) {
+                    (Field(_), Field(_)) | (Predicate(_), Predicate(_)) => Equal,
+                    (Field(_), Predicate(_)) => Less,
+                    (Predicate(_), Field(_)) => Greater,
+                }
+            }
+        });
+        instances
+    }
+
     // TODO: name
     // TODO: explain what it does
-    pub fn get_quant_ctor_for_pred<'a>(
+    pub fn get_all_quantified_predicate_instances<'a>(
         &'a self,
-        pred_place: &'a vir::Expr,
-    ) -> impl Iterator<Item=(
-        vir::PredicateAccessPredicate,
-        vir::QuantifiedResourceAccess,
-        vir::Expr
-    )> + 'a {
+        pred_place: &'a vir::Expr
+    )-> impl Iterator<Item=vir::InstantiationResult> + 'a {
         self.quantified()
             .iter()
             .filter(|quant| quant.resource.is_pred())
-            .filter_map(move |quant| {
-                assert!(quant.get_perm_amount().is_valid_for_specs());
-                info!("QUANT: {}", quant);
-                unimplemented!()
-                /*
-                quant.try_instantiate(pred_place, false)
-                    .and_then(|res| {
-                        match res {
-                            vir::ResourceAccessResult::Predicate { requirements, predicate } => {
-                                info!("PRED {}", predicate);
-                                Some((predicate, quant.clone(), requirements))
-                            }
-                            _ => None
-                        }
-                    })*/
-            })
+            .filter_map(move |quant| quant.try_instantiate(pred_place))
     }
 
     pub fn contains_quantified(&self, quant: &vir::QuantifiedResourceAccess) -> bool {
@@ -292,26 +292,11 @@ impl State {
     }
 
     /// Note: the permission amount is currently ignored
-    pub fn contains_perm(&self, item: &Perm) -> ContainsPermResult {
-        let contained = match item {
-            &Perm::Acc(ref _place, _) => self.contains_acc(item.get_place()),
-            &Perm::Pred(ref _place, _) => self.contains_pred(item.get_place()),
+    pub fn contains_perm(&self, item: &Perm) -> bool {
+        match item {
+            &Perm::Acc(ref place, _) => self.contains_acc(place),
+            &Perm::Pred(ref place, _) => self.contains_pred(place),
             &Perm::Quantified(ref cond_perm) => self.contains_quantified(cond_perm)
-        };
-        if contained {
-            ContainsPermResult::Yes
-        } else {
-            unimplemented!()
-            /*
-            let instances = self.quant
-                .iter()
-                .filter_map(|cond| cond.try_instantiate(item.get_place(), false))
-                .collect::<Vec<_>>();
-            if instances.is_empty() {
-                ContainsPermResult::No
-            } else {
-                ContainsPermResult::Quantified(instances)
-            }*/
         }
     }
 
@@ -319,10 +304,7 @@ impl State {
     where
         I: Iterator<Item = &'a Perm>,
     {
-        items.all(|x| match self.contains_perm(x) {
-            ContainsPermResult::Yes | ContainsPermResult::Quantified(_) => true,
-            ContainsPermResult::No => false,
-        })
+        items.all(|x| self.contains_perm(x))
     }
 
     pub fn is_proper_prefix_of_some_acc(&self, prefix: &vir::Expr) -> bool {
@@ -427,7 +409,7 @@ impl State {
         let mut info = self
             .quant
             .iter()
-            .map(|p| format!("{}", p))
+            .map(|p| format!("  {}", p))
             .collect::<Vec<String>>();
         info.sort();
         info.join(",\n")
@@ -485,21 +467,16 @@ impl State {
     }
 
     pub fn is_pred_an_instance(&self, place: &vir::Expr) -> bool {
-        /*info!("is_pred_an_instance {}", place);
+        info!("is_pred_an_instance {}", place);
         info!("quant {}", self.display_quant());
         let res = self.quant.iter().any(|quant|
-            quant.try_instantiate(place, false)
-                .map(|res| match res {
-                    vir::ResourceAccessResult::Predicate { predicate, .. } => {
-                        info!("is_pred_an_instance: found pred {}", predicate);
-                        true
-                    }
-                    _ => false,
-                }).unwrap_or(false)
+            quant.resource.is_pred() &&
+                quant.try_instantiate(place)
+                    .map(|res| res.is_match_perfect())
+                    .unwrap_or(false)
         );
         info!("is_pred_an_instance {} : {}", place, res);
-        res*/
-        unimplemented!()
+        res
     }
 
     pub fn insert_quant(&mut self, quant: vir::QuantifiedResourceAccess) {
@@ -526,6 +503,15 @@ impl State {
     {
         for (place, perm) in items {
             self.insert_pred(place, perm);
+        }
+    }
+
+    pub fn insert_all_quant<I>(&mut self, items: I)
+    where
+        I: Iterator<Item = vir::QuantifiedResourceAccess>,
+    {
+        for quant in items {
+            self.insert_quant(quant);
         }
     }
 
@@ -808,25 +794,16 @@ impl State {
     }
 }
 
-impl ContainsPermResult {
-    pub fn yes(&self) -> bool {
-        match self {
-            ContainsPermResult::Yes => true,
-            _ => false,
-        }
-    }
-}
-
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "acc: {{")?;
-        writeln!(f, "  {}", self.display_acc())?;
+        writeln!(f, "{}", self.display_acc())?;
         writeln!(f, "}}")?;
         writeln!(f, "pred: {{")?;
-        writeln!(f, "  {}", self.display_pred())?;
+        writeln!(f, "{}", self.display_pred())?;
         writeln!(f, "}}")?;
         writeln!(f, "quant: {{")?;
-        writeln!(f, "  {}", self.display_quant())?;
+        writeln!(f, "{}", self.display_quant())?;
         writeln!(f, "}}")
     }
 }

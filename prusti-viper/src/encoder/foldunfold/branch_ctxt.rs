@@ -525,7 +525,45 @@ impl<'a> BranchCtxt<'a> {
     ///
     /// ``in_join`` – are we currently trying to join branches?
     fn obtain(&mut self, req: &Perm, in_join: bool) -> ObtainResult {
+        use std::cmp::max;
+        info!("REQ {}", req);
+        let prefixes = req.get_place().all_proper_prefixes();
+        // TODO: Explain
+        /*let perm_amount = {
+            if req.get_perm_amount() < PermAmount::Write {
+                let perm_amount = prefixes.iter().rev()
+                    .filter_map(|prefix|
+                        if req.is_acc() {
+                            self.state.acc().get(prefix)
+                        } else {
+                            self.state.pred().get(prefix)
+                        }.cloned()
+                    ).next().unwrap_or(req.get_perm_amount());
+                max(perm_amount, req.get_perm_amount())
+            } else {
+                PermAmount::Write
+            }
+        };*/
+        let mut proper_places_actions = prefixes.into_iter()
+            .try_fold(
+                Vec::<Action>::new(),
+                |mut actions, place| {
+                    // let sub_req = Perm::Acc(place, perm_amount);
+                    let sub_req = Perm::Acc(place, req.get_perm_amount());
+                    let new_actions =
+                        self.do_obtain(&sub_req, in_join).into_result()?;
+                    actions.extend(new_actions);
+                    Ok(actions)
+                }
+            )?;
+        // proper_places_actions.extend(self.do_obtain(&req.clone().update_perm_amount(perm_amount), in_join)?);
+        proper_places_actions.extend(self.do_obtain(&req, in_join)?);
+        ObtainResult::Success(proper_places_actions)
+    }
+
+    fn do_obtain(&mut self, req: &Perm, in_join: bool) -> ObtainResult {
         info!("[enter] obtain(req={})", req);
+        info!("State\n{}", self.state);
 
         let mut actions: Vec<Action> = vec![];
 
@@ -533,7 +571,7 @@ impl<'a> BranchCtxt<'a> {
         // info!("Pred state before: {{\n{}\n}}", self.state.display_pred());
 
         // 1. Check if the requirement is satisfied
-        if self.state.contains_perm(req).yes() {
+        if self.state.contains_perm(req) {
             info!("[exit] obtain: Requirement {} is satisfied", req);
             return ObtainResult::Success(actions);
         }
@@ -569,7 +607,7 @@ impl<'a> BranchCtxt<'a> {
             info!("We unfolded {}", existing_pred_to_unfold);
 
             // Check if we are done
-            let new_actions = self.obtain(req, false).or_else(|_| ObtainResult::Failure(req.clone()))?;
+            let new_actions = self.do_obtain(req, false).or_else(|_| ObtainResult::Failure(req.clone()))?;
             actions.extend(new_actions);
             info!("[exit] obtain");
             return ObtainResult::Success(actions);
@@ -612,7 +650,31 @@ impl<'a> BranchCtxt<'a> {
                     },
                     Perm::Quantified(a) => {
                         info!("QUANT PERM {}", a);
-                        // We want to fold the predicate and this "place" has the form
+                        let mut perms = Vec::new();
+                        if a.resource.is_field_acc() {
+                            for (acc, acc_perm) in self.state.acc().clone() {
+                                info!("Acc {} {}", acc, acc_perm);
+                                if let Some(instance) = a.try_instantiate(&acc) {
+                                    if instance.is_match_perfect() {
+                                        assert!(instance.instantiated().resource.is_field_acc());
+                                        perms.push(Perm::Acc(acc, acc_perm));
+                                    }
+                                }
+                            }
+                        } else {
+                            // else: is a predicate access
+                            for (pred, pred_perm) in self.state.pred().clone() {
+                                info!("Pred {} {}", pred, pred_perm);
+                                if let Some(instance) = a.try_instantiate(&pred) {
+                                    if instance.is_match_perfect() {
+                                        assert!(instance.instantiated().resource.is_pred());
+                                        perms.push(Perm::Pred(pred, pred_perm));
+                                    }
+                                }
+                            }
+                        }
+                        perms
+                        /*// We want to fold the predicate and this "place" has the form
                         // forall vars :: { triggers } cond ==> resource
                         // If the resource is a predicate access, then we need to fold it.
                         // For instance, if the resource is acc(P(x.a.b.c)), then we need to
@@ -648,7 +710,7 @@ impl<'a> BranchCtxt<'a> {
                                 res.into_iter().collect()
                             }
                             PlainResourceAccess::Field(f) => vec![]
-                        }
+                        }*/
                     }
                 })
                 .collect();
@@ -693,7 +755,7 @@ impl<'a> BranchCtxt<'a> {
                 for fold_req_place in &places_in_pred {
                     let pos = req.get_place().pos().clone();
                     let new_req_place = fold_req_place.clone().set_default_pos(pos);
-                    let obtain_result = self.obtain(&new_req_place, false);
+                    let obtain_result = self.do_obtain(&new_req_place, false);
                     match obtain_result {
                         ObtainResult::Success(new_actions) => {
                             actions.extend(new_actions);
@@ -783,114 +845,85 @@ Predicates: {{
             // without being explicitly moved becauce &T implements Copy.
             return ObtainResult::Failure(req.clone());
         } else {
-            return match self.state.contains_perm(req) {
-                ContainsPermResult::Yes =>
-                    unreachable!("This case should have been covered earlier"),
-                ContainsPermResult::Quantified(access_results) => {
-                    // info!("Pred state: {{\n{}\n}}", self.state.display_pred());
-                    actions.extend(self.handle_resource_access_results(req, access_results)?);
-                    ObtainResult::Success(actions)
-                }
-                ContainsPermResult::No => {
-                    // We have no predicate to obtain the access permission `req`
-                    info!(
-                        r"There is no access permission to obtain {} ({:?}).
-Access permissions: {{
-{}
-}}
-
-Predicates: {{
-{}
-}}
-
-Quantified permission: {{
-{}
-}}
-",
-                        req,
-                        req,
-                        self.state.display_acc(),
-                        self.state.display_pred(),
-                        self.state.display_quant(),
-                    );
-                    ObtainResult::Failure(req.clone())
-                }
-            }
+            let all_instances = self.state.get_all_quantified_instances(req);
+            actions.extend(self.handle_resource_access_results(req, all_instances)?);
+            return ObtainResult::Success(actions);
         }
     }
 
-    fn handle_resource_access_results(&mut self, req: &Perm, mut access_results: Vec<vir::InstantiationResult>) -> ObtainResult {
-        unimplemented!()
-        /*
-        fn to_ordinal(ressource_access: &ResourceAccessResult) -> usize {
-            match ressource_access {
-                ResourceAccessResult::Complete {..} => 0,
-                ResourceAccessResult::Predicate {..} => 1,
-                ResourceAccessResult::FieldAccessPrefixOnly {..} => 2,
-            }
-        }
-
-        access_results.sort_by(|lhs, rhs| to_ordinal(lhs).cmp(&to_ordinal(rhs)));
-        access_results.into_iter()
+    // TODO: no, try to do as plain fold and unfold
+    fn handle_resource_access_results(
+        &mut self,
+        req: &Perm,
+        inst_results: Vec<vir::InstantiationResult>
+    ) -> ObtainResult {
+        info!(
+            "[enter] handle_resource_access_results\n\treq = {}\n\taccess_results = {}\n\tstate = {}",
+            req,
+            inst_results.iter()
+                .map(|res| res.instantiated().to_string())
+                .collect::<Vec<String>>()
+                .join(", "),
+            self.state,
+        );
+        inst_results.into_iter()
             .map(|res| self.handle_resource_access_result(req, res))
             .find(|obtain_res| obtain_res.is_success())
             .unwrap_or_else(|| ObtainResult::Failure(req.clone()))
-        */
     }
 
-    fn handle_resource_access_result(&mut self, req: &Perm, access_result: vir::InstantiationResult) -> ObtainResult {
-        unimplemented!()
-        /*
+    fn handle_resource_access_result(
+        &mut self,
+        req: &Perm,
+        inst_result: vir::InstantiationResult
+    ) -> ObtainResult {
+        use std::cmp::max;
+        use encoder::vir::InstantiationResultMatchType::*;
+        info!(
+            "handle_resource_access_result req {} --> {}  {:?}",
+            req, inst_result.instantiated(), inst_result.match_type()
+        );
+        let match_type = inst_result.match_type();
+        let quant = inst_result.into_instantiated();
+        let precond = *quant.cond;
+        if quant.resource.get_perm_amount() < req.get_perm_amount() {
+            return ObtainResult::Failure(req.clone());
+        }
+        let perm_amount = quant.resource.get_perm_amount();
         let mut actions = Vec::new();
-        match access_result {
-            ResourceAccessResult::Complete { requirements } => {
-                // TODO: We could self.obtain over the requirements:
-                //  -If we succeed, good
-                //  -Otherwise, we assert the requirements
-                info!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, requirements);
-                // TODO: pull out this
-                actions.push(Action::Assertion(requirements));
-                // TODO: insert "assertions" ?
+        info!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, precond);
+        actions.push(Action::Assertion(precond));
+        match match_type {
+            PerfectFieldAccMatch => {
+                assert!(req.is_acc());
+                assert_eq!(req.get_place(), quant.resource.get_place());
                 // TODO: insert or not??
-                //self.state.insert_perm(req.clone());
+                // TODO: perm amount?
+
+                self.state.insert_perm(req.clone().update_perm_amount(perm_amount));
                 ObtainResult::Success(actions)
             }
-            ResourceAccessResult::Predicate { requirements, predicate } => {
-                info!("obtain: Required permission {} may be satisfied with predicate {}", req, predicate.predicate_name);
-                actions.push(Action::Assertion(requirements));
-                if req.is_pred() {
-                    if &*predicate.arg == req.get_place() {
-                        // TODO: nothing else to do?
-                        self.state.insert_pred(req.get_place().clone(), req.get_perm_amount());
-                        ObtainResult::Success(actions)
-                    } else {
-                        // TODO: this is too harsh. Maybe try to obtain acc on prefix
-                        ObtainResult::Failure(req.clone())
-                    }
-                } else {
-                    // let predicate_perm = Perm::Pred(*predicate.arg, predicate.perm); // TODO: Predicate body or argument?
-                    // actions.extend(self.obtain(&predicate_perm, false).unwrap());
-                    self.state.insert_pred(*predicate.arg.clone(), predicate.perm);
-                    actions.push(self.unfold(&*predicate.arg, predicate.perm, None, true));
-                    // self.state.insert_perm(req.clone());
-                    info!("[exit] obtain: Required permission {} satisfied", req);
-                    ObtainResult::Success(actions)
+            PerfectPredAccMatch | PrefixPredAccMatch => {
+                let predicate = match quant.resource {
+                    vir::PlainResourceAccess::Predicate(pred) => pred,
+                    _ => unreachable!(), // TODO: explain
+                };
+                // TODO: explain
+                // TODO: also explain why we insert predicate and not req
+                assert_eq!(predicate.perm, perm_amount); // Indeed, since predicate is extracted from quant.resource
+                self.state.insert_pred(*predicate.arg.clone(), predicate.perm);
+                actions.push(self.unfold(&*predicate.arg, predicate.perm, None, true));
+                // TODO: explain
+                if match_type == PrefixPredAccMatch {
+                    actions.extend(self.do_obtain(&req.clone().update_perm_amount(perm_amount), false)?);
                 }
+                ObtainResult::Success(actions)
             }
-            ResourceAccessResult::FieldAccessPrefixOnly { requirements, prefix } => {
-                info!("REQUEST {}    prefix {}", req, prefix.place);
-                // TODO: get the prefix then retry
-                unimplemented!()
-                /*let prefix_perm = Perm::Acc(*prefix.place, prefix.perm);
-                let new_actions = self.obtain(&prefix_perm, false).unwrap();
-                info!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, requirements);
-                actions.extend(new_actions);
-                // TODO: pull out this
-                actions.push(Action::Assertion(requirements));
-                self.state.insert_perm(req.clone());
-                ObtainResult::Success(actions)*/
+            PrefixFieldAccMatch => {
+                // TODO: explain
+                ObtainResult::Failure(req.clone())
             }
-        }*/
+        }
     }
 
     /// Returns some of the dropped permissions
