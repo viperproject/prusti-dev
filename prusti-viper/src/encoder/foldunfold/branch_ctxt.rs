@@ -139,6 +139,13 @@ impl<'a> BranchCtxt<'a> {
                 .cloned()
                 .collect()
         }
+        fn plain_pred_places(slf: &BranchCtxt) -> HashSet<vir::Expr> {
+            slf.state.pred_places()
+                .iter()
+                .filter(|place| !slf.state.is_pred_an_instance(place))
+                .cloned()
+                .collect()
+        }
         let mut left_actions: Vec<Action> = vec![];
         let mut right_actions: Vec<Action> = vec![];
 
@@ -321,7 +328,7 @@ impl<'a> BranchCtxt<'a> {
             }
 
             // Drop predicate permissions that can not be obtained due to a move
-            for pred_place in &filter_proper_extensions_of(&self.state.pred_places(), &moved_paths)
+            for pred_place in &filter_proper_extensions_of(&plain_pred_places(self), &moved_paths)
             {
                 debug!(
                     "Drop pred {} in left branch (it is moved out in the other branch)",
@@ -332,7 +339,7 @@ impl<'a> BranchCtxt<'a> {
                 let perm = Perm::pred(pred_place.clone(), perm_amount);
                 left_actions.push(Action::Drop(perm.clone(), perm));
             }
-            for pred_place in &filter_proper_extensions_of(&other.state.pred_places(), &moved_paths)
+            for pred_place in &filter_proper_extensions_of(&plain_pred_places(&other), &moved_paths)
             {
                 debug!(
                     "Drop pred {} in right branch (it is moved out in the other branch)",
@@ -346,11 +353,11 @@ impl<'a> BranchCtxt<'a> {
 
             // Compute preserved predicate permissions
             let preserved_preds: HashSet<_> =
-                intersection(&self.state.pred_places(), &other.state.pred_places());
+                intersection(&plain_pred_places(self), &plain_pred_places(&other));
             debug!("preserved_preds: {}", preserved_preds.iter().to_string());
 
             // Drop predicate permissions that are not in the other branch
-            for pred_place in self.state.pred_places().difference(&preserved_preds) {
+            for pred_place in plain_pred_places(self).difference(&preserved_preds) {
                 debug!(
                     "Drop pred {} in left branch (it is not in the other branch)",
                     pred_place
@@ -360,7 +367,7 @@ impl<'a> BranchCtxt<'a> {
                 let perm = Perm::pred(pred_place.clone(), perm_amount);
                 left_actions.push(Action::Drop(perm.clone(), perm));
             }
-            for pred_place in other.state.pred_places().difference(&preserved_preds) {
+            for pred_place in plain_pred_places(&other).difference(&preserved_preds) {
                 debug!(
                     "Drop pred {} in right branch (it is not in the other branch)",
                     pred_place
@@ -437,7 +444,7 @@ impl<'a> BranchCtxt<'a> {
                     right_actions.push(Action::Drop(perm.clone(), perm));
                 }
             }
-            for pred_place in self.state.pred_places() {
+            for pred_place in plain_pred_places(self) {
                 assert!(other.state.pred().contains_key(&pred_place));
                 let left_perm = self.state.pred()[&pred_place];
                 let right_perm = other.state.pred()[&pred_place];
@@ -510,7 +517,7 @@ impl<'a> BranchCtxt<'a> {
             );
 
             assert_eq!(plain_acc_places(self), plain_acc_places(&other));
-            assert_eq!(self.state.pred(), other.state.pred());
+            assert_eq!(plain_pred_places(self), plain_pred_places(&other));
             assert_eq!(self.state.quantified(), other.state.quantified());
             info!("left {}", self.state);
             info!("right {}", other.state);
@@ -806,7 +813,28 @@ impl<'a> BranchCtxt<'a> {
                 trace!("[exit] obtain");
                 return ObtainResult::Success(actions);
             } else {
-                unimplemented!()
+                // unimplemented!()
+                info!(
+                    r"It is not possible to obtain {} ({:?}).
+Access permissions: {{
+{}
+}}
+
+Predicates: {{
+{}
+}}
+
+Quantified: {{
+{}
+}}
+",
+                    req,
+                    req,
+                    self.state.display_acc(),
+                    self.state.display_pred(),
+                    self.state.display_quant(),
+                );
+                return ObtainResult::Failure(req.clone());
                 /*
                 info!("Cannot fold; trying contains_cond_perm");
                 let result = match self.state.contains_perm(req) {

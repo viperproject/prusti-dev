@@ -121,13 +121,25 @@ impl vir::Stmt {
                                 });
                             state.insert_all_pred(new_pred_places);
 
-                            let new_pred_places_quant = original_state
-                                .get_all_quantified_predicate_instances(lhs_place)
-                                .map(|quant|
-                                    quant.into_instantiated()
+                            let all_pred_instances =
+                                original_state.get_all_quantified_predicate_instances(lhs_place);
+                            let new_pred_place_instantiated = all_pred_instances.fully_instantiated;
+                            let new_pred_places_quant = all_pred_instances.partially_instantiated;
+
+                            state.insert_all_pred(
+                                new_pred_place_instantiated.into_iter().map(|inst| {
+                                    let pred = inst.instantiated_pred;
+                                    let perm_amount = pred.perm;
+                                    let new_place = pred.arg.replace_place(&rhs, lhs_place);
+                                    (new_place, perm_amount)
+                                })
+                            );
+                            state.insert_all_quant(
+                                new_pred_places_quant.into_iter().map(|quant|
+                                    quant.partially_instantiated_quant
                                         .map_place(|e| e.replace_place(&rhs, lhs_place))
-                                );
-                            state.insert_all_quant(new_pred_places_quant);
+                                )
+                            );
 
                             // Finally, mark the rhs as moved
                             if !rhs.has_prefix(lhs_place) {
@@ -281,9 +293,24 @@ impl vir::Stmt {
                     })
                     .collect();
 
-                let new_pred_places_quant = original_state
-                    .get_all_quantified_predicate_instances(lhs_place)
-                    .map(|quant| quant.into_instantiated().map_place(|e| e.replace_place(&lhs_place, rhs_place)));
+
+                let all_pred_instances =
+                    original_state.get_all_quantified_predicate_instances(lhs_place);
+                let new_pred_place_instantiated = all_pred_instances.fully_instantiated;
+                let new_pred_places_quant = all_pred_instances.partially_instantiated;
+
+                let new_pred_place_instantiated = new_pred_place_instantiated.into_iter()
+                    .map(|inst| {
+                        let pred = inst.instantiated_pred;
+                        let perm_amount = pred.perm;
+                        let new_place = pred.arg.replace_place(&lhs_place, rhs_place);
+                        (new_place, perm_amount)
+                    });
+
+                let new_pred_places_quant = new_pred_places_quant.into_iter()
+                    .map(|quant| quant.partially_instantiated_quant
+                        .map_place(|e| e.replace_place(&lhs_place, rhs_place))
+                    );
 
                 assert!(
                     (lhs_place == lhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
@@ -295,6 +322,7 @@ impl vir::Stmt {
 
                 state.insert_all_acc(new_acc_places.into_iter());
                 state.insert_all_pred(new_pred_places.into_iter());
+                state.insert_all_pred(new_pred_place_instantiated);
                 state.insert_all_quant(new_pred_places_quant);
 
                 // Move also the acc permission if the rhs is old.

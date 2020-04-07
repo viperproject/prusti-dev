@@ -28,6 +28,22 @@ pub struct State {
     dropped: HashSet<Perm>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QuantifiedPredicateInstances {
+    pub fully_instantiated: Vec<FullPredicateInstance>,
+    pub partially_instantiated: Vec<PartialPredicateInstance>,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FullPredicateInstance {
+    pub instantiated_pred: vir::PredicateAccessPredicate,
+    pub instantiated_from: vir::QuantifiedResourceAccess,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PartialPredicateInstance {
+    pub partially_instantiated_quant: vir::QuantifiedResourceAccess,
+    pub instantiated_from: vir::QuantifiedResourceAccess,
+}
+
 impl State {
     pub fn new(
         acc: HashMap<vir::Expr, PermAmount>,
@@ -277,14 +293,42 @@ impl State {
 
     // TODO: name
     // TODO: explain what it does
-    pub fn get_all_quantified_predicate_instances<'a>(
-        &'a self,
-        pred_place: &'a vir::Expr
-    )-> impl Iterator<Item=vir::InstantiationResult> + 'a {
-        self.quantified()
+    pub fn get_all_quantified_predicate_instances(
+        &self,
+        pred_place: &vir::Expr
+    )-> QuantifiedPredicateInstances {
+        let (preds, quants): (Vec<_>, Vec<_>) = self.quantified()
             .iter()
             .filter(|quant| quant.resource.is_pred())
-            .filter_map(move |quant| quant.try_instantiate(pred_place))
+            .filter_map(move |quant|
+                quant.try_instantiate(pred_place).map(|inst| (inst, quant.clone()))
+            )
+            .filter(|(inst, _)| inst.is_match_perfect())
+            .partition(|(inst, _)| inst.is_fully_instantiated());
+
+        let fully_instantiated = preds.into_iter()
+            .map(|(inst, instantiated_from)| match inst.into_instantiated().resource {
+                vir::PlainResourceAccess::Predicate(instantiated_pred) =>
+                    FullPredicateInstance {
+                        instantiated_pred,
+                        instantiated_from
+                    },
+                _ => unreachable!()
+            }).collect();
+
+        let partially_instantiated = quants.into_iter()
+            .map(|(inst, instantiated_from)| {
+                let partially_instantiated_quant = inst.into_instantiated();
+                PartialPredicateInstance {
+                    partially_instantiated_quant,
+                    instantiated_from
+                }
+            }).collect();
+
+        QuantifiedPredicateInstances {
+            fully_instantiated,
+            partially_instantiated
+        }
     }
 
     pub fn contains_quantified(&self, quant: &vir::QuantifiedResourceAccess) -> bool {
