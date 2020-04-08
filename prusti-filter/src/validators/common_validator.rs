@@ -489,7 +489,10 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             mir::Rvalue::Ref(_, _, ref place) => self.check_place(mir, place, span),
 
-            mir::Rvalue::Len(ref place) => self.check_place(mir, place, span),
+            mir::Rvalue::Len(ref place) => {
+                partially!(self, span, "uses length operations");
+                self.check_place(mir, place, span)
+            }
 
             mir::Rvalue::Cast(cast_kind, ref op, dst_ty) => {
                 self.check_cast(mir, *cast_kind, op, dst_ty, span)

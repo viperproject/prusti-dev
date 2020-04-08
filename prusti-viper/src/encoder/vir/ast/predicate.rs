@@ -153,7 +153,6 @@ impl Predicate {
                     perm: PermAmount::Write
                 }
             );
-            // forall_body(inner_type_pred)
             Expr::and(forall_body(elems_field_acc), forall_body(inner_type_pred))
         };
         // Combining everything, and specifying the size of the array if it is known

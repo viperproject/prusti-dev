@@ -33,11 +33,13 @@ pub struct QuantifiedPredicateInstances {
     pub fully_instantiated: Vec<FullPredicateInstance>,
     pub partially_instantiated: Vec<PartialPredicateInstance>,
 }
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FullPredicateInstance {
     pub instantiated_pred: vir::PredicateAccessPredicate,
     pub instantiated_from: vir::QuantifiedResourceAccess,
 }
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PartialPredicateInstance {
     pub partially_instantiated_quant: vir::QuantifiedResourceAccess,
@@ -61,14 +63,12 @@ impl State {
     }
 
     // Skip consistency checks in release mode
-    // #[cfg(not(debug_assertions))]
-    #[cfg(debug_assertions)]
+    #[cfg(not(debug_assertions))]
     pub fn check_consistency(&self) {
         // Nothing
     }
 
-    // #[cfg(debug_assertions)]
-    #[cfg(not(debug_assertions))]
+    #[cfg(debug_assertions)]
     pub fn check_consistency(&self) {
         // Check access permissions
         for place in self.pred.keys() {

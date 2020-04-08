@@ -680,6 +680,7 @@ impl<'a> BranchCtxt<'a> {
                     }
                 })
                 .collect();
+
             // Check that there exists something that would make the fold possible.
             // We don't want to end up in an infinite recursion, trying to obtain the
             // predicates in the body.
@@ -745,12 +746,12 @@ impl<'a> BranchCtxt<'a> {
                 // Simulate folding of `req`
                 assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
                 // TODO: This can fail. Fix
-                /*assert!(
+                assert!(
                     !req.get_place().is_simple_place() || self.state.contains_acc(req.get_place()),
                     "req={} state={}",
                     req.get_place(),
                     self.state
-                );*/
+                );
                 assert!(!self.state.contains_pred(req.get_place()));
                 self.state.remove_all_perms(scaled_places_in_pred.iter());
                 self.state.insert_pred(req.get_place().clone(), perm_amount);
@@ -797,7 +798,7 @@ Quantified: {{
                 ObtainResult::Failure(req.clone())
             }
             ObtainResult::Failure(_) => {
-                info!(
+                debug!(
                     r"There is no access permission to obtain {} ({:?}).
 Access permissions: {{
 {}

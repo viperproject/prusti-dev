@@ -150,14 +150,13 @@ impl TreePermissionEncodingState {
             }
         }
 
-        info!("PUSHING {}", access);
         self.permissions.insert(access);
     }
 
     pub fn get_permissions(self) -> Vec<vir::Expr> {
         let mut result = self.permissions.into_iter().map(|r| r.into()).collect::<Vec<_>>();
         Self::simple_sort_by_prefix(&mut result);
-        info!("[exit] get_permissions permissions=\n{}",
+        trace!("[exit] get_permissions permissions=\n{}",
               result
                 .iter()
                 .map(|p| format!("\t{}", p))

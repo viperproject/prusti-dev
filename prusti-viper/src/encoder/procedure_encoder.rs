@@ -3072,7 +3072,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 if kind.is_none() {
                     continue;
                 }
-
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
                 debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 if let ty::TypeVariants::TyClosure(..) = ty.sty {
@@ -3103,7 +3102,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             PermissionKind::ReadSubtree => vir::PermAmount::Read,
                             _ => unreachable!(),
                         };
-
                         let def_init = self
                             .loop_encoder
                             .is_definitely_initialised(&mir_place, loop_head);
@@ -3134,7 +3132,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 ref x => unreachable!("{:?}", x),
                             }
                         }
-
                         match ty.sty {
                             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl })
                             | ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
@@ -3204,7 +3201,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             permissions.extend(tree_perms_state.get_permissions());
         }
 
-        debug!(
+        trace!(
             "[exit] encode_loop_invariant_permissions permissions={}",
             permissions
                 .iter()

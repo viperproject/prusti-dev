@@ -240,6 +240,7 @@ impl vir::Stmt {
 
             &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place, unchecked) => {
                 let original_state = state.clone();
+
                 debug_assert!(
                     !lhs_place.is_simple_place() || state.is_prefix_of_some_acc(lhs_place) || state.is_prefix_of_some_pred(lhs_place),
                     "The fold/unfold state does not contain the permission for an expiring borrow: {}",
@@ -289,7 +290,6 @@ impl vir::Stmt {
                         (p.clone().replace_place(&lhs_place, rhs_place), *perm_amount)
                     })
                     .collect();
-
 
                 let all_pred_instances =
                     original_state.get_all_quantified_predicate_instances(lhs_place);

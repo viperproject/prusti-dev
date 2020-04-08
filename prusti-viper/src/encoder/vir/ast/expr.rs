@@ -30,6 +30,7 @@ pub enum Expr {
     /// PredicateAccessPredicate: predicate_name, arg, permission amount
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
+    QuantifiedResourceAccess(QuantifiedResourceAccess, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinOpKind, Box<Expr>, Box<Expr>, Position),
     /// Unfolding: predicate name, predicate_args, in_expr, permission amount, enum variant
@@ -46,7 +47,6 @@ pub enum Expr {
     SeqIndex(Box<Expr>, Box<Expr>, Position),
     /// Length of the given sequence
     SeqLen(Box<Expr>, Position),
-    QuantifiedResourceAccess(QuantifiedResourceAccess, Position),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -2710,41 +2710,36 @@ mod tests {
         let c = Expr::local(LocalVar::new("c", Type::Int));
         let fv1 = LocalVar::new("fv1", Type::Int);
         let fv2 = LocalVar::new("fv2", Type::Int);
-        let subject = Expr::BinOp(
-            BinOpKind::Mul,
-            box Expr::BinOp(
-                BinOpKind::Add,
-                box x.clone(),
+
+        let expr_builder = |a: &Expr, b: &Expr| -> Expr {
+            Expr::BinOp(
+                BinOpKind::Mul,
                 box Expr::BinOp(
-                    BinOpKind::Div,
-                    box y.clone(),
-                    box Expr::Cond(box Expr::local(fv1.clone()), box z.clone(), box Expr::local(fv2.clone()), Position::default()),
-                    Position::default()
+                    BinOpKind::Add,
+                    box x.clone(),
+                    box Expr::BinOp(
+                        BinOpKind::Div,
+                        box y.clone(),
+                        box Expr::Cond(
+                            box a.clone(),
+                            box z.clone(),
+                            box b.clone(),
+                            Position::default()
+                        ),
+                        Position::default()
+                    ),
+                    Position::default(),
                 ),
+                box a.clone(),
                 Position::default(),
-            ),
-            box Expr::local(fv1.clone()),
-            Position::default(),
-        );
+            )
+        };
+        // (x + (y / (fv1subst ? z : fv2subst))) * fv1subst
+        let subject = expr_builder(&Expr::local(fv1.clone()), &Expr::local(fv2.clone()));
         let fv1subst = Expr::BinOp(BinOpKind::Add, box z.clone(), box a.clone(), Position::default());
         let fv2subst = Expr::BinOp(BinOpKind::Mul, box b.clone(), box c.clone(), Position::default());
-        // (x + (y / (fv1 ? z : fv2))) * fv1
-        let target = Expr::BinOp(
-            BinOpKind::Mul,
-            box Expr::BinOp(
-                BinOpKind::Add,
-                box x.clone(),
-                box Expr::BinOp(
-                    BinOpKind::Div,
-                    box y.clone(),
-                    box Expr::Cond(box fv1subst.clone(), box z.clone(), box fv2subst.clone(), Position::default()),
-                    Position::default()
-                ),
-                Position::default(),
-            ),
-            box fv1subst.clone(),
-            Position::default(),
-        );
+        // (x + (y / (fv1subst ? z : fv2subst))) * fv1subst
+        let target = expr_builder(&fv1subst, &fv2subst);
         let mut fvs = HashSet::new();
         fvs.insert(fv1.clone());
         fvs.insert(fv2.clone());
@@ -2768,50 +2763,42 @@ mod tests {
         let c = Expr::local(LocalVar::new("c", Type::Int));
         let fv1 = LocalVar::new("fv1", Type::Int);
         let fv2 = LocalVar::new("fv2", Type::Int);
-        // x + f(fv1, fv2, y * fv2)
-        let subject = Expr::BinOp(
-            BinOpKind::Add,
-            box x.clone(),
-            box Expr::FuncApp(
-                "f".to_owned(),
-                vec![
-                    Expr::local(fv1.clone()),
-                    Expr::local(fv2.clone()),
-                    Expr::BinOp(BinOpKind::Mul, box y.clone(), box Expr::local(fv2.clone()), Position::default())
-                ],
-                vec![
-                    LocalVar::new("arg1", Type::Int),
-                    LocalVar::new("arg2", Type::Int),
-                    LocalVar::new("arg3", Type::Int),
-                ],
-                Type::Int,
+
+        // x + f(a, b, y * b)
+        let expr_builder = |a: &Expr, b: &Expr| {
+            Expr::BinOp(
+                BinOpKind::Add,
+                box x.clone(),
+                box Expr::FuncApp(
+                    "f".to_owned(),
+                    vec![
+                        a.clone(),
+                        b.clone(),
+                        Expr::BinOp(
+                            BinOpKind::Mul,
+                            box y.clone(),
+                            box b.clone(),
+                            Position::default()
+                        )
+                    ],
+                    vec![
+                        LocalVar::new("arg1", Type::Int),
+                        LocalVar::new("arg2", Type::Int),
+                        LocalVar::new("arg3", Type::Int),
+                    ],
+                    Type::Int,
+                    Position::default()
+                ),
                 Position::default()
-            ),
-            Position::default()
-        );
+            )
+        };
+        // x + f(fv1, fv2, y * fv2)
+        let subject = expr_builder(&Expr::local(fv1.clone()), &Expr::local(fv2.clone()));
 
         let fv1subst = Expr::BinOp(BinOpKind::Add, box z.clone(), box a.clone(), Position::default());
         let fv2subst = Expr::BinOp(BinOpKind::Mul, box b.clone(), box c.clone(), Position::default());
-        let target = Expr::BinOp(
-            BinOpKind::Add,
-            box x.clone(),
-            box Expr::FuncApp(
-                "f".to_owned(),
-                vec![
-                    fv1subst.clone(),
-                    fv2subst.clone(),
-                    Expr::BinOp(BinOpKind::Mul, box y.clone(), box fv2subst.clone(), Position::default())
-                ],
-                vec![
-                    LocalVar::new("arg1", Type::Int),
-                    LocalVar::new("arg2", Type::Int),
-                    LocalVar::new("arg3", Type::Int),
-                ],
-                Type::Int,
-                Position::default()
-            ),
-            Position::default()
-        );
+        // x + f(fv1subst, fv2subst, y * fv2subst)
+        let target = expr_builder(&fv1subst, &fv2subst);
 
         let mut fvs = HashSet::new();
         fvs.insert(fv1.clone());
@@ -3037,65 +3024,6 @@ mod tests {
         }
     }
 
-    // i + 2 * j
-    fn index_builder_sample_1(i: &Expr, j: &Expr) -> Expr {
-        Expr::BinOp(
-            BinOpKind::Add,
-            box i.clone(),
-            box Expr::BinOp(
-                BinOpKind::Mul,
-                box Expr::Const(Const::Int(2), Position::default()),
-                box j.clone(),
-                Position::default()
-            ),
-            Position::default()
-        )
-    }
-
-    // base.a.val_array[i + 2 * j]
-    fn array_access_builder_sample_1(
-        i: &Expr,
-        j: &Expr,
-        base: &Expr,
-    ) -> Expr {
-        let a = Field {
-            name: "a".to_string(),
-            typ: Type::TypedRef("t1".into()),
-        };
-        let b = Field {
-            name: "val_array".to_string(),
-            typ: Type::TypedSeq("t2".into()),
-        };
-        let idx = index_builder_sample_1(&i, &j);
-        Expr::seq_index(base.clone().field(a).field(b), idx)
-    }
-
-    // i < j ==> acc(base.a.val_array[i + 2 * j])
-    fn quant_resource_builder_sample_1(
-        i: &LocalVar,
-        j: &LocalVar,
-        base: &Expr,
-        vars_in_order: bool
-    ) -> QuantifiedResourceAccess {
-        let vars = if vars_in_order {
-            vec![i.clone(), j.clone()]
-        } else {
-            vec![j.clone(), i.clone()]
-        };
-        let i_expr = Expr::local(i.clone());
-        let j_expr = Expr::local(j.clone());
-        let arr_access = array_access_builder_sample_1(&i_expr, &j_expr, base);
-        QuantifiedResourceAccess {
-            vars,
-            triggers: vec![Trigger::new(vec![arr_access.clone()])],
-            cond: box Expr::lt_cmp(i_expr.clone(), j_expr.clone()),
-            resource: PlainResourceAccess::Field(FieldAccessPredicate {
-                place: box arr_access,
-                perm: PermAmount::Write,
-            })
-        }
-    }
-
     #[test]
     fn test_quant_resource_access_similarity_success_simple_1() {
         let common_base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
@@ -3169,10 +3097,11 @@ mod tests {
         let j = LocalVar::new("j", Type::Int);
 
         let quant = quant_resource_builder_sample_1(&i, &j, &base, true);
+        // foo.bar.value
         let foo = Expr::local(LocalVar::new("foo", Type::TypedRef("foo".into())))
             .field(Field { name: "bar".into(), typ: Type::TypedRef("bar".into()) })
             .field(Field { name: "value".into(), typ: Type::Int });
-        // base.a.val_array[42 + 2 * foo.bar.value]
+        // base.a.val_array[42 + 2 * foo.bar.value].val_ref
         let target_place =
             array_access_builder_sample_1(
                 &Expr::Const(Int(42), Position::default()), &foo, &base
@@ -3198,10 +3127,11 @@ mod tests {
         let j = LocalVar::new("j", Type::Int);
 
         let quant = quant_resource_builder_sample_1(&i, &j, &base, true);
+        // foo.bar.value
         let foo = Expr::local(LocalVar::new("foo", Type::TypedRef("foo".into())))
             .field(Field { name: "bar".into(), typ: Type::TypedRef("bar".into()) })
             .field(Field { name: "value".into(), typ: Type::Int });
-        // base.a.val_array[42 + 2 * foo.bar.value].foo_bar
+        // base.a.val_array[42 + 2 * foo.bar.value].val_ref.foo_bar
         let target_place =
             array_access_builder_sample_1(
                 &Expr::Const(Int(42), Position::default()), &foo, &base
@@ -3220,5 +3150,73 @@ mod tests {
             &*result.instantiated.cond,
             &Expr::lt_cmp(Expr::Const(Int(42), Position::default()), foo.clone())
         );
+    }
+
+    // i + 2 * j
+    fn index_builder_sample_1(i: &Expr, j: &Expr) -> Expr {
+        Expr::BinOp(
+            BinOpKind::Add,
+            box i.clone(),
+            box Expr::BinOp(
+                BinOpKind::Mul,
+                box Expr::Const(Const::Int(2), Position::default()),
+                box j.clone(),
+                Position::default()
+            ),
+            Position::default()
+        )
+    }
+
+    // base.a.val_array[i + 2 * j].val_ref
+    fn array_access_builder_sample_1(
+        i: &Expr,
+        j: &Expr,
+        base: &Expr,
+    ) -> Expr {
+        let a = Field {
+            name: "a".to_string(),
+            typ: Type::TypedRef("t1".into()),
+        };
+        let val_array = Field {
+            name: "val_array".to_string(),
+            typ: Type::TypedSeq("t2".into()),
+        };
+        let val_ref = Field {
+            name: "val_ref".to_string(),
+            typ: Type::TypedRef("t3".into()),
+        };
+        let idx = index_builder_sample_1(&i, &j);
+        Expr::seq_index(
+            base.clone()
+                .field(a)
+                .field(val_array),
+            idx
+        ).field(val_ref)
+    }
+
+    // i < j ==> acc(base.a.val_array[i + 2 * j].val_ref)
+    fn quant_resource_builder_sample_1(
+        i: &LocalVar,
+        j: &LocalVar,
+        base: &Expr,
+        vars_in_order: bool
+    ) -> QuantifiedResourceAccess {
+        let vars = if vars_in_order {
+            vec![i.clone(), j.clone()]
+        } else {
+            vec![j.clone(), i.clone()]
+        };
+        let i_expr = Expr::local(i.clone());
+        let j_expr = Expr::local(j.clone());
+        let arr_access = array_access_builder_sample_1(&i_expr, &j_expr, base);
+        QuantifiedResourceAccess {
+            vars,
+            triggers: vec![Trigger::new(vec![arr_access.clone()])],
+            cond: box Expr::lt_cmp(i_expr.clone(), j_expr.clone()),
+            resource: PlainResourceAccess::Field(FieldAccessPredicate {
+                place: box arr_access,
+                perm: PermAmount::Write,
+            })
+        }
     }
 }

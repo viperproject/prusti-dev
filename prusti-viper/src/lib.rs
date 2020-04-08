@@ -12,10 +12,10 @@
 #![feature(try_trait)]
 
 #![deny(unreachable_patterns)]
-// #![cfg_attr(debug_assertions, deny(dead_code))]
-// #![deny(unused_mut)]
-// #![deny(unused_variables)]
-// #![deny(unused_imports)]
+#![cfg_attr(debug_assertions, deny(dead_code))]
+#![deny(unused_mut)]
+#![deny(unused_variables)]
+#![deny(unused_imports)]
 #![deny(unused_doc_comments)]
 
 #[macro_use]
