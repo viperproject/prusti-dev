@@ -56,12 +56,6 @@ pub enum PlainResourceAccess {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum ResourceAccess {
-    Plain(PlainResourceAccess),
-    Quantified(QuantifiedResourceAccess)
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PredicateAccessPredicate {
     pub predicate_name: String,
     pub arg: Box<Expr>,
@@ -74,7 +68,6 @@ pub struct FieldAccessPredicate {
     pub perm: PermAmount
 }
 
-// TODO: custom impl of Hash and Eq that do not take into account var name?
 /// A quantified resource access assertion.
 /// In a typical case, we `assert` that we satisfy the requirements before accessing
 /// (by inhaling) the resource. Viper will then check whether the assertion is satisfied.
@@ -684,7 +677,6 @@ impl Expr {
             &Expr::Local(_, _) => true,
             &Expr::Variant(ref base, _, _)
             | &Expr::Field(ref base, _, _)
-            // TODO: is SeqIndex a simple place?
             | &Expr::SeqIndex(ref base, _, _) => base.is_simple_place(),
             _ => false,
         }
@@ -1128,7 +1120,6 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
-                    // TODO: this is likely wrong
                     f @ Expr::QuantifiedResourceAccess(..) => f,
                     Expr::BinOp(BinOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinOpKind::And, y, z, p)
@@ -1210,7 +1201,6 @@ impl Expr {
         match &self {
             Expr::Local(localvar, _) => match &localvar.typ {
                 Type::TypedRef(str) => str.clone(),
-                // TODO: we do not care about TypedSeq here, right?
                 _ => panic!("expected Type::TypedRef"),
             },
             _ => panic!("expected Expr::Local"),
@@ -1310,7 +1300,7 @@ impl Expr {
         patcher.fold(self)
     }
 
-    // TODO: Folding won't work in case of conflict with bound variables
+    // TODO: This won't work in case of conflict with bound variables
     pub fn rename(self, old: &LocalVar, new: LocalVar) -> Self {
         self.fold_expr(|e| match e {
             Expr::Local(ref lv, ref p) if old == lv =>
@@ -2046,7 +2036,10 @@ impl QuantifiedResourceAccess {
                                         }
                                     )
                                 };
-                                assert!(perm_place.has_prefix(instantiated.resource.get_place()));
+                                assert!(
+                                    perm_place.has_prefix(instantiated.resource.get_place()),
+                                    "{} does not have {} as a prefix", perm_place, instantiated.resource.get_place()
+                                );
                                 InstantiationResult::new(instantiated, perm_place.clone(), match_type)
                             }
                             Expr::PredicateAccessPredicate(predicate_name, pred_place, perm, _) => {
@@ -2264,15 +2257,6 @@ impl PredicateAccessPredicate {
     }
 }
 
-impl FieldAccessPredicate {
-    pub fn new(place: Expr, perm: PermAmount) -> Self {
-        FieldAccessPredicate {
-            place: box place,
-            perm
-        }
-    }
-}
-
 impl Into<Expr> for PlainResourceAccess {
     fn into(self) -> Expr {
         match self {
@@ -2280,15 +2264,6 @@ impl Into<Expr> for PlainResourceAccess {
                 Expr::PredicateAccessPredicate(p.predicate_name, p.arg, p.perm, Position::default()),
             PlainResourceAccess::Field(f) =>
                 Expr::FieldAccessPredicate(f.place, f.perm, Position::default()),
-        }
-    }
-}
-
-impl Into<Expr> for ResourceAccess {
-    fn into(self) -> Expr {
-        match self {
-            ResourceAccess::Plain(p) => p.into(),
-            ResourceAccess::Quantified(q) => Expr::QuantifiedResourceAccess(q, Position::default()),
         }
     }
 }
@@ -2401,7 +2376,7 @@ fn unify(
             (
                 Expr::PredicateAccessPredicate(lname, larg, lperm, _),
                 Expr::PredicateAccessPredicate(rname, rarg, rperm, _)
-            ) if !check_perms || lperm == rperm =>
+            ) if (!check_perms || lperm == rperm) && lname == rname =>
                 do_unify(larg, rarg, free_vars, orig_mapping, vars_mapping, check_perms),
 
             (
@@ -2854,7 +2829,6 @@ mod tests {
     #[test]
     fn test_unify_success_forall_simple() {
         let x = Expr::local(LocalVar::new("x", Type::Int));
-        let y = Expr::local(LocalVar::new("y", Type::Int));
         let z = Expr::local(LocalVar::new("z", Type::Int));
         let a = Expr::local(LocalVar::new("a", Type::Int));
         let b = Expr::local(LocalVar::new("b", Type::Int));
@@ -3187,7 +3161,7 @@ mod tests {
             assert!(!quant1.is_similar_to(&quant2, false));
         }
     }
-    /*
+
     #[test]
     fn test_quant_resource_access_try_instantiate_simple_1() {
         let base = Expr::local(LocalVar::new("base", Type::TypedRef("t0".into())));
@@ -3203,7 +3177,7 @@ mod tests {
             array_access_builder_sample_1(
                 &Expr::Const(Int(42), Position::default()), &foo, &base
             );
-        let result = quant.try_instantiate(&target_place, false);
+        let result = quant.try_instantiate(&target_place);
         assert!(result.is_some());
         let result = result.unwrap();
         assert!(result.is_fully_instantiated());
@@ -3232,7 +3206,7 @@ mod tests {
             array_access_builder_sample_1(
                 &Expr::Const(Int(42), Position::default()), &foo, &base
             ).field(Field { name: "foo_bar".into(), typ: Type::TypedRef("foo_bar".into()) });
-        let result = quant.try_instantiate(&target_place, false);
+        let result = quant.try_instantiate(&target_place);
         assert!(result.is_some());
         let result = result.unwrap();
         assert!(result.is_fully_instantiated());
@@ -3247,5 +3221,4 @@ mod tests {
             &Expr::lt_cmp(Expr::Const(Int(42), Position::default()), foo.clone())
         );
     }
-    */
 }

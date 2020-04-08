@@ -48,7 +48,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyTuple(_) |
             ty::TypeVariants::TyNever |
             ty::TypeVariants::TyParam(_) |
-            // TODO: inner type + const
             ty::TypeVariants::TyArray(_, _) => {
                 true
             }

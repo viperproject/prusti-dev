@@ -47,7 +47,6 @@ use std::collections::HashSet;
 use syntax::attr::SignedInt;
 use syntax::codemap::MultiSpan;
 use utils::to_string::ToString;
-use encoder::type_encoder::TypeEncoder;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -727,7 +726,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         stmt: &mir::Statement<'tcx>,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        info!(
+        debug!(
             "Encode statement '{:?}', span: {:?}",
             stmt.kind, stmt.source_info.span
         );
@@ -882,7 +881,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::AssignKind::Move,
             )]
         } else {
-            info!("TRANSFER {} {} {:?}", lhs, rhs, location);
             vec![vir::Stmt::TransferPerm(lhs.clone(), rhs.clone(), false)]
         };
 
@@ -3069,15 +3067,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut permissions = Vec::new();
         let mut equalities = Vec::new();
         for tree in permissions_forest.get_trees().iter() {
-            let mut tree_perms_state = TreePermissionEncodingState::new(loop_head);
-            info!("NEW TREE");
+            let mut tree_perms_state = TreePermissionEncodingState::new();
             for (kind, mir_place) in tree.get_permissions().into_iter() {
                 if kind.is_none() {
                     continue;
                 }
 
                 let (encoded_place, ty, _) = self.mir_encoder.encode_place(&mir_place);
-                info!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
+                debug!("kind={:?} mir_place={:?} ty={:?}", kind, mir_place, ty);
                 if let ty::TypeVariants::TyClosure(..) = ty.sty {
                     // Do not encode closures
                     continue;
@@ -3110,7 +3107,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let def_init = self
                             .loop_encoder
                             .is_definitely_initialised(&mir_place, loop_head);
-                        info!("    perm_amount={} def_init={}", perm_amount, def_init);
+                        debug!("    perm_amount={} def_init={}", perm_amount, def_init);
                         if let mir::Place::Projection(box mir::Projection {
                             elem: mir::ProjectionElem::Deref,
                             ref base,
@@ -3141,7 +3138,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         match ty.sty {
                             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, mutbl })
                             | ty::TypeVariants::TyRef(_, ref ty, mutbl) => {
-                                info!(
+                                debug!(
                                     "encode_loop_invariant_permissions \
                                      mir_place={:?} mutability={:?} \
                                      drop_read_references={}",
@@ -3207,7 +3204,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             permissions.extend(tree_perms_state.get_permissions());
         }
 
-        info!(
+        debug!(
             "[exit] encode_loop_invariant_permissions permissions={}",
             permissions
                 .iter()
@@ -3555,7 +3552,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
         debug!(
-            "[enter] encode_assign_operand(lhs={:?}, operand={:?}, location={:?})",
+            "[enter] encode_assign_operand(lhs={}, operand={:?}, location={:?})",
             lhs, operand, location
         );
         let stmts = match operand {
@@ -3731,7 +3728,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         // Workaround: do not initialize values
                     }
                 }
-
                 stmts
             }
         };
@@ -3981,7 +3977,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
     ) -> Vec<vir::Stmt> {
-        info!(
+        trace!(
             "[enter] encode_assign_ref(mir_borrow_kind={:?}, place={:?}, location={:?})",
             mir_borrow_kind,
             place,

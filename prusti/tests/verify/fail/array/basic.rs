@@ -1,5 +1,7 @@
 extern crate prusti_contracts;
 
+// ignore-test
+
 fn return_fixed(arr: &[isize; 64]) -> isize {
     return arr[70]; //~ ERROR assertion might fail with "array index out of bounds"
 }

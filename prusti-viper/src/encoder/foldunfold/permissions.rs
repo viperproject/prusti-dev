@@ -69,7 +69,6 @@ impl RequiredPermissionsGetter for vir::Stmt {
             &vir::Stmt::Exhale(ref expr, ref pos)
             | &vir::Stmt::Assert(ref expr, _, ref pos)
             | &vir::Stmt::Obtain(ref expr, ref pos) => {
-                info!("OBTAIN PERM FOR {}", expr);
                 let perms = expr.get_required_permissions(predicates);
                 perms
                     .into_iter()
@@ -170,7 +169,7 @@ impl RequiredPermissionsGetter for vir::Expr {
         &self,
         predicates: &HashMap<String, vir::Predicate>,
     ) -> HashSet<Perm> {
-        info!("[enter] get_required_permissions(expr={})", self);
+        trace!("[enter] get_required_permissions(expr={})", self);
         let permissions = match self {
             vir::Expr::Const(_, _) => HashSet::new(),
 
@@ -233,48 +232,15 @@ impl RequiredPermissionsGetter for vir::Expr {
                 result
             }
 
-            vir::Expr::FieldAccessPredicate(expr, _, _) => {
-                expr.get_required_permissions(predicates)
-                /*
-                // TODO: this is wrong
-                let mut sub_expr = expr.get_required_permissions(predicates);
-                // Remove the permission added by the recursive call.
-                // If we have Acc(x.f.g.h), the recursive call will add
-                // (among other things) Acc(x.f.g.h, read).
-                // But we don't need the permission of x.f.g.h because we have it here!
-                // sub_expr.remove(&Acc(*expr.clone(), PermAmount::Read));
-                sub_expr
-                */
-            }
+            vir::Expr::FieldAccessPredicate(expr, _perm_amount, _) => expr
+                .get_required_permissions(predicates)
+                .into_iter()
+                .collect(),
 
             vir::Expr::UnaryOp(_, expr, _) => expr.get_required_permissions(predicates),
 
             vir::Expr::BinOp(_, box left, box right, _) => {
                 vec![left, right].get_required_permissions(predicates)
-                /*
-                info!("REQUIREMENTS FOR {}", self);
-                let printer = |perms: &HashSet<Perm>, msg: &'static str|
-                    info!(
-                        "{}\n{}",
-                        msg,
-                        perms.iter()
-                            .map(|p| format!("  {}", p))
-                            .collect::<Vec<String>>()
-                            .join(",\n")
-                    );
-                let left_required_perms = left.get_required_permissions(predicates);
-                printer(&left_required_perms, "LEFT REQUIRES");
-                let mut right_required_perms = right.get_required_permissions(predicates);
-                printer(&right_required_perms, "RIGHT REQUIRES");
-
-                if *bin_op == vir::BinOpKind::And {
-                    let left_perms = left.get_permissions(predicates);
-                    printer(&left_perms, "LEFT OFFERS");
-                    left_perms.iter().for_each(|lp| { right_required_perms.remove(lp); });
-                }
-                right_required_perms.extend(left_required_perms);
-                printer(&right_required_perms, "FINAL RESULT REQUIRES");
-                right_required_perms*/
             }
 
             vir::Expr::Cond(box guard, box left, box right, _) => {
@@ -345,6 +311,7 @@ impl RequiredPermissionsGetter for vir::Expr {
 
             vir::Expr::ForAll(vars, _triggers, box body, _) => {
                 assert!(vars.iter().all(|var| !var.typ.is_ref()));
+
                 let vars_places: HashSet<_> = vars
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))
@@ -413,8 +380,8 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .into_iter()
                     .collect(),
         };
-        info!(
-            "[exit] get_required_permissions(expr={}):\n{}",
+        trace!(
+            "[exit] get_required_permissions(expr={}): {:#?}",
             self,
             permissions
                 .iter()

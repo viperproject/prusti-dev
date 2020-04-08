@@ -165,7 +165,6 @@ impl fmt::Display for Type {
 }
 
 impl Type {
-    // TODO: Do we consider TypedSeq a ref ?
     pub fn is_ref(&self) -> bool {
         match self {
             //&Type::Ref |
@@ -179,7 +178,7 @@ impl Type {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
-            &Type::TypedSeq(ref pred_name) => format!("seq{}", pred_name), // TODO: is this ok?
+            &Type::TypedSeq(ref pred_name) => format!("seq{}", pred_name),
         }
     }
 
@@ -292,7 +291,6 @@ impl Field {
         }
     }
 
-    // TODO: adapt to take into account arrays
     pub fn typed_ref_name(&self) -> Option<String> {
         match self.typ {
             Type::TypedRef(ref name) => Some(name.clone()),

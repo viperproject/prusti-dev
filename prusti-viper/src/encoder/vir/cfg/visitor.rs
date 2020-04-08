@@ -167,7 +167,7 @@ pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug
                     assert!(visited[src_index]);
                     if !action.is_noop() {
                         let src_block_index = new_cfg.block_index(src_index);
-                        info!(
+                        trace!(
                             "Perform action to {:?} coming from {:?}: {:?}",
                             curr_block_index,
                             src_block_index,

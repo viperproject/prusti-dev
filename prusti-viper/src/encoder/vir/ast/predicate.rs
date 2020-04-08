@@ -99,7 +99,6 @@ impl Predicate {
         array_field: Field,
         len: Option<u64>,
     ) -> Predicate {
-        // TODO: acc(usize(self.val_array[i].val_ref))
         let predicate_name = typ.name();
         let this = Self::construct_this(typ);
         // self.val_array

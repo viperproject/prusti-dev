@@ -15,13 +15,8 @@ use prusti_interface::utils;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
-use encoder::{vir, Encoder};
-use std::collections::{HashMap, HashSet};
-use std::collections::hash_map::Entry;
-use std::iter::Peekable;
-use encoder::type_encoder::TypeEncoder;
-use encoder::vir::ExprIterator;
-use encoder::mir_encoder::MirEncoder;
+use encoder::vir;
+use std::collections::HashSet;
 
 pub struct LoopEncoder<'a, 'tcx: 'a> {
     mir: &'a mir::Mir<'tcx>,
@@ -126,20 +121,18 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 }
 
 pub struct TreePermissionEncodingState {
-    loop_head: BasicBlockIndex,
     permissions: HashSet<vir::PlainResourceAccess>,
 }
 
 impl TreePermissionEncodingState {
-    pub fn new(loop_head: BasicBlockIndex) -> Self {
+    pub fn new() -> Self {
         TreePermissionEncodingState {
-            loop_head,
             permissions: HashSet::new(),
         }
     }
 
     pub fn add(&mut self, access: vir::PlainResourceAccess) {
-        if let Some((seq, index)) = access.get_place().extract_seq_and_index() {
+        if let Some((seq, _)) = access.get_place().extract_seq_and_index() {
             match seq {
                 vir::Expr::Field(seq_re, field, _) if field.name == "val_array" && field.typ.get_id() == vir::TypeId::Seq => {
                     self.add(

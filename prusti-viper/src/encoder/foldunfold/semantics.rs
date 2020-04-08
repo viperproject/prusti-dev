@@ -30,11 +30,11 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
 
 impl vir::Stmt {
     pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
-        info!("apply_on_state '{}'", self);
-        // info!("State acc before {{\n{}\n}}", state.display_acc());
-        // info!("State pred before {{\n{}\n}}", state.display_pred());
-        // info!("State cond before {{\n{}\n}}", state.display_cond());
-        // info!("State moved before {{\n{}\n}}", state.display_moved());
+        debug!("apply_on_state '{}'", self);
+        trace!("State acc before {{\n{}\n}}", state.display_acc());
+        trace!("State pred before {{\n{}\n}}", state.display_pred());
+        trace!("State quant before {{\n{}\n}}", state.display_quant());
+        trace!("State moved before {{\n{}\n}}", state.display_moved());
         match self {
             &vir::Stmt::Comment(_)
             | &vir::Stmt::Label(_)
@@ -46,7 +46,6 @@ impl vir::Stmt {
             }
 
             &vir::Stmt::Exhale(ref expr, _) => {
-                // info!("EXHALE {:?}", predicates);
                 exhale_expr(expr, state, predicates);
             }
 
@@ -130,7 +129,6 @@ impl vir::Stmt {
                                 new_pred_place_instantiated.into_iter().map(|inst| {
                                     let pred = inst.instantiated_pred;
                                     let perm_amount = pred.perm;
-                                    info!("EUHA {}", pred);
                                     let new_place = pred.arg.replace_place(&rhs, lhs_place);
                                     (new_place, perm_amount)
                                 })
@@ -227,10 +225,9 @@ impl vir::Stmt {
                     .map(|aop| aop.map_place(|p| p.replace_place(&pred_self_place, place)))
                     .collect();
 
-                // TODO: restore this
-                // for contained_place in &places_in_pred {
-                //     assert!(!state.contains_perm(contained_place));
-                // }
+                for contained_place in &places_in_pred {
+                    assert!(!state.contains_perm(contained_place));
+                }
 
                 // Simulate unfolding of `place`
                 state.remove_pred(place, perm_amount);
@@ -243,7 +240,6 @@ impl vir::Stmt {
 
             &vir::Stmt::TransferPerm(ref lhs_place, ref rhs_place, unchecked) => {
                 let original_state = state.clone();
-                info!("State before transferring:\n{}", state);
                 debug_assert!(
                     !lhs_place.is_simple_place() || state.is_prefix_of_some_acc(lhs_place) || state.is_prefix_of_some_pred(lhs_place),
                     "The fold/unfold state does not contain the permission for an expiring borrow: {}",
@@ -365,7 +361,6 @@ impl vir::Stmt {
                 {
                     state.insert_moved(lhs_place.clone());
                 }
-                info!("State after transferring:\n{}", state);
             }
 
             &vir::Stmt::PackageMagicWand(

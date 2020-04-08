@@ -138,7 +138,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 // Compute inner state
                 let mut inner_bctxt = bctxt.clone();
                 let inner_state = inner_bctxt.mut_state();
-                info!("State before unfolding:\n{}", inner_state);
                 inner_state.insert_all_perms(
                     expr.get_permissions(bctxt.predicates())
                         .into_iter()
@@ -686,11 +685,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
 
         // 1. Insert "unfolding in" inside old expressions. This handles *old* requirements.
-        info!("[step.1] replace_stmt: {}", stmt);
+        debug!("[step.1] replace_stmt: {}", stmt);
         stmt = self.rewrite_stmt_with_unfoldings_in_old(stmt, &bctxt);
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
-        info!("[step.2] replace_stmt: {}", stmt);
+        debug!("[step.2] replace_stmt: {}", stmt);
         let mut post_statement_actions = Vec::new();
         match &stmt {
             vir::Stmt::Inhale(_, vir::FoldingBehaviour::Expr) |
@@ -729,11 +728,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 let mut perms = acc_permissions;
                 perms.extend(pred_permissions.into_iter());
                 perms.extend(quant_permissions);
-                info!(
+                debug!(
                     "required permissions: {{\n{}\n}}",
                     perms
                         .iter()
-                        .map(|x| format!("  {}", x))
+                        .map(|x| format!("  {:?}", x))
                         .collect::<Vec<_>>()
                         .join(",\n")
                 );
@@ -759,7 +758,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         }
 
         // 3. Replace special statements
-        info!("[step.3] replace_stmt: {}", stmt);
+        debug!("[step.3] replace_stmt: {}", stmt);
         stmt = match stmt {
             vir::Stmt::PackageMagicWand(
                 vir::Expr::MagicWand(box ref lhs, box ref rhs, _, _),
@@ -814,11 +813,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         };
 
         // 4. Add "unfolding" expressions in statement. This handles *old* requirements.
-        info!("[step.4] replace_stmt: Add unfoldings in stmt {}", stmt);
+        debug!("[step.4] replace_stmt: Add unfoldings in stmt {}", stmt);
         stmt = self.rewrite_stmt_with_unfoldings(stmt, &bctxt);
 
         // 5. Apply effect of statement on state
-        info!("[step.5] replace_stmt: {}", stmt);
+        debug!("[step.5] replace_stmt: {}", stmt);
         bctxt.apply_stmt(&stmt);
         stmts.push(stmt.clone());
 
@@ -861,7 +860,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         post_statement_actions.iter().for_each(|s| bctxt.apply_stmt(s));
 
         // 7. Handle shared borrows.
-        info!("[step.6] replace_stmt: {}", stmt);
+        debug!("[step.6] replace_stmt: {}", stmt);
         if let vir::Stmt::Assign(
             ref lhs_place,
             ref rhs_place,
@@ -965,8 +964,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 .into_iter()
                 .map(|pred| { let none: Option<vir::QuantifiedResourceAccess> = None; (pred, none) })
                 .chain(pred_place_instantiated.into_iter().map(|inst| {
-                    info!("EUA#1 {}", inst.instantiated_from);
-                    info!("EUA#2 {}", inst.instantiated_pred);
                     ((*inst.instantiated_pred.arg, inst.instantiated_pred.perm),
                      Some(inst.instantiated_from))
                 }));
@@ -1029,7 +1026,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         // Delete lhs state
         self.bctxt_at_label.remove("lhs");
 
-        info!(
+        debug!(
             "[exit] replace_stmt = [\n{}\n]",
             stmts
                 .iter()

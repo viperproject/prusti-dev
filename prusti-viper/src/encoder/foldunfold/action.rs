@@ -39,10 +39,11 @@ impl Action {
                 vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount, variant.clone())
             }
             Action::Drop(..) => vir::Stmt::comment(self.to_string()),
-            Action::Assertion(assertion) => vir::Stmt::Assert(assertion.clone(), FoldingBehaviour::Expr, Position::default()),
+            Action::Assertion(assertion) =>
+                vir::Stmt::Assert(assertion.clone(), FoldingBehaviour::Expr, Position::default()),
             Action::TemporaryUnfold(..) =>
-                // TODO: "use ... instead"
-                panic!("A temporary unfold has no equivalent in vir::Stmt")
+                panic!("A temporary unfold has no equivalent in vir::Stmt\n\
+                `actions_to_stmts` should be used instead")
         }
     }
 
