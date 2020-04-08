@@ -1,3 +1,5 @@
+#![feature(attr_literals)]
+
 extern crate prusti_contracts;
 
 pub struct VecWrapper<T> {
