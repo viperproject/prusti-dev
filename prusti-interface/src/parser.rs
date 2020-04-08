@@ -1277,17 +1277,20 @@ impl<'tcx> SpecParser<'tcx> {
     /// correct base span.
     fn extract_spec_string(&self, attribute: &ast::Attribute) -> Option<(String, Span)> {
         use syntax::parse::token;
-        use syntax::tokenstream::TokenTree;
+        use syntax::tokenstream::{TokenTree,Delimited,TokenStream};
 
         let trees: Vec<TokenTree> = attribute.tokens.trees().collect();
-        if trees.len() != 2 {
+        let tree_len = trees.len();
+
+        if tree_len == 0 {
             self.report_error(
                 attribute.span,
-                "malformed specification (incorrect number of token trees)",
+                "malformed specification (no arguments provided)",
             );
             return None;
         }
-        match trees[0] {
+
+        let spec_tree = match trees[0] {
             TokenTree::Token(_, ref token) => {
                 if *token != token::Token::Eq {
                     self.report_error(
@@ -1296,13 +1299,26 @@ impl<'tcx> SpecParser<'tcx> {
                     );
                     return None;
                 }
+                trees[1].clone()
+            }
+            TokenTree::Delimited(_, Delimited { delim: token::DelimToken::Paren, ref tts } ) => {
+                let token_stream: TokenStream = tts.clone().into();
+                let spec_trees: Vec<TokenTree> = token_stream.trees().collect();
+                if spec_trees.len() != 1 {
+                    self.report_error(
+                        attribute.span,
+                        "malformed specification (expected single argument)"
+                    );
+                    return None;
+                }
+                spec_trees[0].clone()
             }
             _ => {
                 self.report_error(attribute.span, "malformed specification (expected token)");
                 return None;
             }
         };
-        let spec_string_with_span = match trees[1] {
+        let spec_string_with_span = match spec_tree {
             TokenTree::Token(span, ref token) => match *token {
                 token::Token::Literal(ref lit, None) => match *lit {
                     token::Lit::Str_(ref name) => {
