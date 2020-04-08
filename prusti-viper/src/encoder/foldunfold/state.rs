@@ -670,7 +670,7 @@ impl State {
                        // because self.quant is already borrowed
         // Remove the current quant. entry, and add it back if some permission is remaining
         self.quant.remove(&curr_quant_entry);
-        if curr_quant_entry.get_perm_amount() > quant.get_perm_amount() {
+        if curr_quant_entry.get_perm_amount() != quant.get_perm_amount() {
             let new_perm_amount = curr_quant_entry.get_perm_amount() - quant.get_perm_amount();
             self.quant.insert(curr_quant_entry.update_perm_amount(new_perm_amount));
         }

@@ -122,7 +122,7 @@ impl vir::Stmt {
                             state.insert_all_pred(new_pred_places);
 
                             let all_pred_instances =
-                                original_state.get_all_quantified_predicate_instances(lhs_place);
+                                original_state.get_all_quantified_predicate_instances(&rhs);
                             let new_pred_place_instantiated = all_pred_instances.fully_instantiated;
                             let new_pred_places_quant = all_pred_instances.partially_instantiated;
 
@@ -130,6 +130,7 @@ impl vir::Stmt {
                                 new_pred_place_instantiated.into_iter().map(|inst| {
                                     let pred = inst.instantiated_pred;
                                     let perm_amount = pred.perm;
+                                    info!("EUHA {}", pred);
                                     let new_place = pred.arg.replace_place(&rhs, lhs_place);
                                     (new_place, perm_amount)
                                 })

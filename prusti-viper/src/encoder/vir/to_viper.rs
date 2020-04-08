@@ -391,7 +391,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
             &Expr::SeqLen(ref seq, _) =>
                 ast.seq_length(seq.to_viper(ast)),
             &Expr::QuantifiedResourceAccess(ref cond, _) =>
-                cond.to_plain_expression().to_viper(ast),
+                cond.to_forall_expression().to_viper(ast),
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)

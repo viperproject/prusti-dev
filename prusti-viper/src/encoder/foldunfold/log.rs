@@ -87,7 +87,8 @@ impl EventLog {
         }
         dropped_permissions
     }
-    /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
+    /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`
+    /// (but not `QuantifiedResourceAccess`).
     pub fn log_read_permission_duplication(
         &mut self,
         borrow: vir::borrows::Borrow,
@@ -146,7 +147,8 @@ impl EventLog {
             .map(|(access, original_place, _)| (access, original_place))
             .collect()
     }
-    /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
+    /// `perm` is an instance of either `PredicateAccessPredicate`,
+    /// `FieldAccessPredicate` or `QuantifiedResourceAccess`.
     pub fn log_convertion_to_read(&mut self, borrow: vir::borrows::Borrow, perm: vir::Expr) {
         assert!(perm.get_perm_amount() == vir::PermAmount::Remaining);
         let entry = self

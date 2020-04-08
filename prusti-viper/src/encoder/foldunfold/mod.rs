@@ -485,6 +485,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     assert!(perm_amount == vir::PermAmount::Remaining);
                     Perm::acc(place.clone(), vir::PermAmount::Read)
                 }
+                vir::Expr::QuantifiedResourceAccess(ref quant, _) => {
+                    assert!(quant.get_perm_amount() == vir::PermAmount::Remaining);
+                    Perm::quantified(quant.clone().update_perm_amount(vir::PermAmount::Read))
+                }
                 x => unreachable!("{:?}", x),
             };
             stmts.extend(
@@ -973,36 +977,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 if perm_amount == vir::PermAmount::Write {
                     // TODO: explain
                     // TODO: also note that we remove the whole quantified predicate and not just the accessed predicate
-                    match instanciated_from {
-                        Some(instanciated_from) => {
-                            // TODO: permission needs to be logged & restored
-                            unimplemented!();
-                            /*
-                            // TODO: Exhale everything or just "access"? Note that we if just exhale the pred, we would still have to remove the whole quant pred
-                            let stmt = vir::Stmt::Exhale(
-                                instanciated_from.to_plain_expression(),
-                                self.method_pos.clone()
-                            );
-                            // We do not use `apply_stmt` as done below because
-                            // the QuantifiedResourceAccess gets "lost" when translating
-                            // this into a plain expression - it wouldn't be removed from bctxt
-                            bctxt.mut_state().remove_quant(&instanciated_from);
-                            stmts.push(stmt);
-                            */
-                        }
-                        None => {
-                            let access = vir::Expr::PredicateAccessPredicate(
+                    let access = match instanciated_from {
+                        Some(instanciated_from) =>
+                            vir::Expr::QuantifiedResourceAccess(
+                                instanciated_from.update_perm_amount(vir::PermAmount::Remaining),
+                                place.pos().clone()
+                            ),
+                        None =>
+                            vir::Expr::PredicateAccessPredicate(
                                 predicate_name.clone(),
                                 box place.clone(),
                                 vir::PermAmount::Remaining,
                                 place.pos().clone(),
-                            );
-                            self.log.log_convertion_to_read(borrow, access.clone());
-                            let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
-                            bctxt.apply_stmt(&stmt);
-                            stmts.push(stmt);
-                        }
-                    }
+                            )
+                    };
+                    self.log.log_convertion_to_read(borrow, access.clone());
+                    let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
+                    bctxt.apply_stmt(&stmt);
+                    stmts.push(stmt);
                 }
                 let new_place = place.replace_place(rhs_place, lhs_place);
                 debug!("    new place: {}", new_place);
@@ -1025,11 +1017,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
             for quant in pred_places_quant {
                 let new_quant = quant.partially_instantiated_quant
                     .map_place(|e| e.replace_place(rhs_place, lhs_place));
-                let stmt = vir::Stmt::Inhale(new_quant.to_plain_expression(), vir::FoldingBehaviour::Stmt);
+                let stmt = vir::Stmt::Inhale(
+                    vir::Expr::QuantifiedResourceAccess(new_quant, vir::Position::default()),
+                    vir::FoldingBehaviour::Stmt
+                );
+                bctxt.apply_stmt(&stmt);
                 stmts.push(stmt);
-                // We do not use `apply_stmt` as done above because the QuantifiedResourceAccess
-                // gets "lost" when translating this into a plain expression - it wouldn't be added into bctxt
-                bctxt.mut_state().insert_quant(new_quant);
             }
         }
 

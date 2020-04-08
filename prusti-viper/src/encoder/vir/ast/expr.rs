@@ -1431,7 +1431,7 @@ impl Expr {
                     inner(index, lvs, exclude, result);
                 }
                 Expr::QuantifiedResourceAccess(quant, _) =>
-                    inner(&quant.to_plain_expression(), lvs, exclude, result),
+                    inner(&quant.to_forall_expression(), lvs, exclude, result),
                 Expr::Const(_, _) => (),
             }
         }
@@ -2087,7 +2087,7 @@ impl QuantifiedResourceAccess {
         ).is_success()
     }
 
-    pub fn to_plain_expression(&self) -> Expr {
+    pub fn to_forall_expression(&self) -> Expr {
         let body = Expr::BinOp(
             BinOpKind::Implies,
             self.cond.clone(),
@@ -2514,8 +2514,8 @@ fn unify(
 
             (Expr::QuantifiedResourceAccess(lquant, _), Expr::QuantifiedResourceAccess(rquant, _)) =>
                 do_unify(
-                    &lquant.to_plain_expression(),
-                    &rquant.to_plain_expression(),
+                    &lquant.to_forall_expression(),
+                    &rquant.to_forall_expression(),
                     free_vars,
                     orig_mapping,
                     vars_mapping,

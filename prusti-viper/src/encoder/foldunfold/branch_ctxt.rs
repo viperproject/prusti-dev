@@ -809,7 +809,7 @@ impl<'a> BranchCtxt<'a> {
                 self.state.insert_pred(req.get_place().clone(), perm_amount);
 
                 // Done. Continue checking the remaining requirements
-                debug!("We folded {}", req);
+                info!("We folded {}", req);
                 trace!("[exit] obtain");
                 return ObtainResult::Success(actions);
             } else {
