@@ -686,6 +686,33 @@ impl<'a> BranchCtxt<'a> {
                                     }
                                 }
                             }
+                            // We may have unfolded a quantified predicate instance.
+                            // As an example, suppose we have the quant. pred.
+                            // forall i :: (cond) => isize(self.val_array[i].val_ref)
+                            // and an instantiation:
+                            // isize(_1.val_ref.val_array[idx].val_ref)
+                            // If we unfolded this predicate, we would have
+                            // acc(_1.val_ref.val_array[idx].val_ref.val_int)
+                            // which ends up in state.acc().
+                            // To determine whether we unfolded this quant. pred., we
+                            // search for proper suffixes of the quant. pred. by
+                            // looking at the accs.
+                            // In the example, we would find that
+                            // _1.val_ref.val_array[idx].val_ref.val_int
+                            // can be instantiated from isize(_1.val_ref.val_array[idx].val_ref)
+                            // so we add isize(_1.val_ref.val_array[idx].val_ref) into the perms
+                            // to be obtained (i.e., we need to fold _1.val_ref.val_array[idx].val_ref.val_int).
+                            for (acc, acc_perm) in self.state.acc().clone() {
+                                info!("Acc {} {}", acc, acc_perm);
+                                if let Some(instance) = a.try_instantiate(&acc) {
+                                    if instance.match_type() == vir::InstantiationResultMatchType::PrefixPredAccMatch {
+                                        assert!(instance.instantiated().resource.is_pred());
+                                        // We push the proper prefix (instance.(..).resource) and not the acc itself
+                                        perms.push(Perm::Pred(instance.into_instantiated().resource.into_place(), acc_perm));
+                                        break;
+                                    }
+                                }
+                            }
                         }
                         perms
                         /*// We want to fold the predicate and this "place" has the form
