@@ -1,22 +1,33 @@
 SHELL := /usr/bin/env bash
+
+ifeq ($(shell uname), Darwin)
+	LIB_EXT = dylib
+	TOOLCHAIN_SUFFIX = apple-darwin
+else
+	LIB_EXT = so
+	TOOLCHAIN_SUFFIX = unknown-linux-gnu
+endif
+
 RUST_LOG ?= prusti=info
 RUST_TEST_THREADS ?= 1
 JAVA_HOME ?= /usr/lib/jvm/default-java
-RUN_FILE ?= prusti/tests/typecheck/pass/lint.rs
+RUN_FILE ?= prusti/tests/verify/pass/no-annotations/assert-true.rs
 RUN_FILE_FOLDER=$(shell dirname ${RUN_FILE})
 ABS_JAVA_HOME=$(shell perl -MCwd -le 'print Cwd::abs_path shift' "${JAVA_HOME}")
-JAVA_LIBJVM_DIR=$(shell dirname "$(shell find "${ABS_JAVA_HOME}" -name "libjvm.so" -o -name "libjvm.dylib")")
+JAVA_LIBJVM_DIR=$(shell dirname "$(shell find "${ABS_JAVA_HOME}" -name "libjvm.$(LIB_EXT)")")
 RUSTUP_TOOLCHAIN=$(shell cat rust-toolchain)
-RUST_VERSION = ${RUSTUP_TOOLCHAIN}-x86_64-unknown-linux-gnu
+RUST_VERSION = ${RUSTUP_TOOLCHAIN}-x86_64-$(TOOLCHAIN_SUFFIX)
 COMPILER_PATH = $$HOME/.rustup/toolchains/${RUST_VERSION}
 LIB_PATH = ${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:./target/debug:./target/debug/deps
 RELEASE_LIB_PATH = ${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:./target/release:./target/release/deps
 PRUSTI_DRIVER=./target/debug/prusti-driver
 PRUSTI_DRIVER_RELEASE=./target/release/prusti-driver
+Z3_EXE ?= $(shell which z3)
 
-SET_ENV_VARS = LD_LIBRARY_PATH=$(LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
+SHARED_ENV_VARS = JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS) Z3_EXE=$(Z3_EXE)
 
-SET_RELEASE_ENV_VARS = LD_LIBRARY_PATH=$(RELEASE_LIB_PATH) JAVA_HOME=$(JAVA_HOME) RUST_TEST_THREADS=$(RUST_TEST_THREADS)
+SET_ENV_VARS = $(SHARED_ENV_VARS) LD_LIBRARY_PATH=$(LIB_PATH) RUST_BACKTRACE=1
+SET_RELEASE_ENV_VARS = $(SHARED_ENV_VARS) LD_LIBRARY_PATH=$(RELEASE_LIB_PATH)
 
 default: build
 
