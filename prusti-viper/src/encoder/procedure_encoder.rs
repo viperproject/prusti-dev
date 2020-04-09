@@ -1617,6 +1617,51 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
                     }
 
+                    "core::slice::<impl [T]>::len" => {
+                        assert_eq!(args.len(), 1);
+                        let label = self.cfg_method.get_fresh_label_name();
+                        stmts.push(vir::Stmt::Label(label.clone()));
+
+                        // Havoc the content of the lhs
+                        let (target_place, target_ty, _) = match destination.as_ref() {
+                            Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
+                            None => unreachable!(),
+                        };
+                        stmts.extend(self.encode_havoc(&target_place));
+                        let type_predicate = self
+                            .mir_encoder
+                            .encode_place_predicate_permission(
+                                target_place.clone(),
+                                vir::PermAmount::Write,
+                            )
+                            .unwrap();
+                        stmts.push(
+                            vir::Stmt::Inhale(
+                                type_predicate,
+                                vir::FoldingBehaviour::Stmt
+                            )
+                        );
+
+                        let seq_mir_place = match &args[0] {
+                            mir::Operand::Copy(place) | mir::Operand::Move(place) => place,
+                            mir::Operand::Constant(cst) => unimplemented!("{:?}", cst),
+                        };
+                        stmts.extend(self.encode_assign_len(seq_mir_place, target_place, target_ty, location));
+
+                        self.label_after_location.insert(location, label.clone());
+
+                        let seq_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                        let ref_field =
+                            self.encoder.encode_dereference_field(seq_ty);
+                        let seq_place = self.mir_encoder.encode_place(seq_mir_place).0
+                            .field(ref_field);
+                        stmts.extend(self.encode_transfer_permissions(
+                            seq_place.clone(),
+                            seq_place.clone().old(&label),
+                            location,
+                        ));
+                    }
+
                     _ => {
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
@@ -4025,17 +4070,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.encode_copy_value_assign(encoded_lhs, encoded_val, ty, location)
     }
 
+    fn encode_derefs(&self, place: &mir::Place<'tcx>) -> (vir::Expr, ty::Ty<'tcx>) {
+        let (mut encoded_val, mut place_ty, _) = self.mir_encoder.encode_place(place);
+
+        while self.mir_encoder.can_be_dereferenced(place_ty) {
+            let (new_encoded_val, new_place_ty, _) =
+                self.mir_encoder.encode_deref(encoded_val, place_ty);
+            encoded_val = new_encoded_val;
+            place_ty = new_place_ty;
+        }
+        (encoded_val.field(self.encoder.encode_value_field(place_ty)), place_ty)
+    }
+
     fn encode_assign_len(
         &mut self,
-        place: &mir::Place<'tcx>,
+        seq_place: &mir::Place<'tcx>,
         encoded_lhs: vir::Expr,
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> Vec<vir::Stmt> {
-        trace!("[enter] encode_assign_len(place={:?})", place);
-        let (encoded_val, place_ty, _) = self.mir_encoder.encode_place(place);
-        let base = encoded_val.field(self.encoder.encode_value_field(place_ty));
-        self.encode_copy_value_assign(encoded_lhs, vir::Expr::seq_len(base), ty, location)
+        trace!("[enter] encode_assign_len(place={:?})", seq_place);
+        let (encoded_seq, _) = self.encode_derefs(seq_place);
+        self.encode_copy_value_assign(encoded_lhs, vir::Expr::seq_len(encoded_seq), ty, location)
     }
 
     pub fn get_auxiliar_local_var(&mut self, suffix: &str, vir_type: vir::Type) -> vir::LocalVar {

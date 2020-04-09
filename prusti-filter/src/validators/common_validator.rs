@@ -155,7 +155,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
             ty::TypeVariants::TySlice(inner_ty, ..) => {
                 self.check_inner_ty(inner_ty, span);
-                unsupported!(self, span, "uses `slice` types");
+                partially!(self, span, "uses `slice` types");
             }
 
             ty::TypeVariants::TyRawPtr(..) => {

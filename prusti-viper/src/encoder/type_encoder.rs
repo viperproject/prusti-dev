@@ -48,7 +48,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyTuple(_) |
             ty::TypeVariants::TyNever |
             ty::TypeVariants::TyParam(_) |
-            ty::TypeVariants::TyArray(_, _) => {
+            ty::TypeVariants::TyArray(_, _) |
+            ty::TypeVariants::TySlice(_) => {
                 true
             }
             _ => {
@@ -118,6 +119,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
             }
 
+            ty::TypeVariants::TyArray(ref ty, _) | ty::TypeVariants::TySlice(ref ty) => {
+                let type_name = self.encoder.encode_type_predicate_use(ty);
+                vir::Type::TypedSeq(type_name)
+            }
+
             ref x => unimplemented!("{:?}", x),
         }
     }
@@ -142,7 +148,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
             }
 
-            ty::TypeVariants::TyArray(ref ty, _) => {
+            ty::TypeVariants::TyArray(ref ty, _) | ty::TypeVariants::TySlice(ref ty) => {
                 let type_name = self.encoder.encode_type_predicate_use(ty);
                 vir::Field::new("val_array", vir::Type::TypedSeq(type_name))
             }
@@ -343,13 +349,18 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vec![vir::Predicate::new_abstract(typ)]
             }
 
-            ty::TypeVariants::TyArray(inner, size) => {
+            ty::TypeVariants::TyArray(inner, _) | ty::TypeVariants::TySlice(inner) => {
+                let size = if let ty::TypeVariants::TyArray(_, size) = self.ty.sty {
+                    size.assert_usize(self.encoder.env().tcx())
+                } else {
+                    None
+                };
                 vec![vir::Predicate::new_slice_or_array(
                     typ,
                     TypeEncoder::new(self.encoder, inner).encode_predicate_use(),
                     self.encoder.encode_dereference_field(inner),
                     self.encoder.encode_value_field(self.ty),
-                    size.assert_usize(self.encoder.env().tcx()),
+                    size,
                 )]
             }
 

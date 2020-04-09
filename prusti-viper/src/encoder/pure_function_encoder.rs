@@ -376,6 +376,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, '
         &self.mir_encoder
     }
 
+    fn encode_derefs(&self, place: &mir::Place<'tcx>) -> (vir::Expr, ty::Ty<'tcx>) {
+        let (mut encoded_val, mut place_ty, _) = self.mir_encoder.encode_place(place);
+
+        while self.mir_encoder.can_be_dereferenced(place_ty) {
+            let (new_encoded_val, new_place_ty, _) =
+                self.mir_encoder.encode_deref(encoded_val, place_ty);
+            encoded_val = new_encoded_val;
+            place_ty = new_place_ty;
+        }
+        (encoded_val.field(self.encoder.encode_value_field(place_ty)), place_ty)
+    }
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
@@ -628,6 +639,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 .encode_old_expr(encoded_args[0].clone(), WAND_LHS_LABEL);
                             let mut state = states[&target_block].clone();
                             state.substitute_value(&lhs_value, encoded_rhs);
+                            state
+                        }
+
+                        "core::slice::<impl [T]>::len" => {
+                            assert_eq!(args.len(), 1);
+                            let seq_mir_place = match &args[0] {
+                                mir::Operand::Copy(place) | mir::Operand::Move(place) => place,
+                                mir::Operand::Constant(cst) => unimplemented!("{:?}", cst),
+                            };
+                            let seq = self.encode_derefs(seq_mir_place).0;
+                            let mut state = states[&target_block].clone();
+                            state.substitute_value(
+                                &lhs_value,
+                                vir::Expr::seq_len(seq)
+                            );
                             state
                         }
 

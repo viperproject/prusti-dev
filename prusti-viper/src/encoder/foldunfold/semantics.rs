@@ -303,11 +303,14 @@ impl vir::Stmt {
                         let new_place = pred.arg.replace_place(&lhs_place, rhs_place);
                         (new_place, perm_amount)
                     });
-
                 let new_pred_places_quant = new_pred_places_quant.into_iter()
                     .map(|quant| quant.partially_instantiated_quant
                         .map_place(|e| e.replace_place(&lhs_place, rhs_place))
                     );
+                // TODO: is this thing necessary ? If yes, should also be done for moves
+                let new_quant_places = state.get_quantified_resources_suffixes_of(lhs_place)
+                    .into_iter()
+                    .map(|quant| quant.map_place(|e| e.replace_place(&lhs_place, rhs_place)));
 
                 assert!(
                     (lhs_place == lhs_place) || !(new_acc_places.is_empty() && new_pred_places.is_empty()),
@@ -321,6 +324,7 @@ impl vir::Stmt {
                 state.insert_all_pred(new_pred_places.into_iter());
                 state.insert_all_pred(new_pred_place_instantiated);
                 state.insert_all_quant(new_pred_places_quant);
+                state.insert_all_quant(new_quant_places);
 
                 // Move also the acc permission if the rhs is old.
                 if state.contains_acc(lhs_place) && !state.contains_acc(rhs_place) {

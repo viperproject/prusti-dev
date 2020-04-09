@@ -331,6 +331,22 @@ impl State {
         }
     }
 
+    // TODO: name
+    // TODO: explain what it does
+    // TODO: explain difference with get_all_quantified_predicate_instances
+    //  _1.val_ref -> forall i acc(_1.val_ref.val_array[i].val_ref)
+    pub fn get_quantified_resources_suffixes_of(
+        &self,
+        perm_prefix_place: &vir::Expr
+    ) -> Vec<vir::QuantifiedResourceAccess> {
+        trace!("get_quantified_resources_suffixes_of: {}", perm_prefix_place);
+        trace!("{}", self.display_quant());
+        self.quant.iter()
+            .filter(|quant| quant.resource.get_place().has_prefix(perm_prefix_place))
+            .cloned()
+            .collect()
+    }
+
     pub fn contains_quantified(&self, quant: &vir::QuantifiedResourceAccess) -> bool {
         self.get_quantified(quant, false).is_some()
     }
