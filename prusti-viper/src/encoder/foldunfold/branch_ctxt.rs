@@ -636,13 +636,13 @@ impl<'a> BranchCtxt<'a> {
                 .flat_map(|p| match p {
                     Perm::Acc(..) | Perm::Pred(..) =>
                         vec![p],
-                    Perm::Quantified(a) => {
+                    Perm::Quantified(quant) => {
                         let mut perms = Vec::new();
-                        if a.resource.is_field_acc() {
+                        if quant.resource.is_field_acc() {
                             // We go over all fields acc and add the ones that comes
                             // from this quantified field access.
                             for (acc, acc_perm) in self.state.acc().clone() {
-                                if let Some(instance) = a.try_instantiate(&acc) {
+                                if let Some(instance) = quant.try_instantiate(&acc) {
                                     if instance.is_match_perfect() {
                                         assert!(instance.instantiated().resource.is_field_acc());
                                         perms.push(Perm::Acc(acc, acc_perm));
@@ -653,7 +653,7 @@ impl<'a> BranchCtxt<'a> {
                             // else: is a predicate access
                             // We do the same for pred accs
                             for (pred, pred_perm) in self.state.pred().clone() {
-                                if let Some(instance) = a.try_instantiate(&pred) {
+                                if let Some(instance) = quant.try_instantiate(&pred) {
                                     if instance.is_match_perfect() {
                                         assert!(instance.instantiated().resource.is_pred());
                                         perms.push(Perm::Pred(pred, pred_perm));
@@ -677,7 +677,7 @@ impl<'a> BranchCtxt<'a> {
                             // so we add isize(_1.val_ref.val_array[idx].val_ref) into the perms
                             // to be obtained (i.e., we need to fold _1.val_ref.val_array[idx].val_ref.val_int).
                             for (acc, acc_perm) in self.state.acc().clone() {
-                                if let Some(instance) = a.try_instantiate(&acc) {
+                                if let Some(instance) = quant.try_instantiate(&acc) {
                                     if instance.match_type() == vir::InstantiationResultMatchType::PrefixPredAccMatch {
                                         assert!(instance.instantiated().resource.is_pred());
                                         // We indeed push the proper prefix (instance.(..).resource) and not the acc itself
@@ -744,6 +744,12 @@ impl<'a> BranchCtxt<'a> {
                     .into_iter()
                     .map(|perm| perm.update_perm_amount(perm_amount))
                     .collect();
+                // Scale or remove quantified predicates that have been unfolded
+                let scaled_quantified: Vec<_> = self.state
+                    .get_quantified_resources_suffixes_of(req.get_place())
+                    .into_iter()
+                    .map(|quant| Perm::Quantified(quant.update_perm_amount(perm_amount)))
+                    .collect();
 
                 let pos = req.get_place().pos().clone();
                 let fold_action = Action::Fold(
@@ -765,6 +771,7 @@ impl<'a> BranchCtxt<'a> {
                 );
                 assert!(!self.state.contains_pred(req.get_place()));
                 self.state.remove_all_perms(scaled_places_in_pred.iter());
+                self.state.remove_all_perms(scaled_quantified.iter());
                 self.state.insert_pred(req.get_place().clone(), perm_amount);
 
                 // Done. Continue checking the remaining requirements

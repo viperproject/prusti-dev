@@ -1019,14 +1019,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 stmts.push(stmt);
             }
 
-            // TODO: shouldn't these be log_read_permission_duplication ?
             for quant in pred_places_quant {
                 let new_quant = quant.partially_instantiated_quant
                     .map_place(|e| e.replace_place(rhs_place, lhs_place));
-                let stmt = vir::Stmt::Inhale(
-                    vir::Expr::QuantifiedResourceAccess(new_quant, vir::Position::default()),
-                    vir::FoldingBehaviour::Stmt
+                let lhs_read_access =
+                    vir::Expr::QuantifiedResourceAccess(new_quant, vir::Position::default());
+                self.log.log_read_permission_duplication(
+                    borrow,
+                    lhs_read_access.clone(),
+                    lhs_place.clone(),
                 );
+                let stmt = vir::Stmt::Inhale(lhs_read_access, vir::FoldingBehaviour::Stmt);
                 bctxt.apply_stmt(&stmt);
                 stmts.push(stmt);
             }

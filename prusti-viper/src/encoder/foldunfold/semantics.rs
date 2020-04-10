@@ -128,7 +128,6 @@ impl vir::Stmt {
                                 original_state.get_all_quantified_predicate_instances(&rhs);
                             let new_pred_place_instantiated = all_pred_instances.fully_instantiated;
                             let new_pred_places_quant = all_pred_instances.partially_instantiated;
-
                             state.insert_all_pred(
                                 new_pred_place_instantiated.into_iter().map(|inst| {
                                     let pred = inst.instantiated_pred;
@@ -143,6 +142,10 @@ impl vir::Stmt {
                                         .map_place(|e| e.replace_place(&rhs, lhs_place))
                                 )
                             );
+                            let new_quant_places = state.get_quantified_resources_suffixes_of(rhs)
+                                .into_iter()
+                                .map(|quant| quant.map_place(|e| e.replace_place(&rhs, lhs_place)));
+                            state.insert_all_quant(new_quant_places.into_iter());
 
                             // Finally, mark the rhs as moved
                             if !rhs.has_prefix(lhs_place) {
@@ -313,7 +316,6 @@ impl vir::Stmt {
                     .map(|quant| quant.partially_instantiated_quant
                         .map_place(|e| e.replace_place(&lhs_place, rhs_place))
                     );
-                // TODO: is this thing necessary ? If yes, should also be done for moves
                 let new_quant_places = state.get_quantified_resources_suffixes_of(lhs_place)
                     .into_iter()
                     .map(|quant| quant.map_place(|e| e.replace_place(&lhs_place, rhs_place)));

@@ -1,6 +1,6 @@
 extern crate prusti_contracts;
 
-// ignore-test Some tests fail on Silicon; all but the last three succeed on Carbon.
+// ignore-test Some tests fail on Silicon (non-commented ones succeed on Carbon)
 
 fn sum_all(arr: &[isize]) -> isize {
     let mut sum = 0;
@@ -21,7 +21,8 @@ fn sum_alternate(arr: &[isize]) -> isize {
     }
     sum
 }
-
+// TODO: this one takes too much time to verify
+/*
 fn sum_weird(arr: &[isize]) -> isize {
     let mut sum = 0;
     let mut i = 0;
@@ -34,7 +35,7 @@ fn sum_weird(arr: &[isize]) -> isize {
     }
     sum
 }
-
+*/
 fn sum_all_ref(arr: &[isize]) -> isize {
     let mut sum = 0;
     let mut i = 0;
@@ -56,7 +57,8 @@ fn sum_alternate_ref(arr: &[isize]) -> isize {
     }
     sum
 }
-
+// TODO: this one takes too much time to verify
+/*
 fn sum_weird_ref(arr: &[isize]) -> isize {
     let mut sum = 0;
     let mut i = 0;
@@ -70,5 +72,5 @@ fn sum_weird_ref(arr: &[isize]) -> isize {
     }
     sum
 }
-
+*/
 fn main() {}

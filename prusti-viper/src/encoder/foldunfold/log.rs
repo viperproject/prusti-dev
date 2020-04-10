@@ -87,8 +87,8 @@ impl EventLog {
         }
         dropped_permissions
     }
-    /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`
-    /// (but not `QuantifiedResourceAccess`).
+    /// `perm` is an instance of either `PredicateAccessPredicate`, `FieldAccessPredicate`
+    /// or `QuantifiedResourceAccess`.
     pub fn log_read_permission_duplication(
         &mut self,
         borrow: vir::borrows::Borrow,
@@ -131,6 +131,35 @@ impl EventLog {
                     let key2 = (place2.place_depth(), id2);
                     key2.cmp(&key1)
                 }
+                (
+                    vir::Expr::QuantifiedResourceAccess(ref quant1, _),
+                    vir::Expr::QuantifiedResourceAccess(ref quant2, _),
+                ) => {
+                    match (&quant1.resource, &quant2.resource) {
+                        (
+                            vir::PlainResourceAccess::Predicate(_),
+                            vir::PlainResourceAccess::Predicate(_)
+                        ) => Ordering::Equal,
+                        (
+                            vir::PlainResourceAccess::Predicate(_),
+                            vir::PlainResourceAccess::Field(_)
+                        ) => Ordering::Less,
+                        (
+                            vir::PlainResourceAccess::Field(_),
+                            vir::PlainResourceAccess::Predicate(_)
+                        ) => Ordering::Greater,
+                        (
+                            vir::PlainResourceAccess::Field(f1),
+                            vir::PlainResourceAccess::Field(f2)
+                        ) => {
+                            let key1 = (f1.place.place_depth(), id1);
+                            let key2 = (f2.place.place_depth(), id2);
+                            key2.cmp(&key1)
+                        },
+                    }
+                }
+                (vir::Expr::QuantifiedResourceAccess(..), _) => Ordering::Greater,
+                (_, vir::Expr::QuantifiedResourceAccess(..)) => Ordering::Less,
                 x => unreachable!("{:?}", x),
             },
         );

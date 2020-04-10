@@ -267,7 +267,6 @@ impl State {
         self.quant.iter().find(|x| x.is_similar_to(quant, check_perms))
     }
 
-    // TODO: These three fns have similar names, but do different things
     /// Get all quantified resources that can be instantiated for the given permission
     /// (as well as their instantiations)
     pub fn get_all_quantified_instances(&self, perm: &Perm) -> Vec<vir::InstantiationResult> {
@@ -302,7 +301,6 @@ impl State {
         instances
     }
 
-    // TODO: name
     /// Get all predicate instances that perfectly match the given place.
     /// We split the results in two groups: predicates that are fully instantiated
     /// (i.e., no forall vars remaining) and the ones that still contains free vars.
@@ -344,7 +342,6 @@ impl State {
         }
     }
 
-    // TODO: name
     /// Get all quantified resources for which `perm_prefix_place` is a prefix.
     /// For instance, if we have `_1.val_ref` for `perm_prefix_place` and that
     /// we have the following quantified resources:
@@ -580,6 +577,7 @@ impl State {
                 quant.get_perm_amount(),
                 curr_quant.get_perm_amount()
             );
+            self.quant.remove(&curr_quant);
             self.quant.insert(curr_quant.update_perm_amount(new_perm));
         } else {
             self.quant.insert(quant);

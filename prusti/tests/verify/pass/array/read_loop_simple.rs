@@ -1,6 +1,6 @@
 extern crate prusti_contracts;
 
-// ignore-test Some tests fail on Silicon; all but the last three succeed on Carbon.
+// ignore-test Some tests fail on Silicon; all but the commented ones succeed on Carbon.
 
 fn sum_all(arr: &[isize; 64]) -> isize {
     let mut sum = 0;
@@ -92,20 +92,6 @@ fn partial_sum(arr: &[isize; 64], from: usize, to: usize) -> isize {
 }
 */
 
-// TODO: this one cause a crash, likely due to partial support of abrupt loop termination
-// (replacing the array by a struct causes the same crash)
-/*
-fn sum_all_mut_1(arr: &mut [isize; 64]) -> isize {
-    let mut sum = 0;
-    let mut i = 0;
-    #[invariant="i >= 0"]
-    while i < 64 {
-        sum += arr[i];
-        i += 1;
-    }
-    sum
-}
-*/
 // TODO: this attempt to fix sum_all_mut_1 results in lack of permission when exhaling old(arr)
 /*
 fn sum_all_mut_2(arr: &mut [isize; 64]) -> isize {
