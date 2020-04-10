@@ -17,9 +17,26 @@ pub enum Action {
     /// perm to be dropped.
     Drop(Perm, Perm),
     Assertion(vir::Expr),
-    /// An unfold that must be directly folded back.
+    /// An unfold that must be directly folded back once the statement
+    /// that needs it is finished.
     /// This is necessary when dealing with quantified predicate accesses.
-    /// TODO: example
+    /// For instance, suppose that we have the following quantified predicate:
+    /// ```forall i: Int :: { self.val_array[i] } 0 <= i && i < |self.val_array|
+    ///     ==> acc(isize(self.val_array[i].val_ref))```
+    /// Furthermore, assume that we have the following statement
+    /// ```foo.val_array[idx].val_ref.val_int = 42```
+    /// We need to unfold ```isize(foo.val_array[idx].val_ref)``` before we can
+    /// do the assignment.
+    /// However, once the assignment is done, we must fold it back.
+    /// Indeed, if we don't do so, we can have the following statement
+    /// ```foo.val_array[idx2].val_ref.val_int = 34```, which would then cause
+    /// the unfolding of ```isize(self.val_array[idx2].val_ref)```
+    /// If both ```isize(self.val_array[idx].val_ref)``` and
+    /// ```isize(self.val_array[idx2].val_ref)``` are unfolded with `write`,
+    /// the prover may deduce that `idx == idx2`, which may not be the case!
+    ///
+    /// Note that this problem shouldn't arise for `read` accesses, but we still
+    /// conservatively temporarily unfold `read` (instantiated) predicate accesses.
     TemporaryUnfold(String, Vec<vir::Expr>, PermAmount, vir::MaybeEnumVariantIndex),
 }
 
@@ -67,6 +84,11 @@ impl Action {
     }
 }
 
+/// Converts the actions into two groups of VIR statements, allowing the handling
+/// of "temporary unfolds"
+/// The first returned vector corresponds to actual actions conversions,
+/// while the second contains folds that must be applied once the statement
+/// is done.
 pub fn actions_to_stmts(actions: Vec<Action>) -> (Vec<vir::Stmt>, Vec<vir::Stmt>) {
     let mut perms = Vec::new();
     let mut to_fold_back = Vec::new();
@@ -79,7 +101,8 @@ pub fn actions_to_stmts(actions: Vec<Action>) -> (Vec<vir::Stmt>, Vec<vir::Stmt>
             other => perms.push(other.to_stmt()),
         }
     }
-    (perms, to_fold_back)
+    // This reverse is not the most effective...
+    (perms, to_fold_back.into_iter().rev().collect())
 }
 
 impl fmt::Display for Action {

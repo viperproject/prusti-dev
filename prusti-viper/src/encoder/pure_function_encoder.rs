@@ -376,6 +376,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, '
         &self.mir_encoder
     }
 
+    // Encoding "auto-derefs". This is necessary for e.g. accessing the size of a sequence.
     fn encode_derefs(&self, place: &mir::Place<'tcx>) -> (vir::Expr, ty::Ty<'tcx>) {
         let (mut encoded_val, mut place_ty, _) = self.mir_encoder.encode_place(place);
 

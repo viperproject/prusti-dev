@@ -60,6 +60,7 @@ impl<'a> BranchCtxt<'a> {
         pred_place: &vir::Expr,
         perm_amount: PermAmount,
         variant: vir::MaybeEnumVariantIndex,
+        // See Action comments on `TemporaryUnfold` for an explanation
         temporary_unfold: bool,
     ) -> Action {
         debug!("We want to unfold {} with {}", pred_place, perm_amount);
@@ -131,8 +132,11 @@ impl<'a> BranchCtxt<'a> {
 
     /// left is self, right is other
     pub fn join(&mut self, mut other: BranchCtxt) -> (Vec<Action>, Vec<Action>) {
-        // TODO: name
-        // TODO: explain
+        // All field accs that do not come from a quantified field accesses
+        // We treat paths coming from quant. instantiation as if they were
+        // not definitely initialized.
+        // Note: once the removal of paths that are not definitely initialised
+        // is done (cf to-do below) , we should be able to get rid of these two functions.
         fn plain_acc_places(slf: &BranchCtxt) -> HashSet<vir::Expr> {
             slf.state.acc_places()
                 .iter()
@@ -140,6 +144,7 @@ impl<'a> BranchCtxt<'a> {
                 .cloned()
                 .collect()
         }
+        // Similar to `plain_acc_places`, but for predicate instead.
         fn plain_pred_places(slf: &BranchCtxt) -> HashSet<vir::Expr> {
             slf.state.pred_places()
                 .iter()
@@ -536,6 +541,7 @@ impl<'a> BranchCtxt<'a> {
     /// ``in_join`` – are we currently trying to join branches?
     fn obtain(&mut self, req: &Perm, in_join: bool) -> ObtainResult {
         trace!("[enter] obtain(req={})", req);
+        // First, obtain permissions of all prefixes
         let prefixes = req.get_place().all_proper_prefixes();
         let mut proper_places_actions = prefixes.into_iter()
             .try_fold(
@@ -548,10 +554,12 @@ impl<'a> BranchCtxt<'a> {
                     Ok(actions)
                 }
             )?;
+        // Then obtain the actual permission
         proper_places_actions.extend(self.do_obtain(&req, in_join)?);
         ObtainResult::Success(proper_places_actions)
     }
 
+    // Actual implementation for obtaining the permissions
     fn do_obtain(&mut self, req: &Perm, in_join: bool) -> ObtainResult {
         trace!("[enter] do_obtain(req={})", req);
 
@@ -631,6 +639,8 @@ impl<'a> BranchCtxt<'a> {
                     Perm::Quantified(a) => {
                         let mut perms = Vec::new();
                         if a.resource.is_field_acc() {
+                            // We go over all fields acc and add the ones that comes
+                            // from this quantified field access.
                             for (acc, acc_perm) in self.state.acc().clone() {
                                 if let Some(instance) = a.try_instantiate(&acc) {
                                     if instance.is_match_perfect() {
@@ -641,6 +651,7 @@ impl<'a> BranchCtxt<'a> {
                             }
                         } else {
                             // else: is a predicate access
+                            // We do the same for pred accs
                             for (pred, pred_perm) in self.state.pred().clone() {
                                 if let Some(instance) = a.try_instantiate(&pred) {
                                     if instance.is_match_perfect() {
@@ -669,7 +680,8 @@ impl<'a> BranchCtxt<'a> {
                                 if let Some(instance) = a.try_instantiate(&acc) {
                                     if instance.match_type() == vir::InstantiationResultMatchType::PrefixPredAccMatch {
                                         assert!(instance.instantiated().resource.is_pred());
-                                        // We push the proper prefix (instance.(..).resource) and not the acc itself
+                                        // We indeed push the proper prefix (instance.(..).resource) and not the acc itself
+                                        // as noted in the example above.
                                         perms.push(Perm::Pred(instance.into_instantiated().resource.into_place(), acc_perm));
                                         break;
                                     }
@@ -745,7 +757,6 @@ impl<'a> BranchCtxt<'a> {
 
                 // Simulate folding of `req`
                 assert!(self.state.contains_all_perms(scaled_places_in_pred.iter()));
-                // TODO: This can fail. Fix
                 assert!(
                     !req.get_place().is_simple_place() || self.state.contains_acc(req.get_place()),
                     "req={} state={}",
@@ -787,7 +798,7 @@ Quantified: {{
 
         // 5. Obtain from a quantified resource
         let all_instances = self.state.get_all_quantified_instances(req);
-        match self.handle_resource_access_results(req, all_instances) {
+        match self.handle_quantified_instances_results(req, all_instances) {
             ObtainResult::Success(new_actions) => {
                 actions.extend(new_actions);
                 ObtainResult::Success(actions)
@@ -821,13 +832,16 @@ Quantified: {{
         }
     }
 
-    fn handle_resource_access_results(
+    fn handle_quantified_instances_results(
         &mut self,
         req: &Perm,
         inst_results: Vec<vir::InstantiationResult>
     ) -> ObtainResult {
         debug!(
-            "[enter] handle_resource_access_results\n\treq = {}\n\taccess_results = {}\n\tstate = {}",
+            "[enter] handle_quantified_instances_results\n\t\
+            req = {}\n\
+            taccess_results = {}\n\t\
+            state = {}",
             req,
             inst_results.iter()
                 .map(|res| res.instantiated().to_string())
@@ -836,19 +850,19 @@ Quantified: {{
             self.state,
         );
         inst_results.into_iter()
-            .map(|res| self.handle_resource_access_result(req, res))
+            .map(|res| self.handle_quantified_instances_result(req, res))
             .find(|obtain_res| obtain_res.is_success())
             .unwrap_or_else(|| ObtainResult::Failure(req.clone()))
     }
 
-    fn handle_resource_access_result(
+    fn handle_quantified_instances_result(
         &mut self,
         req: &Perm,
         inst_result: vir::InstantiationResult
     ) -> ObtainResult {
         use encoder::vir::InstantiationResultMatchType::*;
         debug!(
-            "handle_resource_access_result req {} --> {}  {:?}",
+            "handle_quantified_instances_result req {} --> {}  {:?}",
             req, inst_result.instantiated(), inst_result.match_type()
         );
         let match_type = inst_result.match_type();
@@ -857,35 +871,69 @@ Quantified: {{
         if quant.resource.get_perm_amount() < req.get_perm_amount() {
             return ObtainResult::Failure(req.clone());
         }
+
         let perm_amount = quant.resource.get_perm_amount();
         let mut actions = Vec::new();
-        debug!("[exit] obtain: Requirement {} is satisfied only if {} is satisfied", req, precond);
+        debug!("handle_quantified_instances_result: \
+        Requirement {} may be satisfied only if {} is satisfied", req, precond);
+        // Since quantified resource access have the form `forall vars :: cond ==> resource`,
+        // we need to satisfy `cond` (e.g. index range for array access).
+        // We simply assert them.
         actions.push(Action::Assertion(precond));
+        // We have instantiated a quant. resource, but there are different type of "matching"
+        // that will determine whether we need to do more work or not
         match match_type {
+            // We have asked for e.g. `acc(a.b[x].d)` and the instantiation gave us
+            // exactly that (i.e., the quant. field. was of the form `acc(a.b[i].d)`)
+            // In that case, we are done.
             PerfectFieldAccMatch => {
                 assert!(req.is_acc());
                 assert_eq!(req.get_place(), quant.resource.get_place());
                 self.state.insert_perm(req.clone().update_perm_amount(perm_amount));
                 ObtainResult::Success(actions)
             }
-            PerfectPredAccMatch | PrefixPredAccMatch => {
-                let predicate = match quant.resource {
-                    vir::PlainResourceAccess::Predicate(pred) => pred,
-                    _ => unreachable!(), // TODO: explain
-                };
-                // TODO: explain
-                // TODO: also explain why we insert predicate and not req
-                assert_eq!(predicate.perm, perm_amount); // Indeed, since predicate is extracted from quant.resource
-                self.state.insert_pred(*predicate.arg.clone(), predicate.perm);
-                actions.push(self.unfold(&*predicate.arg, predicate.perm, None, true));
-                // TODO: explain
-                if match_type == PrefixPredAccMatch {
-                    actions.extend(self.do_obtain(&req.clone().update_perm_amount(perm_amount), false)?);
-                }
+            // Similarly to the previous case, we asked e.g. `acc(isize(a.b[x].d))` and
+            // the instantiation gave us exactly that.
+            PerfectPredAccMatch if req.is_pred() => {
+                assert_eq!(req.get_place(), quant.resource.get_place());
+                self.state.insert_perm(req.clone().update_perm_amount(perm_amount));
                 ObtainResult::Success(actions)
             }
+            // We have asked for e.g. `acc(a.b[x].d)` and the instantiation gave
+            // us `acc(isize(a.b[x].d))`. Such instantiation is somewhat
+            // ill-formed: we can't obtain `acc(a.b[x].d)` by unfolding `size(a.b[x].d)`
+            // (indeed, to unfold `isize(a.b[x].d)`, we actually need `acc(a.b[x].d)`).
+            PerfectPredAccMatch => {
+                assert!(req.is_acc());
+                ObtainResult::Failure(req.clone())
+            }
+            // We have asked for e.g. `acc(isize(a.b[x].d.e))` and the instantiation gave
+            // us `acc(isize(a.b[x].d))` (`.e` missing). In that case, we give up
+            // and hope that the next instantiation will be more successful.
+            PrefixPredAccMatch if req.is_pred() => {
+                ObtainResult::Failure(req.clone())
+            }
+            // We have asked for e.g. `acc(a.b[x].d.e)` and the instantiation gave us
+            // e.g. `acc(isize(a.b[x].d))`. So we try to obtain this permission
+            // by unfolding `isize(a.b[x].d)`
+            PrefixPredAccMatch => {
+                assert!(req.is_acc());
+                let predicate = match quant.resource {
+                    vir::PlainResourceAccess::Predicate(pred) => pred,
+                    // The instantiation says we have matched against a predicate instance,
+                    // so the quantified resource must be a predicate!
+                    _ => unreachable!(),
+                };
+                // Indeed, since predicate is extracted from quant.resource
+                assert_eq!(predicate.perm, perm_amount);
+                self.state.insert_pred(*predicate.arg.clone(), predicate.perm);
+                actions.push(self.unfold(&*predicate.arg, predicate.perm, None, true));
+                // Try to obtain the resource again
+                actions.extend(self.do_obtain(&req.clone().update_perm_amount(perm_amount), false)?);
+                ObtainResult::Success(actions)
+            }
+            // Obtaining a prefix match on field is useless in any case.
             PrefixFieldAccMatch => {
-                // TODO: explain
                 ObtainResult::Failure(req.clone())
             }
         }

@@ -28,6 +28,8 @@ pub struct State {
     dropped: HashSet<Perm>,
 }
 
+// See `get_all_quantified_predicate_instances` for
+// the meaning of the three following structs
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QuantifiedPredicateInstances {
     pub fully_instantiated: Vec<FullPredicateInstance>,
@@ -265,16 +267,25 @@ impl State {
         self.quant.iter().find(|x| x.is_similar_to(quant, check_perms))
     }
 
+    // TODO: These three fns have similar names, but do different things
+    /// Get all quantified resources that can be instantiated for the given permission
+    /// (as well as their instantiations)
     pub fn get_all_quantified_instances(&self, perm: &Perm) -> Vec<vir::InstantiationResult> {
         use encoder::vir::PlainResourceAccess::*;
         use std::cmp::Ordering::*;
         assert!(!perm.is_quantified(), "Nested quantified permissions are unsupported");
         let mut instances = self.quant
             .iter()
-            .filter(|quant| perm.is_acc() || (perm.is_pred() && quant.resource.is_pred())) // TODO: explain this
+            // If we want a field access, then it's ok to either instantiate
+            // against a quant. field access or a quant. predicate access
+            // (because we can unfold the pred)
+            // However, if we want a pred access, then we want to only instantiate
+            // against a quant. pred.
+            .filter(|quant| perm.is_acc() || (perm.is_pred() && quant.resource.is_pred()))
             .filter_map(|quant| quant.try_instantiate(perm.get_place()))
             .filter(|inst| inst.is_fully_instantiated())
             .collect::<Vec<_>>();
+
         instances.sort_unstable_by(|a, b| {
             let a_depth = a.instantiated().resource.get_place().place_depth();
             let b_depth = b.instantiated().resource.get_place().place_depth();
@@ -292,7 +303,9 @@ impl State {
     }
 
     // TODO: name
-    // TODO: explain what it does
+    /// Get all predicate instances that perfectly match the given place.
+    /// We split the results in two groups: predicates that are fully instantiated
+    /// (i.e., no forall vars remaining) and the ones that still contains free vars.
     pub fn get_all_quantified_predicate_instances(
         &self,
         pred_place: &vir::Expr
@@ -332,9 +345,13 @@ impl State {
     }
 
     // TODO: name
-    // TODO: explain what it does
-    // TODO: explain difference with get_all_quantified_predicate_instances
-    //  _1.val_ref -> forall i acc(_1.val_ref.val_array[i].val_ref)
+    /// Get all quantified resources for which `perm_prefix_place` is a prefix.
+    /// For instance, if we have `_1.val_ref` for `perm_prefix_place` and that
+    /// we have the following quantified resources:
+    /// `forall i :: (...) ==> acc(_1.val_ref.val_array[i].val_ref)`
+    /// `forall i :: (...) ==> acc(isize(_1.val_ref.val_array[i].val_ref))`
+    /// `forall i :: (...) ==> acc(_2.val_ref.val_array[i].val_ref)`
+    /// Then this function will return the first two quantified resources.
     pub fn get_quantified_resources_suffixes_of(
         &self,
         perm_prefix_place: &vir::Expr

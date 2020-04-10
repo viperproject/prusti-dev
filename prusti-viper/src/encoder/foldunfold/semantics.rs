@@ -120,6 +120,10 @@ impl vir::Stmt {
                                 });
                             state.insert_all_pred(new_pred_places);
 
+                            // Similar to foldunfold, handling of shared borrows, we transform
+                            // fully instantiated predicates into normal predicates.
+                            // The predicates that are not fully instantiated are added
+                            // to the quantified resources set.
                             let all_pred_instances =
                                 original_state.get_all_quantified_predicate_instances(&rhs);
                             let new_pred_place_instantiated = all_pred_instances.fully_instantiated;
@@ -201,7 +205,8 @@ impl vir::Stmt {
 
                 // Simulate folding of `place`
                 state.remove_all_perms(places_in_pred.iter());
-                // TODO: justify this
+                // We do not add the predicate into the set if it comes from a quantified
+                // predicate instances (otherwise, we would "duplicate" the predicate permission)
                 if !state.is_pred_an_instance(place) {
                     state.insert_pred(place.clone(), perm_amount);
                 }
@@ -291,6 +296,7 @@ impl vir::Stmt {
                     })
                     .collect();
 
+                // Similar handling of quantified predicate instances as the move/borrow case
                 let all_pred_instances =
                     original_state.get_all_quantified_predicate_instances(lhs_place);
                 let new_pred_place_instantiated = all_pred_instances.fully_instantiated;

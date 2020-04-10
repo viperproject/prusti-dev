@@ -44,6 +44,9 @@ pub enum Expr {
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
     /// An indexing into a Seq: sequence, index, position
+    /// Important note: A SeqIndex expression must always be "contained" in a field projection
+    /// of `val_ref`. That is, we must always have something of the form `seq[idx].val_ref`
+    /// Otherwise, things like assignment into the sequence won't work
     SeqIndex(Box<Expr>, Box<Expr>, Position),
     /// Length of the given sequence
     SeqLen(Box<Expr>, Position),
@@ -68,9 +71,7 @@ pub struct FieldAccessPredicate {
     pub perm: PermAmount
 }
 
-/// A quantified resource access assertion.
-/// In a typical case, we `assert` that we satisfy the requirements before accessing
-/// (by inhaling) the resource. Viper will then check whether the assertion is satisfied.
+/// A quantified resource access.
 ///
 /// This is a more specified version of the following expression:
 /// `forall vars :: { triggers } cond ==> resource`
@@ -1028,7 +1029,6 @@ impl Expr {
                             }
                             Expr::Field(expr, field, pos)
                         }
-                        // TODO: should we replace SeqIndex too ?
                         x => {
                             self.subst = false;
                             x
@@ -1431,13 +1431,14 @@ impl Expr {
     }
 
     /// Extract the sequence and the indexing of the expression
-    /// Example: for `x.a.b.val_array[idx]`, it will return `Some((x.a.b.val_array, idx))`
-    /// and for `x.a.b.val_array[idx].val_ref`, it will also return `Some((x.a.b.val_array, idx))`
+    /// Example: for `x.a.b.val_array[idx].val_ref`, it will return `Some((x.a.b.val_array, idx))`
     pub fn extract_seq_and_index(&self) -> Option<(&Expr, &Expr)> {
         match self {
-            Expr::SeqIndex(box ref seq, box ref index, _)
-            | Expr::Field(box Expr::SeqIndex(box ref seq, box ref index, _), _, _) =>
+            Expr::Field(box Expr::SeqIndex(box ref seq, box ref index, _), _, _) =>
                 Some((seq, index)),
+            // See comment of Expr::SeqIndex
+            Expr::SeqIndex(..) =>
+                panic!("SeqIndex is ill-formed"),
             _ => None
         }
     }

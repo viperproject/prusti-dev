@@ -690,6 +690,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
 
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
+        // Statements that will be applied after the current statement is applied.
+        // This is needed to handle "temporary unfolds".
+        // See comments on Action::TemporaryUnfold for more explanation.
         let mut post_statement_actions = Vec::new();
         match &stmt {
             vir::Stmt::Inhale(_, vir::FoldingBehaviour::Expr) |
@@ -954,6 +957,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 .map(|(place, perm_amount)| (place.clone(), perm_amount.clone()))
                 .collect();
 
+            // Get all instantiated predicate instances
+            // Those that are fully instantiated (i.e., no free vars left)
+            // gets transformed to normal predicates.
+            // Those who aren't will be added as quantified predicates.
             let all_pred_instances = bctxt.state()
                 .get_all_quantified_predicate_instances(rhs_place);
             let pred_place_instantiated = all_pred_instances.fully_instantiated;
@@ -972,10 +979,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 debug!("pred place: {} {}", place, perm_amount);
                 let predicate_name = place.typed_ref_name().unwrap();
                 if perm_amount == vir::PermAmount::Write {
-                    // TODO: explain
-                    // TODO: also note that we remove the whole quantified predicate and not just the accessed predicate
                     let access = match instanciated_from {
                         Some(instanciated_from) =>
+                            // It is a bit unfortunate to exhale the whole quantified predicate
+                            // but it is way easier to do so than to restrict it to parts
+                            // that are not instantiated.
                             vir::Expr::QuantifiedResourceAccess(
                                 instanciated_from.update_perm_amount(vir::PermAmount::Remaining),
                                 place.pos().clone()
@@ -1011,6 +1019,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
                 stmts.push(stmt);
             }
 
+            // TODO: shouldn't these be log_read_permission_duplication ?
             for quant in pred_places_quant {
                 let new_quant = quant.partially_instantiated_quant
                     .map_place(|e| e.replace_place(rhs_place, lhs_place));
