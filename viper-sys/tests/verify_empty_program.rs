@@ -67,7 +67,7 @@ fn verify_empty_program() {
         let verifier = viper::silver::verifier::Verifier::with(&env);
 
         let silicon_args_array =
-            JObject::from(env.new_object_array(3, "java/lang/String", JObject::null())?);
+            JObject::from(env.new_object_array(4, "java/lang/String", JObject::null())?);
 
         env.set_object_array_element(
             silicon_args_array.into_inner(),
@@ -84,7 +84,13 @@ fn verify_empty_program() {
         env.set_object_array_element(
             silicon_args_array.into_inner(),
             2,
-            From::from(env.new_string("dummy-program.sil")?),
+            From::from(env.new_string("--ignoreFile")?),
+        )?;
+
+        env.set_object_array_element(
+            silicon_args_array.into_inner(),
+            3,
+            From::from(env.new_string("dummy.vpr")?),
         )?;
 
         let silicon_args_seq = scala::Predef::with(&env).call_wrapRefArray(silicon_args_array)?;
