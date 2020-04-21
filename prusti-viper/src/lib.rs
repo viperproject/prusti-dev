@@ -9,6 +9,7 @@
 #![feature(nll)]
 #![feature(box_syntax)]
 #![feature(slice_sort_by_cached_key)]
+#![feature(custom_attribute)]
 
 #![deny(unreachable_patterns)]
 #![cfg_attr(debug_assertions, deny(dead_code))]
@@ -33,6 +34,10 @@ extern crate uuid;
 extern crate viper;
 #[macro_use]
 extern crate lazy_static;
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
 
 #[cfg(debug_assertions)]
 #[macro_use]
