@@ -12,22 +12,27 @@ use uuid::Uuid;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
-#[derive(Debug, Clone)]
-pub struct CfgMethod {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CfgMethod { // TODO: Should labels and reserved_labels be ignored?
+    #[serde(skip)]
     pub(super) uuid: Uuid,
     pub(super) method_name: String,
     pub(in super::super) formal_arg_count: usize,
     pub(in super::super) formal_returns: Vec<LocalVar>,
     pub(in super::super) local_vars: Vec<LocalVar>,
+    #[serde(skip)]
     pub(super) labels: HashSet<String>,
+    #[serde(skip)]
     pub(super) reserved_labels: HashSet<String>,
     pub(crate) basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(super) basic_blocks_labels: Vec<String>,
+    #[serde(skip)]
     fresh_var_index: i32,
+    #[serde(skip)]
     fresh_label_index: i32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CfgBlock {
     // FIXME: Hack, should be pub(super).
     pub(super) invs: Vec<Expr>,
@@ -35,7 +40,7 @@ pub struct CfgBlock {
     pub(in super::super) successor: Successor,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Successor {
     Undefined,
     Return,
@@ -45,8 +50,9 @@ pub enum Successor {
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct CfgBlockIndex {
+    #[serde(skip)]
     pub(super) method_uuid: Uuid,
     pub(in super::super) block_index: usize,
 }

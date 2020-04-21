@@ -16,7 +16,7 @@ pub trait WithIdentifier {
 }
 
 /// The identifier of a statement. Used in error reporting.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Position {
     line: i32,
     column: i32,
@@ -63,7 +63,7 @@ mod tests {
 }
 
 /// The permission amount.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum PermAmount {
     Read,
     Write,
@@ -134,7 +134,7 @@ impl PartialOrd for PermAmount {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {
     Int,
     Bool,
@@ -227,7 +227,7 @@ impl Hash for Type {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type,
@@ -254,7 +254,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
     pub typ: Type,

@@ -11,7 +11,7 @@ use std::{iter, ops};
 
 /// A local variable used as an abstraction over both real Rust MIR local
 /// variables and temporary variables used in encoder.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Local(u32);
 
 impl Idx for Local {

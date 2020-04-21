@@ -9,7 +9,7 @@ use super::super::cfg::CfgBlockIndex;
 use encoder::vir::ast::*;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Stmt {
     Comment(String),
     Label(String),
@@ -54,7 +54,7 @@ pub enum Stmt {
 }
 
 /// What folding behaviour should be used?
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FoldingBehaviour {
     /// Use `fold` and `unfold` statements.
     Stmt,
@@ -64,7 +64,7 @@ pub enum FoldingBehaviour {
     None,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AssignKind {
     /// Encodes a Rust copy.
     /// This assignment can be used iff the Viper type of the `lhs` and `rhs` is *not* Ref.
