@@ -3,7 +3,7 @@ use viper;
 use viper::AstFactory;
 use prusti_interface::config;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Program {
     pub fields: Vec<Field>,
     pub builtin_methods: Vec<BodylessMethod>,

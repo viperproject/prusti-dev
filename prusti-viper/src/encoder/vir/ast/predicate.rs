@@ -7,7 +7,7 @@
 use encoder::vir::ast::*;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
@@ -117,7 +117,7 @@ impl WithIdentifier for Predicate {
 }
 
 /// The predicate for types that have exactly one variant.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct StructPredicate {
     /// The predicate name in Viper.
     pub name: String,
@@ -187,7 +187,7 @@ impl WithIdentifier for StructPredicate {
 }
 
 /// The predicate for types that have 0 or more than one variants.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct EnumPredicate {
     /// The predicate name in Viper.
     pub name: String,
