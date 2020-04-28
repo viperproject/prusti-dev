@@ -8,6 +8,7 @@ pub use self::ast::*;
 pub use self::cfg::*;
 pub use self::conversions::*;
 pub use self::to_viper::*;
+pub use self::program::*;
 
 mod ast;
 pub mod borrows;
@@ -17,3 +18,4 @@ pub mod fixes;
 pub mod optimisations;
 mod to_viper;
 pub mod utils;
+mod program;

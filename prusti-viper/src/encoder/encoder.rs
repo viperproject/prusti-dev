@@ -38,7 +38,6 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::mem;
 use syntax::ast;
-use viper;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v Environment<'r, 'a, 'tcx>,
@@ -167,17 +166,23 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {
-        vec![]
+    pub fn get_viper_program(&self) -> vir::Program {
+        vir::Program {
+            fields: self.get_used_viper_fields(),
+            builtin_methods: self.get_used_builtin_methods(),
+            methods: self.get_used_viper_methods(),
+            functions: self.get_used_viper_functions(),
+            viper_predicates: self.get_used_viper_predicates(),
+        }
     }
 
-    pub fn get_used_viper_fields(&self) -> Vec<vir::Field> {
+    fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
         fields.sort_by_key(|f| f.get_identifier());
         fields
     }
 
-    pub fn get_used_viper_functions(&self) -> Vec<vir::Function> {
+    fn get_used_viper_functions(&self) -> Vec<vir::Function> {
         let mut functions: Vec<_> = vec![];
         for function in self.builtin_functions.borrow().values() {
             functions.push(function.clone());
@@ -201,7 +206,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         functions
     }
 
-    pub fn get_used_viper_predicates(&self) -> Vec<vir::Predicate> {
+    fn get_used_viper_predicates(&self) -> Vec<vir::Predicate> {
         let mut predicates: Vec<_> = self.type_predicates.borrow().values().cloned().collect();
         predicates.sort_by_key(|f| f.get_identifier());
         predicates
@@ -211,11 +216,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow().clone()
     }
 
-    pub fn get_used_builtin_methods(&self) -> Vec<vir::BodylessMethod> {
+    fn get_used_builtin_methods(&self) -> Vec<vir::BodylessMethod> {
         self.builtin_methods.borrow().values().cloned().collect()
     }
 
-    pub fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
+    fn get_used_viper_methods(&self) -> Vec<vir::CfgMethod> {
         self.procedures.borrow().values().cloned().collect()
     }
 
