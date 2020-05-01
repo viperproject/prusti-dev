@@ -55,9 +55,14 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
                         silver::reporter::NoopReporter_object::with(env).singleton()
                     )
                 };
+                let plugin_aware_reporter = jni.unwrap_result(
+                    silver::plugin::PluginAwareReporter::with(&env).new(
+                        reporter
+                    )
+                );
                 let utils = JniUtils::new(env);
                 let debug_info = utils.new_seq(&[]);
-                silicon::Silicon::with(env).new(reporter, debug_info)
+                silicon::Silicon::with(env).new(plugin_aware_reporter, debug_info)
             }
             VerificationBackend::Carbon => carbon::CarbonVerifier::with(env).new(),
         });
