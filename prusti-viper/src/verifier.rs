@@ -202,7 +202,12 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         );
         let start = Instant::now();
 
-        let program = self.encoder.get_viper_program().to_viper(&self.ast_factory);
+        let mut program = self.encoder.get_viper_program();
+        if config::simplify_encoding() {
+            program = program.optimized();
+        }
+        let viper_program = program.to_viper(&self.ast_factory);
+        // TODO: call optimize if config::simplify
 
         if config::dump_viper_program() {
             // Dump Viper program
@@ -236,7 +241,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             log::report(
                 dump_path.to_str().unwrap(),
                 format!("{}.vpr", source_filename),
-                self.ast_utils.pretty_print(program),
+                self.ast_utils.pretty_print(viper_program),
             );
         }
 
@@ -248,7 +253,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         );
         let start = Instant::now();
 
-        let verification_result: viper::VerificationResult = self.verifier.verify(program);
+        let verification_result: viper::VerificationResult = self.verifier.verify(viper_program);
 
         let duration = start.elapsed();
         info!(
