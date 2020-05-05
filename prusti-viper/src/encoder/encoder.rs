@@ -38,6 +38,7 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::mem;
 use syntax::ast;
+use syntax_pos::Span;
 use viper;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
@@ -1182,32 +1183,35 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
     }
 
-    pub fn encode_pure_function_use(&self, proc_def_id: ProcedureDefId) -> String {
-        trace!("encode_pure_function_use({:?})", proc_def_id);
-        assert!(
-            self.env.has_attribute_name(proc_def_id, "pure"),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
-        );
+    /// Encode the use (call) of a pure function, returning the name of the
+    /// function and its type.
+    ///
+    /// The invocation location is required so we can report errors if the
+    /// function is not pure
+    pub fn encode_pure_function_use(
+        &self,
+        invocation_location: Span,
+        proc_def_id: ProcedureDefId,
+    ) -> (String, vir::Type) {
+        let name = self.env.get_item_name(proc_def_id);
+
+        if !self.env.has_attribute_name(proc_def_id, "pure") {
+            self.env.span_err(
+                invocation_location,
+                &format!("Use of impure function {:?} in assertion", name),
+            );
+        }
+
         self.queue_pure_function_encoding(proc_def_id);
         let procedure = self.env.get_procedure(proc_def_id);
         let pure_function_encoder =
             PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-        pure_function_encoder.encode_function_name()
-    }
 
-    pub fn encode_pure_function_return_type(&self, proc_def_id: ProcedureDefId) -> vir::Type {
-        trace!("encode_pure_function_return_type({:?})", proc_def_id);
-        assert!(
-            self.env.has_attribute_name(proc_def_id, "pure"),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
-        );
-        let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder =
-            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-        // FIXME: This assumes that pure functions cannot return generic values.
-        pure_function_encoder.encode_function_return_type()
+        // FIXME: encode_function_return_type assumes that pure functions cannot return generic values.
+        (
+            pure_function_encoder.encode_function_name(),
+            pure_function_encoder.encode_function_return_type(),
+        )
     }
 
     pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {

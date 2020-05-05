@@ -633,10 +633,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
 
                         // generic function call
                         _ => {
-                            let function_name = self.encoder.encode_pure_function_use(def_id);
+                            let (function_name, return_type) = self
+                                .encoder
+                                .encode_pure_function_use(term.source_info.span, def_id);
                             trace!("Encoding pure function call '{}'", function_name);
 
-                            let return_type = self.encoder.encode_pure_function_return_type(def_id);
                             let formal_args: Vec<vir::LocalVar> = args
                                 .iter()
                                 .enumerate()

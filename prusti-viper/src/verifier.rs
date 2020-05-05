@@ -195,6 +195,10 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         }
         self.encoder.process_encoding_queue();
 
+        if self.env.has_errors() {
+            return VerificationResult::Failure;
+        }
+
         let duration = start.elapsed();
         info!(
             "Encoding to Viper successful ({}.{} seconds)",
