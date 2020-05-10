@@ -13,6 +13,7 @@ use encoder::foldunfold;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
+use encoder::stub_function_encoder::StubFunctionEncoder;
 use encoder::spec_encoder::SpecEncoder;
 use encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
@@ -51,6 +52,9 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
     pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
+    /// Stub pure functions. Generated when an impure Rust function is invoked
+    /// where a pure function is required.
+    stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_invariant_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
@@ -108,6 +112,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             procedures: RefCell::new(HashMap::new()),
             pure_function_bodies: RefCell::new(HashMap::new()),
             pure_functions: RefCell::new(HashMap::new()),
+            stub_pure_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             type_invariant_names: RefCell::new(HashMap::new()),
             type_tag_names: RefCell::new(HashMap::new()),
@@ -184,6 +189,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             functions.push(function.clone());
         }
         for function in self.pure_functions.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.stub_pure_functions.borrow().values() {
             functions.push(function.clone());
         }
         for function in self.type_invariants.borrow().values() {
@@ -1194,24 +1202,41 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
         let name = self.env.get_item_name(proc_def_id);
+        let procedure = self.env.get_procedure(proc_def_id);
 
         if !self.env.has_attribute_name(proc_def_id, "pure") {
             self.env.span_err(
                 invocation_location,
                 &format!("Use of impure function {:?} in assertion", name),
-            );
+                );
+            let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+
+            // If we haven't seen this particular stub before, generate and insert it.
+            let key = (proc_def_id, self.type_substitution_key());
+            if !self.pure_functions.borrow().contains_key(&key) {
+                let function = encoder.encode_function();
+
+                self.log_vir_program_before_viper(function.to_string());
+
+                self.stub_pure_functions.borrow_mut().insert(key, function);
+            }
+            (
+                encoder.encode_function_name(),
+                encoder.encode_function_return_type(),
+            )
+        } else {
+            let pure_function_encoder =
+                PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
+
+
+            self.queue_pure_function_encoding(proc_def_id);
+
+            // FIXME: encode_function_return_type assumes that pure functions cannot return generic values.
+            (
+                pure_function_encoder.encode_function_name(),
+                pure_function_encoder.encode_function_return_type(),
+            )
         }
-
-        self.queue_pure_function_encoding(proc_def_id);
-        let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder =
-            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-
-        // FIXME: encode_function_return_type assumes that pure functions cannot return generic values.
-        (
-            pure_function_encoder.encode_function_name(),
-            pure_function_encoder.encode_function_return_type(),
-        )
     }
 
     pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {
