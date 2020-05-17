@@ -45,22 +45,31 @@
 #![feature(rustc_private)]
 #![feature(macro_vis_matcher)]
 #![feature(try_from)]
-#![feature(nll)]
+#![feature(plugin, use_extern_macros, proc_macro_path_invoc)]
+#![plugin(tarpc_plugins)]
 
 extern crate getopts;
 #[macro_use]
 extern crate log;
 extern crate prusti_interface;
 extern crate prusti_viper;
+extern crate viper;
 extern crate rustc;
 extern crate rustc_codegen_utils;
 extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate syntax;
 extern crate syntax_pos;
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate tarpc;
 
 pub mod compiler_calls;
 pub mod driver_utils;
 pub mod prusti_runner;
 pub mod typeck;
 pub mod verifier;
+mod service;
