@@ -221,7 +221,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             .log_vir_program_before_foldunfold(function.to_string());
 
         if config::simplify_encoding() {
-            function = vir::optimisations::functions::Simplifier::simplify(function);
+            function = vir::optimizations::functions::Simplifier::simplify(function);
         }
 
         // Add folding/unfolding

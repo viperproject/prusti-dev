@@ -15,17 +15,17 @@ impl Program {
     pub fn optimized(mut self) -> Self {
         // can't borrow self because we need to move fields
         let (new_methods, new_functions) =
-            optimisations::functions::inline_constant_functions(self.methods, self.functions);
+            optimizations::functions::inline_constant_functions(self.methods, self.functions);
         self.methods = new_methods
             .into_iter()
             .map(|m| {
-                let purified = optimisations::methods::purify_vars(m);
-                optimisations::folding::FoldingOptimiser::optimise(purified)
+                let purified = optimizations::methods::purify_vars(m);
+                optimizations::folding::FoldingOptimizer::optimize(purified)
             })
             .collect();
         self.functions = new_functions
             .into_iter()
-            .map(|f| optimisations::folding::FoldingOptimiser::optimise(f))
+            .map(|f| optimizations::folding::FoldingOptimizer::optimize(f))
             .collect();
         self
     }

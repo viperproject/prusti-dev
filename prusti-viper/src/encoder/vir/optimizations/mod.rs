@@ -4,10 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//! A module that contains optimisations for functions.
+//! A module that contains various VIR optimizations.
 
-mod inliner;
-mod simplifier;
-
-pub use self::inliner::inline_constant_functions;
-pub use self::simplifier::Simplifier;
+pub mod folding;
+pub mod functions;
+pub mod methods;

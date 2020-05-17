@@ -32,7 +32,7 @@ use std::mem;
 ///
 /// And then inline them on call sites.
 ///
-/// The optimisation is performed until a fix-point.
+/// The optimization is performed until a fix-point.
 pub fn inline_constant_functions(
     mut methods: Vec<cfg::CfgMethod>,
     mut functions: Vec<ast::Function>

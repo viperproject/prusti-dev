@@ -13,10 +13,10 @@ use encoder::initialisation::InitInfo;
 use encoder::loop_encoder::LoopEncoder;
 use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
-use encoder::optimiser;
+use encoder::optimizer;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::vir::fixes::{fix_ghost_vars, havoc_assigned_locals};
-use encoder::vir::optimisations::methods::{
+use encoder::vir::optimizations::methods::{
     remove_trivial_assertions, remove_unused_vars, remove_empty_if
 };
 use encoder::vir::{ExprIterator, FoldingBehaviour};
@@ -463,7 +463,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Do some optimizations
         let final_method = if config::simplify_encoding() {
-            optimiser::rewrite(
+            optimizer::rewrite(
                 remove_trivial_assertions(
                     remove_unused_vars(
                         remove_empty_if(

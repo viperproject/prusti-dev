@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use std::thread;
 use tarpc::sync::{client, server};
 use tarpc::sync::client::ClientExt;
-use tarpc::util::{FirstSocketAddr, Never};
+use tarpc::util::Never;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ViperBackendConfig {

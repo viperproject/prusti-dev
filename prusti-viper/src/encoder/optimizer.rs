@@ -8,7 +8,7 @@ use encoder::vir;
 use std::collections::HashMap;
 use std::mem;
 
-/// Optimisations currently done:
+/// Optimizations currently done:
 ///
 /// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.
 /// 2.  Pull out all `unfolding ... in` that are inside `forall` to outside of `forall`.
@@ -17,13 +17,13 @@ use std::mem;
 ///
 /// Note: this seems to be required to workaround some Silicon incompleteness.
 pub fn rewrite(cfg: vir::CfgMethod) -> vir::CfgMethod {
-    let mut optimiser = Optimiser::new();
-    optimiser.replace_cfg(cfg)
+    let mut optimizer = Optimizer::new();
+    optimizer.replace_cfg(cfg)
 }
 
-struct Optimiser {}
+struct Optimizer {}
 
-impl Optimiser {
+impl Optimizer {
     fn new() -> Self {
         Self {}
     }
@@ -60,7 +60,7 @@ impl Optimiser {
     }
 }
 
-impl vir::StmtFolder for Optimiser {
+impl vir::StmtFolder for Optimizer {
     fn fold_assert(
         &mut self,
         expr: vir::Expr,
@@ -77,7 +77,7 @@ impl vir::StmtFolder for Optimiser {
     }
 }
 
-impl vir::ExprFolder for Optimiser {
+impl vir::ExprFolder for Optimizer {
     fn fold_forall(
         &mut self,
         variables: Vec<vir::LocalVar>,

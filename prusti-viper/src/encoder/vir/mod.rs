@@ -15,7 +15,7 @@ pub mod borrows;
 mod cfg;
 mod conversions;
 pub mod fixes;
-pub mod optimisations;
+pub mod optimizations;
 mod to_viper;
 pub mod utils;
 mod program;
