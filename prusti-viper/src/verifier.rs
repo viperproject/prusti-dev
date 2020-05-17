@@ -207,7 +207,6 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             program = program.optimized();
         }
         let viper_program = program.to_viper(&self.ast_factory);
-        // TODO: call optimize if config::simplify
 
         if config::dump_viper_program() {
             // Dump Viper program
