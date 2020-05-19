@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v2
+    - name: Setup Java JDK
+      uses: actions/setup-java@v1.3.0
+      with:
+        java-version: 1.8
+    - name: Setup Viper
+      run: |
+        wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
+        echo 'deb http://pmserver.inf.ethz.ch/viper/debs/xenial /' | sudo tee /etc/apt/sources.list.d/viper.list
+        sudo apt-get update
+        sudo apt-get install -y viper
+    - name: Install system dependencies for Prusti
+      run: sudo apt-get install -y build-essential pkg-config gcc libssl-dev
+    - name: Build with cargo
+      run: cargo build --all --verbose
+    - name: Run cargo tests
+      run: cargo test --all --verbose
+      env:
+        RUST_TEST_THREADS: 1
+        PRUSTI_ASSERT_TIMEOUT: 60000
+    - name: Run tests with prusti-rustc
+      run: |
+        ./target/debug/prusti-rustc prusti/tests/verify/pass/no-annotations/assert-true.rs
+        ! ./target/debug/prusti-rustc prusti/tests/verify/fail/no-annotations/assert-false.rs
