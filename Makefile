@@ -35,16 +35,16 @@ fmt:
 	rustup run nightly cargo fmt --all || true
 
 fix:
-	$(SET_ENV_VARS) cargo fix
+	$(SET_ENV_VARS) cargo fix $(CARGO_ARGS)
 
 check:
-	$(SET_ENV_VARS) cargo check --all
+	$(SET_ENV_VARS) cargo check --all $(CARGO_ARGS)
 
 build:
-	$(SET_ENV_VARS) cargo build --all
+	$(SET_ENV_VARS) cargo build --all $(CARGO_ARGS)
 
 release:
-	$(SET_ENV_VARS) cargo build --release --all
+	$(SET_ENV_VARS) cargo build --release --all $(CARGO_ARGS)
 
 test-deep:
 	$(SET_ENV_VARS) \

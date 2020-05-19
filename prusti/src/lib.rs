@@ -37,7 +37,6 @@
 //! TODO: Implement `prusti_interface`.
 
 #![deny(unused_imports)]
-
 #![feature(plugin_registrar)]
 #![feature(quote)]
 #![feature(box_syntax)]
@@ -52,16 +51,17 @@ extern crate getopts;
 #[macro_use]
 extern crate log;
 extern crate prusti_interface;
+extern crate prusti_server;
 extern crate prusti_viper;
-extern crate viper;
 extern crate rustc;
 extern crate rustc_codegen_utils;
 extern crate rustc_driver;
 extern crate rustc_errors;
-extern crate syntax;
-extern crate syntax_pos;
 extern crate serde;
 extern crate serde_json;
+extern crate syntax;
+extern crate syntax_pos;
+extern crate viper;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -70,6 +70,6 @@ extern crate tarpc;
 pub mod compiler_calls;
 pub mod driver_utils;
 pub mod prusti_runner;
+mod service;
 pub mod typeck;
 pub mod verifier;
-mod service;

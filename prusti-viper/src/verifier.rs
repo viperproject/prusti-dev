@@ -12,11 +12,11 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
-use std::time::Instant;
-use viper::{self, VerificationBackend, Viper};
-use std::path::PathBuf;
-use std::fs::{create_dir_all, canonicalize};
 use std::ffi::OsString;
+use std::fs::{canonicalize, create_dir_all};
+use std::path::PathBuf;
+use std::time::Instant;
+use viper::{self, AstFactory, VerificationBackend, Viper};
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
@@ -33,7 +33,7 @@ impl VerifierBuilder {
         VerifierBuilder {
             viper: Viper::new_with_args(
                 config::extra_jvm_args(),
-                VerificationBackend::from_str(&config::viper_backend())
+                VerificationBackend::from_str(&config::viper_backend()),
             ),
         }
     }
@@ -59,10 +59,10 @@ pub struct VerificationContext<'v> {
 }
 
 impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
-    where
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a,
+where
+    'r: 'v,
+    'a: 'r,
+    'tcx: 'a,
 {
     fn new(verification_ctx: viper::VerificationContext<'v>) -> Self {
         VerificationContext { verification_ctx }
@@ -74,6 +74,20 @@ impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
         spec: &'v TypedSpecificationMap,
     ) -> Verifier<'v, 'r, 'a, 'tcx> {
         let backend = VerificationBackend::from_str(&config::viper_backend());
+        Verifier::new(
+            self.verification_ctx.new_ast_utils(),
+            self.new_ast_factory(),
+            self.new_viper_verifier(backend),
+            env,
+            spec,
+        )
+    }
+
+    pub fn new_viper_verifier(
+        &self,
+        backend: viper::VerificationBackend,
+    ) -> viper::Verifier<viper::state::Started> {
+        // TODO: get rid of dependency on config:: stuff
 
         let mut verifier_args: Vec<String> = vec![];
         let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
@@ -113,14 +127,13 @@ impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
             }
         }
         verifier_args.extend(config::extra_verifier_args());
-        Verifier::new(
-            self.verification_ctx.new_ast_utils(),
-            self.verification_ctx.new_ast_factory(),
-            self.verification_ctx
-                .new_verifier_with_args(backend, verifier_args, Some(report_path)),
-            env,
-            spec,
-        )
+
+        self.verification_ctx
+            .new_verifier_with_args(backend, verifier_args, Some(report_path))
+    }
+
+    pub fn new_ast_factory(&self) -> AstFactory {
+        self.verification_ctx.new_ast_factory()
     }
 }
 
@@ -217,17 +230,19 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             if num_parents > 0 {
                 // Take `num_parents` parent folders and add them to `dump_path`
                 let mut components = vec![];
-                if let Some(abs_parent_path) = canonicalize(&source_path).ok().and_then(
-                    |full_path| full_path.parent().map(|parent| parent.to_path_buf())
-                ) {
+                if let Some(abs_parent_path) = canonicalize(&source_path)
+                    .ok()
+                    .and_then(|full_path| full_path.parent().map(|parent| parent.to_path_buf()))
+                {
                     components.extend(
-                        abs_parent_path.ancestors()
+                        abs_parent_path
+                            .ancestors()
                             .flat_map(|path| path.file_name())
                             .take(num_parents as usize)
                             .map(|x| x.to_os_string())
                             .collect::<Vec<_>>()
                             .into_iter()
-                            .rev()
+                            .rev(),
                     );
                 } else {
                     components.push(OsString::from("io_error"))
