@@ -1,3 +1,5 @@
+**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, many things are likely to break and be moved around. Therefore, most likely we will not be able to accept contributions until the upgrade is done.
+
 Prusti-dev
 ==========
 
