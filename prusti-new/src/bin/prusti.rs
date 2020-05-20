@@ -1,10 +1,17 @@
 #![feature(rustc_private)]
+#![feature(proc_macro_internals)]
 
 extern crate rustc_driver;
 extern crate rustc_interface;
 extern crate rustc_hir;
 extern crate rustc_session;
 extern crate rustc_ast;
+extern crate rustc_metadata;
+extern crate rustc_data_structures;
+extern crate proc_macro;
+extern crate rustc_middle;
+extern crate rustc_expand;
+extern crate rustc_ast_pretty;
 
 use std::env;
 
@@ -26,6 +33,17 @@ impl rustc_ast::mut_visit::MutVisitor for AstRewriter {
             ItemKind::Fn(_, sig, _, body) => {
                 // println!("Function: {:?}", sig);
                 // *body = None;
+                //
+                // Can I get expander?
+                // https://doc.rust-lang.org/nightly/nightly-rustc/src/rustc_expand/expand.rs.html#703-718
+                //
+                // Yes:
+                // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_metadata/creader/struct.CrateLoader.html#method.load_proc_macro
+                //
+                // Can I get CrateLocator?
+                //
+                // Can I get CrateLoader?
+                // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_interface/interface/struct.BoxedResolver.html#method.access
             }
         _ => {
             rustc_ast::mut_visit::noop_visit_item_kind(item, self);
@@ -42,17 +60,105 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         // std::mem::drop(queries.expansion().unwrap().take());
-        let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
+        let (krate, resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
 
-        let mut rewriter = AstRewriter {};
-        rewriter.visit_crate(krate);
-        rustc_driver::pretty::print_after_parsing(
-            compiler.session(),
-            compiler.input(),
-            krate,
-            rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
+
+        for item in &mut krate.module.items {
+            match &item.kind {
+                ItemKind::ExternCrate(..) |
+                ItemKind::Use(..) => {
+                    continue;
+                }
+                _ => {
+                }
+            }
+            let tokens = item.tokens.as_ref().unwrap_or_else(|| {
+                unimplemented!("unsupported kind: {:?}", item.kind);
+            });
+            println!("tokens: {}", rustc_ast_pretty::pprust::tts_to_string(tokens.clone()));
+            for attr in &item.attrs {
+                // TODO: Convert the attribute to the token stream and glue with the item's token stream.
+                // https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.AttrItem.html
+                println!("attr: {:?}", attr.get_normal_item());
+            }
+        }
+
+
+        use rustc_metadata::dynamic_lib::DynamicLibrary;
+        let path = env::current_dir().unwrap().join("TODO");
+        let lib = DynamicLibrary::open(&path).expect("failed to load the contracts library");
+        // let fingerprint: rustc_data_structures::fingerprint::Fingerprint = unsafe { std::mem::transmute((1u64, 2u64))};
+        // let disambiguator: rustc_session::CrateDisambiguator = fingerprint.into();
+
+
+        // TODO: Use cargo_metadata to locate procedural macros with build.rs
+        // and create a constant with information for each of them (global path,
+        // symbol name, etc.)
+        // Symbol name: https://doc.rust-lang.org/nightly/nightly-rustc/src/rustc_session/session.rs.html#690-692
+        let disambiguator = (*resolver.borrow().borrow_mut()).access(|resolver| {
+            use rustc_middle::middle::cstore::CrateStore;
+            let cstore = resolver.cstore();
+            let mut found = None;
+            for crate_num in cstore.crates_untracked() {
+                if cstore.crate_name_untracked(crate_num).as_str() == "prusti_contracts" {
+                    assert!(found.is_none(), "found multiple versions of prusti_contracts");
+                    found = Some(cstore.crate_disambiguator_untracked(crate_num));
+                }
+            }
+            found.expect("prusti_contracts crate not found")
+        });
+
+        let sym = compiler.session().generate_proc_macro_decls_symbol(disambiguator);
+        let decls = unsafe {
+            let sym = lib.symbol(&sym).expect("failed to construct proc macro decl symbol");
+            *(sym as *const &[proc_macro::bridge::client::ProcMacro])
+        };
+        // Intentionally leak the dynamic library. We can't ever unload it
+        // since the library can make things that will live arbitrarily long.
+        std::mem::forget(lib);
+
+        // TODO: https://github.com/rust-lang/rust/blob/bad3bf622bded50a97c0a54e29350eada2a3a169/src/librustc_metadata/rmeta/decoder.rs#L704-L706
+        // We assume that the crate provides exactly one procedural macro.
+        let expander = if let proc_macro::bridge::client::ProcMacro::Attr { client, .. } = decls[0] {
+            // assert_eq!(name, "expected name");
+            Box::new(rustc_expand::proc_macro::AttrProcMacro { client })
+        } else {
+            unreachable!();
+        };
+
+        (*resolver.borrow().borrow_mut()).access(|resolver| {
+        // cx: &'a mut ExtCtxt<'b>,
+        let parse_sess = &compiler.session().parse_sess;
+        let mut cx =rustc_expand::base::ExtCtxt::new(
+            parse_sess,
+            rustc_expand::expand::ExpansionConfig::default(queries.crate_name().unwrap().peek().clone()),
+            resolver,
             None,
         );
+
+        // TODO: https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L703-L718
+        for item in &mut krate.module.items {
+            use crate::rustc_expand::base::AttrProcMacro;
+            let tokens = item.tokens.as_mut().unwrap().clone();
+            let inner_tokens = rustc_ast::tokenstream::TokenStream::new(vec![]);
+            let tok_result = match expander.expand(&mut cx, item.span, inner_tokens, tokens) {
+                Err(_) => unimplemented!(),
+                //return ExpandResult::Ready(fragment_kind.dummy(span)),
+                Ok(ts) => ts,
+            };
+        }
+    });
+
+
+        // let mut rewriter = AstRewriter {};
+        // rewriter.visit_crate(krate);
+        // rustc_driver::pretty::print_after_parsing(
+        //     compiler.session(),
+        //     compiler.input(),
+        //     krate,
+        //     rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
+        //     None,
+        // );
         Compilation::Continue
     }
 
