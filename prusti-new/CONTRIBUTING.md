@@ -1,4 +1,6 @@
-# Setup
+# Contributing
+
+## Setup
 
 Install the necessary components:
 
@@ -7,12 +9,13 @@ rustup component add rust-src
 rustup component add rustc-dev
 ```
 
-# Design
+## Design
 
 ## Components
 
 + `prusti` – the Prusti itself.
 + Procedural macros – macros for various contracts' crates that rewrite their contracts to use Prusti specific attributes (`prusti::*`). `prusti` replaces the original crates providing the contracts' procedural macros with our crates.
++ `cargo prusti` uses [cargo_metadata](https://docs.rs/cargo_metadata/0.10.0/cargo_metadata/) to detect the procedural macro replacements that need to be passed into `prusti`.
 
 ## Flow
 
