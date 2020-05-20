@@ -83,9 +83,28 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             }
         }
 
+        let output_dir = env!("OUT_DIR");
+        println!("output dir: {}", output_dir);
+        let mut deps_dir_path = std::path::PathBuf::from(output_dir);
+        deps_dir_path.push("../../../deps");
+
+        println!("depds dir: {:?}", deps_dir_path);
+
+        let path = std::fs::read_dir(deps_dir_path).unwrap().map(|result| result.unwrap())
+        .filter(|entry| {
+            let file_name = entry.file_name();
+            let file_name = file_name.to_string_lossy();
+            file_name.starts_with("libprusti_contracts_internal-")
+        && file_name.ends_with(".so")
+    })
+        .max_by_key(|entry| entry.metadata().unwrap().modified().unwrap())
+        .map(|entry| entry.path())
+        .expect("could not locate prusti-contracts-internal");
+
+
 
         use rustc_metadata::dynamic_lib::DynamicLibrary;
-        let path = env::current_dir().unwrap().join("TODO");
+        // let path = env::current_dir().unwrap().join("TODO");
         let lib = DynamicLibrary::open(&path).expect("failed to load the contracts library");
         // let fingerprint: rustc_data_structures::fingerprint::Fingerprint = unsafe { std::mem::transmute((1u64, 2u64))};
         // let disambiguator: rustc_session::CrateDisambiguator = fingerprint.into();
@@ -100,14 +119,15 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let cstore = resolver.cstore();
             let mut found = None;
             for crate_num in cstore.crates_untracked() {
-                if cstore.crate_name_untracked(crate_num).as_str() == "prusti_contracts" {
+                if cstore.crate_name_untracked(crate_num).as_str() == "prusti_contracts_internal" {
                     assert!(found.is_none(), "found multiple versions of prusti_contracts");
                     found = Some(cstore.crate_disambiguator_untracked(crate_num));
                 }
             }
-            found.expect("prusti_contracts crate not found")
+            found.expect("prusti_contracts_internal crate not found")
         });
 
+        // https://github.com/rust-lang/rust/blob/c1e05528696ca523055b0f7ce94b8033dcbaa39e/src/librustc_metadata/creader.rs#L599
         let sym = compiler.session().generate_proc_macro_decls_symbol(disambiguator);
         let decls = unsafe {
             let sym = lib.symbol(&sym).expect("failed to construct proc macro decl symbol");
