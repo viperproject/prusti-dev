@@ -137,6 +137,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         );
 
         // TODO: https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L703-L718
+        let mut new_items = Vec::new();
         for item in &mut krate.module.items {
             use crate::rustc_expand::base::AttrProcMacro;
             let tokens = item.tokens.as_mut().unwrap().clone();
@@ -146,7 +147,16 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 //return ExpandResult::Ready(fragment_kind.dummy(span)),
                 Ok(ts) => ts,
             };
+            let mut parser = cx.new_parser_from_tts(tok_result);
+            let fragment = rustc_expand::expand::parse_ast_fragment(&mut parser, rustc_expand::expand::AstFragmentKind::Items).expect("TODO");
+            match fragment {
+                rustc_expand::expand::AstFragment::Items(items) => {
+                    new_items.extend(items);
+                }
+                _ => {}
+            }
         }
+        std::mem::swap(&mut new_items, &mut krate.module.items);
     });
 
 
