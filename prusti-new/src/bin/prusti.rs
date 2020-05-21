@@ -12,6 +12,8 @@ extern crate proc_macro;
 extern crate rustc_middle;
 extern crate rustc_expand;
 extern crate rustc_ast_pretty;
+extern crate rustc_span;
+extern crate smallvec;
 
 use std::env;
 
@@ -22,13 +24,37 @@ struct PrustiCompilerCalls {
 
 }
 
+struct NodeIdRewriter<'a> {
+    resolver: &'a mut dyn rustc_expand::base::Resolver,
+}
+
+impl<'a> rustc_ast::mut_visit::MutVisitor for NodeIdRewriter<'a> {
+    fn visit_id(&mut self, id: &mut rustc_ast::node_id::NodeId) {
+        if *id == rustc_ast::node_id::DUMMY_NODE_ID {
+            *id = self.resolver.next_node_id();
+        }
+    }
+}
+
 struct AstRewriter {}
 
 
 use rustc_ast::ast::ItemKind;
 impl rustc_ast::mut_visit::MutVisitor for AstRewriter {
+    fn visit_id(&mut self, id: &mut rustc_ast::node_id::NodeId) {
+        println!("ID: {:?}", id);
+        // assert_ne!(*id, rustc_ast::node_id::DUMMY_NODE_ID);
+    }
+    fn visit_mod(&mut self, m: &mut rustc_ast::ast::Mod) {
+        println!("mod: {:?}", m.items.len());
+        let mut main = m.items.last().cloned().unwrap();
+        main.ident = rustc_span::symbol::Ident::from_str("test");
+        m.items.push(main);
+
+        rustc_ast::mut_visit::noop_visit_mod(m, self);
+    }
     fn visit_item_kind(&mut self, item: &mut ItemKind) {
-        // println!("Visit item: {:?}", item);
+        println!("Visit item: {:?}", item);
         match item {
             ItemKind::Fn(_, sig, _, body) => {
                 // println!("Function: {:?}", sig);
@@ -50,6 +76,22 @@ impl rustc_ast::mut_visit::MutVisitor for AstRewriter {
         },
         }
     }
+
+}
+
+fn find_newest_dep_file(crate_name: &str) -> std::path::PathBuf {
+    let output_dir = env!("OUT_DIR");
+    let mut deps_dir_path = std::path::PathBuf::from(output_dir);
+        deps_dir_path.push("../../../deps");
+    std::fs::read_dir(deps_dir_path).unwrap().map(|result| result.unwrap())
+        .filter(|entry| {
+            let file_name = entry.file_name();
+            let file_name = file_name.to_string_lossy();
+            file_name.starts_with(crate_name)
+            && file_name.ends_with(".so")
+    })
+        .max_by_key(|entry| entry.metadata().unwrap().modified().unwrap())
+        .map(|entry| entry.path()).unwrap_or_else(|| panic!("could not locate {}", crate_name))
 }
 
 impl rustc_driver::Callbacks for PrustiCompilerCalls {
@@ -83,23 +125,24 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             }
         }
 
-        let output_dir = env!("OUT_DIR");
-        println!("output dir: {}", output_dir);
-        let mut deps_dir_path = std::path::PathBuf::from(output_dir);
-        deps_dir_path.push("../../../deps");
+        // let output_dir = env!("OUT_DIR");
+        // println!("output dir: {}", output_dir);
+        // let mut deps_dir_path = std::path::PathBuf::from(output_dir);
+        // deps_dir_path.push("../../../deps");
 
-        println!("depds dir: {:?}", deps_dir_path);
+        // println!("depds dir: {:?}", deps_dir_path);
 
-        let path = std::fs::read_dir(deps_dir_path).unwrap().map(|result| result.unwrap())
-        .filter(|entry| {
-            let file_name = entry.file_name();
-            let file_name = file_name.to_string_lossy();
-            file_name.starts_with("libprusti_contracts_internal-")
-        && file_name.ends_with(".so")
-    })
-        .max_by_key(|entry| entry.metadata().unwrap().modified().unwrap())
-        .map(|entry| entry.path())
-        .expect("could not locate prusti-contracts-internal");
+    //     let path = std::fs::read_dir(deps_dir_path).unwrap().map(|result| result.unwrap())
+    //     .filter(|entry| {
+    //         let file_name = entry.file_name();
+    //         let file_name = file_name.to_string_lossy();
+
+    // })
+    //     .max_by_key(|entry| entry.metadata().unwrap().modified().unwrap())
+    //     .map(|entry| entry.path())
+
+
+        let path =find_newest_dep_file("libprusti_contracts_internal-");
 
 
 
@@ -119,6 +162,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let cstore = resolver.cstore();
             let mut found = None;
             for crate_num in cstore.crates_untracked() {
+                println!("Loaded crate: {}", cstore.crate_name_untracked(crate_num).as_str());
                 if cstore.crate_name_untracked(crate_num).as_str() == "prusti_contracts_internal" {
                     assert!(found.is_none(), "found multiple versions of prusti_contracts");
                     found = Some(cstore.crate_disambiguator_untracked(crate_num));
@@ -129,6 +173,12 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
 
         // https://github.com/rust-lang/rust/blob/c1e05528696ca523055b0f7ce94b8033dcbaa39e/src/librustc_metadata/creader.rs#L599
         let sym = compiler.session().generate_proc_macro_decls_symbol(disambiguator);
+
+        // let file_name =  path.file_stem().unwrap().to_string_lossy();
+        // println!("file name: {}", file_name);
+        // let disambiguator = &file_name[file_name.len()-16..];//.chars().collect();
+        // println!("disambiguator: {}", disambiguator);
+        // let sym = format!("__rustc_proc_macro_decls_{}__", disambiguator);
         let decls = unsafe {
             let sym = lib.symbol(&sym).expect("failed to construct proc macro decl symbol");
             *(sym as *const &[proc_macro::bridge::client::ProcMacro])
@@ -147,6 +197,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         };
 
         (*resolver.borrow().borrow_mut()).access(|resolver| {
+            return;
         // cx: &'a mut ExtCtxt<'b>,
         let parse_sess = &compiler.session().parse_sess;
         let mut cx =rustc_expand::base::ExtCtxt::new(
@@ -158,9 +209,27 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
 
         // TODO: https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L703-L718
         let mut new_items = Vec::new();
-        for item in &mut krate.module.items {
+        let old_items = std::mem::replace(&mut krate.module.items, Vec::new());
+        for item in old_items {
+            match &item.kind {
+                ItemKind::ExternCrate(..) |
+                ItemKind::Use(..) => {
+                    new_items.push(item);
+                    continue;
+                }
+                _ => {
+                }
+            }
             use crate::rustc_expand::base::AttrProcMacro;
-            let tokens = item.tokens.as_mut().unwrap().clone();
+            let expn_data = rustc_span::hygiene::ExpnData::default(
+                rustc_span::hygiene::ExpnKind::AstPass(rustc_span::hygiene::AstPass::ProcMacroHarness),
+                item.span,
+                item.span.edition(),
+            );
+            // let span = item.span.fresh_expansion(   // TODO: Remove
+            //     expn_data);
+                cx.current_expansion.id = rustc_span::hygiene::ExpnId::fresh(Some(expn_data));
+            let tokens = item.tokens.as_ref().unwrap().clone();
             let inner_tokens = rustc_ast::tokenstream::TokenStream::new(vec![]);
             let tok_result = match expander.expand(&mut cx, item.span, inner_tokens, tokens) {
                 Err(_) => unimplemented!(),
@@ -173,22 +242,40 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 rustc_expand::expand::AstFragment::Items(items) => {
                     new_items.extend(items);
                 }
-                _ => {}
+                _ => { unreachable!();}
             }
+            // https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L515-L524
         }
+
+        let mut fixer = NodeIdRewriter { resolver };
+        for item in &mut new_items {
+            fixer.visit_id(&mut item.id);
+            fixer.visit_item_kind(&mut item.kind);
+        }
+
         std::mem::swap(&mut new_items, &mut krate.module.items);
     });
 
 
-        // let mut rewriter = AstRewriter {};
-        // rewriter.visit_crate(krate);
-        // rustc_driver::pretty::print_after_parsing(
-        //     compiler.session(),
-        //     compiler.input(),
-        //     krate,
-        //     rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
-        //     None,
-        // );
+
+        rustc_driver::pretty::print_after_parsing(
+            compiler.session(),
+            compiler.input(),
+            krate,
+            rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
+            None,
+        );
+        // println!("KRATE: {:#?}", krate);
+        let mut rewriter = AstRewriter {};
+        rewriter.visit_crate(krate);
+
+        rustc_driver::pretty::print_after_parsing(
+            compiler.session(),
+            compiler.input(),
+            krate,
+            rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
+            None,
+        );
         Compilation::Continue
     }
 
@@ -213,7 +300,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
 
             //     );
             // }
-            // std::process::exit(0);
+            std::process::exit(0);
         });
 
         compiler.session().abort_if_errors();
@@ -300,6 +387,14 @@ fn main() {
     // Init loggers the Miri way.
     init_early_loggers();
 
-    let rustc_args = env::args().collect();
+    let mut rustc_args: Vec<String> = env::args().collect();
+    let prusti_contracts_internal_path =find_newest_dep_file("libprusti_contracts_internal-");
+    rustc_args.push("--extern".to_string());
+    rustc_args.push(format!("prusti_contracts_internal={}", prusti_contracts_internal_path.to_string_lossy()));
+
+    for arg in &rustc_args {
+        println!("Arg: {}", arg);
+    }
+
     run_compiler(rustc_args, &mut PrustiCompilerCalls { })
 }
