@@ -82,7 +82,7 @@ impl rustc_ast::mut_visit::MutVisitor for AstRewriter {
     fn visit_item_kind(&mut self, item: &mut ItemKind) {
         println!("Visit item: {:?}", item);
         match item {
-            ItemKind::Fn(_, sig, _, body) => {
+            ItemKind::Fn(_, _sig, _, _body) => {
                 // println!("Function: {:?}", sig);
                 // *body = None;
                 //
