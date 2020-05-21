@@ -1,11 +1,7 @@
 #![feature(rustc_private)]
 
-// extern crate rustc_driver;
+extern crate rustc_driver;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+pub struct PrustiCompilerCalls {}
+
+impl rustc_driver::Callbacks for PrustiCompilerCalls {}
