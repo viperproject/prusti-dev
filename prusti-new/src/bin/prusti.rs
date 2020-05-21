@@ -24,6 +24,32 @@ struct PrustiCompilerCalls {
 
 }
 
+struct HirVisitor<'tcx> {
+    tcx: rustc_middle::ty::TyCtxt<'tcx>,
+}
+
+impl<'hir, 'tcx: 'hir> rustc_hir::itemlikevisit::ItemLikeVisitor<'hir> for HirVisitor<'tcx> {
+    fn visit_item(&mut self, item: &'hir rustc_hir::Item<'hir>) {
+        println!("HIR Item: {}", item.ident);
+        let def_path = self.tcx.hir().opt_local_def_id(item.hir_id).unwrap();
+        match &item.kind {
+            rustc_hir::ItemKind::Fn(_sig, _generics, _body_id) => {
+                let mir = self.tcx.optimized_mir(def_path);
+                println!("  Return type is unit: {}", mir.return_ty().is_unit());
+            }
+            _ => {
+                println!("  Not a function");
+            }
+        }
+    }
+    fn visit_trait_item(&mut self, trait_item: &'hir rustc_hir::TraitItem<'hir>) {
+        println!("HIR Item: {}", trait_item.ident);
+    }
+    fn visit_impl_item(&mut self, impl_item: &'hir rustc_hir::ImplItem<'hir>) {
+        println!("HIR Item: {}", impl_item.ident);
+    }
+}
+
 struct NodeIdRewriter<'a> {
     resolver: &'a mut dyn rustc_expand::base::Resolver,
 }
@@ -258,6 +284,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                         fixer.visit_item_kind(&mut item.kind);
                         if item.id == original_id {
                             // Item's node id is already registered.
+                            // TODO: Still need to register the children.
                             new_items.push(item);
                         } else {
                             // Still need to register the item with the resolver.
@@ -316,8 +343,12 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
 
-        queries.global_ctxt().unwrap().peek_mut().enter(|_tcx| {
+        queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
             println!("After analysis!");
+            let hir = tcx.hir();
+            let krate = hir.krate();
+            let mut visitor = HirVisitor {tcx} ;
+            krate.visit_all_item_likes(&mut visitor);
             // let (entry_def_id, _) = tcx.entry_fn(LOCAL_CRATE).expect("no main function found!");
             // let mut config = self.miri_config.clone();
 
