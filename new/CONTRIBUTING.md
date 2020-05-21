@@ -11,6 +11,15 @@ rustup component add rustc-dev
 
 ## Design
 
+## Crates
+
++ `prusti` – Prusti itself.
++ Specification parsing:
+  + The procedural macro crates that provide only the procedural macro entry points and no serious logic:
+    + `prusti-contracts` – a crate that provides the user facing procedural macros such as `#[requires(...)]`, `#[ensures(...)]`, and `invariant!(...)`. These macros generate `#[prusti::*]` attributes.
+    + `prusti-contracts-internal` – a crate that provides a single procedural macro that takes the entire crate with `#[prusti::*]` attributes and generates the necessary additional code items for typechecking specifications.
+  + `prusti-specs` – the actual implementation logic that is exposed through `prusti-contracts` and `prusti-contracts-internal`.
+
 ## Components
 
 + `prusti` – the Prusti itself.
