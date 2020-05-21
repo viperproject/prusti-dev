@@ -45,14 +45,14 @@ impl rustc_ast::mut_visit::MutVisitor for AstRewriter {
         println!("ID: {:?}", id);
         // assert_ne!(*id, rustc_ast::node_id::DUMMY_NODE_ID);
     }
-    fn visit_mod(&mut self, m: &mut rustc_ast::ast::Mod) {
-        println!("mod: {:?}", m.items.len());
-        let mut main = m.items.last().cloned().unwrap();
-        main.ident = rustc_span::symbol::Ident::from_str("test");
-        m.items.push(main);
+    // fn visit_mod(&mut self, m: &mut rustc_ast::ast::Mod) {
+    //     println!("mod: {:?}", m.items.len());
+    //     let mut main = m.items.last().cloned().unwrap();
+    //     main.ident = rustc_span::symbol::Ident::from_str("test");
+    //     m.items.push(main);
 
-        rustc_ast::mut_visit::noop_visit_mod(m, self);
-    }
+    //     rustc_ast::mut_visit::noop_visit_mod(m, self);
+    // }
     fn visit_item_kind(&mut self, item: &mut ItemKind) {
         println!("Visit item: {:?}", item);
         match item {
@@ -197,7 +197,6 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         };
 
         (*resolver.borrow().borrow_mut()).access(|resolver| {
-            return;
         // cx: &'a mut ExtCtxt<'b>,
         let parse_sess = &compiler.session().parse_sess;
         let mut cx =rustc_expand::base::ExtCtxt::new(
@@ -211,6 +210,8 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         let mut new_items = Vec::new();
         let old_items = std::mem::replace(&mut krate.module.items, Vec::new());
         for item in old_items {
+            let original_id = item.id;
+            let original_name = item.ident.name;
             match &item.kind {
                 ItemKind::ExternCrate(..) |
                 ItemKind::Use(..) => {
@@ -221,14 +222,21 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 }
             }
             use crate::rustc_expand::base::AttrProcMacro;
-            let expn_data = rustc_span::hygiene::ExpnData::default(
-                rustc_span::hygiene::ExpnKind::AstPass(rustc_span::hygiene::AstPass::ProcMacroHarness),
-                item.span,
-                item.span.edition(),
-            );
+            // let expn_data = rustc_span::hygiene::ExpnData::default(
+            //     rustc_span::hygiene::ExpnKind::AstPass(rustc_span::hygiene::AstPass::ProcMacroHarness),
+            //     item.span,
+            //     item.span.edition(),
+            // );
             // let span = item.span.fresh_expansion(   // TODO: Remove
             //     expn_data);
-                cx.current_expansion.id = rustc_span::hygiene::ExpnId::fresh(Some(expn_data));
+                // cx.current_expansion.id = rustc_span::hygiene::ExpnId::fresh(Some(expn_data));
+            let expn_id = cx.resolver.expansion_for_ast_pass(
+                item.span,
+                rustc_span::hygiene::AstPass::ProcMacroHarness,
+                &[],
+                None
+            );
+            cx.current_expansion.id = expn_id;
             let tokens = item.tokens.as_ref().unwrap().clone();
             let inner_tokens = rustc_ast::tokenstream::TokenStream::new(vec![]);
             let tok_result = match expander.expand(&mut cx, item.span, inner_tokens, tokens) {
@@ -237,7 +245,29 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 Ok(ts) => ts,
             };
             let mut parser = cx.new_parser_from_tts(tok_result);
-            let fragment = rustc_expand::expand::parse_ast_fragment(&mut parser, rustc_expand::expand::AstFragmentKind::Items).expect("TODO");
+            let mut fragment = rustc_expand::expand::parse_ast_fragment(&mut parser, rustc_expand::expand::AstFragmentKind::Items).expect("TODO");
+            let mut fixer = NodeIdRewriter { resolver: cx.resolver };
+            match &mut fragment {
+                rustc_expand::expand::AstFragment::Items(items) => {
+                    for mut item in std::mem::replace(items, Default::default()) {
+                        if item.ident.name == original_name {
+                            item.id = original_id;
+                        } else {
+                            fixer.visit_id(&mut item.id);
+                        }
+                        fixer.visit_item_kind(&mut item.kind);
+                        if item.id == original_id {
+                            // Item's node id is already registered.
+                            new_items.push(item);
+                        } else {
+                            // Still need to register the item with the resolver.
+                            items.push(item);
+                        }
+                    }
+                }
+                _ => { unreachable!();}
+            }
+            cx.resolver.visit_ast_fragment_with_placeholders(rustc_span::hygiene::ExpnId::root(), &fragment);
             match fragment {
                 rustc_expand::expand::AstFragment::Items(items) => {
                     new_items.extend(items);
@@ -247,11 +277,11 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             // https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L515-L524
         }
 
-        let mut fixer = NodeIdRewriter { resolver };
-        for item in &mut new_items {
-            fixer.visit_id(&mut item.id);
-            fixer.visit_item_kind(&mut item.kind);
-        }
+        // let mut fixer = NodeIdRewriter { resolver };
+        // for item in &mut new_items {
+        //     fixer.visit_id(&mut item.id);
+        //     fixer.visit_item_kind(&mut item.kind);
+        // }
 
         std::mem::swap(&mut new_items, &mut krate.module.items);
     });
@@ -266,16 +296,16 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             None,
         );
         // println!("KRATE: {:#?}", krate);
-        let mut rewriter = AstRewriter {};
-        rewriter.visit_crate(krate);
+        // let mut rewriter = AstRewriter {};
+        // rewriter.visit_crate(krate);
 
-        rustc_driver::pretty::print_after_parsing(
-            compiler.session(),
-            compiler.input(),
-            krate,
-            rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
-            None,
-        );
+        // rustc_driver::pretty::print_after_parsing(
+        //     compiler.session(),
+        //     compiler.input(),
+        //     krate,
+        //     rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
+        //     None,
+        // );
         Compilation::Continue
     }
 
