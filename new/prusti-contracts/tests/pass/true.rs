@@ -15,7 +15,7 @@ fn test3() {
 #[requires(true)]
 #[ensures(true)]
 fn test4() {
-    for _ in (0..2) {
+    for _ in 0..2 {
         invariant!(true);
     }
 }
