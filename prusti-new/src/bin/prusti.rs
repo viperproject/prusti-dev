@@ -271,35 +271,34 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 Ok(ts) => ts,
             };
             let mut parser = cx.new_parser_from_tts(tok_result);
-            let mut fragment = rustc_expand::expand::parse_ast_fragment(&mut parser, rustc_expand::expand::AstFragmentKind::Items).expect("TODO");
+            let fragment = rustc_expand::expand::parse_ast_fragment(&mut parser, rustc_expand::expand::AstFragmentKind::Items).expect("TODO");
             let mut fixer = NodeIdRewriter { resolver: cx.resolver };
-            match &mut fragment {
-                rustc_expand::expand::AstFragment::Items(items) => {
-                    for mut item in std::mem::replace(items, Default::default()) {
-                        if item.ident.name == original_name {
-                            item.id = original_id;
-                        } else {
-                            fixer.visit_id(&mut item.id);
-                        }
-                        fixer.visit_item_kind(&mut item.kind);
-                        if item.id == original_id {
-                            // Item's node id is already registered.
-                            // TODO: Still need to register the children.
-                            new_items.push(item);
-                        } else {
-                            // Still need to register the item with the resolver.
-                            items.push(item);
-                        }
+            let items = fragment.make_items();
+            for mut item in items {
+                if item.ident.name == original_name {
+                    item.id = original_id;
+                } else {
+                    fixer.visit_id(&mut item.id);
+                }
+                fixer.visit_item_kind(&mut item.kind);
+                if item.id == original_id {
+                    // Item's node id is already registered. However, still need to register children.
+                    match &mut item.kind {
+                        rustc_ast::ast::ItemKind::Mod(module) => {
+                            let items = std::mem::replace(&mut module.items, Vec::new());
+                            let fragment = rustc_expand::expand::AstFragment::Items(items.into_iter().collect());
+                            fixer.resolver.visit_ast_fragment_with_placeholders(rustc_span::hygiene::ExpnId::root(), &fragment);
+                            module.items = fragment.make_items().into_iter().collect();
+                        },
+                        _ => {},
                     }
+                } else {
+                    // Need to register the top level node.
+                    let fragment = rustc_expand::expand::AstFragment::Items([item].into());
+                    fixer.resolver.visit_ast_fragment_with_placeholders(rustc_span::hygiene::ExpnId::root(), &fragment);
+                    item = fragment.make_items().pop().unwrap();
                 }
-                _ => { unreachable!();}
-            }
-            cx.resolver.visit_ast_fragment_with_placeholders(rustc_span::hygiene::ExpnId::root(), &fragment);
-            match fragment {
-                rustc_expand::expand::AstFragment::Items(items) => {
-                    new_items.extend(items);
-                }
-                _ => { unreachable!();}
+                new_items.push(item);
             }
             // https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L515-L524
         }
