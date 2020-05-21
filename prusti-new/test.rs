@@ -3,11 +3,11 @@
 
 extern crate prusti_contracts_internal;  // TODO: Figure out how to remove.
 
-/*
 mod foo_bar {
-    pub fn x() {}
+// pub fn x() {}
 }
 
+/*
 mod foo {
 
     use foo_bar::x;
