@@ -1,12 +1,19 @@
 use log::debug;
 use proc_macro::bridge::client::ProcMacro;
 use rustc_ast::ast;
+use rustc_ast::mut_visit;
+use rustc_ast::mut_visit::MutVisitor;
+use rustc_ast::ptr::P;
+use rustc_ast::tokenstream::TokenStreamBuilder;
+use rustc_expand::base::AttrProcMacro as AttrProcMacroTrait;
 use rustc_expand::proc_macro::AttrProcMacro;
 use rustc_interface::interface::Compiler;
 use rustc_metadata::creader::CStore;
 use rustc_metadata::dynamic_lib::DynamicLibrary;
 use rustc_middle::middle::cstore::CrateStore;
 use rustc_resolve::Resolver;
+use rustc_span::DUMMY_SP;
+use std::collections::HashMap;
 use std::path::Path;
 
 /// We report all errors via the compiler session, so no need to have a concrete
@@ -18,10 +25,49 @@ type SpecsResult<T = ()> = Result<T, ()>;
 pub(crate) fn rewrite_crate(
     compiler: &Compiler,
     resolver: &mut Resolver,
-    _krate: &mut ast::Crate,
+    crate_name: String,
+    krate: &mut ast::Crate,
     proc_macro_lib_path: &Path,
 ) -> SpecsResult {
-    let _proc_macro = load_proc_macro(compiler, resolver.cstore(), proc_macro_lib_path)?;
+    let proc_macro = load_proc_macro(compiler, resolver.cstore(), proc_macro_lib_path)?;
+
+    let mut visitor = NodeIdRewriter::new(true);
+
+    // Collect ids of the existing items so that we can restore them later.
+    visitor.visit_crate(krate);
+
+    // Get the crate tokens. The code is based on
+    // https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L703-L718.
+    let mut tokens = TokenStreamBuilder::new();
+    // Items that we are not going to rewrite.
+    let mut untouched_items = Vec::new();
+
+    let old_items = std::mem::replace(&mut krate.module.items, Vec::new());
+    for item in old_items {
+        match &item.kind {
+            ast::ItemKind::ExternCrate(..) | ast::ItemKind::Use(..) => {
+                untouched_items.push(item);
+                continue;
+            }
+            _ => {}
+        }
+        tokens.push(item.tokens.as_ref().unwrap().clone());
+    }
+
+    let parse_sess = &compiler.session().parse_sess;
+    let mut cx = rustc_expand::base::ExtCtxt::new(
+        parse_sess,
+        rustc_expand::expand::ExpansionConfig::default(crate_name),
+        resolver,
+        None,
+    );
+
+    let inner_tokens = rustc_ast::tokenstream::TokenStream::new(vec![]);
+    let tok_result = match proc_macro.expand(&mut cx, DUMMY_SP, inner_tokens, tokens.build()) {
+        Err(_) => unimplemented!(),
+        //return ExpandResult::Ready(fragment_kind.dummy(span)),
+        Ok(ts) => ts,
+    };
 
     Ok(())
 }
@@ -91,4 +137,41 @@ fn load_proc_macro(
     };
 
     Ok(proc_macro)
+}
+
+/// A visitor responsible for fixing the node ids after we rewrote the crate.
+struct NodeIdRewriter {
+    /// The current position in the crate.
+    current_path: Vec<String>,
+    /// Is currently collecting the NodeIds?
+    is_collecting: bool,
+    /// Node Id of each stored element.
+    ids: HashMap<Vec<String>, ast::NodeId>,
+}
+
+impl NodeIdRewriter {
+    fn new(is_collecting: bool) -> Self {
+        Self {
+            is_collecting: is_collecting,
+            current_path: Vec::new(),
+            ids: HashMap::new(),
+        }
+    }
+}
+
+impl MutVisitor for NodeIdRewriter {
+    fn visit_id(&mut self, node_id: &mut ast::NodeId) {
+        if self.is_collecting {
+            // assert_ne!(*node_id, ast::DUMMY_NODE_ID);
+            assert!(
+                !self.ids.contains_key(&self.current_path),
+                "duplicate path: {:?}",
+                self.current_path
+            );
+            self.ids.insert(self.current_path.clone(), *node_id);
+        }
+    }
+    fn flat_map_item(&mut self, i: P<ast::Item>) -> smallvec::SmallVec<[P<ast::Item>; 1]> {
+        mut_visit::noop_flat_map_item(i, self)
+    }
 }
