@@ -3,8 +3,8 @@
 
 extern crate rustc_driver;
 
+use log::debug;
 use prusti::PrustiCompilerCalls;
-
 use std::env;
 
 /// Initialize Prusti and the Rust compiler loggers.
@@ -30,9 +30,9 @@ fn main() {
     // arguments.
     let rustc_args: Vec<String> = env::args().collect();
 
-    // for arg in &rustc_args {
-    //     println!("Arg: {}", arg);
-    // }
+    for arg in &rustc_args {
+        debug!("Arg: {}", arg);
+    }
 
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
