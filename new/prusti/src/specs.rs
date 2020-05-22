@@ -171,7 +171,7 @@ impl MutVisitor for NodeIdRewriter {
             self.ids.insert(self.current_path.clone(), *node_id);
         }
     }
-    fn flat_map_item(&mut self, i: P<ast::Item>) -> smallvec::SmallVec<[P<ast::Item>; 1]> {
+    fn flat_map_item(&mut self, i: P<ast::Item>) -> my_smallvec::SmallVec<[P<ast::Item>; 1]> {
         mut_visit::noop_flat_map_item(i, self)
     }
 }
