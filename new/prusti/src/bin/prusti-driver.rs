@@ -6,6 +6,7 @@ extern crate rustc_driver;
 use log::debug;
 use prusti::PrustiCompilerCalls;
 use std::env;
+use std::path::PathBuf;
 
 /// Initialize Prusti and the Rust compiler loggers.
 fn init_loggers() {
@@ -30,13 +31,20 @@ fn main() {
     // arguments.
     let rustc_args: Vec<String> = env::args().collect();
 
+    let mut prusti_contracts_internal = None;
+
     for arg in &rustc_args {
         debug!("Arg: {}", arg);
+        if arg.starts_with("prusti_contracts_internal=") {
+            prusti_contracts_internal = Some(PathBuf::from(arg.splitn(2, "=").last().unwrap()));
+        }
     }
+
+    let mut callbacks = PrustiCompilerCalls::new(prusti_contracts_internal.unwrap());
 
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
-        rustc_driver::run_compiler(&rustc_args, &mut PrustiCompilerCalls {}, None, None)
+        rustc_driver::run_compiler(&rustc_args, &mut callbacks, None, None)
     });
     std::process::exit(exit_code)
 }

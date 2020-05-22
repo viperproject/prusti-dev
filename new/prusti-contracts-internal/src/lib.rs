@@ -1,12 +1,12 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, Item, Ident};
 use proc_macro2::Span;
+use quote::quote;
+use syn::{parse_macro_input, Ident, Item};
 
 #[proc_macro_attribute]
-pub fn return_as_is(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn expand_specs(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
     // item
     let item = parse_macro_input!(tokens as Item);
 
