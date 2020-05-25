@@ -46,3 +46,4 @@ extern crate pretty_assertions;
 pub mod encoder;
 mod utils;
 pub mod verifier;
+pub mod verification_service;

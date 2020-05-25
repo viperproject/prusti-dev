@@ -1,5 +1,5 @@
-use prusti_server::PrustiServer;
-use prusti_viper::encoder::vir::Program;
+use super::PrustiServer;
+use prusti_viper::{encoder::vir::Program, verification_service::*};
 use viper;
 
 use std::sync::{mpsc, Arc};
@@ -7,16 +7,6 @@ use std::thread;
 use tarpc::sync::client::ClientExt;
 use tarpc::sync::{client, server};
 use tarpc::util::Never;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ViperBackendConfig {
-    Silicon(Vec<String>),
-    Carbon(Vec<String>),
-}
-
-pub trait VerificationService {
-    fn verify(&self, program: Program, config: ViperBackendConfig) -> viper::VerificationResult;
-}
 
 service! {
     rpc verify(program: Program, config: ViperBackendConfig) -> viper::VerificationResult;

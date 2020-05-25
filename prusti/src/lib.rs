@@ -44,8 +44,6 @@
 #![feature(rustc_private)]
 #![feature(macro_vis_matcher)]
 #![feature(try_from)]
-#![feature(plugin, use_extern_macros, proc_macro_path_invoc)]
-#![plugin(tarpc_plugins)]
 
 extern crate getopts;
 #[macro_use]
@@ -63,14 +61,9 @@ extern crate serde_json;
 extern crate syntax;
 extern crate syntax_pos;
 extern crate viper;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate tarpc;
 
 pub mod compiler_calls;
 pub mod driver_utils;
 pub mod prusti_runner;
-mod service;
 pub mod typeck;
 pub mod verifier;
