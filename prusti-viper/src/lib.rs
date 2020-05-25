@@ -10,7 +10,6 @@
 #![feature(box_syntax)]
 #![feature(slice_sort_by_cached_key)]
 #![feature(custom_attribute)]
-
 #![deny(unreachable_patterns)]
 #![cfg_attr(debug_assertions, deny(dead_code))]
 #![deny(unused_mut)]
@@ -23,6 +22,7 @@ extern crate log;
 extern crate num_rational;
 extern crate num_traits;
 extern crate prusti_filter;
+#[macro_use]
 extern crate prusti_interface;
 extern crate regex;
 extern crate rustc;

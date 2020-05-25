@@ -13,7 +13,6 @@ use prusti_interface::report::user;
 use prusti_interface::specifications::TypedSpecificationMap;
 use prusti_viper::verifier::VerifierBuilder;
 use rustc_driver::driver;
-use std::time::Instant;
 
 /// Verify a (typed) specification on compiler state.
 pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
@@ -48,23 +47,13 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
             env.dump_borrowck_info(&verification_task.procedures);
 
             debug!("Prepare verifier...");
-            let jvm_start = Instant::now();
-            let verifier_builder = VerifierBuilder::new();
-            let verification_context = verifier_builder.new_verification_context();
-            let jvm_duration = jvm_start.elapsed();
-            info!(
-                "JVM startup ({}.{} seconds)",
-                jvm_duration.as_secs(),
-                jvm_duration.subsec_millis() / 10
+            run_timed!("JVM startup",
+                let verifier_builder = VerifierBuilder::new();
+                let verification_context = verifier_builder.new_verification_context();
             );
 
-            let verifier_start = Instant::now();
-            let mut verifier = verification_context.new_verifier(&env, &spec);
-            let verifier_duration = verifier_start.elapsed();
-            info!(
-                "Verifier startup ({}.{} seconds)",
-                verifier_duration.as_secs(),
-                verifier_duration.subsec_millis() / 10
+            run_timed!("Verifier startup",
+                let mut verifier = verification_context.new_verifier(&env, &spec);
             );
 
             debug!("Run verifier...");

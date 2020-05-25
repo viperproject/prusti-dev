@@ -16,7 +16,6 @@ use std::cell::Cell;
 use std::env::var;
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::time::Instant;
 use syntax::ast;
 use typeck;
 use verifier;
@@ -90,17 +89,10 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            let start = Instant::now();
-
-            prusti_interface::parser::register_attributes(state);
-            let untyped_specifications = prusti_interface::parser::rewrite_crate(state);
-            put_specifications.set(Some(untyped_specifications));
-
-            let duration = start.elapsed();
-            info!(
-                "Parsing of annotations successful ({}.{} seconds)",
-                duration.as_secs(),
-                duration.subsec_millis() / 10
+            run_timed!("Parsing of annotations successful",
+                prusti_interface::parser::register_attributes(state);
+                let untyped_specifications = prusti_interface::parser::rewrite_crate(state);
+                put_specifications.set(Some(untyped_specifications));
             );
             trace!("[after_parse.callback] exit");
             old_after_parse_callback(state);
@@ -110,17 +102,11 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             std::mem::replace(&mut control.after_analysis.callback, box |_| {});
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
-            let start = Instant::now();
 
-            let untyped_specifications = get_specifications.replace(None).unwrap();
-            let typed_specifications = typeck::type_specifications(state, untyped_specifications);
-            debug!("typed_specifications = {:?}", typed_specifications);
-
-            let duration = start.elapsed();
-            info!(
-                "Type-checking of annotations successful ({}.{} seconds)",
-                duration.as_secs(),
-                duration.subsec_millis() / 10
+            run_timed!("Type-checking of annotations successful",
+                let untyped_specifications = get_specifications.replace(None).unwrap();
+                let typed_specifications = typeck::type_specifications(state, untyped_specifications);
+                debug!("typed_specifications = {:?}", typed_specifications);
             );
 
             // Call the verifier

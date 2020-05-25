@@ -12,10 +12,10 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
+use prusti_interface::utils::run_timed;
 use std::ffi::OsString;
 use std::fs::{canonicalize, create_dir_all};
 use std::path::PathBuf;
-use std::time::Instant;
 use viper::{self, AstFactory, VerificationBackend, Viper};
 
 /// A verifier builder is an object that lives entire program's
@@ -30,10 +30,14 @@ pub struct VerifierBuilder {
 
 impl VerifierBuilder {
     pub fn new() -> Self {
-        VerifierBuilder {
+        Self::new_with_backend(VerificationBackend::from_str(&config::viper_backend()))
+    }
+
+    pub fn new_with_backend(backend: VerificationBackend) -> Self {
+        Self {
             viper: Viper::new_with_args(
                 config::extra_jvm_args(),
-                VerificationBackend::from_str(&config::viper_backend()),
+                backend,
             ),
         }
     }
@@ -170,112 +174,95 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
-        let start = Instant::now();
+        run_timed("Encoding to Viper successful", || {
+            // Dump the configuration
+            log::report("config", "prusti", config::dump());
 
-        // Dump the configuration
-        log::report("config", "prusti", config::dump());
+            let validator = Validator::new(self.env.tcx());
 
-        let validator = Validator::new(self.env.tcx());
+            info!("Received {} items to be verified:", task.procedures.len());
 
-        info!("Received {} items to be verified:", task.procedures.len());
-
-        for &proc_id in &task.procedures {
-            let proc_name = self.env.get_absolute_item_name(proc_id);
-            let proc_def_path = self.env.get_item_def_path(proc_id);
-            let proc_span = self.env.get_item_span(proc_id);
-            info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
-        }
-
-        // Report support status
-        if config::report_support_status() {
             for &proc_id in &task.procedures {
-                // Do some checks
-                let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
-
-                let support_status = if is_pure_function {
-                    validator.pure_function_support_status(proc_id)
-                } else {
-                    validator.procedure_support_status(proc_id)
-                };
-
-                support_status.report_support_status(&self.env, is_pure_function, false);
+                let proc_name = self.env.get_absolute_item_name(proc_id);
+                let proc_def_path = self.env.get_item_def_path(proc_id);
+                let proc_span = self.env.get_item_span(proc_id);
+                info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
             }
-        }
 
-        for &proc_id in task.procedures.iter().rev() {
-            self.encoder.queue_procedure_encoding(proc_id);
-        }
-        self.encoder.process_encoding_queue();
+            // Report support status
+            if config::report_support_status() {
+                for &proc_id in &task.procedures {
+                    // Do some checks
+                    let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
 
-        let duration = start.elapsed();
-        info!(
-            "Encoding to Viper successful ({}.{} seconds)",
-            duration.as_secs(),
-            duration.subsec_millis() / 10
-        );
-        let start = Instant::now();
+                    let support_status = if is_pure_function {
+                        validator.pure_function_support_status(proc_id)
+                    } else {
+                        validator.procedure_support_status(proc_id)
+                    };
 
-        let mut program = self.encoder.get_viper_program();
-        if config::simplify_encoding() {
-            program = program.optimized();
-        }
-        let viper_program = program.to_viper(&self.ast_factory);
-
-        if config::dump_viper_program() {
-            // Dump Viper program
-            let source_path = self.env.source_path();
-            let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-            let mut dump_path = PathBuf::from("viper_program");
-            let num_parents = config::num_parents_for_dumps();
-            if num_parents > 0 {
-                // Take `num_parents` parent folders and add them to `dump_path`
-                let mut components = vec![];
-                if let Some(abs_parent_path) = canonicalize(&source_path)
-                    .ok()
-                    .and_then(|full_path| full_path.parent().map(|parent| parent.to_path_buf()))
-                {
-                    components.extend(
-                        abs_parent_path
-                            .ancestors()
-                            .flat_map(|path| path.file_name())
-                            .take(num_parents as usize)
-                            .map(|x| x.to_os_string())
-                            .collect::<Vec<_>>()
-                            .into_iter()
-                            .rev(),
-                    );
-                } else {
-                    components.push(OsString::from("io_error"))
-                }
-                for component in components {
-                    dump_path.push(component);
+                    support_status.report_support_status(&self.env, is_pure_function, false);
                 }
             }
-            info!("Dumping Viper program to '{:?}'", dump_path);
-            log::report(
-                dump_path.to_str().unwrap(),
-                format!("{}.vpr", source_filename),
-                self.ast_utils.pretty_print(viper_program),
-            );
-        }
 
-        let duration = start.elapsed();
-        info!(
-            "Construction of JVM objects successful ({}.{} seconds)",
-            duration.as_secs(),
-            duration.subsec_millis() / 10
+            for &proc_id in task.procedures.iter().rev() {
+                self.encoder.queue_procedure_encoding(proc_id);
+            }
+            self.encoder.process_encoding_queue();
+        });
+
+        let viper_program = run_timed("Construction of JVM objects successful", || {
+            let mut program = self.encoder.get_viper_program();
+            if config::simplify_encoding() {
+                program = program.optimized();
+            }
+            let viper_program = program.to_viper(&self.ast_factory);
+
+            if config::dump_viper_program() {
+                // Dump Viper program
+                let source_path = self.env.source_path();
+                let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+                let mut dump_path = PathBuf::from("viper_program");
+                let num_parents = config::num_parents_for_dumps();
+                if num_parents > 0 {
+                    // Take `num_parents` parent folders and add them to `dump_path`
+                    let mut components = vec![];
+                    if let Some(abs_parent_path) = canonicalize(&source_path)
+                        .ok()
+                        .and_then(|full_path| full_path.parent().map(|parent| parent.to_path_buf()))
+                    {
+                        components.extend(
+                            abs_parent_path
+                                .ancestors()
+                                .flat_map(|path| path.file_name())
+                                .take(num_parents as usize)
+                                .map(|x| x.to_os_string())
+                                .collect::<Vec<_>>()
+                                .into_iter()
+                                .rev(),
+                        );
+                    } else {
+                        components.push(OsString::from("io_error"))
+                    }
+                    for component in components {
+                        dump_path.push(component);
+                    }
+                }
+                info!("Dumping Viper program to '{:?}'", dump_path);
+                log::report(
+                    dump_path.to_str().unwrap(),
+                    format!("{}.vpr", source_filename),
+                    self.ast_utils.pretty_print(viper_program),
+                );
+            }
+
+            viper_program
+        });
+
+        run_timed!("Verification complete", 
+            let verification_result = self.verifier.verify(viper_program);
         );
-        let start = Instant::now();
-
-        let verification_result: viper::VerificationResult = self.verifier.verify(viper_program);
-
-        let duration = start.elapsed();
-        info!(
-            "Verification complete ({}.{} seconds)",
-            duration.as_secs(),
-            duration.subsec_millis() / 10
-        );
-
+        
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,
             _ => vec![],
