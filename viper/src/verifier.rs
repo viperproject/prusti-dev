@@ -12,12 +12,12 @@ use jni::objects::JObject;
 use jni::JNIEnv;
 use jni_utils::JniUtils;
 use std::marker::PhantomData;
+use std::path::PathBuf;
 use std::time::Instant;
 use verification_backend::VerificationBackend;
 use verification_result::VerificationError;
 use verification_result::VerificationResult;
 use viper_sys::wrappers::viper::*;
-use std::path::PathBuf;
 
 pub mod state {
     pub struct Uninitialized;
@@ -44,22 +44,15 @@ impl<'a, VerifierState> Verifier<'a, VerifierState> {
         let verifier_instance = jni.unwrap_result(match backend {
             VerificationBackend::Silicon => {
                 let reporter = if let Some(real_report_path) = report_path {
-                    jni.unwrap_result(
-                        silver::reporter::CSVReporter::with(env).new(
-                            jni.new_string("csv_reporter"),
-                            jni.new_string(real_report_path.to_str().unwrap()),
-                        )
-                    )
+                    jni.unwrap_result(silver::reporter::CSVReporter::with(env).new(
+                        jni.new_string("csv_reporter"),
+                        jni.new_string(real_report_path.to_str().unwrap()),
+                    ))
                 } else {
-                    jni.unwrap_result(
-                        silver::reporter::NoopReporter_object::with(env).singleton()
-                    )
+                    jni.unwrap_result(silver::reporter::NoopReporter_object::with(env).singleton())
                 };
-                let plugin_aware_reporter = jni.unwrap_result(
-                    silver::plugin::PluginAwareReporter::with(&env).new(
-                        reporter
-                    )
-                );
+                let plugin_aware_reporter = jni
+                    .unwrap_result(silver::plugin::PluginAwareReporter::with(&env).new(reporter));
                 let utils = JniUtils::new(env);
                 let debug_info = utils.new_seq(&[]);
                 silicon::Silicon::with(env).new(plugin_aware_reporter, debug_info)
