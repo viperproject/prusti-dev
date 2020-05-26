@@ -1,15 +1,15 @@
 use super::PrustiServer;
 use prusti_viper::{encoder::vir::Program, verification_service::*};
-use viper;
 
 use std::sync::{mpsc, Arc};
 use std::thread;
 use tarpc::sync::client::ClientExt;
 use tarpc::sync::{client, server};
 use tarpc::util::Never;
+use viper::{VerificationBackend, VerificationResult};
 
 service! {
-    rpc verify(program: Program, config: ViperBackendConfig) -> viper::VerificationResult;
+    rpc verify(program: Program, config: ViperBackendConfig) -> VerificationResult;
 }
 
 #[derive(Clone)]
@@ -30,20 +30,20 @@ impl SyncService for ServerSideService {
         &self,
         program: Program,
         config: ViperBackendConfig,
-    ) -> Result<viper::VerificationResult, Never> {
+    ) -> Result<VerificationResult, Never> {
         Ok(self.server.verify(program, config))
     }
 }
 
 impl VerificationService for PrustiServer {
-    fn verify(&self, program: Program, config: ViperBackendConfig) -> viper::VerificationResult {
+    fn verify(&self, program: Program, config: ViperBackendConfig) -> VerificationResult {
         // TODO: handle args
         match config {
             ViperBackendConfig::Silicon(_args) => {
-                self.run_verifier(program, viper::VerificationBackend::Silicon)
+                self.run_verifier_sync(program, VerificationBackend::Silicon)
             }
             ViperBackendConfig::Carbon(_args) => {
-                self.run_verifier(program, viper::VerificationBackend::Carbon)
+                self.run_verifier_sync(program, VerificationBackend::Carbon)
             }
         }
     }
@@ -53,7 +53,7 @@ impl VerificationService for PrustiServer {
 pub struct PrustiServerConnection;
 
 impl VerificationService for PrustiServerConnection {
-    fn verify(&self, program: Program, config: ViperBackendConfig) -> viper::VerificationResult {
+    fn verify(&self, program: Program, config: ViperBackendConfig) -> VerificationResult {
         // FIXME: actually implement--currently just starts a server off-thread and runs on that lol
         let (sender, receiver) = mpsc::channel();
         thread::spawn(move || {
