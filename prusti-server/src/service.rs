@@ -1,6 +1,7 @@
 use super::PrustiServer;
 use prusti_viper::{encoder::vir::Program, verification_service::*};
 
+use std::net::SocketAddr;
 use std::sync::{mpsc, Arc};
 use std::thread;
 use tarpc::sync::client::ClientExt;
@@ -49,12 +50,21 @@ impl VerificationService for PrustiServer {
     }
 }
 
-#[derive(Clone)]
-pub struct PrustiServerConnection;
+pub struct PrustiServerConnection {
+    client: SyncClient,
+}
 
-impl VerificationService for PrustiServerConnection {
-    fn verify(&self, program: Program, config: ViperBackendConfig) -> VerificationResult {
-        // FIXME: actually implement--currently just starts a server off-thread and runs on that lol
+impl PrustiServerConnection {
+    pub fn new_from_string(server_address: String) -> Self {
+        Self::new(server_address.parse().unwrap())
+    }
+
+    pub fn new(server_address: SocketAddr) -> Self {
+        let client = SyncClient::connect(server_address, client::Options::default()).unwrap();
+        Self { client }
+    }
+
+    pub fn new_fake() -> Self {
         let (sender, receiver) = mpsc::channel();
         thread::spawn(move || {
             let handle = ServerSideService::new(PrustiServer::new())
@@ -63,8 +73,12 @@ impl VerificationService for PrustiServerConnection {
             sender.send(handle.addr()).unwrap();
             handle.run();
         });
-        let client =
-            SyncClient::connect(receiver.recv().unwrap(), client::Options::default()).unwrap();
-        client.verify(program, config).unwrap()
+        Self::new(receiver.recv().unwrap())
+    }
+}
+
+impl VerificationService for PrustiServerConnection {
+    fn verify(&self, program: Program, config: ViperBackendConfig) -> VerificationResult {
+        self.client.verify(program, config).unwrap()
     }
 }
