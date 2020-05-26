@@ -3,6 +3,8 @@
 Prusti-dev
 ==========
 
+[![Test](https://github.com/viperproject/prusti-dev/workflows/Test/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3ATest+branch%3Amaster)
+
 [Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust,
 built upon the the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
 
@@ -12,6 +14,8 @@ In Prusti, the functional behaviour of a function can be specified by using prec
 The tool checks them, reporting error messages when the code does not adhere to the provided specification.
 
 To see examples of programs annotated with specifications, look into the [`prusti/tests/verify/pass/rosetta`](prusti/tests/verify/pass/rosetta) and [`prusti/tests/verify/pass-overflow/rosetta`](prusti/tests/verify/pass-overflow/rosetta) folders.
+
+For a tutorial and more information, check out [the wiki page](https://github.com/viperproject/prusti-dev/wiki).
 
 
 Build for local development
