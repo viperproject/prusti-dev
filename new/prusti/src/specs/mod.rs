@@ -1,9 +1,9 @@
+mod node_id_rewriter;
+
+use crate::specs::node_id_rewriter::MutVisitor;
 use log::debug;
 use proc_macro::bridge::client::ProcMacro;
 use rustc_ast::ast;
-use rustc_ast::mut_visit;
-use rustc_ast::mut_visit::MutVisitor;
-use rustc_ast::ptr::P;
 use rustc_ast::tokenstream::TokenStreamBuilder;
 use rustc_expand::base::AttrProcMacro as AttrProcMacroTrait;
 use rustc_expand::proc_macro::AttrProcMacro;
@@ -13,7 +13,6 @@ use rustc_metadata::dynamic_lib::DynamicLibrary;
 use rustc_middle::middle::cstore::CrateStore;
 use rustc_resolve::Resolver;
 use rustc_span::DUMMY_SP;
-use std::collections::HashMap;
 use std::path::Path;
 
 /// We report all errors via the compiler session, so no need to have a concrete
@@ -31,7 +30,7 @@ pub(crate) fn rewrite_crate(
 ) -> SpecsResult {
     let proc_macro = load_proc_macro(compiler, resolver.cstore(), proc_macro_lib_path)?;
 
-    let mut visitor = NodeIdRewriter::new(true);
+    let mut visitor = node_id_rewriter::NodeIdRewriter::new(true);
 
     // Collect ids of the existing items so that we can restore them later.
     visitor.visit_crate(krate);
@@ -61,6 +60,13 @@ pub(crate) fn rewrite_crate(
         resolver,
         None,
     );
+    let expn_id = cx.resolver.expansion_for_ast_pass(
+        DUMMY_SP,
+        rustc_span::hygiene::AstPass::ProcMacroHarness,
+        &[],
+        None,
+    );
+    cx.current_expansion.id = expn_id;
 
     let inner_tokens = rustc_ast::tokenstream::TokenStream::new(vec![]);
     let tok_result = match proc_macro.expand(&mut cx, DUMMY_SP, inner_tokens, tokens.build()) {
@@ -137,41 +143,4 @@ fn load_proc_macro(
     };
 
     Ok(proc_macro)
-}
-
-/// A visitor responsible for fixing the node ids after we rewrote the crate.
-struct NodeIdRewriter {
-    /// The current position in the crate.
-    current_path: Vec<String>,
-    /// Is currently collecting the NodeIds?
-    is_collecting: bool,
-    /// Node Id of each stored element.
-    ids: HashMap<Vec<String>, ast::NodeId>,
-}
-
-impl NodeIdRewriter {
-    fn new(is_collecting: bool) -> Self {
-        Self {
-            is_collecting: is_collecting,
-            current_path: Vec::new(),
-            ids: HashMap::new(),
-        }
-    }
-}
-
-impl MutVisitor for NodeIdRewriter {
-    fn visit_id(&mut self, node_id: &mut ast::NodeId) {
-        if self.is_collecting {
-            // assert_ne!(*node_id, ast::DUMMY_NODE_ID);
-            assert!(
-                !self.ids.contains_key(&self.current_path),
-                "duplicate path: {:?}",
-                self.current_path
-            );
-            self.ids.insert(self.current_path.clone(), *node_id);
-        }
-    }
-    fn flat_map_item(&mut self, i: P<ast::Item>) -> my_smallvec::SmallVec<[P<ast::Item>; 1]> {
-        mut_visit::noop_flat_map_item(i, self)
-    }
 }

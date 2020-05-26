@@ -1,8 +1,10 @@
 #![feature(rustc_private)]
 #![feature(proc_macro_internals)]
+#![feature(decl_macro)]
 
 extern crate proc_macro;
 extern crate rustc_ast;
+extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_expand;
 extern crate rustc_interface;
