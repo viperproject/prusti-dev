@@ -363,7 +363,7 @@ pub trait MutVisitor: Sized {
         Break(visit_label_opt, visit_expr_opt2),
         Continue(visit_label_opt),
         Ret(visit_expr_opt2),
-        // InlineAsm(visit_asm), TODO
+        InlineAsm(visit_asm),
         LlvmInlineAsm(visit_llvm_inline_asm),
         MacCall(visit_mac),
         Struct(visit_path, list(visit_field), visit_expr_opt2),
@@ -380,13 +380,13 @@ pub trait MutVisitor: Sized {
         }
     }
 
+    fn visit_asm(&mut self, _asm: &mut InlineAsm) {
+        unimplemented!("Inline ASM is not supported");
+    }
+
     fn visit_llvm_inline_asm(&mut self, _asm: &mut LlvmInlineAsm) {
         unimplemented!("LLVM Inline ASM is not supported");
     }
-
-    // fn filter_map_expr(&mut self, e: P<Expr>) -> Option<P<Expr>> {
-    //     noop_filter_map_expr(e, self)
-    // }
 
     visit_mut_enum!(GenericArg {
         Lifetime(visit_lifetime),
