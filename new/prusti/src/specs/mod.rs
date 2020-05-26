@@ -4,6 +4,7 @@ use crate::specs::node_id_rewriter::MutVisitor;
 use log::debug;
 use proc_macro::bridge::client::ProcMacro;
 use rustc_ast::ast;
+use rustc_ast::token;
 use rustc_ast::tokenstream::TokenStreamBuilder;
 use rustc_expand::base::AttrProcMacro as AttrProcMacroTrait;
 use rustc_expand::proc_macro::AttrProcMacro;
@@ -12,7 +13,7 @@ use rustc_metadata::creader::CStore;
 use rustc_metadata::dynamic_lib::DynamicLibrary;
 use rustc_middle::middle::cstore::CrateStore;
 use rustc_resolve::Resolver;
-use rustc_span::DUMMY_SP;
+use rustc_span::{MultiSpan, DUMMY_SP};
 use std::path::Path;
 
 /// We report all errors via the compiler session, so no need to have a concrete
@@ -35,25 +36,28 @@ pub(crate) fn rewrite_crate(
     // Collect ids of the existing items so that we can restore them later.
     visitor.visit_crate(krate);
 
+    // rustc_driver::pretty::print_after_parsing(
+    //     compiler.session(),
+    //     compiler.input(),
+    //     krate,
+    //     rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
+    //     None,
+    // );
+
     // Get the crate tokens. The code is based on
     // https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L703-L718.
+    let parse_sess = &compiler.session().parse_sess;
     let mut tokens = TokenStreamBuilder::new();
-    // Items that we are not going to rewrite.
-    let mut untouched_items = Vec::new();
-
     let old_items = std::mem::replace(&mut krate.module.items, Vec::new());
     for item in old_items {
-        match &item.kind {
-            ast::ItemKind::ExternCrate(..) | ast::ItemKind::Use(..) => {
-                untouched_items.push(item);
-                continue;
-            }
-            _ => {}
-        }
-        tokens.push(item.tokens.as_ref().unwrap().clone());
+        let span = item.span;
+        tokens.push(rustc_parse::nt_to_tokenstream(
+            &token::NtItem(item),
+            parse_sess,
+            span,
+        ));
     }
 
-    let parse_sess = &compiler.session().parse_sess;
     let mut cx = rustc_expand::base::ExtCtxt::new(
         parse_sess,
         rustc_expand::expand::ExpansionConfig::default(crate_name),
@@ -74,6 +78,35 @@ pub(crate) fn rewrite_crate(
         //return ExpandResult::Ready(fragment_kind.dummy(span)),
         Ok(ts) => ts,
     };
+    let mut parser = cx.new_parser_from_tts(tok_result);
+    let fragment = rustc_expand::expand::parse_ast_fragment(
+        &mut parser,
+        rustc_expand::expand::AstFragmentKind::Items,
+    )
+    .expect("TODO");
+
+    visitor.set_phase_rewrite();
+
+    krate.module.items = fragment.make_items().to_vec();
+
+    // rustc_driver::pretty::print_after_parsing(
+    //     compiler.session(),
+    //     compiler.input(),
+    //     krate,
+    //     rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
+    //     None,
+    // );
+
+    visitor.visit_crate(krate);
+    let compiler_errors = visitor.get_compiler_errors();
+    if !compiler_errors.is_empty() {
+        let session = compiler.session();
+        for (msg, span) in compiler_errors {
+            let mut error = session.struct_span_err(MultiSpan::from_span(*span), msg);
+            error.emit();
+        }
+        return Err(());
+    }
 
     Ok(())
 }

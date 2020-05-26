@@ -14,10 +14,12 @@ use std::collections::HashMap;
 pub(crate) struct NodeIdRewriter {
     /// The current position in the crate.
     current_path: Vec<String>,
-    /// Is currently collecting the NodeIds?
+    /// Is currently collecting the NodeIds or rewriting them?
     is_collecting: bool,
     /// Node Id of each stored element.
     ids: HashMap<Vec<String>, NodeId>,
+    /// Compilation errors that were found in the AST.
+    compiler_errors: Vec<(String, Span)>,
 }
 
 impl NodeIdRewriter {
@@ -26,7 +28,15 @@ impl NodeIdRewriter {
             is_collecting: is_collecting,
             current_path: Vec::new(),
             ids: HashMap::new(),
+            compiler_errors: Vec::new(),
         }
+    }
+    pub fn set_phase_rewrite(&mut self) {
+        assert!(self.is_collecting);
+        self.is_collecting = false;
+    }
+    pub fn get_compiler_errors(&mut self) -> &mut Vec<(String, Span)> {
+        &mut self.compiler_errors
     }
 }
 
@@ -55,6 +65,41 @@ impl MutVisitor for NodeIdRewriter {
                 self.current_path
             );
             self.ids.insert(self.current_path.clone(), *node_id);
+        } else {
+            // Set the old id.
+            if let Some(old_id) = self.ids.get(&self.current_path) {
+                *node_id = *old_id;
+            }
+        }
+    }
+    fn visit_mac(&mut self, mac: &mut MacCall) {
+        assert!(!self.is_collecting, "Unresolved macro?");
+        // Most likely the procedural macro reported an error.
+        match mac {
+            MacCall {
+                path: Path { span, segments },
+                args,
+                prior_type_ascription: None,
+            } if segments
+                .first()
+                .map(|segment| segment.ident.to_string().starts_with("compile_error"))
+                .unwrap_or(false) =>
+            {
+                match &mut **args {
+                    MacArgs::Delimited(_, _, tokens) => {
+                        self.compiler_errors.push((
+                            rustc_ast_pretty::pprust::tts_to_string(tokens.to_owned()),
+                            *span,
+                        ));
+                    }
+                    _ => {
+                        unimplemented!("Uknown macro: {:?}", mac);
+                    }
+                }
+            }
+            _ => {
+                unimplemented!("Uknown macro: {:?}", mac);
+            }
         }
     }
 }
@@ -227,8 +272,12 @@ pub trait MutVisitor: Sized {
         MacCall(visit_mac_call)
     });
 
-    fn visit_mac_call(&mut self, _mac_call: &mut P<(MacCall, MacStmtStyle, ThinVec<Attribute>)>) {
-        unimplemented!("A macro call found by a visitor.")
+    fn visit_mac_call(&mut self, mac_call: &mut (MacCall, MacStmtStyle, ThinVec<Attribute>)) {
+        let (mac, _semi, attrs) = mac_call;
+        self.visit_mac(mac);
+        for attr in attrs.iter_mut() {
+            self.visit_attribute(attr);
+        }
     }
 
     visit_mut_struct!(Arm {
