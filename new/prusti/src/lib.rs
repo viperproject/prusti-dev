@@ -4,13 +4,16 @@
 
 extern crate proc_macro;
 extern crate rustc_ast;
+extern crate rustc_ast_pretty;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_expand;
 extern crate rustc_interface;
 extern crate rustc_metadata;
 extern crate rustc_middle;
+extern crate rustc_parse;
 extern crate rustc_resolve;
+extern crate rustc_session;
 extern crate rustc_span;
 extern crate smallvec;
 
