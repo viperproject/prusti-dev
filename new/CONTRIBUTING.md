@@ -7,6 +7,7 @@ Install the necessary components:
 ```bash
 rustup component add rust-src
 rustup component add rustc-dev
+rustup component add llvm-tools-preview
 ```
 
 Compiling:
