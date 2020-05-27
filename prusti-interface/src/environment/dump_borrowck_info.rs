@@ -88,7 +88,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
             loops: loop_info,
             initialization: initialization,
             liveness: liveness,
-            polonius_info: PoloniusInfo::new(&procedure),
+            polonius_info: PoloniusInfo::new(&procedure).ok().unwrap(),
         };
         mir_info_printer.print_info().unwrap();
 

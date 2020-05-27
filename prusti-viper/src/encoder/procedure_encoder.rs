@@ -25,7 +25,7 @@ use encoder::Encoder;
 use prusti_interface::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::borrowck::facts;
-use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
+use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo, PoloniusInfoError};
 use prusti_interface::environment::polonius_info::{
     ReborrowingDAG, ReborrowingDAGNode,
     ReborrowingKind, ReborrowingZombity,
@@ -60,7 +60,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     check_panics: bool,
     check_fold_unfold_state: bool,
-    polonius_info: PoloniusInfo<'p, 'tcx>,
+    polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
     label_after_location: HashMap<mir::Location, String>,
     /// Contains the boolean local variables that became `true` the first time the block is executed
     cfg_block_has_been_executed: HashMap<mir::BasicBlock, vir::LocalVar>,
@@ -119,7 +119,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir_encoder: mir_encoder,
             check_panics: config::check_panics(),
             check_fold_unfold_state: config::check_foldunfold_state(),
-            polonius_info: PoloniusInfo::new(procedure),
+            polonius_info: None,
             label_after_location: HashMap::new(),
             cfg_block_has_been_executed: HashMap::new(),
             magic_wand_at_location: HashMap::new(),
@@ -131,6 +131,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             old_to_ghost_var: HashMap::new(),
             old_ghost_vars: HashMap::new(),
         }
+    }
+
+    fn polonius_info(&self) -> &PoloniusInfo<'p, 'tcx> {
+        self.polonius_info.as_ref().unwrap()
     }
 
     pub fn encode(mut self) -> vir::CfgMethod {
@@ -257,6 +261,37 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::Stmt::comment(format!("Span: {:?}", self.procedure.get_span())),
             ],
         );
+
+        // Load Polonius info
+        match PoloniusInfo::new(&self.procedure) {
+            Ok(result) => self.polonius_info = Some(result),
+            Err(error) => match error.downcast::<PoloniusInfoError>() {
+                Err(other_err) => unimplemented!("{:?}", other_err),
+                Ok(pi_error) => match pi_error {
+                    PoloniusInfoError::UnsupportedLoanInLoop{ loop_head, variable } => {
+                        let msg = if let Some(name) = self.mir.local_decls[variable].name {
+                            format!(
+                                "creation of loan '{}' in loop is unsupported",
+                                name
+                            )
+                        } else {
+                            "creation of temporary loan in loop is unsupported".to_string()
+                        };
+                        self.encoder.register_encoding_error(
+                            self.mir_encoder.get_span_of_basic_block(loop_head),
+                            &msg,
+                        );
+                        // Early return: don't encode the content of the method
+                        self.cfg_method.add_stmt(
+                            start_cfg_block,
+                            vir::Stmt::Comment("Unsupported method body".to_string())
+                        );
+                        self.cfg_method.set_successor(start_cfg_block, Successor::Return);
+                        return self.cfg_method;
+                    }
+                },
+            }
+        }
 
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let cfg_block = self.cfg_method.add_block(
@@ -464,7 +499,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Add fold/unfold
         let loan_positions = self
-            .polonius_info
+            .polonius_info()
             .loan_locations()
             .into_iter()
             .map(|(loan, mir_location)| {
@@ -831,10 +866,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         location: mir::Location,
         place: vir::Expr,
     ) -> vir::Expr {
-        let (all_active_loans, _) = self.polonius_info.get_all_active_loans(location);
+        let (all_active_loans, _) = self.polonius_info().get_all_active_loans(location);
         let relevant_active_loan_places: Vec<_> = all_active_loans
             .iter()
-            .flat_map(|p| self.polonius_info.get_loan_places(p))
+            .flat_map(|p| self.polonius_info().get_loan_places(p))
             .filter(|loan_places| {
                 let (_, encoded_source, _) = self.encode_loan_places(loan_places);
                 place.has_prefix(&encoded_source)
@@ -971,7 +1006,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         end_location: Option<mir::Location>,
     ) -> vir::borrows::DAG {
         let mir_dag = self
-            .polonius_info
+            .polonius_info()
             .construct_reborrowing_dag(&loans, &zombie_loans, location);
         debug!(
             "construct_vir_reborrowing_dag mir_dag={}",
@@ -992,7 +1027,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     self.construct_vir_reborrowing_node_for_call(&mir_dag, loan, node, location)
                 }
                 ReborrowingKind::ArgumentMove { loan } => {
-                    let loan_location = self.polonius_info.get_loan_location(&loan);
+                    let loan_location = self.polonius_info().get_loan_location(&loan);
                     let guard = self.construct_location_guard(loan_location);
                     vir::borrows::Node::new(
                         guard,
@@ -1034,8 +1069,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let node_is_leaf = node.reborrowed_loans.is_empty();
 
-        let loan_location = self.polonius_info.get_loan_location(&loan);
-        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
+        let loan_location = self.polonius_info().get_loan_location(&loan);
+        let loan_places = self.polonius_info().get_loan_places(&loan).unwrap();
         let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places);
         let borrowed_places = vec![restored.clone()];
 
@@ -1052,7 +1087,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     loan_location, self.label_after_location
                 ));
             for &in_loan in node.reborrowing_loans.iter() {
-                let in_location = self.polonius_info.get_loan_location(&in_loan);
+                let in_location = self.polonius_info().get_loan_location(&in_loan);
                 let in_label =
                     self.label_after_location
                         .get(&in_location)
@@ -1107,14 +1142,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ));
         }
 
-        let conflicting_loans = self.polonius_info.get_conflicting_loans(node.loan);
+        let conflicting_loans = self.polonius_info().get_conflicting_loans(node.loan);
         let deaf_location = if let Some(end_location) = end_location {
             end_location
         } else {
             location
         };
         let alive_conflicting_loans = self
-            .polonius_info
+            .polonius_info()
             .get_alive_conflicting_loans(node.loan, deaf_location);
 
         let guard = self.construct_location_guard(loan_location);
@@ -1140,7 +1175,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> vir::borrows::Node {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
 
-        let loan_location = self.polonius_info.get_loan_location(&loan);
+        let loan_location = self.polonius_info().get_loan_location(&loan);
 
         // Get the borrow information.
         let (contract, fake_exprs) = self.procedure_contracts[&loan_location].clone();
@@ -1178,7 +1213,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
             if node.incoming_zombies {
                 for &in_loan in node.reborrowing_loans.iter() {
-                    let in_location = self.polonius_info.get_loan_location(&in_loan);
+                    let in_location = self.polonius_info().get_loan_location(&in_loan);
                     let in_label =
                         self.label_after_location
                             .get(&in_location)
@@ -1268,7 +1303,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             begin_loc, end_loc
         );
         let (all_dying_loans, zombie_loans) = self
-            .polonius_info
+            .polonius_info()
             .get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
@@ -1276,7 +1311,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
-        let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_at(location);
+        let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
     }
 
@@ -1758,9 +1793,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             if let Some(place) = self.mir_encoder.encode_operand_place(operand) {
                                 debug!("Put permission {:?} in postcondition", place);
                                 // Choose the label that corresponds to the creation of the loan
-                                let (loans, _) = self.polonius_info.get_all_active_loans(location);
+                                let (loans, _) = self.polonius_info().get_all_active_loans(location);
                                 let source_loans: Vec<_> = loans.iter().filter(|loan| {
-                                    let loan_places = self.polonius_info.get_loan_places(loan).unwrap();
+                                    let loan_places = self.polonius_info().get_loan_places(loan).unwrap();
                                     let (expiring, _, restored) = self.encode_loan_places(&loan_places);
                                     trace!("Try {:?} == {:?} | {:?}", expiring, place, restored);
                                     expiring.parent() == Some(&place)
@@ -1768,7 +1803,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 if !source_loans.is_empty() {
                                     assert_eq!(source_loans.len(), 1, "The argument depends on a condition");
                                     let source_loan = &source_loans[0];
-                                    let loan_loc = self.polonius_info.get_loan_location(&source_loan);
+                                    let loan_loc = self.polonius_info().get_loan_location(&source_loan);
                                     let loan_label = &self.label_after_location[&loan_loc];
                                     stmts.push(vir::Stmt::TransferPerm(
                                         place.clone(),
@@ -1984,7 +2019,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
-                            let loan = self.polonius_info.get_call_loan_at_location(location);
+                            let loan = self.polonius_info().get_call_loan_at_location(location);
                             let (
                                 post_type_spec,
                                 return_type_spec,
@@ -2732,13 +2767,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let blocker = mir::RETURN_PLACE;
             // TODO: Check if it really is always start and not the mid point.
             let start_point = self
-                .polonius_info
+                .polonius_info()
                 .get_point(location, facts::PointType::Start);
 
             let mut package_stmts =
-                if let Some(region) = self.polonius_info.variable_regions.get(&blocker) {
+                if let Some(region) = self.polonius_info().variable_regions.get(&blocker) {
                     let (all_loans, zombie_loans) = self
-                        .polonius_info
+                        .polonius_info()
                         .get_all_loans_kept_alive_by(start_point, *region);
                     self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)
                 } else {
@@ -3611,7 +3646,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
 
                 let mut stmts = if self.mir_encoder.is_reference(ty) {
-                    let loan = self.polonius_info.get_loan_at_location(location);
+                    let loan = self.polonius_info().get_loan_at_location(location);
                     let ref_field = self.encoder.encode_value_field(ty);
                     let mut stmts = self.prepare_assign_target(
                         lhs.clone(),
@@ -3935,7 +3970,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             location
         );
         let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
-        let loan = self.polonius_info.get_loan_at_location(location);
+        let loan = self.polonius_info().get_loan_at_location(location);
         let vir_assign_kind = match mir_borrow_kind {
             mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan),
             mir::BorrowKind::Unique => unimplemented!(),
