@@ -87,6 +87,8 @@ pub enum ErrorCtxt {
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
     AssertMethodPostconditionStrengthening(MultiSpan),
+    /// A Viper `assert false` that encodes an unsupported reason
+    Unsupported(String),
 }
 
 /// The Rust error that will be reported from the compiler
@@ -476,6 +478,13 @@ impl<'tcx> ErrorManager<'tcx> {
                     //.push_primary_span(opt_cause_span)
                     .push_primary_span(Some(&impl_span))
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
+                CompilerError::new(
+                    format!("a statement unsupported by Prusti may be reached: {}.", reason),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {

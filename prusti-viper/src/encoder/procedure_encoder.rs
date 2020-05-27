@@ -272,6 +272,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let mut cfg_successors: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
+
             for bbi_successor in self.procedure.successors(bbi) {
                 if self.procedure.is_reachable_block(bbi_successor) {
                     let cfg_edge = self.cfg_method.add_block(
@@ -282,6 +283,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             bbi, bbi_successor
                         ))],
                     );
+
+                    // Set successor
                     let is_back_edge = self.loop_encoder.is_loop_head(bbi_successor) &&
                         self.loop_encoder.get_loop_head(bbi) == Some(bbi_successor);
                     let successor = if is_back_edge {
@@ -290,6 +293,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         Successor::Goto(self.mir_to_vir_blocks[&bbi_successor])
                     };
                     self.cfg_method.set_successor(cfg_edge, successor);
+
+                    // Generate error for break and return statements in loops
+                    let is_abrupt_termination = !self.loop_encoder.is_loop_head(bbi) &&
+                        self.loop_encoder.get_loop_depth(bbi) > self.loop_encoder.get_loop_depth(bbi_successor);
+                    if is_abrupt_termination {
+                        let pos = self.encoder.error_manager().register(
+                            self.mir_encoder.get_span_of_basic_block(bbi),
+                            ErrorCtxt::Unsupported(
+                                "`break` and `return` statements in loops are not supported".to_string()
+                            ),
+                        );
+                        self.cfg_method.add_stmts(cfg_edge, vec![
+                            vir::Stmt::Comment(
+                                "Abrupt loop termination".to_string()
+                            ),
+                            vir::Stmt::Assert(
+                                false.into(),
+                                vir::FoldingBehaviour::None,
+                                pos
+                            )
+                        ]);
+                    }
+
                     cfg_successors.insert(bbi_successor, cfg_edge);
                 }
             }
@@ -318,7 +344,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ),
         );
 
-        // Encode a flag that becomes true the first time the block is executed
+        // Encode a flag that becomes true the first time a block is executed
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let executed_flag_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
             let bb_pos = self
