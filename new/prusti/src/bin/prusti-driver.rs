@@ -33,18 +33,26 @@ fn main() {
 
     let mut prusti_contracts_internal = None;
 
-    for arg in &rustc_args {
+    let mut args = Vec::new();
+    let mut print_desugared_specs = false;
+    for arg in rustc_args {
         debug!("Arg: {}", arg);
         if arg.starts_with("prusti_contracts_internal=") {
             prusti_contracts_internal = Some(PathBuf::from(arg.splitn(2, "=").last().unwrap()));
         }
+        if arg == "-Zprint-desugared-specs" {
+            print_desugared_specs = true;
+        } else {
+            args.push(arg);
+        }
     }
 
-    let mut callbacks = PrustiCompilerCalls::new(prusti_contracts_internal.unwrap());
+    let mut callbacks =
+        PrustiCompilerCalls::new(print_desugared_specs, prusti_contracts_internal.unwrap());
 
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
-        rustc_driver::run_compiler(&rustc_args, &mut callbacks, None, None)
+        rustc_driver::run_compiler(&args, &mut callbacks, None, None)
     });
     std::process::exit(exit_code)
 }

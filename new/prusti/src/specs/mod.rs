@@ -28,6 +28,7 @@ pub(crate) fn rewrite_crate(
     crate_name: String,
     krate: &mut ast::Crate,
     proc_macro_lib_path: &Path,
+    print_desugared_specs: bool,
 ) -> SpecsResult {
     let proc_macro = load_proc_macro(compiler, resolver.cstore(), proc_macro_lib_path)?;
 
@@ -35,14 +36,6 @@ pub(crate) fn rewrite_crate(
 
     // Collect ids of the existing items so that we can restore them later.
     visitor.visit_crate(krate);
-
-    // rustc_driver::pretty::print_after_parsing(
-    //     compiler.session(),
-    //     compiler.input(),
-    //     krate,
-    //     rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
-    //     None,
-    // );
 
     // Get the crate tokens. The code is based on
     // https://github.com/rust-lang/rust/blob/5943351d0eb878c1cb5af42b9e85e101d8c58ed7/src/librustc_expand/expand.rs#L703-L718.
@@ -89,13 +82,17 @@ pub(crate) fn rewrite_crate(
 
     krate.module.items = fragment.make_items().to_vec();
 
-    // rustc_driver::pretty::print_after_parsing(
-    //     compiler.session(),
-    //     compiler.input(),
-    //     krate,
-    //     rustc_session::config::PpMode::PpmSource(rustc_session::config::PpSourceMode::PpmNormal),
-    //     None,
-    // );
+    if print_desugared_specs {
+        rustc_driver::pretty::print_after_parsing(
+            compiler.session(),
+            compiler.input(),
+            krate,
+            rustc_session::config::PpMode::PpmSource(
+                rustc_session::config::PpSourceMode::PpmNormal,
+            ),
+            None,
+        );
+    }
 
     visitor.visit_crate(krate);
     let compiler_errors = visitor.get_compiler_errors();
