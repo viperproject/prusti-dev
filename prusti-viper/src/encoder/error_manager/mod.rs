@@ -61,6 +61,8 @@ pub enum ErrorCtxt {
     PureFunctionDefinition,
     /// A pure function call
     PureFunctionCall,
+    /// A stub pure function call
+    StubPureFunctionCall,
     /// An expression that encodes the value range of the result of a pure function
     PureFunctionPostconditionValueRangeOfResult,
     /// A Viper function with `false` precondition that encodes the failure (panic) of an
@@ -344,6 +346,14 @@ impl<'tcx> ErrorManager<'tcx> {
                     format!("precondition of pure function call might not hold."),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("application.precondition:assertion.false", ErrorCtxt::StubPureFunctionCall) => {
+                CompilerError::new(
+                    format!("use of impure function might be reachable."),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                    .set_help("Functions called from assertions should be marked as pure.")
             }
 
             ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => {

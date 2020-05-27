@@ -43,9 +43,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubFunctionEncoder<'p, 'v, 'r, 'a, '
         debug!("Encode stub function {}", function_name);
         let subst_strings = self.encoder.type_substitution_strings();
 
-        let precondition = vir::Expr::Const(vir::Const::Bool(false), vir::Position::default());
-        let postcondition = vir::Expr::Const(vir::Const::Bool(false), vir::Position::default());
-
         let formal_args: Vec<_> = self
             .mir
             .args_iter()
@@ -66,8 +63,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubFunctionEncoder<'p, 'v, 'r, 'a, '
             name: function_name,
             formal_args,
             return_type,
-            pres: vec![precondition],
-            posts: vec![postcondition],
+            pres: vec![false.into()],
+            // Note: Silicon is currently unsound when declaring a function that ensures `false`
+            // See: https://github.com/viperproject/silicon/issues/376
+            posts: vec![],
             body: None,
         };
 

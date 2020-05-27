@@ -1472,7 +1472,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }),
                 ..
             } => {
-                let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                let full_func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
 
                 let own_substs =
                     ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
@@ -1494,7 +1494,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     tymap_stack.push(tymap);
                 }
 
-                match func_proc_name {
+                match full_func_proc_name {
                     "std::rt::begin_panic" | "std::panicking::begin_panic" => {
                         // This is called when a Rust assertion fails
                         // args[0]: message
@@ -1618,7 +1618,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
                         if is_pure_function {
-                            let (function_name, return_type) = self.encoder.encode_pure_function_use(term.source_info.span, def_id);
+                            let (function_name, return_type) =
+                                self.encoder.encode_pure_function_use(def_id);
                             debug!("Encoding pure function call '{}'", function_name);
                             assert!(destination.is_some());
 
@@ -1752,7 +1753,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                         */
                         } else {
-                            debug!("Encoding non-pure function call '{}'", func_proc_name);
+                            debug!("Encoding non-pure function call '{}'", full_func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
                             let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
                             let mut fake_vars = vec![];
@@ -1790,7 +1791,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                             self.loop_encoder.get_loop_depth(location.block) > 0;
                                         if in_loop {
                                             const_arg_vars.insert(fake_arg_place);
-                                            warn!("Please use a local variable as argument for function call '{}', and not a constant.", func_proc_name);
+                                            warn!("Please use a local variable as argument for function call '{}', and not a constant.", full_func_proc_name);
                                         }
                                     }
                                 }

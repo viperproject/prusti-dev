@@ -34,6 +34,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     /// Builds an implementation of the Procedure interface, given a typing context and the
     /// identifier of a procedure
     pub fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>, proc_def_id: ProcedureDefId) -> Self {
+        trace!("Encoding procedure {:?}", proc_def_id);
         let mir = tcx.mir_validated(proc_def_id).borrow();
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
