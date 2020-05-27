@@ -25,13 +25,16 @@ use std::path::PathBuf;
 mod specs;
 
 pub struct PrustiCompilerCalls {
+    /// Should Prusti print the AST with desugared specifications.
+    print_desugared_specs: bool,
     /// Path to the `.so` file containing the `prusti_contracts_internal` crate.
     prusti_contracts_internal_path: PathBuf,
 }
 
 impl PrustiCompilerCalls {
-    pub fn new(prusti_contracts_internal_path: PathBuf) -> Self {
+    pub fn new(print_desugared_specs: bool, prusti_contracts_internal_path: PathBuf) -> Self {
         Self {
+            print_desugared_specs,
             prusti_contracts_internal_path,
         }
     }
@@ -53,6 +56,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                 crate_name,
                 krate,
                 &self.prusti_contracts_internal_path,
+                self.print_desugared_specs,
             )
         });
         if result.is_err() {
