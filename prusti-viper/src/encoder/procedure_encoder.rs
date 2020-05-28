@@ -323,6 +323,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     };
                     self.cfg_method.set_successor(cfg_edge, successor);
 
+                    /*
                     // Generate error for break and return statements in loops
                     let is_abrupt_termination = !self.loop_encoder.is_loop_head(bbi) &&
                         self.loop_encoder.get_loop_depth(bbi) > self.loop_encoder.get_loop_depth(bbi_successor);
@@ -346,6 +347,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             )
                         ]);
                     }
+                    */
 
                     cfg_successors.insert(bbi_successor, cfg_edge);
                 }
