@@ -434,7 +434,7 @@ impl ProcedureLoops {
         (write_leaves, mut_borrow_leaves, read_leaves)
     }
 
-    /// Check if ``block`` is inside a loop.
+    /// Check if ``block`` is inside a given loop.
     pub fn is_block_in_loop(&self, loop_head: BasicBlockIndex, block: BasicBlockIndex) -> bool {
         self.dominators.is_dominated_by(block, loop_head)
     }
