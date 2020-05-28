@@ -59,7 +59,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir: &'p mir::Mir<'tcx>,
     cfg_method: vir::CfgMethod,
     locals: LocalVariableManager<'tcx>,
-    loop_encoder: LoopEncoder<'p, 'tcx>,
+    loop_encoder: LoopEncoder<'p, 'a, 'tcx>,
     auxiliar_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     check_panics: bool,
@@ -121,7 +121,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir,
             cfg_method,
             locals: LocalVariableManager::new(&mir.local_decls),
-            loop_encoder: LoopEncoder::new(mir, tcx, def_id),
+            loop_encoder: LoopEncoder::new(procedure, tcx),
             auxiliar_local_vars: HashMap::new(),
             mir_encoder: mir_encoder,
             check_panics: config::check_panics(),
@@ -296,6 +296,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     bbi
                 ))],
             );
+            if self.loop_encoder.is_loop_head(bbi) {
+                self.cfg_method.add_stmt(
+                    cfg_block,
+                    vir::Stmt::Comment("This is a loop head".to_string())
+                );
+            }
+            if self.loop_encoder.is_loop_head(bbi) { // WIP: use is_loop_head_guard
+                self.cfg_method.add_stmt(
+                    cfg_block,
+                    vir::Stmt::Comment("This is a loop guard".to_string())
+                );
+            }
             self.mir_to_vir_blocks.insert(bbi, cfg_block);
         }
 
@@ -589,14 +601,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_loop_invariant_inhale(
         &mut self,
         bbi: BasicBlockIndex,
-        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+        _cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
     ) {
-        for (successor, cfg_successor) in &cfg_edges[&bbi] {
-            let after_loop = self.loop_encoder.get_loop_head(*successor) != Some(bbi);
-            let stmts = self.encode_loop_invariant_inhale_stmts(bbi, after_loop);
-            for stmt in stmts.iter() {
-                self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
-            }
+        let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
+        let stmts = self.encode_loop_invariant_inhale_stmts(bbi, false);
+        for stmt in stmts.iter() {
+            self.cfg_method.add_stmt(cfg_block, stmt.clone());
         }
     }
 
@@ -634,7 +644,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
     ) {
         if !self.procedure.is_spec_block(bbi) {
-            if self.loop_encoder.is_loop_head(bbi) {
+            if self.loop_encoder.is_loop_head(bbi) { // WIP: use is_loop_head_guard
                 for cfg_successor in cfg_edges[&bbi].values() {
                     self.encode_block_statements(bbi, *cfg_successor);
                 }
@@ -687,7 +697,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 return_cfg_block,
                 procedure_contract,
             );
-            if self.loop_encoder.is_loop_head(bbi) {
+            if self.loop_encoder.is_loop_head(bbi) { // WIP: use is_loop_head_guard
                 for cfg_successor in cfg_edges[&bbi].values() {
                     for stmt in stmts.iter() {
                         self.cfg_method.add_stmt(*cfg_successor, stmt.clone());

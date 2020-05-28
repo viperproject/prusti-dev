@@ -458,7 +458,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
 fn remove_back_edges(
     mut all_facts: facts::AllInputFacts,
     interner: &facts::Interner,
-    back_edges: &[(mir::BasicBlock, mir::BasicBlock)],
+    back_edges: &HashSet<(mir::BasicBlock, mir::BasicBlock)>,
 ) -> facts::AllInputFacts {
     let cfg_edge = all_facts.cfg_edge;
     let cfg_edge = cfg_edge
