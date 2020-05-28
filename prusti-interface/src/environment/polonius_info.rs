@@ -19,7 +19,6 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt;
 use std::iter::FromIterator;
 use std::path::PathBuf;
-use failure::Error;
 
 #[derive(Clone, Debug)]
 pub struct LoanPlaces<'tcx> {
@@ -328,16 +327,13 @@ impl ReborrowingDAG {
     }
 }
 
-#[derive(Debug, Fail)]
 pub enum PoloniusInfoError {
     /// Loans depending on branches inside loops are not implemented yet
-    #[fail(display = "Unsupported loan in loop: {:?} {:?}", loop_head, variable)]
     UnsupportedLoanInLoop {
         loop_head: mir::BasicBlock,
         variable: mir::Local,
     }
 }
-
 
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) mir: &'a mir::Mir<'tcx>,
@@ -577,7 +573,7 @@ fn compute_loan_conflict_sets(
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
-    pub fn new(procedure: &'a Procedure<'a, 'tcx>) -> Result<Self, Error> {
+    pub fn new(procedure: &'a Procedure<'a, 'tcx>) -> Result<Self, PoloniusInfoError> {
         let tcx = procedure.get_tcx();
         let def_id = procedure.get_id();
         let mir = procedure.get_mir();
@@ -677,7 +673,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         Ok(info)
     }
 
-    fn compute_loop_magic_wands(&mut self) -> Result<(), Error> {
+    fn compute_loop_magic_wands(&mut self) -> Result<(), PoloniusInfoError> {
         trace!("[enter] compute_loop_magic_wands");
         let loop_heads = self.loops.loop_heads.clone();
         for &loop_head in loop_heads.iter() {
@@ -1575,7 +1571,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
-    fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock, local: mir::Local) -> Result<(), Error> {
+    fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock, local: mir::Local) -> Result<(), PoloniusInfoError> {
         let region = self.variable_regions[&local];
         let magic_wand = LoopMagicWand {
             loop_id: loop_head,

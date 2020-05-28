@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::mir_encoder::MirEncoder;
-use encoder::foldunfold;
 use encoder::vir;
 use encoder::Encoder;
 use rustc::hir::def_id::DefId;
@@ -28,11 +27,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubFunctionEncoder<'p, 'v, 'r, 'a, '
         StubFunctionEncoder {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new_with_namespace(
+            mir_encoder: MirEncoder::new(
                 encoder,
                 mir,
                 proc_def_id,
-                "_stub".to_string(),
             ),
             proc_def_id,
         }
@@ -73,10 +71,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubFunctionEncoder<'p, 'v, 'r, 'a, '
         self.encoder
             .log_vir_program_before_foldunfold(function.to_string());
 
-        foldunfold::add_folding_unfolding_to_function(
-            function,
-            self.encoder.get_used_viper_predicates_map(),
-        )
+        // No need to fold/unfold, as this function is body-less and the contract is trivial
+        function
     }
 
     pub fn encode_function_name(&self) -> String {

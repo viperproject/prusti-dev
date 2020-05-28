@@ -45,8 +45,12 @@ use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::attr::SignedInt;
-use syntax::codemap::MultiSpan;
+use syntax::codemap::{Span, MultiSpan};
 use utils::to_string::ToString;
+
+pub enum ProcedureEncodingError {
+    UnsupportedLoanInLoop(String, Span)
+}
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -85,7 +89,10 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p Procedure<'a, 'tcx>) -> Self {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        procedure: &'p Procedure<'a, 'tcx>
+    ) -> Self {
         debug!("ProcedureEncoder constructor");
 
         let mir = procedure.get_mir();
@@ -137,13 +144,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.polonius_info.as_ref().unwrap()
     }
 
-    pub fn encode(mut self) -> vir::CfgMethod {
+    pub fn encode(mut self) -> Result<vir::CfgMethod, ProcedureEncodingError> {
         trace!("Encode procedure {}", self.cfg_method.name());
 
+        // Retrieve the contract
         let mut procedure_contract = self
             .encoder
             .get_procedure_contract_for_def(self.proc_def_id);
 
+        // Prepare assertions to check specification refinement
         let mut precondition_weakening: Option<TypedAssertion> = None;
         let mut postcondition_strengthening: Option<TypedAssertion> = None;
         debug!("procedure_contract: {:?}", &procedure_contract);
@@ -237,7 +246,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
 
-        // Formal return
+        // Declare the formal return
         for local in self.mir.local_decls.indices().take(1) {
             let name = self.mir_encoder.encode_local_var_name(local);
             let type_name = self
@@ -265,31 +274,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // Load Polonius info
         match PoloniusInfo::new(&self.procedure) {
             Ok(result) => self.polonius_info = Some(result),
-            Err(error) => match error.downcast::<PoloniusInfoError>() {
-                Err(other_err) => unimplemented!("{:?}", other_err),
-                Ok(pi_error) => match pi_error {
-                    PoloniusInfoError::UnsupportedLoanInLoop{ loop_head, variable } => {
-                        let msg = if let Some(name) = self.mir.local_decls[variable].name {
-                            format!(
-                                "creation of loan '{}' in loop is unsupported",
-                                name
-                            )
-                        } else {
-                            "creation of temporary loan in loop is unsupported".to_string()
-                        };
-                        self.encoder.register_encoding_error(
-                            self.mir_encoder.get_span_of_basic_block(loop_head),
-                            &msg,
-                        );
-                        // Early return: don't encode the content of the method
-                        self.cfg_method.add_stmt(
-                            start_cfg_block,
-                            vir::Stmt::Comment("Unsupported method body".to_string())
-                        );
-                        self.cfg_method.set_successor(start_cfg_block, Successor::Return);
-                        return self.cfg_method;
-                    }
-                },
+            Err(PoloniusInfoError::UnsupportedLoanInLoop{ loop_head, variable }) => {
+                let msg = if let Some(name) = self.mir.local_decls[variable].name {
+                    format!("creation of loan '{}' in loop is unsupported", name)
+                } else {
+                    "creation of temporary loan in loop is unsupported".to_string()
+                };
+                return Err(ProcedureEncodingError::UnsupportedLoanInLoop(
+                    msg,
+                    self.mir_encoder.get_span_of_basic_block(loop_head)
+                ));
             }
         }
 
@@ -546,7 +540,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             );
         }
 
-        final_method
+        Ok(final_method)
     }
 
     fn encode_block(

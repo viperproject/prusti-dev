@@ -337,7 +337,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
             for verification_error in verification_errors {
                 debug!("Verification error: {:?}", verification_error);
-                let compilation_error = error_manager.translate(&verification_error);
+                let compilation_error = error_manager.translate_verification_error(&verification_error);
                 debug!("Compilation error: {:?}", compilation_error);
                 self.env.span_err_with_help_and_note(
                     compilation_error.span,

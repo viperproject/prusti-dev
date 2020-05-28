@@ -41,8 +41,6 @@ extern crate syntax;
 extern crate syntax_pos;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate failure;
 
 pub mod ast_builder;
 pub mod config;
