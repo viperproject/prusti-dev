@@ -1,7 +1,5 @@
 #![feature(attr_literals)]
 
-// ignore-test The shafe of the CFG of a loop is not supported
-
 extern crate prusti_contracts;
 
 pub struct VecWrapper<T> {
@@ -60,7 +58,7 @@ fn linear_search<T: Eq>(arr: &VecWrapper<T>, elem: &T) -> UsizeOption {
     #[invariant("i <= arr.len()")]
     #[invariant("forall k: usize :: (0 <= k && k < i) ==> !arr.present(k, elem)")]
     #[invariant("done ==> (i < arr.len() && arr.present(i, elem))")]
-    while i < arr.len() && !done {
+    while i < arr.len() && !done { //~ ERROR
         if arr.present(i, elem) {
             done = true;
         } else {

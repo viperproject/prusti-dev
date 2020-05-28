@@ -330,7 +330,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let pos = self.encoder.error_manager().register(
                             self.mir_encoder.get_span_of_basic_block(bbi),
                             ErrorCtxt::Unsupported(
-                                "`break` and `return` statements in loops are not supported".to_string()
+                                "the shape of this loop is not supported".to_string(),
+                                "Avoid using `break` and `return` in the loop, and make \
+                                sure that the loop guard just uses a boolean variable.".to_string()
                             ),
                         );
                         self.cfg_method.add_stmts(cfg_edge, vec![
