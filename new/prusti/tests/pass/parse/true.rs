@@ -1,5 +1,8 @@
 // compile-flags: -Zprint-desugared-specs
 
+#![feature(register_tool)]
+#![register_tool(prusti)]
+
 use prusti_contracts::*;
 
 #[requires(true)]
