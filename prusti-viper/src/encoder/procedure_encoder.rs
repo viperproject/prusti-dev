@@ -571,13 +571,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_loop(
         &mut self,
+        _label_prefix: &str,
         blocks: &[BasicBlockIndex],
         _break_destinations: HashMap<BasicBlockIndex, vir::CfgBlockIndex>,
         _return_cfg_block: vir::CfgBlockIndex,
     ) -> vir::CfgBlockIndex {
         debug_assert!(blocks.len() > 1);
-        let loop_head = blocks[0];
         let loop_info = self.loop_encoder.loops();
+        let loop_head = blocks[0];
         debug_assert!(loop_info.is_loop_head(loop_head));
         let loop_depth = loop_info.get_loop_head_depth(loop_head);
 
@@ -605,12 +606,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_block<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
         &mut self,
+        label_prefix: &str,
         bbi: mir::BasicBlock,
         return_block: vir::CfgBlockIndex,
         get_block: F,
-    ) {
+    ) -> CfgBlockIndex {
         let curr_block = self.cfg_method.add_block(
-            &format!("{:?}", bbi),
+            &format!("{}{:?}", label_prefix, bbi),
             vec![],
             vec![vir::Stmt::comment(format!(
                 "========== {:?} ==========",
@@ -632,9 +634,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         self.encode_execution_flag(bbi, curr_block);
         self.encode_statements(bbi, curr_block);
-        let successor = self.encode_terminators(bbi, curr_block, return_block, get_block);
-        self.cfg_method.set_successor(curr_block, successor);
-        //self.encode_loop_invariant_exhale(bbi, get_block);
+        self.encode_terminators(bbi, curr_block, return_block, get_block);
+
+        curr_block
     }
 
     /// Store a flag that becomes true the first time the block is executed
@@ -689,7 +691,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         curr_block: vir::CfgBlockIndex,
         return_block: vir::CfgBlockIndex,
         get_block: F,
-    ) -> Successor {
+    ) {
         trace!("Encode terminator of {:?}", bbi);
         let bb_data = &self.mir.basic_blocks()[bbi];
         let term = bb_data.terminator.as_ref().unwrap();
@@ -708,7 +710,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             get_block,
         );
         self.cfg_method.add_stmts(curr_block, stmts);
-        successor
+        self.cfg_method.set_successor(curr_block, successor);
     }
 
     fn old_encode_block(
@@ -2995,7 +2997,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         return_cfg_block: CfgBlockIndex,
         postcondition_strengthening: Option<TypedAssertion>,
     ) {
+        // This clone is only due to borrow checker restrictions
         let contract = self.procedure_contract().clone();
+
         self.cfg_method
             .add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
