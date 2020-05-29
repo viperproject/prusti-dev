@@ -26,9 +26,7 @@ pub fn expand_specs(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         Ok(data) => data,
         Err(err) => return err.to_compile_error(),
     };
-    let expanded = quote! {
+    quote! {
         #krate
-    };
-    // Hand the output tokens back to the compiler
-    TokenStream::from(expanded)
+    }
 }
