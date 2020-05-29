@@ -249,6 +249,7 @@ pub struct ProcedureLoops {
     pub loop_head_depths: HashMap<BasicBlockIndex, usize>,
     /// A map from loop heads to the corresponding bodies.
     pub loop_bodies: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
+    pub ordered_loop_bodies: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).
     enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop heads to the corresponding guard block.
@@ -282,6 +283,16 @@ impl ProcedureLoops {
         for &(source, target) in back_edges.iter() {
             let body = loop_bodies.entry(target).or_insert(HashSet::new());
             collect_loop_body(target, source, mir, body);
+        }
+
+        let mut ordered_loop_bodies = HashMap::new();
+        for (&loop_head, loop_body) in loop_bodies.iter() {
+            let mut ordered_body: Vec<_> = loop_body.iter().cloned().collect();
+            ordered_body.sort_unstable_by(
+                |a, b| block_order[a].partial_cmp(&block_order[b]).unwrap()
+            );
+            debug_assert_eq!(loop_head, ordered_body[0]);
+            ordered_loop_bodies.insert(loop_head, ordered_body);
         }
 
         let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> =
@@ -323,16 +334,12 @@ impl ProcedureLoops {
         for &loop_head in loop_heads.iter() {
             let loop_head_depth = loop_head_depths[&loop_head];
             let loop_body = &loop_bodies[&loop_head];
-            let mut ordered_loop_body: Vec<_> = loop_body.iter().cloned().collect();
-            ordered_loop_body.sort_unstable_by(
-                |a, b| block_order[a].partial_cmp(&block_order[b]).unwrap()
-            );
-            debug_assert_eq!(loop_head, ordered_loop_body[0]);
+            let ordered_loop_body = &ordered_loop_bodies[&loop_head];
 
             let mut border = HashSet::new();
             border.insert(loop_head);
 
-            for curr_bb in ordered_loop_body {
+            for &curr_bb in ordered_loop_body {
                 debug_assert!(border.contains(&curr_bb));
 
                 if border.len() == 1 {
@@ -366,6 +373,7 @@ impl ProcedureLoops {
             loop_heads,
             loop_head_depths,
             loop_bodies,
+            ordered_loop_bodies,
             enclosing_loop_heads,
             loop_head_guard,
             back_edges,
@@ -422,6 +430,12 @@ impl ProcedureLoops {
     /// Get the loop-depth of a block (zero if it's not in a loop).
     pub fn get_loop_depth(&self, bbi: BasicBlockIndex) -> usize {
         self.get_loop_head(bbi).map(|x| self.get_loop_head_depth(x)).unwrap_or(0)
+    }
+
+    /// Get the (topologically ordered) body of a loop, given a loop head
+    pub fn get_loop_body(&self, head_bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
+        debug_assert!(self.is_loop_head(head_bbi));
+        &self.ordered_loop_bodies[&head_bbi]
     }
 
     /// Does this edge exit a loop?
