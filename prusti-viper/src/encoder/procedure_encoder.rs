@@ -601,12 +601,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_loop_invariant_inhale(
         &mut self,
         bbi: BasicBlockIndex,
-        _cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
     ) {
-        let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
-        let stmts = self.encode_loop_invariant_inhale_stmts(bbi, false);
-        for stmt in stmts.iter() {
-            self.cfg_method.add_stmt(cfg_block, stmt.clone());
+        for (successor, cfg_successor) in &cfg_edges[&bbi] {
+            let after_loop = self.loop_encoder.get_loop_head(*successor) != Some(bbi);
+            let stmts = self.encode_loop_invariant_inhale_stmts(bbi, after_loop);
+            for stmt in stmts.iter() {
+                self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
+            }
         }
     }
 
