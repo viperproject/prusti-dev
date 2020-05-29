@@ -20,7 +20,8 @@ pub fn invariant(_tokens: TokenStream) -> TokenStream {
     quote!(if (false) {})
 }
 
-pub fn expand_specs(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn expand_specs(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    assert!(attr.is_empty());
     let krate: File = match syn::parse2(tokens) {
         Ok(data) => data,
         Err(err) => return err.to_compile_error(),
