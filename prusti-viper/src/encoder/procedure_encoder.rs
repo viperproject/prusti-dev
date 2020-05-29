@@ -302,7 +302,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     vir::Stmt::Comment("This is a loop head".to_string())
                 );
             }
-            if self.loop_encoder.is_loop_head(bbi) { // WIP: use is_loop_head_guard
+            if self.loop_encoder.is_loop_head_guard(bbi) {
                 self.cfg_method.add_stmt(
                     cfg_block,
                     vir::Stmt::Comment("This is a loop guard".to_string())
