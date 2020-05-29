@@ -49,8 +49,8 @@ impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
     }
 
     /// Is the given basic block a loop head guard?
-    pub fn is_loop_head_guard(&self, bbi: BasicBlockIndex) -> bool {
-        self.loops().is_loop_head_guard(bbi)
+    pub fn is_loop_guard_switch(&self, bbi: BasicBlockIndex) -> bool {
+        self.loops().is_loop_guard_switch(bbi)
     }
 
     /// Note: a loop head is loop head of itself
@@ -66,7 +66,7 @@ impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
     }
 
     /// Get iterator over enclosing loop heads.
-    pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
+    pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
         self.loops().get_enclosing_loop_heads(bbi)
     }
 
