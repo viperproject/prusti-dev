@@ -1,5 +1,7 @@
 #![feature(attr_literals)]
 
+// ignore-test The shafe of the CFG of a loop is not supported
+
 extern crate prusti_contracts;
 
 pub struct VecWrapper<T> {
