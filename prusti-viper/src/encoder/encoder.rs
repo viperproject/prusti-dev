@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt::Debug;
 use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
@@ -355,6 +356,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         args: &Vec<places::Local>,
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
+        // get specification on trait declaration method or inherent impl
         let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
         let fun_spec = match opt_fun_spec {
             Some(fun_spec) => fun_spec.clone(),
@@ -363,11 +365,92 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 SpecificationSet::Procedure(vec![], vec![])
             }
         };
+
         let tymap = self.typaram_repl.borrow_mut();
         assert!(tymap.len() == 1);
+
+        // get receiver object base type
+        let tcx = self.env().tcx();
+        let mut impl_spec = SpecificationSet::Procedure(vec![], vec![]);
+        let sig = tcx.fn_sig(proc_def_id);
+
+        if sig.inputs().skip_binder().len() > 0 {
+            let self_ty_binder = sig.input(0);
+            let mut self_ty = self_ty_binder.skip_binder().clone();
+
+
+            // stip reference on self type
+            if let ty::TypeVariants::TyRef(_, true_ty, _) = self_ty.sty {
+                self_ty = true_ty;
+            }
+
+            // get specification on trait impl if exists, and has receiver object
+            if self_ty.is_self() {
+                if let Some(ty) = tymap[0].get(self_ty) {
+                    let decl_trait_id = tcx.trait_of_item(proc_def_id);
+                    if let Some(id) = decl_trait_id {
+                        let proc_name = tcx.item_name(proc_def_id).to_string();
+                        tcx.for_each_relevant_impl(id, ty, |impl_id| {
+                            let assoc_items: Vec<_> = tcx.associated_items(impl_id).collect();
+                            for assoc_item in assoc_items {
+                                if assoc_item.name == proc_name {
+                                    let opt_impl_spec = self.get_spec_by_def_id(assoc_item.def_id);
+                                    if let Some(spec) = opt_impl_spec {
+                                        impl_spec = spec.clone();
+                                    } else {
+                                        debug!("Procedure {:?} has no specification", assoc_item.def_id);
+                                    }
+                                    break;
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        // merge specifications
+        let final_spec = self.merge_specifications(&fun_spec, &impl_spec);
+
         let contract =
-            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, Some(&tymap[0]));
+            compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
         contract.to_call_site_contract(args, target)
+    }
+
+    /// Trait implementation method refinement
+    /// Choosing alternative C as discussed in
+    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// pp 19-23
+    fn merge_specifications<ET, AT>(&self, base_spec: &SpecificationSet<ET, AT>,
+                                    refined_spec: &SpecificationSet<ET, AT>) -> SpecificationSet<ET, AT>
+    where ET: Clone + Debug, AT: Clone + Debug{
+        let mut pres = vec![];
+        let mut post = vec![];
+        let (ref_pre, ref_post) = {
+            if let SpecificationSet::Procedure(ref pre, ref post) = refined_spec {
+                (pre, post)
+            } else {
+                unreachable!("Unexpected: {:?}", refined_spec)
+            }
+        };
+        let (base_pre, base_post) = {
+            if let SpecificationSet::Procedure(ref pre, ref post) = base_spec {
+                (pre, post)
+            } else {
+                unreachable!("Unexpected: {:?}", base_spec)
+            }
+        };
+        if ref_pre.is_empty() {
+            pres.append(&mut base_pre.clone());
+        } else {
+            pres.append(&mut ref_pre.clone());
+        }
+        if ref_post.is_empty() {
+            post.append(&mut base_post.clone());
+        } else {
+            post.append(&mut ref_post.clone());
+        }
+        SpecificationSet::Procedure(pres, post)
     }
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
