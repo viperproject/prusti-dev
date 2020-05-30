@@ -3362,7 +3362,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vir::Stmt::Assert(
                 patched_func_spec,
                 vir::FoldingBehaviour::Expr,
-                func_pos),
+                func_pos
+            ),
         );
 
         // Assert type invariants
