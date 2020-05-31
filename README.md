@@ -21,9 +21,11 @@ For a tutorial and more information, check out [the wiki page](https://github.co
 Build for local development
 ---------------------------
 
-The following instructions has been tested on Ubuntu 16.04:
+The following instructions has been tested on Ubuntu 16.04. For other distributions, see the respective points.
 
 - Install the `viper` package.
+
+    - Debian-based distributions:
 
     ```bash
     wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
@@ -31,12 +33,23 @@ The following instructions has been tested on Ubuntu 16.04:
     sudo apt-get update
     sudo apt-get install -y viper
     ```
+    
+    - Other distributions:
+        - Download nightly Viper CLI tools from [here](https://www.pm.inf.ethz.ch/research/viper/downloads.html)
+        - Extract the archive
+        - Set `VIPER_HOME` environment variable to the `backends` directory of the just extracted archive
+    
 
 - Install Java 8 or a later version.
+
+    - Debian-based distributions:
 
     ```bash
     sudo apt-get install -y default-jdk
     ```
+    
+    - Other distributions:
+        - set `JAVA_HOME` environment variable to `/usr/lib/jvm/your-java-home`
 
 - Install Rustup
 
