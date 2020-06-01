@@ -3,6 +3,8 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
+use proc_macro2::{Span, TokenStream};
+use quote::ToTokens;
 use std::convert::TryFrom;
 use std::string::ToString;
 
@@ -41,29 +43,37 @@ impl<'a> TryFrom<&'a str> for SpecType {
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
-pub struct SpecID(u64);
+pub struct SpecificationId(u64);
 
-impl SpecID {
-    /// Constructor.
-    pub fn new() -> Self {
-        Self { 0: 100 }
+pub(crate) struct SpecificationIdGenerator {
+    last_id: u64,
+}
+
+impl SpecificationIdGenerator {
+    pub(crate) fn new() -> Self {
+        Self { last_id: 100 }
     }
-    /// Increment ID and return a copy of the new value.
-    pub fn inc(&mut self) -> Self {
-        self.0 += 1;
-        Self { 0: self.0 }
+    pub(crate) fn generate(&mut self) -> SpecificationId {
+        self.last_id += 1;
+        SpecificationId(self.last_id)
     }
 }
 
-impl ToString for SpecID {
+impl ToString for SpecificationId {
     fn to_string(&self) -> String {
         self.0.to_string()
     }
 }
 
-impl From<u64> for SpecID {
+impl From<u64> for SpecificationId {
     fn from(value: u64) -> Self {
         Self { 0: value }
+    }
+}
+
+impl ToTokens for SpecificationId {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens)
     }
 }
 

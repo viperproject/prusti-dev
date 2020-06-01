@@ -1,13 +1,13 @@
-use crate::specifications::common::ExpressionIdGenerator;
+use crate::specifications::common::{ExpressionIdGenerator, SpecificationIdGenerator};
 use crate::specifications::untyped;
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
 use std::mem;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 
 pub(crate) struct AstRewriter {
     expr_id_generator: ExpressionIdGenerator,
+    spec_id_generator: SpecificationIdGenerator,
     errors: Vec<syn::Error>,
 }
 
@@ -15,6 +15,7 @@ impl AstRewriter {
     pub(crate) fn new() -> Self {
         Self {
             expr_id_generator: ExpressionIdGenerator::new(),
+            spec_id_generator: SpecificationIdGenerator::new(),
             errors: Vec::new(),
         }
     }
@@ -48,7 +49,7 @@ impl AstRewriter {
     fn parse_fn_item_specs(
         &mut self,
         attrs: &mut Vec<syn::Attribute>,
-    ) -> Vec<untyped::Specification> {
+    ) -> untyped::SpecificationSet {
         let mut pre_attrs = Vec::new();
         let mut post_attrs = Vec::new();
         for attr in mem::replace(attrs, Vec::new()) {
@@ -65,7 +66,7 @@ impl AstRewriter {
                         attr.span(),
                         "unexpected Prusti attribute; expected `prusti::requires` or `prusti::ensures`".to_string(),
                     );
-                    return Vec::new();
+                    return untyped::SpecificationSet::Procedure(Vec::new(), Vec::new());
                 }
                 let last_segment = &segments[1].ident;
                 if last_segment == "requires" {
@@ -79,31 +80,40 @@ impl AstRewriter {
                         last_segment.span(),
                         "unexpected Prusti attribute; expected `prusti::requires` or `prusti::ensures`".to_string(),
                     );
-                    return Vec::new();
+                    return untyped::SpecificationSet::Procedure(Vec::new(), Vec::new());
                 }
             } else {
                 attrs.push(attr);
             }
         }
-        let mut specs = Vec::new();
+        let mut pres = Vec::new();
         for attr in pre_attrs {
-            specs.push(untyped::Specification {
+            pres.push(untyped::Specification {
                 typ: untyped::SpecType::Precondition,
                 assertion: self.parse_assertion(attr.tokens),
             });
         }
+        let mut posts = Vec::new();
         for attr in post_attrs {
-            specs.push(untyped::Specification {
+            posts.push(untyped::Specification {
                 typ: untyped::SpecType::Postcondition,
                 assertion: self.parse_assertion(attr.tokens),
             });
         }
-        specs
+        untyped::SpecificationSet::Procedure(pres, posts)
     }
 }
 
 impl VisitMut for AstRewriter {
     fn visit_item_fn_mut(&mut self, item: &mut syn::ItemFn) {
         let specs = self.parse_fn_item_specs(&mut item.attrs);
+        if specs.is_empty() {
+            return;
+        }
+        let spec_id = self.spec_id_generator.generate();
+        *item = syn::parse_quote! {
+            #[prusti::spec_id(#spec_id)]
+            #item
+        };
     }
 }

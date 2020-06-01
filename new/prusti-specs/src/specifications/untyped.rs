@@ -16,7 +16,7 @@ pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
 /// A set of untyped specifications associated with a single element.
 pub type SpecificationSet = common::SpecificationSet<ExpressionId, syn::Expr, Arg>;
 /// A map of untyped specifications for a specific crate.
-pub type SpecificationMap = HashMap<common::SpecID, SpecificationSet>;
+pub type SpecificationMap = HashMap<common::SpecificationId, SpecificationSet>;
 /// An assertion that has no types associated with it.
 pub type Assertion = common::Assertion<ExpressionId, syn::Expr, Arg>;
 /// An assertion kind that has no types associated with it.
