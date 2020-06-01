@@ -1,4 +1,6 @@
-use crate::specifications::common::{ExpressionIdGenerator, SpecificationIdGenerator};
+use crate::specifications::common::{
+    ExpressionIdGenerator, SpecificationId, SpecificationIdGenerator,
+};
 use crate::specifications::untyped;
 use proc_macro2::{Span, TokenStream};
 use std::mem;
@@ -8,7 +10,11 @@ use syn::visit_mut::VisitMut;
 pub(crate) struct AstRewriter {
     expr_id_generator: ExpressionIdGenerator,
     spec_id_generator: SpecificationIdGenerator,
+    /// The errors discovered during the specification parsing and encoding.
     errors: Vec<syn::Error>,
+    /// The stack of spec items that need to be added to the encapsulating modules.
+    /// TODO: Document properly how this works.
+    spec_item_stack: Vec<syn::Item>,
 }
 
 impl AstRewriter {
@@ -17,6 +23,7 @@ impl AstRewriter {
             expr_id_generator: ExpressionIdGenerator::new(),
             spec_id_generator: SpecificationIdGenerator::new(),
             errors: Vec::new(),
+            spec_item_stack: Vec::new(),
         }
     }
     fn report_error(&mut self, span: Span, msg: String) {
@@ -102,6 +109,23 @@ impl AstRewriter {
         }
         untyped::SpecificationSet::Procedure(pres, posts)
     }
+    /// Generate the specification item and store it on the stack, so that we
+    /// add it to the container such module.
+    fn generate_spec_item_fn(
+        &mut self,
+        span: Span,
+        specs: untyped::SpecificationSet,
+        item: &syn::ItemFn,
+    ) -> SpecificationId {
+        let spec_id = self.spec_id_generator.generate();
+        let item_name = syn::Ident::new(&format!("prusti_spec_item_{}", spec_id), span);
+        let spec_item = syn::parse_quote! {
+            fn #item_name() {
+            }
+        };
+        self.spec_item_stack.push(spec_item);
+        spec_id
+    }
 }
 
 impl VisitMut for AstRewriter {
@@ -110,10 +134,23 @@ impl VisitMut for AstRewriter {
         if specs.is_empty() {
             return;
         }
-        let spec_id = self.spec_id_generator.generate();
+        let spec_id = self.generate_spec_item_fn(item.span(), specs, item);
         *item = syn::parse_quote! {
             #[prusti::spec_id(#spec_id)]
             #item
         };
+    }
+    fn visit_item_mod_mut(&mut self, item: &mut syn::ItemMod) {
+        syn::visit_mut::visit_item_mod_mut(self, item);
+        while let Some(spec_item) = self.spec_item_stack.pop() {
+            let content = &mut item.content.as_mut().unwrap().1;
+            content.push(spec_item);
+        }
+    }
+    fn visit_file_mut(&mut self, file: &mut syn::File) {
+        syn::visit_mut::visit_file_mut(self, file);
+        while let Some(spec_item) = self.spec_item_stack.pop() {
+            file.items.push(spec_item);
+        }
     }
 }
