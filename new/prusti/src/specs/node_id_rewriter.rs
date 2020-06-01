@@ -5,51 +5,87 @@ use rustc_ast::ast::*;
 use rustc_ast::ptr::P;
 use rustc_ast::tokenstream::DelimSpan;
 use rustc_data_structures::thin_vec::ThinVec;
+use rustc_expand::base::Resolver;
+use rustc_expand::expand::AstFragment;
 use rustc_span::source_map::Spanned;
 use rustc_span::symbol::Ident;
 use rustc_span::Span;
 use std::collections::HashMap;
 
 /// A visitor responsible for fixing the node ids after we rewrote the crate.
-pub(crate) struct NodeIdRewriter {
+///
+/// This visitor works in three phases:
+/// 1. Collecting existing ids. For this phase `is_collecting` returns true and
+///    `is_phase_register_fresh_ids` is false.
+/// 2. Generating fresh ids for nodes that do not have assigned ids. In this
+///    phase `is_collecting` returns false and `is_phase_register_fresh_ids` is
+///    false. The switch from phase 1 to phase 2 is done by calling
+///    `set_phase_generate_fresh_ids`.
+/// 3. Registering the newly added items with the `resolver`. In this phase
+///    `is_collecting` returns false and `is_phase_register_fresh_ids` is true.
+///    The switch from phase 2 to phase 3 is done by calling
+///    `set_phase_register_fresh_ids`.
+pub(crate) struct NodeIdRewriter<'a> {
     /// The current position in the crate.
     current_path: Vec<String>,
-    /// Is currently collecting the NodeIds or rewriting them?
-    is_collecting: bool,
     /// Node Id of each stored element.
     ids: HashMap<Vec<String>, NodeId>,
     /// Compilation errors that were found in the AST.
     compiler_errors: Vec<(String, Span)>,
+    /// Resolver is set only when we are not collecting ids.
+    ///
+    /// Invariant: !is_collecting iff resolver.is_some()
+    resolver: Option<&'a mut dyn Resolver>,
+    /// Signal that we are in registering fresh ids phase.
+    is_phase_register_fresh_ids: bool,
 }
 
-impl NodeIdRewriter {
-    pub fn new(is_collecting: bool) -> Self {
+impl<'a> NodeIdRewriter<'a> {
+    pub fn new() -> Self {
         Self {
-            is_collecting: is_collecting,
             current_path: Vec::new(),
             ids: HashMap::new(),
             compiler_errors: Vec::new(),
+            resolver: None,
+            is_phase_register_fresh_ids: false,
         }
     }
-    pub fn set_phase_rewrite(&mut self) {
-        assert!(self.is_collecting);
-        self.is_collecting = false;
+    pub fn set_phase_generate_fresh_ids(&mut self, resolver: &'a mut dyn Resolver) {
+        assert!(self.is_collecting());
+        self.resolver = Some(resolver);
+    }
+    pub fn set_phase_register_fresh_ids(&mut self) {
+        assert!(!self.is_collecting());
+        self.is_phase_register_fresh_ids = true;
     }
     pub fn get_compiler_errors(&mut self) -> &mut Vec<(String, Span)> {
         &mut self.compiler_errors
     }
+    /// Is currently collecting the NodeIds or rewriting them?
+    fn is_collecting(&self) -> bool {
+        self.resolver.is_none()
+    }
+    /// Resolve the node ids in the given AST fragment.
+    fn resolve(&mut self, fragment: &AstFragment) {
+        let resolver = self
+            .resolver
+            .as_mut()
+            .expect("we should not be in the collecting phase");
+        let expan_id = rustc_span::hygiene::ExpnId::root();
+        resolver.visit_ast_fragment_with_placeholders(expan_id, fragment);
+    }
 }
 
-impl std::fmt::Debug for NodeIdRewriter {
+impl<'a> std::fmt::Debug for NodeIdRewriter<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NodeIdRewriter")
-            .field("collecting", &self.is_collecting)
+            .field("collecting", &self.is_collecting())
             .field("current_path", &self.current_path)
             .finish()
     }
 }
 
-impl MutVisitor for NodeIdRewriter {
+impl<'a> MutVisitor for NodeIdRewriter<'a> {
     fn down(&mut self, component: String) {
         self.current_path.push(component);
     }
@@ -57,23 +93,37 @@ impl MutVisitor for NodeIdRewriter {
         self.current_path.pop();
     }
     #[logfn_inputs(Trace)]
-    fn visit_id(&mut self, node_id: &mut NodeId) {
-        if self.is_collecting {
+    fn visit_id(&mut self, node_id: &mut NodeId) -> bool {
+        if self.is_collecting() {
             assert!(
                 !self.ids.contains_key(&self.current_path),
                 "duplicate path: {:?}",
                 self.current_path
             );
             self.ids.insert(self.current_path.clone(), *node_id);
-        } else {
-            // Set the old id.
+            false
+        } else if !self.is_phase_register_fresh_ids {
+            // Set the old id or generate a fresh one.
             if let Some(old_id) = self.ids.get(&self.current_path) {
                 *node_id = *old_id;
+            } else {
+                *node_id = self.resolver.as_mut().unwrap().next_node_id();
             }
+            false
+        } else {
+            // We are in the resolving definitions phase. If id was freshly
+            // generated by us, signal that the definition needs to be
+            // registered.
+            self.ids.get(&self.current_path).is_none()
         }
     }
+    fn visit_item_visit_id_callback(&mut self, item: &mut Item) {
+        let fragment = AstFragment::Items([P(item.clone())].into());
+        self.resolve(&fragment);
+        *item = (*fragment.make_items().pop().unwrap()).clone();
+    }
     fn visit_mac(&mut self, mac: &mut MacCall) {
-        assert!(!self.is_collecting, "Unresolved macro?");
+        assert!(!self.is_collecting(), "Unresolved macro?");
         // Most likely the procedural macro reported an error.
         match mac {
             MacCall {
@@ -124,7 +174,11 @@ pub trait MutVisitor: Sized {
     });
 
     visit_mut_enum!(UseTreeKind {
-        Simple(visit_ident_opt, visit_id, visit_id),
+        // The second `callback` around `visit_id` is missing to avoid name
+        // clashes. Since we expect either both ids to be initialized, or not
+        // initialized, it should not matter that we are not calling the
+        // callback on the second one.
+        Simple(visit_ident_opt, callback(visit_id), visit_id),
         Nested(visit_use_tree_kind_nested),
         Glob()
     });
@@ -143,7 +197,7 @@ pub trait MutVisitor: Sized {
     visit_mut_struct!(ForeignItem {
         ident: visit_ident,
         attrs: list(visit_attribute),
-        id: visit_id,
+        id: callback(visit_id),
         kind: visit_foreign_item_kind,
         vis: _,
         span: visit_span,
@@ -160,7 +214,7 @@ pub trait MutVisitor: Sized {
     visit_mut_struct!(Item {
         ident: visit_ident,
         attrs: list(visit_attribute),
-        id: visit_id,
+        id: callback(visit_id),
         kind: visit_item_kind,
         vis: _,
         span: visit_span,
@@ -178,7 +232,7 @@ pub trait MutVisitor: Sized {
         span: visit_span,
         ident: visit_ident_opt,
         vis: visit_visibility,
-        id: visit_id,
+        id: callback(visit_id),
         ty: visit_ty,
         attrs: list(visit_attribute),
         is_placeholder: _
@@ -456,7 +510,7 @@ pub trait MutVisitor: Sized {
         ident: visit_ident,
         vis: visit_visibility,
         attrs: list(visit_attribute),
-        id: visit_id,
+        id: callback(visit_id),
         data: visit_variant_data,
         disr_expr: visit_anon_const_opt,
         span: visit_span,
@@ -472,7 +526,7 @@ pub trait MutVisitor: Sized {
 
     visit_mut_struct!(PathSegment {
         ident: visit_ident,
-        id: visit_id,
+        id: callback(visit_id),
         args: visit_generic_args_opt2
     });
 
@@ -509,7 +563,7 @@ pub trait MutVisitor: Sized {
     });
 
     visit_mut_struct!(Local {
-        id: visit_id,
+        id: callback(visit_id),
         pat: visit_pat,
         ty: visit_ty_opt2,
         init: visit_expr_opt2,
@@ -544,7 +598,7 @@ pub trait MutVisitor: Sized {
 
     visit_mut_struct!(Param {
         attrs: list(visit_attribute),
-        id: visit_id,
+        id: callback(visit_id),
         pat: visit_pat,
         span: visit_span,
         ty: visit_ty,
@@ -579,7 +633,7 @@ pub trait MutVisitor: Sized {
     });
 
     visit_mut_struct!(GenericParam {
-        id: visit_id,
+        id: callback(visit_id),
         ident: visit_ident,
         attrs: list(visit_attribute),
         bounds: list(visit_generic_bound),
@@ -621,7 +675,7 @@ pub trait MutVisitor: Sized {
         span: visit_span,
         is_shorthand: _,
         attrs: list(visit_attribute),
-        id: visit_id,
+        id: callback(visit_id),
         is_placeholder: _
     });
 
@@ -650,7 +704,7 @@ pub trait MutVisitor: Sized {
     });
 
     visit_mut_struct!(WhereEqPredicate {
-        id: visit_id,
+        id: callback(visit_id),
         span: visit_span,
         lhs_ty: visit_ty,
         rhs_ty: visit_ty
@@ -667,8 +721,9 @@ pub trait MutVisitor: Sized {
         Restricted { path: visit_path, id: visit_id },
     });
 
-    fn visit_id(&mut self, _id: &mut NodeId) {
+    fn visit_id(&mut self, _id: &mut NodeId) -> bool {
         // Do nothing.
+        false
     }
 
     fn visit_span(&mut self, _sp: &mut Span) {
@@ -677,7 +732,7 @@ pub trait MutVisitor: Sized {
 
     visit_mut_struct!(FieldPat {
         attrs: list(visit_attribute),
-        id: visit_id,
+        id: callback(visit_id),
         ident: visit_ident,
         is_placeholder: _,
         is_shorthand: _,

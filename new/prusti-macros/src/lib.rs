@@ -6,6 +6,7 @@ use syn::{self, parse_macro_input, punctuated::Punctuated, token, Token};
 
 mod kw {
     syn::custom_keyword!(list);
+    syn::custom_keyword!(callback);
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -16,6 +17,8 @@ enum VisitMutTypeFunction {
     Single(syn::Ident),
     /// Call the given function on each element of the list.
     List(syn::Ident),
+    /// Call the given function and if it returns true, call a callback.
+    Callback(syn::Ident),
 }
 
 impl Parse for VisitMutTypeFunction {
@@ -28,6 +31,11 @@ impl Parse for VisitMutTypeFunction {
             let content;
             syn::parenthesized!(content in input);
             VisitMutTypeFunction::List(content.parse()?)
+        } else if input.peek(kw::callback) {
+            input.parse::<kw::callback>()?;
+            let content;
+            syn::parenthesized!(content in input);
+            VisitMutTypeFunction::Callback(content.parse()?)
         } else {
             VisitMutTypeFunction::Single(input.parse()?)
         };
@@ -145,6 +153,8 @@ fn generate_function_call(
     calls: &mut proc_macro2::TokenStream,
     function: &VisitMutTypeFunction,
     field_name: &syn::Ident,
+    node_type: &syn::Ident,
+    callbacks: &mut proc_macro2::TokenStream,
 ) {
     let field_name_str = field_name.to_string();
     let span = field_name.span();
@@ -167,6 +177,26 @@ fn generate_function_call(
                 self.up();
             });
         }
+        VisitMutTypeFunction::Callback(function) => {
+            let callback_name = syn::Ident::new(
+                &format!("{}_{}_callback", create_fn_name(node_type), function),
+                span,
+            );
+            calls.extend(quote_spanned! { span =>
+                self.down(#field_name_str.to_string());
+                if self.#function(#field_name) {
+                    self.#callback_name(node);
+                    self.up();
+                    return;
+                }
+                self.up();
+            });
+            callbacks.extend(quote_spanned! { span =>
+                fn #callback_name(&mut self, _node: &mut #node_type) {
+                    unimplemented!();
+                }
+            });
+        }
         VisitMutTypeFunction::None => {}
     }
 }
@@ -177,9 +207,10 @@ pub fn visit_mut_struct(input: TokenStream) -> TokenStream {
     let fn_name = create_fn_name(&pattern.typ);
     let typ = pattern.typ;
     let field_pattern = generate_named_fields(&pattern.fields);
+    let mut callbacks = proc_macro2::TokenStream::new();
     let mut calls = proc_macro2::TokenStream::new();
     for VisitMutField { name, function } in &pattern.fields {
-        generate_function_call(&mut calls, function, name);
+        generate_function_call(&mut calls, function, name, &typ, &mut callbacks);
     }
     let fn_name_str = fn_name.to_string();
     let fn_name_opt = syn::Ident::new(&format!("{}_opt", fn_name), Span::call_site());
@@ -195,6 +226,7 @@ pub fn visit_mut_struct(input: TokenStream) -> TokenStream {
                 self.#fn_name(node);
             }
         }
+        #callbacks
     })
     .into()
 }
@@ -206,6 +238,7 @@ pub fn visit_mut_enum(input: TokenStream) -> TokenStream {
     let fn_name_str = fn_name.to_string();
     let enum_type = pattern.typ;
     let mut variants = proc_macro2::TokenStream::new();
+    let mut callbacks = proc_macro2::TokenStream::new();
     for variant in &pattern.variants {
         match variant {
             VisitMutVariant::Named(VisitMutStruct { typ, fields }) => {
@@ -214,7 +247,7 @@ pub fn visit_mut_enum(input: TokenStream) -> TokenStream {
                 let typ_str = typ.to_string();
                 let mut calls = proc_macro2::TokenStream::new();
                 for VisitMutField { name, function } in fields {
-                    generate_function_call(&mut calls, function, name);
+                    generate_function_call(&mut calls, function, name, &enum_type, &mut callbacks);
                 }
                 variants.extend(quote_spanned! { span =>
                     #enum_type::#typ { #field_pattern } => {
@@ -246,7 +279,13 @@ pub fn visit_mut_enum(input: TokenStream) -> TokenStream {
                             #field,
                         });
                     }
-                    generate_function_call(&mut calls, function, &field);
+                    generate_function_call(
+                        &mut calls,
+                        function,
+                        &field,
+                        &enum_type,
+                        &mut callbacks,
+                    );
                 }
                 variants.extend(quote_spanned! { span =>
                     #enum_type::#typ ( #field_pattern ) => {
@@ -272,6 +311,7 @@ pub fn visit_mut_enum(input: TokenStream) -> TokenStream {
                 self.#fn_name(node);
             }
         }
+        #callbacks
     })
     .into()
 }
