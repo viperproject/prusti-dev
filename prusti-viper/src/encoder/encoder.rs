@@ -4,7 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt::Debug;
 use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
@@ -405,47 +404,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
 
         // merge specifications
-        let final_spec = self.merge_specifications(&fun_spec, &impl_spec);
+        let final_spec = fun_spec.refine(&impl_spec);
 
         let contract =
             compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
         contract.to_call_site_contract(args, target)
-    }
-
-    /// Trait implementation method refinement
-    /// Choosing alternative C as discussed in
-    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
-    /// pp 19-23
-    fn merge_specifications<ET, AT>(&self, base_spec: &SpecificationSet<ET, AT>,
-                                    refined_spec: &SpecificationSet<ET, AT>) -> SpecificationSet<ET, AT>
-    where ET: Clone + Debug, AT: Clone + Debug {
-        let mut pres = vec![];
-        let mut post = vec![];
-        let (ref_pre, ref_post) = {
-            if let SpecificationSet::Procedure(ref pre, ref post) = refined_spec {
-                (pre, post)
-            } else {
-                unreachable!("Unexpected: {:?}", refined_spec)
-            }
-        };
-        let (base_pre, base_post) = {
-            if let SpecificationSet::Procedure(ref pre, ref post) = base_spec {
-                (pre, post)
-            } else {
-                unreachable!("Unexpected: {:?}", base_spec)
-            }
-        };
-        if ref_pre.is_empty() {
-            pres.append(&mut base_pre.clone());
-        } else {
-            pres.append(&mut ref_pre.clone());
-        }
-        if ref_post.is_empty() {
-            post.append(&mut base_post.clone());
-        } else {
-            post.append(&mut ref_post.clone());
-        }
-        SpecificationSet::Procedure(pres, post)
     }
 
     pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
