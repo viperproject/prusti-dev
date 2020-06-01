@@ -1,3 +1,5 @@
+#![feature(box_syntax)]
+
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{visit_mut::VisitMut, File};
