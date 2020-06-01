@@ -67,8 +67,9 @@ pub(crate) fn rewrite_crate(
 
     let inner_tokens = rustc_ast::tokenstream::TokenStream::new(vec![]);
     let tok_result = match proc_macro.expand(&mut cx, DUMMY_SP, inner_tokens, tokens.build()) {
-        Err(_) => unimplemented!(),
-        //return ExpandResult::Ready(fragment_kind.dummy(span)),
+        Err(_err) => {
+            return Err(());
+        }
         Ok(ts) => ts,
     };
     let mut parser = cx.new_parser_from_tts(tok_result);
