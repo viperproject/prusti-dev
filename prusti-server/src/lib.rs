@@ -12,12 +12,14 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate prusti_interface;
+extern crate futures;
 
 pub mod service;
 mod verifier_thread;
 
 use prusti_viper::encoder::vir::Program;
 use prusti_viper::verifier::VerifierBuilder;
+use service::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 use verifier_thread::*;
@@ -44,11 +46,8 @@ impl PrustiServer {
         &mut self,
         program: Program,
         backend: VerificationBackend,
-        callback: F,
-    ) where
-        F: VerifierCallback,
-    {
-        self.get_or_create_thread(backend).verify(program, callback);
+    ) -> FutVerificationResult {
+        self.get_or_create_thread(backend).verify(program)
     }
 
     fn get_or_create_thread(&mut self, backend: VerificationBackend) -> &VerifierThread {

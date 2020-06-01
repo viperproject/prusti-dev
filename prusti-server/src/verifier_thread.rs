@@ -1,15 +1,16 @@
+use futures::Canceled;
+use futures::{sync::oneshot, Future};
 use prusti_viper::encoder::vir::Program;
 use prusti_viper::verifier::VerifierBuilder;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use viper::{VerificationBackend, VerificationResult};
 
-pub trait VerifierCallback: Fn(VerificationResult) -> () + Send + 'static {}
-impl<F> VerifierCallback for F where F: Fn(VerificationResult) -> () + Send + 'static {}
+pub type FutVerificationResult = Box<Future<Item = VerificationResult, Error = Canceled>>;
 
 struct VerificationRequest {
     pub program: Program,
-    pub callback: Box<Fn(VerificationResult) -> () + Send>,
+    pub sender: oneshot::Sender<VerificationResult>,
 }
 
 pub struct VerifierThread {
@@ -30,8 +31,12 @@ impl VerifierThread {
                 while let Ok(request) = request_receiver.recv() {
                     let viper_program = request.program.to_viper(&ast_factory);
                     let result = verifier.verify(viper_program);
-                    let callback: Box<_> = request.callback;
-                    callback(result);
+                    request.sender.send(result).unwrap_or_else(|err| {
+                        panic!(
+                            "verifier thread attempting to send result to dropped receiver: {:?}",
+                            err
+                        );
+                    });
                 }
             })
             .unwrap();
@@ -41,17 +46,16 @@ impl VerifierThread {
         }
     }
 
-    pub fn verify<F>(&self, program: Program, callback: F)
-    where
-        F: VerifierCallback,
-    {
+    pub fn verify(&self, program: Program) -> FutVerificationResult {
+        let (tx, rx) = oneshot::channel();
         self.request_sender
             .lock()
             .unwrap()
             .send(VerificationRequest {
                 program,
-                callback: Box::new(callback),
+                sender: tx,
             })
             .unwrap();
+        Box::new(rx)
     }
 }
