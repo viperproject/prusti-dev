@@ -23,7 +23,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
     }
 
     let prusti_sysroot =
-        prusti_sysroot().expect(&format!("Failed to find Rust's sysroot for Prusti"));
+        driver_utils::prusti_sysroot().expect(&format!("Failed to find Rust's sysroot for Prusti"));
 
     let compiler_lib = prusti_sysroot.join("lib");
 
@@ -31,7 +31,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         .parent()
         .expect("Failed to find Prusti's home");
 
-    let prusti_contracts_lib = find_prusti_contracts(&prusti_home)
+    let prusti_contracts_lib = driver_utils::find_prusti_contracts(&prusti_home)
         .expect("Failed to find prusti_contracts library in Prusti's home");
 
     let mut cmd = Command::new(&prusti_driver_path);
@@ -57,46 +57,4 @@ fn process(args: Vec<String>) -> Result<(), i32> {
     } else {
         Err(exit_status.code().unwrap_or(-1))
     }
-}
-
-/// Find Prusti's sysroot
-fn prusti_sysroot() -> Option<PathBuf> {
-    Command::new("rustup")
-        .arg("run")
-        .arg(include_str!("../../rust-toolchain").trim())
-        .arg("rustc")
-        .arg("--print")
-        .arg("sysroot")
-        .output()
-        .ok()
-        .and_then(|out| {
-            print!("{}", String::from_utf8(out.stderr).ok().unwrap());
-            String::from_utf8(out.stdout).ok()
-        })
-        .map(|s| PathBuf::from(s.trim().to_owned()))
-}
-
-/// Find the prusti-contracts library
-fn find_prusti_contracts<S: AsRef<Path>>(path: S) -> Option<PathBuf> {
-    let walker = walkdir::WalkDir::new(path).follow_links(true);
-
-    for entry in walker {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_e) => continue,
-        };
-
-        let file_name = entry.file_name().to_str().unwrap_or("");
-        let extension = entry
-            .path()
-            .extension()
-            .and_then(|x| x.to_str())
-            .unwrap_or("");
-
-        if extension == "rlib" && file_name.starts_with("libprusti_contracts") {
-            return Some(entry.path().into());
-        }
-    }
-
-    None
 }

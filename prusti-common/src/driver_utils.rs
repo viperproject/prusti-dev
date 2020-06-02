@@ -79,3 +79,45 @@ pub fn find_java_home() -> Option<PathBuf> {
             None
         })
 }
+
+/// Find Prusti's sysroot
+pub fn prusti_sysroot() -> Option<PathBuf> {
+    Command::new("rustup")
+        .arg("run")
+        .arg(include_str!("../../rust-toolchain").trim())
+        .arg("rustc")
+        .arg("--print")
+        .arg("sysroot")
+        .output()
+        .ok()
+        .and_then(|out| {
+            print!("{}", String::from_utf8(out.stderr).ok().unwrap());
+            String::from_utf8(out.stdout).ok()
+        })
+        .map(|s| PathBuf::from(s.trim().to_owned()))
+}
+
+/// Find the prusti-contracts library
+pub fn find_prusti_contracts<S: AsRef<Path>>(path: S) -> Option<PathBuf> {
+    let walker = walkdir::WalkDir::new(path).follow_links(true);
+
+    for entry in walker {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(_e) => continue,
+        };
+
+        let file_name = entry.file_name().to_str().unwrap_or("");
+        let extension = entry
+            .path()
+            .extension()
+            .and_then(|x| x.to_str())
+            .unwrap_or("");
+
+        if extension == "rlib" && file_name.starts_with("libprusti_contracts") {
+            return Some(entry.path().into());
+        }
+    }
+
+    None
+}
