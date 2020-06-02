@@ -49,6 +49,7 @@ extern crate getopts;
 #[macro_use]
 extern crate log;
 #[macro_use]
+extern crate prusti_common;
 extern crate prusti_interface;
 extern crate prusti_server;
 extern crate prusti_viper;

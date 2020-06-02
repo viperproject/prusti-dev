@@ -23,6 +23,7 @@ extern crate num_rational;
 extern crate num_traits;
 extern crate prusti_filter;
 #[macro_use]
+extern crate prusti_common;
 extern crate prusti_interface;
 extern crate regex;
 extern crate rustc;
@@ -45,5 +46,5 @@ extern crate pretty_assertions;
 
 pub mod encoder;
 mod utils;
-pub mod verifier;
 pub mod verification_service;
+pub mod verifier;

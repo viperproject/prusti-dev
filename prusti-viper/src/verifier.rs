@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::Encoder;
+use prusti_common::run_timed;
 use prusti_filter::validators::Validator;
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
@@ -12,7 +13,6 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
-use prusti_interface::utils::run_timed;
 use std::ffi::OsString;
 use std::fs::{canonicalize, create_dir_all};
 use std::path::PathBuf;
@@ -35,10 +35,7 @@ impl VerifierBuilder {
 
     pub fn new_with_backend(backend: VerificationBackend) -> Self {
         Self {
-            viper: Viper::new_with_args(
-                config::extra_jvm_args(),
-                backend,
-            ),
+            viper: Viper::new_with_args(config::extra_jvm_args(), backend),
         }
     }
 
@@ -259,10 +256,10 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             viper_program
         });
 
-        run_timed!("Verification complete", 
+        run_timed!("Verification complete",
             let verification_result = self.verifier.verify(viper_program);
         );
-        
+
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,
             _ => vec![],

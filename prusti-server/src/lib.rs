@@ -11,7 +11,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
-extern crate prusti_interface;
+extern crate prusti_common;
 extern crate futures;
 
 pub mod service;

@@ -41,7 +41,6 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         descriptions: &rustc_errors::registry::Registry,
         output: session::config::ErrorOutputType,
     ) -> Compilation {
-
         self.default
             .early_callback(matches, sopts, cfg, descriptions, output)
     }

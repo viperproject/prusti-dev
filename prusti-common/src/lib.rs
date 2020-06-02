@@ -1,5 +1,8 @@
-mod mir_utils;
-pub use self::mir_utils::*;
+#[macro_use]
+extern crate log;
+extern crate walkdir;
+
+pub mod driver_utils;
 
 /// Runs statements on the same level as the macro call, timing and logging (info-level by default) how long it took.
 #[macro_export]
