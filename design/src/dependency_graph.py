@@ -3,7 +3,6 @@ from pathlib import Path
 from graphviz import Digraph
 
 BASE_DIR_NAME = "prusti-dev"
-EXTRA_PACKAGES = []
 
 cwd = Path(os.getcwd()).parts
 BASE_PATH = Path("/".join(cwd[:cwd.index(BASE_DIR_NAME)+1])[1:])
@@ -30,7 +29,7 @@ with open(os.path.join(BASE_PATH, "Cargo.toml")) as f:
 
 
 def parse_dependencies(cargo_toml):
-    dependencies = []
+    dependencies = set()
     with open(cargo_toml) as f:
         while True:
             line = f.readline()
@@ -46,8 +45,8 @@ def parse_dependencies(cargo_toml):
                         break
                     line = line.strip()
                     dep = line.split("=")[0].strip()
-                    if dep in packages or dep in EXTRA_PACKAGES:
-                        dependencies.append(dep)
+                    if dep in packages:
+                        dependencies.add(dep)
 
     return dependencies
 
@@ -57,12 +56,10 @@ nodes = []
 for i in range(len(cargo_tomls)):
     nodes.append([packages[i], parse_dependencies(cargo_tomls[i])])
 
-for extra in EXTRA_PACKAGES:
-    nodes.append([extra, []])
-
 # generate graph
 created_nodes = set()
 graph = Digraph()
+graph.graph_attr["rankdir"] = "BT"
 
 for node in nodes:
     if node[0] not in created_nodes:
