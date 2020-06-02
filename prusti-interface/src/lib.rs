@@ -48,6 +48,7 @@ pub mod constants;
 pub mod data;
 pub mod environment;
 pub mod parser;
+pub mod trait_register;
 pub mod report;
 pub mod specifications;
 pub mod sysroot;

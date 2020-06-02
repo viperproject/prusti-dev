@@ -166,6 +166,8 @@ use specifications::{
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::io::Write;
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::mem;
 use syntax::codemap::respan;
 use syntax::codemap::Span;
@@ -176,6 +178,23 @@ use syntax::util::small_vector::SmallVector;
 use syntax::{self, ast, parse, ptr};
 use syntax_pos::DUMMY_SP;
 use syntax_pos::{BytePos, FileName, SyntaxContext};
+
+use trait_register::TraitRegister;
+
+/// Register trait declarations and implementations.
+/// TODO(@jakob): consider using result for error handling
+pub fn register_traits(state: &mut driver::CompileState, register: Rc<RefCell<TraitRegister>>) {
+    trace!("[rewrite_crate] enter");
+    let krate = state.krate.take().unwrap();
+    let mut parser = TraitParser::new(state.session, register);
+    let _krate = parser.fold_crate(krate);
+    warn!("call from parser");
+    // let mut parser = SpecParser::new(state.session, &source_filename);
+    // let krate = parser.fold_crate(krate);
+    // log_crate(&krate, &source_filename);
+    // state.krate = Some(krate);
+    trace!("[rewrite_crate] exit");
+}
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
@@ -233,6 +252,81 @@ fn log_crate(krate: &ast::Crate, source_filename: &str) {
     writer.write_all(krate_str.to_string().as_bytes()).unwrap();
     writer.flush().ok().unwrap();
 }
+
+/// A data structure that extracts trait declaration and their described contracts. It also
+/// extracts trait implementations. It does not modify the AST.
+pub struct TraitParser<'tcx> {
+    register: Rc<RefCell<TraitRegister>>,
+    session: &'tcx Session,
+}
+
+
+impl<'tcx> TraitParser<'tcx> {
+    pub fn new(session: &'tcx Session, register: Rc<RefCell<TraitRegister>>) -> Self {
+        TraitParser {
+            register: register,
+            session: session,
+        }
+    }
+
+    fn register_struct(&self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        let type_name = item.ident.as_str();
+        self.register.borrow_mut().register_struct(type_name.to_string());
+        SmallVector::one(item)
+    }
+
+    fn register_impl(&self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        warn!("registering impl");
+        SmallVector::one(item)
+    }
+
+    fn register_trait_decl(&self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        let type_name = item.ident.as_str();
+        self.register.borrow_mut().register_trait_decl(type_name.to_string());
+        SmallVector::one(item)
+    }
+}
+
+impl<'tcx> Folder for TraitParser<'tcx> {
+    fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        trace!("[fold_item] enter");
+        let result = fold::noop_fold_item(item, self)
+            .into_iter()
+            .flat_map(|item| match item.node.clone() {
+                // Structs
+                ast::ItemKind::Struct(..) => self.register_struct(item),
+
+                // Impl methods
+                ast::ItemKind::Impl(
+                    unsafety,
+                    polarity,
+                    defaultness,
+                    generics,
+                    ifce,
+                    ty,
+                    impl_items) => self.register_impl(item),
+
+                // Methods in trait definition
+                ast::ItemKind::Trait(
+                    is_auto,
+                    unsafety,
+                    generics,
+                    bounds,
+                    trait_items) => self.register_trait_decl(item),
+
+                // Any other item
+                _ => SmallVector::one(item),
+            })
+            .collect();
+        trace!("[fold_item] exit");
+        result
+    }
+
+    fn fold_mac(&mut self, mac: ast::Mac) -> ast::Mac {
+        mac
+    }
+}
+
 
 /// A data structure that extracts preconditions, postconditions,
 /// and loop invariants. It also rewrites the AST for type-checking.

@@ -60,6 +60,7 @@ extern crate syntax;
 extern crate syntax_pos;
 
 pub mod compiler_calls;
+pub mod register_calls;
 pub mod driver_utils;
 pub mod prusti_runner;
 pub mod typeck;
