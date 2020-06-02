@@ -30,8 +30,8 @@ use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
 pub use self::procedure::{BasicBlockIndex, Procedure};
-use config;
 use data::ProcedureDefId;
+use prusti_common::config;
 use syntax::codemap::CodeMap;
 use syntax::codemap::Span;
 use utils::get_attr_value;
@@ -104,7 +104,7 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         sp: S,
         msg: &str,
         help: &Option<String>,
-        note: &Option<(String, S)>
+        note: &Option<(String, S)>,
     ) {
         let mut diagnostic = self.state.session.struct_err(msg);
         diagnostic.set_span(sp);

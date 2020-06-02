@@ -6,10 +6,10 @@
 
 //! A module that invokes the verifier `prusti-viper`
 
+use prusti_common::report::user;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
-use prusti_interface::report::user;
 use prusti_interface::specifications::TypedSpecificationMap;
 use prusti_viper::verifier::VerifierBuilder;
 use rustc_driver::driver;

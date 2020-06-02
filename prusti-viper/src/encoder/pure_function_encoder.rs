@@ -17,7 +17,7 @@ use encoder::mir_interpreter::{
 use encoder::vir;
 use encoder::vir::ExprIterator;
 use encoder::Encoder;
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::specifications::SpecificationSet;
 use rustc::hir;
 use rustc::hir::def_id::DefId;

@@ -10,9 +10,7 @@
 #![deny(unused_imports)]
 #![deny(unused_mut)]
 #![deny(non_upper_case_globals)]
-
 #![allow(missing_docs)]
-
 #![feature(nll)]
 #![feature(rustc_private)]
 #![feature(box_syntax)]
@@ -35,21 +33,19 @@ extern crate rustc_mir;
 extern crate rustc_target;
 #[macro_use]
 extern crate serde_derive;
-extern crate config as config_crate;
 extern crate serde;
 extern crate syntax;
 extern crate syntax_pos;
 #[macro_use]
 extern crate lazy_static;
+extern crate prusti_common;
 
 pub mod ast_builder;
-pub mod config;
+pub mod cargo;
 pub mod constants;
 pub mod data;
 pub mod environment;
 pub mod parser;
-pub mod report;
 pub mod specifications;
 pub mod sysroot;
-pub mod cargo;
 pub mod utils;

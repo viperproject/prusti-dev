@@ -4,7 +4,6 @@ extern crate prusti_common;
 extern crate walkdir;
 
 use prusti_common::driver_utils;
-use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
 

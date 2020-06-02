@@ -1,8 +1,14 @@
 #[macro_use]
 extern crate log;
+extern crate config as config_crate;
+extern crate serde;
 extern crate walkdir;
+#[macro_use]
+extern crate lazy_static;
 
+pub mod config;
 pub mod driver_utils;
+pub mod report;
 
 /// Runs statements on the same level as the macro call, timing and logging (info-level by default) how long it took.
 #[macro_export]

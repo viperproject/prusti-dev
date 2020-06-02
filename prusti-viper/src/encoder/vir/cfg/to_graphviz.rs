@@ -7,7 +7,7 @@
 use encoder::vir;
 use encoder::vir::cfg::method::*;
 use std::io::Write;
-use prusti_interface::config;
+use prusti_common::config;
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()

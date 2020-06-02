@@ -12,7 +12,7 @@ use encoder::vir;
 use encoder::vir::ExprFolder;
 use encoder::vir::ExprIterator;
 use encoder::Encoder;
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::specifications::*;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;

@@ -7,7 +7,7 @@
 use encoder::vir::cfg::method::*;
 use encoder::vir::ast::Position;
 use encoder::vir::to_viper::{ToViper, ToViperDecl};
-use prusti_interface::config;
+use prusti_common::config;
 use viper;
 use viper::AstFactory;
 use std::collections::HashMap;

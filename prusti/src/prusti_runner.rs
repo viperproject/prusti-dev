@@ -5,12 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use compiler_calls::PrustiCompilerCalls;
-use prusti_interface::config;
+use prusti_common::config;
+use prusti_common::report::user;
 use rustc::session::CompileResult;
 use rustc::session::Session;
 use rustc_driver;
 use std::env;
-use prusti_interface::report::user;
 
 /// Add arguments required by Prusti, then run the compiler with Prusti callbacks
 pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {

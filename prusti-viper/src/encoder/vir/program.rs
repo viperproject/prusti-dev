@@ -1,5 +1,5 @@
 use super::*;
-use prusti_interface::config;
+use prusti_common::config;
 use viper::{self, AstFactory};
 
 #[derive(Debug, Serialize, Deserialize)]

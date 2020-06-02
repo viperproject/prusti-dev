@@ -154,8 +154,8 @@
 
 use ast_builder::MinimalAstBuilder;
 use constants::PRUSTI_SPEC_ATTR;
+use prusti_common::report::log;
 use regex::{self, Regex};
-use report::log;
 use rustc::session::Session;
 use rustc_driver::driver;
 use specifications::{
@@ -489,16 +489,11 @@ impl<'tcx> SpecParser<'tcx> {
         builder.stmt_item(span, ptr::P(item))
     }
 
-    fn check_for_result_in_params(
-        &mut self,
-        params: &Vec<ast::Arg>,
-    ) -> bool {
-        params
-            .iter()
-            .any(|p| match (*p.pat).node {
-                ast::PatKind::Ident(_, id, _) => id.name.as_str() == "result",
-                _ => false,
-            })
+    fn check_for_result_in_params(&mut self, params: &Vec<ast::Arg>) -> bool {
+        params.iter().any(|p| match (*p.pat).node {
+            ast::PatKind::Ident(_, id, _) => id.name.as_str() == "result",
+            _ => false,
+        })
     }
 
     /// Generate a function that contains only the precondition and postcondition
@@ -524,9 +519,10 @@ impl<'tcx> SpecParser<'tcx> {
             ast::ItemKind::Fn(ref decl, ref _header, ref generics, ref _body) => {
                 let result_as_param = self.check_for_result_in_params(&decl.inputs);
                 if result_as_param {
-                    self.report_warn(item.span,
-                                     "parameter `result` found",
-                                     "Using parameter `result` in specifications instead of the return value."
+                    self.report_warn(
+                        item.span,
+                        "parameter `result` found",
+                        "Using parameter `result` in specifications instead of the return value.",
                     );
                 }
 
@@ -538,7 +534,9 @@ impl<'tcx> SpecParser<'tcx> {
                     }
                     let mut name = name.to_owned();
                     name.push_str("__pre");
-                    self.ast_builder.stmt_item(item.span, self.ast_builder.item_fn_attributes(
+                    self.ast_builder.stmt_item(
+                        item.span,
+                        self.ast_builder.item_fn_attributes(
                             item.span,
                             ast::Ident::from_str(&name),
                             decl.inputs.clone(),
@@ -546,7 +544,8 @@ impl<'tcx> SpecParser<'tcx> {
                             generics.clone(),
                             vec![spec_only_attr.clone()],
                             self.ast_builder.block(item.span, statements),
-                        ))
+                        ),
+                    )
                 };
 
                 let fn_post = {
@@ -573,40 +572,46 @@ impl<'tcx> SpecParser<'tcx> {
                             return_type.clone(),
                         ));
                     }
-                    self.ast_builder.stmt_item(item.span, self.ast_builder.item_fn_attributes(
+                    self.ast_builder.stmt_item(
                         item.span,
-                        ast::Ident::from_str(&name),
-                        inputs_with_result,
-                        unit_type.clone(),
-                        generics.clone(),
-                        vec![spec_only_attr.clone()],
-                        self.ast_builder.block(item.span, statements),
-                    ))
+                        self.ast_builder.item_fn_attributes(
+                            item.span,
+                            ast::Ident::from_str(&name),
+                            inputs_with_result,
+                            unit_type.clone(),
+                            generics.clone(),
+                            vec![spec_only_attr.clone()],
+                            self.ast_builder.block(item.span, statements),
+                        ),
+                    )
                 };
                 let statements = vec![fn_pre, fn_post];
 
                 // Attributes for the spec method
-                let spec_attr =
-                    vec![
-                        spec_only_attr,
-                        self.ast_builder.attribute_allow(item.span, "unused_mut"),
-                        self.ast_builder.attribute_allow(item.span, "dead_code"),
-                        self.ast_builder.attribute_allow(item.span, "non_snake_case"),
-                        self.ast_builder.attribute_allow(item.span, "unused_imports"),
-                        self.ast_builder.attribute_allow(item.span, "unused_variables"),
-                    ];
+                let spec_attr = vec![
+                    spec_only_attr,
+                    self.ast_builder.attribute_allow(item.span, "unused_mut"),
+                    self.ast_builder.attribute_allow(item.span, "dead_code"),
+                    self.ast_builder
+                        .attribute_allow(item.span, "non_snake_case"),
+                    self.ast_builder
+                        .attribute_allow(item.span, "unused_imports"),
+                    self.ast_builder
+                        .attribute_allow(item.span, "unused_variables"),
+                ];
 
                 // Glue everything
-                self.ast_builder.item_fn_attributes(
-                    item.span,
-                    ast::Ident::from_str(&name),
-                    vec![],
-                    unit_type,
-                    generics.clone(),
-                    spec_attr,
-                    self.ast_builder.block(item.span, statements),
-                )
-                .into_inner()
+                self.ast_builder
+                    .item_fn_attributes(
+                        item.span,
+                        ast::Ident::from_str(&name),
+                        vec![],
+                        unit_type,
+                        generics.clone(),
+                        spec_attr,
+                        self.ast_builder.block(item.span, statements),
+                    )
+                    .into_inner()
             }
             _ => {
                 unreachable!();
@@ -1277,7 +1282,7 @@ impl<'tcx> SpecParser<'tcx> {
     /// correct base span.
     fn extract_spec_string(&self, attribute: &ast::Attribute) -> Option<(String, Span)> {
         use syntax::parse::token;
-        use syntax::tokenstream::{TokenTree,Delimited,TokenStream};
+        use syntax::tokenstream::{Delimited, TokenStream, TokenTree};
 
         let trees: Vec<TokenTree> = attribute.tokens.trees().collect();
         let tree_len = trees.len();
@@ -1301,13 +1306,19 @@ impl<'tcx> SpecParser<'tcx> {
                 }
                 trees[1].clone()
             }
-            TokenTree::Delimited(_, Delimited { delim: token::DelimToken::Paren, ref tts } ) => {
+            TokenTree::Delimited(
+                _,
+                Delimited {
+                    delim: token::DelimToken::Paren,
+                    ref tts,
+                },
+            ) => {
                 let token_stream: TokenStream = tts.clone().into();
                 let spec_trees: Vec<TokenTree> = token_stream.trees().collect();
                 if spec_trees.len() != 1 {
                     self.report_error(
                         attribute.span,
-                        "malformed specification (expected single argument)"
+                        "malformed specification (expected single argument)",
                     );
                     return None;
                 }
@@ -1755,7 +1766,7 @@ impl<'tcx> SpecParser<'tcx> {
                                 kind: box AssertionKind::Expr(Expression {
                                     id: self.get_new_expression_id(),
                                     expr: filter,
-                                })
+                                }),
                             },
                             UntypedAssertion {
                                 kind: box AssertionKind::Expr(Expression {
@@ -1847,8 +1858,10 @@ impl<'tcx> SpecParser<'tcx> {
                     //let kind = UntypedAssertionKind::Implies(precondition, assertion);
                     return Ok(UntypedAssertion {
                         kind: box AssertionKind::Implies(
-                            Assertion { kind: box AssertionKind::Expr(precondition) },
-                            assertion
+                            Assertion {
+                                kind: box AssertionKind::Expr(precondition),
+                            },
+                            assertion,
                         ),
                     });
                 }

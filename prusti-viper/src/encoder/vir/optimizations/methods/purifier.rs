@@ -13,7 +13,7 @@ use super::super::super::ast;
 use super::super::super::cfg;
 use std::collections::{HashSet, HashMap};
 use std::{self, mem};
-use prusti_interface::config;
+use prusti_common::config;
 
 /// Purify vars.
 pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {

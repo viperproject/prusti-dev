@@ -22,7 +22,7 @@ use encoder::vir::optimizations::methods::{
 use encoder::vir::{ExprIterator, FoldingBehaviour};
 use encoder::vir::{self, CfgBlockIndex, Successor};
 use encoder::Encoder;
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::borrowck::facts;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
@@ -33,7 +33,7 @@ use prusti_interface::environment::polonius_info::{
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::Procedure;
-use prusti_interface::report::log;
+use prusti_common::report::log;
 use prusti_interface::specifications::*;
 use rustc::hir::Mutability;
 use rustc::mir;

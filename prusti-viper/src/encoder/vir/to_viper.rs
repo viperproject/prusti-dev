@@ -6,7 +6,7 @@
 
 use encoder::vir::ast::*;
 use encoder::vir::borrows::borrow_id;
-use prusti_interface::config;
+use prusti_common::config;
 use viper;
 use viper::AstFactory;
 
