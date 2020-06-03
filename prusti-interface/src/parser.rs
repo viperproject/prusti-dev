@@ -185,7 +185,7 @@ use trait_register::TraitRegister;
 pub fn register_traits(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) {
     trace!("[rewrite_crate] enter");
     let krate = state.krate.take().unwrap();
-    let mut parser = TraitParser::new(state.session, register);
+    let mut parser = TraitParser::new(register);
     let _krate = parser.fold_crate(krate);
     trace!("[rewrite_crate] exit");
 }
@@ -249,22 +249,20 @@ fn log_crate(krate: &ast::Crate, source_filename: &str) {
 
 /// A data structure that extracts trait declaration and their described contracts. It also
 /// extracts trait implementations. It does not modify the AST.
-pub struct TraitParser<'tcx> {
+pub struct TraitParser {
     register: Arc<Mutex<TraitRegister>>,
-    session: &'tcx Session,
 }
 
 
-impl<'tcx> TraitParser<'tcx> {
-    pub fn new(session: &'tcx Session, register: Arc<Mutex<TraitRegister>>) -> Self {
+impl TraitParser {
+    pub fn new(register: Arc<Mutex<TraitRegister>>) -> Self {
         TraitParser {
             register: register,
-            session: session,
         }
     }
 }
 
-impl<'tcx> Folder for TraitParser<'tcx> {
+impl Folder for TraitParser {
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = fold::noop_fold_item(item, self)
@@ -1196,8 +1194,16 @@ impl<'tcx> SpecParser<'tcx> {
         trace!("[rewrite_struct_item] enter");
         let mut item = item.into_inner();
 
+        let mut attrs = item.attrs.clone();
+        {
+            let type_name = ast::Path::from_ident(item.ident).into();
+            let reg = self.register.lock().unwrap();
+            attrs.extend(reg.inherited_attrs(&type_name));
+            // TODO(@jakob): improve error reporting for attributes provided by traits
+        }
+
         // Parse specification
-        let specs = self.parse_specs(item.attrs.clone());
+        let specs = self.parse_specs(attrs);
         if specs.iter().any(|spec| spec.typ != SpecType::Invariant) {
             self.report_error(item.span, "only invariant allowed for struct");
             return SmallVector::one(ptr::P(item));

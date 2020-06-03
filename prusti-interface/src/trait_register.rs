@@ -17,6 +17,12 @@ pub struct TypePath {
     segments: Vec<ast::PathSegment>,
 }
 
+impl TypePath {
+    fn dummy() -> Self {
+        TypePath { segments: Vec::new() }
+    }
+}
+
 impl PartialEq<ast::Path> for TypePath {
     fn eq(&self, other: &ast::Path) -> bool {
         self.segments == other.segments
@@ -86,6 +92,7 @@ impl TraitRegister {
 
     pub fn register_impl(&mut self, item: &ptr::P<ast::Item>) {
         // FIXME(@jakob): consider generics
+        // TODO(@jakob): improve error reporting
         if let ast::ItemKind::Impl(_, _, _, _, trait_ref, ty, _) = item.node.clone() {
             // don't register regular implementations
             if trait_ref.is_none() { return; }
@@ -95,9 +102,13 @@ impl TraitRegister {
                 ast::TyKind::Rptr(_, muty) => if let ast::TyKind::Path(_, path) = muty.ty.node.clone() {
                     path.into()
                 } else {
-                    panic!("type not supported: {:?}", muty.ty.node);
+                    warn!("type not supported: {:?}", muty.ty.node);
+                    TypePath::dummy()
                 },
-                _ => panic!("type not supported: {:?}", ty.node),
+                _ => {
+                    warn!("type not supported: {:?}", ty.node);
+                    TypePath::dummy()
+                },
             };
             if !self.type_to_trait.contains_key(&type_name) {
                 self.type_to_trait.insert(type_name.clone(), HashSet::new());
