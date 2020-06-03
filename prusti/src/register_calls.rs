@@ -12,8 +12,7 @@ use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_errors;
 use std;
 use std::path::PathBuf;
-use std::rc::Rc;
-use std::cell::RefCell;
+use std::sync::{Arc,Mutex};
 use std::time::Instant;
 use syntax::ast;
 use prusti_interface;
@@ -21,11 +20,11 @@ use prusti_interface::trait_register::TraitRegister;
 
 pub struct RegisterCalls {
     default: Box<RustcDefaultCalls>,
-    trait_register: Rc<RefCell<TraitRegister>>,
+    trait_register: Arc<Mutex<TraitRegister>>,
 }
 
 impl RegisterCalls {
-    pub fn from_register(register: Rc<RefCell<TraitRegister>>) -> Self {
+    pub fn from_register(register: Arc<Mutex<TraitRegister>>) -> Self {
         Self {
             default: Box::new(RustcDefaultCalls),
             trait_register: register,

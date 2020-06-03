@@ -166,8 +166,7 @@ use specifications::{
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::io::Write;
-use std::rc::Rc;
-use std::cell::RefCell;
+use std::sync::{Arc,Mutex};
 use std::mem;
 use syntax::codemap::respan;
 use syntax::codemap::Span;
@@ -183,22 +182,17 @@ use trait_register::TraitRegister;
 
 /// Register trait declarations and implementations.
 /// TODO(@jakob): consider using result for error handling
-pub fn register_traits(state: &mut driver::CompileState, register: Rc<RefCell<TraitRegister>>) {
+pub fn register_traits(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) {
     trace!("[rewrite_crate] enter");
     let krate = state.krate.take().unwrap();
     let mut parser = TraitParser::new(state.session, register);
     let _krate = parser.fold_crate(krate);
-    warn!("call from parser");
-    // let mut parser = SpecParser::new(state.session, &source_filename);
-    // let krate = parser.fold_crate(krate);
-    // log_crate(&krate, &source_filename);
-    // state.krate = Some(krate);
     trace!("[rewrite_crate] exit");
 }
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
-pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMap {
+pub fn rewrite_crate(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) -> UntypedSpecificationMap {
     trace!("[rewrite_crate] enter");
     let krate = state.krate.take().unwrap();
     let source_path = match driver::source_name(state.input) {
@@ -206,7 +200,7 @@ pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMa
         _ => unreachable!(),
     };
     let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-    let mut parser = SpecParser::new(state.session, &source_filename);
+    let mut parser = SpecParser::new(state.session, &source_filename, register);
     let krate = parser.fold_crate(krate);
     log_crate(&krate, &source_filename);
     state.krate = Some(krate);
@@ -256,34 +250,17 @@ fn log_crate(krate: &ast::Crate, source_filename: &str) {
 /// A data structure that extracts trait declaration and their described contracts. It also
 /// extracts trait implementations. It does not modify the AST.
 pub struct TraitParser<'tcx> {
-    register: Rc<RefCell<TraitRegister>>,
+    register: Arc<Mutex<TraitRegister>>,
     session: &'tcx Session,
 }
 
 
 impl<'tcx> TraitParser<'tcx> {
-    pub fn new(session: &'tcx Session, register: Rc<RefCell<TraitRegister>>) -> Self {
+    pub fn new(session: &'tcx Session, register: Arc<Mutex<TraitRegister>>) -> Self {
         TraitParser {
             register: register,
             session: session,
         }
-    }
-
-    fn register_struct(&self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
-        let type_name = item.ident.as_str();
-        self.register.borrow_mut().register_struct(type_name.to_string());
-        SmallVector::one(item)
-    }
-
-    fn register_impl(&self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
-        warn!("registering impl");
-        SmallVector::one(item)
-    }
-
-    fn register_trait_decl(&self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
-        let type_name = item.ident.as_str();
-        self.register.borrow_mut().register_trait_decl(type_name.to_string());
-        SmallVector::one(item)
     }
 }
 
@@ -294,26 +271,23 @@ impl<'tcx> Folder for TraitParser<'tcx> {
             .into_iter()
             .flat_map(|item| match item.node.clone() {
                 // Structs
-                ast::ItemKind::Struct(..) => self.register_struct(item),
-
+                ast::ItemKind::Struct(..) => {
+                    let mut reg = self.register.lock().unwrap();
+                    reg.register_struct(&item);
+                    SmallVector::one(item)
+                },
                 // Impl methods
-                ast::ItemKind::Impl(
-                    unsafety,
-                    polarity,
-                    defaultness,
-                    generics,
-                    ifce,
-                    ty,
-                    impl_items) => self.register_impl(item),
-
+                ast::ItemKind::Impl(..) => {
+                    let mut reg = self.register.lock().unwrap();
+                    reg.register_impl(&item);
+                    SmallVector::one(item)
+                },
                 // Methods in trait definition
-                ast::ItemKind::Trait(
-                    is_auto,
-                    unsafety,
-                    generics,
-                    bounds,
-                    trait_items) => self.register_trait_decl(item),
-
+                ast::ItemKind::Trait(..) => {
+                    let mut reg = self.register.lock().unwrap();
+                    reg.register_trait_decl(&item);
+                    SmallVector::one(item)
+                },
                 // Any other item
                 _ => SmallVector::one(item),
             })
@@ -335,6 +309,7 @@ impl<'tcx> Folder for TraitParser<'tcx> {
 /// locations.
 pub struct SpecParser<'tcx> {
     session: &'tcx Session,
+    register: Arc<Mutex<TraitRegister>>,
     ast_builder: MinimalAstBuilder<'tcx>,
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
@@ -344,9 +319,10 @@ pub struct SpecParser<'tcx> {
 
 impl<'tcx> SpecParser<'tcx> {
     /// Create new spec parser.
-    pub fn new(session: &'tcx Session, source_filename: &str) -> SpecParser<'tcx> {
+    pub fn new(session: &'tcx Session, source_filename: &str, register: Arc<Mutex<TraitRegister>>) -> SpecParser<'tcx> {
         SpecParser {
             session: session,
+            register: register,
             ast_builder: MinimalAstBuilder::new(&session.parse_sess),
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),

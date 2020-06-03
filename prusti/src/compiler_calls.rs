@@ -16,19 +16,23 @@ use std::cell::Cell;
 use std::env::var;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::{Arc,Mutex};
 use std::time::Instant;
 use syntax::ast;
 use typeck;
 use verifier;
+use prusti_interface::trait_register::TraitRegister;
 
 pub struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
+    trait_register: Arc<Mutex<TraitRegister>>,
 }
 
 impl PrustiCompilerCalls {
-    pub fn new() -> Self {
+    pub fn from_register(register: Arc<Mutex<TraitRegister>>) -> Self {
         Self {
             default: Box::new(RustcDefaultCalls),
+            trait_register: register,
         }
     }
 }
@@ -80,6 +84,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         matches: &getopts::Matches,
     ) -> driver::CompileController<'a> {
         let mut control = self.default.build_controller(sess, matches);
+        let register = self.trait_register.clone();
         //control.make_glob_map = ???
         //control.keep_ast = true;
 
@@ -93,7 +98,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let start = Instant::now();
 
             prusti_interface::parser::register_attributes(state);
-            let untyped_specifications = prusti_interface::parser::rewrite_crate(state);
+            let untyped_specifications = prusti_interface::parser::rewrite_crate(state, register.clone());
             put_specifications.set(Some(untyped_specifications));
 
             let duration = start.elapsed();

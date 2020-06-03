@@ -12,8 +12,7 @@ use rustc::session::CompileResult;
 use rustc::session::Session;
 use rustc_driver;
 use std::env;
-use std::rc::Rc;
-use std::cell::RefCell;
+use std::sync::{Arc,Mutex};
 use prusti_interface::report::user;
 
 /// Add arguments required by Prusti, then run the compiler with Prusti callbacks
@@ -67,13 +66,13 @@ pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {
         warn!("Configuration variable CONTRACTS_LIB is empty");
     }
 
-    let trait_register = Rc::new(RefCell::new(TraitRegister::new()));
+    let trait_register = Arc::new(Mutex::new(TraitRegister::new()));
     let register_calls = Box::new(RegisterCalls::from_register(trait_register.clone()));
     rustc_driver::run_compiler(&args, register_calls, None, None);
 
     // unpack register and provide it to the new call-site
 
     debug!("rustc command: '{}'", args.join(" "));
-    let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
+    let prusti_compiler_calls = Box::new(PrustiCompilerCalls::from_register(trait_register));
     rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
 }
