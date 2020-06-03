@@ -51,6 +51,7 @@ pub enum Stmt {
     ExpireBorrows(ReborrowingDAG),
     /// An `if` statement: the guard and the 'then' branch.
     If(Expr, Vec<Stmt>),
+    // TODO: add a StopFoldUnfold statement to make the fold-unfold ignore a path
 }
 
 /// What folding behaviour should be used?

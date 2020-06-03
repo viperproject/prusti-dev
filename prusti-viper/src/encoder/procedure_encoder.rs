@@ -569,39 +569,245 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         Ok(final_method)
     }
 
-    fn encode_loop(
+    /// Encodes a topologically ordered group of blocks, and return first CFG block of the encoding.
+    fn encode_blocks_group<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
         &mut self,
-        _label_prefix: &str,
+        label_prefix: &str,
+        ordered_group_blocks: &[BasicBlockIndex],
+        next_bb: BasicBlockIndex,
+        next_cfg_block: CfgBlockIndex,
+        get_block: F,
+        group_loop_depth: usize,
+        return_block: CfgBlockIndex,
+    ) -> CfgBlockIndex {
+        let mut group_head = next_cfg_block;
+        let mut bb_map: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
+        for &curr_bb in ordered_group_blocks.iter().rev() {
+            let loop_info = self.loop_encoder.loops();
+            let get_block = |bb| {
+                if bb == next_bb {
+                    Some(next_cfg_block)
+                } else {
+                    bb_map.get(&bb).cloned().or_else(|| get_block(bb))
+                }
+            };
+            let curr_loop_depth = loop_info.get_loop_depth(curr_bb);
+            let block = if curr_loop_depth == group_loop_depth {
+                // This block is not in a nested loop
+                self.encode_block(
+                    label_prefix,
+                    curr_bb,
+                    return_block,
+                    get_block
+                )
+            } else {
+                let is_loop_head = loop_info.is_loop_head(curr_bb);
+                if curr_loop_depth == group_loop_depth + 1 && is_loop_head {
+                    // Encode a nested loop
+                    let nested_loop: Vec<_> = loop_info.get_loop_body(curr_bb).to_vec();
+                    self.encode_loop(
+                        label_prefix,
+                        &nested_loop,
+                        get_block,
+                        return_block,
+                    )
+                } else {
+                    // Skip the inner block of a nested loop
+                    continue;
+                }
+            };
+            group_head = block;
+            bb_map.insert(curr_bb, block);
+        }
+        group_head
+    }
+
+    /// Encodes a loop and returns the first CFG block of the encoding.
+    ///
+    /// The encoding transforms
+    /// ```text
+    /// while { g = G; g } { B1; invariant!(I); B2 }
+    /// ```
+    /// into
+    /// ```text
+    /// g = G
+    /// if (g) {
+    ///   B1
+    ///   exhale I
+    ///   // ... havoc local variables modified in G, B1, or B2
+    ///   inhale I
+    ///   B2
+    ///   g = G
+    ///   if (g) {
+    ///     B1
+    ///     exhale I
+    ///     assume false
+    ///   }
+    /// }
+    /// assume !g
+    /// ```
+    fn encode_loop<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+        &mut self,
+        label_prefix: &str,
         blocks: &[BasicBlockIndex],
-        _break_destinations: HashMap<BasicBlockIndex, vir::CfgBlockIndex>,
-        _return_cfg_block: vir::CfgBlockIndex,
+        get_block: F,
+        return_block: vir::CfgBlockIndex,
     ) -> vir::CfgBlockIndex {
         debug_assert!(blocks.len() > 1);
-        let loop_info = self.loop_encoder.loops();
+        // The clone() is just there to make the borrow checker happy
+        let loop_info = self.loop_encoder.loops().clone();
         let loop_head = blocks[0];
         debug_assert!(loop_info.is_loop_head(loop_head));
         let loop_depth = loop_info.get_loop_head_depth(loop_head);
+        let loop_label_prefix = format!("{}loop_{:?}", label_prefix, loop_head);
 
-        let ordered_guard_evaluation = loop_info.get_ordered_loop_guard_evaluation(loop_head);
-        for &curr_bb in ordered_guard_evaluation {
-            if loop_info.get_loop_depth(curr_bb) > loop_depth {
-                // Handle nested loop
-                unimplemented!()
-            } else {
-                unimplemented!()
-            }
+        let loop_body: Vec<BasicBlockIndex> = loop_info.get_loop_body(loop_head).iter()
+            .filter(|&&bb| !self.procedure.is_spec_block(bb))
+            .cloned().collect();
+
+        // Build the first CFG block of the encoding
+        let start_block = self.cfg_method.add_block(
+            &format!("{}_start", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}start ==========", loop_label_prefix))],
+        );
+
+        // Build the CFG block between B1 and B2 that:
+        // (1) checks the loop invariant on entry
+        // (2) havocks the invariant and the local variables.
+        let havock_block = self.cfg_method.add_block(
+            &format!("{}_havock", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}havock ==========", loop_label_prefix))],
+        );
+        {
+            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
+        }
+        // TODO: havock local variables
+        {
+            let stmts = self.encode_loop_invariant_inhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
         }
 
-        let guard_evaluation = loop_info.get_loop_guard_evaluation(loop_head);
-        for &curr_bb in ordered_guard_evaluation {
-            if guard_evaluation.contains(&curr_bb) {
-                // Skip
-            } else {
-                unimplemented!()
-            }
+        // Build the CFG block after B1 that
+        // (1) checks the invariant after one loop iteration
+        // (2) kills the program path with an `assume false`
+        let end_body_block = self.cfg_method.add_block(
+            &format!("{}_end_body", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}end_body ==========", loop_label_prefix))],
+        );
+        {
+            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(end_body_block, stmts);
         }
 
-        unimplemented!()
+        self.cfg_method.add_stmt(
+            end_body_block,
+            vir::Stmt::Inhale(
+                false.into(),
+                vir::FoldingBehaviour::Stmt
+            )
+        );
+        self.cfg_method.set_successor(end_body_block, vir::Successor::Return);
+
+        // Identify important blocks
+        let opt_loop_guard_switch = loop_info.get_loop_guard_switch(loop_head);
+        let before_invariant_block: BasicBlockIndex = loop_body.iter().find(
+            |&&bb| {
+                self.mir[bb].terminator().successors()
+                    .any(|&succ_bb| self.procedure.is_spec_block(succ_bb))
+            }
+        ).cloned().unwrap_or_else(
+            || opt_loop_guard_switch.unwrap_or(loop_head)
+        );
+        let after_guard_block_pos = opt_loop_guard_switch.and_then(
+            |loop_guard_switch| loop_body.iter().position(|&bb| bb == loop_guard_switch).map(|x| x + 1)
+        ).unwrap_or(0);
+        let after_inv_block_pos = 1 + loop_body.iter().position(|&bb| bb == before_invariant_block).unwrap();
+        let after_guard_block = loop_body[after_guard_block_pos];
+        let after_inv_block = loop_body[after_inv_block_pos];
+
+        assert!(
+            !loop_info.is_conditional_branch(loop_head, after_inv_block),
+            "The loop invariant cannot be in a conditional branch"
+        );
+
+        // Split the blocks such that:
+        // * G is loop_guard_evaluation, starting (if nonempty) with loop_head
+        // * B1 is loop_body_before_inv, starting with after_guard_block (which could be loop_head)
+        // * B2 is loop_body_after_inv, starting with after_inv_block
+        let loop_guard_evaluation = &loop_body[0..after_guard_block_pos];
+        let loop_body_before_inv = &loop_body[after_guard_block_pos..after_inv_block_pos];
+        let loop_body_after_inv = &loop_body[after_inv_block_pos..];
+
+        // The main path in the encoding is G -> B1 -> B2 -> G -> B1.
+        // We are going to build the encoding starting from the last group, B1.
+
+        // The head CFG block of the next group
+        let mut next_group_head = end_body_block;
+
+        // Encode the last B1 group (G - B1 - B2 - G - *B1*)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_B1_", loop_label_prefix),
+            loop_body_before_inv,
+            after_inv_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the last G group (G - B1 - B2 - *G* - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_G_", loop_label_prefix),
+            loop_guard_evaluation,
+            after_guard_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the last B2 group (G - B1 - *B2* - G - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_B2_", loop_label_prefix),
+            loop_body_after_inv,
+            loop_head,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        self.cfg_method.set_successor(havock_block, vir::Successor::Goto(next_group_head));
+        next_group_head = havock_block;
+
+        // Encode the first B1 group (G - *B1* - B2 - G - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_unrolled_B1_", loop_label_prefix),
+            loop_body_before_inv,
+            after_inv_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the first G group (*G* - B1 - B2 - G - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_unrolled_G_", loop_label_prefix),
+            loop_guard_evaluation,
+            after_guard_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the first block
+        self.cfg_method.set_successor(start_block, vir::Successor::Goto(next_group_head));
+        next_group_head = start_block;
+
+        next_group_head
     }
 
     fn encode_block<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
@@ -609,15 +815,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         label_prefix: &str,
         bbi: mir::BasicBlock,
         return_block: vir::CfgBlockIndex,
-        get_block: F,
+        get_block: F, // TODO: remove the Option<_> from the result
     ) -> CfgBlockIndex {
+        debug_assert!(!self.procedure.is_spec_block(bbi));
         let curr_block = self.cfg_method.add_block(
             &format!("{}{:?}", label_prefix, bbi),
             vec![],
-            vec![vir::Stmt::comment(format!(
-                "========== {:?} ==========",
-                bbi
-            ))],
+            vec![vir::Stmt::comment(format!("========== {}{:?} ==========", label_prefix, bbi))],
         );
         if self.loop_encoder.is_loop_head(bbi) {
             self.cfg_method.add_stmt(
@@ -629,6 +833,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_stmt(
                 curr_block,
                 vir::Stmt::Comment("This is a loop guard switch".to_string())
+            );
+        }
+        if self.procedure.is_spec_block(bbi) {
+            self.cfg_method.add_stmt(
+                curr_block,
+                vir::Stmt::Comment("This is a specification block".to_string())
             );
         }
 
@@ -4169,16 +4379,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc {:?}", dst);
-        // TODO: Can we encode the havoc with an exhale + inhale?
         let havoc_ref_method_name = self
             .encoder
             .encode_builtin_method_use(BuiltinMethodKind::HavocRef);
         if let &vir::Expr::Local(ref dst_local_var, ref _pos) = dst {
-            vec![vir::Stmt::MethodCall(
-                havoc_ref_method_name,
-                vec![],
-                vec![dst_local_var.clone()],
-            )]
+            vec![
+                vir::Stmt::MethodCall(
+                    havoc_ref_method_name,
+                    vec![],
+                    vec![dst_local_var.clone()],
+                )
+            ]
         } else {
             let tmp_var = self.get_auxiliar_local_var("havoc", dst.get_type().clone());
             vec![

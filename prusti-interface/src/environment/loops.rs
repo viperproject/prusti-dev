@@ -36,35 +36,6 @@ impl<'d, 'tcx> Visitor<'tcx> for LoopHeadCollector<'d> {
     }
 }
 
-/// A visitor for loopless code that visits a basic block only after all
-/// predecessors of that basic block were already visited.
-/// TODO: Either remove this trait or move it to a proper location.
-trait PredecessorsFirstVisitor<'tcx>: Visitor<'tcx> {
-    /// Should the given basic block be ignored?
-    fn is_ignored(&mut self, bb: BasicBlockIndex) -> bool;
-
-    fn visit_mir_from(&mut self, mir: &mir::Mir<'tcx>, start_block: BasicBlockIndex) {
-        let mut work_queue = vec![start_block];
-        let mut analysed_blocks = HashSet::new();
-        while !work_queue.is_empty() {
-            let current = work_queue.pop().unwrap();
-            let basic_block_data = &mir.basic_blocks()[current];
-            self.visit_basic_block_data(current, basic_block_data);
-            analysed_blocks.insert(current);
-            for &successor in basic_block_data.terminator().successors() {
-                let all_predecessors_analysed =
-                    mir.predecessors_for(successor).iter().all(|predecessor| {
-                        analysed_blocks.contains(predecessor) || self.is_ignored(*predecessor)
-                    });
-                if all_predecessors_analysed {
-                    assert!(!analysed_blocks.contains(&successor));
-                    work_queue.push(successor);
-                }
-            }
-        }
-    }
-}
-
 /// Walk up the CFG graph an collect all basic blocks that belong to the loop body.
 fn collect_loop_body<'tcx>(
     head: BasicBlockIndex,
@@ -242,6 +213,7 @@ fn order_basic_blocks<'tcx>(
 }
 
 /// Struct that contains information about all loops in the procedure.
+#[derive(Clone)]
 pub struct ProcedureLoops {
     /// A list of basic blocks that are loop heads.
     pub loop_heads: HashSet<BasicBlockIndex>,
@@ -252,11 +224,10 @@ pub struct ProcedureLoops {
     pub ordered_loop_bodies: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).
     enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
-    /// A map from loop heads to the corresponding guard-switch block.
-    loop_guard_switch: HashMap<BasicBlockIndex, BasicBlockIndex>,
-    /// A map from loop heads to the ordered blocks that evaluate the guard (guard-switch block included).
-    loop_guard_evaluation: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
-    ordered_loop_guard_evaluation: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
+    /// A map from loop heads to the corresponding guard-switch block (None if the loop is infinite).
+    loop_guard_switch: HashMap<BasicBlockIndex, Option<BasicBlockIndex>>,
+    /// A map from loop heads to the nonconditional blocks.
+    nonconditional_loop_blocks: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
     /// Back edges.
     pub back_edges: HashSet<(BasicBlockIndex, BasicBlockIndex)>,
     /// Dominators graph.
@@ -332,27 +303,29 @@ impl ProcedureLoops {
         // 1. has an out-edge that exists from the loop
         // 2. is always executed when executing a loop iteration (i.e. is not in a conditional branch)
         let mut loop_guard_switch = HashMap::new();
-        let mut loop_guard_evaluation = HashMap::new();
-        let mut ordered_loop_guard_evaluation = HashMap::new();
+        let mut nonconditional_loop_blocks = HashMap::new();
         for &loop_head in loop_heads.iter() {
             let loop_head_depth = loop_head_depths[&loop_head];
             let loop_body = &loop_bodies[&loop_head];
             let ordered_loop_body = &ordered_loop_bodies[&loop_head];
 
-            let mut ordered_guard_evaluation = vec![];
+            let mut guard_switch = None;
+            let mut nonconditional_blocks = vec![];
             let mut border = HashSet::new();
             border.insert(loop_head);
 
             for &curr_bb in ordered_loop_body {
                 debug_assert!(border.contains(&curr_bb));
-                ordered_guard_evaluation.push(curr_bb);
 
                 if border.len() == 1 {
-                    let has_exit_edge = mir[curr_bb].terminator().successors()
-                        .any(|bb| get_loop_depth(*bb) < loop_head_depth);
-                    if has_exit_edge {
-                        // curr_bb has an out-edge that exits from the loop
-                        break;
+                    nonconditional_blocks.push(curr_bb);
+                    if guard_switch.is_none() {
+                        let has_exit_edge = mir[curr_bb].terminator().successors()
+                            .any(|bb| get_loop_depth(*bb) < loop_head_depth);
+                        if has_exit_edge {
+                            // curr_bb has an out-edge that exits from the loop
+                            guard_switch = Some(curr_bb);
+                        }
                     }
                 }
 
@@ -366,15 +339,8 @@ impl ProcedureLoops {
                 }
             }
 
-            if border.len() == 1 {
-                let guard = border.into_iter().next().unwrap();
-                loop_guard_switch.insert(loop_head, guard);
-                let guard_evaluation: HashSet<_> = ordered_guard_evaluation.iter().cloned().collect();
-                loop_guard_evaluation.insert(loop_head, guard_evaluation);
-                ordered_loop_guard_evaluation.insert(loop_head, ordered_guard_evaluation);
-            } else {
-                unimplemented!("Unsupported loop shape (loop head {:?})", loop_head);
-            }
+            loop_guard_switch.insert(loop_head, guard_switch);
+            nonconditional_loop_blocks.insert(loop_head, nonconditional_blocks.into_iter().collect());
         }
 
         ProcedureLoops {
@@ -384,8 +350,7 @@ impl ProcedureLoops {
             ordered_loop_bodies,
             enclosing_loop_heads,
             loop_guard_switch,
-            loop_guard_evaluation,
-            ordered_loop_guard_evaluation,
+            nonconditional_loop_blocks,
             back_edges,
             dominators,
             ordered_blocks
@@ -404,24 +369,20 @@ impl ProcedureLoops {
         self.loop_heads.contains(&bbi)
     }
 
-    pub fn get_ordered_loop_guard_evaluation(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
-        debug_assert!(self.is_loop_head(bbi));
-        &self.ordered_loop_guard_evaluation[&bbi]
-    }
-
-    pub fn get_loop_guard_evaluation(&self, bbi: BasicBlockIndex) -> &HashSet<BasicBlockIndex> {
-        debug_assert!(self.is_loop_head(bbi));
-        &self.loop_guard_evaluation[&bbi]
-    }
-
     pub fn get_loop_guard_switch(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
-        self.get_loop_head(bbi).and_then(
-            |loop_head| self.loop_guard_switch.get(&loop_head).cloned()
-        )
+        debug_assert!(self.is_loop_head(bbi));
+        self.loop_guard_switch[&bbi].clone()
     }
 
     pub fn is_loop_guard_switch(&self, bbi: BasicBlockIndex) -> bool {
-        self.get_loop_guard_switch(bbi) == Some(bbi)
+        self.get_loop_head(bbi).and_then(
+            |loop_head| self.get_loop_guard_switch(loop_head)
+        ) == Some(bbi)
+    }
+
+    pub fn is_conditional_branch(&self, loop_head: BasicBlockIndex, bbi: BasicBlockIndex) -> bool {
+        debug_assert!(self.is_loop_head(loop_head));
+        self.nonconditional_loop_blocks[&loop_head].contains(&bbi)
     }
 
     pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
@@ -453,9 +414,9 @@ impl ProcedureLoops {
     }
 
     /// Get the (topologically ordered) body of a loop, given a loop head
-    pub fn get_loop_body(&self, head_bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
-        debug_assert!(self.is_loop_head(head_bbi));
-        &self.ordered_loop_bodies[&head_bbi]
+    pub fn get_loop_body(&self, loop_head: BasicBlockIndex) -> &[BasicBlockIndex] {
+        debug_assert!(self.is_loop_head(loop_head));
+        &self.ordered_loop_bodies[&loop_head]
     }
 
     /// Does this edge exit a loop?
