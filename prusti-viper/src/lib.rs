@@ -11,9 +11,9 @@
 #![feature(slice_sort_by_cached_key)]
 
 #![deny(unreachable_patterns)]
-#![deny(unused_mut)]
-#![deny(unused_variables)]
-#![deny(unused_imports)]
+// #![deny(unused_mut)]
+// #![deny(unused_variables)]
+// #![deny(unused_imports)]
 #![deny(unused_doc_comments)]
 
 #[macro_use]

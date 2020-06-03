@@ -226,7 +226,8 @@ pub struct ProcedureLoops {
     enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop heads to the corresponding guard-switch block (None if the loop is infinite).
     loop_guard_switch: HashMap<BasicBlockIndex, Option<BasicBlockIndex>>,
-    /// A map from loop heads to the nonconditional blocks.
+    /// A map from loop heads to the nonconditional blocks (i.e. those that are always executed
+    /// in any loop iteration).
     nonconditional_loop_blocks: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
     /// Back edges.
     pub back_edges: HashSet<(BasicBlockIndex, BasicBlockIndex)>,
@@ -382,7 +383,7 @@ impl ProcedureLoops {
 
     pub fn is_conditional_branch(&self, loop_head: BasicBlockIndex, bbi: BasicBlockIndex) -> bool {
         debug_assert!(self.is_loop_head(loop_head));
-        self.nonconditional_loop_blocks[&loop_head].contains(&bbi)
+        !self.nonconditional_loop_blocks[&loop_head].contains(&bbi)
     }
 
     pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {

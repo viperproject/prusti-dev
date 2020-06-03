@@ -261,6 +261,14 @@ impl CfgMethod {
         self.block_index(index)
     }
 
+    pub fn get_successor(&mut self, index: CfgBlockIndex) -> &Successor {
+        assert_eq!(
+            self.uuid, index.method_uuid,
+            "The provided CfgBlockIndex doesn't belong to this CfgMethod"
+        );
+        &self.basic_blocks[index.block_index].successor
+    }
+
     pub fn set_successor(&mut self, index: CfgBlockIndex, successor: Successor) {
         assert_eq!(
             self.uuid, index.method_uuid,
@@ -291,6 +299,18 @@ impl CfgMethod {
             }
         }
         result
+    }
+
+    pub fn get_indices(&self) -> Vec<CfgBlockIndex> {
+        (0..self.basic_blocks.len()).map(|i| self.block_index(i)).collect()
+    }
+
+    pub fn get_block(&self, index: CfgBlockIndex) -> &CfgBlock {
+        &self.basic_blocks[index.block_index]
+    }
+
+    pub fn get_block_label(&self, index: CfgBlockIndex) -> &str {
+        &self.basic_blocks_labels[index.block_index]
     }
 
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {
