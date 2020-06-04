@@ -674,7 +674,7 @@ impl<'a> AstFactory<'a> {
         variables: &[LocalVarDecl],
         triggers: &[Trigger],
         expr: Expr,
-        pos: Position
+        _pos: Position
     ) -> Expr<'a> {
         build_ast_node_with_pos!(
             self,

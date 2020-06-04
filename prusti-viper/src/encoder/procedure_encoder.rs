@@ -41,7 +41,6 @@ use rustc::mir::TerminatorKind;
 use rustc::ty;
 use rustc::ty::layout;
 use rustc::ty::layout::IntegerExt;
-use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::attr::SignedInt;
@@ -3422,71 +3421,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - `vir::Expr`: the place of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
-    #[deprecated(note = "please use `mir_encoder::encode_projection` instead")]
     fn encode_projection(
         &self,
         place_projection: &mir::PlaceProjection<'tcx>,
         root: Option<Local>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
         debug!("Encode projection {:?} {:?}", place_projection, root);
-        let (encoded_base, base_ty, opt_variant_index) =
-            self.encode_place_with_subst_root(&place_projection.base, root);
-        match &place_projection.elem {
-            &mir::ProjectionElem::Field(ref field, _) => {
-                match base_ty.sty {
-                    ty::TypeVariants::TyBool
-                    | ty::TypeVariants::TyInt(_)
-                    | ty::TypeVariants::TyUint(_)
-                    | ty::TypeVariants::TyRawPtr(_)
-                    | ty::TypeVariants::TyRef(_, _, _) => {
-                        panic!("Type {:?} has no fields", base_ty)
-                    }
-
-                    ty::TypeVariants::TyTuple(elems) => {
-                        let field_name = format!("tuple_{}", field.index());
-                        let field_ty = elems[field.index()];
-                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
-                        let encoded_projection = encoded_base.field(encoded_field);
-                        (encoded_projection, field_ty, None)
-                    }
-
-                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
-                        debug!("subst {:?}", subst);
-                        let num_variants = adt_def.variants.len();
-                        // FIXME: why this can be None?
-                        let variant_index = opt_variant_index.unwrap_or_else(|| {
-                            assert_eq!(num_variants, 1);
-                            0
-                        });
-                        let tcx = self.encoder.env().tcx();
-                        let variant_def = &adt_def.variants[variant_index];
-                        let encoded_variant = if num_variants != 1 {
-                            encoded_base.variant(&variant_def.name.as_str())
-                        } else {
-                            encoded_base
-                        };
-                        let field = &variant_def.fields[field.index()];
-                        let field_ty = field.ty(tcx, subst);
-                        let encoded_field = self
-                            .encoder
-                            .encode_struct_field(&field.ident.as_str(), field_ty);
-                        let encoded_projection = encoded_variant.field(encoded_field);
-                        (encoded_projection, field_ty, None)
-                    }
-
-                    ref x => unimplemented!("{:?}", x),
-                }
-            }
-
-            &mir::ProjectionElem::Deref => self.mir_encoder.encode_deref(encoded_base, base_ty),
-
-            &mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
-                debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
-                (encoded_base, base_ty, Some(variant_index))
-            }
-
-            x => unimplemented!("{:?}", x),
-        }
+        let encoded_place = self.encode_place_with_subst_root(&place_projection.base, root);
+        self.mir_encoder.encode_projection(place_projection, Some(encoded_place))
     }
 
     fn encode_generic_place(
