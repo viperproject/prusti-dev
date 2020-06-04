@@ -249,7 +249,7 @@ impl CfgMethod {
             .chars()
             .skip(1)
             .all(|c| c.is_alphanumeric() || c == '_'));
-        assert!(self.basic_blocks_labels.iter().all(|l| l != label));
+        assert!(self.basic_blocks_labels.iter().all(|l| l != label), "Label {} is already used", label);
         assert!(label != RETURN_LABEL);
         let index = self.basic_blocks.len();
         self.basic_blocks_labels.push(label.to_string());
