@@ -375,7 +375,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let self_ty_binder = sig.input(0);
             let mut self_ty = self_ty_binder.skip_binder().clone();
 
-
             // stip reference on self type
             if let ty::TypeVariants::TyRef(_, true_ty, _) = self_ty.sty {
                 self_ty = true_ty;
@@ -385,19 +384,14 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             if self_ty.is_self() {
                 if let Some(ty) = tymap[0].get(self_ty) {
                     if let Some(id) = tcx.trait_of_item(proc_def_id) {
-                        let proc_name = tcx.item_name(proc_def_id).to_string();
-                        tcx.for_each_relevant_impl(id, ty, |impl_id| {
-                            for assoc_item in tcx.associated_items(impl_id) {
-                                if assoc_item.name == proc_name {
-                                    if let Some(spec) = self.get_spec_by_def_id(assoc_item.def_id) {
-                                        impl_spec = spec.clone();
-                                    } else {
-                                        debug!("Procedure {:?} has no specification", assoc_item.def_id);
-                                    }
-                                    break;
-                                }
+                        let proc_name = tcx.item_name(proc_def_id).as_symbol();
+                        if let Some(item) = self.env().get_trait_method_decl_for_type(ty, id, proc_name) {
+                            if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
+                                impl_spec = spec.clone();
+                            } else {
+                                debug!("Procedure {:?} has no specification", item.def_id);
                             }
-                        });
+                        }
                     }
                 }
             }

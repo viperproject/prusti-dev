@@ -181,75 +181,70 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     .env()
                     .tcx()
                     .item_name(self.proc_def_id)
-                    .to_string();
-                //trace!("proc_name: {:?}", proc_name);
-                let assoc_items: Vec<_> = self.encoder.env().tcx().associated_items(id).collect();
-                //trace!("assoc items: {:?}", &assoc_items);
-                for assoc_item in assoc_items {
-                    if assoc_item.name == proc_name {
-                        // TODO use the impl's specs if there are any (separately replace pre/post!)
-                        let procedure_trait_contract = self
-                            .encoder
-                            .get_procedure_contract_for_def(assoc_item.def_id);
-                        let (proc_pre_specs, proc_post_specs) = {
-                            if let SpecificationSet::Procedure(ref mut pre, ref mut post) = self.mut_contract().specification {
-                                (pre, post)
-                            } else {
-                                unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
-                            }
+                    .as_symbol();
+                if let Some(assoc_item) = self.encoder.env().get_assoc_item(id, proc_name) {
+                    // TODO use the impl's specs if there are any (separately replace pre/post!)
+                    let procedure_trait_contract = self
+                        .encoder
+                        .get_procedure_contract_for_def(assoc_item.def_id);
+                    let (proc_pre_specs, proc_post_specs) = {
+                        if let SpecificationSet::Procedure(ref mut pre, ref mut post) = self.mut_contract().specification {
+                            (pre, post)
+                        } else {
+                            unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
+                        }
+                    };
+
+                    if proc_pre_specs.is_empty() {
+                        proc_pre_specs.extend_from_slice(procedure_trait_contract.functional_precondition())
+                    } else {
+                        let proc_pre = Assertion {
+                            kind: Box::new(AssertionKind::And(
+                                          proc_pre_specs.iter()
+                                          .map(|spe| spe.assertion.clone())
+                                          .collect()
+                                  ))
                         };
+                        let proc_trait_pre = Assertion {
+                            kind: Box::new(AssertionKind::And(
+                                          procedure_trait_contract.functional_precondition()
+                                          .iter()
+                                          .map(|spe| spe.assertion.clone())
+                                          .collect()
+                                  ))
+                        };
+                        precondition_weakening = Some(Assertion {
+                            kind: Box::new(AssertionKind::Implies(
+                                          proc_trait_pre,
+                                          proc_pre,
+                                  ))
+                        });
+                    }
 
-                        if proc_pre_specs.is_empty() {
-                            proc_pre_specs.extend_from_slice(procedure_trait_contract.functional_precondition())
-                        } else {
-                            let proc_pre = Assertion {
-                                kind: Box::new(AssertionKind::And(
-                                    proc_pre_specs.iter()
-                                        .map(|spe| spe.assertion.clone())
-                                        .collect()
-                                ))
-                            };
-                            let proc_trait_pre = Assertion {
-                                kind: Box::new(AssertionKind::And(
-                                    procedure_trait_contract.functional_precondition()
-                                        .iter()
-                                        .map(|spe| spe.assertion.clone())
-                                        .collect()
-                                ))
-                            };
-                            precondition_weakening = Some(Assertion {
-                                kind: Box::new(AssertionKind::Implies(
-                                    proc_trait_pre,
-                                    proc_pre,
-                                ))
-                            });
-                        }
-
-                        if proc_post_specs.is_empty() {
-                            proc_post_specs.extend_from_slice(procedure_trait_contract.functional_postcondition())
-                        } else {
-                            let proc_post = Assertion {
-                                kind: Box::new(AssertionKind::And(
-                                    proc_post_specs.iter()
-                                        .map(|spe| spe.assertion.clone())
-                                        .collect()
-                                ))
-                            };
-                            let proc_trait_post = Assertion {
-                                kind: Box::new(AssertionKind::And(
-                                    procedure_trait_contract.functional_postcondition()
-                                        .iter()
-                                        .map(|spe| spe.assertion.clone())
-                                        .collect()
-                                ))
-                            };
-                            postcondition_strengthening = Some(Assertion {
-                                kind: Box::new(AssertionKind::Implies(
-                                    proc_post,
-                                    proc_trait_post,
-                                ))
-                            });
-                        }
+                    if proc_post_specs.is_empty() {
+                        proc_post_specs.extend_from_slice(procedure_trait_contract.functional_postcondition())
+                    } else {
+                        let proc_post = Assertion {
+                            kind: Box::new(AssertionKind::And(
+                                          proc_post_specs.iter()
+                                          .map(|spe| spe.assertion.clone())
+                                          .collect()
+                                  ))
+                        };
+                        let proc_trait_post = Assertion {
+                            kind: Box::new(AssertionKind::And(
+                                          procedure_trait_contract.functional_postcondition()
+                                          .iter()
+                                          .map(|spe| spe.assertion.clone())
+                                          .collect()
+                                  ))
+                        };
+                        postcondition_strengthening = Some(Assertion {
+                            kind: Box::new(AssertionKind::Implies(
+                                          proc_post,
+                                          proc_trait_post,
+                                  ))
+                        });
                     }
                 }
             }
