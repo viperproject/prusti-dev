@@ -1,5 +1,7 @@
 extern crate prusti_contracts;
 
+// ignore-test Generics are not yet supported for marker trait implementations.
+
 #[invariant="self.d1 == self.d2"]
 trait Foo { }
 

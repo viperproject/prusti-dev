@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::collections::{HashSet,HashMap};
-use std::iter::FromIterator;
-use std::iter::Iterator;
+use std::iter::{FromIterator,Iterator};
 use syntax::{ast, ptr};
 
 
@@ -15,11 +14,17 @@ use syntax::{ast, ptr};
 #[derive(Hash, Debug, PartialEq, Eq, Clone)]
 pub struct TypePath {
     segments: Vec<ast::PathSegment>,
+    // TODO(@jakob): add information about generics
 }
 
 impl TypePath {
     fn dummy() -> Self {
         TypePath { segments: Vec::new() }
+    }
+
+    #[allow(dead_code)]
+    fn is_dummy(&self) -> bool {
+        self.segments.is_empty()
     }
 }
 
@@ -52,21 +57,38 @@ impl TraitRegister {
         }
     }
 
+    /// Returns all types registered. This includes types found in declarations and
+    /// implementations.
     pub fn types(&self) -> impl Iterator<Item=&TypePath> {
         let hashset: HashSet<_> = self.type_to_trait.keys().collect();
         hashset.into_iter()
     }
 
+    /// Returns all traits the were registered as a declaration.
     pub fn declared_traits(&self) -> impl Iterator<Item=&TypePath> {
         let hashset: HashSet<_> = self.trait_to_invs.keys().collect();
         hashset.into_iter()
     }
 
+    /// Returns all traits registered in an implementation.
     pub fn implemented_traits(&self) -> impl Iterator<Item=&TypePath> {
         let hashset: HashSet<_> = self.type_to_trait.values().flatten().collect();
         hashset.into_iter()
     }
 
+    /// Returns the attributes for some trait. If the trait was not registered, this returns an
+    /// empty iterator. This function works on `TypePath`, hence one can provide the converted
+    /// `ast::Path` for both the trait implementation  or the trait declaration (up to generics).
+    pub fn declaration_attrs(&self, typ: &TypePath) -> impl Iterator<Item=ast::Attribute> {
+        if let Some(attrs) = self.trait_to_invs.get(typ).cloned() {
+            attrs.into_iter()
+        } else {
+            HashSet::new().into_iter()
+        }
+    }
+
+    /// Returns all attributes inherited via trait implementations for some type. Returns an empty
+    /// iterator if the type was not registered.
     pub fn inherited_attrs(&self, typ: &TypePath) -> impl Iterator<Item=ast::Attribute> {
         if let Some(traits) = self.type_to_trait.get(typ) {
             traits.iter().flat_map(|t| {
@@ -77,19 +99,23 @@ impl TraitRegister {
         }
     }
 
+    /// Register a struct declaration.
     pub fn register_struct(&mut self, item: &ptr::P<ast::Item>) {
+        // TODO(@jakob): register generics
         let type_name = ast::Path::from_ident(item.ident).into();
         if !self.type_to_trait.contains_key(&type_name) {
             self.type_to_trait.insert(type_name.clone(), HashSet::new());
         }
     }
 
+    /// Register a trait declaration.
     pub fn register_trait_decl(&mut self, item: &ptr::P<ast::Item>) {
         let attrs = HashSet::from_iter(item.attrs.clone().into_iter());
         let trait_name = ast::Path::from_ident(item.ident).into();
         self.trait_to_invs.insert(trait_name, attrs);
     }
 
+    /// Register an implementation block (inherent or trait).
     pub fn register_impl(&mut self, item: &ptr::P<ast::Item>) {
         // FIXME(@jakob): consider generics
         // TODO(@jakob): improve error reporting
@@ -119,22 +145,8 @@ impl TraitRegister {
         }
     }
 
-    // register trait
-    // pulls invariant strings defined on trait declaration
-
-    // register implementation
-    // creates a link between type and trait declaration
-
-    // register trait aliases
-
-    // register type aliases
-
     // register enum declaration
 
     // register derive?
-
-    // poll type
-    // get invariants based on traits for some type
-
 }
 

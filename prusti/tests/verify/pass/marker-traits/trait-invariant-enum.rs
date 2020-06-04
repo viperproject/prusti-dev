@@ -1,5 +1,7 @@
 extern crate prusti_contracts;
 
+// ignore-test Enumeration invariants on top level are not supported by Prusti atm.
+
 #[invariant="match self {
     Self::Val(v) => v > 5,
     Self::Or(o) => o < 5
