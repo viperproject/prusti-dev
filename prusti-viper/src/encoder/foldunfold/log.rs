@@ -53,6 +53,7 @@ impl EventLog {
             id_generator: 0,
         }
     }
+
     pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
         trace!(
             "[enter] log_prejoin_action(block_index={}, action={})",
@@ -66,6 +67,7 @@ impl EventLog {
         entry.push(action);
         trace!("[exit] log_prejoin_action {}", entry.iter().to_string());
     }
+
     pub fn collect_dropped_permissions(
         &self,
         path: &[vir::CfgBlockIndex],
@@ -87,6 +89,7 @@ impl EventLog {
         }
         dropped_permissions
     }
+
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     pub fn log_read_permission_duplication(
         &mut self,
@@ -98,6 +101,7 @@ impl EventLog {
         entry.push((perm, original_place, self.id_generator));
         self.id_generator += 1;
     }
+
     pub fn get_duplicated_read_permissions(
         &self,
         borrow: vir::borrows::Borrow,
@@ -146,6 +150,7 @@ impl EventLog {
             .map(|(access, original_place, _)| (access, original_place))
             .collect()
     }
+
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     pub fn log_convertion_to_read(&mut self, borrow: vir::borrows::Borrow, perm: vir::Expr) {
         assert!(perm.get_perm_amount() == vir::PermAmount::Remaining);
@@ -155,6 +160,7 @@ impl EventLog {
             .or_insert(Vec::new());
         entry.push(perm);
     }
+
     pub fn get_converted_to_read_places(&self, borrow: vir::borrows::Borrow) -> Vec<vir::Expr> {
         if let Some(accesses) = self.converted_to_read_places.get(&borrow) {
             accesses.clone()

@@ -15,10 +15,12 @@ use encoder::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
 use encoder::Encoder;
 use prusti_interface::config;
 use prusti_interface::report;
+use rustc::mir;
 use std;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::mem;
 use utils::to_string::ToString;
+use encoder::vir::borrows::Borrow;
 
 mod action;
 mod borrows;
@@ -69,13 +71,14 @@ pub fn add_folding_unfolding_to_function(
 pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     cfg: vir::CfgMethod,
-    borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
+    borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
+    cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
     method_pos: vir::Position,
 ) -> vir::CfgMethod {
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map();
     let initial_bctxt = BranchCtxt::new(cfg_vars, &predicates);
-    FoldUnfold::new(encoder, initial_bctxt, &cfg, borrow_positions, method_pos).replace_cfg(&cfg)
+    FoldUnfold::new(encoder, initial_bctxt, &cfg, borrow_locations, cfg_map, method_pos).replace_cfg(&cfg)
 }
 
 #[derive(Clone)]
@@ -87,7 +90,8 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     check_foldunfold_state: bool,
     cfg: &'p vir::CfgMethod,
     log: EventLog,
-    borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
+    borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
+    cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
     method_pos: vir::Position,
 }
 
@@ -96,7 +100,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
         initial_bctxt: BranchCtxt<'p>,
         cfg: &'p vir::CfgMethod,
-        borrow_positions: HashMap<vir::borrows::Borrow, vir::CfgBlockIndex>,
+        borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
+        cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
         method_pos: vir::Position,
     ) -> Self {
         FoldUnfold {
@@ -107,7 +112,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             check_foldunfold_state: config::check_foldunfold_state(),
             cfg,
             log: EventLog::new(),
-            borrow_positions,
+            borrow_locations,
+            cfg_map,
             method_pos
         }
     }
@@ -181,6 +187,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    fn get_cfg_block_of_borrow(&self, borrow: &Borrow) -> CfgBlockIndex {
+        let mir_location = self.borrow_locations[borrow];
+        let cfg_blocks = &self.cfg_map[&mir_location.block];
+        assert!(cfg_blocks.len() > 1, "Unsupported creation of borrow in a loop guard");
+        *cfg_blocks.iter().next().unwrap()
+    }
+
     fn process_expire_borrows(
         &mut self,
         dag: &vir::borrows::DAG,
@@ -235,7 +248,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             let mut bctxt = if curr_block.predecessors.is_empty() {
                 let mut bctxt = surrounding_bctxt.clone();
                 let end_block = surrounding_block_index;
-                let start_block = self.borrow_positions[&curr_node.borrow];
+                let start_block = self.get_cfg_block_of_borrow(&curr_node.borrow);
                 if !start_block.weak_eq(&end_block) {
                     let path = new_cfg.find_path(start_block, end_block);
                     debug!(
@@ -263,8 +276,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 for &predecessor in &curr_block.predecessors {
                     let mut bctxt = final_bctxt[predecessor].as_ref().unwrap().clone();
                     let predecessor_node = &cfg.basic_blocks[predecessor].node;
-                    let end_block = self.borrow_positions[&predecessor_node.borrow];
-                    let start_block = self.borrow_positions[&curr_node.borrow];
+                    let end_block = self.get_cfg_block_of_borrow(&predecessor_node.borrow);
+                    let start_block = self.get_cfg_block_of_borrow(&curr_node.borrow);
                     if start_block != end_block {
                         let path = new_cfg.find_path(start_block, end_block);
                         debug!(

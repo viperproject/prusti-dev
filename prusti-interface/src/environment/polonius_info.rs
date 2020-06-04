@@ -1020,7 +1020,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         self.call_loan_at_position.get(&location).cloned()
     }
 
-    pub fn loan_locations(&self) -> Vec<(facts::Loan, mir::Location)> {
+    pub fn loan_locations(&self) -> HashMap<facts::Loan, mir::Location> {
         self.loan_position
             .iter()
             .map(|(loan, location)| (*loan, *location))

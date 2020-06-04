@@ -35,6 +35,7 @@ use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::Procedure;
 use prusti_interface::report::log;
 use prusti_interface::specifications::*;
+use rustc_data_structures::indexed_vec::Idx;
 use rustc::hir::Mutability;
 use rustc::mir;
 use rustc::mir::TerminatorKind;
@@ -384,23 +385,18 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Add fold/unfold
-        unimplemented!();
-        /*
-        let loan_positions = self
-            .polonius_info()
-            .loan_locations()
-            .into_iter()
-            .map(|(loan, mir_location)| {
-                let vir_basic_block = self.mir_to_vir_blocks[&mir_location.block];
-                (loan, vir_basic_block)
-            })
-            .collect();
+        let loan_locations = self.polonius_info().loan_locations();
         let method_pos = self.encoder.error_manager().register(
             self.mir.span,
             ErrorCtxt::Unexpected,
         );
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
-            self.encoder, self.cfg_method, loan_positions, method_pos);
+            self.encoder,
+            self.cfg_method,
+            &loan_locations,
+            &self.cfg_blocks_map,
+            method_pos,
+        );
 
         // Fix variable declarations.
         let mut fixed_method = fix_ghost_vars(method_with_fold_unfold);
@@ -435,7 +431,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         Ok(final_method)
-        */
     }
 
     /// Encodes a topologically ordered group of blocks, and return first CFG block of the encoding.
