@@ -305,10 +305,6 @@ impl CfgMethod {
         (0..self.basic_blocks.len()).map(|i| self.block_index(i)).collect()
     }
 
-    pub fn get_block(&self, index: CfgBlockIndex) -> &CfgBlock {
-        &self.basic_blocks[index.block_index]
-    }
-
     pub fn get_block_label(&self, index: CfgBlockIndex) -> &str {
         &self.basic_blocks_labels[index.block_index]
     }

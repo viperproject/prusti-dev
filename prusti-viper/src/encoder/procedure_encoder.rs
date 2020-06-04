@@ -326,8 +326,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let opt_body_head = self.encode_blocks_group(
             "",
             &self.procedure.get_reachable_nonspec_cfg_blocks(),
-            |_bbi| {
-                unreachable!()
+            |bbi| {
+                trace!("Block {:?} has not been encoded yet", bbi);
+                None
             },
             0,
             return_cfg_block
@@ -1411,6 +1412,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     discr,
                     values
                 );
+
                 let mut cfg_targets: Vec<(vir::Expr, CfgBlockIndex)> = vec![];
 
                 // Use a local variable for the discriminant (see issue #57)
@@ -1468,14 +1470,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let cfg_default_target = if let Some(cfg_target) = get_block(default_target) {
                     cfg_target
                 } else {
-                    // Prepare a block that encodes the unreachable branch
-                    assert!(if let mir::TerminatorKind::Unreachable =
-                        self.mir[default_target].terminator.as_ref().unwrap().kind
-                    {
+                    // Is the target a block that encodes an unreachable block?
+                    let is_unreachable_block = if let mir::TerminatorKind::Unreachable =
+                        self.mir[default_target].terminator.as_ref().unwrap().kind {
                         true
                     } else {
                         false
-                    });
+                    };
+                    // Is the target a block that encodes a specification block?
+                    let is_spec_block = self.procedure.is_spec_block(default_target);
+                    debug_assert!(is_unreachable_block || is_spec_block);
+                    if is_spec_block {
+                        debug_assert!(format!("{:?}", discr) == "const false");
+                        debug_assert!(term.source_info.span.lo().0 == 0);
+                        debug_assert!(term.source_info.span.hi().0 == 0);
+                    };
+
                     let unreachable_label = self.cfg_method.get_fresh_label_name();
                     let unreachable_block = self.cfg_method.add_block(
                         &unreachable_label,
@@ -1485,12 +1495,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 "========== {} ==========",
                                 &unreachable_label
                             )),
-                            vir::Stmt::comment(format!(
-                                "Block marked as 'unreachable' by the compiler"
-                            )),
                         ],
                     );
-                    // Asserting `false` here does not work. See issue #158
+                    if is_unreachable_block {
+                        self.cfg_method.add_stmt(
+                            unreachable_block,
+                            vir::Stmt::comment("Block marked as 'unreachable' by the compiler")
+                        );
+                    }
+                    if is_spec_block {
+                        self.cfg_method.add_stmt(
+                            unreachable_block,
+                            vir::Stmt::comment("Block used to type-check a loop invariant")
+                        );
+                    }
+                    // Asserting `false` here does not work because of never types.
+                    // See GitLab issue #158.
                     //if config::check_unreachable_terminators() {
                     //    let pos = self.encoder.error_manager().register(
                     //        term.source_info.span,
