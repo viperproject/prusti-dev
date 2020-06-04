@@ -4,8 +4,6 @@ extern crate error_chain;
 extern crate lazy_static;
 extern crate viper;
 
-use std::thread;
-use std::thread::JoinHandle;
 use viper::*;
 
 lazy_static! {

@@ -1994,7 +1994,7 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                     if !new_spec_items.is_empty() {
                         new_items.push(ptr::P(ast::Item {
                             node: ast::ItemKind::Impl(
-                                unsafety,
+                                ast::Unsafety::Normal,
                                 polarity,
                                 defaultness,
                                 generics.clone(),

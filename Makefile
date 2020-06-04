@@ -34,16 +34,16 @@ build:
 release:
 	$(SET_ENV_VARS) cargo build --release --all
 
-test-deep:
+test-deep: clean-nested
 	$(SET_ENV_VARS) \
 	PRUSTI_CHECK_FOLDUNFOLD_STATE=1 \
 	cargo test --all
 
-test: build
+test: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test --all
 
-test-examples: build
+test-examples: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test -p prusti
 
@@ -130,13 +130,18 @@ build-docker-images:
 	docker build -t rust-nightly -f docker/playground.Dockerfile .
 	docker build -t fpoli/prusti-artefact -f docker/artefact.Dockerfile .
 
-clean:
+clean: clean-nested
 	cargo clean
 	find . -name '*.bk' -delete
 	rm -rf log
 	rm -rf nll-facts
 	rm -rf prusti/log
 	rm -rf prusti/nll-facts
+
+.PHONY: clean-nested
+clean-nested:
+	rm -rf prusti/tests/**/log/
+	rm -rf prusti/tests/**/nll-facts/
 
 todo:
 	git grep -i "todo\|fixme\|xxx\|hack"
