@@ -594,9 +594,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("after_guard_block: {:?}", after_guard_block);
         trace!("after_inv_block: {:?}", after_inv_block);
         assert!(
-            !loop_info.is_conditional_branch(loop_head, after_inv_block),
-            "The loop invariant at {:?} cannot be in a conditional branch",
-            after_inv_block
+            !loop_info.is_conditional_branch(loop_head, before_invariant_block),
+            "The loop invariant cannot be in a conditional branch (before_invariant_block: {:?})",
+            before_invariant_block
         );
 
         // Split the blocks such that:
