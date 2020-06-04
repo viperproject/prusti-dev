@@ -364,7 +364,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             }
         };
         let tymap = self.typaram_repl.borrow_mut();
-        assert!(tymap.len() == 1);
+        assert!(tymap.len() == 1, "tymap.len() = {}, but should be 1", tymap.len());
         let contract =
             compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, Some(&tymap[0]));
         contract.to_call_site_contract(args, target)

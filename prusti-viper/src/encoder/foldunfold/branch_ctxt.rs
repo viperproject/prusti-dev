@@ -512,7 +512,12 @@ impl<'a> BranchCtxt<'a> {
                 perm_amount,
                 req.get_perm_amount()
             );
-            assert!(perm_amount >= req.get_perm_amount());
+            assert!(
+                perm_amount >= req.get_perm_amount(),
+                "perm_amount is {}, but it should be >= {}",
+                perm_amount,
+                req.get_perm_amount(),
+            );
             let variant = self.find_variant(&existing_pred_to_unfold, req.get_place());
             let action = self.unfold(&existing_pred_to_unfold, perm_amount, variant);
             actions.push(action);

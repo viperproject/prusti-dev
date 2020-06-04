@@ -334,8 +334,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             return_cfg_block
         );
 
-        // Add a CFG block on some CFG edges, to leave space to insert fold/unfold statements
-        self.add_cfg_blocks_on_edges();
+        // Encode CFG edges
+        self.encode_cfg_block_edges();
 
         // Set the first CFG block
         self.cfg_method.set_successor(
@@ -793,7 +793,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             term,
             location,
             return_block,
-            get_block,
+            &get_block,
         );
         self.cfg_method.add_stmts(curr_block, stmts);
         self.cfg_method.set_successor(curr_block, successor);
@@ -1369,18 +1369,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
     }
 
-    fn encode_terminator<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+    fn encode_terminator(
         &mut self,
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
         return_block: vir::CfgBlockIndex,
-        get_block: F,
+        get_block: &Fn(BasicBlockIndex) -> Option<CfgBlockIndex>,
     ) -> (Vec<vir::Stmt>, Successor) {
         debug!(
             "Encode terminator '{:?}', span: {:?}",
             term.kind, term.source_info.span
         );
         let mut stmts: Vec<vir::Stmt> = vec![];
+        let curr_block = location.block;
 
         match term.kind {
             TerminatorKind::Return => {
@@ -1395,7 +1396,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             TerminatorKind::Goto { target } => {
-                let target_cfg_block = get_block(target).unwrap();
+                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
                 (stmts, Successor::Goto(target_cfg_block))
             }
 
@@ -1462,12 +1463,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         ref x => unreachable!("{:?}", x),
                     };
-                    let target_cfg_block = get_block(target).unwrap();
+                    let target_cfg_block = self.encode_edge(curr_block, target, get_block);
                     cfg_targets.push((viper_guard, target_cfg_block))
                 }
                 let default_target = targets[values.len()];
                 let cfg_default_target = if let Some(cfg_target) = get_block(default_target) {
-                    cfg_target
+                    self.encode_edge(curr_block, default_target, get_block)
                 } else {
                     // Is the target a block that encodes an unreachable block?
                     let is_unreachable_block = if let mir::TerminatorKind::Unreachable =
@@ -1553,21 +1554,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             TerminatorKind::Drop { target, .. } => {
-                let target_cfg_block = get_block(target).unwrap();
+                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
                 (stmts, Successor::Goto(target_cfg_block))
             }
 
             TerminatorKind::FalseEdges {
                 real_target, ..
             } => {
-                let target_cfg_block = get_block(real_target).unwrap();
+                let target_cfg_block = self.encode_edge(curr_block, real_target, get_block);
                 (stmts, Successor::Goto(target_cfg_block))
             }
 
             TerminatorKind::FalseUnwind {
                 real_target, ..
             } => {
-                let target_cfg_block = get_block(real_target).unwrap();
+                let target_cfg_block = self.encode_edge(curr_block, real_target, get_block);
                 (stmts, Successor::Goto(target_cfg_block))
             }
 
@@ -1579,7 +1580,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             } => {
                 let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs);
                 stmts.extend(self.encode_assign_operand(&encoded_lhs, value, location));
-                let target_cfg_block = get_block(target).unwrap();
+                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
                 (stmts, Successor::Goto(target_cfg_block))
             }
 
@@ -1899,7 +1900,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 if let &Some((_, target)) = destination {
-                    let target_cfg_block = get_block(target).unwrap();
+                    let target_cfg_block = self.encode_edge(curr_block, target, get_block);
                     (stmts, Successor::Goto(target_cfg_block))
                 } else {
                     // Encode unreachability
@@ -1937,7 +1938,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else {
                     vir::Expr::not(cond_var.into())
                 };
-                let target_cfg_block = get_block(target).unwrap();
+                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
 
                 // Prepare a block that encodes the branch of the failure
                 let failure_label = self.cfg_method.get_fresh_label_name();
@@ -1977,6 +1978,46 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             | TerminatorKind::Yield { .. }
             | TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
         }
+    }
+
+    // Encode an edge of the MIR graph
+    fn encode_edge<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+        &mut self,
+        source: BasicBlockIndex,
+        destination: BasicBlockIndex,
+        get_block: F
+    ) -> CfgBlockIndex {
+        let source_loc = mir::Location {
+            block: source,
+            statement_index: self.mir[source].statements.len(),
+        };
+        let destination_loc = mir::Location {
+            block: destination,
+            statement_index: 0,
+        };
+        let stmts = self.encode_expiring_borrows_between(source_loc, destination_loc);
+        let mut dst_block = get_block(destination).unwrap();
+
+        if !stmts.is_empty() {
+            let edge_label = self.cfg_method.get_fresh_label_name();
+            let edge_block = self.cfg_method.add_block(
+                &edge_label,
+                vec![],
+                vec![
+                    vir::Stmt::comment(
+                        format!("========== {} ==========", edge_label)
+                    ),
+                    vir::Stmt::comment(
+                        format!("Expire borrows on the {:?} --> {:?} edge", source, destination)
+                    ),
+                ],
+            );
+            self.cfg_method.add_stmts(edge_block, stmts);
+            self.cfg_method.set_successor(edge_block, Successor::Goto(dst_block));
+            dst_block = edge_block;
+        }
+
+        dst_block
     }
 
     fn encode_nonpure_function_call(
@@ -4364,8 +4405,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    /// Add a CFG block on some CFG edges, to leave space to insert fold/unfold statements
-    fn add_cfg_blocks_on_edges(&mut self) {
+    /// Add a CFG block on some CFG edges, to expire borrows and to leave space to insert
+    /// fold/unfold statements
+    fn encode_cfg_block_edges(&mut self) {
         for curr_block in self.cfg_method.get_indices() {
             let curr_label = self.cfg_method.get_block_label(curr_block).to_string();
             let successors = self.cfg_method.get_successor(curr_block).get_following();
@@ -4373,13 +4415,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let mut curr_succ = self.cfg_method.get_successor(curr_block).clone();
                 for succ_block in successors {
                     let succ_label = self.cfg_method.get_block_label(succ_block).to_string();
+                    let edge_label = self.cfg_method.get_fresh_label_name();
                     let edge_block = self.cfg_method.add_block(
-                        &format!("{}_to_{}", curr_label, succ_label),
+                        &edge_label,
                         vec![],
                         vec![
                             vir::Stmt::comment(
-                                format!("========== {} --> {} ==========", curr_label, succ_label)
-                            )
+                                format!("========== {} ==========", edge_label)
+                            ),
+                            vir::Stmt::comment(
+                                format!("Edge {} --> {}", succ_label, edge_label)
+                            ),
                         ],
                     );
                     self.cfg_method.set_successor(edge_block, Successor::Goto(succ_block));
