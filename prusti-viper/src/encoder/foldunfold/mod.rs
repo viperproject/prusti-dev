@@ -190,7 +190,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     fn get_cfg_block_of_borrow(&self, borrow: &Borrow) -> CfgBlockIndex {
         let mir_location = self.borrow_locations[borrow];
         let cfg_blocks = &self.cfg_map[&mir_location.block];
-        assert!(cfg_blocks.len() > 1, "Unsupported creation of borrow in a loop guard");
+        assert!(
+            cfg_blocks.len() <= 1,
+            "Unsupported creation of borrow in a loop guard (borrow: {:?}, cfg_blocks: {:?})",
+            borrow,
+            cfg_blocks,
+        );
         *cfg_blocks.iter().next().unwrap()
     }
 
