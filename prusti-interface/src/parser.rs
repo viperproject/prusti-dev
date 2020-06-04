@@ -167,6 +167,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::io::Write;
 use std::mem;
+use std::sync::{Arc,Mutex};
 use syntax::codemap::respan;
 use syntax::codemap::Span;
 use syntax::ext::build::AstBuilder;
@@ -177,9 +178,19 @@ use syntax::{self, ast, parse, ptr};
 use syntax_pos::DUMMY_SP;
 use syntax_pos::{BytePos, FileName, SyntaxContext};
 
+use trait_register::TraitRegister;
+
+pub fn register_traits(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) {
+    trace!("[register_traits] enter");
+    let krate = state.krate.take().unwrap();
+    let mut parser = TraitParser::new(register);
+    let _krate = parser.fold_crate(krate);
+    trace!("[register_traits] exit");
+}
+
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
-pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMap {
+pub fn rewrite_crate(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) -> UntypedSpecificationMap {
     trace!("[rewrite_crate] enter");
     let krate = state.krate.take().unwrap();
     let source_path = match driver::source_name(state.input) {
@@ -187,7 +198,7 @@ pub fn rewrite_crate(state: &mut driver::CompileState) -> UntypedSpecificationMa
         _ => unreachable!(),
     };
     let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-    let mut parser = SpecParser::new(state.session, &source_filename);
+    let mut parser = SpecParser::new(state.session, &source_filename, register);
     let krate = parser.fold_crate(krate);
     log_crate(&krate, &source_filename);
     state.krate = Some(krate);
@@ -234,6 +245,52 @@ fn log_crate(krate: &ast::Crate, source_filename: &str) {
     writer.flush().ok().unwrap();
 }
 
+pub struct TraitParser {
+    register: Arc<Mutex<TraitRegister>>,
+}
+
+impl TraitParser {
+    pub fn new(register: Arc<Mutex<TraitRegister>>) -> Self {
+        Self { register: register }
+    }
+}
+
+impl Folder for TraitParser {
+    fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
+        trace!("[fold_item] enter");
+        let result = fold::noop_fold_item(item, self)
+            .into_iter()
+            .map(|item| {
+                match item.node.clone() {
+                    // Structs
+                    ast::ItemKind::Struct(..) => {
+                        let reg = self.register.lock().unwrap();
+                        reg.register_struct(&item);
+                    }
+                    // Impl block
+                    ast::ItemKind::Impl(..) => {
+                        let reg = self.register.lock().unwrap();
+                        reg.register_impl(&item);
+                    },
+                    // Methods in trait definition
+                    ast::ItemKind::Trait(..) => {
+                        let reg = self.register.lock().unwrap();
+                        reg.register_trait_decl(&item);
+                    },
+                    // Any other item
+                    _ => (),
+                };
+                item
+            }).collect();
+        trace!("[fold_item] exit");
+        result
+    }
+
+    fn fold_mac(&mut self, mac: ast::Mac) -> ast::Mac {
+        mac
+    }
+}
+
 /// A data structure that extracts preconditions, postconditions,
 /// and loop invariants. It also rewrites the AST for type-checking.
 /// Each original assertion gets a unique `SpecID` and expression – a
@@ -241,6 +298,7 @@ fn log_crate(krate: &ast::Crate, source_filename: &str) {
 /// locations.
 pub struct SpecParser<'tcx> {
     session: &'tcx Session,
+    register: Arc<Mutex<TraitRegister>>,
     ast_builder: MinimalAstBuilder<'tcx>,
     last_specification_id: SpecID,
     last_expression_id: ExpressionId,
@@ -250,9 +308,10 @@ pub struct SpecParser<'tcx> {
 
 impl<'tcx> SpecParser<'tcx> {
     /// Create new spec parser.
-    pub fn new(session: &'tcx Session, source_filename: &str) -> SpecParser<'tcx> {
+    pub fn new(session: &'tcx Session, source_filename: &str, register: Arc<Mutex<TraitRegister>>) -> SpecParser<'tcx> {
         SpecParser {
             session: session,
+            register: register,
             ast_builder: MinimalAstBuilder::new(&session.parse_sess),
             last_specification_id: SpecID::new(),
             last_expression_id: ExpressionId::new(),
