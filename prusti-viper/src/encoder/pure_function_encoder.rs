@@ -24,6 +24,11 @@ use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
 use std::collections::HashMap;
+use syntax::codemap::Span;
+
+pub enum PureFunctionEncodingError {
+    CallImpure(String, Span)
+}
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -575,7 +580,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     }),
                 ..
             } => {
-                let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                let full_func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                 let own_substs =
                     ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
@@ -608,7 +614,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                         .map(|arg| self.mir_encoder.encode_operand_expr(arg))
                         .collect();
 
-                    match func_proc_name {
+                    match full_func_proc_name {
                         "prusti_contracts::internal::old" => {
                             trace!("Encoding old expression {:?}", args[0]);
                             assert_eq!(args.len(), 1);
@@ -631,12 +637,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             state
                         }
 
-                        // generic function call
+                        // simple function call
                         _ => {
-                            let (function_name, return_type) = self
-                                .encoder
-                                .encode_pure_function_use(term.source_info.span, def_id);
-                            trace!("Encoding pure function call '{}'", function_name);
+                            let is_pure_function =
+                                self.encoder.env().has_attribute_name(def_id, "pure");
+
+                            let (function_name, return_type) = if is_pure_function {
+                                self.encoder.encode_pure_function_use(def_id)
+                            } else {
+                                self.encoder.encode_stub_pure_function_use(def_id)
+                            };
+                            if is_pure_function {
+                                trace!("Encoding pure function call '{}'", function_name);
+                            } else {
+                                trace!("Encoding stub pure function call '{}'", function_name);
+                                self.encoder.register_encoding_error(PureFunctionEncodingError::CallImpure(
+                                    format!("use of impure function {:?} in assertion", func_proc_name),
+                                    term.source_info.span,
+                                ));
+                            }
 
                             let formal_args: Vec<vir::LocalVar> = args
                                 .iter()
@@ -649,10 +668,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 })
                                 .collect();
 
+                            let err_ctxt = if is_pure_function {
+                                ErrorCtxt::PureFunctionCall
+                            } else {
+                                ErrorCtxt::StubPureFunctionCall
+                            };
                             let pos = self
                                 .encoder
                                 .error_manager()
-                                .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
+                                .register(term.source_info.span, err_ctxt);
                             let encoded_rhs = vir::Expr::func_app(
                                 function_name,
                                 encoded_args,
@@ -668,7 +692,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     }
                 } else {
                     // Encoding of a non-terminating function call
-                    let error_ctxt = match func_proc_name {
+                    let error_ctxt = match full_func_proc_name {
                         "std::rt::begin_panic" | "std::panicking::begin_panic" => {
                             // This is called when a Rust assertion fails
                             // args[0]: message

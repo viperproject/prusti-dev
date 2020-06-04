@@ -11,7 +11,6 @@
 #![feature(slice_sort_by_cached_key)]
 
 #![deny(unreachable_patterns)]
-#![cfg_attr(debug_assertions, deny(dead_code))]
 #![deny(unused_mut)]
 #![deny(unused_variables)]
 #![deny(unused_imports)]
@@ -33,6 +32,8 @@ extern crate uuid;
 extern crate viper;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate derive_more;
 
 #[cfg(debug_assertions)]
 #[macro_use]

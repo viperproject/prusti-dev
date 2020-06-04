@@ -625,13 +625,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
         let bb_data = &self.mir.basic_blocks()[bbi];
-        if bb_data.statements.is_empty() {
-            bb_data.terminator.as_ref().unwrap().source_info.span
-        } else {
-            bb_data.statements[bb_data.statements.len() - 1]
-                .source_info
-                .span
-        }
+        bb_data.terminator.as_ref().unwrap().source_info.span
     }
 
     pub fn encode_expr_pos(&self, span: Span) -> vir::Position {

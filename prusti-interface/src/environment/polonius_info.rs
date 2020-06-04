@@ -327,6 +327,14 @@ impl ReborrowingDAG {
     }
 }
 
+pub enum PoloniusInfoError {
+    /// Loans depending on branches inside loops are not implemented yet
+    UnsupportedLoanInLoop {
+        loop_head: mir::BasicBlock,
+        variable: mir::Local,
+    }
+}
+
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) mir: &'a mir::Mir<'tcx>,
     pub(crate) borrowck_in_facts: facts::AllInputFacts,
@@ -353,7 +361,7 @@ pub struct PoloniusInfo<'a, 'tcx: 'a> {
     pub(crate) additional_facts_no_back: AdditionalFacts,
     /// Two loans are conflicting if they borrow overlapping places and
     /// are alive at overlapping regions.
-    pub(crate) loan_conflict_sets: HashMap<facts::Loan, HashSet<facts::Loan>>,
+    pub(crate) loan_conflict_sets: HashMap<facts::Loan, HashSet<facts::Loan>>
 }
 
 /// Returns moves and argument moves that were turned into fake reborrows.
@@ -450,7 +458,7 @@ fn add_fake_facts<'a, 'tcx: 'a>(
 fn remove_back_edges(
     mut all_facts: facts::AllInputFacts,
     interner: &facts::Interner,
-    back_edges: &[(mir::BasicBlock, mir::BasicBlock)],
+    back_edges: &HashSet<(mir::BasicBlock, mir::BasicBlock)>,
 ) -> facts::AllInputFacts {
     let cfg_edge = all_facts.cfg_edge;
     let cfg_edge = cfg_edge
@@ -565,7 +573,7 @@ fn compute_loan_conflict_sets(
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
-    pub fn new(procedure: &'a Procedure<'a, 'tcx>) -> Self {
+    pub fn new(procedure: &'a Procedure<'a, 'tcx>) -> Result<Self, PoloniusInfoError> {
         let tcx = procedure.get_tcx();
         let def_id = procedure.get_id();
         let mir = procedure.get_mir();
@@ -661,11 +669,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             liveness: liveness,
             loan_conflict_sets: loan_conflict_sets,
         };
-        info.compute_loop_magic_wands();
-        info
+        info.compute_loop_magic_wands()?;
+        Ok(info)
     }
 
-    fn compute_loop_magic_wands(&mut self) {
+    fn compute_loop_magic_wands(&mut self) -> Result<(), PoloniusInfoError> {
         trace!("[enter] compute_loop_magic_wands");
         let loop_heads = self.loops.loop_heads.clone();
         for &loop_head in loop_heads.iter() {
@@ -701,10 +709,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             debug!("reborrows = {:?}", reborrows);
             for &(local, _) in reborrows.iter() {
                 debug!("loop_head = {:?} reborrow={:?}", loop_head, local);
-                self.add_loop_magic_wand(loop_head, local);
+                self.add_loop_magic_wand(loop_head, local)?;
             }
         }
         trace!("[exit] compute_loop_magic_wands");
+        Ok(())
     }
 
     pub fn get_point(
@@ -1562,20 +1571,23 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         }
     }
 
-    fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock, local: mir::Local) {
+    fn add_loop_magic_wand(&mut self, loop_head: mir::BasicBlock, local: mir::Local) -> Result<(), PoloniusInfoError> {
         let region = self.variable_regions[&local];
         let magic_wand = LoopMagicWand {
             loop_id: loop_head,
             variable: local,
             region: region,
-            root_loan: self.compute_root_loan(loop_head, local),
+            root_loan: self.compute_root_loan(loop_head, local)?,
         };
         let entry = self.loop_magic_wands.entry(loop_head).or_insert(Vec::new());
         entry.push(magic_wand);
+        Ok(())
     }
 
     /// Find the root loan for a specific magic wand.
-    fn compute_root_loan(&self, loop_head: mir::BasicBlock, variable: mir::Local) -> facts::Loan {
+    fn compute_root_loan(
+        &mut self, loop_head: mir::BasicBlock, variable: mir::Local
+    ) -> Result<facts::Loan, PoloniusInfoError> {
         let liveness = self.liveness.get_before_block(loop_head);
         let mut root_loans = Vec::new();
         let loop_loans = self.compute_loop_loans(loop_head, variable);
@@ -1589,12 +1601,14 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 }
             }
         }
-        assert_eq!(
-            root_loans.len(),
-            1,
-            "Loans depending on branches inside loops are not implemented yet"
-        );
-        root_loans[0]
+        if root_loans.len() != 1 {
+            Err(PoloniusInfoError::UnsupportedLoanInLoop {
+                loop_head,
+                variable
+            })
+        } else {
+            Ok(root_loans[0])
+        }
     }
 
     /// Find loans created in the loop that are kept alive by the given variable.
