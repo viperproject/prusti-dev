@@ -6,8 +6,8 @@
 
 use encoder::vir::ast::*;
 use encoder::vir::cfg::method::*;
-use std::fmt::Debug;
 use utils::to_string::ToString;
+use std::fmt::Debug;
 
 pub trait CheckNoOpAction {
     /// Is the action a no operation?
@@ -18,7 +18,10 @@ pub trait CheckNoOpAction {
 /// During the visit, statements can be modified and injected.
 /// However, the structure of the CFG can not change.
 /// For each branch a context is updated, duplicated at forks, and merged with other contexts at joins.
-pub trait CfgReplacer<BranchCtxt: Debug + Clone, Action: CheckNoOpAction + Debug> {
+pub trait CfgReplacer<
+    BranchCtxt: Debug + Clone,
+    Action: CheckNoOpAction + Debug
+> {
     /*
     /// Define `lub` by using the definition of `join`
     fn contained_in(&mut self, left: &BranchCtxt, right: &BranchCtxt) -> bool {
@@ -284,7 +287,6 @@ pub trait SuccessorFolder {
         match s {
             Successor::Undefined => self.fold_undefined(),
             Successor::Return => self.fold_return(),
-            Successor::BackEdge(target) => self.fold_backedge(target),
             Successor::Goto(target) => self.fold_goto(target),
             Successor::GotoSwitch(guarded_targets, default_target) => {
                 self.fold_goto_switch(guarded_targets, default_target)
@@ -308,10 +310,6 @@ pub trait SuccessorFolder {
         Successor::Undefined
     }
 
-    fn fold_backedge(&mut self, target: CfgBlockIndex) -> Successor {
-        Successor::Goto(self.fold_target(target))
-    }
-
     fn fold_goto(&mut self, target: CfgBlockIndex) -> Successor {
         Successor::Goto(self.fold_target(target))
     }
@@ -332,10 +330,7 @@ pub trait SuccessorFolder {
 }
 
 impl CfgMethod {
-    pub fn walk_statements<F>(&self, mut walker: F)
-    where
-        F: FnMut(&Stmt),
-    {
+    pub fn walk_statements<F: FnMut(&Stmt)>(&self, mut walker: F) {
         for block in self.basic_blocks.iter() {
             for stmt in block.stmts.iter() {
                 walker(stmt);
@@ -343,20 +338,14 @@ impl CfgMethod {
         }
     }
 
-    pub fn walk_successors<F>(&self, mut walker: F)
-    where
-        F: FnMut(&Successor),
-    {
+    pub fn walk_successors<F: FnMut(&Successor)>(&self, mut walker: F) {
         for block in self.basic_blocks.iter() {
             walker(&block.successor);
         }
     }
 
     /// Remove all statements `s` such that `f(&s)` returns `false`
-    pub fn retain_stmts<F>(&mut self, f: F)
-    where
-        F: Fn(&Stmt) -> bool,
-    {
+    pub fn retain_stmts<F: Fn(&Stmt) -> bool>(&mut self, f: F) {
         for block in &mut self.basic_blocks {
             block.stmts.retain(|stmt| f(stmt))
         }

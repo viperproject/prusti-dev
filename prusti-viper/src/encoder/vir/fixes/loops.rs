@@ -24,13 +24,15 @@ pub fn havoc_assigned_locals(
     havoc_methods: &HashMap<ast::TypeId, String>,
 ) {
     trace!("[enter] havoc_assigned_locals({})", method.name());
-    let predecessors = method.predecessors();
-    let mut loop_vars = Vec::new();
-    for (index, block) in method.basic_blocks.iter().enumerate() {
+    let _predecessors = method.predecessors();
+    let loop_vars = Vec::new();
+    for (_index, _block) in method.basic_blocks.iter().enumerate() {
+        /*
         if let cfg::Successor::BackEdge(target) = block.successor {
             let vars = collect_assigned_vars(method, index, target.block_index, &predecessors);
             loop_vars.push((target.block_index, vars));
         }
+        */
     }
     for (loop_head, vars) in loop_vars {
         add_havoc_stmts(method, loop_head, vars, havoc_methods);
@@ -63,7 +65,10 @@ fn collect_assigned_vars(
     result
 }
 
-fn check_block(vars: &mut Vec<ast::LocalVar>, block: &cfg::CfgBlock) {
+fn check_block(
+    vars: &mut Vec<ast::LocalVar>,
+    block: &cfg::CfgBlock
+) {
     for stmt in &block.stmts {
         match stmt {
             ast::Stmt::MethodCall(_, _, targets) => {

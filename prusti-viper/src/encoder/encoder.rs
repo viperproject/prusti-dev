@@ -159,6 +159,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     fn initialize(&mut self) {
         self.collect_closure_instantiations();
+        // These are used in optimization passes
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocRef);
     }
 
     pub fn env(&self) -> &'v Environment<'r, 'a, 'tcx> {
@@ -719,21 +723,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir::Type::Bool,
             position,
         )
-    }
-
-    pub fn encode_havoc_methods(&self) -> HashMap<vir::TypeId, String> {
-        lazy_static! {
-            static ref TYPES: Vec<(vir::TypeId, BuiltinMethodKind)> = vec![
-                (vir::TypeId::Bool, BuiltinMethodKind::HavocBool),
-                (vir::TypeId::Int, BuiltinMethodKind::HavocInt),
-                (vir::TypeId::Ref, BuiltinMethodKind::HavocRef),
-            ];
-        }
-        TYPES.iter()
-            .map(|(type_id, kind)| {
-                (*type_id, self.encode_builtin_method_use(*kind))
-            })
-            .collect()
     }
 
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {

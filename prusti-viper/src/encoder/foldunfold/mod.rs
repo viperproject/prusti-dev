@@ -603,9 +603,9 @@ impl CheckNoOpAction for Vec<Action> {
     }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<Action>>
-    for FoldUnfold<'p, 'v, 'r, 'a, 'tcx>
-{
+impl<
+    'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a
+> vir::CfgReplacer<BranchCtxt<'p>, Vec<Action>> for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     /// Dump the current CFG, for debugging purposes
     fn current_cfg(&self, new_cfg: &vir::CfgMethod) {
         if self.dump_debug_info {
@@ -1064,7 +1064,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<BranchCtxt<'p>, Vec<
         let new_succ = match succ {
             vir::Successor::Undefined => vir::Successor::Undefined,
             vir::Successor::Return => vir::Successor::Return,
-            vir::Successor::BackEdge(target) => vir::Successor::BackEdge(*target),
             vir::Successor::Goto(target) => vir::Successor::Goto(*target),
             vir::Successor::GotoSwitch(guarded_targets, default_target) => {
                 vir::Successor::GotoSwitch(

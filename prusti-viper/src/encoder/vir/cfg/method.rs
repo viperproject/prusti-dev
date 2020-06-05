@@ -39,8 +39,6 @@ pub struct CfgBlock {
 pub enum Successor {
     Undefined,
     Return,
-    /// A loop back-edge.
-    BackEdge(CfgBlockIndex),
     Goto(CfgBlockIndex),
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
@@ -66,13 +64,12 @@ impl Successor {
     }
 
     pub fn get_following(&self) -> Vec<CfgBlockIndex> {
-        match self {
-            &Successor::Undefined | &Successor::Return => vec![],
-            &Successor::BackEdge(target) => vec![target],
-            &Successor::Goto(target) => vec![target],
-            &Successor::GotoSwitch(ref guarded_targets, default_target) => {
+        match &self {
+            Successor::Undefined | Successor::Return => vec![],
+            Successor::Goto(target) => vec![*target],
+            Successor::GotoSwitch(guarded_targets, default_target) => {
                 let mut res: Vec<CfgBlockIndex> = guarded_targets.iter().map(|g| g.1).collect();
-                res.push(default_target);
+                res.push(*default_target);
                 res
             }
         }
@@ -261,6 +258,7 @@ impl CfgMethod {
         self.block_index(index)
     }
 
+    #[allow(dead_code)]
     pub fn get_successor(&mut self, index: CfgBlockIndex) -> &Successor {
         assert_eq!(
             self.uuid, index.method_uuid,
@@ -269,6 +267,7 @@ impl CfgMethod {
         &self.basic_blocks[index.block_index].successor
     }
 
+    #[allow(dead_code)]
     pub fn set_successor(&mut self, index: CfgBlockIndex, successor: Successor) {
         assert_eq!(
             self.uuid, index.method_uuid,
@@ -290,6 +289,7 @@ impl CfgMethod {
             .collect()
     }
 
+    #[allow(dead_code)]
     pub fn predecessors(&self) -> HashMap<usize, Vec<usize>> {
         let mut result = HashMap::new();
         for (index, block) in self.basic_blocks.iter().enumerate() {
@@ -301,10 +301,12 @@ impl CfgMethod {
         result
     }
 
+    #[allow(dead_code)]
     pub fn get_indices(&self) -> Vec<CfgBlockIndex> {
         (0..self.basic_blocks.len()).map(|i| self.block_index(i)).collect()
     }
 
+    #[allow(dead_code)]
     pub fn get_block_label(&self, index: CfgBlockIndex) -> &str {
         &self.basic_blocks_labels[index.block_index]
     }

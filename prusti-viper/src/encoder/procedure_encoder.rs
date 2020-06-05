@@ -15,7 +15,7 @@ use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 use encoder::optimiser;
 use encoder::places::{Local, LocalVariableManager, Place};
-use encoder::vir::fixes::{fix_ghost_vars, havoc_assigned_locals};
+use encoder::vir::fixes::fix_ghost_vars;
 use encoder::vir::optimisations::methods::{
     remove_trivial_assertions, remove_unused_vars, remove_empty_if
 };
@@ -47,6 +47,52 @@ use std::collections::HashSet;
 use syntax::attr::SignedInt;
 use syntax::codemap::{Span, MultiSpan};
 use utils::to_string::ToString;
+
+#[derive(Eq, PartialEq, Clone, Debug)]
+enum MirSuccessor {
+    /// A return statements
+    Return,
+    /// A dead path (after an `assert false` or `assume false`)
+    Kill,
+    Goto(BasicBlockIndex),
+    GotoSwitch(Vec<(vir::Expr, BasicBlockIndex)>, BasicBlockIndex),
+}
+
+impl MirSuccessor {
+    fn targets(&self) -> Vec<BasicBlockIndex> {
+        match self {
+            MirSuccessor::Return | MirSuccessor::Kill => vec![],
+            MirSuccessor::Goto(target) => vec![*target],
+            MirSuccessor::GotoSwitch(guarded_targets, default) => {
+                let mut targets = vec![*default];
+                for (_, target) in guarded_targets {
+                    targets.push(*target);
+                }
+                targets
+            },
+        }
+    }
+
+    fn encode<F: FnMut(BasicBlockIndex) -> CfgBlockIndex>(
+        self,
+        return_block: CfgBlockIndex,
+        mut resolve_target: F
+    ) -> Successor {
+        match self {
+            MirSuccessor::Return => Successor::Goto(return_block),
+            MirSuccessor::Kill => Successor::Return,
+            MirSuccessor::Goto(bbi) => Successor::Goto(resolve_target(bbi)),
+            MirSuccessor::GotoSwitch(mut conditional_targets, default_bbi) => {
+                Successor::GotoSwitch(
+                    conditional_targets.drain(..)
+                        .map(|(guard, bbi)| (guard, resolve_target(bbi)))
+                        .collect(),
+                    resolve_target(default_bbi)
+                )
+            },
+        }
+    }
+}
 
 pub enum ProcedureEncodingError {
     UnsupportedLoanInLoop(String, Span)
@@ -323,19 +369,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Encode all blocks
-        let opt_body_head = self.encode_blocks_group(
+        let (opt_body_head, unresolved_edges) = self.encode_blocks_group(
             "",
             &self.procedure.get_reachable_nonspec_cfg_blocks(),
-            |bbi| {
-                trace!("Block {:?} has not been encoded yet", bbi);
-                None
-            },
             0,
             return_cfg_block
         );
-
-        // Encode CFG edges
-        self.encode_cfg_block_edges();
+        if !unresolved_edges.is_empty() {
+            error!("There are unresolved CFG edges in the encoding: {:?}", unresolved_edges);
+            debug_assert!(false);
+        }
 
         // Set the first CFG block
         self.cfg_method.set_successor(
@@ -400,12 +443,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
 
         // Fix variable declarations.
-        let mut fixed_method = fix_ghost_vars(method_with_fold_unfold);
-
-        let havoc_methods = self.encoder.encode_havoc_methods();
-        if config::use_assume_false_back_edges() {
-            havoc_assigned_locals(&mut fixed_method, &havoc_methods);
-        }
+        let fixed_method = fix_ghost_vars(method_with_fold_unfold);
 
         // Do some optimizations
         let final_method = if config::simplify_encoding() {
@@ -434,30 +472,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         Ok(final_method)
     }
 
-    /// Encodes a topologically ordered group of blocks, and return first CFG block of the encoding.
-    fn encode_blocks_group<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+    /// Encodes a topologically ordered group of blocks.
+    ///
+    /// Returns:
+    /// * The first CFG block of the encoding.
+    /// * A vector of unresolved edges.
+    fn encode_blocks_group(
         &mut self,
         label_prefix: &str,
         ordered_group_blocks: &[BasicBlockIndex],
-        get_block: F,
         group_loop_depth: usize,
         return_block: CfgBlockIndex,
-    ) -> Option<CfgBlockIndex> {
-        let mut group_head = None;
-        let mut bb_map: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
-        for &curr_bb in ordered_group_blocks.iter().rev() {
+    ) -> (Option<CfgBlockIndex>, Vec<(CfgBlockIndex, BasicBlockIndex)>) {
+        // Encode the CFG blocks
+        let mut bb_map: HashMap<_, _> = HashMap::new();
+        let mut unresolved_edges: Vec<_> = vec![];
+        for &curr_bb in ordered_group_blocks.iter() {
             let loop_info = self.loop_encoder.loops();
-            let get_block = |bb| {
-                bb_map.get(&bb).cloned().or_else(|| get_block(bb))
-            };
             let curr_loop_depth = loop_info.get_loop_depth(curr_bb);
-            let block = if curr_loop_depth == group_loop_depth {
+            let (curr_block, curr_edges) = if curr_loop_depth == group_loop_depth {
                 // This block is not in a nested loop
                 self.encode_block(
                     label_prefix,
                     curr_bb,
-                    return_block,
-                    get_block
+                    return_block
                 )
             } else {
                 let is_loop_head = loop_info.is_loop_head(curr_bb);
@@ -467,7 +505,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     self.encode_loop(
                         label_prefix,
                         &nested_loop,
-                        &get_block,
                         return_block,
                     )
                 } else {
@@ -475,13 +512,40 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     continue;
                 }
             };
-            group_head = Some(block);
-            bb_map.insert(curr_bb, block);
+            bb_map.insert(curr_bb, curr_block);
+            unresolved_edges.extend(curr_edges);
         }
-        group_head
+
+        // Return unresolved CFG edges
+        let group_head = ordered_group_blocks.get(0).map(|bb| bb_map[&bb]);
+        let still_unresolved_edges = self.encode_unresolved_edges(
+            unresolved_edges,
+            |bb| bb_map.get(&bb).cloned()
+        );
+        (group_head, still_unresolved_edges)
     }
 
-    /// Encodes a loop and returns the first CFG block of the encoding.
+    fn encode_unresolved_edges<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+        &mut self,
+        mut unresolved_edges: Vec<(CfgBlockIndex, BasicBlockIndex)>,
+        resolver: F,
+    ) -> Vec<(CfgBlockIndex, BasicBlockIndex)> {
+        let mut still_unresolved_edges: Vec<_> = vec![];
+        for (curr_block, target) in unresolved_edges.drain(..) {
+            if let Some(target_block) = resolver(target) {
+                self.cfg_method.set_successor(curr_block, Successor::Goto(target_block));
+            } else {
+                still_unresolved_edges.push((curr_block, target));
+            }
+        }
+        still_unresolved_edges
+    }
+
+    /// Encodes a loop.
+    ///
+    /// Returns:
+    /// * The first CFG block of the encoding
+    /// * A vector of unresolved CFG edges
     ///
     /// The encoding transforms
     /// ```text
@@ -509,12 +573,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         label_prefix: &str,
         blocks: &[BasicBlockIndex],
-        get_block: &Fn(BasicBlockIndex) -> Option<CfgBlockIndex>,
-        return_block: vir::CfgBlockIndex,
-    ) -> vir::CfgBlockIndex {
+        return_block: CfgBlockIndex,
+    ) -> (CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>) {
         debug_assert!(blocks.len() > 1);
-        // The clone() is just there to make the borrow checker happy
-        let loop_info = self.loop_encoder.loops().clone();
+        let loop_info = self.loop_encoder.loops();
         let loop_head = blocks[0];
         trace!("encode_loop: {:?}", loop_head);
         debug_assert!(loop_info.is_loop_head(loop_head));
@@ -524,50 +586,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loop_body: Vec<BasicBlockIndex> = loop_info.get_loop_body(loop_head).iter()
             .filter(|&&bb| !self.procedure.is_spec_block(bb))
             .cloned().collect();
-
-        // Build the first CFG block of the encoding
-        let start_block = self.cfg_method.add_block(
-            &format!("{}_start", loop_label_prefix), vec![],
-            vec![vir::Stmt::comment(format!("========== {}_start ==========", loop_label_prefix))],
-        );
-
-        // Build the CFG block between B1 and B2 that:
-        // (1) checks the loop invariant on entry
-        // (2) havocks the invariant and the local variables.
-        let havock_block = self.cfg_method.add_block(
-            &format!("{}_havock", loop_label_prefix), vec![],
-            vec![vir::Stmt::comment(format!("========== {}_havock ==========", loop_label_prefix))],
-        );
-        {
-            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
-            self.cfg_method.add_stmts(havock_block, stmts);
-        }
-        // TODO: havock local variables
-        {
-            let stmts = self.encode_loop_invariant_inhale_stmts(loop_head, false);
-            self.cfg_method.add_stmts(havock_block, stmts);
-        }
-
-        // Build the CFG block after B1 that
-        // (1) checks the invariant after one loop iteration
-        // (2) kills the program path with an `assume false`
-        let end_body_block = self.cfg_method.add_block(
-            &format!("{}_end_body", loop_label_prefix), vec![],
-            vec![vir::Stmt::comment(format!("========== {}_end_body ==========", loop_label_prefix))],
-        );
-        {
-            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
-            self.cfg_method.add_stmts(end_body_block, stmts);
-        }
-
-        self.cfg_method.add_stmt(
-            end_body_block,
-            vir::Stmt::Inhale(
-                false.into(),
-                vir::FoldingBehaviour::Stmt
-            )
-        );
-        self.cfg_method.set_successor(end_body_block, vir::Successor::Return);
 
         // Identify important blocks
         let opt_loop_guard_switch = loop_info.get_loop_guard_switch(loop_head);
@@ -584,9 +602,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             || opt_loop_guard_switch.unwrap_or(loop_head)
         );
         let after_guard_block_pos = opt_loop_guard_switch.and_then(
-            |loop_guard_switch| loop_body.iter().position(|&bb| bb == loop_guard_switch).map(|x| x + 1)
+            |loop_guard_switch| {
+                loop_body.iter().position(|&bb| bb == loop_guard_switch).map(|x| x + 1)
+            }
         ).unwrap_or(0);
-        let after_inv_block_pos = 1 + loop_body.iter().position(|&bb| bb == before_invariant_block).unwrap();
+        let after_inv_block_pos = 1 + loop_body.iter()
+            .position(|&bb| bb == before_invariant_block).unwrap();
         let after_guard_block = loop_body[after_guard_block_pos];
         let after_inv_block = loop_body[after_inv_block_pos];
 
@@ -608,94 +629,164 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loop_body_before_inv = &loop_body[after_guard_block_pos..after_inv_block_pos];
         let loop_body_after_inv = &loop_body[after_inv_block_pos..];
 
-        // The main path in the encoding is G -> B1 -> B2 -> G -> B1.
-        // We are going to build the encoding starting from the last group, B1.
+        // The main path in the encoding is: start -> G -> B1 -> havoc -> B2 -> G -> B1 -> end
+        // We are going to build the encoding left to right.
+        let mut heads = vec![];
 
-        // The head CFG block of the next group
-        let mut next_group_head = end_body_block;
+        // Build the "start" CFG block (*start* - G - B1 - havoc - B2 - G - B1 - end)
+        let start_block = self.cfg_method.add_block(
+            &format!("{}_start", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}_start ==========", loop_label_prefix))],
+        );
+        heads.push(Some(start_block));
 
-        // Encode the last B1 group (G - B1 - B2 - G - *B1*)
-        next_group_head = self.encode_blocks_group(
-            &format!("{}_group5_", loop_label_prefix),
-            loop_body_before_inv,
-            |bb| if bb == after_inv_block {
-                Some(next_group_head)
-            } else {
-                get_block(bb)
-            },
-            loop_depth,
-            return_block,
-        ).unwrap_or(next_group_head);
-
-        // Encode the last G group (G - B1 - B2 - *G* - B1)
-        next_group_head = self.encode_blocks_group(
-            &format!("{}_group4_", loop_label_prefix),
-            loop_guard_evaluation,
-            |bb| if bb == after_guard_block {
-                Some(next_group_head)
-            } else {
-                get_block(bb)
-            },
-            loop_depth,
-            return_block,
-        ).unwrap_or(next_group_head);
-
-        // Encode the last B2 group (G - B1 - *B2* - G - B1)
-        next_group_head = self.encode_blocks_group(
-            &format!("{}_group3_", loop_label_prefix),
-            loop_body_after_inv,
-            |bb| if bb == loop_head {
-                Some(next_group_head)
-            } else {
-                get_block(bb)
-            },
-            loop_depth,
-            return_block,
-        ).unwrap_or(next_group_head);
-
-        self.cfg_method.set_successor(havock_block, vir::Successor::Goto(next_group_head));
-        next_group_head = havock_block;
-
-        // Encode the first B1 group (G - *B1* - B2 - G - B1)
-        next_group_head = self.encode_blocks_group(
-            &format!("{}_group2_", loop_label_prefix),
-            loop_body_before_inv,
-            |bb| if bb == after_inv_block {
-                Some(next_group_head)
-            } else {
-                get_block(bb)
-            },
-            loop_depth,
-            return_block,
-        ).unwrap_or(next_group_head);
-
-        // Encode the first G group (*G* - B1 - B2 - G - B1)
-        next_group_head = self.encode_blocks_group(
+        // Encode the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
+        let (first_g_head, first_g_edges) = self.encode_blocks_group(
             &format!("{}_group1_", loop_label_prefix),
             loop_guard_evaluation,
-            |bb| if bb == after_guard_block {
-                Some(next_group_head)
-            } else {
-                get_block(bb)
-            },
             loop_depth,
             return_block,
-        ).unwrap_or(next_group_head);
+        );
+        heads.push(first_g_head);
 
-        // Encode the first block
-        self.cfg_method.set_successor(start_block, vir::Successor::Goto(next_group_head));
-        next_group_head = start_block;
+        // Encode the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
+        let (first_b1_head, first_b1_edges) = self.encode_blocks_group(
+            &format!("{}_group2_", loop_label_prefix),
+            loop_body_before_inv,
+            loop_depth,
+            return_block,
+        );
+        heads.push(first_b1_head);
 
-        next_group_head
+        // Build the "havock" CFG block (start - G - B1 - *havock* - B2 - G - B1 - end)
+        // (1) checks the loop invariant on entry
+        // (2) havocks the invariant and the local variables.
+        let havock_block = self.cfg_method.add_block(
+            &format!("{}_havock", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}_havoc ==========", loop_label_prefix))],
+        );
+        {
+            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
+        }
+        // TODO: havoc local variables
+        {
+            let stmts = self.encode_loop_invariant_inhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
+        }
+        heads.push(Some(havock_block));
+
+        // Encode the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
+        let (last_b2_head, last_b2_edges) = self.encode_blocks_group(
+            &format!("{}_group3_", loop_label_prefix),
+            loop_body_after_inv,
+            loop_depth,
+            return_block,
+        );
+        heads.push(last_b2_head);
+
+        // Encode the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
+        let (last_g_head, last_g_edges) = self.encode_blocks_group(
+            &format!("{}_group4_", loop_label_prefix),
+            loop_guard_evaluation,
+            loop_depth,
+            return_block,
+        );
+        heads.push(last_g_head);
+
+        // Encode the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
+        let (last_b1_head, last_b1_edges) = self.encode_blocks_group(
+            &format!("{}_group5_", loop_label_prefix),
+            loop_body_before_inv,
+            loop_depth,
+            return_block,
+        );
+        heads.push(last_b1_head);
+
+        // Build the "end" CFG block (start - G - B1 - havoc - B2 - G - B1 - *end*)
+        // (1) checks the invariant after one loop iteration
+        // (2) kills the program path with an `assume false`
+        let end_body_block = self.cfg_method.add_block(
+            &format!("{}_end_body", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}_end_body ==========", loop_label_prefix))],
+        );
+        {
+            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(end_body_block, stmts);
+        }
+        self.cfg_method.add_stmt(
+            end_body_block,
+            vir::Stmt::Inhale(
+                false.into(),
+                vir::FoldingBehaviour::Stmt
+            )
+        );
+        heads.push(Some(end_body_block));
+
+        // We are going to link the unresolved edges.
+        let mut still_unresolved_edges = vec![];
+
+        // Link edges of "start" (*start* - G - B1 - havoc - B2 - G - B1 - end)
+        let following_block = heads[1..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        self.cfg_method.set_successor(start_block, vir::Successor::Goto(following_block));
+
+        // Link edges from the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
+        let following_block = heads[2..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(
+            first_g_edges,
+            |bb| if bb == after_guard_block { Some(following_block) } else { None }
+        ));
+
+        // Link edges from the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
+        let following_block = heads[3..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(
+            first_b1_edges,
+            |bb| if bb == after_inv_block { Some(following_block) } else { None }
+        ));
+
+        // Link edges of "havock" (start - G - B1 - *havock* - B2 - G - B1 - end)
+        let following_block = heads[4..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        self.cfg_method.set_successor(havock_block, vir::Successor::Goto(following_block));
+
+        // Link edges from the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
+        let following_block = heads[5..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(
+            last_b2_edges,
+            |bb| if bb == loop_head { Some(following_block) } else { None }
+        ));
+
+        // Link edges from the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
+        let following_block = heads[6..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(
+            last_g_edges,
+            |bb| if bb == after_guard_block { Some(following_block) } else { None }
+        ));
+
+        // Link edges from the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
+        let following_block = heads[7..].iter().find(|x| x.is_some()).unwrap().unwrap();
+        still_unresolved_edges.extend(self.encode_unresolved_edges(
+            last_b1_edges,
+            |bb| if bb == after_inv_block { Some(following_block) } else { None }
+        ));
+
+        // Link edges of "end" (start - G - B1 - havoc - B2 - G - B1 - *end*)
+        self.cfg_method.set_successor(end_body_block, vir::Successor::Return);
+
+        // Done. Phew!
+        (start_block, still_unresolved_edges)
     }
 
-    fn encode_block<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+    /// Encode a block.
+    ///
+    /// Returns:
+    /// * The head of the encoded block
+    /// * A vector unresolved edges
+    fn encode_block(
         &mut self,
         label_prefix: &str,
-        bbi: mir::BasicBlock,
-        return_block: vir::CfgBlockIndex,
-        get_block: F, // TODO: remove the Option<_> from the result
-    ) -> CfgBlockIndex {
+        bbi: BasicBlockIndex,
+        return_block: CfgBlockIndex,
+    ) -> (CfgBlockIndex, Vec<(CfgBlockIndex, BasicBlockIndex)>) {
         debug_assert!(!self.procedure.is_spec_block(bbi));
 
         let curr_block = self.cfg_method.add_block(
@@ -720,16 +811,53 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         self.encode_execution_flag(bbi, curr_block);
         self.encode_block_statements(bbi, curr_block);
-        self.encode_block_terminator(bbi, curr_block, return_block, get_block);
+        let mir_successor: MirSuccessor = self.encode_block_terminator(bbi, curr_block);
 
-        curr_block
+        // Make sure that the
+        let mir_targets = mir_successor.targets();
+        // Force the encoding of a block if there is more than one successor, to leave
+        // space for the fold-unfold algorithm.
+        let force_block_on_edge = mir_targets.len() > 1;
+        let mut targets_map = HashMap::new();
+        let mut complete_resolution = true;
+        for &target in &mir_targets {
+            let opt_edge_block = self.encode_edge_block(bbi, target, force_block_on_edge);
+            if let Some(edge_block) = opt_edge_block {
+                targets_map.insert(target, edge_block);
+            } else {
+                complete_resolution = false;
+            }
+        }
+        let unresolved_edges = if complete_resolution {
+            // Resolve successor and return the edge blocks
+            let curr_successor = mir_successor.encode(
+                return_block,
+                |target_bb| targets_map[&target_bb]
+            );
+            self.cfg_method.set_successor(curr_block, curr_successor);
+            // This can be empty, if there are no unresolved edges left
+            targets_map.iter().map(|(&target, &edge_block)| {
+                (edge_block, target)
+            }).collect()
+        } else {
+            match mir_successor {
+                MirSuccessor::Goto(target) => vec![(curr_block, target)],
+                MirSuccessor::GotoSwitch(guarded_targets, default_target) => {
+                    debug_assert!(guarded_targets.is_empty());
+                    vec![(curr_block, default_target)]
+                },
+                x => unreachable!("{:?}", x),
+            }
+        };
+
+        (curr_block, unresolved_edges)
     }
 
     /// Store a flag that becomes true the first time the block is executed
     fn encode_execution_flag(
         &mut self,
         bbi: BasicBlockIndex,
-        cfg_block: vir::CfgBlockIndex,
+        cfg_block: CfgBlockIndex,
     ) {
         let pos = self
             .mir_encoder
@@ -751,16 +879,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let bb_data = &self.mir.basic_blocks()[bbi];
         let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
         let is_panic_block = self.procedure.is_panic_block(bbi);
-        for (stmt_index, stmt) in statements.iter().enumerate() {
+        for stmt_index in 0..statements.len() {
             trace!("Encode statement {:?}:{}", bbi, stmt_index);
-            self.cfg_method
-                .add_stmt(cfg_block, vir::Stmt::comment(format!("[mir] {:?}", stmt)));
             let location = mir::Location {
                 block: bbi,
                 statement_index: stmt_index,
             };
             if !is_panic_block {
-                let stmts = self.encode_statement(stmt, location);
+                let (stmts, opt_succ) = self.encode_statement_at(location);
+                debug_assert!(opt_succ.is_none());
                 self.cfg_method.add_stmts(cfg_block, stmts);
             }
             {
@@ -771,64 +898,38 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the terminator of the block
-    fn encode_block_terminator<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+    fn encode_block_terminator(
         &mut self,
         bbi: BasicBlockIndex,
-        curr_block: vir::CfgBlockIndex,
-        return_block: vir::CfgBlockIndex,
-        get_block: F,
-    ) {
+        curr_block: CfgBlockIndex
+    ) -> MirSuccessor {
         trace!("Encode terminator of {:?}", bbi);
         let bb_data = &self.mir.basic_blocks()[bbi];
-        let term = bb_data.terminator.as_ref().unwrap();
-        self.cfg_method.add_stmt(
-            curr_block,
-            vir::Stmt::comment(format!("[mir] {:?}", term.kind)),
-        );
         let location = mir::Location {
             block: bbi,
             statement_index: bb_data.statements.len(),
         };
-        let (stmts, successor) = self.encode_terminator(
-            term,
-            location,
-            return_block,
-            &get_block,
-        );
+        let (stmts, opt_mir_successor) = self.encode_statement_at(location);
         self.cfg_method.add_stmts(curr_block, stmts);
-        self.cfg_method.set_successor(curr_block, successor);
+        opt_mir_successor.unwrap()
     }
 
-    fn encode_loop_invariant_inhale(
+    /// Encode a MIR statement or terminator.
+    fn encode_statement_at(
         &mut self,
-        bbi: BasicBlockIndex,
-        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
-    ) {
-        for (successor, cfg_successor) in &cfg_edges[&bbi] {
-            let after_loop = self.loop_encoder.get_loop_head(*successor) != Some(bbi);
-            let stmts = self.encode_loop_invariant_inhale_stmts(bbi, after_loop);
-            for stmt in stmts.iter() {
-                self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
-            }
-        }
-    }
-
-    /// Exhale the loop invariant if the successor is a loop head
-    fn encode_loop_invariant_exhale(
-        &mut self,
-        bbi: BasicBlockIndex,
-        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
-    ) {
-        for successor in self.procedure.successors(bbi) {
-            if self.loop_encoder.is_loop_head(successor) {
-                let cfg_edge_block = cfg_edges[&bbi][&successor];
-                let after_loop_iteration =
-                    self.loop_encoder.get_loop_head(bbi) == Some(successor);
-                let stmts = self.encode_loop_invariant_exhale_stmts(successor, after_loop_iteration);
-                for stmt in stmts.into_iter() {
-                    self.cfg_method.add_stmt(cfg_edge_block, stmt);
-                }
-            }
+        location: mir::Location,
+    ) -> (Vec<vir::Stmt>, Option<MirSuccessor>) {
+        debug!("Encode location {:?}", location);
+        let bb_data = &self.mir[location.block];
+        let index = location.statement_index;
+        if index < bb_data.statements.len() {
+            let mir_stmt = &bb_data.statements[index];
+            let stmts = self.encode_statement(mir_stmt, location);
+            (stmts, None)
+        } else {
+            let mir_term = bb_data.terminator.as_ref().unwrap();
+            let (stmts, succ) = self.encode_terminator(mir_term, location);
+            (stmts, Some(succ))
         }
     }
 
@@ -842,7 +943,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             stmt.kind, stmt.source_info.span
         );
 
-        let stmts = match stmt.kind {
+        let mut stmts = vec![
+            vir::Stmt::comment(format!("[mir] {:?}", stmt)),
+        ];
+
+        let encoding_stmts = match stmt.kind {
             mir::StatementKind::StorageDead(_)
             | mir::StatementKind::StorageLive(_)
             | mir::StatementKind::EndRegion(_)
@@ -894,6 +999,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             ref x => unimplemented!("{:?}", x),
         };
+        stmts.extend(encoding_stmts);
         stmts
             .into_iter()
             .map(|s| {
@@ -1128,24 +1234,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
         if node.incoming_zombies {
-            let lhs_label = self
-                .label_after_location
-                .get(&loan_location)
-                .cloned()
-                .expect(&format!(
-                    "No label has been saved for location {:?} ({:?})",
-                    loan_location, self.label_after_location
-                ));
+            let lhs_label = self.get_label_after_location(loan_location).to_string();
             for &in_loan in node.reborrowing_loans.iter() {
                 let in_location = self.polonius_info().get_loan_location(&in_loan);
-                let in_label =
-                    self.label_after_location
-                        .get(&in_location)
-                        .cloned()
-                        .expect(&format!(
-                            "No label has been saved for location {:?} ({:?})",
-                            in_location, self.label_after_location
-                        ));
+                let in_label = self.get_label_after_location(in_location).to_string();
                 if self.is_mutable_borrow(in_location) {
                     used_lhs_label = true;
                     stmts.extend(self.encode_transfer_permissions(
@@ -1158,26 +1250,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         let lhs_place = if used_lhs_label {
-            let lhs_label = self
-                .label_after_location
-                .get(&loan_location)
-                .expect(&format!(
-                    "No label has been saved for location {:?} ({:?})",
-                    loan_location, self.label_after_location
-                ));
+            let lhs_label = self.get_label_after_location(loan_location);
             expiring.clone().old(lhs_label)
         } else {
             expiring.clone()
         };
         let rhs_place = match node.zombity {
             ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
-                let rhs_label = self
-                    .label_after_location
-                    .get(&rhs_location)
-                    .expect(&format!(
-                        "No label has been saved for location {:?} ({:?})",
-                        rhs_location, self.label_after_location
-                    ));
+                let rhs_label = self.get_label_after_location(rhs_location);
                 restored.clone().old(rhs_label)
             }
 
@@ -1229,8 +1309,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Get the borrow information.
         if !self.procedure_contracts.contains_key(&loan_location) {
-            // HACK: we need to encode the function call to populate `self.procedure_contracts`
-            self.encode_nonpure_function_call(loan_location);
+            // HACK: we need to encode this function call to populate `self.procedure_contracts`
+            self.encode_statement_at(loan_location);
         }
         let (contract, fake_exprs) = self.procedure_contracts[&loan_location].clone();
         let replace_fake_exprs = |mut expr: vir::Expr| -> vir::Expr {
@@ -1268,14 +1348,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             if node.incoming_zombies {
                 for &in_loan in node.reborrowing_loans.iter() {
                     let in_location = self.polonius_info().get_loan_location(&in_loan);
-                    let in_label =
-                        self.label_after_location
-                            .get(&in_location)
-                            .cloned()
-                            .expect(&format!(
-                                "No label has been saved for location {:?} ({:?})",
-                                in_location, self.label_after_location
-                            ));
+                    let in_label = self.get_label_after_location(in_location).to_string();
                     stmts.extend(self.encode_transfer_permissions(
                         encoded_place.clone().old(&in_label),
                         encoded_place.clone().old(&post_label),
@@ -1373,15 +1446,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
-        return_block: vir::CfgBlockIndex,
-        get_block: &Fn(BasicBlockIndex) -> Option<CfgBlockIndex>,
-    ) -> (Vec<vir::Stmt>, Successor) {
+    ) -> (Vec<vir::Stmt>, MirSuccessor) {
         debug!(
             "Encode terminator '{:?}', span: {:?}",
             term.kind, term.source_info.span
         );
-        let mut stmts: Vec<vir::Stmt> = vec![];
-        let curr_block = location.block;
+        let mut stmts: Vec<vir::Stmt> = vec![
+            vir::Stmt::comment(format!("[mir] {:?}", term.kind))
+        ];
 
         match term.kind {
             TerminatorKind::Return => {
@@ -1392,12 +1464,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     location,
                 ));
 
-                (stmts, Successor::Goto(return_block))
+                (stmts, MirSuccessor::Return)
             }
 
             TerminatorKind::Goto { target } => {
-                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
-                (stmts, Successor::Goto(target_cfg_block))
+                (stmts, MirSuccessor::Goto(target))
             }
 
             TerminatorKind::SwitchInt {
@@ -1413,7 +1484,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     values
                 );
 
-                let mut cfg_targets: Vec<(vir::Expr, CfgBlockIndex)> = vec![];
+                let mut cfg_targets: Vec<(vir::Expr, BasicBlockIndex)> = vec![];
 
                 // Use a local variable for the discriminant (see issue #57)
                 let discr_var = match switch_ty.sty {
@@ -1463,73 +1534,43 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         ref x => unreachable!("{:?}", x),
                     };
-                    let target_cfg_block = self.encode_edge(curr_block, target, get_block);
-                    cfg_targets.push((viper_guard, target_cfg_block))
+                    cfg_targets.push((viper_guard, target))
                 }
                 let default_target = targets[values.len()];
-                let cfg_default_target = if let Some(cfg_target) = get_block(default_target) {
-                    self.encode_edge(curr_block, default_target, get_block)
-                } else {
-                    // Is the target a block that encodes an unreachable block?
-                    let is_unreachable_block = if let mir::TerminatorKind::Unreachable =
-                        self.mir[default_target].terminator.as_ref().unwrap().kind {
-                        true
-                    } else {
-                        false
-                    };
-                    // Is the target a block that encodes a specification block?
-                    let is_spec_block = self.procedure.is_spec_block(default_target);
-                    debug_assert!(is_unreachable_block || is_spec_block);
-                    if is_spec_block {
-                        debug_assert!(format!("{:?}", discr) == "const false");
-                        debug_assert!(term.source_info.span.lo().0 == 0);
-                        debug_assert!(term.source_info.span.hi().0 == 0);
-                    };
+                let mut kill_default_target = false;
 
-                    let unreachable_label = self.cfg_method.get_fresh_label_name();
-                    let unreachable_block = self.cfg_method.add_block(
-                        &unreachable_label,
-                        vec![],
-                        vec![
-                            vir::Stmt::comment(format!(
-                                "========== {} ==========",
-                                &unreachable_label
-                            )),
-                        ],
-                    );
-                    if is_unreachable_block {
-                        self.cfg_method.add_stmt(
-                            unreachable_block,
-                            vir::Stmt::comment("Block marked as 'unreachable' by the compiler")
-                        );
-                    }
-                    if is_spec_block {
-                        self.cfg_method.add_stmt(
-                            unreachable_block,
-                            vir::Stmt::comment("Block used to type-check a loop invariant")
-                        );
-                    }
-                    // Asserting `false` here does not work because of never types.
-                    // See GitLab issue #158.
-                    //if config::check_unreachable_terminators() {
-                    //    let pos = self.encoder.error_manager().register(
-                    //        term.source_info.span,
-                    //        ErrorCtxt::UnreachableTerminator
-                    //    );
-                    //    self.cfg_method.add_stmt(
-                    //        unreachable_block,
-                    //        vir::Stmt::Assert(false.into(), pos)
-                    //    );
-                    //}
-                    self.cfg_method
-                        .set_successor(unreachable_block, Successor::Return);
-                    unreachable_block
+                // Is the target an unreachable block?
+                if let mir::TerminatorKind::Unreachable =
+                    self.mir[default_target].terminator.as_ref().unwrap().kind {
+                    stmts.push(vir::Stmt::comment(format!(
+                        "Ignore default target {:?}, as the compiler marked it as unreachable.",
+                        default_target
+                    )));
+                    kill_default_target = true;
                 };
 
-                (
-                    stmts,
-                    Successor::GotoSwitch(cfg_targets, cfg_default_target),
-                )
+                // Is the target a specification block?
+                if self.procedure.is_spec_block(default_target) {
+                    debug_assert!(format!("{:?}", discr) == "const false");
+                    debug_assert!(term.source_info.span.lo().0 == 0);
+                    debug_assert!(term.source_info.span.hi().0 == 0);
+
+                    stmts.push(vir::Stmt::comment(format!(
+                        "Ignore default target {:?}, as it is only used by Prusti to type-check \
+                        a loop invariant.",
+                        default_target
+                    )));
+                    kill_default_target = true;
+                };
+
+                if kill_default_target {
+                    // Use the last conditional target as default. We could also assume or assert
+                    // that the switch is exhaustive and never hits the default.
+                    let last_target = cfg_targets.pop().unwrap();
+                    (stmts, MirSuccessor::GotoSwitch(cfg_targets, last_target.1))
+                } else {
+                    (stmts, MirSuccessor::GotoSwitch(cfg_targets, default_target))
+                }
             }
 
             TerminatorKind::Unreachable => {
@@ -1541,7 +1582,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 //stmts.push(
                 //    vir::Stmt::Inhale(false.into())
                 //);
-                (stmts, Successor::Return)
+                (stmts, MirSuccessor::Kill)
             }
 
             TerminatorKind::Abort => {
@@ -1550,26 +1591,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     .error_manager()
                     .register(term.source_info.span, ErrorCtxt::AbortTerminator);
                 stmts.push(vir::Stmt::Assert(false.into(), vir::FoldingBehaviour::Stmt, pos));
-                (stmts, Successor::Return)
+                (stmts, MirSuccessor::Kill)
             }
 
             TerminatorKind::Drop { target, .. } => {
-                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
-                (stmts, Successor::Goto(target_cfg_block))
+                (stmts, MirSuccessor::Goto(target))
             }
 
             TerminatorKind::FalseEdges {
                 real_target, ..
             } => {
-                let target_cfg_block = self.encode_edge(curr_block, real_target, get_block);
-                (stmts, Successor::Goto(target_cfg_block))
+                (stmts, MirSuccessor::Goto(real_target))
             }
 
             TerminatorKind::FalseUnwind {
                 real_target, ..
             } => {
-                let target_cfg_block = self.encode_edge(curr_block, real_target, get_block);
-                (stmts, Successor::Goto(target_cfg_block))
+                (stmts, MirSuccessor::Goto(real_target))
             }
 
             TerminatorKind::DropAndReplace {
@@ -1580,8 +1618,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             } => {
                 let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs);
                 stmts.extend(self.encode_assign_operand(&encoded_lhs, value, location));
-                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
-                (stmts, Successor::Goto(target_cfg_block))
+                (stmts, MirSuccessor::Goto(target))
             }
 
             TerminatorKind::Call {
@@ -1750,147 +1787,28 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     _ => {
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
-                        if !is_pure_function {
+                        if is_pure_function {
                             stmts.extend(
-                                self.encode_nonpure_function_call(location)
-                            )
+                                self.encode_pure_function_call(
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    def_id,
+                                )
+                            );
                         } else {
-                            let (function_name, return_type) =
-                                self.encoder.encode_pure_function_use(def_id);
-                            debug!("Encoding pure function call '{}'", function_name);
-                            assert!(destination.is_some());
-
-                            let mut arg_exprs = vec![];
-                            for operand in args.iter() {
-                                let arg_expr = self.mir_encoder.encode_operand_expr(operand);
-                                arg_exprs.push(arg_expr);
-                            }
-
-                            let formal_args: Vec<vir::LocalVar> = args
-                                .iter()
-                                .enumerate()
-                                .map(|(i, arg)| {
-                                    vir::LocalVar::new(
-                                        format!("x{}", i),
-                                        self.mir_encoder.encode_operand_expr_type(arg),
-                                    )
-                                })
-                                .collect();
-
-                            let pos = self
-                                .encoder
-                                .error_manager()
-                                .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
-                            let func_call = vir::Expr::func_app(
-                                function_name,
-                                arg_exprs,
-                                formal_args,
-                                return_type,
-                                pos,
-                            );
-
-                            let label = self.cfg_method.get_fresh_label_name();
-                            stmts.push(vir::Stmt::Label(label.clone()));
-
-                            // Havoc the content of the lhs
-                            let (target_place, _target_ty, _) = match destination.as_ref() {
-                                Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
-                                None => unreachable!(),
-                            };
-                            stmts.extend(self.encode_havoc(&target_place));
-                            let type_predicate = self
-                                .mir_encoder
-                                .encode_place_predicate_permission(
-                                    target_place.clone(),
-                                    vir::PermAmount::Write,
-                                )
-                                .unwrap();
-                            stmts.push(
-                                vir::Stmt::Inhale(
-                                    type_predicate,
-                                    vir::FoldingBehaviour::Stmt
+                            stmts.extend(
+                                self.encode_impure_function_call(
+                                    location,
+                                    term.source_info.span,
+                                    args,
+                                    destination,
+                                    def_id,
                                 )
                             );
-
-                            // Initialize the lhs
-                            let target_value = match destination.as_ref() {
-                                Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
-                                None => unreachable!(),
-                            };
-                            stmts.push(
-                                vir::Stmt::Inhale(
-                                    vir::Expr::eq_cmp(
-                                        target_value.into(),
-                                        func_call,
-                                    ),
-                                    vir::FoldingBehaviour::Stmt,
-                                )
-                            );
-
-                            // Store a label for permissions got back from the call
-                            debug!(
-                                "Pure function call location {:?} has label {}",
-                                location, label
-                            );
-                            self.label_after_location.insert(location, label.clone());
-
-                            // Transfer the permissions for the arguments used in the call
-                            for operand in args.iter() {
-                                let operand_ty = self.mir_encoder.get_operand_ty(operand);
-                                let operand_place = self.mir_encoder.encode_operand_place(operand);
-                                match (operand_place, &operand_ty.sty) {
-                                    (
-                                        Some(ref place),
-                                        ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                                            ty: ref inner_ty,
-                                            ..
-                                        }),
-                                    )
-                                    | (
-                                        Some(ref place),
-                                        ty::TypeVariants::TyRef(_, ref inner_ty, _),
-                                    ) => {
-                                        let ref_field =
-                                            self.encoder.encode_dereference_field(inner_ty);
-                                        let ref_place = place.clone().field(ref_field);
-                                        stmts.extend(self.encode_transfer_permissions(
-                                            ref_place.clone(),
-                                            ref_place.clone().old(&label),
-                                            location,
-                                        ));
-                                    }
-                                    _ => {} // Nothing
-                                }
-                            }
-
-                            /*
-                            // Hack to work around the missing loan for arguments moved to the function call
-                            for operand in args.iter() {
-                                if let Some(place) = self.mir_encoder.encode_operand_place(operand) {
-                                    debug!("Put permission {:?} in postcondition", place);
-                                    // Choose the label that corresponds to the creation of the loan
-                                    let (loans, _) = self.polonius_info().get_all_active_loans(location);
-                                    let source_loans: Vec<_> = loans.iter().filter(|loan| {
-                                        let loan_places = self.polonius_info().get_loan_places(loan).unwrap();
-                                        let (expiring, _, restored) = self.encode_loan_places(&loan_places);
-                                        trace!("Try {:?} == {:?} | {:?}", expiring, place, restored);
-                                        expiring.parent() == Some(&place)
-                                    }).collect();
-                                    if !source_loans.is_empty() {
-                                        assert_eq!(source_loans.len(), 1, "The argument depends on a condition");
-                                        let source_loan = &source_loans[0];
-                                        let loan_loc = self.polonius_info().get_loan_location(&source_loan);
-                                        let loan_label = &self.label_after_location[&loan_loc];
-                                        stmts.push(vir::Stmt::TransferPerm(
-                                            place.clone(),
-                                            place.clone().old(&loan_label)
-                                        ));
-                                    }
-                                }
-                            }
-                            */
                         }
-                    } // generic (pure on non-pure) function call
+                    }
                 }
 
                 // FIXME; hideous monstrosity...
@@ -1900,14 +1818,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 if let &Some((_, target)) = destination {
-                    let target_cfg_block = self.encode_edge(curr_block, target, get_block);
-                    (stmts, Successor::Goto(target_cfg_block))
+                    (stmts, MirSuccessor::Goto(target))
                 } else {
                     // Encode unreachability
                     //stmts.push(
                     //    vir::Stmt::Inhale(false.into())
                     //);
-                    (stmts, Successor::Return)
+                    (stmts, MirSuccessor::Kill)
                 }
             }
 
@@ -1925,7 +1842,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             } => {
                 trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
 
-                // Use local variables in the switch/if (see issue #57)
+                // Use local variables in the switch/if (see GitLab issue #57)
                 let cond_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
                 stmts.push(vir::Stmt::Assign(
                     cond_var.clone().into(),
@@ -1938,39 +1855,29 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else {
                     vir::Expr::not(cond_var.into())
                 };
-                let target_cfg_block = self.encode_edge(curr_block, target, get_block);
 
-                // Prepare a block that encodes the branch of the failure
-                let failure_label = self.cfg_method.get_fresh_label_name();
-                let failure_block = self.cfg_method.add_block(
-                    &failure_label,
-                    vec![],
-                    vec![
-                        vir::Stmt::comment(format!("========== {} ==========", &failure_label)),
-                        vir::Stmt::comment(format!(
-                            "A Rust assertion failed: {}",
-                            msg.description()
-                        )),
-                        if self.check_panics {
-                            vir::Stmt::Assert(
-                                false.into(),
-                                vir::FoldingBehaviour::Stmt,
-                                self.encoder.error_manager().register(
-                                    term.source_info.span,
-                                    ErrorCtxt::AssertTerminator(msg.description().to_string()),
-                                ),
-                            )
-                        } else {
-                            vir::Stmt::comment("This assertion will not be checked")
-                        },
-                    ],
-                );
-                self.cfg_method
-                    .set_successor(failure_block, Successor::Return);
+                // Check or assume the assertion
+                stmts.push(vir::Stmt::comment(format!("Rust assertion: {}", msg.description())));
+                if self.check_panics {
+                    stmts.push(vir::Stmt::Assert(
+                        viper_guard,
+                        vir::FoldingBehaviour::Stmt,
+                        self.encoder.error_manager().register(
+                            term.source_info.span,
+                            ErrorCtxt::AssertTerminator(msg.description().to_string()),
+                        ),
+                    ));
+                } else {
+                    stmts.push(vir::Stmt::comment("This assertion will not be checked"));
+                    stmts.push(vir::Stmt::Inhale(
+                        viper_guard,
+                        vir::FoldingBehaviour::Stmt
+                    ));
+                };
 
                 (
                     stmts,
-                    Successor::GotoSwitch(vec![(viper_guard, target_cfg_block)], failure_block),
+                    MirSuccessor::Goto(target),
                 )
             }
 
@@ -1980,13 +1887,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    // Encode an edge of the MIR graph
-    fn encode_edge<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+    /// Encode an edge of the MIR graph
+    fn encode_edge_block(
         &mut self,
         source: BasicBlockIndex,
         destination: BasicBlockIndex,
-        get_block: F
-    ) -> CfgBlockIndex {
+        force_block: bool,
+    ) -> Option<CfgBlockIndex> {
         let source_loc = mir::Location {
             block: source,
             statement_index: self.mir[source].statements.len(),
@@ -1996,61 +1903,38 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             statement_index: 0,
         };
         let stmts = self.encode_expiring_borrows_between(source_loc, destination_loc);
-        let mut dst_block = get_block(destination).unwrap();
 
-        if !stmts.is_empty() {
+        if force_block || !stmts.is_empty() {
             let edge_label = self.cfg_method.get_fresh_label_name();
             let edge_block = self.cfg_method.add_block(
                 &edge_label,
                 vec![],
                 vec![
-                    vir::Stmt::comment(
-                        format!("========== {} ==========", edge_label)
-                    ),
-                    vir::Stmt::comment(
-                        format!("Expire borrows on the {:?} --> {:?} edge", source, destination)
-                    ),
+                    vir::Stmt::comment(format!("========== {} ==========", edge_label)),
+                    vir::Stmt::comment(format!("MIR edge {:?} --> {:?}", source, destination)),
                 ],
             );
-            self.cfg_method.add_stmts(edge_block, stmts);
-            self.cfg_method.set_successor(edge_block, Successor::Goto(dst_block));
-            dst_block = edge_block;
+            if !stmts.is_empty() {
+                self.cfg_method.add_stmt(
+                    edge_block,
+                    vir::Stmt::comment("Expire borrows")
+                );
+                self.cfg_method.add_stmts(edge_block, stmts);
+            }
+            Some(edge_block)
+        } else {
+            None
         }
-
-        dst_block
     }
 
-    fn encode_nonpure_function_call(
+    fn encode_impure_function_call(
         &mut self,
-        location: mir::Location
+        location: mir::Location,
+        call_site_span: Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        called_def_id: ProcedureDefId,
     ) -> Vec<vir::Stmt> {
-        // Extract the call information
-        let term = self.mir[location.block].terminator.as_ref().unwrap();
-        let (args, destination, called_def_id, _substs) = match &term.kind {
-            TerminatorKind::Call {
-                ref args,
-                ref destination,
-                func:
-                    mir::Operand::Constant(box mir::Constant {
-                        literal:
-                            mir::Literal::Value {
-                                value:
-                                    ty::Const {
-                                        ty:
-                                            &ty::TyS {
-                                                sty: ty::TyFnDef(def_id, substs),
-                                                ..
-                                            },
-                                        ..
-                                    },
-                            },
-                        ..
-                    }),
-                ..
-            } => (args, destination, def_id, substs),
-            _ => unreachable!()
-        };
-
         let full_func_proc_name = &self.encoder.env().tcx().absolute_item_path_str(called_def_id);
         debug!("Encoding non-pure function call '{}'", full_func_proc_name);
 
@@ -2200,7 +2084,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
               // since it isn't the task of the caller
         ) = self.encode_precondition_expr(&procedure_contract, None);
         let pos = self.encoder.error_manager().register(
-            term.source_info.span,
+            call_site_span,
             ErrorCtxt::ExhaleMethodPrecondition,
         );
         stmts.push(
@@ -2253,8 +2137,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             "Procedure call location {:?} has label {}",
             location, pre_label
         );
-        self.label_after_location
-            .insert(location, pre_label.clone());
+        self.label_after_location.insert(location, pre_label.clone());
 
         // Store a label for the post state
         let post_label = self.cfg_method.get_fresh_label_name();
@@ -2337,6 +2220,152 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         self.procedure_contracts
             .insert(location, (procedure_contract, fake_exprs));
+
+        stmts
+    }
+
+    fn encode_pure_function_call(
+        &mut self,
+        location: mir::Location,
+        call_site_span: Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        called_def_id: ProcedureDefId,
+    ) -> Vec<vir::Stmt> {
+        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
+        debug!("Encoding pure function call '{}'", function_name);
+        assert!(destination.is_some());
+
+        let mut stmts = vec![];
+        let mut arg_exprs = vec![];
+        for operand in args.iter() {
+            let arg_expr = self.mir_encoder.encode_operand_expr(operand);
+            arg_exprs.push(arg_expr);
+        }
+
+        let formal_args: Vec<vir::LocalVar> = args
+            .iter()
+            .enumerate()
+            .map(|(i, arg)| {
+                vir::LocalVar::new(
+                    format!("x{}", i),
+                    self.mir_encoder.encode_operand_expr_type(arg),
+                )
+            })
+            .collect();
+
+        let pos = self
+            .encoder
+            .error_manager()
+            .register(call_site_span, ErrorCtxt::PureFunctionCall);
+        let func_call = vir::Expr::func_app(
+            function_name,
+            arg_exprs,
+            formal_args,
+            return_type,
+            pos,
+        );
+
+        let label = self.cfg_method.get_fresh_label_name();
+        stmts.push(vir::Stmt::Label(label.clone()));
+
+        // Havoc the content of the lhs
+        let (target_place, _target_ty, _) = match destination.as_ref() {
+            Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
+            None => unreachable!(),
+        };
+        stmts.extend(self.encode_havoc(&target_place));
+        let type_predicate = self
+            .mir_encoder
+            .encode_place_predicate_permission(
+                target_place.clone(),
+                vir::PermAmount::Write,
+            )
+            .unwrap();
+        stmts.push(
+            vir::Stmt::Inhale(
+                type_predicate,
+                vir::FoldingBehaviour::Stmt
+            )
+        );
+
+        // Initialize the lhs
+        let target_value = match destination.as_ref() {
+            Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
+            None => unreachable!(),
+        };
+        stmts.push(
+            vir::Stmt::Inhale(
+                vir::Expr::eq_cmp(
+                    target_value.into(),
+                    func_call,
+                ),
+                vir::FoldingBehaviour::Stmt,
+            )
+        );
+
+        // Store a label for permissions got back from the call
+        debug!(
+            "Pure function call location {:?} has label {}",
+            location, label
+        );
+        self.label_after_location.insert(location, label.clone());
+
+        // Transfer the permissions for the arguments used in the call
+        for operand in args.iter() {
+            let operand_ty = self.mir_encoder.get_operand_ty(operand);
+            let operand_place = self.mir_encoder.encode_operand_place(operand);
+            match (operand_place, &operand_ty.sty) {
+                (
+                    Some(ref place),
+                    ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
+                        ty: ref inner_ty,
+                        ..
+                    }),
+                )
+                | (
+                    Some(ref place),
+                    ty::TypeVariants::TyRef(_, ref inner_ty, _),
+                ) => {
+                    let ref_field =
+                        self.encoder.encode_dereference_field(inner_ty);
+                    let ref_place = place.clone().field(ref_field);
+                    stmts.extend(self.encode_transfer_permissions(
+                        ref_place.clone(),
+                        ref_place.clone().old(&label),
+                        location,
+                    ));
+                }
+                _ => {} // Nothing
+            }
+        }
+
+        /*
+        // Hack to work around the missing loan for arguments moved to the function call
+        for operand in args.iter() {
+            if let Some(place) = self.mir_encoder.encode_operand_place(operand) {
+                debug!("Put permission {:?} in postcondition", place);
+                // Choose the label that corresponds to the creation of the loan
+                let (loans, _) = self.polonius_info().get_all_active_loans(location);
+                let source_loans: Vec<_> = loans.iter().filter(|loan| {
+                    let loan_places = self.polonius_info().get_loan_places(loan).unwrap();
+                    let (expiring, _, restored) = self.encode_loan_places(&loan_places);
+                    trace!("Try {:?} == {:?} | {:?}", expiring, place, restored);
+                    expiring.parent() == Some(&place)
+                }).collect();
+                if !source_loans.is_empty() {
+                    assert_eq!(source_loans.len(), 1, "The argument depends on a condition");
+                    let source_loan = &source_loans[0];
+                    let loan_loc = self.polonius_info().get_loan_location(&source_loan);
+                    let loan_label = &self.label_after_location[&loan_loc];
+                    stmts.push(vir::Stmt::TransferPerm(
+                        place.clone(),
+                        place.clone().old(&loan_label)
+                    ));
+                }
+            }
+        }
+        */
 
         stmts
     }
@@ -4405,34 +4434,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    /// Add a CFG block on some CFG edges, to expire borrows and to leave space to insert
-    /// fold/unfold statements
-    fn encode_cfg_block_edges(&mut self) {
-        for curr_block in self.cfg_method.get_indices() {
-            let curr_label = self.cfg_method.get_block_label(curr_block).to_string();
-            let successors = self.cfg_method.get_successor(curr_block).get_following();
-            if successors.len() > 1 {
-                let mut curr_succ = self.cfg_method.get_successor(curr_block).clone();
-                for succ_block in successors {
-                    let succ_label = self.cfg_method.get_block_label(succ_block).to_string();
-                    let edge_label = self.cfg_method.get_fresh_label_name();
-                    let edge_block = self.cfg_method.add_block(
-                        &edge_label,
-                        vec![],
-                        vec![
-                            vir::Stmt::comment(
-                                format!("========== {} ==========", edge_label)
-                            ),
-                            vir::Stmt::comment(
-                                format!("Edge {} --> {}", succ_label, edge_label)
-                            ),
-                        ],
-                    );
-                    self.cfg_method.set_successor(edge_block, Successor::Goto(succ_block));
-                    curr_succ = curr_succ.replace_target(succ_block, edge_block);
-                }
-                self.cfg_method.set_successor(curr_block, curr_succ);
-            }
+    fn get_label_after_location(&mut self, location: mir::Location) -> &str {
+        if !self.label_after_location.contains_key(&location) {
+            // HACK: we need to encode this statement to populate `self.label_after_location`
+            self.encode_statement_at(location);
         }
+        &self.label_after_location[&location]
     }
 }

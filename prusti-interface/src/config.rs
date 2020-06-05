@@ -35,9 +35,6 @@ lazy_static! {
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
-        // TODO: Check before enabling that pure variable havoc works properly after the
-        // purification optimisation.
-        settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", false).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
@@ -252,15 +249,6 @@ pub fn use_more_complete_exhale() -> bool {
         .read()
         .unwrap()
         .get::<bool>("USE_MORE_COMPLETE_EXHALE")
-        .unwrap()
-}
-
-/// Replace all back-edges with `assume false`.
-pub fn use_assume_false_back_edges() -> bool {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<bool>("USE_ASSUME_FALSE_BACK_EDGES")
         .unwrap()
 }
 
