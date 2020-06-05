@@ -28,11 +28,11 @@ use specifications::SpecID;
 ///    register an implementation to a specification ID.
 pub struct TraitRegister {
     trait_to_specid: HashMap<RegisterID, SpecID>,
-    type_to_trait: HashMap<RegisterID, HashSet<RegisterID>>,
+    type_to_trait: HashMap<RegisterID, HashSet<(RegisterID,ast::Item)>>,
     trait_to_inv: HashMap<RegisterID, Vec<ast::Attribute>>,
 }
 
-type TraitInfo = (RegisterID, Option<SpecID>, Vec<ast::Attribute>);
+type TraitInfo = (RegisterID, Option<SpecID>, ast::Item, Vec<ast::Attribute>);
 
 impl TraitRegister {
     pub fn new() -> Self {
@@ -47,14 +47,20 @@ impl TraitRegister {
     pub fn get_relevant_traits(&self, typ: &ast::Item) -> Vec<TraitInfo> {
         let type_id = RegisterID::from_item(typ);
         if let Some(traits) = self.type_to_trait.get(&type_id) {
-            traits.clone().into_iter().map(|t| {
+            traits.clone().into_iter().map(|(t, impl_item)| {
                 let specid_opt = self.trait_to_specid.get(&t).cloned();
                 let attrs = self.trait_to_inv.get(&t).cloned().unwrap_or(Vec::new());
-                (t, specid_opt, attrs)
+                (t, specid_opt, impl_item, attrs)
             }).collect()
         } else {
             Vec::new()
         }
+    }
+
+    /// Get span of trait item.
+    pub fn get_trait_span(&self, reg_id: &RegisterID) -> Option<Span> {
+        let key_val_opt = self.trait_to_inv.get_key_value(&reg_id);
+        key_val_opt.map(|(k, _)| k.span.clone())
     }
 
     /// Registers a SpecID for a trait with RegisterID.
@@ -108,7 +114,7 @@ impl TraitRegister {
             if !self.type_to_trait.contains_key(&type_id) {
                 self.type_to_trait.insert(type_id.clone(), HashSet::new());
             }
-            self.type_to_trait.get_mut(&type_id).unwrap().insert(trait_decl_id);
+            self.type_to_trait.get_mut(&type_id).unwrap().insert((trait_decl_id, item.clone()));
         } else {
             warn!("registering item that is not an implementation");
         }
@@ -133,6 +139,7 @@ impl RegisterID {
         }
     }
 
+    #[allow(dead_code)]
     fn is_dummy(&self) -> bool {
         self.segments.is_empty()
     }
@@ -147,13 +154,13 @@ impl Hash for RegisterID {
 
 impl PartialEq<RegisterID> for RegisterID {
     fn eq(&self, other: &RegisterID) -> bool {
-        self.segments == other.segments
+        self.segments.iter().zip(other.segments.iter()).all(|(s,o)| s.ident == o.ident)
     }
 }
 
 impl PartialEq<ast::Path> for RegisterID {
     fn eq(&self, other: &ast::Path) -> bool {
-        self.segments == other.segments
+        self.segments.iter().zip(other.segments.iter()).all(|(s,o)| s.ident == o.ident)
     }
 }
 

@@ -488,9 +488,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let mut exprs: Vec<vir::Expr> = vec![];
                     let num_variants = adt_def.variants.len();
                     let tcx = self.encoder.env().tcx();
-                    let opt_spec = self.encoder.get_spec_by_def_id(adt_def.did);
 
-                    if let Some(spec) = opt_spec {
+                    let mut specs: Vec<&TypedSpecificationSet> = Vec::new();
+                    if let Some(spec) = self.encoder.get_spec_by_def_id(adt_def.did) {
+                        specs.push(spec);
+                    }
+
+                    let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
+                    for trait_id in traits {
+                        if let Some(spec) = self.encoder.get_spec_by_def_id(trait_id) {
+                            specs.push(spec);
+                        }
+                    }
+
+                    for spec in specs.into_iter() {
                         //let encoded_args = vec![vir::Expr::from(self_local_var.clone())];
                         let encoded_args = vec![];
                         let spec_encoder = SpecEncoder::new_simple(self.encoder, &encoded_args);

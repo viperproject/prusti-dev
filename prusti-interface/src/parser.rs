@@ -1,4 +1,4 @@
-// © 2019, ETH Zurich
+// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -694,6 +694,7 @@ impl<'tcx> SpecParser<'tcx> {
         spec_id: SpecID,
         invariants: &[UntypedSpecification],
         postfix: Option<&str>,
+        base_opt: Option<ast::Item>,
     ) -> ast::Item {
         let mut name = item.ident.to_string();
         match item.node {
@@ -727,7 +728,7 @@ impl<'tcx> SpecParser<'tcx> {
 
                 // Glue everything.
                 if let Some(postfix) = postfix {
-                    name.push_str(&format!("__{}", postfix));
+                    name.push_str(&format!("__{}__spec", postfix));
                 } else {
                     name.push_str("__spec");
                 }
@@ -767,6 +768,26 @@ impl<'tcx> SpecParser<'tcx> {
                     .map(|x| ast::GenericArg::Type(self.ast_builder.ty_ident(DUMMY_SP, x.ident)))
                     .collect();
 
+
+                // TODO(@jakob): merge generic requirements
+                let mut gen = generics.clone();
+                // TODO not dummy ?! (or should it?)
+                //self.ast_builder.ty_ident(DUMMY_SP, item.ident), // `item` is the struct
+                let mut ty = self.ast_builder.ty_path(self.ast_builder.path_all(
+                        DUMMY_SP,
+                        false, // global
+                        vec![item.ident],
+                        args,   // (type parameters)
+                        vec![], // bindings
+                ));
+                if let Some(base) = base_opt {
+                    if let ast::ItemKind::Impl(_, _, _, g, _, t, _) = base.node.clone() {
+                        gen = g;
+                        ty = t;
+                    }
+                }
+
+
                 let spec_item_envelope = ast::Item {
                     ident: ast::Ident::from_str(""), // FIXME?
                     attrs: Vec::new(),
@@ -775,17 +796,9 @@ impl<'tcx> SpecParser<'tcx> {
                         ast::Unsafety::Normal,
                         ast::ImplPolarity::Positive,
                         ast::Defaultness::Final,
-                        generics.clone(),
+                        gen,
                         None, // TraitRef
-                        // TODO not dummy ?! (or should it?)
-                        //self.ast_builder.ty_ident(DUMMY_SP, item.ident), // `item` is the struct
-                        self.ast_builder.ty_path(self.ast_builder.path_all(
-                            DUMMY_SP,
-                            false, // global
-                            vec![item.ident],
-                            args,   // (type parameters)
-                            vec![], // bindings
-                        )),
+                        ty,
                         vec![spec_item], // methods et al.
                     ),
                     vis: self.ast_builder.visinh(), // TODO not dummy!
@@ -1229,7 +1242,7 @@ impl<'tcx> SpecParser<'tcx> {
 
                 // Create spec item
                 let mut struct_spec_item = self.generate_spec_item_inv(&item, struct_spec_id,
-                    &struct_invariants, None);
+                    &struct_invariants, None, None);
 
                 struct_spec_item
                     .attrs
@@ -1259,11 +1272,11 @@ impl<'tcx> SpecParser<'tcx> {
         let register = self.register.clone();
         {
             let mut reg = register.lock().unwrap();
-            for (reg_id, id_opt, tr_attrs) in reg.get_relevant_traits(&item).clone() {
+            for (reg_id, id_opt, impl_item, tr_attrs) in reg.get_relevant_traits(&item).clone() {
                 let specs = self.parse_specs(tr_attrs);
                 if specs.iter().any(|spec| spec.typ != SpecType::Invariant) {
-                    // FIXME(@jakob): improve error
-                    self.report_error(item.span, "only invariant allowed for traits");
+                    let span = reg.get_trait_span(&reg_id).unwrap_or(item.span.clone());
+                    self.report_error(span, "only invariant allowed for traits");
                     continue;
                 }
                 let invariants: Vec<_> = specs
@@ -1283,7 +1296,8 @@ impl<'tcx> SpecParser<'tcx> {
                 };
 
                 let trait_name = reg_id.to_string();
-                let trait_spec_item = self.generate_spec_item_inv(&item, id, &invariants, Some(&trait_name));
+                let trait_spec_item = self.generate_spec_item_inv(&item, id, &invariants, Some(&trait_name),
+                                                                  Some(impl_item));
 
                 result.push(ptr::P(trait_spec_item));
             }

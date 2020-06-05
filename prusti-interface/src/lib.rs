@@ -19,7 +19,7 @@
 #![feature(box_patterns)]
 #![feature(try_from)]
 #![feature(crate_in_paths)]
-#![feature(iterator_flatten)]
+#![feature(map_get_key_value)]
 
 extern crate csv;
 extern crate datafrog;
