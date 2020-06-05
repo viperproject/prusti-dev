@@ -216,6 +216,25 @@ pub struct Specification<EID, ET, AT> {
     pub assertion: Assertion<EID, ET, AT>,
 }
 
+/// Specification of a loop.
+#[derive(Debug, Clone)]
+pub struct LoopSpecification<EID, ET, AT> {
+    /// Loop invariant.
+    pub invariant: Vec<Specification<EID, ET, AT>>,
+}
+
+impl<EID, ET, AT> LoopSpecification<EID, ET, AT> {
+    pub fn new(invariant: Vec<Specification<EID, ET, AT>>) -> Self {
+        Self { invariant }
+    }
+    pub fn empty() -> Self {
+        Self::new(Vec::new())
+    }
+    pub fn is_empty(&self) -> bool {
+        self.invariant.is_empty()
+    }
+}
+
 /// Specification of a procedure.
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification<EID, ET, AT> {
@@ -246,7 +265,7 @@ pub enum SpecificationSet<EID, ET, AT> {
     /// (Precondition, Postcondition)
     Procedure(ProcedureSpecification<EID, ET, AT>),
     /// Loop invariant.
-    Loop(Vec<Specification<EID, ET, AT>>),
+    Loop(LoopSpecification<EID, ET, AT>),
     /// Struct invariant.
     Struct(Vec<Specification<EID, ET, AT>>),
 }

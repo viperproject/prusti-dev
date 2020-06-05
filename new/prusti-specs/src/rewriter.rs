@@ -5,7 +5,7 @@ use crate::specifications::untyped;
 use proc_macro2::{Span, TokenStream};
 use std::mem;
 use syn::spanned::Spanned;
-use syn::visit_mut::VisitMut;
+use syn::visit_mut::{self, VisitMut};
 
 pub(crate) struct AstRewriter {
     expr_id_generator: ExpressionIdGenerator,
@@ -48,6 +48,51 @@ impl AstRewriter {
             }
         }
     }
+    fn parse_loop_specs(&mut self, attrs: &mut Vec<syn::Attribute>) -> untyped::LoopSpecification {
+        let mut inv_attrs = Vec::new();
+        for attr in mem::replace(attrs, Vec::new()) {
+            let first_segment = attr.path.segments.first();
+            if first_segment
+                .map(|first| first.ident == "prusti")
+                .unwrap_or(false)
+            {
+                let segments = &attr.path.segments;
+                if segments.len() != 2 {
+                    // FIXME: The span information is lost if the surrounding
+                    // function does not contain any attributes. See the test
+                    // prusti/tests/pass/parse/invalid_prusti_attributes.rs
+                    self.report_error(
+                        attr.span(),
+                        "unexpected Prusti attribute; expected `prusti::invariant`".to_string(),
+                    );
+                    return untyped::LoopSpecification::empty();
+                }
+                let last_segment = &segments[1].ident;
+                if last_segment == "invariant" {
+                    inv_attrs.push(attr);
+                } else {
+                    // FIXME: The span information is lost if the surrounding
+                    // function does not contain any attributes. See the test
+                    // prusti/tests/pass/parse/invalid_prusti_attributes.rs
+                    self.report_error(
+                        last_segment.span(),
+                        "unexpected Prusti attribute; expected `prusti::invariant`".to_string(),
+                    );
+                    return untyped::LoopSpecification::empty();
+                }
+            } else {
+                attrs.push(attr);
+            }
+        }
+        let mut invs = Vec::new();
+        for attr in inv_attrs {
+            invs.push(untyped::Specification {
+                typ: untyped::SpecType::Invariant,
+                assertion: self.parse_assertion(attr.tokens),
+            });
+        }
+        untyped::LoopSpecification::new(invs)
+    }
     /// Parse the `prusti::*` attributes of the function item into spec and
     /// remove them from the `attrs`.
     ///
@@ -68,8 +113,6 @@ impl AstRewriter {
                 let segments = &attr.path.segments;
                 if segments.len() != 2 {
                     self.report_error(
-                        // FIXME: The span seems to be wrong. See the test:
-                        // `prusti/tests/pass/parse/invalid_prusti_attributes.rs`
                         attr.span(),
                         "unexpected Prusti attribute; expected `prusti::requires` or `prusti::ensures`".to_string(),
                     );
@@ -82,8 +125,6 @@ impl AstRewriter {
                     post_attrs.push(attr);
                 } else {
                     self.report_error(
-                        // FIXME: The span seems to be wrong. See the test:
-                        // `prusti/tests/pass/parse/invalid_prusti_attributes.rs`
                         last_segment.span(),
                         "unexpected Prusti attribute; expected `prusti::requires` or `prusti::ensures`".to_string(),
                     );
@@ -109,6 +150,20 @@ impl AstRewriter {
         }
         untyped::ProcedureSpecification::new(pres, posts)
     }
+    /// Generate the statement that type-checks the loop invariant.
+    fn generate_spec_loop_stmt(
+        &mut self,
+        span: Span,
+        specs: untyped::LoopSpecification,
+    ) -> syn::Stmt {
+        syn::parse_quote! {
+            {
+                #[prusti::invariant_spec]
+                if false {
+                }
+            }
+        }
+    }
     /// Generate the specification item and store it on the stack, so that we
     /// add it to the container such module.
     fn generate_spec_item_fn(
@@ -133,18 +188,15 @@ impl AstRewriter {
     fn check_contains_keyword_in_params(&self, item: &syn::ItemFn, keyword: &str) -> Option<Span> {
         for param in &item.sig.inputs {
             match param {
-                syn::FnArg::Typed(
-                    syn::PatType {
-                        pat: box syn::Pat::Ident(syn::PatIdent{ident, ..}),
-                        ..
-                    }
-                ) => {
+                syn::FnArg::Typed(syn::PatType {
+                    pat: box syn::Pat::Ident(syn::PatIdent { ident, .. }),
+                    ..
+                }) => {
                     if ident == keyword {
-                        // FIXME: For some reason the span is wrong. See the test.
                         return Some(param.span());
                     }
                 }
-                _ => {},
+                _ => {}
             }
         }
         None
@@ -152,13 +204,26 @@ impl AstRewriter {
 }
 
 impl VisitMut for AstRewriter {
+    fn visit_expr_for_loop_mut(&mut self, expr: &mut syn::ExprForLoop) {
+        visit_mut::visit_expr_for_loop_mut(self, expr);
+        let specs = self.parse_loop_specs(&mut expr.attrs);
+        if specs.is_empty() {
+            return;
+        }
+        let check = self.generate_spec_loop_stmt(expr.span(), specs);
+        expr.body.stmts.insert(0, check);
+    }
     fn visit_item_fn_mut(&mut self, item: &mut syn::ItemFn) {
+        visit_mut::visit_item_fn_mut(self, item);
         let specs = self.parse_fn_item_specs(&mut item.attrs);
         if specs.is_empty() {
             return;
         }
         if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
-            self.report_error(span, "it is not allowed to use the keyword `result` as a function argument".to_string());
+            self.report_error(
+                span,
+                "it is not allowed to use the keyword `result` as a function argument".to_string(),
+            );
             return;
         }
         let spec_id = self.generate_spec_item_fn(item.span(), specs, item);
