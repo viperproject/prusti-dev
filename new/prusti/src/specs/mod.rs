@@ -5,7 +5,7 @@ use log::debug;
 use proc_macro::bridge::client::ProcMacro;
 use rustc_ast::ast;
 use rustc_ast::token;
-use rustc_ast::tokenstream::TokenStreamBuilder;
+use rustc_ast::tokenstream::{self, TokenStreamBuilder};
 use rustc_expand::base::AttrProcMacro as AttrProcMacroTrait;
 use rustc_expand::proc_macro::AttrProcMacro;
 use rustc_interface::interface::Compiler;
@@ -82,13 +82,14 @@ fn run_proc_macro(
     let parse_sess = &compiler.session().parse_sess;
     let mut tokens = TokenStreamBuilder::new();
     let old_items = std::mem::replace(&mut krate.module.items, Vec::new());
-    for item in old_items {
+    for mut item in old_items {
         let span = item.span;
-        tokens.push(rustc_parse::nt_to_tokenstream(
-            &token::NtItem(item),
-            parse_sess,
-            span,
-        ));
+        let attrs = std::mem::replace(&mut item.attrs, Vec::new());
+        for attr in attrs {
+            attr.to_tokens(&mut tokens);
+        }
+        let item_tokens = rustc_parse::nt_to_tokenstream(&token::NtItem(item), parse_sess, span);
+        tokens.push(item_tokens);
     }
 
     let mut cx = rustc_expand::base::ExtCtxt::new(
@@ -198,4 +199,75 @@ fn load_proc_macro(
     };
 
     Ok(proc_macro)
+}
+
+trait ToTokens {
+    fn to_tokens(&self, tokens: &mut TokenStreamBuilder);
+}
+
+impl ToTokens for ast::Attribute {
+    fn to_tokens(&self, tokens: &mut TokenStreamBuilder) {
+        match self.style {
+            ast::AttrStyle::Outer => {
+                tokens.push(tokenstream::TokenTree::token(token::Pound, self.span));
+            }
+            ast::AttrStyle::Inner => {
+                unimplemented!();
+            }
+        }
+        let mut brackets = tokenstream::TokenStreamBuilder::new();
+        self.kind.to_tokens(&mut brackets);
+        let delim_span = tokenstream::DelimSpan::from_single(self.span);
+        tokens.push(tokenstream::TokenTree::Delimited(
+            delim_span,
+            token::DelimToken::Bracket,
+            brackets.build(),
+        ));
+    }
+}
+
+impl ToTokens for ast::AttrKind {
+    fn to_tokens(&self, tokens: &mut TokenStreamBuilder) {
+        match self {
+            ast::AttrKind::Normal(item) => {
+                item.to_tokens(tokens);
+            }
+            ast::AttrKind::DocComment(_symbol) => {
+                unimplemented!();
+            }
+        }
+    }
+}
+
+impl ToTokens for ast::AttrItem {
+    fn to_tokens(&self, tokens: &mut TokenStreamBuilder) {
+        self.path.to_tokens(tokens);
+        self.args.to_tokens(tokens)
+    }
+}
+
+impl ToTokens for ast::Path {
+    fn to_tokens(&self, tokens: &mut TokenStreamBuilder) {
+        let mut trees = Vec::new();
+        for segment in &self.segments {
+            if segment.args.is_some() {
+                unimplemented!();
+            }
+            let ident = segment.ident;
+            let token = token::Ident(ident.name, ident.as_str().starts_with("r#"));
+            trees.push(tokenstream::TokenTree::token(token, ident.span));
+            trees.push(tokenstream::TokenTree::token(token::ModSep, self.span));
+        }
+        // Remove the last `::`
+        trees.pop();
+        for tree in trees {
+            tokens.push(tree);
+        }
+    }
+}
+
+impl ToTokens for ast::MacArgs {
+    fn to_tokens(&self, tokens: &mut TokenStreamBuilder) {
+        tokens.push(self.outer_tokens());
+    }
 }
