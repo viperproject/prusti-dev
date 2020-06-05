@@ -63,6 +63,10 @@ impl SpecID {
         self.0 += 1;
         Self { 0: self.0 }
     }
+
+    pub fn dummy() -> Self {
+        Self { 0: 99 }
+    }
 }
 
 impl ToString for SpecID {
