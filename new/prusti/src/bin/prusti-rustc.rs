@@ -1,4 +1,7 @@
-use prusti_env_utils::{add_to_loader_path, get_latest_crate_artefact, prusti_sysroot};
+use prusti_env_utils::{
+    add_to_loader_path, find_rustc_proc_macro_decls_symbol, get_latest_crate_artefact,
+    prusti_sysroot,
+};
 use std::env;
 use std::process::{Command, Stdio};
 
@@ -67,12 +70,15 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             "rlib",
         ));
     }
+    let prusti_internal_path =
+        get_latest_crate_artefact(&prusti_home, "prusti_contracts_internal", "so");
     cmd.arg("--extern");
-    cmd.arg(get_latest_crate_artefact(
-        &prusti_home,
-        "prusti_contracts_internal",
-        "so",
+    cmd.arg(format!(
+        "prusti_contracts_internal={}",
+        prusti_internal_path
     ));
+    let proc_macro_sym = find_rustc_proc_macro_decls_symbol(&prusti_internal_path);
+    cmd.env("PRUSTI_CONTRACTS_MACRO_SYMBOL", proc_macro_sym);
 
     let mut child = cmd
         .stdout(Stdio::inherit()) // do not filter stdout

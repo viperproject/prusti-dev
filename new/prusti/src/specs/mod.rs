@@ -153,19 +153,28 @@ fn load_proc_macro(
                 found = Some(cstore.crate_disambiguator_untracked(crate_num));
             }
         }
-        found.ok_or_else(|| {
-            let mut warning = compiler
-                .session()
-                .struct_warn("`prusti_contracts_internal` crate not found");
-            warning.note("Maybe `use prusti_contracts::*` is missing?");
-            warning.emit();
-        })?
+        found
     };
 
     // Compute the symbol of the proc macro declaration.
-    let sym = compiler
-        .session()
-        .generate_proc_macro_decls_symbol(disambiguator);
+    let sym = if let Some(disambiguator) = disambiguator {
+        compiler
+            .session()
+            .generate_proc_macro_decls_symbol(disambiguator)
+    } else {
+        if let Some(symbol) = std::env::var("PRUSTI_CONTRACTS_MACRO_SYMBOL").ok() {
+            symbol
+        } else {
+            let mut err = compiler
+                .session()
+                .struct_err("could not find the rewriting procedural macro");
+            err.help(
+                "either add `extern crate prusti_contracts` or set `PRUSTI_CONTRACTS_MACRO_SYMBOL`",
+            );
+            err.emit();
+            return Err(());
+        }
+    };
 
     // Load the procedural macro symbol from the library.
     let decls = unsafe {
