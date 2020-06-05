@@ -56,7 +56,7 @@ impl AstRewriter {
     fn parse_fn_item_specs(
         &mut self,
         attrs: &mut Vec<syn::Attribute>,
-    ) -> untyped::SpecificationSet {
+    ) -> untyped::ProcedureSpecification {
         let mut pre_attrs = Vec::new();
         let mut post_attrs = Vec::new();
         for attr in mem::replace(attrs, Vec::new()) {
@@ -73,7 +73,7 @@ impl AstRewriter {
                         attr.span(),
                         "unexpected Prusti attribute; expected `prusti::requires` or `prusti::ensures`".to_string(),
                     );
-                    return untyped::SpecificationSet::Procedure(Vec::new(), Vec::new());
+                    return untyped::ProcedureSpecification::empty();
                 }
                 let last_segment = &segments[1].ident;
                 if last_segment == "requires" {
@@ -87,7 +87,7 @@ impl AstRewriter {
                         last_segment.span(),
                         "unexpected Prusti attribute; expected `prusti::requires` or `prusti::ensures`".to_string(),
                     );
-                    return untyped::SpecificationSet::Procedure(Vec::new(), Vec::new());
+                    return untyped::ProcedureSpecification::empty();
                 }
             } else {
                 attrs.push(attr);
@@ -107,24 +107,47 @@ impl AstRewriter {
                 assertion: self.parse_assertion(attr.tokens),
             });
         }
-        untyped::SpecificationSet::Procedure(pres, posts)
+        untyped::ProcedureSpecification::new(pres, posts)
     }
     /// Generate the specification item and store it on the stack, so that we
     /// add it to the container such module.
     fn generate_spec_item_fn(
         &mut self,
         span: Span,
-        specs: untyped::SpecificationSet,
+        specs: untyped::ProcedureSpecification,
         item: &syn::ItemFn,
     ) -> SpecificationId {
         let spec_id = self.spec_id_generator.generate();
         let item_name = syn::Ident::new(&format!("prusti_spec_item_{}", spec_id), span);
-        let spec_item = syn::parse_quote! {
+
+        let mut spec_item: syn::ItemFn = syn::parse_quote! {
             fn #item_name() {
             }
         };
-        self.spec_item_stack.push(spec_item);
+        spec_item.sig.generics = item.sig.generics.clone();
+        self.spec_item_stack.push(syn::Item::Fn(spec_item));
         spec_id
+    }
+    /// Check whether function `item` contains a parameter called `keyword`. If
+    /// yes, return its span.
+    fn check_contains_keyword_in_params(&self, item: &syn::ItemFn, keyword: &str) -> Option<Span> {
+        for param in &item.sig.inputs {
+            match param {
+                syn::FnArg::Typed(
+                    syn::PatType {
+                        pat: box syn::Pat::Ident(syn::PatIdent{ident, ..}),
+                        ..
+                    }
+                ) => {
+                    if ident == keyword {
+                        // FIXME: For some reason the span is wrong. See the test.
+                        return Some(param.span());
+                    }
+                }
+                _ => {},
+            }
+        }
+        None
     }
 }
 
@@ -132,6 +155,10 @@ impl VisitMut for AstRewriter {
     fn visit_item_fn_mut(&mut self, item: &mut syn::ItemFn) {
         let specs = self.parse_fn_item_specs(&mut item.attrs);
         if specs.is_empty() {
+            return;
+        }
+        if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
+            self.report_error(span, "it is not allowed to use the keyword `result` as a function argument".to_string());
             return;
         }
         let spec_id = self.generate_spec_item_fn(item.span(), specs, item);

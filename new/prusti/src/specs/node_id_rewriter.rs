@@ -384,7 +384,8 @@ pub trait MutVisitor: Sized {
         kind: visit_expr_kind,
         id: visit_id,
         span: visit_span,
-        attrs: list(visit_attribute)
+        attrs: list(visit_attribute),
+        tokens: _,
     });
     visit_mut_enum!(ExprKind {
         Box(visit_expr),

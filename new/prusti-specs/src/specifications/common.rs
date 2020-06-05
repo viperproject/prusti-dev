@@ -216,14 +216,35 @@ pub struct Specification<EID, ET, AT> {
     pub assertion: Assertion<EID, ET, AT>,
 }
 
+/// Specification of a procedure.
+#[derive(Debug, Clone)]
+pub struct ProcedureSpecification<EID, ET, AT> {
+    /// Precondition.
+    pub pres: Vec<Specification<EID, ET, AT>>,
+    /// Postcondition.
+    pub posts: Vec<Specification<EID, ET, AT>>,
+}
+
+impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
+    pub fn new(
+        pres: Vec<Specification<EID, ET, AT>>,
+        posts: Vec<Specification<EID, ET, AT>>,
+    ) -> Self {
+        Self { pres, posts }
+    }
+    pub fn empty() -> Self {
+        Self::new(Vec::new(), Vec::new())
+    }
+    pub fn is_empty(&self) -> bool {
+        self.pres.is_empty() && self.posts.is_empty()
+    }
+}
+
 #[derive(Debug, Clone)]
 /// Specification of a single element such as procedure or loop.
 pub enum SpecificationSet<EID, ET, AT> {
     /// (Precondition, Postcondition)
-    Procedure(
-        Vec<Specification<EID, ET, AT>>,
-        Vec<Specification<EID, ET, AT>>,
-    ),
+    Procedure(ProcedureSpecification<EID, ET, AT>),
     /// Loop invariant.
     Loop(Vec<Specification<EID, ET, AT>>),
     /// Struct invariant.
@@ -233,7 +254,7 @@ pub enum SpecificationSet<EID, ET, AT> {
 impl<EID, ET, AT> SpecificationSet<EID, ET, AT> {
     pub fn is_empty(&self) -> bool {
         match self {
-            SpecificationSet::Procedure(ref pres, ref posts) => pres.is_empty() && posts.is_empty(),
+            SpecificationSet::Procedure(spec) => spec.is_empty(),
             SpecificationSet::Loop(ref invs) => invs.is_empty(),
             SpecificationSet::Struct(ref invs) => invs.is_empty(),
         }
