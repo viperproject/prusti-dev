@@ -67,9 +67,7 @@ fn capitalize(vec: &mut VecWrapperI32) {
     let mut i = 0;
     let mut not_finished = i < vec.len();
     #[invariant="vec.len() == old(vec.len())"]
-    #[invariant="0 <= i && i <= vec.len()"]
-    #[invariant="not_finished ==> i < vec.len()"]
-    #[invariant="!not_finished ==> i == vec.len()"]
+    #[invariant="0 <= i && i < vec.len()"]
     #[invariant="forall j: usize :: (0 <= j && j < i) ==> vec.lookup(j) <= 0"]
     #[invariant=r"forall j: usize :: (i <= j && j < vec.len()) ==>
                     old(vec.lookup(j)) == vec.lookup(j)"]

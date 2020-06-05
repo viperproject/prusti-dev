@@ -15,7 +15,7 @@ fn test2(n: i32) -> i32 {
     let mut ia = 0;
 
     #[invariant="res == ia"]
-    #[invariant="ia <= n"]
+    #[invariant="ia < n"]
     while ia < n {
         res += 1;
         ia += 1;
