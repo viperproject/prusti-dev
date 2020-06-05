@@ -96,8 +96,7 @@ pub fn construct_rustc_extern_arg(crate_name: &str, file_path: &Path) -> String 
     )
 }
 
-/// Find the crate artefact that has the latest timestamp and construct the
-/// `--extern` compiler argument to load it.
+/// Find the crate artefact that has the latest timestamp.
 pub fn get_latest_crate_artefact(path: &Path, crate_name: &str, file_extension: &str) -> String {
     let candidates = collect_crate_artefacts(path, crate_name, file_extension);
     let file_path = candidates
@@ -105,7 +104,11 @@ pub fn get_latest_crate_artefact(path: &Path, crate_name: &str, file_extension: 
         .max_by_key(|entry| entry.metadata().unwrap().modified().unwrap())
         .map(|entry| entry.path())
         .unwrap_or_else(|| panic!("failed to find {} in {:?}", crate_name, path));
-    construct_rustc_extern_arg(crate_name, file_path)
+    file_path
+        .as_os_str()
+        .to_str()
+        .expect("the file path contains invalid UTF-8")
+        .to_string()
 }
 
 /// Find an artefact of a specific version of a crate.
@@ -117,8 +120,6 @@ pub fn get_specific_crate_version_artefact(
 ) -> String {
     let candidates = collect_crate_artefacts(path, crate_name, file_extension);
 
-    // panic!("path {:?} candidates: {}", path, &candidates);
-
     let search_pattern = format!("/{}-{}", crate_name, crate_version);
 
     for file_path in candidates.iter().map(|entry| entry.path()) {
@@ -126,7 +127,6 @@ pub fn get_specific_crate_version_artefact(
         let mut buffer = Vec::<u8>::new();
         file.read_to_end(&mut buffer).unwrap();
         let bytes = search_pattern.as_bytes();
-        // unimplemented!("path: {:?}", file_path);
         for (mut i, byte) in buffer.iter().enumerate() {
             if *byte == bytes[0] {
                 let mut j = 0;
@@ -148,4 +148,56 @@ pub fn get_specific_crate_version_artefact(
         "failed to find the artefact for {}-{} in {:?}",
         crate_name, crate_version, path
     );
+}
+
+/// Find the procedural macro declaration in the given library.
+pub fn find_rustc_proc_macro_decls_symbol(path: &str) -> String {
+    let mut file = File::open(path).unwrap_or_else(|err| {
+        panic!("an error while openning {}: {}", path, err);
+    });
+    let mut buffer = Vec::<u8>::new();
+    file.read_to_end(&mut buffer).unwrap();
+    let prefix = b"__rustc_proc_macro_decls_";
+    let mut current_symbol_hash = Vec::new();
+    let mut final_symbol_hash = None;
+    for (mut i, byte) in buffer.iter().enumerate() {
+        if *byte == prefix[0] {
+            let mut j = 0;
+            while j < prefix.len() {
+                if buffer[i] != prefix[j] {
+                    break;
+                }
+                i += 1;
+                j += 1;
+            }
+            if j == prefix.len() {
+                for _ in 0..32 {
+                    let current = buffer[i];
+                    if (b'0' <= current && current <= b'9') || (b'a' <= current && current <= b'z')
+                    {
+                        current_symbol_hash.push(current);
+                    } else {
+                        break;
+                    }
+                    i += 1;
+                }
+                if current_symbol_hash.len() == 32 && buffer[i] == b'_' && buffer[i + 1] == b'_' {
+                    if let Some(hash) = &final_symbol_hash {
+                        assert_eq!(
+                            hash, &current_symbol_hash,
+                            "expected only one proc macro hash in a binary"
+                        );
+                    } else {
+                        final_symbol_hash = Some(current_symbol_hash);
+                    }
+                }
+                current_symbol_hash = Vec::new();
+            }
+        }
+    }
+    format!(
+        "__rustc_proc_macro_decls_{}__",
+        std::str::from_utf8(&final_symbol_hash.expect("not found procedural macro symbol"))
+            .unwrap()
+    )
 }
