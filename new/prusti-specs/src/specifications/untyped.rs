@@ -15,6 +15,8 @@ pub struct Arg {
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
 /// A set of untyped specifications associated with a single element.
 pub type SpecificationSet = common::SpecificationSet<ExpressionId, syn::Expr, Arg>;
+/// A set of untyped specifications associated with a loop.
+pub type LoopSpecification = common::LoopSpecification<ExpressionId, syn::Expr, Arg>;
 /// A set of untyped specifications associated with a procedure.
 pub type ProcedureSpecification = common::ProcedureSpecification<ExpressionId, syn::Expr, Arg>;
 /// A map of untyped specifications for a specific crate.
