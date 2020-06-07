@@ -15,7 +15,7 @@ fn sum(n: i32) -> i32 {
     res
 }
 
-fn main() {pass/loop-invs/simple-nested.rs
+fn main() {
     assert!(sum(100) == 5050);
     assert!(sum(100) != 5);
     assert!(sum(0) != 1);
