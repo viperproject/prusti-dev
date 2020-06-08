@@ -1,27 +1,26 @@
 // compile-flags: -Zprint-desugared-specs
+// normalize-stdout-test: "prusti_pre_item_test\d+_[a-z0-9]{32}" -> "prusti_post_item_testNUM_UUID"
+// normalize-stdout-test: "prusti_post_item_test\d+_[a-z0-9]{32}" -> "prusti_post_item_testNUM_UUID"
 
-#![feature(register_tool)]
-#![register_tool(prusti)]
-#![feature(stmt_expr_attributes)]
-#![feature(custom_inner_attributes)]
+use prusti_contracts::*;
 
-#[prusti::requires(true)]
+#[requires(true)]
 fn test1() {}
 
-#[prusti::ensures(true)]
+#[ensures(true)]
 fn test2() {}
 
 fn test3() {
     for _ in 0..2 {
-        #![prusti::invariant(true)]
+        invariant!(true)
     }
 }
 
-#[prusti::requires(true)]
-#[prusti::ensures(true)]
+#[requires(true)]
+#[ensures(true)]
 fn test4() {
     for _ in 0..2 {
-        #![prusti::invariant(true)]
+        invariant!(true)
     }
 }
 

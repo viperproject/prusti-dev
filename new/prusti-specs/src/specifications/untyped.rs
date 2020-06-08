@@ -1,6 +1,6 @@
 use super::common::{self, ExpressionIdGenerator};
-use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned};
+use proc_macro2::TokenStream;
+use quote::quote_spanned;
 use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -31,17 +31,6 @@ pub type AssertionKind = common::AssertionKind<ExpressionId, syn::Expr, Arg>;
 pub type Expression = common::Expression<ExpressionId, syn::Expr>;
 /// A trigger set that has not types associated with it.
 pub type TriggerSet = common::TriggerSet<ExpressionId, syn::Expr>;
-
-impl Assertion {
-    pub(crate) fn true_assertion(id_generator: &mut ExpressionIdGenerator) -> Self {
-        Self {
-            kind: box AssertionKind::Expr(Expression {
-                id: id_generator.generate(),
-                expr: syn::parse_quote!(true),
-            }),
-        }
-    }
-}
 
 impl Assertion {
     pub(crate) fn parse(

@@ -1,48 +1,71 @@
-// compile-flags: -Zprint-desugared-specs
-
-#![feature(register_tool)]
-#![register_tool(prusti)]
-#![feature(stmt_expr_attributes)]
-#![feature(custom_inner_attributes)]
 #[prelude_import]
 use std::prelude::v1::*;
 #[macro_use]
 extern crate std;
+// compile-flags: -Zprint-desugared-specs
+// normalize-stdout-test: "prusti_pre_item_test/d+_[a-z0-9]{32}" -> "prusti_post_item_testNUM_UUID"
+// normalize-stdout-test: "prusti_post_item_test/d+_[a-z0-9]{32}" -> "prusti_post_item_testNUM_UUID"
 
-#[prusti::spec_id(101u64)]
+use prusti_contracts::*;
+
+fn prusti_post_item_testNUM_UUID() {
+    || -> bool { true };
+}
 fn test1() { }
 
-#[prusti::spec_id(102u64)]
+fn prusti_post_item_testNUM_UUID() {
+    || -> bool { true };
+}
 fn test2() { }
 
 fn test3() {
     for _ in 0..2 {
-        {
 
-            #[prusti::invariant_spec]
-            if false { }
+
+        {
+            #[allow(dead_code)]
+            enum ProcMacroHack { Value = ("true", 0).1, }
+            macro_rules! proc_macro_call {
+                () =>
+                {
+                    if false
+                    {
+                        let _prusti_loop_invariant = { || -> bool { true } ; }
+                        ;
+                    }
+                }
+            }
+            if false {
+                let _prusti_loop_invariant = { || -> bool { true }; };
+            }
         }
     }
 }
-
-#[prusti::spec_id(103u64)]
+fn prusti_post_item_testNUM_UUID() {
+    || -> bool { true };
+}
+fn prusti_post_item_testNUM_UUID() {
+    || -> bool { true };
+}
 fn test4() {
     for _ in 0..2 {
         {
-
-            #[prusti::invariant_spec]
-            if false { }
+            #[allow(dead_code)]
+            enum ProcMacroHack { Value = ("true", 0).1, }
+            macro_rules! proc_macro_call {
+                () =>
+                {
+                    if false
+                    {
+                        let _prusti_loop_invariant = { || -> bool { true } ; }
+                        ;
+                    }
+                }
+            }
+            if false {
+                let _prusti_loop_invariant = { || -> bool { true }; };
+            }
         }
     }
 }
-
 fn main() { }
-fn prusti_spec_item_103() {
-    fn prusti_spec_item_103_pre() { }
-}
-fn prusti_spec_item_102() {
-    fn prusti_spec_item_102_pre() { }
-}
-fn prusti_spec_item_101() {
-    fn prusti_spec_item_101_pre() { }
-}

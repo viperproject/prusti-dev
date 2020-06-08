@@ -4,16 +4,16 @@ use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
 
 #[proc_macro_attribute]
-pub fn requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::requires(attr.into(), tokens.into()).into()
+pub fn requires(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
 }
 
 #[proc_macro_attribute]
-pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    prusti_specs::ensures(attr.into(), tokens.into()).into()
+pub fn ensures(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
 }
 
 #[proc_macro_hack]
-pub fn invariant(tokens: TokenStream) -> TokenStream {
-    prusti_specs::invariant(tokens.into()).into()
+pub fn invariant(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
 }

@@ -1,16 +1,33 @@
 extern crate proc_macro;
 
-#[cfg(any(prusti, feature = "prusti"))]
-extern crate prusti_contracts_internal;
+#[cfg(not(feature = "prusti"))]
+mod private {
+    use proc_macro_hack::proc_macro_hack;
 
-use proc_macro_hack::proc_macro_hack;
+    /// A macro for writing a precondition on a function.
+    pub use prusti_contracts_impl::requires;
 
-/// A macro for writing a precondition on a function.
-pub use prusti_contracts_impl::requires;
+    /// A macro for writing a postcondition on a function.
+    pub use prusti_contracts_impl::ensures;
 
-/// A macro for writing a postcondition on a function.
-pub use prusti_contracts_impl::ensures;
+    /// A macro for writing a loop invariant.
+    #[proc_macro_hack]
+    pub use prusti_contracts_impl::invariant;
+}
 
-/// A macro for writing a loop invariant.
-#[proc_macro_hack]
-pub use prusti_contracts_impl::invariant;
+#[cfg(feature = "prusti")]
+mod private {
+    use proc_macro_hack::proc_macro_hack;
+
+    /// A macro for writing a precondition on a function.
+    pub use prusti_contracts_internal::requires;
+
+    /// A macro for writing a postcondition on a function.
+    pub use prusti_contracts_internal::ensures;
+
+    /// A macro for writing a loop invariant.
+    #[proc_macro_hack]
+    pub use prusti_contracts_internal::invariant;
+}
+
+pub use private::*;

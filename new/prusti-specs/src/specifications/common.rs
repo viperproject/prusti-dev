@@ -7,6 +7,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use std::convert::TryFrom;
 use std::{fmt::Display, string::ToString};
+use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// A specification type.
@@ -43,37 +44,32 @@ impl<'a> TryFrom<&'a str> for SpecType {
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
-pub struct SpecificationId(u64);
-
-impl From<u64> for SpecificationId {
-    fn from(value: u64) -> Self {
-        Self { 0: value }
-    }
-}
+pub struct SpecificationId(Uuid);
 
 impl Display for SpecificationId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(
+            f,
+            "{}",
+            self.0.to_simple().encode_lower(&mut Uuid::encode_buffer()),
+        )
     }
 }
 
-impl ToTokens for SpecificationId {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens)
-    }
-}
+// impl ToTokens for SpecificationId {
+//     fn to_tokens(&self, tokens: &mut TokenStream) {
+//         self.0.to_tokens(tokens)
+//     }
+// }
 
-pub(crate) struct SpecificationIdGenerator {
-    last_id: u64,
-}
+pub(crate) struct SpecificationIdGenerator {}
 
 impl SpecificationIdGenerator {
     pub(crate) fn new() -> Self {
-        Self { last_id: 100 }
+        Self {}
     }
     pub(crate) fn generate(&mut self) -> SpecificationId {
-        self.last_id += 1;
-        SpecificationId(self.last_id)
+        SpecificationId(Uuid::new_v4())
     }
 }
 

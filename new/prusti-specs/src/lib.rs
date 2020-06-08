@@ -3,41 +3,48 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{visit_mut::VisitMut, File};
 
 mod rewriter;
 mod specifications;
 
+macro_rules! handle_result {
+    ($parse_result: expr) => {
+        match $parse_result {
+            Ok(data) => data,
+            Err(err) => return err.to_compile_error(),
+        };
+    };
+}
+
 pub fn requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let item: syn::ItemFn = handle_result!(syn::parse2(tokens));
+    let mut rewriter = rewriter::AstRewriter::new();
+    let assertion = handle_result!(rewriter.parse_assertion(attr));
+    let spec_item = handle_result!(rewriter.generate_spec_item_fn("pre", assertion, &item));
     quote! {
-        #[prusti::requires(#attr)]
-        #tokens
+        #spec_item
+        #item
     }
 }
 
 pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    let item: syn::ItemFn = handle_result!(syn::parse2(tokens));
+    let mut rewriter = rewriter::AstRewriter::new();
+    let assertion = handle_result!(rewriter.parse_assertion(attr));
+    let spec_item = handle_result!(rewriter.generate_spec_item_fn("post", assertion, &item));
     quote! {
-        #[prusti::ensures(#attr)]
-        #tokens
+        #spec_item
+        #item
     }
 }
 
-pub fn invariant(_tokens: TokenStream) -> TokenStream {
-    quote!(if (false) {})
-}
-
-pub fn expand_specs(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    assert!(attr.is_empty());
-    let mut krate: File = match syn::parse2(tokens) {
-        Ok(data) => data,
-        Err(err) => return err.to_compile_error(),
-    };
+pub fn invariant(tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
-    rewriter.visit_file_mut(&mut krate);
-    let errors = rewriter.error_tokens();
+    let invariant = handle_result!(rewriter.parse_assertion(tokens));
+    let check = rewriter.generate_spec_loop(invariant);
     quote! {
-        #krate
-
-        #errors
+        if false {
+            #check
+        }
     }
 }

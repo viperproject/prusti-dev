@@ -1,7 +1,4 @@
-use prusti_env_utils::{
-    add_to_loader_path, find_rustc_proc_macro_decls_symbol, get_latest_crate_artefact,
-    prusti_sysroot,
-};
+use prusti_env_utils::{add_to_loader_path, get_latest_crate_artefact, prusti_sysroot};
 use std::env;
 use std::process::{Command, Stdio};
 
@@ -64,21 +61,17 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
                 .expect("the Prusti HOME path contains invalid UTF-8")
         ));
         cmd.arg("--extern");
-        cmd.arg(get_latest_crate_artefact(
-            &prusti_home,
-            "prusti_contracts",
-            "rlib",
+        let prusti_contracts_path =
+            get_latest_crate_artefact(&prusti_home, "prusti_contracts", "rlib");
+        cmd.arg(format!("prusti_contracts={}", prusti_contracts_path));
+        let prusti_internal_path =
+            get_latest_crate_artefact(&prusti_home, "prusti_contracts_internal", "so");
+        cmd.arg("--extern");
+        cmd.arg(format!(
+            "prusti_contracts_internal={}",
+            prusti_internal_path
         ));
     }
-    let prusti_internal_path =
-        get_latest_crate_artefact(&prusti_home, "prusti_contracts_internal", "so");
-    cmd.arg("--extern");
-    cmd.arg(format!(
-        "prusti_contracts_internal={}",
-        prusti_internal_path
-    ));
-    let proc_macro_sym = find_rustc_proc_macro_decls_symbol(&prusti_internal_path);
-    cmd.env("PRUSTI_CONTRACTS_MACRO_SYMBOL", proc_macro_sym);
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
 

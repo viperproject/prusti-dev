@@ -1,7 +1,6 @@
-#![feature(register_tool)]
-#![register_tool(prusti)]
+use prusti_contracts::*;
 
-#[prusti::requires(true)]
+#[requires(true)]
 pub fn test1(result: u32) -> u32 { result }
 
 fn main() {}

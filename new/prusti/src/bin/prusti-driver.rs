@@ -6,7 +6,6 @@ extern crate rustc_driver;
 use log::debug;
 use prusti::PrustiCompilerCalls;
 use std::env;
-use std::path::PathBuf;
 
 /// Initialize Prusti and the Rust compiler loggers.
 fn init_loggers() {
