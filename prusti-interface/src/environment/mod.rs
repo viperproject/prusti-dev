@@ -229,6 +229,7 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
             let item = self.get_assoc_item(impl_id, name);
             if item.is_some() {
+                assert!(result.is_none());
                 result = item;
             }
         });

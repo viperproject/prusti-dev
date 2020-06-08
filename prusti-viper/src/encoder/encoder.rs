@@ -367,31 +367,26 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         assert!(tymap.len() == 1);
 
         // get receiver object base type
-        let tcx = self.env().tcx();
         let mut impl_spec = SpecificationSet::Procedure(vec![], vec![]);
-        let sig = tcx.fn_sig(proc_def_id);
 
-        if sig.inputs().skip_binder().len() > 0 {
-            let self_ty_binder = sig.input(0);
-            let mut self_ty = self_ty_binder.skip_binder().clone();
+        let mut self_ty = None;
 
-            // stip reference on self type
-            if let ty::TypeVariants::TyRef(_, true_ty, _) = self_ty.sty {
-                self_ty = true_ty;
+        for (key, val) in tymap[0].iter() {
+            if key.is_self() {
+                self_ty = Some(val.clone());
             }
+        }
 
+        if let Some(ty) = self_ty {
             // get specification on trait impl if exists, and has receiver object
-            if self_ty.is_self() {
-                if let Some(ty) = tymap[0].get(self_ty) {
-                    if let Some(id) = tcx.trait_of_item(proc_def_id) {
-                        let proc_name = tcx.item_name(proc_def_id).as_symbol();
-                        if let Some(item) = self.env().get_trait_method_decl_for_type(ty, id, proc_name) {
-                            if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
-                                impl_spec = spec.clone();
-                            } else {
-                                debug!("Procedure {:?} has no specification", item.def_id);
-                            }
-                        }
+            // TODO(@jakob): fix reliance on self
+            if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
+                let proc_name = self.env().tcx().item_name(proc_def_id).as_symbol();
+                if let Some(item) = self.env().get_trait_method_decl_for_type(ty, id, proc_name) {
+                    if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
+                        impl_spec = spec.clone();
+                    } else {
+                        debug!("Procedure {:?} has no specification", item.def_id);
                     }
                 }
             }
