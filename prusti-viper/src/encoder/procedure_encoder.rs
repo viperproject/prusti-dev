@@ -456,6 +456,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     return_block
                 )?
             } else {
+                debug_assert!(curr_loop_depth > group_loop_depth);
                 let is_loop_head = loop_info.is_loop_head(curr_bb);
                 if curr_loop_depth == group_loop_depth + 1 && is_loop_head {
                     // Encode a nested loop
@@ -466,6 +467,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         return_block,
                     )?
                 } else {
+                    debug_assert!(curr_loop_depth > group_loop_depth + 1 || !is_loop_head);
                     // Skip the inner block of a nested loop
                     continue;
                 }
@@ -475,7 +477,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Return unresolved CFG edges
-        let group_head = ordered_group_blocks.get(0).map(|bb| bb_map[&bb]);
+        let group_head = ordered_group_blocks.get(0).map(|bb| {
+            debug_assert!(
+                bb_map.contains_key(bb),
+                "Block {:?} (depth: {}, loop head: {}) has not been encoded \
+                (group_loop_depth: {}, ordered_group_blocks: {:?})",
+                bb,
+                self.loop_encoder.loops().get_loop_depth(*bb),
+                self.loop_encoder.loops().is_loop_head(*bb),
+                group_loop_depth,
+                ordered_group_blocks,
+            );
+            bb_map[bb]
+        });
         let still_unresolved_edges = self.encode_unresolved_edges(
             unresolved_edges,
             |bb| bb_map.get(&bb).cloned()
@@ -549,8 +563,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let opt_loop_guard_switch = loop_info.get_loop_guard_switch(loop_head);
         let before_invariant_block: BasicBlockIndex = loop_body.iter().find(
             |&&bb| {
-                self.mir[bb].terminator().successors()
-                    .any(
+                loop_info.get_loop_depth(bb) == loop_depth &&
+                    self.mir[bb].terminator().successors().any(
                         |&succ_bb|
                             self.procedure.is_reachable_block(succ_bb)
                             && self.procedure.is_spec_block(succ_bb)
@@ -575,8 +589,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("after_inv_block: {:?}", after_inv_block);
         assert!(
             !loop_info.is_conditional_branch(loop_head, before_invariant_block),
-            "The loop invariant cannot be in a conditional branch (before_invariant_block: {:?})",
-            before_invariant_block
+            "The loop invariant cannot be in a conditional branch \
+            (before_invariant_block: {:?}, loop_head: {:?})",
+            before_invariant_block,
+            loop_head,
         );
 
         // Split the blocks such that:
@@ -624,12 +640,20 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vec![vir::Stmt::comment(format!("========== {}_havoc ==========", loop_label_prefix))],
         );
         {
-            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            let stmts = self.encode_loop_invariant_exhale_stmts(
+                loop_head,
+                before_invariant_block,
+                false,
+            );
             self.cfg_method.add_stmts(havock_block, stmts);
         }
         // TODO: havoc local variables
         {
-            let stmts = self.encode_loop_invariant_inhale_stmts(loop_head, false);
+            let stmts = self.encode_loop_invariant_inhale_stmts(
+                loop_head,
+                before_invariant_block,
+                false,
+            );
             self.cfg_method.add_stmts(havock_block, stmts);
         }
         heads.push(Some(havock_block));
@@ -669,7 +693,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vec![vir::Stmt::comment(format!("========== {}_end_body ==========", loop_label_prefix))],
         );
         {
-            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            let stmts = self.encode_loop_invariant_exhale_stmts(
+                loop_head,
+                before_invariant_block,
+                true,
+            );
             self.cfg_method.add_stmts(end_body_block, stmts);
         }
         self.cfg_method.add_stmt(
@@ -891,7 +919,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let stmts = self.encode_statement(mir_stmt, location);
             Ok((stmts, None))
         } else {
-            let mir_term = bb_data.terminator.as_ref().unwrap();
+            let mir_term = bb_data.terminator();
             let (stmts, succ) = self.encode_terminator(mir_term, location);
             Ok((stmts, Some(succ)))
         }
@@ -1506,7 +1534,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                 // Is the target an unreachable block?
                 if let mir::TerminatorKind::Unreachable =
-                    self.mir[default_target].terminator.as_ref().unwrap().kind {
+                    self.mir[default_target].terminator().kind {
                     stmts.push(vir::Stmt::comment(format!(
                         "Ignore default target {:?}, as the compiler marked it as unreachable.",
                         default_target
@@ -3432,7 +3460,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode the functional specification of a loop
-    fn encode_loop_invariant_specs(&self, loop_head: BasicBlockIndex) -> (Vec<vir::Expr>, MultiSpan) {
+    fn encode_loop_invariant_specs(
+        &self,
+        loop_head: BasicBlockIndex,
+        loop_inv_block: BasicBlockIndex,
+    ) -> (Vec<vir::Expr>, MultiSpan) {
         let spec_blocks = self.get_loop_spec_blocks(loop_head);
         trace!(
             "loop head {:?} has spec blocks {:?}",
@@ -3484,7 +3516,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 &encoded_args,
                                 None,
                                 false,
-                                Some(loop_head),
+                                Some(loop_inv_block),
                                 ErrorCtxt::GenericExpression,
                             );
                             let spec_spans = spec.assertion.get_spans();
@@ -3507,6 +3539,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_loop_invariant_exhale_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
+        loop_inv_block: BasicBlockIndex,
         after_loop_iteration: bool,
     ) -> Vec<vir::Stmt> {
         trace!(
@@ -3521,7 +3554,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
         let (permissions, equalities) = self.encode_loop_invariant_permissions(
             loop_head, !after_loop_iteration);
-        let (func_spec, func_spec_span) = self.encode_loop_invariant_specs(loop_head);
+        let (func_spec, func_spec_span) = self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
         // TODO: use different positions, and generate different error messages, for the exhale
         // before the loop and after the loop body
@@ -3586,6 +3619,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_loop_invariant_inhale_stmts(
         &mut self,
         loop_head: BasicBlockIndex,
+        loop_inv_block: BasicBlockIndex,
         after_loop: bool,
     ) -> Vec<vir::Stmt> {
         trace!(
@@ -3595,7 +3629,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         let (permissions, equalities) = self.encode_loop_invariant_permissions(
             loop_head, after_loop);
-        let (func_spec, _func_spec_span) = self.encode_loop_invariant_specs(loop_head);
+        let (func_spec, _func_spec_span) = self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
         let permission_expr = permissions.into_iter().conjoin();
         let equality_expr = equalities.into_iter().conjoin();

@@ -346,23 +346,27 @@ impl CfgMethod {
     }
 
     /// Find some path from the `start_block` to the `end_block`.
+    ///
+    /// The returned path includes both `start_block` and `end_block`.
     pub fn find_path(
         &self,
         start_block: CfgBlockIndex,
         end_block: CfgBlockIndex,
-    ) -> Vec<CfgBlockIndex> {
+    ) -> Option<Vec<CfgBlockIndex>> {
         trace!(
             "[enter] find_path start={:?} end={:?}",
             start_block,
             end_block
         );
-        assert!(!start_block.weak_eq(&end_block));
+        if start_block.weak_eq(&end_block) {
+            return Some(vec![start_block]);
+        }
         let mut visited = vec![false; self.basic_blocks.len()];
         let mut came_from = vec![None; self.basic_blocks.len()];
         let mut to_visit = VecDeque::new();
         to_visit.push_back(start_block);
         visited[start_block.block_index] = true;
-        loop {
+        while !to_visit.is_empty() {
             let curr_block_index = to_visit.pop_front().unwrap();
             trace!("curr_block_index={:?}", curr_block_index);
             let curr_block = &self.basic_blocks[curr_block_index.block_index];
@@ -376,7 +380,7 @@ impl CfgMethod {
                         index = previous;
                     }
                     path.reverse();
-                    return path;
+                    return Some(path);
                 }
                 if !visited[successor_block.block_index] {
                     visited[successor_block.block_index] = true;
@@ -385,6 +389,7 @@ impl CfgMethod {
                 }
             }
         }
+        None
     }
 }
 

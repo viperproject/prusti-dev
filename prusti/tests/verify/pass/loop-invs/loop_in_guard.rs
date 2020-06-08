@@ -1,16 +1,19 @@
 extern crate prusti_contracts;
 
-fn test() {
+fn test_loop_in_guard() {
     let mut i = 0;
 
+    #[invariant="i % 10 == 0 && i < 60"]
     while {
-        while i % 10 != 0 {
+        let old_i = i;
+        #[invariant="i < old_i + 10"]
+        while i < old_i + 10 {
             i += 1;
         }
-        assert!(i % 10 == 0);
+        assert!(i == old_i + 10);
         i < 55
     } {
-        i -= 1;
+        continue
     }
 
     assert!(i == 60);

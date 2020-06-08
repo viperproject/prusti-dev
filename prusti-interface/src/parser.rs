@@ -939,6 +939,7 @@ impl<'tcx> SpecParser<'tcx> {
         expr.node = match expr.node {
             ast::ExprKind::While(condition, block, ident) => {
                 let block = self.rewrite_loop_block(block, id, &invariants);
+                let condition = self.fold_expr(condition);
                 ast::ExprKind::While(condition, block, ident)
             }
             ast::ExprKind::WhileLet(pattern, expr, block, label) => {

@@ -285,6 +285,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 }
             }
         }
+        debug!("closure_instantiations: {:?}", closure_instantiations);
         self.closure_instantiations = closure_instantiations;
     }
 
@@ -824,6 +825,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         stop_at_bbi: Option<mir::BasicBlock>,
         error: ErrorCtxt,
     ) -> vir::Expr {
+        trace!("encode_assertion {:?}", assertion);
         let spec_encoder = SpecEncoder::new(
             self,
             mir,

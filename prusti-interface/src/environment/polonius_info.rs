@@ -1674,7 +1674,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             debug_assert_eq!(location.statement_index, 0);
             let mut predecessors = HashSet::new();
             for (bbi, bb_data) in self.mir.basic_blocks().iter_enumerated() {
-                for &bb_successor in bb_data.terminator.as_ref().unwrap().successors() {
+                for &bb_successor in bb_data.terminator().successors() {
                     if bb_successor == location.block {
                         predecessors.insert(mir::Location {
                             block: bbi,

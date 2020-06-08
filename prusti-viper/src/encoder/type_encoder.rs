@@ -111,7 +111,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Type::TypedRef(type_name)
             }
 
-            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unimplemented!(),
+            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);

@@ -187,16 +187,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn get_cfg_block_of_borrow(&self, borrow: &Borrow) -> CfgBlockIndex {
+    fn get_cfg_block_of_last_borrow(&self, curr_block: CfgBlockIndex, borrow: &Borrow) -> CfgBlockIndex {
         let mir_location = self.borrow_locations[borrow];
-        let cfg_blocks = &self.cfg_map[&mir_location.block];
+        let borrow_creation = &self.cfg_map[&mir_location.block];
+        // HACK: Choose the closest block. Can be optimized.
+        let mut nearest_block = None;
+        for &block in borrow_creation {
+            if let Some(path) = self.cfg.find_path(block, curr_block) {
+                if let Some((_, distance)) = nearest_block {
+                    if distance > path.len() {
+                        nearest_block = Some((block, path.len()));
+                    }
+                } else {
+                    nearest_block = Some((block, path.len()));
+                }
+            }
+        }
         assert!(
-            cfg_blocks.len() <= 1,
-            "Unsupported creation of borrow in a loop guard (borrow: {:?}, cfg_blocks: {:?})",
+            nearest_block.is_some(),
+            "Could not find a predecessor of {:?} in the blocks that create the borrow {:?} ({:?})",
+            curr_block,
             borrow,
-            cfg_blocks,
+            borrow_creation,
         );
-        *cfg_blocks.iter().next().unwrap()
+        nearest_block.unwrap().0
     }
 
     fn process_expire_borrows(
@@ -253,9 +267,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             let mut bctxt = if curr_block.predecessors.is_empty() {
                 let mut bctxt = surrounding_bctxt.clone();
                 let end_block = surrounding_block_index;
-                let start_block = self.get_cfg_block_of_borrow(&curr_node.borrow);
+                let start_block = self.get_cfg_block_of_last_borrow(
+                    surrounding_block_index,
+                    &curr_node.borrow
+                );
                 if !start_block.weak_eq(&end_block) {
-                    let path = new_cfg.find_path(start_block, end_block);
+                    let path = new_cfg.find_path(start_block, end_block).unwrap();
                     debug!(
                         "process_expire_borrows borrow={:?} path={:?}",
                         curr_node.borrow, path
@@ -281,10 +298,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 for &predecessor in &curr_block.predecessors {
                     let mut bctxt = final_bctxt[predecessor].as_ref().unwrap().clone();
                     let predecessor_node = &cfg.basic_blocks[predecessor].node;
-                    let end_block = self.get_cfg_block_of_borrow(&predecessor_node.borrow);
-                    let start_block = self.get_cfg_block_of_borrow(&curr_node.borrow);
+                    let end_block = self.get_cfg_block_of_last_borrow(
+                        surrounding_block_index,
+                        &predecessor_node.borrow
+                    );
+                    let start_block = self.get_cfg_block_of_last_borrow(
+                        surrounding_block_index,
+                        &curr_node.borrow
+                    );
                     if start_block != end_block {
-                        let path = new_cfg.find_path(start_block, end_block);
+                        let path = new_cfg.find_path(start_block, end_block).unwrap();
                         debug!(
                             "process_expire_borrows borrow={:?} path={:?}",
                             curr_node.borrow, path
