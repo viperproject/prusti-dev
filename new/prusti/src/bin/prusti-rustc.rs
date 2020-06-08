@@ -79,6 +79,8 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     ));
     let proc_macro_sym = find_rustc_proc_macro_decls_symbol(&prusti_internal_path);
     cmd.env("PRUSTI_CONTRACTS_MACRO_SYMBOL", proc_macro_sym);
+    // cmd.arg("-Zreport-delayed-bugs");
+    // cmd.arg("-Ztreat-err-as-bug=1");
 
     let mut child = cmd
         .stdout(Stdio::inherit()) // do not filter stdout
