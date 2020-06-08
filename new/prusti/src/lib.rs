@@ -20,22 +20,16 @@ extern crate smallvec;
 use rustc_driver::Compilation;
 use rustc_interface::interface::Compiler;
 use rustc_interface::Queries;
-use std::path::PathBuf;
-
-mod specs;
 
 pub struct PrustiCompilerCalls {
     /// Should Prusti print the AST with desugared specifications.
     print_desugared_specs: bool,
-    /// Path to the `.so` file containing the `prusti_contracts_internal` crate.
-    prusti_contracts_internal_path: PathBuf,
 }
 
 impl PrustiCompilerCalls {
-    pub fn new(print_desugared_specs: bool, prusti_contracts_internal_path: PathBuf) -> Self {
+    pub fn new(print_desugared_specs: bool) -> Self {
         Self {
             print_desugared_specs,
-            prusti_contracts_internal_path,
         }
     }
 }
@@ -47,23 +41,19 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
         compiler.session().abort_if_errors();
-        let crate_name = queries.crate_name().unwrap().peek().clone();
-        let (krate, resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
-        let result = resolver.borrow().borrow_mut().access(|resolver| {
-            specs::rewrite_crate(
-                compiler,
-                resolver,
-                crate_name,
+        let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
+        if self.print_desugared_specs {
+            rustc_driver::pretty::print_after_parsing(
+                compiler.session(),
+                compiler.input(),
                 krate,
-                &self.prusti_contracts_internal_path,
-                self.print_desugared_specs,
-            )
-        });
-        if result.is_err() {
-            Compilation::Stop
-        } else {
-            Compilation::Continue
+                rustc_session::config::PpMode::PpmSource(
+                    rustc_session::config::PpSourceMode::PpmNormal,
+                ),
+                None,
+            );
         }
+        Compilation::Continue
     }
     fn after_analysis<'tcx>(
         &mut self,
