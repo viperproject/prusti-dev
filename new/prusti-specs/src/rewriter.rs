@@ -1,7 +1,7 @@
 use crate::specifications::common::{
     ExpressionIdGenerator, SpecificationId, SpecificationIdGenerator,
 };
-use crate::specifications::untyped;
+use crate::specifications::untyped::{self, EncodeTypeCheck};
 use proc_macro2::{Span, TokenStream};
 use std::mem;
 use syn::spanned::Spanned;
@@ -174,14 +174,33 @@ impl AstRewriter {
     ) -> SpecificationId {
         let spec_id = self.spec_id_generator.generate();
         let item_name = syn::Ident::new(&format!("prusti_spec_item_{}", spec_id), span);
-
+        let fn_pre = {
+            let item_name_pre = syn::Ident::new(&format!("{}_pre", item_name), span);
+            let statements = self.encode_spec_type_check(&specs.pres);
+            let mut item_pre: syn::ItemFn = syn::parse_quote! {
+                #[prusti::spec_only]
+                fn #item_name_pre() {
+                    #statements
+                }
+            };
+            item_pre.sig.generics = item.sig.generics.clone();
+            item_pre.sig.inputs = item.sig.inputs.clone();
+            syn::Item::Fn(item_pre)
+        };
         let mut spec_item: syn::ItemFn = syn::parse_quote! {
+            #[prusti::spec_only]
             fn #item_name() {
+                #fn_pre
             }
         };
         spec_item.sig.generics = item.sig.generics.clone();
         self.spec_item_stack.push(syn::Item::Fn(spec_item));
         spec_id
+    }
+    fn encode_spec_type_check(&mut self, specs: &Vec<untyped::Specification>) -> TokenStream {
+        let mut encoded_specs = TokenStream::new();
+        specs.encode_type_check(&mut encoded_specs);
+        encoded_specs
     }
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.

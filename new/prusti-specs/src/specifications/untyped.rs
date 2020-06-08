@@ -2,6 +2,8 @@ use super::common::{self, ExpressionIdGenerator};
 use proc_macro2::{Span, TokenStream};
 use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
+use quote::{quote, quote_spanned};
+use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType};
 
@@ -105,5 +107,50 @@ impl AssignExpressionId<Assertion> for common::Assertion<(), syn::Expr, Arg> {
         Assertion {
             kind: self.kind.assign_id(id_generator),
         }
+    }
+}
+
+/// A trait for encoding the statements for type-checking the spec.
+pub trait EncodeTypeCheck {
+    fn encode_type_check(&self, tokens: &mut TokenStream);
+}
+
+impl EncodeTypeCheck for Vec<Specification> {
+    fn encode_type_check(&self, tokens: &mut TokenStream) {
+        for spec in self {
+            spec.encode_type_check(tokens);
+        }
+    }
+}
+
+impl EncodeTypeCheck for Specification {
+    fn encode_type_check(&self, tokens: &mut TokenStream) {
+        self.assertion.encode_type_check(tokens);
+    }
+}
+
+impl EncodeTypeCheck for Assertion {
+    fn encode_type_check(&self, tokens: &mut TokenStream) {
+        match &*self.kind {
+            AssertionKind::Expr(expression) => {
+                expression.encode_type_check(tokens);
+            }
+            x => {
+                unimplemented!("{:?}", x);
+            }
+        }
+    }
+}
+
+impl EncodeTypeCheck for Expression {
+    fn encode_type_check(&self, tokens: &mut TokenStream) {
+        let span = self.expr.span();
+        let expr = &self.expr;
+        let typeck_call = quote_spanned! { span =>
+            || -> bool {
+                #expr
+            };
+        };
+        tokens.extend(typeck_call);
     }
 }
