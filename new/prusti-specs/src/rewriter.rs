@@ -187,10 +187,32 @@ impl AstRewriter {
             item_pre.sig.inputs = item.sig.inputs.clone();
             syn::Item::Fn(item_pre)
         };
+        let fn_post = {
+            let item_name_post = syn::Ident::new(&format!("{}_post", item_name), span);
+            let statements = self.encode_spec_type_check(&specs.posts);
+            let mut item_post: syn::ItemFn = syn::parse_quote! {
+                #[prusti::spec_only]
+                fn #item_name_post() {
+                    #statements
+                }
+            };
+            item_post.sig.generics = item.sig.generics.clone();
+            item_post.sig.inputs = item.sig.inputs.clone();
+            let return_type = match &item.sig.output {
+                syn::ReturnType::Default => syn::parse_quote! { () },
+                syn::ReturnType::Type(_, box typ) => typ.clone(),
+            };
+            item_post
+                .sig
+                .inputs
+                .push(syn::parse_quote! { result: #return_type });
+            syn::Item::Fn(item_post)
+        };
         let mut spec_item: syn::ItemFn = syn::parse_quote! {
             #[prusti::spec_only]
             fn #item_name() {
                 #fn_pre
+                #fn_post
             }
         };
         spec_item.sig.generics = item.sig.generics.clone();
