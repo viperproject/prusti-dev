@@ -14,6 +14,7 @@ mod foldunfold;
 mod initialisation;
 mod loop_encoder;
 mod mir_encoder;
+mod mir_successor;
 mod mir_interpreter;
 mod optimiser;
 mod places;
