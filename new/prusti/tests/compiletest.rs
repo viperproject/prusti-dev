@@ -14,7 +14,9 @@ fn get_prusti_rustc_path() -> PathBuf {
         ["target", "debug", "prusti-rustc"].iter().collect()
     };
     let workspace_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["..", "target", "debug", "prusti-rustc.exe"].iter().collect()
+        ["..", "target", "debug", "prusti-rustc.exe"]
+            .iter()
+            .collect()
     } else {
         ["..", "target", "debug", "prusti-rustc"].iter().collect()
     };
@@ -28,7 +30,6 @@ fn get_prusti_rustc_path() -> PathBuf {
 }
 
 fn run_tests(mode: &str, path: &str) {
-
     // Ask prusti-rustc to load all proc-macro crates for us.
     env::set_var("PRUSTI_LOAD_ALL_PROC_MACRO_CRATES", "true");
 

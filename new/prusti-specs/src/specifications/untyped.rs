@@ -1,8 +1,8 @@
 use super::common::{self, ExpressionIdGenerator};
 use proc_macro2::{Span, TokenStream};
+use quote::{quote, quote_spanned};
 use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
-use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType};
