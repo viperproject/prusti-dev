@@ -8,6 +8,7 @@ extern crate rustc_ast_pretty;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_expand;
+extern crate rustc_hir;
 extern crate rustc_interface;
 extern crate rustc_metadata;
 extern crate rustc_middle;
@@ -23,6 +24,7 @@ use rustc_interface::Queries;
 use std::path::PathBuf;
 
 mod specs;
+mod visitor;
 
 pub struct PrustiCompilerCalls {
     /// Should Prusti print the AST with desugared specifications.
@@ -68,9 +70,19 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
     fn after_analysis<'tcx>(
         &mut self,
         compiler: &Compiler,
-        _queries: &'tcx Queries<'tcx>,
+        queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
+        queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+            // println!("After analysis!");
+            let hir = tcx.hir();
+            let krate = hir.krate();
+            let mut visitor = visitor::HirVisitor::new(tcx);
+            krate.visit_all_item_likes(&mut visitor);
+            std::process::exit(0);
+        });
+
         compiler.session().abort_if_errors();
+
         Compilation::Stop
     }
 }
