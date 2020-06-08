@@ -1,3 +1,4 @@
+use super::VerifierRunner;
 use futures::Canceled;
 use futures::{sync::oneshot, Future};
 use prusti_viper::encoder::vir::Program;
@@ -25,24 +26,29 @@ impl VerifierThread {
 
         builder
             .spawn(move || {
-                let context = verifier_builder.new_verification_context();
-                let verifier = context.new_viper_verifier(backend);
-                let ast_factory = context.new_ast_factory();
-                while let Ok(request) = request_receiver.recv() {
-                    let viper_program = request.program.to_viper(&ast_factory);
-                    let result = verifier.verify(viper_program);
-                    request.sender.send(result).unwrap_or_else(|err| {
-                        panic!(
-                            "verifier thread attempting to send result to dropped receiver: {:?}",
-                            err
-                        );
-                    });
-                }
+                VerifierRunner::with_runner(&verifier_builder, backend, |runner| {
+                    Self::listen_for_requests(runner, request_receiver)
+                });
             })
             .unwrap();
 
         Self {
             request_sender: Mutex::new(request_sender),
+        }
+    }
+
+    fn listen_for_requests(
+        runner: VerifierRunner,
+        request_receiver: mpsc::Receiver<VerificationRequest>,
+    ) {
+        while let Ok(request) = request_receiver.recv() {
+            let result = runner.verify(request.program, "for now"); // FIXME: actual name
+            request.sender.send(result).unwrap_or_else(|err| {
+                panic!(
+                    "verifier thread attempting to send result to dropped receiver: {:?}",
+                    err
+                );
+            });
         }
     }
 

@@ -14,14 +14,16 @@ extern crate serde_json;
 extern crate prusti_common;
 extern crate futures;
 
-pub mod service;
+mod service;
+mod verifier_runner;
 mod verifier_thread;
 
 use prusti_viper::encoder::vir::Program;
 use prusti_viper::verifier::VerifierBuilder;
-use service::*;
+pub use service::*;
 use std::collections::HashMap;
 use std::sync::Arc;
+pub use verifier_runner::*;
 use verifier_thread::*;
 use viper::{VerificationBackend, VerificationResult};
 
