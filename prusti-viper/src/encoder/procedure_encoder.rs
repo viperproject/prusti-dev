@@ -6,8 +6,8 @@
 
 use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::error_manager::ErrorCtxt;
-use encoder::error_manager::PanicCause;
+use encoder::errors::{ErrorCtxt, ProcedureEncodingError};
+use encoder::errors::PanicCause;
 use encoder::foldunfold;
 use encoder::initialisation::InitInfo;
 use encoder::loop_encoder::LoopEncoder;
@@ -49,10 +49,6 @@ use syntax::attr::SignedInt;
 use syntax::codemap::{Span, MultiSpan};
 use utils::to_string::ToString;
 use std;
-
-pub enum ProcedureEncodingError {
-    UnsupportedLoanInLoop(String, Span)
-}
 
 type Result<T> = std::result::Result<T, ProcedureEncodingError>;
 
@@ -142,6 +138,46 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             init_info: init_info,
             old_to_ghost_var: HashMap::new(),
             old_ghost_vars: HashMap::new(),
+        }
+    }
+
+    fn translate_polonius_error(&self, error: PoloniusInfoError) -> ProcedureEncodingError {
+        match error {
+            PoloniusInfoError::UnsupportedLoanInLoop{ loop_head, variable } => {
+                let msg = if let Some(name) = self.mir.local_decls[variable].name {
+                    format!("creation of loan '{}' in loop is unsupported", name)
+                } else {
+                    "creation of temporary loan in loop is unsupported".to_string()
+                };
+                ProcedureEncodingError::Generic(
+                    msg,
+                    self.mir_encoder.get_span_of_basic_block(loop_head)
+                )
+            }
+            PoloniusInfoError::ReborrowingDagHasWrongLoanLoops(location) => {
+                ProcedureEncodingError::Generic(
+                    "ReborrowingDagHasWrongLoanLoops".to_string(),
+                    self.mir.source_info(location).span,
+                )
+            }
+            PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
+                ProcedureEncodingError::Generic(
+                    "ReborrowingDagHasEmptyMagicWand".to_string(),
+                    self.mir.source_info(location).span,
+                )
+            }
+            PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
+                ProcedureEncodingError::Generic(
+                    "ReborrowingDagHasWrongReborrowingChain".to_string(),
+                    self.mir.source_info(location).span,
+                )
+            }
+            PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
+                ProcedureEncodingError::Generic(
+                    "ReborrowingDagHasNoRepresentativeLoan".to_string(),
+                    self.mir.source_info(location).span,
+                )
+            }
         }
     }
 
@@ -270,20 +306,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Load Polonius info
-        match PoloniusInfo::new(&self.procedure) {
-            Ok(result) => self.polonius_info = Some(result),
-            Err(PoloniusInfoError::UnsupportedLoanInLoop{ loop_head, variable }) => {
-                let msg = if let Some(name) = self.mir.local_decls[variable].name {
-                    format!("creation of loan '{}' in loop is unsupported", name)
-                } else {
-                    "creation of temporary loan in loop is unsupported".to_string()
-                };
-                return Err(ProcedureEncodingError::UnsupportedLoanInLoop(
-                    msg,
-                    self.mir_encoder.get_span_of_basic_block(loop_head)
-                ));
-            }
-        }
+        self.polonius_info = Some(
+            PoloniusInfo::new(&self.procedure)
+                .map_err(|err| self.translate_polonius_error(err))?
+        );
 
         // Initialize CFG blocks
         let start_cfg_block = self.cfg_method.add_block(
@@ -807,7 +833,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut targets_map = HashMap::new();
         let mut complete_resolution = true;
         for &target in &mir_targets {
-            let opt_edge_block = self.encode_edge_block(bbi, target, force_block_on_edge);
+            let opt_edge_block = self.encode_edge_block(bbi, target, force_block_on_edge)?;
             if let Some(edge_block) = opt_edge_block {
                 targets_map.insert(target, edge_block);
             } else {
@@ -882,7 +908,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.cfg_method.add_stmts(cfg_block, stmts);
             }
             {
-                let stmts = self.encode_expiring_borrows_at(location);
+                let stmts = self.encode_expiring_borrows_at(location)?;
                 self.cfg_method.add_stmts(cfg_block, stmts);
             }
         }
@@ -920,7 +946,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             Ok((stmts, None))
         } else {
             let mir_term = bb_data.terminator();
-            let (stmts, succ) = self.encode_terminator(mir_term, location);
+            let (stmts, succ) = self.encode_terminator(mir_term, location)?;
             Ok((stmts, Some(succ)))
         }
     }
@@ -1152,10 +1178,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
-    ) -> vir::borrows::DAG {
+    ) -> Result<vir::borrows::DAG> {
         let mir_dag = self
             .polonius_info()
-            .construct_reborrowing_dag(&loans, &zombie_loans, location);
+            .construct_reborrowing_dag(&loans, &zombie_loans, location)
+            .map_err(|err| self.translate_polonius_error(err))?;
         debug!(
             "construct_vir_reborrowing_dag mir_dag={}",
             mir_dag.to_string()
@@ -1197,7 +1224,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             "construct_vir_reborrowing_dag mir_dag={}",
             mir_dag.to_string()
         );
-        builder.finish()
+        Ok(builder.finish())
     }
 
     fn construct_location_guard(&self, location: mir::Location) -> vir::Expr {
@@ -1398,7 +1425,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         end_location: Option<mir::Location>,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         trace!(
             "encode_expiration_of_loans '{:?}' '{:?}'",
             loans,
@@ -1407,17 +1434,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut stmts: Vec<vir::Stmt> = vec![];
         if loans.len() > 0 {
             let vir_reborrowing_dag =
-                self.construct_vir_reborrowing_dag(&loans, &zombie_loans, location, end_location);
+                self.construct_vir_reborrowing_dag(&loans, &zombie_loans, location, end_location)?;
             stmts.push(vir::Stmt::ExpireBorrows(vir_reborrowing_dag));
         }
-        stmts
+        Ok(stmts)
     }
 
     fn encode_expiring_borrows_between(
         &mut self,
         begin_loc: mir::Location,
         end_loc: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         debug!(
             "encode_expiring_borrows_beteewn '{:?}' '{:?}'",
             begin_loc, end_loc
@@ -1429,7 +1456,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
     }
 
-    fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
+    fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Result<Vec<vir::Stmt>> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
         let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
@@ -1439,7 +1466,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
-    ) -> (Vec<vir::Stmt>, MirSuccessor) {
+    ) -> Result<(Vec<vir::Stmt>, MirSuccessor)> {
         debug!(
             "Encode terminator '{:?}', span: {:?}",
             term.kind, term.source_info.span
@@ -1448,14 +1475,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             vir::Stmt::comment(format!("[mir] {:?}", term.kind))
         ];
 
-        match term.kind {
+        let result = match term.kind {
             TerminatorKind::Return => {
                 // Package magic wands, if there is any
                 stmts.extend(self.encode_package_end_of_method(
                     PRECONDITION_LABEL,
                     POSTCONDITION_LABEL,
                     location,
-                ));
+                )?);
 
                 (stmts, MirSuccessor::Return)
             }
@@ -1877,7 +1904,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::Resume
             | TerminatorKind::Yield { .. }
             | TerminatorKind::GeneratorDrop => unimplemented!("{:?}", term.kind),
-        }
+        };
+        Ok(result)
     }
 
     /// Encode an edge of the MIR graph
@@ -1886,7 +1914,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         source: BasicBlockIndex,
         destination: BasicBlockIndex,
         force_block: bool,
-    ) -> Option<CfgBlockIndex> {
+    ) -> Result<Option<CfgBlockIndex>> {
         let source_loc = mir::Location {
             block: source,
             statement_index: self.mir[source].statements.len(),
@@ -1895,7 +1923,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             block: destination,
             statement_index: 0,
         };
-        let stmts = self.encode_expiring_borrows_between(source_loc, destination_loc);
+        let stmts = self.encode_expiring_borrows_between(source_loc, destination_loc)?;
 
         if force_block || !stmts.is_empty() {
             let edge_label = self.cfg_method.get_fresh_label_name();
@@ -1914,9 +1942,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 );
                 self.cfg_method.add_stmts(edge_block, stmts);
             }
-            Some(edge_block)
+            Ok(Some(edge_block))
         } else {
-            None
+            Ok(None)
         }
     }
 
@@ -2925,7 +2953,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         pre_label: &str,
         post_label: &str,
         location: mir::Location,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         let mut stmts = Vec::new();
 
         // Package magic wand(s)
@@ -2948,7 +2976,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let (all_loans, zombie_loans) = self
                         .polonius_info()
                         .get_all_loans_kept_alive_by(start_point, *region);
-                    self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)
+                    self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)?
                 } else {
                     unreachable!(); // Really?
                 };
@@ -3022,7 +3050,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
 
-        stmts
+        Ok(stmts)
     }
 
     /// Encode postcondition exhale on the definition side.

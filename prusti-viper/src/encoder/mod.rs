@@ -9,7 +9,7 @@ pub use self::encoder::Encoder;
 mod borrows;
 mod builtin_encoder;
 mod encoder;
-mod error_manager;
+mod errors;
 mod foldunfold;
 mod initialisation;
 mod loop_encoder;

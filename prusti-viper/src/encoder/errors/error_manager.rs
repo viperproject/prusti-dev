@@ -10,8 +10,6 @@ use syntax::codemap::CodeMap;
 use syntax_pos::MultiSpan;
 use uuid::Uuid;
 use viper::VerificationError;
-use encoder::procedure_encoder::ProcedureEncodingError;
-use encoder::pure_function_encoder::PureFunctionEncodingError;
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
@@ -91,13 +89,6 @@ pub enum ErrorCtxt {
     AssertMethodPostconditionStrengthening(MultiSpan),
     /// A Viper `assert false` that encodes an unsupported reason
     Unsupported(String, String),
-}
-
-/// An error in the encoding. For example, usage of unsupported Rust features.
-#[derive(From)]
-pub enum EncodingError {
-    Procedure(ProcedureEncodingError),
-    PureFunction(PureFunctionEncodingError),
 }
 
 /// The Rust error that will be reported from the compiler
@@ -531,15 +522,6 @@ impl<'tcx> ErrorManager<'tcx> {
                     Try increasing it by setting the configuration parameter \
                     ASSERT_TIMEOUT to a larger value."
                 )
-            }
-        }
-    }
-
-    pub fn translate_encoding_error(&self, error: EncodingError) -> CompilerError {
-        match error {
-            EncodingError::Procedure(ProcedureEncodingError::UnsupportedLoanInLoop(msg, span)) |
-            EncodingError::PureFunction(PureFunctionEncodingError::CallImpure(msg, span)) => {
-                CompilerError::new(msg, span.into())
             }
         }
     }

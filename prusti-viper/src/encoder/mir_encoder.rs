@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::error_manager::ErrorCtxt;
+use encoder::errors::ErrorCtxt;
 use encoder::vir;
 use encoder::Encoder;
 use prusti_interface::config;

@@ -327,12 +327,18 @@ impl ReborrowingDAG {
     }
 }
 
+#[derive(Clone, Debug)]
 pub enum PoloniusInfoError {
     /// Loans depending on branches inside loops are not implemented yet
     UnsupportedLoanInLoop {
         loop_head: mir::BasicBlock,
         variable: mir::Local,
-    }
+    },
+    ReborrowingDagHasWrongLoanLoops(mir::Location),
+    ReborrowingDagHasEmptyMagicWand(mir::Location),
+    /// We currently support only one reborrowing chain per loop
+    ReborrowingDagHasWrongReborrowingChain(mir::Location),
+    ReborrowingDagHasNoRepresentativeLoan(mir::Location),
 }
 
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
@@ -1103,7 +1109,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         loans: &[facts::Loan],
         zombie_loans: &[facts::Loan],
         location: mir::Location,
-    ) -> ReborrowingDAG {
+    ) -> Result<ReborrowingDAG, PoloniusInfoError> {
         self.construct_reborrowing_dag_custom_reborrows(
             loans,
             zombie_loans,
@@ -1117,7 +1123,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         loans: &[facts::Loan],
         zombie_loans: &[facts::Loan],
         location: mir::Location,
-    ) -> ReborrowingDAG {
+    ) -> Result<ReborrowingDAG, PoloniusInfoError> {
         self.construct_reborrowing_dag_custom_reborrows(
             loans,
             zombie_loans,
@@ -1154,7 +1160,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         reborrows_direct: &Vec<(facts::Loan, facts::Loan)>,
-    ) -> ReborrowingDAG {
+    ) -> Result<ReborrowingDAG, PoloniusInfoError> {
         trace!(
             "[enter] construct_reborrowing_dag_custom_reborrows\
              (loans={:?}, zombie_loans={:?}, location={:?})",
@@ -1174,7 +1180,9 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             let depth = self.loops.get_loop_head_depth(loop_head);
             debug!("loop_head: {:?} depth: {:?}", loop_head, depth);
             let loan_loops = self.get_loan_loops(&loans);
-            assert!(loan_loops.iter().all(|(_, head)| { *head == loop_head }));
+            if !loan_loops.iter().all(|(_, head)| { *head == loop_head }) {
+                return Err(PoloniusInfoError::ReborrowingDagHasWrongLoanLoops(location));
+            }
         } else {
             let loan_loops = self.get_loan_loops(&loans);
             if !loan_loops.is_empty() {
@@ -1183,15 +1191,18 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 }
                 let (_, loop_head) = loan_loops[0];
                 debug!("loop_head = {:?}", loop_head);
-                assert!(!self.loop_magic_wands.is_empty());
+                if self.loop_magic_wands.is_empty() {
+                    return Err(PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location));
+                }
                 let loop_magic_wands = &self.loop_magic_wands[&loop_head];
-                assert!(
-                    loop_magic_wands.len() == 1,
-                    "We currently support only one reborrowing chain per loop."
-                );
+                if loop_magic_wands.len() != 1 {
+                    return Err(PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location));
+                }
                 let magic_wand = &loop_magic_wands[0];
                 representative_loan = Some(magic_wand.root_loan);
-                assert!(representative_loan.is_some());
+                if representative_loan.is_none() {
+                    return Err(PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location));
+                }
                 loans = loans
                     .into_iter()
                     .filter(|loan| {
@@ -1388,7 +1399,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 }
             })
             .collect();
-        ReborrowingDAG { nodes: nodes }
+        Ok(ReborrowingDAG { nodes: nodes })
     }
 
     fn construct_reborrowing_kind(
