@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![deny(unused_must_use)]
-
 #![recursion_limit = "1024"]
 #![feature(iterator_flatten)]
 
@@ -18,6 +17,8 @@ extern crate uuid;
 extern crate viper_sys;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate prusti_common;
 
 mod ast_factory;
 mod ast_utils;

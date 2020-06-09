@@ -123,15 +123,8 @@ impl<'a> Verifier<'a, state::Started> {
             ast_utils.pretty_print(program)
         );
 
-        // TODO: run_timed
-
-        let start_consistency_checks = Instant::now();
-        let consistency_errors = ast_utils.check_consistency(program);
-        let duration = start_consistency_checks.elapsed();
-        debug!(
-            "Viper consistency checs took {}.{} seconds",
-            duration.as_secs(),
-            duration.subsec_millis() / 10
+        run_timed!("Viper consistency checks", debug,
+            let consistency_errors = ast_utils.check_consistency(program);
         );
 
         if !consistency_errors.is_empty() {
@@ -147,17 +140,11 @@ impl<'a> Verifier<'a, state::Started> {
             );
         }
 
-        let start_verification = Instant::now();
-        let viper_result = self.jni.unwrap_result(
-            self.verifier_wrapper
-                .call_verify(self.verifier_instance, program.to_jobject()),
-        );
-        let duration = start_verification.elapsed();
-
-        debug!(
-            "Viper verification took {}.{} seconds",
-            duration.as_secs(),
-            duration.subsec_millis() / 10
+        run_timed!("Viper verification", debug,
+            let viper_result = self.jni.unwrap_result(
+                self.verifier_wrapper
+                    .call_verify(self.verifier_instance, program.to_jobject()),
+            );
         );
         debug!(
             "Viper verification result: {}",
