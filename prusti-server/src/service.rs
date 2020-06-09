@@ -55,7 +55,9 @@ impl PrustiServerConnection {
         Self { client }
     }
 
-    pub fn new_fake() -> Self {
+    // TODO: figure out if this is valuable
+    /// Spawns a server off-thread and connects to it; will probably be deleted.
+    pub fn new_spawning_own_server() -> Self {
         let (sender, receiver) = mpsc::channel();
         thread::spawn(move || {
             let handle = ServerSideService::new(PrustiServer::new())

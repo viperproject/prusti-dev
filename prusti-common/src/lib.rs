@@ -30,7 +30,7 @@ macro_rules! run_timed {
 }
 
 /// Runs a given function, timing and logging (info-level) how long it took, returning the function's result.
-pub fn run_timed<F: FnOnce() -> T, T>(desc: &'static str, task: F) -> T {
+pub fn run_timed<F: FnOnce() -> T, T>(desc: &str, task: F) -> T {
     run_timed!(desc, let result = task(););
     result
 }

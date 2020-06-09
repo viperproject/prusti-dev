@@ -6,6 +6,7 @@
 
 use encoder::vir::ast::*;
 use encoder::vir::borrows::borrow_id;
+use encoder::vir::Program;
 use prusti_common::config;
 use viper;
 use viper::AstFactory;
@@ -16,6 +17,66 @@ pub trait ToViper<'v, T> {
 
 pub trait ToViperDecl<'v, T> {
     fn to_viper_decl(&self, ast: &AstFactory<'v>) -> T;
+}
+
+impl<'v> ToViper<'v, viper::Program<'v>> for Program {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Program<'v> {
+        let domains: Vec<viper::Domain> = vec![];
+        let fields = self.fields.to_viper(ast);
+
+        let mut viper_methods: Vec<_> = self.methods.iter().map(|m| m.to_viper(ast)).collect();
+        viper_methods.extend(self.builtin_methods.iter().map(|m| m.to_viper(ast)));
+        if config::verify_only_preamble() {
+            viper_methods = Vec::new();
+        }
+
+        let mut viper_functions: Vec<_> = self.functions.iter().map(|f| f.to_viper(ast)).collect();
+        let mut predicates = self.viper_predicates.to_viper(ast);
+
+        info!(
+            "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
+            domains.len(),
+            fields.len(),
+            viper_functions.len(),
+            predicates.len(),
+            viper_methods.len()
+        );
+
+        // Add a function that represents the symbolic read permission amount.
+        viper_functions.push(ast.function(
+            "read$",
+            &[],
+            ast.perm_type(),
+            &[],
+            &[
+                ast.lt_cmp(ast.no_perm(), ast.result(ast.perm_type())),
+                ast.lt_cmp(ast.result(ast.perm_type()), ast.full_perm()),
+            ],
+            ast.no_position(),
+            None,
+        ));
+
+        // Add a predicate that represents the dead loan token.
+        predicates.push(
+            ast.predicate(
+                "DeadBorrowToken$",
+                &[LocalVar {
+                    name: "borrow".to_string(),
+                    typ: Type::Int,
+                }
+                .to_viper_decl(ast)],
+                None,
+            ),
+        );
+
+        ast.program(
+            &domains,
+            &fields,
+            &viper_functions,
+            &predicates,
+            &viper_methods,
+        )
+    }
 }
 
 impl<'v> ToViper<'v, viper::Position<'v>> for Position {
@@ -69,10 +130,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Exhale(ref expr, ref pos) => {
                 assert!(!pos.is_default());
                 ast.exhale(expr.to_viper(ast), pos.to_viper(ast))
-            },
+            }
             &Stmt::Assert(ref expr, _, ref pos) => {
                 ast.assert(expr.to_viper(ast), pos.to_viper(ast))
-            },
+            }
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::new(0, 0, "method_call".to_string());
                 ast.method_call(
@@ -130,8 +191,8 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             .into_iter()
                             .map(|access| {
                                 let fake_position = Position::new(0, 0, "fold_assert".to_string());
-                                let assert = Stmt::Assert(
-                                    access, FoldingBehaviour::None, fake_position);
+                                let assert =
+                                    Stmt::Assert(access, FoldingBehaviour::None, fake_position);
                                 assert.to_viper(ast)
                             })
                             .collect()
@@ -341,17 +402,15 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ref expr,
                 perm,
                 ref _variant,
-                ref pos
-            ) => {
-                ast.unfolding_with_pos(
-                    ast.predicate_access_predicate(
-                        ast.predicate_access(&args.to_viper(ast)[..], &predicate_name),
-                        perm.to_viper(ast),
-                    ),
-                    expr.to_viper(ast),
-                    pos.to_viper(ast),
-                )
-            },
+                ref pos,
+            ) => ast.unfolding_with_pos(
+                ast.predicate_access_predicate(
+                    ast.predicate_access(&args.to_viper(ast)[..], &predicate_name),
+                    perm.to_viper(ast),
+                ),
+                expr.to_viper(ast),
+                pos.to_viper(ast),
+            ),
             &Expr::Cond(ref guard, ref left, ref right, ref pos) => ast.cond_exp_with_pos(
                 guard.to_viper(ast),
                 left.to_viper(ast),

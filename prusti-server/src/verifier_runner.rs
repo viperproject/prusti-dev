@@ -1,7 +1,7 @@
 use prusti_common::config;
 use prusti_common::report::log;
 use prusti_common::run_timed;
-use prusti_viper::encoder::vir::Program;
+use prusti_viper::encoder::vir::{Program, ToViper};
 use prusti_viper::verification_service::ViperBackendConfig;
 use prusti_viper::verifier::{VerificationContext, VerifierBuilder};
 use viper::{self, VerificationResult};

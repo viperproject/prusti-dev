@@ -7,6 +7,10 @@ pub trait VerificationService {
     fn verify(&self, program: Program, config: ViperBackendConfig) -> viper::VerificationResult;
 }
 
+/**
+The configuration for the viper backend, (i.e. verifier).
+Expresses which backend (silicon or carbon) should be used, and provides command-line arguments to the viper verifier.
+*/
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct ViperBackendConfig {
     pub backend: VerificationBackend,
