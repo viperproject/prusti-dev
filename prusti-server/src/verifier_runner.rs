@@ -38,7 +38,7 @@ impl<'v> VerifierRunner<'v> {
 
     fn new(context: &'v VerificationContext, backend_config: &ViperBackendConfig) -> Self {
         Self {
-            verifier: context.new_viper_verifier(backend_config), // TODO: handle args
+            verifier: context.new_viper_verifier(backend_config),
             ast_factory: context.new_ast_factory(),
             ast_utils: context.new_ast_utils(),
         }

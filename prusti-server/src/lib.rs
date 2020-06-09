@@ -18,8 +18,7 @@ mod service;
 mod verifier_runner;
 mod verifier_thread;
 
-use prusti_viper::encoder::vir::Program;
-use prusti_viper::verification_service::ViperBackendConfig;
+use prusti_viper::verification_service::*;
 use prusti_viper::verifier::VerifierBuilder;
 pub use service::*;
 use std::collections::HashMap;
@@ -44,26 +43,30 @@ impl PrustiServer {
         }
     }
 
-    pub fn run_verifier_async(
-        &self,
-        program: Program,
-        backend_config: ViperBackendConfig,
-    ) -> FutVerificationResult {
+    pub fn run_verifier_async(&self, request: VerificationRequest) -> FutVerificationResult {
         // create new thread if none exists for given configuration
-        if !self.threads.read().unwrap().contains_key(&backend_config) {
-            let thread = VerifierThread::new(self.verifier_builder.clone(), backend_config.clone());
+        if !self
+            .threads
+            .read()
+            .unwrap()
+            .contains_key(&request.backend_config)
+        {
+            let thread = VerifierThread::new(
+                self.verifier_builder.clone(),
+                request.backend_config.clone(),
+            );
             self.threads
                 .write()
                 .unwrap()
-                .insert(backend_config.clone(), thread);
+                .insert(request.backend_config.clone(), thread);
         }
         // TODO: limit thread pool size, getting rid of disused threads when necessary.
 
         self.threads
             .read()
             .unwrap()
-            .get(&backend_config)
+            .get(&request.backend_config)
             .unwrap()
-            .verify(program)
+            .verify(request.program, request.program_name)
     }
 }

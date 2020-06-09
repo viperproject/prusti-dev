@@ -4,7 +4,14 @@ use viper;
 use viper::VerificationBackend;
 
 pub trait VerificationService {
-    fn verify(&self, program: Program, config: ViperBackendConfig) -> viper::VerificationResult;
+    fn verify(&self, request: VerificationRequest) -> viper::VerificationResult;
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerificationRequest {
+    pub program: Program,
+    pub program_name: String,
+    pub backend_config: ViperBackendConfig,
 }
 
 /**

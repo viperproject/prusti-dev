@@ -11,7 +11,9 @@ fn get_prusti_rustc_path() -> PathBuf {
         ["target", "debug", "prusti-rustc"].iter().collect()
     };
     let workspace_prusti_rustc_path: PathBuf = if cfg!(windows) {
-        ["..", "target", "debug", "prusti-rustc.exe"].iter().collect()
+        ["..", "target", "debug", "prusti-rustc.exe"]
+            .iter()
+            .collect()
     } else {
         ["..", "target", "debug", "prusti-rustc"].iter().collect()
     };
@@ -139,6 +141,7 @@ fn run_verification(group_name: &str) {
 
 #[test]
 fn test_runner() {
+    // TODO: spawn server process as child (so it stays around until main function terminates)
     run_no_verification("parse");
     run_no_verification("typecheck");
     run_verification("verify");

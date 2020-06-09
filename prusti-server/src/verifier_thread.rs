@@ -12,6 +12,7 @@ pub type FutVerificationResult = Box<Future<Item = VerificationResult, Error = C
 
 struct VerificationRequest {
     pub program: Program,
+    pub program_name: String,
     pub sender: oneshot::Sender<VerificationResult>,
 }
 
@@ -46,7 +47,7 @@ impl VerifierThread {
         request_receiver: mpsc::Receiver<VerificationRequest>,
     ) {
         while let Ok(request) = request_receiver.recv() {
-            let result = runner.verify(request.program, "for now"); // FIXME: actual name
+            let result = runner.verify(request.program, request.program_name.as_str());
             request.sender.send(result).unwrap_or_else(|err| {
                 panic!(
                     "verifier thread attempting to send result to dropped receiver: {:?}",
@@ -56,13 +57,14 @@ impl VerifierThread {
         }
     }
 
-    pub fn verify(&self, program: Program) -> FutVerificationResult {
+    pub fn verify(&self, program: Program, program_name: String) -> FutVerificationResult {
         let (tx, rx) = oneshot::channel();
         self.request_sender
             .lock()
             .unwrap()
             .send(VerificationRequest {
                 program,
+                program_name,
                 sender: tx,
             })
             .unwrap();

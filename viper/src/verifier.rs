@@ -123,6 +123,8 @@ impl<'a> Verifier<'a, state::Started> {
             ast_utils.pretty_print(program)
         );
 
+        // TODO: run_timed
+
         let start_consistency_checks = Instant::now();
         let consistency_errors = ast_utils.check_consistency(program);
         let duration = start_consistency_checks.elapsed();

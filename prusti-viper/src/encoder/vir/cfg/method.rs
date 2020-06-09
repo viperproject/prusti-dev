@@ -13,14 +13,14 @@ use uuid::Uuid;
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CfgMethod { // TODO: Should labels and reserved_labels be ignored?
+pub struct CfgMethod {
+    // TODO: extract logic using (most) skipped fields to CfgMethodBuilder
     #[serde(skip)]
     pub(super) uuid: Uuid,
     pub(super) method_name: String,
     pub(in super::super) formal_arg_count: usize,
     pub(in super::super) formal_returns: Vec<LocalVar>,
     pub(in super::super) local_vars: Vec<LocalVar>,
-    #[serde(skip)]
     pub(super) labels: HashSet<String>,
     #[serde(skip)]
     pub(super) reserved_labels: HashSet<String>,
@@ -292,7 +292,9 @@ impl CfgMethod {
         let mut result = HashMap::new();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
-                let entry = result.entry(successor.block_index).or_insert_with(|| {Vec::new()});
+                let entry = result
+                    .entry(successor.block_index)
+                    .or_insert_with(|| Vec::new());
                 entry.push(index);
             }
         }

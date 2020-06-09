@@ -11,7 +11,7 @@ use tarpc::util::Never;
 use viper::VerificationResult;
 
 service! {
-    rpc verify(program: Program, config: ViperBackendConfig) -> VerificationResult;
+    rpc verify(request: VerificationRequest) -> VerificationResult;
 }
 
 #[derive(Clone)]
@@ -28,14 +28,10 @@ impl ServerSideService {
 }
 
 impl SyncService for ServerSideService {
-    fn verify(
-        &self,
-        program: Program,
-        backend_config: ViperBackendConfig,
-    ) -> Result<VerificationResult, Never> {
+    fn verify(&self, request: VerificationRequest) -> Result<VerificationResult, Never> {
         Ok(self
             .server
-            .run_verifier_async(program, backend_config)
+            .run_verifier_async(request)
             .wait()
             .expect("verification task canceled—this should not be possible!"))
     }
@@ -71,7 +67,7 @@ impl PrustiServerConnection {
 }
 
 impl VerificationService for PrustiServerConnection {
-    fn verify(&self, program: Program, config: ViperBackendConfig) -> VerificationResult {
-        self.client.verify(program, config).unwrap()
+    fn verify(&self, request: VerificationRequest) -> VerificationResult {
+        self.client.verify(request).unwrap()
     }
 }

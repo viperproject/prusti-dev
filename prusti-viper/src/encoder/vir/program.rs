@@ -1,7 +1,7 @@
 use encoder::vir::ast::*;
 use encoder::vir::cfg::CfgMethod;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Program {
     pub fields: Vec<Field>,
     pub builtin_methods: Vec<BodylessMethod>,

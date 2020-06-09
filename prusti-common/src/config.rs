@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config_crate::{Config, Environment, File};
+use serde::Deserialize;
 use std::env;
 use std::sync::RwLock;
-use serde::Deserialize;
 
 lazy_static! {
     // Is this RwLock<..> necessary?
@@ -29,7 +29,6 @@ lazy_static! {
         settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
-        settings.set_default("NUM_PARENTS_FOR_DUMPS", 0).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
@@ -72,7 +71,10 @@ pub fn dump() -> String {
     format!("{:?}", SETTINGS.read().unwrap())
 }
 
-fn read_setting<T>(name: &'static str) -> T where T: Deserialize<'static> {
+fn read_setting<T>(name: &'static str) -> T
+where
+    T: Deserialize<'static>,
+{
     SETTINGS.read().unwrap().get(name).unwrap()
 }
 
@@ -132,11 +134,6 @@ pub fn dump_borrowck_info() -> bool {
 /// Should we dump the Viper program?
 pub fn dump_viper_program() -> bool {
     read_setting("DUMP_VIPER_PROGRAM")
-}
-
-/// How many parent folders should be used to disambiguate the Viper dumps (and other debug files)?
-pub fn num_parents_for_dumps() -> u64 {
-    read_setting("NUM_PARENTS_FOR_DUMPS")
 }
 
 /// In which folder should we sore log/dumps?
