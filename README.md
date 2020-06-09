@@ -1,5 +1,9 @@
+**WARNING:** We are currently upgrading Prusti to work with the latest version of the Rust compiler. As a result, many things are likely to break and be moved around. Therefore, most likely we will not be able to accept contributions until the upgrade is done.
+
 Prusti-dev
 ==========
+
+[![Test](https://github.com/viperproject/prusti-dev/workflows/Test/badge.svg)](https://github.com/viperproject/prusti-dev/actions?query=workflow%3ATest+branch%3Amaster)
 
 [Prusti](http://www.pm.inf.ethz.ch/research/prusti.html) is a prototype verifier for Rust,
 built upon the the [Viper verification infrastructure](http://www.pm.inf.ethz.ch/research/viper.html).
@@ -11,13 +15,17 @@ The tool checks them, reporting error messages when the code does not adhere to 
 
 To see examples of programs annotated with specifications, look into the [`prusti/tests/verify/pass/rosetta`](prusti/tests/verify/pass/rosetta) and [`prusti/tests/verify/pass-overflow/rosetta`](prusti/tests/verify/pass-overflow/rosetta) folders.
 
+For a tutorial and more information, check out [the wiki page](https://github.com/viperproject/prusti-dev/wiki).
+
 
 Build for local development
 ---------------------------
 
-The following instructions has been tested on Ubuntu 16.04:
+The following instructions has been tested on Ubuntu 16.04. For other distributions, see the respective points.
 
 - Install the `viper` package.
+
+    - Debian-based distributions:
 
     ```bash
     wget -q -O - https://pmserver.inf.ethz.ch/viper/debs/xenial/key.asc | sudo apt-key add -
@@ -25,12 +33,23 @@ The following instructions has been tested on Ubuntu 16.04:
     sudo apt-get update
     sudo apt-get install -y viper
     ```
+    
+    - Other distributions:
+        - Download nightly Viper CLI tools from [here](https://www.pm.inf.ethz.ch/research/viper/downloads.html)
+        - Extract the archive
+        - Set `VIPER_HOME` environment variable to the `backends` directory of the just extracted archive
+    
 
 - Install Java 8 or a later version.
+
+    - Debian-based distributions:
 
     ```bash
     sudo apt-get install -y default-jdk
     ```
+    
+    - Other distributions:
+        - set `JAVA_HOME` environment variable to `/usr/lib/jvm/your-java-home`
 
 - Install Rustup
 

@@ -11,7 +11,6 @@
 #![feature(slice_sort_by_cached_key)]
 #![feature(custom_attribute)]
 #![deny(unreachable_patterns)]
-#![cfg_attr(debug_assertions, deny(dead_code))]
 #![deny(unused_mut)]
 #![deny(unused_variables)]
 #![deny(unused_imports)]
@@ -38,6 +37,8 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate derive_more;
 
 #[cfg(debug_assertions)]
 #[macro_use]

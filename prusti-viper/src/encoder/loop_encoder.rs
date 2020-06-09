@@ -8,56 +8,66 @@ use prusti_interface::environment::mir_analyses::initialization::{
     compute_definitely_initialized, DefinitelyInitializedAnalysisResult,
 };
 use prusti_interface::environment::place_set::PlaceSet;
-use prusti_interface::environment::{
-    BasicBlockIndex, PermissionForest, ProcedureLoops,
-};
+use prusti_interface::environment::{BasicBlockIndex, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
-use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
 
-pub struct LoopEncoder<'a, 'tcx: 'a> {
-    mir: &'a mir::Mir<'tcx>,
+pub struct LoopEncoder<'p, 'a: 'p, 'tcx: 'a> {
+    procedure: &'p Procedure<'a, 'tcx>,
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
-    loops: ProcedureLoops,
     initialization: DefinitelyInitializedAnalysisResult<'tcx>,
 }
 
-impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
+impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
     pub fn new(
-        mir: &'a mir::Mir<'tcx>,
+        procedure: &'p Procedure<'a, 'tcx>,
         tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
-        def_id: DefId,
-    ) -> LoopEncoder<'a, 'tcx> {
-        let def_path = tcx.hir.def_path(def_id);
+    ) -> Self {
         LoopEncoder {
-            mir,
+            procedure,
             tcx,
-            loops: ProcedureLoops::new(mir),
-            initialization: compute_definitely_initialized(&mir, tcx, def_path),
+            initialization: compute_definitely_initialized(
+                procedure.get_mir(),
+                tcx,
+                tcx.hir.def_path(procedure.get_id())
+            ),
         }
+    }
+
+    pub fn mir(&self) -> &mir::Mir<'tcx> {
+        self.procedure.get_mir()
+    }
+
+    pub fn loops(&self) -> &ProcedureLoops {
+        &self.procedure.loop_info()
     }
 
     /// Is the given basic block a loop head?
     pub fn is_loop_head(&self, bbi: BasicBlockIndex) -> bool {
-        self.loops.is_loop_head(bbi)
+        self.loops().is_loop_head(bbi)
+    }
+
+    /// Is the given basic block a loop head guard?
+    pub fn is_loop_guard_switch(&self, bbi: BasicBlockIndex) -> bool {
+        self.loops().is_loop_guard_switch(bbi)
     }
 
     /// Note: a loop head is loop head of itself
     pub fn get_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
-        self.loops.get_loop_head(bbi)
+        self.loops().get_loop_head(bbi)
     }
 
     /// 0 = outside loops, 1 = inside one loop, 2 = inside 2 loops and so on
     pub fn get_loop_depth(&self, bbi: BasicBlockIndex) -> usize {
         self.get_loop_head(bbi)
-            .map(|head| self.loops.get_loop_head_depth(head))
+            .map(|head| self.loops().get_loop_head_depth(head))
             .unwrap_or(0)
     }
 
     /// Get iterator over enclosing loop heads.
-    pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
-        self.loops.get_enclosing_loop_heads(bbi)
+    pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
+        self.loops().get_enclosing_loop_heads(bbi)
     }
 
     pub fn compute_loop_invariant(&self, bb: BasicBlockIndex) -> PermissionForest<'tcx> {
@@ -85,21 +95,21 @@ impl<'a, 'tcx: 'a> LoopEncoder<'a, 'tcx> {
 
         // Paths accessed inside the loop body.
         let (write_leaves, mut_borrow_leaves, read_leaves) =
-            self.loops.compute_read_and_write_leaves(
+            self.loops().compute_read_and_write_leaves(
                 bb,
-                self.mir,
+                self.mir(),
                 Some(self.initialization.get_before_block(bb)),
             );
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {
-            all_places.insert(&place, self.mir, self.tcx)
+            all_places.insert(&place, self.mir(), self.tcx)
         }
         for place in &mut_borrow_leaves {
-            all_places.insert(&place, self.mir, self.tcx)
+            all_places.insert(&place, self.mir(), self.tcx)
         }
         for place in &write_leaves {
-            all_places.insert(&place, self.mir, self.tcx)
+            all_places.insert(&place, self.mir(), self.tcx)
         }
 
         // Construct the permission forest.

@@ -20,6 +20,8 @@ mod places;
 mod procedure_encoder;
 mod pure_function_encoder;
 mod spec_encoder;
+mod stub_function_encoder;
+mod stub_procedure_encoder;
 mod type_encoder;
 mod utils;
 

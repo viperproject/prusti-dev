@@ -10,6 +10,8 @@ use syntax::codemap::CodeMap;
 use syntax_pos::MultiSpan;
 use uuid::Uuid;
 use viper::VerificationError;
+use encoder::procedure_encoder::ProcedureEncodingError;
+use encoder::pure_function_encoder::PureFunctionEncodingError;
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
@@ -61,6 +63,8 @@ pub enum ErrorCtxt {
     PureFunctionDefinition,
     /// A pure function call
     PureFunctionCall,
+    /// A stub pure function call
+    StubPureFunctionCall,
     /// An expression that encodes the value range of the result of a pure function
     PureFunctionPostconditionValueRangeOfResult,
     /// A Viper function with `false` precondition that encodes the failure (panic) of an
@@ -85,6 +89,15 @@ pub enum ErrorCtxt {
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
     AssertMethodPostconditionStrengthening(MultiSpan),
+    /// A Viper `assert false` that encodes an unsupported reason
+    Unsupported(String, String),
+}
+
+/// An error in the encoding. For example, usage of unsupported Rust features.
+#[derive(From)]
+pub enum EncodingError {
+    Procedure(ProcedureEncodingError),
+    PureFunction(PureFunctionEncodingError),
 }
 
 /// The Rust error that will be reported from the compiler
@@ -181,7 +194,7 @@ impl<'tcx> ErrorManager<'tcx> {
         self.error_contexts.insert(pos.id(), error_ctxt);
     }
 
-    pub fn translate(&self, ver_error: &VerificationError) -> CompilerError {
+    pub fn translate_verification_error(&self, ver_error: &VerificationError) -> CompilerError {
         debug!("Verification error: {:?}", ver_error);
         let pos_id = &ver_error.pos_id;
         let opt_error_span = pos_id
@@ -346,6 +359,14 @@ impl<'tcx> ErrorManager<'tcx> {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("application.precondition:assertion.false", ErrorCtxt::StubPureFunctionCall) => {
+                CompilerError::new(
+                    format!("use of impure function might be reachable."),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                    .set_help("Functions called from assertions should be marked as pure.")
+            }
+
             ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => {
                 CompilerError::new(
                     format!("pledge in the postcondition might not hold."),
@@ -468,6 +489,14 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
+            ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason, ref help)) => {
+                CompilerError::new(
+                    format!("an unsupported Rust feature may be reached: {}.", reason),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+                .set_help(help)
+            }
+
             (full_err_id, ErrorCtxt::Unexpected) => {
                 CompilerError::new(
                     format!(
@@ -502,6 +531,15 @@ impl<'tcx> ErrorManager<'tcx> {
                     Try increasing it by setting the configuration parameter \
                     ASSERT_TIMEOUT to a larger value."
                 )
+            }
+        }
+    }
+
+    pub fn translate_encoding_error(&self, error: EncodingError) -> CompilerError {
+        match error {
+            EncodingError::Procedure(ProcedureEncodingError::UnsupportedLoanInLoop(msg, span)) |
+            EncodingError::PureFunction(PureFunctionEncodingError::CallImpure(msg, span)) => {
+                CompilerError::new(msg, span.into())
             }
         }
     }

@@ -16,6 +16,7 @@ use rustc_data_structures::indexed_vec::Idx;
 use std;
 use syntax::ast;
 use syntax::codemap::Span;
+use std::option::Option;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static POSTCONDITION_LABEL: &'static str = "post";
@@ -93,23 +94,27 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ),
 
             &mir::Place::Projection(ref place_projection) => {
-                self.encode_projection(place_projection)
+                self.encode_projection(place_projection, None)
             }
 
             x => unimplemented!("{:?}", x),
         }
     }
 
+    /// - `encoded_base_place`: optionally, the already encoded place (otherwise encoded by self.encode_place)
     /// Returns
     /// - `vir::Expr`: the place of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
-    fn encode_projection(
+    pub fn encode_projection(
         &self,
         place_projection: &mir::PlaceProjection<'tcx>,
+        encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
         trace!("Encode projection {:?}", place_projection);
-        let (encoded_base, base_ty, opt_variant_index) = self.encode_place(&place_projection.base);
+
+        let (encoded_base, base_ty, opt_variant_index) =
+            encoded_base_place.unwrap_or(self.encode_place(&place_projection.base));
 
         trace!("place_projection: {:?}", place_projection);
         trace!("base_ty: {:?}", base_ty);
@@ -620,13 +625,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
         let bb_data = &self.mir.basic_blocks()[bbi];
-        if bb_data.statements.is_empty() {
-            bb_data.terminator.as_ref().unwrap().source_info.span
-        } else {
-            bb_data.statements[bb_data.statements.len() - 1]
-                .source_info
-                .span
-        }
+        bb_data.terminator.as_ref().unwrap().source_info.span
     }
 
     pub fn encode_expr_pos(&self, span: Span) -> vir::Position {

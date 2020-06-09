@@ -8,12 +8,14 @@ use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureC
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::error_manager::{ErrorCtxt, ErrorManager};
+use encoder::error_manager::{EncodingError, ErrorCtxt, ErrorManager};
 use encoder::foldunfold;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
 use encoder::spec_encoder::SpecEncoder;
+use encoder::stub_function_encoder::StubFunctionEncoder;
+use encoder::stub_procedure_encoder::StubProcedureEncoder;
 use encoder::type_encoder::{
     compute_discriminant_bounds, compute_discriminant_values, TypeEncoder,
 };
@@ -38,6 +40,7 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::mem;
 use syntax::ast;
+use viper;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v Environment<'r, 'a, 'tcx>,
@@ -49,6 +52,9 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
     pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
+    /// Stub pure functions. Generated when an impure Rust function is invoked
+    /// where a pure function is required.
+    stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
     type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_invariant_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     type_tag_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
@@ -106,6 +112,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             procedures: RefCell::new(HashMap::new()),
             pure_function_bodies: RefCell::new(HashMap::new()),
             pure_functions: RefCell::new(HashMap::new()),
+            stub_pure_functions: RefCell::new(HashMap::new()),
             type_predicate_names: RefCell::new(HashMap::new()),
             type_invariant_names: RefCell::new(HashMap::new()),
             type_tag_names: RefCell::new(HashMap::new()),
@@ -176,6 +183,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
+    pub(in encoder) fn register_encoding_error<T: Into<EncodingError>>(&self, error: T) {
+        let compilation_error = self.error_manager().translate_encoding_error(error.into());
+        debug!("Compilation error: {:?}", compilation_error);
+        self.env().span_err_with_help_and_note(
+            compilation_error.span,
+            &format!("[Prusti encoding] {}", compilation_error.message),
+            &compilation_error.help,
+            &compilation_error.note,
+        );
+    }
+
+    pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {
+        vec![]
+    }
+
     fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
         fields.sort_by_key(|f| f.get_identifier());
@@ -188,6 +210,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             functions.push(function.clone());
         }
         for function in self.pure_functions.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.stub_pure_functions.borrow().values() {
             functions.push(function.clone());
         }
         for function in self.type_invariants.borrow().values() {
@@ -783,26 +808,31 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         builtin_encoder.encode_builtin_function_name(&function_kind)
     }
 
-    pub fn encode_procedure(&self, proc_def_id: ProcedureDefId) -> vir::CfgMethod {
-        debug!("encode_procedure({:?})", proc_def_id);
+    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> vir::CfgMethod {
+        debug!("encode_procedure({:?})", def_id);
         assert!(
-            !self.env.has_attribute_name(proc_def_id, "pure"),
+            !self.env.has_attribute_name(def_id, "pure"),
             "procedure is marked as pure: {:?}",
-            proc_def_id
+            def_id
         );
         assert!(
-            !self.env.has_attribute_name(proc_def_id, "trusted"),
+            !self.env.has_attribute_name(def_id, "trusted"),
             "procedure is marked as trusted: {:?}",
-            proc_def_id
+            def_id
         );
-        if !self.procedures.borrow().contains_key(&proc_def_id) {
-            let procedure = self.env.get_procedure(proc_def_id);
-            let procedure_encoder = ProcedureEncoder::new(self, &procedure);
-            let method = procedure_encoder.encode();
+        if !self.procedures.borrow().contains_key(&def_id) {
+            let procedure = self.env.get_procedure(def_id);
+            let method = match ProcedureEncoder::new(self, &procedure).encode() {
+                Ok(result) => result,
+                Err(error) => {
+                    self.register_encoding_error(error);
+                    StubProcedureEncoder::new(self, &procedure).encode()
+                }
+            };
             self.log_vir_program_before_viper(method.to_string());
-            self.procedures.borrow_mut().insert(proc_def_id, method);
+            self.procedures.borrow_mut().insert(def_id, method);
         }
-        self.procedures.borrow()[&proc_def_id].clone()
+        self.procedures.borrow()[&def_id].clone()
     }
 
     pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
@@ -1202,32 +1232,57 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
     }
 
-    pub fn encode_pure_function_use(&self, proc_def_id: ProcedureDefId) -> String {
-        trace!("encode_pure_function_use({:?})", proc_def_id);
+    /// Encode the use (call) of a pure function, returning the name of the
+    /// function and its type.
+    ///
+    /// The called function must be marked as pure.
+    pub fn encode_pure_function_use(&self, proc_def_id: ProcedureDefId) -> (String, vir::Type) {
+        let procedure = self.env.get_procedure(proc_def_id);
+
         assert!(
             self.env.has_attribute_name(proc_def_id, "pure"),
             "procedure is not marked as pure: {:?}",
             proc_def_id
         );
-        self.queue_pure_function_encoding(proc_def_id);
-        let procedure = self.env.get_procedure(proc_def_id);
+
         let pure_function_encoder =
             PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-        pure_function_encoder.encode_function_name()
+
+        self.queue_pure_function_encoding(proc_def_id);
+
+        // FIXME: encode_function_return_type assumes that pure functions cannot return generic values.
+        (
+            pure_function_encoder.encode_function_name(),
+            pure_function_encoder.encode_function_return_type(),
+        )
     }
 
-    pub fn encode_pure_function_return_type(&self, proc_def_id: ProcedureDefId) -> vir::Type {
-        trace!("encode_pure_function_return_type({:?})", proc_def_id);
-        assert!(
-            self.env.has_attribute_name(proc_def_id, "pure"),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
-        );
+    /// Encode the use (call) of a stub pure function, returning the name of the
+    /// function and its type.
+    ///
+    /// The stub function is a bodyless function with `false` precondition. It's meant to be used
+    /// when the user tries to call an impure function in a context that requires a pure function.
+    pub fn encode_stub_pure_function_use(
+        &self,
+        proc_def_id: ProcedureDefId,
+    ) -> (String, vir::Type) {
         let procedure = self.env.get_procedure(proc_def_id);
-        let pure_function_encoder =
-            PureFunctionEncoder::new(self, proc_def_id, procedure.get_mir(), false);
-        // FIXME: This assumes that pure functions cannot return generic values.
-        pure_function_encoder.encode_function_return_type()
+
+        let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
+
+        // If we haven't seen this particular stub before, generate and insert it.
+        let key = (proc_def_id, self.type_substitution_key());
+        if !self.pure_functions.borrow().contains_key(&key) {
+            let function = encoder.encode_function();
+
+            self.log_vir_program_before_viper(function.to_string());
+
+            self.stub_pure_functions.borrow_mut().insert(key, function);
+        }
+        (
+            encoder.encode_function_name(),
+            encoder.encode_function_return_type(),
+        )
     }
 
     pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {

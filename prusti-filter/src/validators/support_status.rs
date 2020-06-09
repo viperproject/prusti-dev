@@ -111,6 +111,7 @@ impl SupportStatus {
         self.precise_restrictions.is_empty()
     }
 
+    #[allow(dead_code)]
     pub fn is_partially_supported(&self) -> bool {
         !self.precise_restrictions.is_empty()
             && self

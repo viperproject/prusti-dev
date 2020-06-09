@@ -25,7 +25,7 @@ use encoder::Encoder;
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::borrowck::facts;
-use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo};
+use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo, PoloniusInfoError};
 use prusti_interface::environment::polonius_info::{
     ReborrowingDAG, ReborrowingDAGNode,
     ReborrowingKind, ReborrowingZombity,
@@ -41,12 +41,15 @@ use rustc::mir::TerminatorKind;
 use rustc::ty;
 use rustc::ty::layout;
 use rustc::ty::layout::IntegerExt;
-use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::attr::SignedInt;
-use syntax::codemap::MultiSpan;
+use syntax::codemap::{Span, MultiSpan};
 use utils::to_string::ToString;
+
+pub enum ProcedureEncodingError {
+    UnsupportedLoanInLoop(String, Span)
+}
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -55,12 +58,13 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     mir: &'p mir::Mir<'tcx>,
     cfg_method: vir::CfgMethod,
     locals: LocalVariableManager<'tcx>,
-    loop_encoder: LoopEncoder<'p, 'tcx>,
+    loop_encoder: LoopEncoder<'p, 'a, 'tcx>,
     auxiliar_local_vars: HashMap<String, vir::Type>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     check_panics: bool,
     check_fold_unfold_state: bool,
-    polonius_info: PoloniusInfo<'p, 'tcx>,
+    polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
+    procedure_contract: Option<ProcedureContract<'tcx>>,
     label_after_location: HashMap<mir::Location, String>,
     /// Contains the boolean local variables that became `true` the first time the block is executed
     cfg_block_has_been_executed: HashMap<mir::BasicBlock, vir::LocalVar>,
@@ -85,7 +89,10 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p Procedure<'a, 'tcx>) -> Self {
+    pub fn new(
+        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
+        procedure: &'p Procedure<'a, 'tcx>
+    ) -> Self {
         debug!("ProcedureEncoder constructor");
 
         let mir = procedure.get_mir();
@@ -114,12 +121,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             mir,
             cfg_method,
             locals: LocalVariableManager::new(&mir.local_decls),
-            loop_encoder: LoopEncoder::new(mir, tcx, def_id),
+            loop_encoder: LoopEncoder::new(procedure, tcx),
             auxiliar_local_vars: HashMap::new(),
             mir_encoder: mir_encoder,
             check_panics: config::check_panics(),
             check_fold_unfold_state: config::check_foldunfold_state(),
-            polonius_info: PoloniusInfo::new(procedure),
+            polonius_info: None,
+            procedure_contract: None,
             label_after_location: HashMap::new(),
             cfg_block_has_been_executed: HashMap::new(),
             magic_wand_at_location: HashMap::new(),
@@ -133,16 +141,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    pub fn encode(mut self) -> vir::CfgMethod {
+    fn polonius_info(&self) -> &PoloniusInfo<'p, 'tcx> {
+        self.polonius_info.as_ref().unwrap()
+    }
+
+    fn procedure_contract(&self) -> &ProcedureContract<'tcx> {
+        self.procedure_contract.as_ref().unwrap()
+    }
+
+    fn mut_contract(&mut self) -> &mut ProcedureContract<'tcx> {
+        self.procedure_contract.as_mut().unwrap()
+    }
+
+    pub fn encode(mut self) -> Result<vir::CfgMethod, ProcedureEncodingError> {
         trace!("Encode procedure {}", self.cfg_method.name());
 
-        let mut procedure_contract = self
-            .encoder
-            .get_procedure_contract_for_def(self.proc_def_id);
+        // Retrieve the contract
+        self.procedure_contract = Some(
+            self.encoder.get_procedure_contract_for_def(self.proc_def_id)
+        );
 
+        // Prepare assertions to check specification refinement
         let mut precondition_weakening: Option<TypedAssertion> = None;
         let mut postcondition_strengthening: Option<TypedAssertion> = None;
-        debug!("procedure_contract: {:?}", &procedure_contract);
+        debug!("procedure_contract: {:?}", self.procedure_contract());
         //trace!("def_id of proc: {:?}", &self.proc_def_id);
         let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
         //trace!("def_id of impl: {:?}", &impl_def_id);
@@ -170,7 +192,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             .encoder
                             .get_procedure_contract_for_def(assoc_item.def_id);
                         let (proc_pre_specs, proc_post_specs) = {
-                            if let SpecificationSet::Procedure(ref mut pre, ref mut post) = procedure_contract.specification {
+                            if let SpecificationSet::Procedure(ref mut pre, ref mut post) = self.mut_contract().specification {
                                 (pre, post)
                             } else {
                                 unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
@@ -233,7 +255,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         }
 
-        // Formal return
+        // Declare the formal return
         for local in self.mir.local_decls.indices().take(1) {
             let name = self.mir_encoder.encode_local_var_name(local);
             let type_name = self
@@ -258,6 +280,22 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ],
         );
 
+        // Load Polonius info
+        match PoloniusInfo::new(&self.procedure) {
+            Ok(result) => self.polonius_info = Some(result),
+            Err(PoloniusInfoError::UnsupportedLoanInLoop{ loop_head, variable }) => {
+                let msg = if let Some(name) = self.mir.local_decls[variable].name {
+                    format!("creation of loan '{}' in loop is unsupported", name)
+                } else {
+                    "creation of temporary loan in loop is unsupported".to_string()
+                };
+                return Err(ProcedureEncodingError::UnsupportedLoanInLoop(
+                    msg,
+                    self.mir_encoder.get_span_of_basic_block(loop_head)
+                ));
+            }
+        }
+
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let cfg_block = self.cfg_method.add_block(
                 &format!("{:?}", bbi),
@@ -267,11 +305,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     bbi
                 ))],
             );
+            if self.loop_encoder.is_loop_head(bbi) {
+                self.cfg_method.add_stmt(
+                    cfg_block,
+                    vir::Stmt::Comment("This is a loop head".to_string())
+                );
+            }
+            if self.loop_encoder.is_loop_guard_switch(bbi) {
+                self.cfg_method.add_stmt(
+                    cfg_block,
+                    vir::Stmt::Comment("This is a loop guard".to_string())
+                );
+            }
             self.mir_to_vir_blocks.insert(bbi, cfg_block);
         }
 
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let mut cfg_successors: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
+
             for bbi_successor in self.procedure.successors(bbi) {
                 if self.procedure.is_reachable_block(bbi_successor) {
                     let cfg_edge = self.cfg_method.add_block(
@@ -282,6 +333,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             bbi, bbi_successor
                         ))],
                     );
+
+                    // Set successor
                     let is_back_edge = self.loop_encoder.is_loop_head(bbi_successor) &&
                         self.loop_encoder.get_loop_head(bbi) == Some(bbi_successor);
                     let successor = if is_back_edge {
@@ -290,6 +343,33 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         Successor::Goto(self.mir_to_vir_blocks[&bbi_successor])
                     };
                     self.cfg_method.set_successor(cfg_edge, successor);
+
+                    /*
+                    // Generate error for break and return statements in loops
+                    let is_abrupt_termination = !self.loop_encoder.is_loop_head(bbi) &&
+                        self.loop_encoder.get_loop_depth(bbi) > self.loop_encoder.get_loop_depth(bbi_successor);
+                    if is_abrupt_termination {
+                        let pos = self.encoder.error_manager().register(
+                            self.mir_encoder.get_span_of_basic_block(bbi),
+                            ErrorCtxt::Unsupported(
+                                "the shape of this loop is not supported".to_string(),
+                                "Avoid using `break` and `return` in the loop, and make \
+                                sure that the loop guard just uses a boolean variable.".to_string()
+                            ),
+                        );
+                        self.cfg_method.add_stmts(cfg_edge, vec![
+                            vir::Stmt::Comment(
+                                "Abrupt loop termination".to_string()
+                            ),
+                            vir::Stmt::Assert(
+                                false.into(),
+                                vir::FoldingBehaviour::None,
+                                pos
+                            )
+                        ]);
+                    }
+                    */
+
                     cfg_successors.insert(bbi_successor, cfg_edge);
                 }
             }
@@ -318,7 +398,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ),
         );
 
-        // Encode a flag that becomes true the first time the block is executed
+        // Encode a flag that becomes true the first time a block is executed
         for bbi in self.procedure.get_reachable_cfg_blocks() {
             let executed_flag_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
             let bb_pos = self
@@ -337,14 +417,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Encode preconditions
-        self.encode_preconditions(start_cfg_block, &mut procedure_contract, precondition_weakening);
+        self.encode_preconditions(start_cfg_block, precondition_weakening);
 
         // Encode postcondition
-        self.encode_postconditions(return_cfg_block, &mut procedure_contract, postcondition_strengthening);
+        self.encode_postconditions(return_cfg_block, postcondition_strengthening);
 
         // Encode statements
         for bbi in self.procedure.get_reachable_cfg_blocks() {
-            self.encode_block(bbi, &cfg_edges, &mut procedure_contract, return_cfg_block);
+            self.old_encode_block(bbi, &cfg_edges, return_cfg_block);
         }
 
         let local_vars: Vec<_> = self
@@ -438,7 +518,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Add fold/unfold
         let loan_positions = self
-            .polonius_info
+            .polonius_info()
             .loan_locations()
             .into_iter()
             .map(|(loan, mir_location)| {
@@ -485,28 +565,287 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             );
         }
 
-        final_method
+        Ok(final_method)
     }
 
-    fn encode_block(
+    /// Encodes a topologically ordered group of blocks, and return first CFG block of the encoding.
+    fn encode_blocks_group<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
         &mut self,
-        bbi: mir::BasicBlock,
-        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
-        procedure_contract: &mut ProcedureContract<'tcx>,
-        return_cfg_block: vir::CfgBlockIndex,
-    ) {
-        let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
-        let bb_pos = self
-            .mir_encoder
-            .encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
-
-        self.encode_execution_flag(bbi, cfg_block, bb_pos);
-        if self.loop_encoder.is_loop_head(bbi) {
-            self.encode_loop_invariant_inhale(bbi, cfg_edges);
+        label_prefix: &str,
+        ordered_group_blocks: &[BasicBlockIndex],
+        next_bb: BasicBlockIndex,
+        next_cfg_block: CfgBlockIndex,
+        get_block: F,
+        group_loop_depth: usize,
+        return_block: CfgBlockIndex,
+    ) -> CfgBlockIndex {
+        let mut group_head = next_cfg_block;
+        let mut bb_map: HashMap<BasicBlockIndex, CfgBlockIndex> = HashMap::new();
+        for &curr_bb in ordered_group_blocks.iter().rev() {
+            let loop_info = self.loop_encoder.loops();
+            let get_block = |bb| {
+                if bb == next_bb {
+                    Some(next_cfg_block)
+                } else {
+                    bb_map.get(&bb).cloned().or_else(|| get_block(bb))
+                }
+            };
+            let curr_loop_depth = loop_info.get_loop_depth(curr_bb);
+            let block = if curr_loop_depth == group_loop_depth {
+                // This block is not in a nested loop
+                self.encode_block(
+                    label_prefix,
+                    curr_bb,
+                    return_block,
+                    get_block
+                )
+            } else {
+                let is_loop_head = loop_info.is_loop_head(curr_bb);
+                if curr_loop_depth == group_loop_depth + 1 && is_loop_head {
+                    // Encode a nested loop
+                    let nested_loop: Vec<_> = loop_info.get_loop_body(curr_bb).to_vec();
+                    self.encode_loop(
+                        label_prefix,
+                        &nested_loop,
+                        get_block,
+                        return_block,
+                    )
+                } else {
+                    // Skip the inner block of a nested loop
+                    continue;
+                }
+            };
+            group_head = block;
+            bb_map.insert(curr_bb, block);
         }
-        self.encode_statements(bbi, cfg_block, cfg_edges);
-        self.encode_terminators(bbi, cfg_edges, procedure_contract, return_cfg_block);
-        self.encode_loop_invariant_exhale(bbi, cfg_edges);
+        group_head
+    }
+
+    /// Encodes a loop and returns the first CFG block of the encoding.
+    ///
+    /// The encoding transforms
+    /// ```text
+    /// while { g = G; g } { B1; invariant!(I); B2 }
+    /// ```
+    /// into
+    /// ```text
+    /// g = G
+    /// if (g) {
+    ///   B1
+    ///   exhale I
+    ///   // ... havoc local variables modified in G, B1, or B2
+    ///   inhale I
+    ///   B2
+    ///   g = G
+    ///   if (g) {
+    ///     B1
+    ///     exhale I
+    ///     assume false
+    ///   }
+    /// }
+    /// assume !g
+    /// ```
+    fn encode_loop<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+        &mut self,
+        label_prefix: &str,
+        blocks: &[BasicBlockIndex],
+        get_block: F,
+        return_block: vir::CfgBlockIndex,
+    ) -> vir::CfgBlockIndex {
+        debug_assert!(blocks.len() > 1);
+        // The clone() is just there to make the borrow checker happy
+        let loop_info = self.loop_encoder.loops().clone();
+        let loop_head = blocks[0];
+        debug_assert!(loop_info.is_loop_head(loop_head));
+        let loop_depth = loop_info.get_loop_head_depth(loop_head);
+        let loop_label_prefix = format!("{}loop_{:?}", label_prefix, loop_head);
+
+        let loop_body: Vec<BasicBlockIndex> = loop_info.get_loop_body(loop_head).iter()
+            .filter(|&&bb| !self.procedure.is_spec_block(bb))
+            .cloned().collect();
+
+        // Build the first CFG block of the encoding
+        let start_block = self.cfg_method.add_block(
+            &format!("{}_start", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}start ==========", loop_label_prefix))],
+        );
+
+        // Build the CFG block between B1 and B2 that:
+        // (1) checks the loop invariant on entry
+        // (2) havocks the invariant and the local variables.
+        let havock_block = self.cfg_method.add_block(
+            &format!("{}_havock", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}havock ==========", loop_label_prefix))],
+        );
+        {
+            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
+        }
+        // TODO: havock local variables
+        {
+            let stmts = self.encode_loop_invariant_inhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(havock_block, stmts);
+        }
+
+        // Build the CFG block after B1 that
+        // (1) checks the invariant after one loop iteration
+        // (2) kills the program path with an `assume false`
+        let end_body_block = self.cfg_method.add_block(
+            &format!("{}_end_body", loop_label_prefix), vec![],
+            vec![vir::Stmt::comment(format!("========== {}end_body ==========", loop_label_prefix))],
+        );
+        {
+            let stmts = self.encode_loop_invariant_exhale_stmts(loop_head, false);
+            self.cfg_method.add_stmts(end_body_block, stmts);
+        }
+
+        self.cfg_method.add_stmt(
+            end_body_block,
+            vir::Stmt::Inhale(
+                false.into(),
+                vir::FoldingBehaviour::Stmt
+            )
+        );
+        self.cfg_method.set_successor(end_body_block, vir::Successor::Return);
+
+        // Identify important blocks
+        let opt_loop_guard_switch = loop_info.get_loop_guard_switch(loop_head);
+        let before_invariant_block: BasicBlockIndex = loop_body.iter().find(
+            |&&bb| {
+                self.mir[bb].terminator().successors()
+                    .any(|&succ_bb| self.procedure.is_spec_block(succ_bb))
+            }
+        ).cloned().unwrap_or_else(
+            || opt_loop_guard_switch.unwrap_or(loop_head)
+        );
+        let after_guard_block_pos = opt_loop_guard_switch.and_then(
+            |loop_guard_switch| loop_body.iter().position(|&bb| bb == loop_guard_switch).map(|x| x + 1)
+        ).unwrap_or(0);
+        let after_inv_block_pos = 1 + loop_body.iter().position(|&bb| bb == before_invariant_block).unwrap();
+        let after_guard_block = loop_body[after_guard_block_pos];
+        let after_inv_block = loop_body[after_inv_block_pos];
+
+        assert!(
+            !loop_info.is_conditional_branch(loop_head, after_inv_block),
+            "The loop invariant cannot be in a conditional branch"
+        );
+
+        // Split the blocks such that:
+        // * G is loop_guard_evaluation, starting (if nonempty) with loop_head
+        // * B1 is loop_body_before_inv, starting with after_guard_block (which could be loop_head)
+        // * B2 is loop_body_after_inv, starting with after_inv_block
+        let loop_guard_evaluation = &loop_body[0..after_guard_block_pos];
+        let loop_body_before_inv = &loop_body[after_guard_block_pos..after_inv_block_pos];
+        let loop_body_after_inv = &loop_body[after_inv_block_pos..];
+
+        // The main path in the encoding is G -> B1 -> B2 -> G -> B1.
+        // We are going to build the encoding starting from the last group, B1.
+
+        // The head CFG block of the next group
+        let mut next_group_head = end_body_block;
+
+        // Encode the last B1 group (G - B1 - B2 - G - *B1*)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_B1_", loop_label_prefix),
+            loop_body_before_inv,
+            after_inv_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the last G group (G - B1 - B2 - *G* - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_G_", loop_label_prefix),
+            loop_guard_evaluation,
+            after_guard_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the last B2 group (G - B1 - *B2* - G - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_B2_", loop_label_prefix),
+            loop_body_after_inv,
+            loop_head,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        self.cfg_method.set_successor(havock_block, vir::Successor::Goto(next_group_head));
+        next_group_head = havock_block;
+
+        // Encode the first B1 group (G - *B1* - B2 - G - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_unrolled_B1_", loop_label_prefix),
+            loop_body_before_inv,
+            after_inv_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the first G group (*G* - B1 - B2 - G - B1)
+        next_group_head = self.encode_blocks_group(
+            &format!("{}_unrolled_G_", loop_label_prefix),
+            loop_guard_evaluation,
+            after_guard_block,
+            next_group_head,
+            |bb| get_block(bb),
+            loop_depth,
+            return_block,
+        );
+
+        // Encode the first block
+        self.cfg_method.set_successor(start_block, vir::Successor::Goto(next_group_head));
+        next_group_head = start_block;
+
+        next_group_head
+    }
+
+    fn encode_block<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+        &mut self,
+        label_prefix: &str,
+        bbi: mir::BasicBlock,
+        return_block: vir::CfgBlockIndex,
+        get_block: F, // TODO: remove the Option<_> from the result
+    ) -> CfgBlockIndex {
+        debug_assert!(!self.procedure.is_spec_block(bbi));
+        let curr_block = self.cfg_method.add_block(
+            &format!("{}{:?}", label_prefix, bbi),
+            vec![],
+            vec![vir::Stmt::comment(format!("========== {}{:?} ==========", label_prefix, bbi))],
+        );
+        if self.loop_encoder.is_loop_head(bbi) {
+            self.cfg_method.add_stmt(
+                curr_block,
+                vir::Stmt::Comment("This is a loop head".to_string())
+            );
+        }
+        if self.loop_encoder.is_loop_guard_switch(bbi) {
+            self.cfg_method.add_stmt(
+                curr_block,
+                vir::Stmt::Comment("This is a loop guard switch".to_string())
+            );
+        }
+        if self.procedure.is_spec_block(bbi) {
+            self.cfg_method.add_stmt(
+                curr_block,
+                vir::Stmt::Comment("This is a specification block".to_string())
+            );
+        }
+
+        self.encode_execution_flag(bbi, curr_block);
+        self.encode_statements(bbi, curr_block);
+        self.encode_terminators(bbi, curr_block, return_block, get_block);
+
+        curr_block
     }
 
     /// Store a flag that becomes true the first time the block is executed
@@ -514,8 +853,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         &mut self,
         bbi: BasicBlockIndex,
         cfg_block: vir::CfgBlockIndex,
-        pos: vir::Position
     ) {
+        let pos = self
+            .mir_encoder
+            .encode_expr_pos(self.mir_encoder.get_span_of_basic_block(bbi));
         let executed_flag_var = self.cfg_block_has_been_executed[&bbi].clone();
         self.cfg_method.add_stmt(
             cfg_block,
@@ -525,6 +866,76 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::AssignKind::Copy,
             ),
         );
+    }
+
+    /// Encode statements of the block, if this is not a "spec" block
+    fn encode_statements(
+        &mut self,
+        bbi: BasicBlockIndex,
+        curr_block: vir::CfgBlockIndex,
+    ) {
+        if !self.procedure.is_spec_block(bbi) {
+            self.encode_block_statements(bbi, curr_block);
+        } else {
+            // Any spec block must be unreachable
+            self.cfg_method.add_stmt(
+                curr_block,
+                vir::Stmt::comment("Unreachable block, used for type-checking specifications"),
+            );
+            self.cfg_method.add_stmt(
+                curr_block,
+                vir::Stmt::Assert(
+                    false.into(),
+                    vir::FoldingBehaviour::Expr,
+                    vir::Position::default()
+                ),
+            );
+        }
+    }
+
+    /// Encode terminators and set CFG edges
+    fn encode_terminators<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
+        &mut self,
+        bbi: BasicBlockIndex,
+        curr_block: vir::CfgBlockIndex,
+        return_block: vir::CfgBlockIndex,
+        get_block: F,
+    ) {
+        trace!("Encode terminator of {:?}", bbi);
+        let bb_data = &self.mir.basic_blocks()[bbi];
+        let term = bb_data.terminator.as_ref().unwrap();
+        self.cfg_method.add_stmt(
+            curr_block,
+            vir::Stmt::comment(format!("[mir] {:?}", term.kind)),
+        );
+        let location = mir::Location {
+            block: bbi,
+            statement_index: bb_data.statements.len(),
+        };
+        let (stmts, successor) = self.encode_terminator(
+            term,
+            location,
+            return_block,
+            get_block,
+        );
+        self.cfg_method.add_stmts(curr_block, stmts);
+        self.cfg_method.set_successor(curr_block, successor);
+    }
+
+    fn old_encode_block(
+        &mut self,
+        bbi: mir::BasicBlock,
+        cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
+        return_cfg_block: vir::CfgBlockIndex,
+    ) {
+        let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
+        self.encode_execution_flag(bbi, cfg_block);
+        if self.loop_encoder.is_loop_head(bbi) {
+            self.encode_loop_invariant_inhale(bbi, cfg_edges);
+        }
+        self.old_encode_statements(bbi, cfg_block, cfg_edges);
+        self.old_encode_terminators(bbi, cfg_edges, return_cfg_block);
+        self.encode_loop_invariant_exhale(bbi, cfg_edges);
     }
 
     fn encode_loop_invariant_inhale(
@@ -568,14 +979,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode statements of the block, if this is not a "spec" block
-    fn encode_statements(
+    fn old_encode_statements(
         &mut self,
         bbi: BasicBlockIndex,
         cfg_block: vir::CfgBlockIndex,
         cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
     ) {
         if !self.procedure.is_spec_block(bbi) {
-            if self.loop_encoder.is_loop_head(bbi) {
+            if self.loop_encoder.is_loop_head(bbi) { // WIP: use is_loop_guard_switch
                 for cfg_successor in cfg_edges[&bbi].values() {
                     self.encode_block_statements(bbi, *cfg_successor);
                 }
@@ -600,11 +1011,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     }
 
     /// Encode terminators and set CFG edges
-    fn encode_terminators(
+    fn old_encode_terminators(
         &mut self,
         bbi: BasicBlockIndex,
         cfg_edges: &HashMap<BasicBlockIndex, HashMap<BasicBlockIndex, CfgBlockIndex>>,
-        procedure_contract: &mut ProcedureContract<'tcx>,
         return_cfg_block: vir::CfgBlockIndex,
     ) {
         let bb_data = &self.mir.basic_blocks()[bbi];
@@ -622,13 +1032,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let (stmts, successor) = self.encode_terminator(
                 term,
                 location,
-                cfg_edges
-                    .get(&bbi)
-                    .expect(&format!("CFG block {:?} has no entry in 'cfg_edges'", bbi)),
                 return_cfg_block,
-                procedure_contract,
+                |bb| {
+                    cfg_edges
+                        .get(&bbi)
+                        .expect(&format!("CFG block {:?} has no entry in 'cfg_edges'", bbi))
+                        .get(&bb)
+                        .cloned()
+                },
             );
-            if self.loop_encoder.is_loop_head(bbi) {
+            if self.loop_encoder.is_loop_head(bbi) { // WIP: use is_loop_guard_switch
                 for cfg_successor in cfg_edges[&bbi].values() {
                     for stmt in stmts.iter() {
                         self.cfg_method.add_stmt(*cfg_successor, stmt.clone());
@@ -805,10 +1218,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         location: mir::Location,
         place: vir::Expr,
     ) -> vir::Expr {
-        let (all_active_loans, _) = self.polonius_info.get_all_active_loans(location);
+        let (all_active_loans, _) = self.polonius_info().get_all_active_loans(location);
         let relevant_active_loan_places: Vec<_> = all_active_loans
             .iter()
-            .flat_map(|p| self.polonius_info.get_loan_places(p))
+            .flat_map(|p| self.polonius_info().get_loan_places(p))
             .filter(|loan_places| {
                 let (_, encoded_source, _) = self.encode_loan_places(loan_places);
                 place.has_prefix(&encoded_source)
@@ -945,7 +1358,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         end_location: Option<mir::Location>,
     ) -> vir::borrows::DAG {
         let mir_dag = self
-            .polonius_info
+            .polonius_info()
             .construct_reborrowing_dag(&loans, &zombie_loans, location);
         debug!(
             "construct_vir_reborrowing_dag mir_dag={}",
@@ -966,7 +1379,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     self.construct_vir_reborrowing_node_for_call(&mir_dag, loan, node, location)
                 }
                 ReborrowingKind::ArgumentMove { loan } => {
-                    let loan_location = self.polonius_info.get_loan_location(&loan);
+                    let loan_location = self.polonius_info().get_loan_location(&loan);
                     let guard = self.construct_location_guard(loan_location);
                     vir::borrows::Node::new(
                         guard,
@@ -1008,8 +1421,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let mut stmts: Vec<vir::Stmt> = Vec::new();
         let node_is_leaf = node.reborrowed_loans.is_empty();
 
-        let loan_location = self.polonius_info.get_loan_location(&loan);
-        let loan_places = self.polonius_info.get_loan_places(&loan).unwrap();
+        let loan_location = self.polonius_info().get_loan_location(&loan);
+        let loan_places = self.polonius_info().get_loan_places(&loan).unwrap();
         let (expiring, restored, is_mut) = self.encode_loan_places(&loan_places);
         let borrowed_places = vec![restored.clone()];
 
@@ -1026,7 +1439,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     loan_location, self.label_after_location
                 ));
             for &in_loan in node.reborrowing_loans.iter() {
-                let in_location = self.polonius_info.get_loan_location(&in_loan);
+                let in_location = self.polonius_info().get_loan_location(&in_loan);
                 let in_label =
                     self.label_after_location
                         .get(&in_location)
@@ -1081,14 +1494,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ));
         }
 
-        let conflicting_loans = self.polonius_info.get_conflicting_loans(node.loan);
+        let conflicting_loans = self.polonius_info().get_conflicting_loans(node.loan);
         let deaf_location = if let Some(end_location) = end_location {
             end_location
         } else {
             location
         };
         let alive_conflicting_loans = self
-            .polonius_info
+            .polonius_info()
             .get_alive_conflicting_loans(node.loan, deaf_location);
 
         let guard = self.construct_location_guard(loan_location);
@@ -1114,7 +1527,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     ) -> vir::borrows::Node {
         let mut stmts: Vec<vir::Stmt> = Vec::new();
 
-        let loan_location = self.polonius_info.get_loan_location(&loan);
+        let loan_location = self.polonius_info().get_loan_location(&loan);
 
         // Get the borrow information.
         let (contract, fake_exprs) = self.procedure_contracts[&loan_location].clone();
@@ -1152,7 +1565,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
             if node.incoming_zombies {
                 for &in_loan in node.reborrowing_loans.iter() {
-                    let in_location = self.polonius_info.get_loan_location(&in_loan);
+                    let in_location = self.polonius_info().get_loan_location(&in_loan);
                     let in_label =
                         self.label_after_location
                             .get(&in_location)
@@ -1242,7 +1655,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             begin_loc, end_loc
         );
         let (all_dying_loans, zombie_loans) = self
-            .polonius_info
+            .polonius_info()
             .get_all_loans_dying_between(begin_loc, end_loc);
         // FIXME: is 'end_loc' correct here? What about 'begin_loc'?
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, begin_loc, Some(end_loc))
@@ -1250,17 +1663,16 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_expiring_borrows_at(&mut self, location: mir::Location) -> Vec<vir::Stmt> {
         debug!("encode_expiring_borrows_at '{:?}'", location);
-        let (all_dying_loans, zombie_loans) = self.polonius_info.get_all_loans_dying_at(location);
+        let (all_dying_loans, zombie_loans) = self.polonius_info().get_all_loans_dying_at(location);
         self.encode_expiration_of_loans(all_dying_loans, &zombie_loans, location, None)
     }
 
-    fn encode_terminator(
+    fn encode_terminator<F: Fn(BasicBlockIndex) -> Option<CfgBlockIndex>>(
         &mut self,
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
-        cfg_blocks: &HashMap<BasicBlockIndex, CfgBlockIndex>,
-        return_cfg_block: CfgBlockIndex,
-        contract: &ProcedureContract<'tcx>,
+        return_block: vir::CfgBlockIndex,
+        get_block: F,
     ) -> (Vec<vir::Stmt>, Successor) {
         debug!(
             "Encode terminator '{:?}', span: {:?}",
@@ -1272,18 +1684,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::Return => {
                 // Package magic wands, if there is any
                 stmts.extend(self.encode_package_end_of_method(
-                    contract,
                     PRECONDITION_LABEL,
                     POSTCONDITION_LABEL,
                     location,
                 ));
 
-                (stmts, Successor::Goto(return_cfg_block))
+                (stmts, Successor::Goto(return_block))
             }
 
             TerminatorKind::Goto { target } => {
-                let target_cfg_block = cfg_blocks.get(&target).unwrap();
-                (stmts, Successor::Goto(*target_cfg_block))
+                let target_cfg_block = get_block(target).unwrap();
+                (stmts, Successor::Goto(target_cfg_block))
             }
 
             TerminatorKind::SwitchInt {
@@ -1348,12 +1759,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         ref x => unreachable!("{:?}", x),
                     };
-                    let target_cfg_block = cfg_blocks.get(&target).unwrap();
-                    cfg_targets.push((viper_guard, *target_cfg_block))
+                    let target_cfg_block = get_block(target).unwrap();
+                    cfg_targets.push((viper_guard, target_cfg_block))
                 }
                 let default_target = targets[values.len()];
-                let cfg_default_target = if let Some(cfg_target) = cfg_blocks.get(&default_target) {
-                    *cfg_target
+                let cfg_default_target = if let Some(cfg_target) = get_block(default_target) {
+                    cfg_target
                 } else {
                     // Prepare a block that encodes the unreachable branch
                     assert!(if let mir::TerminatorKind::Unreachable =
@@ -1420,35 +1831,35 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (stmts, Successor::Return)
             }
 
-            TerminatorKind::Drop { ref target, .. } => {
-                let target_cfg_block = cfg_blocks.get(&target).unwrap();
-                (stmts, Successor::Goto(*target_cfg_block))
+            TerminatorKind::Drop { target, .. } => {
+                let target_cfg_block = get_block(target).unwrap();
+                (stmts, Successor::Goto(target_cfg_block))
             }
 
             TerminatorKind::FalseEdges {
-                ref real_target, ..
+                real_target, ..
             } => {
-                let target_cfg_block = cfg_blocks.get(&real_target).unwrap();
-                (stmts, Successor::Goto(*target_cfg_block))
+                let target_cfg_block = get_block(real_target).unwrap();
+                (stmts, Successor::Goto(target_cfg_block))
             }
 
             TerminatorKind::FalseUnwind {
-                ref real_target, ..
+                real_target, ..
             } => {
-                let target_cfg_block = cfg_blocks.get(&real_target).unwrap();
-                (stmts, Successor::Goto(*target_cfg_block))
+                let target_cfg_block = get_block(real_target).unwrap();
+                (stmts, Successor::Goto(target_cfg_block))
             }
 
             TerminatorKind::DropAndReplace {
-                ref target,
+                target,
                 location: ref lhs,
                 ref value,
                 ..
             } => {
                 let (encoded_lhs, _, _) = self.mir_encoder.encode_place(lhs);
                 stmts.extend(self.encode_assign_operand(&encoded_lhs, value, location));
-                let target_cfg_block = cfg_blocks.get(&target).unwrap();
-                (stmts, Successor::Goto(*target_cfg_block))
+                let target_cfg_block = get_block(target).unwrap();
+                (stmts, Successor::Goto(target_cfg_block))
             }
 
             TerminatorKind::Call {
@@ -1472,7 +1883,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     }),
                 ..
             } => {
-                let func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                let full_func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
 
                 let own_substs =
                     ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
@@ -1494,7 +1905,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     tymap_stack.push(tymap);
                 }
 
-                match func_proc_name {
+                match full_func_proc_name {
                     "std::rt::begin_panic" | "std::panicking::begin_panic" => {
                         // This is called when a Rust assertion fails
                         // args[0]: message
@@ -1618,7 +2029,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
                         if is_pure_function {
-                            let function_name = self.encoder.encode_pure_function_use(def_id);
+                            let (function_name, return_type) =
+                                self.encoder.encode_pure_function_use(def_id);
                             debug!("Encoding pure function call '{}'", function_name);
                             assert!(destination.is_some());
 
@@ -1628,7 +2040,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 arg_exprs.push(arg_expr);
                             }
 
-                            let return_type = self.encoder.encode_pure_function_return_type(def_id);
                             let formal_args: Vec<vir::LocalVar> = args
                                 .iter()
                                 .enumerate()
@@ -1732,9 +2143,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             if let Some(place) = self.mir_encoder.encode_operand_place(operand) {
                                 debug!("Put permission {:?} in postcondition", place);
                                 // Choose the label that corresponds to the creation of the loan
-                                let (loans, _) = self.polonius_info.get_all_active_loans(location);
+                                let (loans, _) = self.polonius_info().get_all_active_loans(location);
                                 let source_loans: Vec<_> = loans.iter().filter(|loan| {
-                                    let loan_places = self.polonius_info.get_loan_places(loan).unwrap();
+                                    let loan_places = self.polonius_info().get_loan_places(loan).unwrap();
                                     let (expiring, _, restored) = self.encode_loan_places(&loan_places);
                                     trace!("Try {:?} == {:?} | {:?}", expiring, place, restored);
                                     expiring.parent() == Some(&place)
@@ -1742,7 +2153,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 if !source_loans.is_empty() {
                                     assert_eq!(source_loans.len(), 1, "The argument depends on a condition");
                                     let source_loan = &source_loans[0];
-                                    let loan_loc = self.polonius_info.get_loan_location(&source_loan);
+                                    let loan_loc = self.polonius_info().get_loan_location(&source_loan);
                                     let loan_label = &self.label_after_location[&loan_loc];
                                     stmts.push(vir::Stmt::TransferPerm(
                                         place.clone(),
@@ -1753,7 +2164,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         }
                         */
                         } else {
-                            debug!("Encoding non-pure function call '{}'", func_proc_name);
+                            debug!("Encoding non-pure function call '{}'", full_func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
                             let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
                             let mut fake_vars = vec![];
@@ -1791,7 +2202,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                             self.loop_encoder.get_loop_depth(location.block) > 0;
                                         if in_loop {
                                             const_arg_vars.insert(fake_arg_place);
-                                            warn!("Please use a local variable as argument for function call '{}', and not a constant.", func_proc_name);
+                                            warn!("Please use a local variable as argument for function call '{}', and not a constant.", full_func_proc_name);
                                         }
                                     }
                                 }
@@ -1958,7 +2369,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             // Store a label for the post state
                             let post_label = self.cfg_method.get_fresh_label_name();
 
-                            let loan = self.polonius_info.get_call_loan_at_location(location);
+                            let loan = self.polonius_info().get_call_loan_at_location(location);
                             let (
                                 post_type_spec,
                                 return_type_spec,
@@ -2047,8 +2458,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 }
 
                 if let &Some((_, target)) = destination {
-                    let target_cfg_block = cfg_blocks.get(&target).unwrap();
-                    (stmts, Successor::Goto(*target_cfg_block))
+                    let target_cfg_block = get_block(target).unwrap();
+                    (stmts, Successor::Goto(target_cfg_block))
                 } else {
                     // Encode unreachability
                     //stmts.push(
@@ -2066,7 +2477,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             TerminatorKind::Assert {
                 ref cond,
                 expected,
-                ref target,
+                target,
                 ref msg,
                 ..
             } => {
@@ -2085,7 +2496,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else {
                     vir::Expr::not(cond_var.into())
                 };
-                let target_cfg_block = *cfg_blocks.get(&target).unwrap();
+                let target_cfg_block = get_block(target).unwrap();
 
                 // Prepare a block that encodes the branch of the failure
                 let failure_label = self.cfg_method.get_fresh_label_name();
@@ -2278,13 +2689,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_preconditions(
         &mut self,
         start_cfg_block: CfgBlockIndex,
-        contract: &ProcedureContract<'tcx>,
         precondition_weakening: Option<TypedAssertion>
     ) {
         self.cfg_method
             .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
         let (type_spec, mandatory_type_spec, invs_spec, func_spec, weakening_spec) =
-            self.encode_precondition_expr(contract, precondition_weakening);
+            self.encode_precondition_expr(self.procedure_contract(), precondition_weakening);
         self.cfg_method
             .add_stmt(
                 start_cfg_block,
@@ -2687,7 +3097,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// Encode the package statement of magic wands at the end of the method
     fn encode_package_end_of_method(
         &mut self,
-        contract: &ProcedureContract<'tcx>,
         pre_label: &str,
         post_label: &str,
         location: mir::Location,
@@ -2696,7 +3105,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Package magic wand(s)
         if let Some((lhs, rhs)) =
-            self.encode_postcondition_magic_wand(contract, pre_label, post_label)
+            self.encode_postcondition_magic_wand(self.procedure_contract(), pre_label, post_label)
         {
             let pos = self
                 .encoder
@@ -2706,13 +3115,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             let blocker = mir::RETURN_PLACE;
             // TODO: Check if it really is always start and not the mid point.
             let start_point = self
-                .polonius_info
+                .polonius_info()
                 .get_point(location, facts::PointType::Start);
 
             let mut package_stmts =
-                if let Some(region) = self.polonius_info.variable_regions.get(&blocker) {
+                if let Some(region) = self.polonius_info().variable_regions.get(&blocker) {
                     let (all_loans, zombie_loans) = self
-                        .polonius_info
+                        .polonius_info()
                         .get_all_loans_kept_alive_by(start_point, *region);
                     self.encode_expiration_of_loans(all_loans, &zombie_loans, location, None)
                 } else {
@@ -2775,13 +3184,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ));
 
             // We need to transfer all permissions from old[post](lhs) to lhs.
-            let borrow_infos = &contract.borrow_infos;
+            let borrow_infos = &self.procedure_contract().borrow_infos;
             assert_eq!(
                 borrow_infos.len(),
                 1,
                 "We can have at most one magic wand in the postcondition."
             );
-            for (path, _) in &borrow_infos[0].blocking_paths {
+            for (path, _) in borrow_infos[0].blocking_paths.clone().iter() {
                 let (encoded_place, _, _) = self.encode_generic_place(path);
                 let old_place = encoded_place.clone().old(post_label.clone());
                 stmts.extend(self.encode_transfer_permissions(old_place, encoded_place, location));
@@ -2795,9 +3204,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     fn encode_postconditions(
         &mut self,
         return_cfg_block: CfgBlockIndex,
-        contract: &ProcedureContract<'tcx>,
         postcondition_strengthening: Option<TypedAssertion>,
     ) {
+        // This clone is only due to borrow checker restrictions
+        let contract = self.procedure_contract().clone();
+
         self.cfg_method
             .add_stmt(return_cfg_block, vir::Stmt::comment("Exhale postcondition"));
 
@@ -2808,7 +3219,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         let (type_spec, return_type_spec, invs_spec, func_spec, magic_wands, _, strengthening_spec) = self
             .encode_postcondition_expr(
-                contract,
+                &contract,
                 postcondition_strengthening,
                 PRECONDITION_LABEL,
                 POSTCONDITION_LABEL,
@@ -3423,71 +3834,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     /// - `vir::Expr`: the place of the projection;
     /// - `ty::Ty<'tcx>`: the type of the place;
     /// - `Option<usize>`: optionally, the variant of the enum.
-    #[deprecated(note = "please use `mir_encoder::encode_projection` instead")]
     fn encode_projection(
         &self,
         place_projection: &mir::PlaceProjection<'tcx>,
         root: Option<Local>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
         debug!("Encode projection {:?} {:?}", place_projection, root);
-        let (encoded_base, base_ty, opt_variant_index) =
-            self.encode_place_with_subst_root(&place_projection.base, root);
-        match &place_projection.elem {
-            &mir::ProjectionElem::Field(ref field, _) => {
-                match base_ty.sty {
-                    ty::TypeVariants::TyBool
-                    | ty::TypeVariants::TyInt(_)
-                    | ty::TypeVariants::TyUint(_)
-                    | ty::TypeVariants::TyRawPtr(_)
-                    | ty::TypeVariants::TyRef(_, _, _) => {
-                        panic!("Type {:?} has no fields", base_ty)
-                    }
-
-                    ty::TypeVariants::TyTuple(elems) => {
-                        let field_name = format!("tuple_{}", field.index());
-                        let field_ty = elems[field.index()];
-                        let encoded_field = self.encoder.encode_raw_ref_field(field_name, field_ty);
-                        let encoded_projection = encoded_base.field(encoded_field);
-                        (encoded_projection, field_ty, None)
-                    }
-
-                    ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
-                        debug!("subst {:?}", subst);
-                        let num_variants = adt_def.variants.len();
-                        // FIXME: why this can be None?
-                        let variant_index = opt_variant_index.unwrap_or_else(|| {
-                            assert_eq!(num_variants, 1);
-                            0
-                        });
-                        let tcx = self.encoder.env().tcx();
-                        let variant_def = &adt_def.variants[variant_index];
-                        let encoded_variant = if num_variants != 1 {
-                            encoded_base.variant(&variant_def.name.as_str())
-                        } else {
-                            encoded_base
-                        };
-                        let field = &variant_def.fields[field.index()];
-                        let field_ty = field.ty(tcx, subst);
-                        let encoded_field = self
-                            .encoder
-                            .encode_struct_field(&field.ident.as_str(), field_ty);
-                        let encoded_projection = encoded_variant.field(encoded_field);
-                        (encoded_projection, field_ty, None)
-                    }
-
-                    ref x => unimplemented!("{:?}", x),
-                }
-            }
-
-            &mir::ProjectionElem::Deref => self.mir_encoder.encode_deref(encoded_base, base_ty),
-
-            &mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
-                debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
-                (encoded_base, base_ty, Some(variant_index))
-            }
-
-            x => unimplemented!("{:?}", x),
-        }
+        let encoded_place = self.encode_place_with_subst_root(&place_projection.base, root);
+        self.mir_encoder.encode_projection(place_projection, Some(encoded_place))
     }
 
     fn encode_generic_place(
@@ -3585,7 +3939,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 let (src, ty, _) = self.mir_encoder.encode_place(place);
 
                 let mut stmts = if self.mir_encoder.is_reference(ty) {
-                    let loan = self.polonius_info.get_loan_at_location(location);
+                    let loan = self.polonius_info().get_loan_at_location(location);
                     let ref_field = self.encoder.encode_value_field(ty);
                     let mut stmts = self.prepare_assign_target(
                         lhs.clone(),
@@ -3909,7 +4263,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             location
         );
         let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
-        let loan = self.polonius_info.get_loan_at_location(location);
+        let loan = self.polonius_info().get_loan_at_location(location);
         let vir_assign_kind = match mir_borrow_kind {
             mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan),
             mir::BorrowKind::Unique => unimplemented!(),
@@ -3967,16 +4321,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
         debug!("Encode havoc {:?}", dst);
-        // TODO: Can we encode the havoc with an exhale + inhale?
         let havoc_ref_method_name = self
             .encoder
             .encode_builtin_method_use(BuiltinMethodKind::HavocRef);
         if let &vir::Expr::Local(ref dst_local_var, ref _pos) = dst {
-            vec![vir::Stmt::MethodCall(
-                havoc_ref_method_name,
-                vec![],
-                vec![dst_local_var.clone()],
-            )]
+            vec![
+                vir::Stmt::MethodCall(
+                    havoc_ref_method_name,
+                    vec![],
+                    vec![dst_local_var.clone()],
+                )
+            ]
         } else {
             let tmp_var = self.get_auxiliar_local_var("havoc", dst.get_type().clone());
             vec![
