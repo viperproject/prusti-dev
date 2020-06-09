@@ -2,10 +2,11 @@ use super::VerifierRunner;
 use futures::Canceled;
 use futures::{sync::oneshot, Future};
 use prusti_viper::encoder::vir::Program;
+use prusti_viper::verification_service::ViperBackendConfig;
 use prusti_viper::verifier::VerifierBuilder;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
-use viper::{VerificationBackend, VerificationResult};
+use viper::VerificationResult;
 
 pub type FutVerificationResult = Box<Future<Item = VerificationResult, Error = Canceled>>;
 
@@ -19,14 +20,17 @@ pub struct VerifierThread {
 }
 
 impl VerifierThread {
-    pub fn new(verifier_builder: Arc<VerifierBuilder>, backend: VerificationBackend) -> Self {
+    pub fn new(verifier_builder: Arc<VerifierBuilder>, backend_config: ViperBackendConfig) -> Self {
         let (request_sender, request_receiver) = mpsc::channel::<VerificationRequest>();
 
-        let builder = thread::Builder::new().name(format!("Verifier thread running {}", backend));
+        let builder = thread::Builder::new().name(format!(
+            "Verifier thread running {}",
+            backend_config.backend
+        ));
 
         builder
             .spawn(move || {
-                VerifierRunner::with_runner(&verifier_builder, backend, |runner| {
+                VerifierRunner::with_runner(&verifier_builder, &backend_config, |runner| {
                     Self::listen_for_requests(runner, request_receiver)
                 });
             })

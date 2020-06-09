@@ -4,17 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use encoder::vir::Program;
 use encoder::Encoder;
+use prusti_common::config;
+use prusti_common::report::log;
 use prusti_common::run_timed;
 use prusti_filter::validators::Validator;
-use prusti_common::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::specifications::TypedSpecificationMap;
-use std::ffi::OsString;
-use std::fs::{canonicalize, create_dir_all};
+use std::fs::create_dir_all;
 use std::path::PathBuf;
+use verification_service::ViperBackendConfig;
 use viper::{self, AstFactory, VerificationBackend, Viper};
 
 /// A verifier builder is an object that lives entire program's
@@ -68,72 +70,66 @@ where
         VerificationContext { verification_ctx }
     }
 
-    pub fn new_verifier(
-        &'v self,
-        env: &'v Environment<'r, 'a, 'tcx>,
-        spec: &'v TypedSpecificationMap,
-    ) -> Verifier<'v, 'r, 'a, 'tcx> {
-        let backend = VerificationBackend::from_str(&config::viper_backend());
-        Verifier::new(
-            self.verification_ctx.new_ast_utils(),
-            self.new_ast_factory(),
-            self.new_viper_verifier(backend),
-            env,
-            spec,
-        )
-    }
-
     pub fn new_viper_verifier(
         &self,
-        backend: viper::VerificationBackend,
+        backend_config: &ViperBackendConfig,
     ) -> viper::Verifier<viper::state::Started> {
-        // TODO: get rid of dependency on config:: stuff
+        // TODO: figure out how much of this should instead be determined on the client and thus done when creating the ViperBackendConfig
 
         let mut verifier_args: Vec<String> = vec![];
         let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
         create_dir_all(&log_path).unwrap();
         let report_path: PathBuf = log_path.join("report.csv");
         let log_dir_str = log_path.to_str().unwrap();
-        if let VerificationBackend::Silicon = backend {
-            if config::use_more_complete_exhale() {
-                verifier_args.push("--enableMoreCompleteExhale".to_string()); // Buggy :(
+        // TODO: consider using if let instead
+        match backend_config.backend {
+            VerificationBackend::Silicon => {
+                if config::use_more_complete_exhale() {
+                    verifier_args.push("--enableMoreCompleteExhale".to_string());
+                    // Buggy :(
+                }
+                verifier_args.extend(vec![
+                    "--assertTimeout".to_string(),
+                    config::assert_timeout().to_string(),
+                    "--tempDirectory".to_string(),
+                    log_dir_str.to_string(),
+                    //"--logLevel".to_string(), "WARN".to_string(),
+                ]);
             }
-            verifier_args.extend(vec![
-                "--assertTimeout".to_string(),
-                config::assert_timeout().to_string(),
-                "--tempDirectory".to_string(),
-                log_dir_str.to_string(),
-                //"--logLevel".to_string(), "WARN".to_string(),
-            ]);
-        } else {
-            verifier_args.extend(vec![
+            VerificationBackend::Carbon => verifier_args.extend(vec![
                 "--disableAllocEncoding".to_string(),
                 "--boogieOpt".to_string(),
                 format!("/logPrefix {}", log_dir_str),
-            ]);
+            ]),
         }
         if config::dump_debug_info() {
-            if let VerificationBackend::Silicon = backend {
-                verifier_args.extend(vec![
+            match backend_config.backend {
+                VerificationBackend::Silicon => verifier_args.extend(vec![
                     "--printMethodCFGs".to_string(),
                     "--logLevel".to_string(),
                     "INFO".to_string(),
                     //"--printTranslatedProgram".to_string(),
-                ]);
-            } else {
-                verifier_args.extend::<Vec<_>>(vec![
+                ]),
+                VerificationBackend::Carbon => verifier_args.extend::<Vec<_>>(vec![
                     //"--print".to_string(), "./log/boogie_program/program.bpl".to_string(),
-                ]);
+                ]),
             }
         }
-        verifier_args.extend(config::extra_verifier_args());
+        verifier_args.extend(backend_config.verifier_args.clone()); // TODO: is ordering important? would be nice to initialize verifier_args to this
 
-        self.verification_ctx
-            .new_verifier_with_args(backend, verifier_args, Some(report_path))
+        self.verification_ctx.new_verifier_with_args(
+            backend_config.backend,
+            verifier_args,
+            Some(report_path),
+        )
     }
 
     pub fn new_ast_factory(&self) -> AstFactory {
         self.verification_ctx.new_ast_factory()
+    }
+
+    pub fn new_ast_utils(&self) -> viper::AstUtils {
+        self.verification_ctx.new_ast_utils()
     }
 }
 
@@ -145,31 +141,22 @@ where
     'a: 'r,
     'tcx: 'a,
 {
-    ast_utils: viper::AstUtils<'v>,
-    ast_factory: viper::AstFactory<'v>,
-    verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v Environment<'r, 'a, 'tcx>,
     encoder: Encoder<'v, 'r, 'a, 'tcx>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
-    fn new(
-        ast_utils: viper::AstUtils<'v>,
-        ast_factory: viper::AstFactory<'v>,
-        verifier: viper::Verifier<'v, viper::state::Started>,
-        env: &'v Environment<'r, 'a, 'tcx>,
-        spec: &'v TypedSpecificationMap,
-    ) -> Self {
+    pub fn new(env: &'v Environment<'r, 'a, 'tcx>, spec: &'v TypedSpecificationMap) -> Self {
         Verifier {
-            ast_utils,
-            ast_factory,
-            verifier,
             env,
             encoder: Encoder::new(env, spec),
         }
     }
 
-    pub fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
+    pub fn verify<F>(&mut self, task: &VerificationTask, verify: F) -> VerificationResult
+    where
+        F: FnOnce(Program) -> viper::VerificationResult,
+    {
         run_timed("Encoding to Viper successful", || {
             // Dump the configuration
             log::report("config", "prusti", config::dump());
@@ -207,57 +194,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             self.encoder.process_encoding_queue();
         });
 
-        let viper_program = run_timed("Construction of JVM objects successful", || {
-            let mut program = self.encoder.get_viper_program();
-            if config::simplify_encoding() {
-                program = program.optimized();
-            }
-            let viper_program = program.to_viper(&self.ast_factory);
-
-            if config::dump_viper_program() {
-                // Dump Viper program
-                let source_path = self.env.source_path();
-                let source_filename = source_path.file_name().unwrap().to_str().unwrap();
-                let mut dump_path = PathBuf::from("viper_program");
-                let num_parents = config::num_parents_for_dumps();
-                if num_parents > 0 {
-                    // Take `num_parents` parent folders and add them to `dump_path`
-                    let mut components = vec![];
-                    if let Some(abs_parent_path) = canonicalize(&source_path)
-                        .ok()
-                        .and_then(|full_path| full_path.parent().map(|parent| parent.to_path_buf()))
-                    {
-                        components.extend(
-                            abs_parent_path
-                                .ancestors()
-                                .flat_map(|path| path.file_name())
-                                .take(num_parents as usize)
-                                .map(|x| x.to_os_string())
-                                .collect::<Vec<_>>()
-                                .into_iter()
-                                .rev(),
-                        );
-                    } else {
-                        components.push(OsString::from("io_error"))
-                    }
-                    for component in components {
-                        dump_path.push(component);
-                    }
-                }
-                info!("Dumping Viper program to '{:?}'", dump_path);
-                log::report(
-                    dump_path.to_str().unwrap(),
-                    format!("{}.vpr", source_filename),
-                    self.ast_utils.pretty_print(viper_program),
-                );
-            }
-
-            viper_program
-        });
-
-        run_timed!("Verification complete",
-            let verification_result = self.verifier.verify(viper_program);
-        );
+        let verification_result = verify(self.encoder.get_viper_program());
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,

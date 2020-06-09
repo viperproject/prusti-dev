@@ -19,17 +19,17 @@ mod verifier_runner;
 mod verifier_thread;
 
 use prusti_viper::encoder::vir::Program;
+use prusti_viper::verification_service::ViperBackendConfig;
 use prusti_viper::verifier::VerifierBuilder;
 pub use service::*;
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 pub use verifier_runner::*;
 use verifier_thread::*;
-use viper::{VerificationBackend, VerificationResult};
 
 pub struct PrustiServer {
     verifier_builder: Arc<VerifierBuilder>,
-    threads: HashMap<VerificationBackend, VerifierThread>,
+    threads: RwLock<HashMap<ViperBackendConfig, VerifierThread>>,
 }
 
 impl PrustiServer {
@@ -40,41 +40,30 @@ impl PrustiServer {
         );
         PrustiServer {
             verifier_builder,
-            threads: HashMap::new(),
+            threads: RwLock::default(),
         }
     }
 
-    pub fn run_verifier_async<F>(
-        &mut self,
-        program: Program,
-        backend: VerificationBackend,
-    ) -> FutVerificationResult {
-        self.get_or_create_thread(backend).verify(program)
-    }
-
-    fn get_or_create_thread(&mut self, backend: VerificationBackend) -> &VerifierThread {
-        if !self.threads.contains_key(&backend) {
-            let thread = VerifierThread::new(self.verifier_builder.clone(), backend);
-            self.threads.insert(backend, thread);
-        }
-        self.threads.get(&backend).unwrap()
-    }
-
-    pub fn run_verifier_sync(
+    pub fn run_verifier_async(
         &self,
         program: Program,
-        backend: VerificationBackend,
-    ) -> VerificationResult {
-        run_timed!("Verifier startup",
-            let context = self.verifier_builder.new_verification_context();
-            let verifier = context.new_viper_verifier(backend);
-        );
+        backend_config: ViperBackendConfig,
+    ) -> FutVerificationResult {
+        // create new thread if none exists for given configuration
+        if !self.threads.read().unwrap().contains_key(&backend_config) {
+            let thread = VerifierThread::new(self.verifier_builder.clone(), backend_config.clone());
+            self.threads
+                .write()
+                .unwrap()
+                .insert(backend_config.clone(), thread);
+        }
+        // TODO: limit thread pool size, getting rid of disused threads when necessary.
 
-        let ast_factory = context.new_ast_factory();
-        let viper_program = program.to_viper(&ast_factory);
-
-        // TODO: dump viper program if desired
-
-        verifier.verify(viper_program)
+        self.threads
+            .read()
+            .unwrap()
+            .get(&backend_config)
+            .unwrap()
+            .verify(program)
     }
 }

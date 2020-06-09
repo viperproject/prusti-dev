@@ -11,7 +11,8 @@ use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::specifications::TypedSpecificationMap;
-use prusti_viper::verifier::VerifierBuilder;
+use prusti_server::VerifierRunner;
+use prusti_viper::verifier::{Verifier, VerifierBuilder};
 use rustc_driver::driver;
 
 /// Verify a (typed) specification on compiler state.
@@ -46,18 +47,17 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
             debug!("Dump borrow checker info...");
             env.dump_borrowck_info(&verification_task.procedures);
 
-            debug!("Prepare verifier...");
             run_timed!("JVM startup",
                 let verifier_builder = VerifierBuilder::new();
-                let verification_context = verifier_builder.new_verification_context();
             );
-
-            run_timed!("Verifier startup",
-                let mut verifier = verification_context.new_verifier(&env, &spec);
-            );
-
-            debug!("Run verifier...");
-            let verification_result = verifier.verify(&verification_task);
+            let mut verifier = Verifier::new(&env, &spec);
+            let source_path = env.source_path();
+            let program_name = source_path.file_name().unwrap().to_str().unwrap();
+            let verification_result = verifier.verify(&verification_task, |program| {
+                VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
+                    runner.verify(program, program_name)
+                })
+            });
             debug!("Verifier returned {:?}", verification_result);
 
             verification_result

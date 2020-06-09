@@ -21,9 +21,8 @@
 extern crate log;
 extern crate num_rational;
 extern crate num_traits;
-extern crate prusti_filter;
-#[macro_use]
 extern crate prusti_common;
+extern crate prusti_filter;
 extern crate prusti_interface;
 extern crate regex;
 extern crate rustc;

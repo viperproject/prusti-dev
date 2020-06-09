@@ -1,13 +1,14 @@
 use super::PrustiServer;
 use prusti_viper::{encoder::vir::Program, verification_service::*};
 
+use futures::Future;
 use std::net::SocketAddr;
 use std::sync::{mpsc, Arc};
 use std::thread;
 use tarpc::sync::client::ClientExt;
 use tarpc::sync::{client, server};
 use tarpc::util::Never;
-use viper::{VerificationBackend, VerificationResult};
+use viper::VerificationResult;
 
 service! {
     rpc verify(program: Program, config: ViperBackendConfig) -> VerificationResult;
@@ -30,23 +31,13 @@ impl SyncService for ServerSideService {
     fn verify(
         &self,
         program: Program,
-        config: ViperBackendConfig,
+        backend_config: ViperBackendConfig,
     ) -> Result<VerificationResult, Never> {
-        Ok(self.server.verify(program, config))
-    }
-}
-
-impl VerificationService for PrustiServer {
-    fn verify(&self, program: Program, config: ViperBackendConfig) -> VerificationResult {
-        // TODO: handle args
-        match config {
-            ViperBackendConfig::Silicon(_args) => {
-                self.run_verifier_sync(program, VerificationBackend::Silicon)
-            }
-            ViperBackendConfig::Carbon(_args) => {
-                self.run_verifier_sync(program, VerificationBackend::Carbon)
-            }
-        }
+        Ok(self
+            .server
+            .run_verifier_async(program, backend_config)
+            .wait()
+            .expect("verification task canceled—this should not be possible!"))
     }
 }
 
