@@ -88,7 +88,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            run_timed!("Parsing of annotations successful",
+            run_timed!("annotation parsing",
                 prusti_interface::parser::register_attributes(state);
                 let untyped_specifications = prusti_interface::parser::rewrite_crate(state);
                 put_specifications.set(Some(untyped_specifications));
@@ -102,7 +102,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
 
-            run_timed!("Type-checking of annotations successful",
+            run_timed!("annotation type-checking",
                 let untyped_specifications = get_specifications.replace(None).unwrap();
                 let typed_specifications = typeck::type_specifications(state, untyped_specifications);
                 debug!("typed_specifications = {:?}", typed_specifications);

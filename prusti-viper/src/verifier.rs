@@ -157,7 +157,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
     where
         F: FnOnce(Program) -> viper::VerificationResult,
     {
-        run_timed("Encoding to Viper successful", || {
+        run_timed("encoding to Viper", || {
             // Dump the configuration
             log::report("config", "prusti", config::dump());
 
@@ -212,7 +212,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
             for verification_error in verification_errors {
                 debug!("Verification error: {:?}", verification_error);
-                let compilation_error = error_manager.translate_verification_error(&verification_error);
+                let compilation_error =
+                    error_manager.translate_verification_error(&verification_error);
                 debug!("Compilation error: {:?}", compilation_error);
                 self.env.span_err_with_help_and_note(
                     compilation_error.span,
