@@ -224,13 +224,16 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Get a trait method declaration by name for type.
-    pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Option<ty::AssociatedItem> {
-        let mut result = None;
+    pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Result<Option<ty::AssociatedItem>, String> {
+        let mut result = Ok(None);
         self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
             let item = self.get_assoc_item(impl_id, name);
             if item.is_some() {
-                assert!(result.is_none());
-                result = item;
+                if let Ok(Some(_)) = result {
+                    result = Err("Several methods found that match the name".into());
+                } if let Ok(None) = result {
+                    result = Ok(item);
+                } // let error propagate to end of closure
             }
         });
         result

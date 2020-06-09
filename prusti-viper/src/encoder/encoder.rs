@@ -382,11 +382,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             // TODO(@jakob): fix reliance on self
             if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
                 let proc_name = self.env().tcx().item_name(proc_def_id).as_symbol();
-                if let Some(item) = self.env().get_trait_method_decl_for_type(ty, id, proc_name) {
-                    if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
-                        impl_spec = spec.clone();
-                    } else {
-                        debug!("Procedure {:?} has no specification", item.def_id);
+                let proc_res = self.env().get_trait_method_decl_for_type(ty, id, proc_name);
+                if proc_res.is_err() {
+                    info!("trait refinement not supported on generic traits");
+                } else {
+                    if let Some(item) = proc_res.unwrap() {
+                        if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
+                            impl_spec = spec.clone();
+                        } else {
+                            debug!("Procedure {:?} has no specification", item.def_id);
+                        }
                     }
                 }
             }
