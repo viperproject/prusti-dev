@@ -198,7 +198,11 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,
-            _ => vec![],
+            viper::VerificationResult::ConsistencyErrors(errors) => {
+                errors.iter().for_each(|e| error!("{}", e));
+                panic!("Consistency errors. The encoded Viper program is incorrect.");
+            }
+            viper::VerificationResult::Success() => vec![],
         };
 
         if verification_errors.is_empty() {

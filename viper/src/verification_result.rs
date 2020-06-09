@@ -8,6 +8,7 @@
 pub enum VerificationResult {
     Success(),
     Failure(Vec<VerificationError>),
+    ConsistencyErrors(Vec<String>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
