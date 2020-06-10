@@ -841,7 +841,7 @@ impl ObtainResult {
     pub fn unwrap(self) -> Vec<Action> {
         match self {
             ObtainResult::Success(actions) => actions,
-            ObtainResult::Failure(_) => unreachable!(),
+            ObtainResult::Failure(p) => panic!("Failed to obtain {:?}", p),
         }
     }
 }

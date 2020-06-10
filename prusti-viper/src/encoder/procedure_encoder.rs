@@ -623,7 +623,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ).unwrap_or(0);
         let after_guard_block = loop_body[after_guard_block_pos];
         let after_inv_block = loop_body[after_inv_block_pos];
-        debug_assert!(loop_body[0..after_inv_block_pos].contains(&after_guard_block));
 
         trace!("opt_loop_guard_switch: {:?}", opt_loop_guard_switch);
         trace!("before_invariant_block: {:?}", before_invariant_block);
