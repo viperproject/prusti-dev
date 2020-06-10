@@ -9,6 +9,7 @@ use std::hash::{Hash,Hasher};
 use std::iter::Iterator;
 use syntax::ast;
 use syntax::ext::quote::rt::Span;
+use syntax::symbol::Symbol;
 use syntax_pos::DUMMY_SP;
 use specifications::SpecID;
 
@@ -33,6 +34,7 @@ pub struct TraitRegister {
 }
 
 type TraitInfo = (RegisterID, Option<SpecID>, ast::Item, Vec<ast::Attribute>);
+pub type FunctionRef = (Symbol, Symbol);
 
 impl TraitRegister {
     pub fn new() -> Self {

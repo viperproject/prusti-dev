@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::string::ToString;
 use syntax::codemap::Span;
+use syntax::symbol::Symbol;
 use syntax::{ast, ptr};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -22,10 +23,37 @@ use syntax::{ast, ptr};
 pub enum SpecType {
     /// Precondition of a procedure.
     Precondition,
+    /// Refine a precondition of a procedure.
+    RefinePrecondition(Option<(Symbol,Symbol)>),
     /// Postcondition of a procedure.
     Postcondition,
+    /// Refine a postcondition of a procedure.
+    RefinePostcondition(Option<(Symbol,Symbol)>),
     /// Loop invariant or struct invariant
     Invariant,
+}
+
+impl SpecType {
+    pub fn is_refines(&self) -> bool {
+        match self {
+            SpecType::RefinePostcondition(_) | SpecType::RefinePrecondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_refine_ensures(&self) -> bool {
+        match self {
+            SpecType::RefinePostcondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_refine_requires(&self) -> bool {
+        match self {
+            SpecType::RefinePrecondition(_) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -44,6 +72,8 @@ impl<'a> TryFrom<&'a str> for SpecType {
             "requires" => Ok(SpecType::Precondition),
             "ensures" => Ok(SpecType::Postcondition),
             "invariant" => Ok(SpecType::Invariant),
+            "refine_requires" => Ok(SpecType::RefinePrecondition(None)),
+            "refine_ensures" => Ok(SpecType::RefinePostcondition(None)),
             _ => Err(TryFromStringError::UnknownSpecificationType),
         }
     }
