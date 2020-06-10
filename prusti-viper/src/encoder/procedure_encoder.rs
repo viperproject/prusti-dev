@@ -3590,8 +3590,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.pure_var_for_preserving_value_map
                 .insert(loop_head, HashMap::new());
         }
-        let (permissions, equalities) = self.encode_loop_invariant_permissions(
-            loop_head, !after_loop_iteration);
+        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
         let (func_spec, func_spec_span) = self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
         // TODO: use different positions, and generate different error messages, for the exhale
@@ -3634,7 +3633,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let obtain_predicates = permissions
             .iter()
             .map(|p| {
-                vir::Stmt::Obtain(p.clone(), assert_pos.clone())    // TODO: Use a better position.
+                vir::Stmt::Obtain(p.clone(), assert_pos.clone()) // TODO: Use a better position.
             });
         stmts.extend(obtain_predicates);
 
@@ -3665,8 +3664,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             loop_head,
             after_loop
         );
-        let (permissions, equalities) = self.encode_loop_invariant_permissions(
-            loop_head, after_loop);
+        let (permissions, equalities) = self.encode_loop_invariant_permissions(loop_head, true);
         let (func_spec, _func_spec_span) = self.encode_loop_invariant_specs(loop_head, loop_inv_block);
 
         let permission_expr = permissions.into_iter().conjoin();
