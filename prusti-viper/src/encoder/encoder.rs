@@ -41,6 +41,7 @@ use std::mem;
 use syntax::ast;
 use viper;
 use encoder::stub_procedure_encoder::StubProcedureEncoder;
+use std::ops::AddAssign;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v Environment<'r, 'a, 'tcx>,
@@ -79,6 +80,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
+    encoding_errors_counter: RefCell<usize>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -128,6 +130,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
             typaram_repl: RefCell::new(Vec::new()),
+            encoding_errors_counter: RefCell::new(0),
         }
     }
 
@@ -186,6 +189,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             &compiler_error.help,
             &compiler_error.note,
         );
+        self.encoding_errors_counter.borrow_mut().add_assign(1);
+    }
+
+    pub fn count_encoding_errors(&self) -> usize {
+        *self.encoding_errors_counter.borrow()
     }
 
     pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {

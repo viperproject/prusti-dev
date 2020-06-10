@@ -195,6 +195,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         }
         self.encoder.process_encoding_queue();
 
+        let encoding_errors_count = self.encoder.count_encoding_errors();
+
         let duration = start.elapsed();
         info!(
             "Encoding to Viper successful ({}.{} seconds)",
@@ -330,7 +332,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             _ => vec![],
         };
 
-        if verification_errors.is_empty() {
+        if encoding_errors_count == 0 && verification_errors.is_empty() {
             VerificationResult::Success
         } else {
             let error_manager = self.encoder.error_manager();

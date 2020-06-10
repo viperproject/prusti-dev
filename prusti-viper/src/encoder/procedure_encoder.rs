@@ -586,7 +586,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .cloned().collect();
 
         // Identify important blocks
-        let opt_loop_guard_switch = loop_info.get_loop_guard_switch(loop_head);
+        let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
+        let loop_exit_blocks_set: HashSet<_> = loop_exit_blocks.iter().cloned().collect();
         let before_invariant_block: BasicBlockIndex = loop_body.iter().find(
             |&&bb| {
                 loop_info.get_loop_depth(bb) == loop_depth &&
@@ -597,17 +598,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     )
             }
         ).cloned().unwrap_or_else(
-            || opt_loop_guard_switch.unwrap_or(loop_head)
+            || loop_exit_blocks.get(0).cloned().unwrap_or(loop_head)
         );
+        let before_inv_block_pos = loop_body.iter()
+            .position(|&bb| bb == before_invariant_block).unwrap();
+        let after_inv_block_pos = 1 + before_inv_block_pos;
+        // Heuristic: pick the last exit block, before or at the loop invariant position.
+        // Note that this does not allow having break/return statements between the loop guard
+        // evaluation and the loop invariant position.
+        let opt_loop_guard_switch = &loop_body[0..after_inv_block_pos].iter().rev()
+            .find(|bb| loop_exit_blocks_set.contains(&bb)).cloned();
         let after_guard_block_pos = opt_loop_guard_switch.and_then(
             |loop_guard_switch| {
                 loop_body.iter().position(|&bb| bb == loop_guard_switch).map(|x| x + 1)
             }
         ).unwrap_or(0);
-        let after_inv_block_pos = 1 + loop_body.iter()
-            .position(|&bb| bb == before_invariant_block).unwrap();
         let after_guard_block = loop_body[after_guard_block_pos];
         let after_inv_block = loop_body[after_inv_block_pos];
+        debug_assert!(loop_body[0..after_inv_block_pos].contains(&after_guard_block));
 
         trace!("opt_loop_guard_switch: {:?}", opt_loop_guard_switch);
         trace!("before_invariant_block: {:?}", before_invariant_block);
@@ -812,12 +820,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.cfg_method.add_stmt(
                 curr_block,
                 vir::Stmt::Comment("This is a loop head".to_string())
-            );
-        }
-        if self.loop_encoder.is_loop_guard_switch(bbi) {
-            self.cfg_method.add_stmt(
-                curr_block,
-                vir::Stmt::Comment("This is a loop guard switch".to_string())
             );
         }
 
