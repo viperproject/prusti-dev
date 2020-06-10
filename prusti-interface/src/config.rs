@@ -28,6 +28,7 @@ lazy_static! {
         settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
+        settings.set_default("FOLDUNFOLD_STATE_FILTER", "").unwrap();
         settings.set_default("NUM_PARENTS_FOR_DUMPS", 0).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
@@ -168,6 +169,16 @@ pub fn dump_viper_program() -> bool {
         .unwrap()
         .get::<bool>("DUMP_VIPER_PROGRAM")
         .unwrap()
+}
+
+/// The Viper backend that should be used for the verification
+pub fn foldunfold_state_filter() -> String {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<String>("FOLDUNFOLD_STATE_FILTER")
+        .unwrap()
+        .to_string()
 }
 
 /// How many parent folders should be used to disambiguate the Viper dumps (and other debug files)?

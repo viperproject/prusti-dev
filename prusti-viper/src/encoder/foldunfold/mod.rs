@@ -87,6 +87,8 @@ struct FoldUnfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     initial_bctxt: BranchCtxt<'p>,
     bctxt_at_label: HashMap<String, BranchCtxt<'p>>,
     dump_debug_info: bool,
+    /// Used for debugging the dump
+    foldunfold_state_filter: String,
     check_foldunfold_state: bool,
     cfg: &'p vir::CfgMethod,
     log: EventLog,
@@ -110,6 +112,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             bctxt_at_label: HashMap::new(),
             dump_debug_info: config::dump_debug_info(),
             check_foldunfold_state: config::check_foldunfold_state(),
+            foldunfold_state_filter: config::foldunfold_state_filter(),
             cfg,
             log: EventLog::new(),
             borrow_locations,
@@ -630,7 +633,12 @@ impl<
     'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a
 > vir::CfgReplacer<BranchCtxt<'p>, Vec<Action>> for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     /// Dump the current CFG, for debugging purposes
-    fn current_cfg(&self, new_cfg: &vir::CfgMethod) {
+    fn current_cfg(
+        &self,
+        new_cfg: &vir::CfgMethod,
+        initial_bctxt: &[Option<BranchCtxt>],
+        _final_bctxt: &[Option<BranchCtxt>],
+    ) {
         if self.dump_debug_info {
             let source_path = self.encoder.env().source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
@@ -638,7 +646,32 @@ impl<
             report::log::report_with_writer(
                 "graphviz_method_during_foldunfold",
                 format!("{}.{}.dot", source_filename, method_name),
-                |writer| new_cfg.to_graphviz(writer),
+                |writer| new_cfg.to_graphviz_with_extra(
+                    writer,
+                    |bb_index| initial_bctxt.get(bb_index).and_then(
+                        |opt_bctxt| opt_bctxt.as_ref().map(
+                            |bctxt| {
+                                let mut acc = bctxt.state().display_acc();
+                                let mut pred = bctxt.state().display_acc();
+                                if !self.foldunfold_state_filter.is_empty() {
+                                    let filter = &self.foldunfold_state_filter;
+                                    acc = acc.split("\n")
+                                        .filter(|x| x.contains(filter))
+                                        .map(|x| x.to_string())
+                                        .collect::<Vec<_>>().join("\n");
+                                    pred = pred.split("\n")
+                                        .filter(|x| x.contains(filter))
+                                        .map(|x| x.to_string())
+                                        .collect::<Vec<_>>().join("\n");
+                                }
+                                vec![
+                                    format!("Acc:\n{}", acc),
+                                    format!("Pred:\n{}", pred),
+                                ]
+                            }
+                        )
+                    ).unwrap_or_else(|| vec![])
+                ),
             );
         }
     }

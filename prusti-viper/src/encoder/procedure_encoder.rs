@@ -154,27 +154,35 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     self.mir_encoder.get_span_of_basic_block(loop_head)
                 )
             }
+
             PoloniusInfoError::ReborrowingDagHasWrongLoanLoops(location) => {
                 ProcedureEncodingError::Generic(
-                    "ReborrowingDagHasWrongLoanLoops".to_string(),
+                    "error in processing expiring borrows \
+                    (ReborrowingDagHasWrongLoanLoops)".to_string(),
                     self.mir.source_info(location).span,
                 )
             }
+
             PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
                 ProcedureEncodingError::Generic(
-                    "ReborrowingDagHasEmptyMagicWand".to_string(),
+                    "error in processing expiring borrows \
+                    ReborrowingDagHasEmptyMagicWand".to_string(),
                     self.mir.source_info(location).span,
                 )
             }
+
             PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
                 ProcedureEncodingError::Generic(
-                    "ReborrowingDagHasWrongReborrowingChain".to_string(),
+                    "error in processing expiring borrows \
+                    ReborrowingDagHasWrongReborrowingChain".to_string(),
                     self.mir.source_info(location).span,
                 )
             }
+
             PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
                 ProcedureEncodingError::Generic(
-                    "ReborrowingDagHasNoRepresentativeLoan".to_string(),
+                    "error in processing expiring borrows \
+                    ReborrowingDagHasNoRepresentativeLoan".to_string(),
                     self.mir.source_info(location).span,
                 )
             }

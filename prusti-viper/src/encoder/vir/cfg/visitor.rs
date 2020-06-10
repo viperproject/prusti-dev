@@ -31,7 +31,12 @@ pub trait CfgReplacer<
     */
 
     /// Callback method called each time the CFG is modified. Useful for debugging purposes.
-    fn current_cfg(&self, _cfg: &CfgMethod) {}
+    fn current_cfg(
+        &self,
+        _cfg: &CfgMethod,
+        _initial_bctxt: &[Option<BranchCtxt>],
+        _final_bctxt: &[Option<BranchCtxt>],
+    ) {}
 
     /// Are two branch context compatible for a back edge?
     fn check_compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt);
@@ -205,7 +210,7 @@ pub trait CfgReplacer<
 
             // REPLACE statement
             for (stmt_index, stmt) in curr_block.stmts.iter().enumerate() {
-                self.current_cfg(&new_cfg);
+                self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
                 let last_stmt_before_return =
                     stmt_index == curr_block.stmts.len() - 1 && curr_block.successor.is_return();
                 let new_stmts = self.replace_stmt(
@@ -228,7 +233,7 @@ pub trait CfgReplacer<
             }
 
             // REPLACE successor
-            self.current_cfg(&new_cfg);
+            self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
             let (new_stmts, new_successor) =
                 self.replace_successor(&curr_block.successor, &mut bctxt);
             trace!(
@@ -277,7 +282,7 @@ pub trait CfgReplacer<
             final_bctxt[curr_index] = Some(bctxt);
         }
 
-        self.current_cfg(&new_cfg);
+        self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
         new_cfg
     }
 }
