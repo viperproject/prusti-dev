@@ -5,7 +5,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 mod rewriter;
-mod specifications;
+pub mod specifications;
 
 macro_rules! handle_result {
     ($parse_result: expr) => {
@@ -19,8 +19,10 @@ macro_rules! handle_result {
 pub fn requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::ItemFn = handle_result!(syn::parse2(tokens));
     let mut rewriter = rewriter::AstRewriter::new();
-    let assertion = handle_result!(rewriter.parse_assertion(attr));
-    let spec_item = handle_result!(rewriter.generate_spec_item_fn("pre", assertion, &item));
+    let spec_id = rewriter.generate_spec_id();
+    let assertion = handle_result!(rewriter.parse_assertion(spec_id, attr));
+    let spec_item =
+        handle_result!(rewriter.generate_spec_item_fn("pre", spec_id, assertion, &item));
     quote! {
         #spec_item
         #item
@@ -30,8 +32,10 @@ pub fn requires(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item: syn::ItemFn = handle_result!(syn::parse2(tokens));
     let mut rewriter = rewriter::AstRewriter::new();
-    let assertion = handle_result!(rewriter.parse_assertion(attr));
-    let spec_item = handle_result!(rewriter.generate_spec_item_fn("post", assertion, &item));
+    let spec_id = rewriter.generate_spec_id();
+    let assertion = handle_result!(rewriter.parse_assertion(spec_id, attr));
+    let spec_item =
+        handle_result!(rewriter.generate_spec_item_fn("post", spec_id, assertion, &item));
     quote! {
         #spec_item
         #item
@@ -40,7 +44,8 @@ pub fn ensures(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 pub fn invariant(tokens: TokenStream) -> TokenStream {
     let mut rewriter = rewriter::AstRewriter::new();
-    let invariant = handle_result!(rewriter.parse_assertion(tokens));
+    let spec_id = rewriter.generate_spec_id();
+    let invariant = handle_result!(rewriter.parse_assertion(spec_id, tokens));
     let check = rewriter.generate_spec_loop(invariant);
     quote! {
         if false {

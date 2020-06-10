@@ -16,12 +16,16 @@ impl AstRewriter {
             spec_id_generator: SpecificationIdGenerator::new(),
         }
     }
+    pub fn generate_spec_id(&mut self) -> untyped::SpecificationId {
+        self.spec_id_generator.generate()
+    }
     /// Parse an assertion.
-    ///
-    /// Note: If this method encounters an error, it simply logs the error and
-    /// returns `true`.
-    pub fn parse_assertion(&mut self, tokens: TokenStream) -> syn::Result<untyped::Assertion> {
-        untyped::Assertion::parse(tokens, &mut self.expr_id_generator)
+    pub fn parse_assertion(
+        &mut self,
+        spec_id: untyped::SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<untyped::Assertion> {
+        untyped::Assertion::parse(tokens, spec_id, &mut self.expr_id_generator)
     }
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.
@@ -47,6 +51,7 @@ impl AstRewriter {
     pub fn generate_spec_item_fn(
         &mut self,
         spec_type: &str,
+        spec_id: untyped::SpecificationId,
         assertion: untyped::Assertion,
         item: &syn::ItemFn,
     ) -> syn::Result<syn::Item> {
@@ -56,14 +61,15 @@ impl AstRewriter {
                 "it is not allowed to use the keyword `result` as a function argument".to_string(),
             ));
         }
-        let spec_id = self.spec_id_generator.generate();
         let item_name = syn::Ident::new(
             &format!("prusti_{}_item_{}_{}", spec_type, item.sig.ident, spec_id),
             item.span(),
         );
         let mut statements = TokenStream::new();
         assertion.encode_type_check(&mut statements);
+        let assertion_json = crate::specifications::json::to_json_string(&assertion);
         let mut spec_item: syn::ItemFn = syn::parse_quote! {
+            #[doc = #assertion_json]
             fn #item_name() {
                 #statements
             }
@@ -76,7 +82,9 @@ impl AstRewriter {
     pub fn generate_spec_loop(&mut self, assertion: untyped::Assertion) -> TokenStream {
         let mut statements = TokenStream::new();
         assertion.encode_type_check(&mut statements);
+        let assertion_json = crate::specifications::json::to_json_string(&assertion);
         quote! {
+            #[doc = #assertion_json]
             let _prusti_loop_invariant = {
                 #statements
             };

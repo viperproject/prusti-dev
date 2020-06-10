@@ -3,10 +3,9 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
-use proc_macro2::{Span, TokenStream};
-use quote::ToTokens;
+use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
-use std::{fmt::Display, string::ToString};
+use std::fmt::Display;
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -41,7 +40,7 @@ impl<'a> TryFrom<&'a str> for SpecType {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
 pub struct SpecificationId(Uuid);
@@ -62,6 +61,12 @@ impl Display for SpecificationId {
 //     }
 // }
 
+impl SpecificationId {
+    pub fn dummy() -> Self {
+        Self(Uuid::nil())
+    }
+}
+
 pub(crate) struct SpecificationIdGenerator {}
 
 impl SpecificationIdGenerator {
@@ -73,9 +78,15 @@ impl SpecificationIdGenerator {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
 /// A unique ID of the Rust expression used in the specification.
 pub struct ExpressionId(u64);
+
+impl Display for ExpressionId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0,)
+    }
+}
 
 pub(crate) struct ExpressionIdGenerator {
     last_id: u64,
@@ -91,12 +102,6 @@ impl ExpressionIdGenerator {
     }
 }
 
-impl ToString for ExpressionId {
-    fn to_string(&self) -> String {
-        self.0.to_string()
-    }
-}
-
 impl Into<u64> for ExpressionId {
     fn into(self) -> u64 {
         self.0
@@ -106,6 +111,8 @@ impl Into<u64> for ExpressionId {
 #[derive(Debug, Clone)]
 /// A Rust expression used in the specification.
 pub struct Expression<EID, ET> {
+    /// Identifier of the specification to which this expression belongs.
+    pub spec_id: SpecificationId,
     /// Unique identifier.
     pub id: EID,
     /// Actual expression.
@@ -235,16 +242,13 @@ impl<EID, ET, AT> LoopSpecification<EID, ET, AT> {
 #[derive(Debug, Clone)]
 pub struct ProcedureSpecification<EID, ET, AT> {
     /// Precondition.
-    pub pres: Vec<Specification<EID, ET, AT>>,
+    pub pres: Vec<Assertion<EID, ET, AT>>,
     /// Postcondition.
-    pub posts: Vec<Specification<EID, ET, AT>>,
+    pub posts: Vec<Assertion<EID, ET, AT>>,
 }
 
 impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
-    pub fn new(
-        pres: Vec<Specification<EID, ET, AT>>,
-        posts: Vec<Specification<EID, ET, AT>>,
-    ) -> Self {
+    pub fn new(pres: Vec<Assertion<EID, ET, AT>>, posts: Vec<Assertion<EID, ET, AT>>) -> Self {
         Self { pres, posts }
     }
     pub fn empty() -> Self {

@@ -1,6 +1,6 @@
-// compile-flags: -Zprint-desugared-specs
-// normalize-stdout-test: "prusti_pre_item_test\d+_[a-z0-9]{32}" -> "prusti_post_item_testNUM_UUID"
-// normalize-stdout-test: "prusti_post_item_test\d+_[a-z0-9]{32}" -> "prusti_post_item_testNUM_UUID"
+// compile-flags: -Zprint-desugared-specs -Zprint-typeckd-specs
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 
 use prusti_contracts::*;
 

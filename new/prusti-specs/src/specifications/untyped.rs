@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
-pub use common::{ExpressionId, SpecType};
+pub use common::{ExpressionId, SpecType, SpecificationId};
 
 #[derive(Debug, Clone)]
 pub struct Arg {
@@ -35,16 +35,18 @@ pub type TriggerSet = common::TriggerSet<ExpressionId, syn::Expr>;
 impl Assertion {
     pub(crate) fn parse(
         tokens: TokenStream,
+        spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> syn::Result<Self> {
         let assertion: common::Assertion<(), syn::Expr, Arg> = syn::parse2(tokens)?;
-        Ok(assertion.assign_id(id_generator))
+        Ok(assertion.assign_id(spec_id, id_generator))
     }
 }
 
 impl Parse for common::Expression<(), syn::Expr> {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {
+            spec_id: SpecificationId::dummy(),
             id: (),
             expr: input.parse()?,
         })
@@ -63,12 +65,21 @@ impl Parse for common::Assertion<(), syn::Expr, Arg> {
 }
 
 pub(crate) trait AssignExpressionId<Target> {
-    fn assign_id(self, id_generator: &mut ExpressionIdGenerator) -> Target;
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> Target;
 }
 
 impl AssignExpressionId<Expression> for common::Expression<(), syn::Expr> {
-    fn assign_id(self, id_generator: &mut ExpressionIdGenerator) -> Expression {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> Expression {
         Expression {
+            spec_id: spec_id,
             id: id_generator.generate(),
             expr: self.expr,
         }
@@ -76,25 +87,37 @@ impl AssignExpressionId<Expression> for common::Expression<(), syn::Expr> {
 }
 
 impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, Arg> {
-    fn assign_id(self, id_generator: &mut ExpressionIdGenerator) -> AssertionKind {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> AssertionKind {
         use common::AssertionKind::*;
         match self {
-            Expr(expr) => Expr(expr.assign_id(id_generator)),
+            Expr(expr) => Expr(expr.assign_id(spec_id, id_generator)),
             x => unimplemented!("{:?}", x),
         }
     }
 }
 
 impl AssignExpressionId<Box<AssertionKind>> for Box<common::AssertionKind<(), syn::Expr, Arg>> {
-    fn assign_id(self, id_generator: &mut ExpressionIdGenerator) -> Box<AssertionKind> {
-        box (*self).assign_id(id_generator)
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> Box<AssertionKind> {
+        box (*self).assign_id(spec_id, id_generator)
     }
 }
 
 impl AssignExpressionId<Assertion> for common::Assertion<(), syn::Expr, Arg> {
-    fn assign_id(self, id_generator: &mut ExpressionIdGenerator) -> Assertion {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> Assertion {
         Assertion {
-            kind: self.kind.assign_id(id_generator),
+            kind: self.kind.assign_id(spec_id, id_generator),
         }
     }
 }
@@ -135,7 +158,9 @@ impl EncodeTypeCheck for Expression {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
         let span = self.expr.span();
         let expr = &self.expr;
+        let identifier = format!("{}_{}", self.spec_id, self.id);
         let typeck_call = quote_spanned! { span =>
+            #[doc = #identifier]
             || -> bool {
                 #expr
             };
