@@ -1310,11 +1310,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-        // FIXME: This should use current_tymap.
-        if let Some(first) = self.typaram_repl.borrow().first() {
-            if let Some(replaced_ty) = first.get(&ty) {
-                return replaced_ty.clone();
-            }
+        // TODO: creating each time a current_tymap might be slow. This can be optimized.
+        if let Some(replaced_ty) = self.current_tymap().get(&ty) {
+            trace!("resolve_typaram({:?}) ==> {:?}", ty, replaced_ty);
+            return replaced_ty
         }
         ty
     }

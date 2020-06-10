@@ -5,7 +5,7 @@ struct Neg;
 #[invariant="S == Neg ~~> self.i < 0"]
 struct Number<S> {
     i: i32,
-    s: S,
+    _s: S,
 }
 
 impl<X> Number<X> {
