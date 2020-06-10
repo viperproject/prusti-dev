@@ -14,6 +14,8 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use utils::to_string::ToString;
+use encoder::foldunfold::FoldUnfoldError;
+use encoder::foldunfold::FoldUnfoldError::FailedToObtain;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BranchCtxt<'a> {
@@ -464,11 +466,12 @@ impl<'a> BranchCtxt<'a> {
     }
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
-    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Vec<Action> {
+    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Result<Vec<Action>, FoldUnfoldError> {
         debug!("[enter] obtain_all: {{{}}}", reqs.iter().to_string());
         reqs.iter()
-            .flat_map(|perm| self.obtain(perm, false).unwrap())
-            .collect()
+            .map(|perm| self.obtain(perm, false).as_result())
+            .collect::<Result<Vec<_>, _>>()
+            .map(|res| res.into_iter().flatten().collect())
     }
 
     /// Obtain the required permission, changing the state inplace and returning the statements.
@@ -524,7 +527,8 @@ impl<'a> BranchCtxt<'a> {
             debug!("We unfolded {}", existing_pred_to_unfold);
 
             // Check if we are done
-            let new_actions = self.obtain(req, false).unwrap();
+            let new_actions = self.obtain(req, false)
+                .as_result().ok().unwrap();  // TODO: return a Result<..> somehow
             actions.extend(new_actions);
             trace!("[exit] obtain");
             return ObtainResult::Success(actions);
@@ -691,7 +695,10 @@ Predicates: {{
         self.state.check_consistency();
     }
 
-    pub fn obtain_permissions(&mut self, permissions: Vec<Perm>) -> Vec<Action> {
+    pub fn obtain_permissions(
+        &mut self,
+        permissions: Vec<Perm>
+    ) -> Result<Vec<Action>, FoldUnfoldError> {
         trace!(
             "[enter] obtain_permissions: {}",
             permissions.iter().to_string()
@@ -702,7 +709,7 @@ Predicates: {{
 
         self.state.check_consistency();
 
-        let actions = self.obtain_all(permissions);
+        let actions = self.obtain_all(permissions)?;
 
         trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
@@ -710,7 +717,7 @@ Predicates: {{
         self.state.check_consistency();
 
         trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
-        actions
+        Ok(actions)
     }
 
     /// Find the variant of enum that `place` has.
@@ -838,10 +845,10 @@ enum ObtainResult {
 }
 
 impl ObtainResult {
-    pub fn unwrap(self) -> Vec<Action> {
+    pub fn as_result(self) -> Result<Vec<Action>, FoldUnfoldError> {
         match self {
-            ObtainResult::Success(actions) => actions,
-            ObtainResult::Failure(p) => panic!("Failed to obtain {:?}", p),
+            ObtainResult::Success(actions) => Ok(actions),
+            ObtainResult::Failure(p) => Err(FailedToObtain(p)),
         }
     }
 }

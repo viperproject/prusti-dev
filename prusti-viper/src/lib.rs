@@ -9,6 +9,7 @@
 #![feature(nll)]
 #![feature(box_syntax)]
 #![feature(slice_sort_by_cached_key)]
+#![feature(iterator_flatten)]
 
 #![deny(unreachable_patterns)]
 // #![deny(unused_mut)]

@@ -426,13 +426,24 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.mir.span,
             ErrorCtxt::Unexpected,
         );
+        let mir_span = self.mir.span;
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
             self.encoder,
             self.cfg_method,
             &loan_locations,
             &self.cfg_blocks_map,
             method_pos,
-        );
+        ).map_err(
+            |foldunfold_error| {
+                ProcedureEncodingError::FoldUnfold(
+                    format!(
+                        "internal error while generating fold-unfold Viper statements ({:?})",
+                        foldunfold_error
+                    ),
+                    mir_span,
+                )
+            }
+        )?;
 
         // Fix variable declarations.
         let fixed_method = fix_ghost_vars(method_with_fold_unfold);

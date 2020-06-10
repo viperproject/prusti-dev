@@ -22,6 +22,8 @@ pub trait CfgReplacer<
     BranchCtxt: Debug + Clone,
     Action: CheckNoOpAction + Debug
 > {
+    type Error;
+
     /*
     /// Define `lub` by using the definition of `join`
     fn contained_in(&mut self, left: &BranchCtxt, right: &BranchCtxt) -> bool {
@@ -42,7 +44,7 @@ pub trait CfgReplacer<
     fn check_compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt);
 
     /// Give the initial branch context
-    fn initial_context(&mut self) -> BranchCtxt;
+    fn initial_context(&mut self) -> Result<BranchCtxt, Self::Error>;
 
     /// Replace some statements, mutating the branch context
     ///
@@ -71,24 +73,30 @@ pub trait CfgReplacer<
         curr_block_index: CfgBlockIndex,
         new_cfg: &CfgMethod,
         label: Option<&str>,
-    ) -> Vec<Stmt>;
+    ) -> Result<Vec<Stmt>, Self::Error>;
 
     /// Inject some statements and replace a successor, mutating the branch context
     fn replace_successor(
         &mut self,
         succ: &Successor,
         bctxt: &mut BranchCtxt,
-    ) -> (Vec<Stmt>, Successor);
+    ) -> Result<(Vec<Stmt>, Successor), Self::Error>;
 
     /// Compute actions that need to be performed before the join point,
     /// returning the merged branch context.
-    fn prepend_join(&mut self, bctxts: Vec<&BranchCtxt>) -> (Vec<Action>, BranchCtxt);
+    fn prepend_join(
+        &mut self,
+        bctxts: Vec<&BranchCtxt>
+    ) -> Result<(Vec<Action>, BranchCtxt), Self::Error>;
 
     /// Convert actions to statements.
-    fn perform_prejoin_action(&mut self, block_index: CfgBlockIndex, actions: Action) -> Vec<Stmt>;
+    fn perform_prejoin_action(
+        &mut self,
+        block_index: CfgBlockIndex,
+        actions: Action) -> Result<Vec<Stmt>, Self::Error>;
 
     /// The main method: visit and replace the reachable blocks of a CFG.
-    fn replace_cfg(&mut self, cfg: &CfgMethod) -> CfgMethod {
+    fn replace_cfg(&mut self, cfg: &CfgMethod) -> Result<CfgMethod, Self::Error> {
         // Initialize the variables of the new cfg
         let mut new_cfg = CfgMethod::new(
             cfg.method_name.clone(),
@@ -166,9 +174,9 @@ pub trait CfgReplacer<
                 .collect();
             let mut bctxt: BranchCtxt;
             if incoming_bctxt.is_empty() {
-                bctxt = self.initial_context();
+                bctxt = self.initial_context()?;
             } else {
-                let actions_and_bctxt = self.prepend_join(incoming_bctxt);
+                let actions_and_bctxt = self.prepend_join(incoming_bctxt)?;
                 let actions = actions_and_bctxt.0;
                 bctxt = actions_and_bctxt.1;
                 for (&src_index, action) in incoming_edges.iter().zip(actions) {
@@ -190,7 +198,7 @@ pub trait CfgReplacer<
                                 new_label
                             ))],
                         );
-                        let stmts_to_add = self.perform_prejoin_action(new_block_index, action);
+                        let stmts_to_add = self.perform_prejoin_action(new_block_index, action)?;
                         new_cfg.add_stmts(new_block_index, stmts_to_add);
                         new_cfg.set_successor(new_block_index, Successor::Goto(curr_block_index));
                         new_cfg.set_successor(
@@ -221,7 +229,7 @@ pub trait CfgReplacer<
                     curr_block_index,
                     &new_cfg,
                     None,
-                );
+                )?;
                 trace!(
                     "Replace stmt '{}' with [{}]",
                     stmt,
@@ -235,7 +243,7 @@ pub trait CfgReplacer<
             // REPLACE successor
             self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
             let (new_stmts, new_successor) =
-                self.replace_successor(&curr_block.successor, &mut bctxt);
+                self.replace_successor(&curr_block.successor, &mut bctxt)?;
             trace!(
                 "Replace successor of {:?} with {:?} and {:?}",
                 curr_block_index,
@@ -283,7 +291,7 @@ pub trait CfgReplacer<
         }
 
         self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
-        new_cfg
+        Ok(new_cfg)
     }
 }
 

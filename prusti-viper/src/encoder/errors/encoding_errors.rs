@@ -12,6 +12,7 @@ pub enum EncodingError {
 impl From<EncodingError> for CompilerError {
     fn from(error: EncodingError) -> Self {
         match error {
+            EncodingError::Procedure(ProcedureEncodingError::FoldUnfold(msg, span)) |
             EncodingError::Procedure(ProcedureEncodingError::Generic(msg, span)) |
             EncodingError::PureFunction(PureFunctionEncodingError::CallImpure(msg, span)) => {
                 CompilerError::new(msg, span.into())
@@ -29,6 +30,7 @@ impl From<EncodingError> for CompilerError {
 #[derive(Clone, Debug)]
 pub enum ProcedureEncodingError {
     Generic(String, Span),
+    FoldUnfold(String, Span),
     PoloniusInfo(Span, PoloniusInfoError),
 }
 

@@ -32,6 +32,11 @@ mod places_utils;
 mod semantics;
 mod state;
 
+#[derive(Clone, Debug)]
+pub enum FoldUnfoldError {
+    FailedToObtain(Perm)
+}
+
 pub fn add_folding_unfolding_to_expr(expr: vir::Expr, bctxt: &BranchCtxt) -> vir::Expr {
     let bctxt_at_label = HashMap::new();
     let expr = ExprReplacer::new(bctxt.clone(), &bctxt_at_label, true).fold(expr);
@@ -74,11 +79,12 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
     borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
     cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
     method_pos: vir::Position,
-) -> vir::CfgMethod {
+) -> Result<vir::CfgMethod, FoldUnfoldError> {
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map();
     let initial_bctxt = BranchCtxt::new(cfg_vars, &predicates);
-    FoldUnfold::new(encoder, initial_bctxt, &cfg, borrow_locations, cfg_map, method_pos).replace_cfg(&cfg)
+    FoldUnfold::new(encoder, initial_bctxt, &cfg, borrow_locations, cfg_map, method_pos)
+        .replace_cfg(&cfg)
 }
 
 #[derive(Clone)]
@@ -223,7 +229,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         surrounding_block_index: vir::CfgBlockIndex,
         new_cfg: &vir::CfgMethod,
         label: Option<&str>,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>, FoldUnfoldError> {
         trace!("[enter] process_expire_borrows dag=[{:?}]", dag);
         let mut cfg = borrows::CFG::new();
         for node in dag.iter() {
@@ -334,7 +340,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     incoming_bctxt.push(bctxt);
                 }
                 let incoming_bctxt_refs = incoming_bctxt.iter().collect();
-                let (actions, mut bctxt) = self.prepend_join(incoming_bctxt_refs);
+                let (actions, mut bctxt) = self.prepend_join(incoming_bctxt_refs)?;
                 for (&src_index, action) in curr_block.predecessors.iter().zip(&actions) {
                     assert!(src_index < curr_block_index);
                     if !action.is_empty() {
@@ -381,7 +387,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     surrounding_block_index,
                     new_cfg,
                     label,
-                );
+                )?;
                 curr_block.statements.extend(new_stmts);
             }
 
@@ -406,7 +412,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     surrounding_block_index,
                     new_cfg,
                     label,
-                );
+                )?;
                 curr_block.statements.extend(new_stmts);
             }
             if let Some(original_place) = maybe_original_place {
@@ -435,11 +441,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 for &borrow in &curr_node.conflicting_borrows {
                     curr_block
                         .statements
-                        .extend(self.restore_write_permissions(borrow, &mut bctxt));
+                        .extend(self.restore_write_permissions(borrow, &mut bctxt)?);
                 }
                 curr_block
                     .statements
-                    .extend(self.restore_write_permissions(curr_node.borrow, &mut bctxt));
+                    .extend(self.restore_write_permissions(curr_node.borrow, &mut bctxt)?);
             }
             debug!(
                 "curr_node.alive_conflicting_borrows={:?}",
@@ -465,7 +471,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             .iter()
             .map(|i| final_bctxt[*i].as_ref().unwrap())
             .collect();
-        let (actions, mut final_bctxt) = self.prepend_join(final_bctxts);
+        let (actions, mut final_bctxt) = self.prepend_join(final_bctxts)?;
         for (&i, action) in final_blocks.iter().zip(actions.iter()) {
             if !action.is_empty() {
                 let mut stmts_to_add = Vec::new();
@@ -507,7 +513,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 }
             }
         }
-        stmts
+        Ok(stmts)
     }
 
     /// Restore `Write` permissions that were converted to `Read` due to borrowing.
@@ -515,7 +521,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         &self,
         borrow: vir::borrows::Borrow,
         bctxt: &mut BranchCtxt,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>, FoldUnfoldError> {
         trace!("[enter] restore_write_permissions({:?})", borrow);
         let mut stmts = Vec::new();
         for access in self.log.get_converted_to_read_places(borrow) {
@@ -533,7 +539,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             };
             stmts.extend(
                 bctxt
-                    .obtain_permissions(vec![perm])
+                    .obtain_permissions(vec![perm])?
                     .iter()
                     .map(|a| a.to_stmt()),
             );
@@ -546,7 +552,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             borrow,
             vir::stmts_to_str(&stmts)
         );
-        stmts
+        Ok(stmts)
     }
 
     /// Wrap `_1.val_ref.f.g.` into `old[label](_1.val_ref).f.g`. This is needed
@@ -632,6 +638,8 @@ impl CheckNoOpAction for Vec<Action> {
 impl<
     'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a
 > vir::CfgReplacer<BranchCtxt<'p>, Vec<Action>> for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
+    type Error = FoldUnfoldError;
+
     /// Dump the current CFG, for debugging purposes
     fn current_cfg(
         &self,
@@ -687,8 +695,8 @@ impl<
     }
 
     /// Give the initial branch context
-    fn initial_context(&mut self) -> BranchCtxt<'p> {
-        self.initial_bctxt.clone()
+    fn initial_context(&mut self) -> Result<BranchCtxt<'p>, Self::Error> {
+        Ok(self.initial_bctxt.clone())
     }
 
     /// Replace some statements, mutating the branch context
@@ -701,7 +709,7 @@ impl<
         curr_block_index: vir::CfgBlockIndex,
         new_cfg: &vir::CfgMethod,
         label: Option<&str>,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>, Self::Error> {
         debug!("[enter] replace_stmt: ##### {} #####", stmt);
 
         if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
@@ -803,7 +811,7 @@ impl<
                 );
 
                 if !perms.is_empty() {
-                    stmts.extend(bctxt.obtain_permissions(perms).iter().map(|a| a.to_stmt()));
+                    stmts.extend(bctxt.obtain_permissions(perms)?.iter().map(|a| a.to_stmt()));
 
                     if self.check_foldunfold_state && !is_last_before_return {
                         stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
@@ -840,7 +848,7 @@ impl<
                         curr_block_index,
                         new_cfg,
                         Some(label),
-                    ));
+                    )?);
                     if config::dump_debug_info() {
                         //package_stmts.push(
                         //    vir::Stmt::comment(format!("[state] acc: {{\n{}\n}}", package_bctxt.state().display_acc()))
@@ -913,7 +921,7 @@ impl<
                         curr_block_index,
                         new_cfg,
                         label
-                    )
+                    )?
                 );
             }
         }
@@ -924,8 +932,7 @@ impl<
             ref lhs_place,
             ref rhs_place,
             vir::AssignKind::SharedBorrow(borrow),
-        ) = stmt
-        {
+        ) = stmt {
             // Check if in the state we have any write permissions
             // with the borrowed place as a prefix. If yes, change them
             // to read permissions and emit exhale acc(T(place), write-read).
@@ -1057,7 +1064,7 @@ impl<
                 .collect::<Vec<_>>()
                 .join("\n  ")
         );
-        stmts
+        Ok(stmts)
     }
 
     /// Inject some statements and replace a successor, mutating the branch context
@@ -1065,7 +1072,7 @@ impl<
         &mut self,
         succ: &vir::Successor,
         bctxt: &mut BranchCtxt<'p>,
-    ) -> (Vec<vir::Stmt>, vir::Successor) {
+    ) -> Result<(Vec<vir::Stmt>, vir::Successor), Self::Error> {
         debug!("replace_successor: {}", succ);
         let exprs: Vec<&vir::Expr> = match succ {
             &vir::Successor::GotoSwitch(ref guarded_targets, _) => {
@@ -1095,7 +1102,7 @@ impl<
                 let label_bctxt = opt_old_bctxt.as_mut().unwrap_or(bctxt);
                 stmts.extend(
                     label_bctxt
-                        .obtain_permissions(perms)
+                        .obtain_permissions(perms)?
                         .iter()
                         .map(|a| a.to_stmt())
                         .collect::<Vec<_>>(),
@@ -1132,16 +1139,19 @@ impl<
             }
         };
 
-        (stmts, new_succ)
+        Ok((stmts, new_succ))
     }
 
     /// Compute actions that need to be performed before the join point,
     /// returning the merged branch context.
-    fn prepend_join(&mut self, bcs: Vec<&BranchCtxt<'p>>) -> (Vec<Vec<Action>>, BranchCtxt<'p>) {
+    fn prepend_join(
+        &mut self,
+        bcs: Vec<&BranchCtxt<'p>>
+    ) -> Result<(Vec<Vec<Action>>, BranchCtxt<'p>), Self::Error> {
         trace!("[enter] prepend_join(..{})", &bcs.len());
         assert!(bcs.len() > 0);
         if bcs.len() == 1 {
-            (vec![vec![]], bcs[0].clone())
+            Ok((vec![vec![]], bcs[0].clone()))
         } else {
             // Define two subgroups
             let mid = bcs.len() / 2;
@@ -1149,8 +1159,8 @@ impl<
             let right_bcs = &bcs[mid..];
 
             // Join the subgroups
-            let (left_actions_vec, mut left_bc) = self.prepend_join(left_bcs.to_vec());
-            let (right_actions_vec, right_bc) = self.prepend_join(right_bcs.to_vec());
+            let (left_actions_vec, mut left_bc) = self.prepend_join(left_bcs.to_vec())?;
+            let (right_actions_vec, right_bc) = self.prepend_join(right_bcs.to_vec())?;
 
             // Join the recursive calls
             let (merge_actions_left, merge_actions_right) = left_bc.join(right_bc);
@@ -1174,7 +1184,7 @@ impl<
                     .map(|v| format!("[{}]", v.iter().to_sorted_multiline_string()))
                     .to_string()
             );
-            (branch_actions_vec, merge_bc)
+            Ok((branch_actions_vec, merge_bc))
         }
     }
 
@@ -1183,13 +1193,13 @@ impl<
         &mut self,
         block_index: CfgBlockIndex,
         actions: Vec<Action>,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>, Self::Error> {
         let mut stmts = Vec::new();
         for action in actions {
             stmts.push(action.to_stmt());
             self.log.log_prejoin_action(block_index, action);
         }
-        stmts
+        Ok(stmts)
     }
 }
 
@@ -1439,7 +1449,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             let result = self
                 .curr_bctxt
                 .clone()
-                .obtain_permissions(perms)
+                .obtain_permissions(perms).ok().unwrap()  // TODO: return a Result<..> somehow
                 .into_iter()
                 .rev()
                 .fold(inner_expr, |expr, action| action.to_expr(expr));
@@ -1481,7 +1491,7 @@ impl<'b, 'a: 'b> ExprFolder for ExprReplacer<'b, 'a> {
             let result = self
                 .curr_bctxt
                 .clone()
-                .obtain_permissions(perms)
+                .obtain_permissions(perms).ok().unwrap()  // TODO: return a Result<..> somehow
                 .into_iter()
                 .rev()
                 .fold(func_app, |expr, action| action.to_expr(expr));
