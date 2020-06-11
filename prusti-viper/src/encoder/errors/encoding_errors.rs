@@ -1,5 +1,4 @@
 use encoder::errors::PrustiError;
-use prusti_interface::environment::polonius_info::PoloniusInfoError;
 use syntax_pos::MultiSpan;
 
 /// An error in the encoding

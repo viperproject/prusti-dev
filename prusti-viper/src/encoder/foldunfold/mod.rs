@@ -1163,7 +1163,7 @@ impl<
             let (right_actions_vec, right_bc) = self.prepend_join(right_bcs.to_vec())?;
 
             // Join the recursive calls
-            let (merge_actions_left, merge_actions_right) = left_bc.join(right_bc);
+            let (merge_actions_left, merge_actions_right) = left_bc.join(right_bc)?;
             let merge_bc = left_bc;
 
             let mut branch_actions_vec: Vec<Vec<Action>> = vec![];

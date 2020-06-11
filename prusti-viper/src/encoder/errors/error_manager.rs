@@ -10,7 +10,6 @@ use syntax::codemap::CodeMap;
 use syntax_pos::MultiSpan;
 use uuid::Uuid;
 use viper::VerificationError;
-use prusti_interface::environment::Environment;
 use encoder::errors::PrustiError;
 
 /// The cause of a panic!()
