@@ -249,7 +249,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 guard: dag.guard(node.borrow),
                 current_guard: node.guard.clone(),
                 predecessors: predecessors,
-                statements: vec![vir::Stmt::comment(format!("{:?}", node.borrow))],
+                statements: vec![vir::Stmt::comment(format!("expire loan {:?}", node.borrow))],
                 successors: successors,
             };
             cfg.add_block(block);
@@ -713,7 +713,13 @@ impl<
         debug!("[enter] replace_stmt: ##### {} #####", stmt);
 
         if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
-            return self.process_expire_borrows(dag, bctxt, curr_block_index, new_cfg, label);
+            let mut stmts = vec![
+                vir::Stmt::Comment(format!("{}", stmt)),
+            ];
+            stmts.extend(
+                self.process_expire_borrows(dag, bctxt, curr_block_index, new_cfg, label)?
+            );
+            return Ok(stmts);
         }
 
         let mut stmt = stmt.clone();

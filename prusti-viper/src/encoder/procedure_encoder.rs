@@ -6,7 +6,7 @@
 
 use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::errors::{ErrorCtxt, EncodingError};
+use encoder::errors::{ErrorCtxt, EncodingError, PrustiError};
 use encoder::errors::PanicCause;
 use encoder::foldunfold;
 use encoder::initialisation::InitInfo;
@@ -203,6 +203,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
     pub fn encode(mut self) -> Result<vir::CfgMethod> {
         trace!("Encode procedure {}", self.cfg_method.name());
+        let mir_span = self.mir.span;
 
         // Retrieve the contract
         self.procedure_contract = Some(
@@ -368,8 +369,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             return_cfg_block
         )?;
         if !unresolved_edges.is_empty() {
-            error!("There are unresolved CFG edges in the encoding: {:?}", unresolved_edges);
-            debug_assert!(false);
+            return Err(EncodingError::internal(
+                format!("there are unresolved CFG edges in the encoding: {:?}", unresolved_edges),
+                mir_span,
+            ))
         }
 
         // Set the first CFG block
@@ -426,7 +429,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             self.mir.span,
             ErrorCtxt::Unexpected,
         );
-        let mir_span = self.mir.span;
         let method_with_fold_unfold = foldunfold::add_fold_unfold(
             self.encoder,
             self.cfg_method,
@@ -437,7 +439,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             |foldunfold_error| {
                 EncodingError::internal(
                     format!(
-                        "internal error while generating fold-unfold Viper statements ({:?})",
+                        "generating fold-unfold Viper statements failed ({:?})",
                         foldunfold_error
                     ),
                     mir_span,
@@ -1842,7 +1844,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                     args,
                                     destination,
                                     def_id,
-                                )
+                                )?
                             );
                         }
                     }
@@ -1972,7 +1974,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         args: &[mir::Operand<'tcx>],
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
-    ) -> Vec<vir::Stmt> {
+    ) -> Result<Vec<vir::Stmt>> {
         let full_func_proc_name = &self.encoder.env().tcx().absolute_item_path_str(called_def_id);
         debug!("Encoding non-pure function call '{}'", full_func_proc_name);
 
@@ -2014,7 +2016,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         self.loop_encoder.get_loop_depth(location.block) > 0;
                     if in_loop {
                         const_arg_vars.insert(fake_arg_place);
-                        warn!("Please use a local variable as argument for function call '{}', and not a constant.", full_func_proc_name);
+                        return Err(EncodingError::unsupported(
+                            format!(
+                                "Please use a local variable as argument for function call '{}', \
+                                and not a constant.",
+                                full_func_proc_name
+                            ),
+                            call_site_span,
+                        ));
                     }
                 }
             }
@@ -2259,7 +2268,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         self.procedure_contracts
             .insert(location, (procedure_contract, fake_exprs));
 
-        stmts
+        Ok(stmts)
     }
 
     fn encode_pure_function_call(
@@ -2515,7 +2524,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let func_precondition = contract.functional_precondition();
         for item in func_precondition {
             // FIXME
-            //warn!("before: {:?}", &item.assertion);
             let value = self.encoder.encode_assertion(
                 &item.assertion,
                 &self.mir,
@@ -2526,7 +2534,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 None,
                 ErrorCtxt::GenericExpression,
             );
-            //warn!("after:  {:?}", &value);
             func_spec.push(value);
         }
         let precondition_weakening = precondition_weakening
