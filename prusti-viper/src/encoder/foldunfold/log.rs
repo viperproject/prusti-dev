@@ -14,7 +14,11 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use utils::to_string::ToString;
 
-#[derive(Clone)]
+// Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
+// (e.g. we duplicate the evaluation of the loop condition in the encoding of loops).
+// The idea is to progressively transform this *log* into a *state*, removing past actions that are
+// no longer needed.
+#[derive(Clone, Debug)]
 pub(super) struct EventLog {
     /// Actions performed by the fold-unfold algorithm before the join. We can use a single
     /// CfgBlockIndex because fold-unfold algorithms generates a new basic block for dropped
@@ -167,5 +171,11 @@ impl EventLog {
         } else {
             Vec::new()
         }
+    }
+
+    pub fn log_borrow_expiration(&mut self, borrow: vir::borrows::Borrow) {
+        self.duplicated_reads.remove(&borrow);
+        self.blocked_place.remove(&borrow);
+        self.converted_to_read_places.remove(&borrow);
     }
 }

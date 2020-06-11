@@ -6,7 +6,7 @@
 
 use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::errors::{ErrorCtxt, EncodingError, PrustiError};
+use encoder::errors::{ErrorCtxt, EncodingError};
 use encoder::errors::PanicCause;
 use encoder::foldunfold;
 use encoder::initialisation::InitInfo;

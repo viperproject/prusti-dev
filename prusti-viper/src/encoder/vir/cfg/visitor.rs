@@ -19,14 +19,14 @@ pub trait CheckNoOpAction {
 /// However, the structure of the CFG can not change.
 /// For each branch a context is updated, duplicated at forks, and merged with other contexts at joins.
 pub trait CfgReplacer<
-    BranchCtxt: Debug + Clone,
+    PathCtxt: Debug + Clone,
     Action: CheckNoOpAction + Debug
 > {
     type Error;
 
     /*
     /// Define `lub` by using the definition of `join`
-    fn contained_in(&mut self, left: &BranchCtxt, right: &BranchCtxt) -> bool {
+    fn contained_in(&mut self, left: &PathCtxt, right: &PathCtxt) -> bool {
         let (_, joined) = self.prepend_join(vec![left, right]);
         left == right
     }
@@ -36,15 +36,15 @@ pub trait CfgReplacer<
     fn current_cfg(
         &self,
         _cfg: &CfgMethod,
-        _initial_bctxt: &[Option<BranchCtxt>],
-        _final_bctxt: &[Option<BranchCtxt>],
+        _initial_pctxt: &[Option<PathCtxt>],
+        _final_pctxt: &[Option<PathCtxt>],
     ) {}
 
     /// Are two branch context compatible for a back edge?
-    fn check_compatible_back_edge(left: &BranchCtxt, right: &BranchCtxt);
+    fn check_compatible_back_edge(left: &PathCtxt, right: &PathCtxt);
 
     /// Give the initial branch context
-    fn initial_context(&mut self) -> Result<BranchCtxt, Self::Error>;
+    fn initial_context(&mut self) -> Result<PathCtxt, Self::Error>;
 
     /// Replace some statements, mutating the branch context
     ///
@@ -69,7 +69,7 @@ pub trait CfgReplacer<
         stmt_index: usize,
         stmt: &Stmt,
         is_last_before_return: bool,
-        bctxt: &mut BranchCtxt,
+        pctxt: &mut PathCtxt,
         curr_block_index: CfgBlockIndex,
         new_cfg: &CfgMethod,
         label: Option<&str>,
@@ -79,19 +79,20 @@ pub trait CfgReplacer<
     fn replace_successor(
         &mut self,
         succ: &Successor,
-        bctxt: &mut BranchCtxt,
+        pctxt: &mut PathCtxt,
     ) -> Result<(Vec<Stmt>, Successor), Self::Error>;
 
     /// Compute actions that need to be performed before the join point,
     /// returning the merged branch context.
     fn prepend_join(
         &mut self,
-        bctxts: Vec<&BranchCtxt>
-    ) -> Result<(Vec<Action>, BranchCtxt), Self::Error>;
+        pctxts: Vec<&PathCtxt>
+    ) -> Result<(Vec<Action>, PathCtxt), Self::Error>;
 
     /// Convert actions to statements.
     fn perform_prejoin_action(
         &mut self,
+        pctxt: &mut PathCtxt,
         block_index: CfgBlockIndex,
         actions: Action) -> Result<Vec<Stmt>, Self::Error>;
 
@@ -121,8 +122,8 @@ pub trait CfgReplacer<
             .collect();
         let mut visited: Vec<bool> = vec![false; cfg.basic_blocks.len()];
         let mut reachable: Vec<bool> = vec![false; cfg.basic_blocks.len()];
-        let mut initial_bctxt: Vec<Option<BranchCtxt>> = vec![None; cfg.basic_blocks.len()];
-        let mut final_bctxt: Vec<Option<BranchCtxt>> = vec![None; cfg.basic_blocks.len()];
+        let mut initial_pctxt: Vec<Option<PathCtxt>> = vec![None; cfg.basic_blocks.len()];
+        let mut final_pctxt: Vec<Option<PathCtxt>> = vec![None; cfg.basic_blocks.len()];
         reachable[0] = true;
 
         for curr_index in to_visit {
@@ -168,17 +169,17 @@ pub trait CfgReplacer<
                 "Incoming visited blocks to {:?}: {:?}",
                 curr_block_index, &incoming_edges
             );
-            let incoming_bctxt: Vec<&BranchCtxt> = incoming_edges
+            let incoming_pctxt: Vec<&PathCtxt> = incoming_edges
                 .iter()
-                .map(|i| final_bctxt[*i].as_ref().unwrap())
+                .map(|i| final_pctxt[*i].as_ref().unwrap())
                 .collect();
-            let mut bctxt: BranchCtxt;
-            if incoming_bctxt.is_empty() {
-                bctxt = self.initial_context()?;
+            let mut pctxt: PathCtxt;
+            if incoming_pctxt.is_empty() {
+                pctxt = self.initial_context()?;
             } else {
-                let actions_and_bctxt = self.prepend_join(incoming_bctxt)?;
-                let actions = actions_and_bctxt.0;
-                bctxt = actions_and_bctxt.1;
+                let actions_and_pctxt = self.prepend_join(incoming_pctxt)?;
+                let actions = actions_and_pctxt.0;
+                pctxt = actions_and_pctxt.1;
                 for (&src_index, action) in incoming_edges.iter().zip(actions) {
                     assert!(visited[src_index]);
                     if !action.is_noop() {
@@ -198,7 +199,7 @@ pub trait CfgReplacer<
                                 new_label
                             ))],
                         );
-                        let stmts_to_add = self.perform_prejoin_action(new_block_index, action)?;
+                        let stmts_to_add = self.perform_prejoin_action(&mut pctxt, new_block_index, action)?;
                         new_cfg.add_stmts(new_block_index, stmts_to_add);
                         new_cfg.set_successor(new_block_index, Successor::Goto(curr_block_index));
                         new_cfg.set_successor(
@@ -212,20 +213,20 @@ pub trait CfgReplacer<
                 }
             }
 
-            // Store initial bctxt
-            trace!("Initial bctxt of {:?}: {:?}", curr_block_index, &bctxt);
-            initial_bctxt[curr_index] = Some(bctxt.clone());
+            // Store initial pctxt
+            trace!("Initial pctxt of {:?}: {:?}", curr_block_index, &pctxt);
+            initial_pctxt[curr_index] = Some(pctxt.clone());
 
             // REPLACE statement
             for (stmt_index, stmt) in curr_block.stmts.iter().enumerate() {
-                self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
+                self.current_cfg(&new_cfg, &initial_pctxt, &final_pctxt);
                 let last_stmt_before_return =
                     stmt_index == curr_block.stmts.len() - 1 && curr_block.successor.is_return();
                 let new_stmts = self.replace_stmt(
                     stmt_index,
                     stmt,
                     last_stmt_before_return,
-                    &mut bctxt,
+                    &mut pctxt,
                     curr_block_index,
                     &new_cfg,
                     None,
@@ -241,9 +242,9 @@ pub trait CfgReplacer<
             }
 
             // REPLACE successor
-            self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
+            self.current_cfg(&new_cfg, &initial_pctxt, &final_pctxt);
             let (new_stmts, new_successor) =
-                self.replace_successor(&curr_block.successor, &mut bctxt)?;
+                self.replace_successor(&curr_block.successor, &mut pctxt)?;
             trace!(
                 "Replace successor of {:?} with {:?} and {:?}",
                 curr_block_index,
@@ -280,17 +281,17 @@ pub trait CfgReplacer<
                         "Back edge from {:?} to {:?}",
                         curr_block_index, following_index
                     );
-                    let other_bctxt = initial_bctxt[index].as_ref().unwrap();
-                    Self::check_compatible_back_edge(&bctxt, other_bctxt);
+                    let other_pctxt = initial_pctxt[index].as_ref().unwrap();
+                    Self::check_compatible_back_edge(&pctxt, other_pctxt);
                 }
             }
 
-            // Store final bctxt
-            trace!("Final bctxt of {:?}: {:?}", curr_block_index, &bctxt);
-            final_bctxt[curr_index] = Some(bctxt);
+            // Store final pctxt
+            trace!("Final pctxt of {:?}: {:?}", curr_block_index, &pctxt);
+            final_pctxt[curr_index] = Some(pctxt);
         }
 
-        self.current_cfg(&new_cfg, &initial_bctxt, &final_bctxt);
+        self.current_cfg(&new_cfg, &initial_pctxt, &final_pctxt);
         Ok(new_cfg)
     }
 }

@@ -16,20 +16,24 @@ use std::iter::FromIterator;
 use utils::to_string::ToString;
 use encoder::foldunfold::FoldUnfoldError;
 use encoder::foldunfold::FoldUnfoldError::FailedToObtain;
+use encoder::foldunfold::log::EventLog;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BranchCtxt<'a> {
+/// The fold-unfold context of a CFG path
+#[derive(Debug, Clone)]
+pub struct PathCtxt<'a> {
     state: State,
     /// The definition of the predicates
     predicates: &'a HashMap<String, vir::Predicate>,
+    /// A log of some of the relevant actions that lead to this fold-unfold context
+    log: EventLog,
 }
 
-impl<'a> BranchCtxt<'a> {
+impl<'a> PathCtxt<'a> {
     pub fn new(
         local_vars: Vec<vir::LocalVar>,
         predicates: &'a HashMap<String, vir::Predicate>,
     ) -> Self {
-        BranchCtxt {
+        PathCtxt {
             state: State::new(
                 HashMap::from_iter(
                     local_vars
@@ -40,7 +44,12 @@ impl<'a> BranchCtxt<'a> {
                 HashSet::new(),
             ),
             predicates,
+            log: EventLog::new(),
         }
+    }
+
+    pub(super) fn log(&mut self) -> &mut EventLog {
+        &mut self.log
     }
 
     pub fn state(&self) -> &State {
@@ -119,7 +128,7 @@ impl<'a> BranchCtxt<'a> {
     /// left is self, right is other
     pub fn join(
         &mut self,
-        mut other: BranchCtxt
+        mut other: PathCtxt
     ) -> Result<(Vec<Action>, Vec<Action>), FoldUnfoldError> {
         let mut left_actions: Vec<Action> = vec![];
         let mut right_actions: Vec<Action> = vec![];
@@ -202,7 +211,7 @@ impl<'a> BranchCtxt<'a> {
             // Obtain predicates by folding.
             for pred_place in fold_actual_pred {
                 debug!("try to obtain predicate: {}", pred_place);
-                let get_perm_amount = |ctxt: &BranchCtxt| {
+                let get_perm_amount = |ctxt: &PathCtxt| {
                     ctxt.state
                         .acc()
                         .iter()
@@ -214,8 +223,8 @@ impl<'a> BranchCtxt<'a> {
                     .unwrap();
                 let pred_perm = Perm::pred(pred_place.clone(), perm_amount);
                 let try_obtain =
-                    |left_ctxt: &mut BranchCtxt,
-                     right_ctxt: &mut BranchCtxt,
+                    |left_ctxt: &mut PathCtxt,
+                     right_ctxt: &mut PathCtxt,
                      left_actions: &mut Vec<_>,
                      right_actions: &mut Vec<_>| -> Result<(), FoldUnfoldError> {
                         match left_ctxt.obtain(&pred_perm, true)? {
@@ -228,7 +237,7 @@ impl<'a> BranchCtxt<'a> {
                                     pred_perm, missing_perm
                                 );
                                 let remove_places =
-                                    |ctxt: &mut BranchCtxt, actions: &mut Vec<_>| {
+                                    |ctxt: &mut PathCtxt, actions: &mut Vec<_>| {
                                         ctxt.state.remove_moved_matching(|moved_place| {
                                             moved_place.has_prefix(&pred_place)
                                         });
@@ -271,8 +280,8 @@ impl<'a> BranchCtxt<'a> {
             // Obtain access permissions by unfolding
             for acc_place in &unfold_actual_acc {
                 let try_obtain =
-                    |ctxt_left: &mut BranchCtxt,
-                     ctxt_right: &mut BranchCtxt,
+                    |ctxt_left: &mut PathCtxt,
+                     ctxt_right: &mut PathCtxt,
                      left_actions: &mut Vec<_>,
                      right_actions: &mut Vec<_>| -> Result<bool, FoldUnfoldError> {
                         if !ctxt_left.state.acc().contains_key(acc_place) {
