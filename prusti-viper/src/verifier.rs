@@ -302,7 +302,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                     dump_path.push(component);
                 }
             }
-            info!("Dumping Viper program to {:?}", dump_path);
+            info!("Dumping Viper program to the {:?} folder", dump_path);
             log::report(
                 dump_path.to_str().unwrap(),
                 format!("{}.vpr", source_filename),

@@ -1,10 +1,10 @@
 extern crate prusti_contracts;
 
-// ignore-test closures are not supported
+// ignore-test TODO: the program has an empty magic wand
 
 fn test() {
     let mut sum = 0;
-    for i in (0..128).filter(|x| x % 3 == 0) {
+    for i in 0..128 {
         sum += i;
     }
 }
