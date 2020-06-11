@@ -6,6 +6,8 @@
 
 pub use self::encoding_errors::*;
 pub use self::error_manager::*;
+pub use self::prusti_error::*;
 
 mod encoding_errors;
 mod error_manager;
+mod prusti_error;

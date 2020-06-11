@@ -8,7 +8,7 @@ use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureC
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, CompilerError};
+use encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
 use encoder::foldunfold;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
@@ -181,14 +181,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub(in encoder) fn register_encoding_error<T: Into<EncodingError>>(&self, error: T) {
-        let compiler_error: CompilerError = error.into().into();
+        let compiler_error: PrustiError = error.into().into();
         debug!("Compilation error: {:?}", compiler_error);
-        self.env().span_err_with_help_and_note(
-            compiler_error.span,
-            &format!("[Prusti encoding] {}", compiler_error.message),
-            &compiler_error.help,
-            &compiler_error.note,
-        );
+        compiler_error.emit(self.env);
         self.encoding_errors_counter.borrow_mut().add_assign(1);
     }
 

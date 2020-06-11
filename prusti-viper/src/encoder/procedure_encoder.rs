@@ -149,14 +149,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else {
                     "creation of temporary loan in loop is unsupported".to_string()
                 };
-                ProcedureEncodingError::Generic(
+                ProcedureEncodingError::Unsupported(
                     msg,
                     self.mir_encoder.get_span_of_basic_block(loop_head)
                 )
             }
 
             PoloniusInfoError::ReborrowingDagHasWrongLoanLoops(location) => {
-                ProcedureEncodingError::Generic(
+                ProcedureEncodingError::Internal(
                     "error in processing expiring borrows \
                     (ReborrowingDagHasWrongLoanLoops)".to_string(),
                     self.mir.source_info(location).span,
@@ -164,25 +164,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
-                ProcedureEncodingError::Generic(
+                ProcedureEncodingError::Internal(
                     "error in processing expiring borrows \
-                    ReborrowingDagHasEmptyMagicWand".to_string(),
+                    (ReborrowingDagHasEmptyMagicWand)".to_string(),
                     self.mir.source_info(location).span,
                 )
             }
 
             PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
-                ProcedureEncodingError::Generic(
+                ProcedureEncodingError::Internal(
                     "error in processing expiring borrows \
-                    ReborrowingDagHasWrongReborrowingChain".to_string(),
+                    (ReborrowingDagHasWrongReborrowingChain)".to_string(),
                     self.mir.source_info(location).span,
                 )
             }
 
             PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
-                ProcedureEncodingError::Generic(
+                ProcedureEncodingError::Internal(
                     "error in processing expiring borrows \
-                    ReborrowingDagHasNoRepresentativeLoan".to_string(),
+                    (ReborrowingDagHasNoRepresentativeLoan)".to_string(),
                     self.mir.source_info(location).span,
                 )
             }

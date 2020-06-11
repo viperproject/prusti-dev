@@ -1,4 +1,4 @@
-use encoder::errors::CompilerError;
+use encoder::errors::PrustiError;
 use prusti_interface::environment::polonius_info::PoloniusInfoError;
 use syntax::codemap::Span;
 
@@ -9,17 +9,22 @@ pub enum EncodingError {
     PureFunction(PureFunctionEncodingError),
 }
 
-impl From<EncodingError> for CompilerError {
+impl From<EncodingError> for PrustiError {
     fn from(error: EncodingError) -> Self {
         match error {
-            EncodingError::Procedure(ProcedureEncodingError::FoldUnfold(msg, span)) |
-            EncodingError::Procedure(ProcedureEncodingError::Generic(msg, span)) |
+            EncodingError::Procedure(ProcedureEncodingError::Internal(msg, span)) |
+            EncodingError::Procedure(ProcedureEncodingError::FoldUnfold(msg, span)) => {
+                PrustiError::internal(msg, span.into())
+            }
             EncodingError::PureFunction(PureFunctionEncodingError::CallImpure(msg, span)) => {
-                CompilerError::new(msg, span.into())
+                PrustiError::specification(msg, span.into())
+            }
+            EncodingError::Procedure(ProcedureEncodingError::Unsupported(msg, span)) => {
+                PrustiError::unsupported(msg, span.into())
             }
             EncodingError::Procedure(ProcedureEncodingError::PoloniusInfo(span, err)) => {
-                CompilerError::new(
-                    format!("Error in processing Polonius information: {:?}", err),
+                PrustiError::internal(
+                    format!("error while processing Polonius information: {:?}", err),
                     span.into()
                 )
             }
@@ -29,7 +34,8 @@ impl From<EncodingError> for CompilerError {
 
 #[derive(Clone, Debug)]
 pub enum ProcedureEncodingError {
-    Generic(String, Span),
+    Unsupported(String, Span),
+    Internal(String, Span),
     FoldUnfold(String, Span),
     PoloniusInfo(Span, PoloniusInfoError),
 }
