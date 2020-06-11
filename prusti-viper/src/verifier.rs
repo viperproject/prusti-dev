@@ -339,9 +339,9 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
 
             for verification_error in verification_errors {
                 debug!("Verification error: {:?}", verification_error);
-                let compilation_error = error_manager.translate_verification_error(&verification_error);
-                debug!("Compilation error: {:?}", compilation_error);
-                compilation_error.emit(self.env);
+                let prusti_error = error_manager.translate_verification_error(&verification_error);
+                debug!("Prusti error: {:?}", prusti_error);
+                prusti_error.emit(self.env);
             }
             VerificationResult::Failure
         }

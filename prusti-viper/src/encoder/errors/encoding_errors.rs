@@ -1,45 +1,44 @@
 use encoder::errors::PrustiError;
 use prusti_interface::environment::polonius_info::PoloniusInfoError;
-use syntax::codemap::Span;
+use syntax_pos::MultiSpan;
 
-/// An error in the encoding. For example, usage of unsupported Rust features.
-#[derive(From)]
+/// An error in the encoding
+#[derive(Clone, Debug)]
 pub enum EncodingError {
-    Procedure(ProcedureEncodingError),
-    PureFunction(PureFunctionEncodingError),
+    /// Usage of an unsupported Rust feature
+    Unsupported(String, MultiSpan),
+    /// An error in the specification provided by the user
+    Specification(String, MultiSpan),
+    /// An internal error of Prusti
+    Internal(String, MultiSpan),
 }
 
-impl From<EncodingError> for PrustiError {
-    fn from(error: EncodingError) -> Self {
-        match error {
-            EncodingError::Procedure(ProcedureEncodingError::Internal(msg, span)) |
-            EncodingError::Procedure(ProcedureEncodingError::FoldUnfold(msg, span)) => {
-                PrustiError::internal(msg, span.into())
-            }
-            EncodingError::PureFunction(PureFunctionEncodingError::CallImpure(msg, span)) => {
-                PrustiError::specification(msg, span.into())
-            }
-            EncodingError::Procedure(ProcedureEncodingError::Unsupported(msg, span)) => {
+impl Into<PrustiError> for EncodingError {
+    fn into(self) -> PrustiError {
+        match self {
+            EncodingError::Unsupported(msg, span) => {
                 PrustiError::unsupported(msg, span.into())
             }
-            EncodingError::Procedure(ProcedureEncodingError::PoloniusInfo(span, err)) => {
-                PrustiError::internal(
-                    format!("error while processing Polonius information: {:?}", err),
-                    span.into()
-                )
+            EncodingError::Specification(msg, span) => {
+                PrustiError::specification(msg, span.into())
+            }
+            EncodingError::Internal(msg, span) => {
+                PrustiError::internal(msg, span.into())
             }
         }
     }
 }
 
-#[derive(Clone, Debug)]
-pub enum ProcedureEncodingError {
-    Unsupported(String, Span),
-    Internal(String, Span),
-    FoldUnfold(String, Span),
-    PoloniusInfo(Span, PoloniusInfoError),
-}
+impl EncodingError {
+    pub fn unsupported<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
+        EncodingError::Unsupported(message.to_string(), span.into())
+    }
 
-pub enum PureFunctionEncodingError {
-    CallImpure(String, Span)
+    pub fn specification<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
+        EncodingError::Specification(message.to_string(), span.into())
+    }
+
+    pub fn internal<M: ToString, S: Into<MultiSpan>>(message: M, span: S) -> Self {
+        EncodingError::Internal(message.to_string(), span.into())
+    }
 }

@@ -6,7 +6,7 @@
 
 use encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::errors::{ErrorCtxt, PureFunctionEncodingError};
+use encoder::errors::{ErrorCtxt, EncodingError};
 use encoder::errors::PanicCause;
 use encoder::foldunfold;
 use encoder::mir_encoder::MirEncoder;
@@ -646,7 +646,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
-                                self.encoder.register_encoding_error(PureFunctionEncodingError::CallImpure(
+                                self.encoder.register_encoding_error(EncodingError::specification(
                                     format!("use of impure function {:?} in assertion", func_proc_name),
                                     term.source_info.span,
                                 ));

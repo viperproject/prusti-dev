@@ -6,7 +6,7 @@
 
 use encoder::borrows::ProcedureContract;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::errors::{ErrorCtxt, ProcedureEncodingError};
+use encoder::errors::{ErrorCtxt, EncodingError};
 use encoder::errors::PanicCause;
 use encoder::foldunfold;
 use encoder::initialisation::InitInfo;
@@ -50,7 +50,7 @@ use syntax::codemap::{Span, MultiSpan};
 use utils::to_string::ToString;
 use std;
 
-type Result<T> = std::result::Result<T, ProcedureEncodingError>;
+type Result<T> = std::result::Result<T, EncodingError>;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -141,7 +141,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
     }
 
-    fn translate_polonius_error(&self, error: PoloniusInfoError) -> ProcedureEncodingError {
+    fn translate_polonius_error(&self, error: PoloniusInfoError) -> EncodingError {
         match error {
             PoloniusInfoError::UnsupportedLoanInLoop{ loop_head, variable } => {
                 let msg = if let Some(name) = self.mir.local_decls[variable].name {
@@ -149,14 +149,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 } else {
                     "creation of temporary loan in loop is unsupported".to_string()
                 };
-                ProcedureEncodingError::Unsupported(
+                EncodingError::unsupported(
                     msg,
                     self.mir_encoder.get_span_of_basic_block(loop_head)
                 )
             }
 
             PoloniusInfoError::ReborrowingDagHasWrongLoanLoops(location) => {
-                ProcedureEncodingError::Internal(
+                EncodingError::internal(
                     "error in processing expiring borrows \
                     (ReborrowingDagHasWrongLoanLoops)".to_string(),
                     self.mir.source_info(location).span,
@@ -164,7 +164,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
-                ProcedureEncodingError::Internal(
+                EncodingError::internal(
                     "error in processing expiring borrows \
                     (ReborrowingDagHasEmptyMagicWand)".to_string(),
                     self.mir.source_info(location).span,
@@ -172,7 +172,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
-                ProcedureEncodingError::Internal(
+                EncodingError::internal(
                     "error in processing expiring borrows \
                     (ReborrowingDagHasWrongReborrowingChain)".to_string(),
                     self.mir.source_info(location).span,
@@ -180,7 +180,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
-                ProcedureEncodingError::Internal(
+                EncodingError::internal(
                     "error in processing expiring borrows \
                     (ReborrowingDagHasNoRepresentativeLoan)".to_string(),
                     self.mir.source_info(location).span,
@@ -435,7 +435,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             method_pos,
         ).map_err(
             |foldunfold_error| {
-                ProcedureEncodingError::FoldUnfold(
+                EncodingError::internal(
                     format!(
                         "internal error while generating fold-unfold Viper statements ({:?})",
                         foldunfold_error

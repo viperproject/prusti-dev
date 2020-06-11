@@ -33,8 +33,6 @@ extern crate uuid;
 extern crate viper;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate derive_more;
 
 #[cfg(debug_assertions)]
 #[macro_use]

@@ -180,10 +180,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub(in encoder) fn register_encoding_error<T: Into<EncodingError>>(&self, error: T) {
-        let compiler_error: PrustiError = error.into().into();
-        debug!("Compilation error: {:?}", compiler_error);
-        compiler_error.emit(self.env);
+    pub(in encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
+        debug!("Encoding error: {:?}", encoding_error);
+        let prusti_error: PrustiError = encoding_error.into();
+        debug!("Prusti error: {:?}", prusti_error);
+        prusti_error.emit(self.env);
         self.encoding_errors_counter.borrow_mut().add_assign(1);
     }
 

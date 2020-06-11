@@ -7,7 +7,11 @@
 use syntax_pos::MultiSpan;
 use prusti_interface::environment::Environment;
 
-/// The Prusti error that will be reported to the user
+/// The Prusti error that will be reported to the user.
+///
+/// A Prusti error can originate from:
+/// * an encoding error (see the `EncodingError` type)
+/// * a Viper verification error
 #[derive(Clone, Debug)]
 pub struct PrustiError {
     message: String,
