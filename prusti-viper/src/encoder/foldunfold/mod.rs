@@ -261,7 +261,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 let source_filename = source_path.file_name().unwrap().to_str().unwrap();
                 report::log::report_with_writer(
                     "graphviz_reborrowing_dag_during_foldunfold",
-                    format!("{}.{}.dot", source_filename, dag),
+                    format!(
+                        "{}.{:?}.{}.dot",
+                        source_filename,
+                        dag,
+                        surrounding_block_index.index()
+                    ),
                     |writer| cfg.to_graphviz(writer, curr_block_index),
                 );
             }
@@ -491,13 +496,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         }
         mem::swap(surrounding_pctxt, &mut final_pctxt);
 
-        // Log the borrows that expired
-        for curr_block_index in 0..cfg.basic_blocks.len() {
-            let curr_block = &cfg.basic_blocks[curr_block_index];
-            let curr_node = &curr_block.node;
-            surrounding_pctxt.log().log_borrow_expiration(curr_node.borrow);
-        }
-
         let mut stmts = Vec::new();
         for (i, block) in cfg.basic_blocks.iter().enumerate() {
             stmts.push(vir::Stmt::If(
@@ -552,6 +550,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             pctxt.apply_stmt(&inhale_stmt);
             stmts.push(inhale_stmt);
         }
+
+        // Log borrow expiration
+        pctxt.log_mut().log_borrow_expiration(borrow);
+
         trace!(
             "[exit] restore_write_permissions({:?}) = {}",
             borrow,
@@ -999,7 +1001,7 @@ impl<
                         vir::PermAmount::Remaining,
                         vir::Position::default(),
                     );
-                    pctxt.log().log_convertion_to_read(borrow, access.clone());
+                    pctxt.log_mut().log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
                     pctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
@@ -1011,7 +1013,7 @@ impl<
                     vir::PermAmount::Read,
                     vir::Position::default(),
                 );
-                pctxt.log().log_read_permission_duplication(
+                pctxt.log_mut().log_read_permission_duplication(
                     borrow,
                     lhs_read_access.clone(),
                     lhs_place.clone(),
@@ -1040,7 +1042,7 @@ impl<
                         vir::PermAmount::Remaining,
                         place.pos().clone(),
                     );
-                    pctxt.log().log_convertion_to_read(borrow, access.clone());
+                    pctxt.log_mut().log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
                     pctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
@@ -1053,7 +1055,7 @@ impl<
                     vir::PermAmount::Read,
                     vir::Position::default(),
                 );
-                pctxt.log().log_read_permission_duplication(
+                pctxt.log_mut().log_read_permission_duplication(
                     borrow,
                     lhs_read_access.clone(),
                     lhs_place.clone(),
@@ -1166,16 +1168,16 @@ impl<
         } else {
             // Define two subgroups
             let mid = bcs.len() / 2;
-            let left_bcs = &bcs[..mid];
-            let right_bcs = &bcs[mid..];
+            let left_pctxts = &bcs[..mid];
+            let right_pctxts = &bcs[mid..];
 
             // Join the subgroups
-            let (left_actions_vec, mut left_bc) = self.prepend_join(left_bcs.to_vec())?;
-            let (right_actions_vec, right_bc) = self.prepend_join(right_bcs.to_vec())?;
+            let (left_actions_vec, mut left_pctxt) = self.prepend_join(left_pctxts.to_vec())?;
+            let (right_actions_vec, right_pctxt) = self.prepend_join(right_pctxts.to_vec())?;
 
             // Join the recursive calls
-            let (merge_actions_left, merge_actions_right) = left_bc.join(right_bc)?;
-            let merge_bc = left_bc;
+            let (merge_actions_left, merge_actions_right) = left_pctxt.join(right_pctxt)?;
+            let merged_pctxt = left_pctxt;
 
             let mut branch_actions_vec: Vec<Vec<Action>> = vec![];
             for mut left_actions in left_actions_vec {
@@ -1195,7 +1197,7 @@ impl<
                     .map(|v| format!("[{}]", v.iter().to_sorted_multiline_string()))
                     .to_string()
             );
-            Ok((branch_actions_vec, merge_bc))
+            Ok((branch_actions_vec, merged_pctxt))
         }
     }
 
@@ -1209,7 +1211,7 @@ impl<
         let mut stmts = Vec::new();
         for action in actions {
             stmts.push(action.to_stmt());
-            pctxt.log().log_prejoin_action(block_index, action);
+            pctxt.log_mut().log_prejoin_action(block_index, action);
         }
         Ok(stmts)
     }

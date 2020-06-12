@@ -32,6 +32,7 @@ fn print_newline() {
 
 fn main() {
     let mut i = 0;
+    #[invariant="i < 20"]
     while i < 20 {
         let res = f(i);
         print_u32(res);
@@ -39,6 +40,7 @@ fn main() {
     }
     print_newline();
     let mut i = 0;
+    #[invariant="i < 20"]
     while i < 20 {
         let res = m(i);
         print_u32(res);

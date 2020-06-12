@@ -13,6 +13,7 @@ use encoder::vir;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use utils::to_string::ToString;
+use encoder::foldunfold::FoldUnfoldError;
 
 // Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
 // (e.g. we duplicate the evaluation of the loop condition in the encoding of loops).
@@ -177,5 +178,34 @@ impl EventLog {
         self.duplicated_reads.remove(&borrow);
         self.blocked_place.remove(&borrow);
         self.converted_to_read_places.remove(&borrow);
+    }
+
+    /// Join `other` into `self`
+    pub(super) fn join(&mut self, mut other: Self) -> Result<(), FoldUnfoldError> {
+        for (other_key, other_value) in other.prejoin_actions.drain() {
+            if !self.prejoin_actions.contains_key(&other_key) {
+                self.prejoin_actions.insert(other_key, other_value);
+            }
+        }
+        // FIXME: This is not enough if the same borrow is created in two different paths
+        for (other_key, other_value) in other.duplicated_reads.drain() {
+            if !self.duplicated_reads.contains_key(&other_key) {
+                self.duplicated_reads.insert(other_key, other_value);
+            }
+        }
+        // FIXME: This is not enough if the same borrow is created in two different paths
+        for (other_key, other_value) in other.blocked_place.drain() {
+            if !self.blocked_place.contains_key(&other_key) {
+                self.blocked_place.insert(other_key, other_value);
+            }
+        }
+        // FIXME: This is not enough if the same borrow is created in two different paths
+        for (other_key, other_value) in other.converted_to_read_places.drain() {
+            if !self.converted_to_read_places.contains_key(&other_key) {
+                self.converted_to_read_places.insert(other_key, other_value);
+            }
+        }
+        self.id_generator = self.id_generator.max(other.id_generator);
+        Ok(())
     }
 }

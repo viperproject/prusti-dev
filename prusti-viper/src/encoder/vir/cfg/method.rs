@@ -122,6 +122,9 @@ impl CfgBlockIndex {
     pub fn weak_eq(&self, other: &CfgBlockIndex) -> bool {
         self.block_index == other.block_index
     }
+    pub fn index(&self) -> usize {
+        self.block_index
+    }
 }
 
 impl CfgMethod {

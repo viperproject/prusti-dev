@@ -48,8 +48,16 @@ impl<'a> PathCtxt<'a> {
         }
     }
 
-    pub(super) fn log(&mut self) -> &mut EventLog {
+    pub(super) fn log_mut(&mut self) -> &mut EventLog {
         &mut self.log
+    }
+
+    pub(super) fn log(&self) -> &EventLog {
+        &self.log
+    }
+
+    fn drain_log(self) -> EventLog {
+        self.log
     }
 
     pub fn state(&self) -> &State {
@@ -126,6 +134,7 @@ impl<'a> PathCtxt<'a> {
     }
 
     /// left is self, right is other
+    /// Note: this merges the event logs as well
     pub fn join(
         &mut self,
         mut other: PathCtxt
@@ -474,6 +483,9 @@ impl<'a> PathCtxt<'a> {
             assert_eq!(self.state.pred(), other.state.pred());
             self.state.check_consistency();
         }
+
+        // Merge the event logs
+        self.log_mut().join(other.drain_log())?;
 
         return Ok((left_actions, right_actions));
     }
