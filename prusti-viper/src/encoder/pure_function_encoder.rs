@@ -646,8 +646,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
-                                self.encoder.register_encoding_error(EncodingError::specification(
-                                    format!("use of impure function {:?} in assertion", func_proc_name),
+                                self.encoder.register_encoding_error(EncodingError::incorrect(
+                                    format!(
+                                        "use of impure function {:?} in assertion is not allowed",
+                                        func_proc_name
+                                    ),
                                     term.source_info.span,
                                 ));
                             }

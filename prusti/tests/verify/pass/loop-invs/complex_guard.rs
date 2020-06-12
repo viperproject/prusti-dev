@@ -1,31 +1,29 @@
 extern crate prusti_contracts;
 
-// ignore-test TODO: compute the loop invariant permissions for the correct program point
-
 fn test() {
     let mut i = 0;
 
+    #[invariant="true"]
     'outer: loop {
         #[invariant="i < 55"]
         'inner: while {
             #[invariant="i % 10 != 0 && i < 60"]
             while i % 10 != 0 {
+                if i == 123123 {
+                    break;
+                }
+                if i == 234234 {
+                    continue;
+                }
                 i += 1;
             }
-            if i == 345345 {
-                continue 'outer;
-            }
-            if i == 456456 {
-                continue 'inner;
-            }
-            assert!(i % 10 == 0);
             i < 55
         } {
             i -= 1;
-            if i == 567567 {
+            if i == 456456 {
                 break;
             }
-            if i == 678678 {
+            if i == 567567 {
                 continue;
             }
         }

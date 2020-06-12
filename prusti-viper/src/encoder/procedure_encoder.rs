@@ -604,6 +604,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
         // Identify important blocks
         let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
+        let loop_exit_blocks_set: HashSet<_> = loop_exit_blocks.iter().cloned().collect();
         let before_invariant_block: BasicBlockIndex = loop_body.iter().find(
             |&&bb| {
                 loop_info.get_loop_depth(bb) == loop_depth &&
@@ -616,17 +617,26 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         ).cloned().unwrap_or_else(
             || loop_exit_blocks.get(0).cloned().unwrap_or(loop_head)
         );
-        // Heuristic: pick the first exit block.
+        let before_inv_block_pos = loop_body.iter()
+            .position(|&bb| bb == before_invariant_block).unwrap();
+        let after_inv_block_pos = 1 + before_inv_block_pos;
+        let exit_blocks_before_inv: Vec<_> = loop_body[0..after_inv_block_pos].iter()
+            .filter(|&bb| loop_exit_blocks_set.contains(bb)).cloned().collect();
+        // Heuristic: pick the first exit block before the invariant.
         // Note that this does not allow having break/return/continue statements in the loop guard.
-        let opt_loop_guard_switch = loop_exit_blocks.get(0).cloned();
+        if exit_blocks_before_inv.len() > 1 {
+            return Err(EncodingError::incorrect(
+                "'break', 'continue', 'return', and panic statements are not allowed before the \
+                loop invariant",
+                self.mir_encoder.get_span_of_basic_block(exit_blocks_before_inv[0]),
+            ));
+        }
+        let opt_loop_guard_switch = exit_blocks_before_inv.get(0).cloned();
         let after_guard_block_pos = opt_loop_guard_switch.and_then(
             |loop_guard_switch| {
                 loop_body.iter().position(|&bb| bb == loop_guard_switch).map(|x| x + 1)
             }
         ).unwrap_or(0);
-        let before_inv_block_pos = loop_body.iter()
-            .position(|&bb| bb == before_invariant_block).unwrap();
-        let after_inv_block_pos = 1 + before_inv_block_pos;
         let after_guard_block = loop_body[after_guard_block_pos];
         let after_inv_block = loop_body[after_inv_block_pos];
 

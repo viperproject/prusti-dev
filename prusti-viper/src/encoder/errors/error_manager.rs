@@ -303,7 +303,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
 
             ("application.precondition:assertion.false", ErrorCtxt::StubPureFunctionCall) => {
-                PrustiError::specification(
+                PrustiError::incorrect(
                     "use of impure function might be reachable.",
                     error_span
                 ).set_failing_assertion(opt_cause_span)

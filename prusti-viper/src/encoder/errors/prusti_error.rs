@@ -36,17 +36,17 @@ impl PrustiError {
         PrustiError::new(format!("[Prusti verification error] {}", message.to_string()), span)
     }
 
-    /// Report an unsupported feature of the verified Rust code
+    /// Report an unsupported feature of the verified Rust code (e.g. dereferencing raw pointers)
     pub fn unsupported<S: ToString>(message: S, span: MultiSpan) -> Self {
         PrustiError::new(format!("[Prusti unsupported feature] {}", message.to_string()), span)
     }
 
-    /// Report an error in the Prusti specifications
-    pub fn specification<S: ToString>(message: S, span: MultiSpan) -> Self {
-        PrustiError::new(format!("[Prusti specification error] {}", message.to_string()), span)
+    /// Report an incorrect usage of Prusti (e.g. call an impure function in a contract)
+    pub fn incorrect<S: ToString>(message: S, span: MultiSpan) -> Self {
+        PrustiError::new(format!("[Prusti invalid specification] {}", message.to_string()), span)
     }
 
-    /// Report an internal error of Prusti, caused by a snippet of the verified Rust code
+    /// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
         PrustiError::new(format!("[Prusti internal error] {}", message.to_string()), span)
     }
