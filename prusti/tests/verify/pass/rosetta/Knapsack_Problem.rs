@@ -247,7 +247,7 @@ pub fn knapsack01_dyn(items: &Items, max_weight: usize) -> ItemIndices {
     let mut left_weight = max_weight;
  
     let mut i = items.len();
-    #[invariant="0 <= i && i <= items.len()"]
+    #[invariant="0 < i && i <= items.len()"]
     #[invariant="items.len() + 1 == best_value.item_len()"]
     #[invariant="max_weight + 1 == best_value.weight_len()"]
     #[invariant="0 <= left_weight && left_weight <= max_weight"]
