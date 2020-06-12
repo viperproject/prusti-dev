@@ -7,9 +7,8 @@ fn test() {
     while i < 10 {
         #[invariant="i < 10"]
         'inner: while {
-            if i == 123 {
-                break 'inner;
-            }
+            i += 1;
+            i -= 1;
             i < 10
         } {
             i += 1;

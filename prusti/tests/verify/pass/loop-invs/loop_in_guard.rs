@@ -10,7 +10,6 @@ fn test_loop_in_guard() {
         while i < old_i + 10 {
             i += 1;
         }
-        assert!(i == old_i + 10);
         i < 55
     } {
         continue
