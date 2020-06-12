@@ -628,7 +628,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             return Err(EncodingError::incorrect(
                 "'break', 'continue', 'return', and panic statements are not allowed before the \
                 loop invariant",
-                self.mir_encoder.get_span_of_basic_block(exit_blocks_before_inv[0]),
+                exit_blocks_before_inv.iter().map(
+                    |&bb| self.mir_encoder.get_span_of_basic_block(bb)
+                ).collect::<Vec<_>>(),
             ));
         }
         let opt_loop_guard_switch = exit_blocks_before_inv.get(0).cloned();
