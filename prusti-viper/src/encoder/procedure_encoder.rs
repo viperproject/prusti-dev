@@ -155,34 +155,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             }
 
-            PoloniusInfoError::ReborrowingDagHasWrongLoanLoops(location) => {
-                EncodingError::internal(
-                    "error in processing expiring borrows \
-                    (ReborrowingDagHasWrongLoanLoops)".to_string(),
-                    self.mir.source_info(location).span,
+            PoloniusInfoError::LoansInNestedLoops(location1, _loop1, _location2, _loop2) => {
+                EncodingError::unsupported(
+                    "creation of leans in nested loops is not supported".to_string(),
+                    self.mir.source_info(location1).span,
                 )
             }
 
             PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
                 EncodingError::internal(
-                    "error in processing expiring borrows \
-                    (ReborrowingDagHasEmptyMagicWand)".to_string(),
+                    "error in processing expiring borrows (ReborrowingDagHasEmptyMagicWand)",
                     self.mir.source_info(location).span,
                 )
             }
 
             PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
                 EncodingError::internal(
-                    "error in processing expiring borrows \
-                    (ReborrowingDagHasWrongReborrowingChain)".to_string(),
+                    "error in processing expiring borrows (ReborrowingDagHasWrongReborrowingChain)",
                     self.mir.source_info(location).span,
                 )
             }
 
             PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
                 EncodingError::internal(
-                    "error in processing expiring borrows \
-                    (ReborrowingDagHasNoRepresentativeLoan)".to_string(),
+                    "error in processing expiring borrows (ReborrowingDagHasNoRepresentativeLoan)",
                     self.mir.source_info(location).span,
                 )
             }
@@ -2978,6 +2974,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         post_label: &str,
         location: mir::Location,
     ) -> Result<Vec<vir::Stmt>> {
+        debug!("encode_package_end_of_method '{:?}'", location);
         let mut stmts = Vec::new();
 
         // Package magic wand(s)

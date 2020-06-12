@@ -334,7 +334,7 @@ pub enum PoloniusInfoError {
         loop_head: mir::BasicBlock,
         variable: mir::Local,
     },
-    ReborrowingDagHasWrongLoanLoops(mir::Location),
+    LoansInNestedLoops(mir::Location, mir::BasicBlock, mir::Location, mir::BasicBlock),
     ReborrowingDagHasEmptyMagicWand(mir::Location),
     /// We currently support only one reborrowing chain per loop
     ReborrowingDagHasWrongReborrowingChain(mir::Location),
@@ -1133,7 +1133,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loops in which loans are defined (if any).
-    pub fn get_loan_loops(&self, loans: &[facts::Loan]) -> Vec<(facts::Loan, mir::BasicBlock)> {
+    pub fn get_loan_loops(
+        &self,
+        loans: &[facts::Loan]
+    ) -> Result<Vec<(facts::Loan, mir::BasicBlock)>, PoloniusInfoError> {
         let pairs: Vec<_> = loans
             .iter()
             .flat_map(|loan| {
@@ -1143,14 +1146,21 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     .map(|loop_head| (*loan, loop_head))
             })
             .collect();
-        for (_, loop1) in pairs.iter() {
-            for (_, loop2) in pairs.iter() {
+        for (loan1, loop1) in pairs.iter() {
+            let location1 = self.loan_position[loan1];
+            for (loan2, loop2) in pairs.iter() {
+                let location2 = self.loan_position[loan2];
                 if loop1 != loop2 {
-                    unimplemented!("Nested loops are not supported yet.");
+                    return Err(PoloniusInfoError::LoansInNestedLoops(
+                        location1,
+                        *loop1,
+                        location2,
+                        *loop2
+                    ));
                 }
             }
         }
-        pairs
+        Ok(pairs)
     }
 
     /// ``loans`` – all loans, including the zombie loans.
@@ -1179,12 +1189,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         if let Some(loop_head) = self.loops.get_loop_head(location.block) {
             let depth = self.loops.get_loop_head_depth(loop_head);
             debug!("loop_head: {:?} depth: {:?}", loop_head, depth);
-            let loan_loops = self.get_loan_loops(&loans);
-            if !loan_loops.iter().all(|(_, head)| { *head == loop_head }) {
-                return Err(PoloniusInfoError::ReborrowingDagHasWrongLoanLoops(location));
-            }
+            // It is fine to have loans defined in an outer loop that is not `loop_head`, because
+            // `return` or panic statements might need to jump out of many loops at once.
         } else {
-            let loan_loops = self.get_loan_loops(&loans);
+            let loan_loops = self.get_loan_loops(&loans)?;
             if !loan_loops.is_empty() {
                 for (loan, loop_head) in loan_loops.iter() {
                     debug!("loan={:?} loop_head={:?}", loan, loop_head);
