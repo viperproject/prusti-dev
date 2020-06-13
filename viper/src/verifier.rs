@@ -13,7 +13,6 @@ use jni::JNIEnv;
 use jni_utils::JniUtils;
 use std::marker::PhantomData;
 use std::path::PathBuf;
-use std::time::Instant;
 use verification_backend::VerificationBackend;
 use verification_result::VerificationError;
 use verification_result::VerificationResult;

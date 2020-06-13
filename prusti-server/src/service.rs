@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::PrustiServer;
-use prusti_viper::{encoder::vir::Program, verification_service::*};
+use prusti_viper::verification_service::*;
 
 use futures::Future;
 use std::net::SocketAddr;

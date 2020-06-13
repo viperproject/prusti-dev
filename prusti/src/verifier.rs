@@ -67,7 +67,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
                     );
                     VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
                         let program_name = format!("{}.direct", program_name);
-                        runner.verify(program.clone(), program_name.as_str())
+                        runner.verify(program, program_name.as_str())
                     })
                 } else {
                     let service = PrustiServerConnection::new_spawning_own_server();
