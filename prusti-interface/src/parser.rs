@@ -163,7 +163,7 @@ use specifications::{
     SpecificationSet, Trigger, TriggerSet, UntypedAssertion, UntypedExpression,
     UntypedSpecification, UntypedSpecificationMap, UntypedSpecificationSet, UntypedTriggerSet,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap,HashSet};
 use std::convert::TryFrom;
 use std::io::Write;
 use std::mem;
@@ -177,13 +177,19 @@ use syntax::util::small_vector::SmallVector;
 use syntax::{self, ast, parse, ptr};
 use syntax_pos::DUMMY_SP;
 use syntax_pos::{BytePos, FileName, SyntaxContext};
+use syntax::symbol::Symbol;
 
 use trait_register::{TraitRegister,FunctionRef};
 
 pub fn register_traits(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) {
     trace!("[register_traits] enter");
     let krate = state.krate.take().unwrap();
-    let mut parser = TraitParser::new(register);
+    let source_path = match driver::source_name(state.input) {
+        FileName::Real(path) => path,
+        _ => unreachable!(),
+    };
+    let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+    let mut parser = TraitParser::new(state.session, &source_filename, register);
     let _krate = parser.fold_crate(krate);
     trace!("[register_traits] exit");
 }
@@ -247,17 +253,18 @@ fn log_crate(krate: &ast::Crate, source_filename: &str) {
     writer.flush().ok().unwrap();
 }
 
-pub struct TraitParser {
+pub struct TraitParser<'tcx> {
     register: Arc<Mutex<TraitRegister>>,
+    spec_parser: SpecParser<'tcx>,
 }
 
-impl TraitParser {
-    pub fn new(register: Arc<Mutex<TraitRegister>>) -> Self {
-        Self { register: register }
+impl<'tcx> TraitParser<'tcx> {
+    pub fn new(session: &'tcx Session, source_filename: &str, register: Arc<Mutex<TraitRegister>>) -> Self {
+        Self { register: register.clone(), spec_parser: SpecParser::new(session, source_filename, register) }
     }
 }
 
-impl Folder for TraitParser {
+impl<'tcx> Folder for TraitParser<'tcx> {
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = fold::noop_fold_item(item, self)
@@ -276,9 +283,39 @@ impl Folder for TraitParser {
                         reg.register_impl(&item);
                     },
                     // Methods in trait definition
-                    ast::ItemKind::Trait(..) => {
+                    ast::ItemKind::Trait(_, _, _, bounds, _) => {
+                        let bounds_symbols: HashSet<Symbol> = bounds
+                            .iter()
+                            .map(|bound| {
+                                match bound.clone() {
+                                    ast::GenericBound::Trait(mut t_ref, _) => {
+                                        t_ref.trait_ref.path.segments.pop()
+
+                                    },
+                                    _ => None,
+                                }
+                            })
+                            .filter(|s| s.is_some())
+                            .map(|s_opt| s_opt.unwrap().ident.name)
+                            .collect();
+
                         let mut reg = self.register.lock().unwrap();
-                        reg.register_trait_decl(&item);
+                        let specs = self.spec_parser.parse_specs(item.attrs.clone());
+
+                        // check if specs refer to existing super trait
+                        specs
+                            .iter()
+                            .zip(item.attrs.iter())
+                            .map(|(s, a)| (s.typ.get_function_ref(), a))
+                            .filter(|(r, _)| r.is_some())
+                            .map(|(r, a)| (r.unwrap().0, a.span))
+                            .for_each(|(r, s)| {
+                                if ! bounds_symbols.contains(&r) {
+                                    self.spec_parser.report_error(s, "does not refer to super trait");
+                                }
+                            });
+
+                        reg.register_trait_decl(&item, &specs);
                     },
                     // Any other item
                     _ => (),
@@ -1314,15 +1351,18 @@ impl<'tcx> SpecParser<'tcx> {
     fn rewrite_trait_item_method(
         &mut self,
         mut trait_item: ast::TraitItem,
+        mut inherited_specs: Vec<UntypedSpecification>,
     ) -> SmallVector<ast::TraitItem> {
         trace!("[rewrite_trait_item_method] enter");
 
         // Parse specification
-        let specs = self.parse_specs(trait_item.attrs.clone());
+        let mut specs = self.parse_specs(trait_item.attrs.clone());
+        specs.append(&mut inherited_specs);
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(trait_item.span, "invariant not allowed for procedure");
             return SmallVector::one(trait_item);
         }
+        // TODO(@jakob): register all specs
         let preconditions: Vec<_> = specs
             .clone()
             .into_iter()
@@ -2196,8 +2236,8 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                 ast::ItemKind::Trait(is_auto, unsafety, generics, bounds, trait_items) => {
                     let mut item = item.into_inner();
 
-                    let mut reg = self.register.lock().unwrap();
-                    let trait_id = reg.register_trait_decl(&item);
+                    let reg = self.register.lock().unwrap();
+                    let trait_id = reg.get_id(&item);
                     let is_registered = reg.is_trait_specid_registered(&item);
                     drop(reg);
                     if !is_registered {
@@ -2213,21 +2253,18 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                         ));
                     }
 
+                    let trait_symbol = item.ident.name.clone();
+
                     let mut new_trait_items = vec![];
-
-                    // TODO(@jakob): add contract refinement for traits
-                    //
-                    let specs = self.parse_specs(item.attrs.clone());
-                    let refines = specs
-                        .iter()
-                        .filter(|s| s.typ.is_refines());
-
-
-
                     for trait_item in trait_items.into_iter() {
                         match trait_item.node {
                             ast::TraitItemKind::Method(..) => {
-                                new_trait_items.extend(self.rewrite_trait_item_method(trait_item));
+                                let method_symbol = trait_item.ident.name.clone();
+                                let func_ref = (trait_symbol.clone(), method_symbol);
+                                let reg = self.register.lock().unwrap();
+                                let func_specs = reg.get_specs(&func_ref);
+                                drop(reg);
+                                new_trait_items.extend(self.rewrite_trait_item_method(trait_item, func_specs));
                             }
                             _ => new_trait_items.push(trait_item),
                         }

@@ -54,6 +54,15 @@ impl SpecType {
             _ => false,
         }
     }
+
+    pub fn get_function_ref(&self) -> Option<(Symbol, Symbol)> {
+        match self {
+            SpecType::RefinePrecondition(ref_opt) | SpecType::RefinePostcondition(ref_opt) => {
+                ref_opt.clone()
+            },
+            _ => None
+        }
+    }
 }
 
 #[derive(Debug)]
