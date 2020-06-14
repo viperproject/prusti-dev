@@ -194,7 +194,11 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             self.encoder.process_encoding_queue();
         });
 
-        let verification_result = verify(self.encoder.get_viper_program());
+        let mut program = self.encoder.get_viper_program();
+        if config::simplify_encoding() {
+            program = program.optimized();
+        }
+        let verification_result = verify(program);
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,
