@@ -12,12 +12,8 @@ rustup component add llvm-tools-preview
 
 Compiling:
 ```bash
-./x.py build
-```
-`./x.py` sets `RUSTFLAGS` and passes all arguments to `cargo`. The first line that `./x.py` prints is the value of the `RUSTFLAGS` variable, which you can use if you want to develop the project in IDE with `cargo check`. For example:
-```bash
-export RUSTFLAGS=<./x.py output>
-code .
+cd new
+cargo build
 ```
 
 ## Design
