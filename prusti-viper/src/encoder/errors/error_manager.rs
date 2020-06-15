@@ -88,7 +88,7 @@ pub enum ErrorCtxt {
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
     AssertMethodPostconditionStrengthening(MultiSpan),
-    /// A Viper `assert false` that encodes an unsupported reason
+    /// A Viper `assert false` that encodes an unsupported feature
     Unsupported(String, String),
 }
 

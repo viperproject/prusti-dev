@@ -157,7 +157,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
             PoloniusInfoError::LoansInNestedLoops(location1, _loop1, _location2, _loop2) => {
                 EncodingError::unsupported(
-                    "creation of leans in nested loops is not supported".to_string(),
+                    "creation of loans in nested loops is not supported".to_string(),
                     self.mir.source_info(location1).span,
                 )
             }
@@ -646,13 +646,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("before_invariant_block: {:?}", before_invariant_block);
         trace!("after_guard_block: {:?}", after_guard_block);
         trace!("after_inv_block: {:?}", after_inv_block);
-        assert!(
-            !loop_info.is_conditional_branch(loop_head, before_invariant_block),
-            "The loop invariant cannot be in a conditional branch \
-            (before_invariant_block: {:?}, loop_head: {:?})",
-            before_invariant_block,
-            loop_head,
-        );
+        if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
+            return Err(EncodingError::incorrect(
+                "the loop invariant cannot be in a conditional branch of the loop",
+                self.mir_encoder.get_span_of_basic_block(loop_head)
+            ));
+        }
 
         // Split the blocks such that:
         // * G is loop_guard_evaluation, starting (if nonempty) with loop_head
@@ -2026,7 +2025,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         const_arg_vars.insert(fake_arg_place);
                         return Err(EncodingError::unsupported(
                             format!(
-                                "Please use a local variable as argument for function call '{}', \
+                                "please use a local variable as argument for function call '{}', \
                                 and not a constant.",
                                 full_func_proc_name
                             ),

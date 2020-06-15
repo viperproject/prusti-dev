@@ -333,13 +333,14 @@ impl ProcedureLoops {
 
             let mut exit_blocks = vec![];
             let mut nonconditional_blocks = vec![];
+            let mut reached_back_edge = false;
             let mut border = HashSet::new();
             border.insert(loop_head);
 
             for &curr_bb in ordered_loop_body {
                 debug_assert!(border.contains(&curr_bb));
 
-                if border.len() == 1 {
+                if border.len() == 1 && !reached_back_edge {
                     nonconditional_blocks.push(curr_bb);
                     let term = mir[curr_bb].terminator();
                     let is_switch_int = match term.kind {
@@ -357,9 +358,14 @@ impl ProcedureLoops {
                 border.remove(&curr_bb);
 
                 for &succ_bb in mir[curr_bb].terminator().successors() {
-                    // Consider only forward in-loop edges
-                    if !back_edges.contains(&(curr_bb, succ_bb)) && loop_body.contains(&succ_bb) {
-                        border.insert(succ_bb);
+                    if back_edges.contains(&(curr_bb, succ_bb)) {
+                        // From this point, we don't allow any loop invariant
+                        reached_back_edge = true;
+                    } else {
+                        // Consider only forward in-loop edges
+                        if loop_body.contains(&succ_bb) {
+                            border.insert(succ_bb);
+                        }
                     }
                 }
             }
