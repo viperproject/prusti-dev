@@ -33,21 +33,25 @@ impl PrustiError {
 
     /// Report a verification error of the verified Rust code
     pub fn verification<S: ToString>(message: S, span: MultiSpan) -> Self {
-        PrustiError::new(format!("[Prusti verification error] {}", message.to_string()), span)
+        check_message(message.to_string());
+        PrustiError::new(format!("[Prusti: verification error] {}", message.to_string()), span)
     }
 
     /// Report an unsupported feature of the verified Rust code (e.g. dereferencing raw pointers)
     pub fn unsupported<S: ToString>(message: S, span: MultiSpan) -> Self {
-        PrustiError::new(format!("[Prusti unsupported feature] {}", message.to_string()), span)
+        check_message(message.to_string());
+        PrustiError::new(format!("[Prusti: unsupported feature] {}", message.to_string()), span)
     }
 
     /// Report an incorrect usage of Prusti (e.g. call an impure function in a contract)
     pub fn incorrect<S: ToString>(message: S, span: MultiSpan) -> Self {
-        PrustiError::new(format!("[Prusti invalid specification] {}", message.to_string()), span)
+        check_message(message.to_string());
+        PrustiError::new(format!("[Prusti: invalid specification] {}", message.to_string()), span)
     }
 
     /// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
         PrustiError::new(format!("[Prusti internal error] {}", message.to_string()), span)
     }
 
@@ -86,4 +90,17 @@ impl PrustiError {
         }
         self
     }
+}
+
+fn check_message(message: String) {
+    debug_assert!(
+        message.len() >= 3,
+        "Message {:?} is too short",
+        message
+    );
+    debug_assert!(
+        message.get(0..1).unwrap() == message.get(0..1).unwrap().to_lowercase(),
+        "Message {:?} should start with a lowercase character",
+        message
+    );
 }
