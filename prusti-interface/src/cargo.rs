@@ -9,7 +9,7 @@ pub fn cargo_home() -> Option<PathBuf> {
         )
 }
 
-/// Is it likely that cargo calling Prusti on a dependency crate?
+/// Is it likely that cargo is compiling a dependency crate?
 /// * `args`: the arguments of the compiler call
 pub fn is_rustc_compiling_a_dependency_crate(args: &Vec<String>) -> bool {
     if let Some(cargo_home) = cargo_home() {
