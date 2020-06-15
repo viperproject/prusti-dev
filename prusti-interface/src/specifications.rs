@@ -41,6 +41,20 @@ impl SpecType {
         }
     }
 
+    pub fn is_postcondition(&self) -> bool {
+        match self {
+            SpecType::Postcondition | SpecType::RefinePostcondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_precondition(&self) -> bool {
+        match self {
+            SpecType::Precondition | SpecType::RefinePrecondition(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn is_refine_ensures(&self) -> bool {
         match self {
             SpecType::RefinePostcondition(_) => true,

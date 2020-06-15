@@ -1366,11 +1366,11 @@ impl<'tcx> SpecParser<'tcx> {
         let preconditions: Vec<_> = specs
             .clone()
             .into_iter()
-            .filter(|spec| spec.typ == SpecType::Precondition)
+            .filter(|spec| spec.typ.is_precondition())
             .collect();
         let postconditions: Vec<_> = specs
             .into_iter()
-            .filter(|spec| spec.typ == SpecType::Postcondition)
+            .filter(|spec| spec.typ.is_postcondition())
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
 
@@ -1473,7 +1473,7 @@ impl<'tcx> SpecParser<'tcx> {
                 let spec_trees: Vec<TokenTree> = token_stream.trees().collect();
                 if spec_trees.len() == 1 {
                     spec_trees[0].clone()
-                } else if spec_trees.len() == 5 && attribute.path.to_string().starts_with("refines_") {
+                } else if spec_trees.len() == 5 && attribute.path.to_string().starts_with("refine_") {
                     let trait_symbol = if let TokenTree::Token(_, token::Token::Ident(ref ident, _)) = spec_trees[0] {
                         ident.name.clone()
                     } else {
