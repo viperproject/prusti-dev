@@ -359,8 +359,10 @@ impl ProcedureLoops {
 
                 for &succ_bb in mir[curr_bb].terminator().successors() {
                     if back_edges.contains(&(curr_bb, succ_bb)) {
-                        // From this point, we don't allow any loop invariant
-                        reached_back_edge = true;
+                        if succ_bb == loop_head || !loop_body.contains(&succ_bb) {
+                            // From this point, we don't allow any loop invariant
+                            reached_back_edge = true;
+                        }
                     } else {
                         // Consider only forward in-loop edges
                         if loop_body.contains(&succ_bb) {

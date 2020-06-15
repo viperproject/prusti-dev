@@ -647,6 +647,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         trace!("after_guard_block: {:?}", after_guard_block);
         trace!("after_inv_block: {:?}", after_inv_block);
         if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
+            debug!("{:?} is conditional branch in loop {:?}", before_invariant_block, loop_head);
             return Err(EncodingError::incorrect(
                 "the loop invariant cannot be in a conditional branch of the loop",
                 self.mir_encoder.get_span_of_basic_block(loop_head)
