@@ -31,6 +31,18 @@ impl ServerSideService {
             server: Arc::new(server),
         }
     }
+
+    pub fn spawn_off_thread() -> SocketAddr {
+        let (sender, receiver) = mpsc::channel();
+        thread::spawn(move || {
+            let handle = ServerSideService::new(PrustiServer::new())
+                .listen("localhost:0", server::Options::default())
+                .unwrap();
+            sender.send(handle.addr()).unwrap();
+            handle.run();
+        });
+        receiver.recv().unwrap()
+    }
 }
 
 impl SyncService for ServerSideService {
@@ -55,20 +67,6 @@ impl PrustiServerConnection {
     pub fn new(server_address: SocketAddr) -> Self {
         let client = SyncClient::connect(server_address, client::Options::default()).unwrap();
         Self { client }
-    }
-
-    // TODO: figure out if this is valuable
-    /// Spawns a server off-thread and connects to it; will probably be deleted.
-    pub fn new_spawning_own_server() -> Self {
-        let (sender, receiver) = mpsc::channel();
-        thread::spawn(move || {
-            let handle = ServerSideService::new(PrustiServer::new())
-                .listen("localhost:0", server::Options::default())
-                .unwrap();
-            sender.send(handle.addr()).unwrap();
-            handle.run();
-        });
-        Self::new(receiver.recv().unwrap())
     }
 }
 

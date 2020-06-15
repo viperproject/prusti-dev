@@ -6,16 +6,14 @@
 
 //! A module that invokes the verifier `prusti-viper`
 
+use prusti_common::config;
 use prusti_common::report::user;
-use prusti_interface::data::VerificationResult;
-use prusti_interface::data::VerificationTask;
+use prusti_interface::data::{VerificationResult, VerificationTask};
 use prusti_interface::environment::Environment;
 use prusti_interface::specifications::TypedSpecificationMap;
-use prusti_server::PrustiServerConnection;
-use prusti_server::VerifierRunner;
+use prusti_server::{PrustiServerConnection, ServerSideService, VerifierRunner};
 use prusti_viper::verification_service::*;
-use prusti_viper::verifier::Verifier;
-use prusti_viper::verifier::VerifierBuilder;
+use prusti_viper::verifier::{Verifier, VerifierBuilder};
 use rustc_driver::driver;
 
 /// Verify a (typed) specification on compiler state.
@@ -52,31 +50,37 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
 
             let mut verifier = Verifier::new(&env, &spec);
             let source_path = env.source_path();
-            // TODO: recreate structure of original sources in dumped sources
             let program_name = source_path
                 .file_name()
                 .unwrap()
                 .to_str()
                 .unwrap()
                 .to_owned();
+
             let verification_result = verifier.verify(&verification_task, |program| {
-                // FIXME: This is just for debugging. In the end, it would switch based on whether it has a server address, and actually connect to that rather than spawning its own server.
-                if true {
-                    run_timed!("JVM startup",
-                        let verifier_builder = VerifierBuilder::new();
-                    );
-                    VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
-                        let program_name = format!("{}.direct", program_name);
-                        runner.verify(program, program_name.as_str())
-                    })
-                } else {
-                    let service = PrustiServerConnection::new_spawning_own_server();
+                if let Some(server_address) = config::server_address() {
+                    let server_address = if server_address == "MOCK" {
+                        ServerSideService::spawn_off_thread()
+                    } else {
+                        server_address.parse().unwrap_or_else(|e| {
+                            panic!("Invalid server address: {} (error: {})", server_address, e)
+                        })
+                    };
+                    let service = PrustiServerConnection::new(server_address);
+
                     let request = VerificationRequest {
                         program,
                         program_name: format!("{}.service", program_name),
                         backend_config: Default::default(),
                     };
                     service.verify(request)
+                } else {
+                    run_timed!("JVM startup",
+                        let verifier_builder = VerifierBuilder::new();
+                    );
+                    VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
+                        runner.verify(program, program_name.as_str())
+                    })
                 }
             });
             debug!("Verifier returned {:?}", verification_result);
