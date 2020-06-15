@@ -37,10 +37,12 @@ use rustc_driver::driver::{CompileController, CompileState};
 use rustc_driver::RustcDefaultCalls;
 use std::env;
 use std::fs;
+use std::sync::{Arc,Mutex};
 use std::path::Path;
 use validators::Validator;
 use prusti_interface::environment::Environment;
 use prusti_interface::cargo::is_rustc_compiling_a_dependency_crate;
+use prusti_interface::trait_register::TraitRegister;
 
 fn main() {
     env_logger::init();
@@ -99,11 +101,13 @@ fn main() {
 
         let mut controller = CompileController::basic();
         //controller.keep_ast = true;
+        // FIXME(@jakob): make sure what this does, perform two passes.
+        let register = Arc::new(Mutex::new(TraitRegister::new()));
 
         let old = std::mem::replace(&mut controller.after_parse.callback, box |_| {});
         controller.after_parse.callback = box move |state| {
             prusti_interface::parser::register_attributes(state);
-            let _ = prusti_interface::parser::rewrite_crate(state);
+            let _ = prusti_interface::parser::rewrite_crate(state, register.clone());
             info!("Parsing of annotations successful");
             old(state);
         };
