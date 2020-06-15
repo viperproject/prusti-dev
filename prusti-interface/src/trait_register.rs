@@ -31,7 +31,7 @@ pub struct TraitRegister {
     trait_to_specid: HashMap<RegisterID, SpecID>,
     type_to_trait: HashMap<RegisterID, HashSet<(RegisterID,ast::Item)>>,
     trait_to_inv: HashMap<RegisterID, Vec<ast::Attribute>>,
-    func_ref_to_spec: HashMap<FunctionRef, HashMap<RegisterID, Vec<UntypedSpecification>>>,
+    func_ref_to_spec: HashMap<Symbol, HashMap<Symbol, HashMap<RegisterID, Vec<ast::Attribute>>>>,
 }
 
 type TraitInfo = (RegisterID, Option<SpecID>, ast::Item, Vec<ast::Attribute>);
@@ -67,14 +67,27 @@ impl TraitRegister {
         key_val_opt.map(|(k, _)| k.span.clone())
     }
 
-    /// Get all specifications for some function reference.
-    pub fn get_specs(&self, func_ref: &FunctionRef) -> Vec<UntypedSpecification> {
-        self.func_ref_to_spec.get(func_ref).map_or(Vec::new(), |map| {
+    /// Get all attributes for some function reference.
+    pub fn get_funcs_for_trait(&self, trait_ref: &Symbol) -> Vec<Symbol> {
+        self.func_ref_to_spec.get(trait_ref).map_or(Vec::new(), |map| {
             map
-                .values()
+                .keys()
                 .cloned()
-                .flatten()
                 .collect()
+        })
+    }
+
+    /// Get all attributes for some function reference.
+    pub fn get_attrs_refine(&self, func_ref: &FunctionRef) -> Vec<ast::Attribute> {
+        let (trait_ref, func) = func_ref;
+        self.func_ref_to_spec.get(trait_ref).map_or(Vec::new(), |map| {
+            map.get(func).map_or(Vec::new(), |inner| {
+                inner
+                    .values()
+                    .cloned()
+                    .flatten()
+                    .collect()
+            })
         })
     }
 
@@ -112,19 +125,24 @@ impl TraitRegister {
 
         let refines = specs
             .iter()
-            .filter(|s| s.typ.is_refines())
-            .filter(|s| s.typ.get_function_ref().is_some());
+            .zip(item.attrs.iter())
+            .filter(|(s, _)| s.typ.is_refines())
+            .filter(|(s, _)| s.typ.get_function_ref().is_some());
 
-        for spec in refines {
-            let func_ref = spec.typ.get_function_ref().unwrap();
-            if !self.func_ref_to_spec.contains_key(&func_ref) {
-                self.func_ref_to_spec.insert(func_ref.clone(), HashMap::new());
+        for (spec, attr) in refines {
+            let (trait_ref, func_ref) = spec.typ.get_function_ref().unwrap();
+            if !self.func_ref_to_spec.contains_key(&trait_ref) {
+                self.func_ref_to_spec.insert(trait_ref.clone(), HashMap::new());
             }
-            let trait_to_spec_ref = self.func_ref_to_spec.get_mut(&func_ref).unwrap();
-            if !trait_to_spec_ref.contains_key(&trait_id) {
-                trait_to_spec_ref.insert(trait_id.clone(), Vec::new());
+            let trait_to_spec_ref = self.func_ref_to_spec.get_mut(&trait_ref).unwrap();
+            if !trait_to_spec_ref.contains_key(&func_ref) {
+                trait_to_spec_ref.insert(func_ref.clone(), HashMap::new());
             }
-            trait_to_spec_ref.get_mut(&trait_id).unwrap().push(spec.clone());
+            let func_to_spec = trait_to_spec_ref.get_mut(&func_ref).unwrap();
+            if !func_to_spec.contains_key(&trait_id) {
+                func_to_spec.insert(trait_id.clone(), Vec::new());
+            }
+            func_to_spec.get_mut(&trait_id).unwrap().push(attr.clone());
         }
 
         trait_id

@@ -1358,6 +1358,7 @@ impl<'tcx> SpecParser<'tcx> {
         // Parse specification
         let mut specs = self.parse_specs(trait_item.attrs.clone());
         specs.append(&mut inherited_specs);
+
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(trait_item.span, "invariant not allowed for procedure");
             return SmallVector::one(trait_item);
@@ -1603,9 +1604,7 @@ impl<'tcx> SpecParser<'tcx> {
             .into_iter()
             .map(|attribute| {
                 if let Ok(spec_type) = SpecType::try_from(&attribute.path.to_string() as &str) {
-                    // TODO(@jakob): use function ref
                     if let Some((spec_string, mut span, function_ref)) = self.extract_spec_string(&attribute) {
-                        info!("spec={:?} spec_type={:?}", spec_string, spec_type);
                         // FIXME ugly code
                         let mut spec_string: &str = &spec_string;
                         let foo = self.parse_typaram_condition(&mut span, &mut spec_string);
@@ -2245,6 +2244,8 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                     let reg = self.register.lock().unwrap();
                     let trait_id = reg.get_id(&item);
                     let is_registered = reg.is_trait_specid_registered(&item);
+                    let trait_symbol = item.ident.name.clone();
+                    let funcs_symbols = reg.get_funcs_for_trait(&trait_symbol);
                     drop(reg);
                     if !is_registered {
                         let empty_spec = SpecificationSet::Struct(Vec::new());
@@ -2259,7 +2260,19 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                         ));
                     }
 
-                    let trait_symbol = item.ident.name.clone();
+                    let trait_symbols: HashSet<Symbol> = trait_items
+                        .clone()
+                        .into_iter()
+                        .map(|item| item.ident.name)
+                        .collect();
+
+                    for symbol in funcs_symbols {
+                        if !trait_symbols.contains(&symbol) {
+                            self.report_error(
+                                item.span,
+                                &format!("'{}' does not refer to a method in a super trait", symbol));
+                        }
+                    }
 
                     let mut new_trait_items = vec![];
                     for trait_item in trait_items.into_iter() {
@@ -2268,8 +2281,9 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                                 let method_symbol = trait_item.ident.name.clone();
                                 let func_ref = (trait_symbol.clone(), method_symbol);
                                 let reg = self.register.lock().unwrap();
-                                let func_specs = reg.get_specs(&func_ref);
+                                let func_attrs = reg.get_attrs_refine(&func_ref);
                                 drop(reg);
+                                let func_specs = self.parse_specs(func_attrs);
                                 new_trait_items.extend(self.rewrite_trait_item_method(trait_item, func_specs));
                             }
                             _ => new_trait_items.push(trait_item),
