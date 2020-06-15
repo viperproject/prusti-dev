@@ -1473,7 +1473,7 @@ impl<'tcx> SpecParser<'tcx> {
                 let spec_trees: Vec<TokenTree> = token_stream.trees().collect();
                 if spec_trees.len() == 1 {
                     spec_trees[0].clone()
-                } else {
+                } else if spec_trees.len() == 5 && attribute.path.to_string().starts_with("refines_") {
                     let trait_symbol = if let TokenTree::Token(_, token::Token::Ident(ref ident, _)) = spec_trees[0] {
                         ident.name.clone()
                     } else {
@@ -1508,6 +1508,12 @@ impl<'tcx> SpecParser<'tcx> {
                     }
                     function_ref = Some((trait_symbol, func_symbol));
                     spec_trees[4].clone()
+                } else {
+                    self.report_error(
+                        attribute.span,
+                        "malformed specification (expected single argument)"
+                    );
+                    return None;
                 }
             }
             _ => {
