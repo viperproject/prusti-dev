@@ -1,6 +1,8 @@
 extern crate compiletest_rs;
+extern crate prusti_server;
 
 use compiletest_rs::{common, run_tests, Config};
+use prusti_server::ServerSideService;
 use std::env::{remove_var, set_var, var};
 use std::path::PathBuf;
 
@@ -142,6 +144,8 @@ fn run_verification(group_name: &str) {
 #[test]
 fn test_runner() {
     // TODO: spawn server process as child (so it stays around until main function terminates)
+    let server_address = ServerSideService::spawn_off_thread();
+    set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
     run_no_verification("parse");
     run_no_verification("typecheck");
     run_verification("verify");
