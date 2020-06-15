@@ -121,12 +121,14 @@ fn read_doc_attr(attrs: &[ast::Attribute]) -> String {
             ast::AttrKind::DocComment(symbol) => {
                 assert!(string.is_none());
                 string = Some(symbol.as_str());
-            },
+            }
             ast::AttrKind::Normal(ast::AttrItem {
-                path: ast::Path { span:_, segments },
+                path: ast::Path { span: _, segments },
                 args: ast::MacArgs::Eq(_, tokens),
             }) => {
-                if segments.len() != 1 || segments[0].ident.name.with(|attr_name| attr_name != "doc") {
+                if segments.len() != 1
+                    || segments[0].ident.name.with(|attr_name| attr_name != "doc")
+                {
                     unreachable!();
                 }
                 use rustc_ast::token::Lit;
@@ -140,20 +142,27 @@ fn read_doc_attr(attrs: &[ast::Attribute]) -> String {
                     }) => {
                         assert!(string.is_none());
                         string = Some(symbol.as_str());
-                    },
+                    }
                     x => unreachable!("{:?}", x),
                 }
             }
             ast::AttrKind::Normal(ast::AttrItem {
-                path: ast::Path { span:_, segments },
+                path: ast::Path { span: _, segments },
                 args: _,
-            }) if segments.len() == 1 || segments[0].ident.name.with(|attr_name| attr_name != "allow") => {
+            }) if segments.len() == 1
+                || segments[0]
+                    .ident
+                    .name
+                    .with(|attr_name| attr_name != "allow") =>
+            {
                 continue;
             }
             x => unreachable!("{:?}", x),
         };
     }
-    string.expect("no specification structure attribute?").replace("\\\"", "\"")
+    string
+        .expect("no specification structure attribute?")
+        .replace("\\\"", "\"")
 }
 
 fn deserialize_spec_from_attrs(attrs: &[ast::Attribute]) -> JsonAssertion {
