@@ -60,6 +60,10 @@ test-examples: build clean-nested
 	$(SET_ENV_VARS) \
 	cargo test -p prusti
 
+test-viper-crate: build clean-nested
+	$(SET_ENV_VARS) \
+	cargo test -p viper
+
 build-profile:
 	$(SET_ENV_VARS) \
 	CARGO_INCREMENTAL=0 \

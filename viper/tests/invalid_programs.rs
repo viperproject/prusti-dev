@@ -21,8 +21,7 @@ fn setup() {
 }
 
 #[test]
-#[should_panic]
-fn panic_on_consistency_error() {
+fn consistency_error() {
     setup();
 
     let verification_context: VerificationContext = VIPER.new_verification_context();
@@ -46,18 +45,11 @@ fn panic_on_consistency_error() {
         ],
     );
 
-    let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
-
-    let program = ast.program(&[], &[], &[], &[], &[method]);
-
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
-
-    let _verification_result = verifier.verify(program);
+    test_consistency_error_for_method_body(method_body, &verification_context, &ast);
 }
 
 #[test]
-#[should_panic]
-fn panic_on_type_error() {
+fn type_error() {
     setup();
 
     let verification_context: VerificationContext = VIPER.new_verification_context();
@@ -78,11 +70,26 @@ fn panic_on_type_error() {
         &[ast.local_var_decl("x", ast.int_type()).into()],
     );
 
+    test_consistency_error_for_method_body(method_body, &verification_context, &ast);
+}
+
+fn test_consistency_error_for_method_body(
+    method_body: Stmt,
+    verification_context: &VerificationContext,
+    ast: &AstFactory,
+) {
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
     let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
 
-    let _verification_result = verifier.verify(program);
+    let verification_result = verifier.verify(program);
+    match verification_result {
+        VerificationResult::ConsistencyErrors(_) => (),
+        other => panic!(
+            "consistency errors not identified, instead found {:?}",
+            other
+        ),
+    }
 }
