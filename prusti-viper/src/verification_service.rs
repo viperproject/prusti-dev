@@ -26,9 +26,8 @@ pub struct ViperBackendConfig {
 
 impl Default for ViperBackendConfig {
     fn default() -> Self {
-        let backend = VerificationBackend::from_str(&config::viper_backend());
         Self {
-            backend,
+            backend: VerificationBackend::from_str(&config::viper_backend()),
             verifier_args: config::extra_verifier_args(),
         }
     }
