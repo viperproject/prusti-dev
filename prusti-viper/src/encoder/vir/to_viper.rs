@@ -479,6 +479,40 @@ impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
     }
 }
 
+impl<'a, 'v> ToViper<'v, viper::Domain<'v>> for &'a Domain {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Domain<'v> {
+        ast.domain(
+            &self.name,
+            &self.functions.to_viper(ast),
+            &self.axioms.to_viper(ast),
+            &self.type_vars.to_viper(ast),
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunction {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
+        ast.domain_func(
+            &self.name,
+            &self.formal_args.to_viper_decl(ast),
+            self.return_type.to_viper(ast),
+            self.unique,
+            &self.domain_name,
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
+        ast.named_domain_axiom(
+            &self.name,
+            self.expr.to_viper(ast),
+            &self.domain_name,
+        )
+    }
+}
+
+
 // Vectors
 
 impl<'v> ToViper<'v, Vec<viper::Field<'v>>> for Vec<Field> {
@@ -502,6 +536,24 @@ impl<'v, 'a, 'b> ToViper<'v, Vec<viper::Trigger<'v>>> for (&'a Vec<Trigger>, &'b
 impl<'v> ToViperDecl<'v, Vec<viper::LocalVarDecl<'v>>> for Vec<LocalVar> {
     fn to_viper_decl(&self, ast: &AstFactory<'v>) -> Vec<viper::LocalVarDecl<'v>> {
         self.iter().map(|x| x.to_viper_decl(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<DomainFunction> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::DomainFunc<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::NamedDomainAxiom<'v>>> for Vec<DomainAxiom> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::NamedDomainAxiom<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Type<'v>>> for Vec<Type> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Type<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
     }
 }
 

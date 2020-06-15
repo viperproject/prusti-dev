@@ -6,6 +6,7 @@
 
 pub use self::bodyless_method::*;
 pub use self::common::*;
+pub use self::domain::*;
 pub use self::expr::*;
 pub use self::function::*;
 pub use self::predicate::*;
@@ -14,6 +15,7 @@ pub use self::trigger::*;
 
 mod bodyless_method;
 mod common;
+mod domain;
 mod expr;
 mod function;
 mod predicate;
