@@ -115,28 +115,45 @@ fn reconstruct_typed_assertion<'tcx>(
 }
 
 fn read_doc_attr(attrs: &[ast::Attribute]) -> String {
-    assert_eq!(attrs.len(), 1);
-    let string = match &attrs[0].kind {
-        ast::AttrKind::DocComment(symbol) => symbol.as_str(),
-        ast::AttrKind::Normal(ast::AttrItem {
-            path: _,
-            args: ast::MacArgs::Eq(_, tokens),
-        }) => {
-            use rustc_ast::token::Lit;
-            use rustc_ast::token::Token;
-            use rustc_ast::token::TokenKind;
-            use rustc_ast::tokenstream::TokenTree;
-            match &tokens.0[0].0 {
-                TokenTree::Token(Token {
-                    kind: TokenKind::Literal(Lit { symbol, .. }),
-                    ..
-                }) => symbol.as_str(),
-                x => unreachable!("{:?}", x),
+    let mut string = None;
+    for attr in attrs {
+        match &attr.kind {
+            ast::AttrKind::DocComment(symbol) => {
+                assert!(string.is_none());
+                string = Some(symbol.as_str());
+            },
+            ast::AttrKind::Normal(ast::AttrItem {
+                path: ast::Path { span:_, segments },
+                args: ast::MacArgs::Eq(_, tokens),
+            }) => {
+                if segments.len() != 1 || segments[0].ident.name.with(|attr_name| attr_name != "doc") {
+                    unreachable!();
+                }
+                use rustc_ast::token::Lit;
+                use rustc_ast::token::Token;
+                use rustc_ast::token::TokenKind;
+                use rustc_ast::tokenstream::TokenTree;
+                match &tokens.0[0].0 {
+                    TokenTree::Token(Token {
+                        kind: TokenKind::Literal(Lit { symbol, .. }),
+                        ..
+                    }) => {
+                        assert!(string.is_none());
+                        string = Some(symbol.as_str());
+                    },
+                    x => unreachable!("{:?}", x),
+                }
             }
-        }
-        x => unreachable!("{:?}", x),
-    };
-    string.replace("\\\"", "\"")
+            ast::AttrKind::Normal(ast::AttrItem {
+                path: ast::Path { span:_, segments },
+                args: _,
+            }) if segments.len() == 1 || segments[0].ident.name.with(|attr_name| attr_name != "allow") => {
+                continue;
+            }
+            x => unreachable!("{:?}", x),
+        };
+    }
+    string.expect("no specification structure attribute?").replace("\\\"", "\"")
 }
 
 fn deserialize_spec_from_attrs(attrs: &[ast::Attribute]) -> JsonAssertion {

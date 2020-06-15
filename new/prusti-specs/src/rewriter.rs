@@ -69,6 +69,7 @@ impl AstRewriter {
         assertion.encode_type_check(&mut statements);
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
         let mut spec_item: syn::ItemFn = syn::parse_quote! {
+            #[allow(unused_doc_comments)]
             #[doc = #assertion_json]
             fn #item_name() {
                 #statements
