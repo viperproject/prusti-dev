@@ -364,18 +364,51 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         args: &Vec<places::Local>,
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
-        let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
-        let fun_spec = match opt_fun_spec {
-            Some(fun_spec) => fun_spec.clone(),
-            None => {
-                debug!("Procedure {:?} has no specification", proc_def_id);
-                SpecificationSet::Procedure(vec![], vec![])
-            }
+        // get specification on trait declaration method or inherent impl
+        let fun_spec = if let Some(spec) = self.get_spec_by_def_id(proc_def_id) {
+            spec.clone()
+        } else {
+            debug!("Procedure {:?} has no specification", proc_def_id);
+            SpecificationSet::Procedure(vec![], vec![])
         };
+
         let tymap = self.typaram_repl.borrow_mut();
+
         assert!(tymap.len() == 1, "tymap.len() = {}, but should be 1", tymap.len());
+
+        // get receiver object base type
+        let mut impl_spec = SpecificationSet::Procedure(vec![], vec![]);
+
+        let mut self_ty = None;
+
+        for (key, val) in tymap[0].iter() {
+            if key.is_self() {
+                self_ty = Some(val.clone());
+            }
+        }
+
+        if let Some(ty) = self_ty {
+            if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
+                let proc_name = self.env().tcx().item_name(proc_def_id).as_symbol();
+                let procs = self.env().get_trait_method_decl_for_type(ty, id, proc_name);
+                if procs.len() == 1 {
+                    // FIXME(@jakob): if several methods are found, we currently don't know which
+                    // one to pick.
+                    let item = procs[0];
+                    if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
+                        impl_spec = spec.clone();
+                    } else {
+                        debug!("Procedure {:?} has no specification", item.def_id);
+                    }
+                }
+            }
+        }
+
+        // merge specifications
+        let final_spec = fun_spec.refine(&impl_spec);
+
         let contract =
-            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, Some(&tymap[0]));
+            compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
         contract.to_call_site_contract(args, target)
     }
 
