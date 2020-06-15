@@ -36,7 +36,7 @@ pub enum E3<T> {
 }
 
 pub fn test3<T>(e: &mut E3<T>) -> &mut T {
-    match e {
+    match *e {
         E3::V1(ref mut b) => b,
         E3::V2(ref mut b) => b,
     }

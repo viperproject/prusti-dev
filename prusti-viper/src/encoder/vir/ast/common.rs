@@ -115,22 +115,24 @@ impl ops::Sub for PermAmount {
     }
 }
 
-impl Ord for PermAmount {
-    fn cmp(&self, other: &PermAmount) -> Ordering {
+impl PartialOrd for PermAmount {
+    fn partial_cmp(&self, other: &PermAmount) -> Option<Ordering> {
         match (self, other) {
-            (PermAmount::Read, PermAmount::Write) => Ordering::Less,
+            (PermAmount::Read, PermAmount::Write) => Some(Ordering::Less),
             (PermAmount::Read, PermAmount::Read) | (PermAmount::Write, PermAmount::Write) => {
-                Ordering::Equal
+                Some(Ordering::Equal)
             }
-            (PermAmount::Write, PermAmount::Read) => Ordering::Greater,
-            _ => unreachable!("self={} other={}", self, other),
+            (PermAmount::Write, PermAmount::Read) => Some(Ordering::Greater),
+            _ => None,
         }
     }
 }
 
-impl PartialOrd for PermAmount {
-    fn partial_cmp(&self, other: &PermAmount) -> Option<Ordering> {
-        Some(self.cmp(other))
+impl Ord for PermAmount {
+    fn cmp(&self, other: &PermAmount) -> Ordering {
+        self.partial_cmp(other).expect(
+            &format!("Undefined comparison between {:?} and {:?}", self, other)
+        )
     }
 }
 

@@ -75,6 +75,7 @@ fn knuth_shuffle<T>(v: &mut VecWrapper<T>) {
 
     let mut n = 0;
     let bgn = 0;
+    #[invariant="n < l"]
     #[invariant="n >= 0"]
     #[invariant="bgn == 0"]
     #[invariant="l == v.len()"]

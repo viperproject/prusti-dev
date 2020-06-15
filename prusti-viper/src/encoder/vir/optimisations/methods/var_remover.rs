@@ -20,8 +20,9 @@ pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         ast::StmtWalker::walk(&mut collector, stmt);
     });
     method.walk_successors(|successor| match successor {
-        cfg::Successor::Undefined | cfg::Successor::Return |
-        cfg::Successor::Goto(_) | cfg::Successor::BackEdge(_) => {}
+        cfg::Successor::Undefined |
+        cfg::Successor::Return |
+        cfg::Successor::Goto(_) => {}
         cfg::Successor::GotoSwitch(conditional_targets, _) => {
             for (expr, _) in conditional_targets {
                 ast::ExprWalker::walk(&mut collector, expr);

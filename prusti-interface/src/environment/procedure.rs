@@ -11,7 +11,6 @@ use rustc::mir::Mir;
 use rustc::mir::{BasicBlock, Terminator, TerminatorKind};
 use rustc::ty::{self, Ty, TyCtxt};
 use std::cell::Ref;
-use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::codemap::Span;
 
@@ -26,7 +25,6 @@ pub struct Procedure<'a, 'tcx: 'a> {
     loop_info: loops::ProcedureLoops,
     reachable_basic_blocks: HashSet<BasicBlock>,
     nonspec_basic_blocks: HashSet<BasicBlock>,
-    predecessors: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>, // TODO: use mir.predecessors_for
 }
 
 impl<'a, 'tcx> Procedure<'a, 'tcx> {
@@ -38,18 +36,6 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir);
 
-        let mut predecessors = HashMap::new();
-        for bbi in mir.basic_blocks().indices() {
-            let bb_data = &mir.basic_blocks()[bbi];
-            let term = bb_data.terminator.as_ref().unwrap();
-            for succ in get_normal_targets(term) {
-                predecessors
-                    .entry(succ)
-                    .or_insert(HashSet::new())
-                    .insert(bbi);
-            }
-        }
-
         let loop_info = loops::ProcedureLoops::new(&mir);
 
         Self {
@@ -59,19 +45,11 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
             loop_info,
             reachable_basic_blocks,
             nonspec_basic_blocks,
-            predecessors,
         }
     }
 
     pub fn loop_info(&self) -> &loops::ProcedureLoops {
         &self.loop_info
-    }
-
-    pub fn predecessors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
-        self.predecessors
-            .get(&bbi)
-            .map(|p| p.iter().cloned().collect())
-            .unwrap_or(vec![])
     }
 
     /// Returns all the types used in the procedure, and any types reachable from them
@@ -183,7 +161,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
                     ..
                 }),
             ..
-        } = self.mir[bbi].terminator.as_ref().unwrap().kind
+        } = self.mir[bbi].terminator().kind
         {
             let func_proc_name = self.tcx.absolute_item_path_str(def_id);
             &func_proc_name == "std::panicking::begin_panic"
@@ -194,7 +172,7 @@ impl<'a, 'tcx> Procedure<'a, 'tcx> {
     }
 
     pub fn successors(&self, bbi: BasicBlockIndex) -> Vec<BasicBlockIndex> {
-        get_normal_targets(self.mir[bbi].terminator.as_ref().unwrap())
+        get_normal_targets(self.mir[bbi].terminator())
     }
 }
 
@@ -250,7 +228,7 @@ fn build_reachable_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
         visited.insert(source);
         reachable_basic_blocks.insert(source);
 
-        let term = mir[source].terminator.as_ref().unwrap();
+        let term = mir[source].terminator();
         for target in get_normal_targets(term) {
             if !visited.contains(&target) {
                 to_visit.push(target);
@@ -292,7 +270,7 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
         visited.insert(source);
         nonspec_basic_blocks.insert(source);
 
-        let term = mir[source].terminator.as_ref().unwrap();
+        let term = mir[source].terminator();
         let is_loop_head = loop_heads.contains(&source);
         if is_loop_head {
             trace!("MIR block {:?} is a loop head", source);
@@ -300,7 +278,7 @@ fn build_nonspec_basic_blocks<'tcx>(mir: &Mir<'tcx>) -> HashSet<BasicBlock> {
         for target in get_normal_targets(term) {
             trace!("Try target {:?} of {:?}", target, source);
             // Skip the following "if false"
-            let target_term = &mir[target].terminator.as_ref().unwrap();
+            let target_term = &mir[target].terminator();
             let span = target_term.source_info.span;
             trace!(
                 "target_term {:?} span=({:?}, {:?})",

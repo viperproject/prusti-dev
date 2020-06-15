@@ -9,6 +9,7 @@
 #![feature(nll)]
 #![feature(box_syntax)]
 #![feature(slice_sort_by_cached_key)]
+#![feature(iterator_flatten)]
 
 #![deny(unreachable_patterns)]
 #![deny(unused_mut)]
@@ -32,8 +33,6 @@ extern crate uuid;
 extern crate viper;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate derive_more;
 
 #[cfg(debug_assertions)]
 #[macro_use]

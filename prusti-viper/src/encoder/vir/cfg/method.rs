@@ -39,8 +39,6 @@ pub struct CfgBlock {
 pub enum Successor {
     Undefined,
     Return,
-    /// A loop back-edge.
-    BackEdge(CfgBlockIndex),
     Goto(CfgBlockIndex),
     GotoSwitch(Vec<(Expr, CfgBlockIndex)>, CfgBlockIndex),
 }
@@ -66,13 +64,12 @@ impl Successor {
     }
 
     pub fn get_following(&self) -> Vec<CfgBlockIndex> {
-        match self {
-            &Successor::Undefined | &Successor::Return => vec![],
-            &Successor::BackEdge(target) => vec![target],
-            &Successor::Goto(target) => vec![target],
-            &Successor::GotoSwitch(ref guarded_targets, default_target) => {
+        match &self {
+            Successor::Undefined | Successor::Return => vec![],
+            Successor::Goto(target) => vec![*target],
+            Successor::GotoSwitch(guarded_targets, default_target) => {
                 let mut res: Vec<CfgBlockIndex> = guarded_targets.iter().map(|g| g.1).collect();
-                res.push(default_target);
+                res.push(*default_target);
                 res
             }
         }
@@ -124,6 +121,9 @@ impl CfgBlockIndex {
     }
     pub fn weak_eq(&self, other: &CfgBlockIndex) -> bool {
         self.block_index == other.block_index
+    }
+    pub fn index(&self) -> usize {
+        self.block_index
     }
 }
 
@@ -249,7 +249,7 @@ impl CfgMethod {
             .chars()
             .skip(1)
             .all(|c| c.is_alphanumeric() || c == '_'));
-        assert!(self.basic_blocks_labels.iter().all(|l| l != label));
+        assert!(self.basic_blocks_labels.iter().all(|l| l != label), "Label {} is already used", label);
         assert!(label != RETURN_LABEL);
         let index = self.basic_blocks.len();
         self.basic_blocks_labels.push(label.to_string());
@@ -261,6 +261,16 @@ impl CfgMethod {
         self.block_index(index)
     }
 
+    #[allow(dead_code)]
+    pub fn get_successor(&mut self, index: CfgBlockIndex) -> &Successor {
+        assert_eq!(
+            self.uuid, index.method_uuid,
+            "The provided CfgBlockIndex doesn't belong to this CfgMethod"
+        );
+        &self.basic_blocks[index.block_index].successor
+    }
+
+    #[allow(dead_code)]
     pub fn set_successor(&mut self, index: CfgBlockIndex, successor: Successor) {
         assert_eq!(
             self.uuid, index.method_uuid,
@@ -282,6 +292,7 @@ impl CfgMethod {
             .collect()
     }
 
+    #[allow(dead_code)]
     pub fn predecessors(&self) -> HashMap<usize, Vec<usize>> {
         let mut result = HashMap::new();
         for (index, block) in self.basic_blocks.iter().enumerate() {
@@ -291,6 +302,16 @@ impl CfgMethod {
             }
         }
         result
+    }
+
+    #[allow(dead_code)]
+    pub fn get_indices(&self) -> Vec<CfgBlockIndex> {
+        (0..self.basic_blocks.len()).map(|i| self.block_index(i)).collect()
+    }
+
+    #[allow(dead_code)]
+    pub fn get_block_label(&self, index: CfgBlockIndex) -> &str {
+        &self.basic_blocks_labels[index.block_index]
     }
 
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {
@@ -328,23 +349,27 @@ impl CfgMethod {
     }
 
     /// Find some path from the `start_block` to the `end_block`.
+    ///
+    /// The returned path includes both `start_block` and `end_block`.
     pub fn find_path(
         &self,
         start_block: CfgBlockIndex,
         end_block: CfgBlockIndex,
-    ) -> Vec<CfgBlockIndex> {
+    ) -> Option<Vec<CfgBlockIndex>> {
         trace!(
             "[enter] find_path start={:?} end={:?}",
             start_block,
             end_block
         );
-        assert!(!start_block.weak_eq(&end_block));
+        if start_block.weak_eq(&end_block) {
+            return Some(vec![start_block]);
+        }
         let mut visited = vec![false; self.basic_blocks.len()];
         let mut came_from = vec![None; self.basic_blocks.len()];
         let mut to_visit = VecDeque::new();
         to_visit.push_back(start_block);
         visited[start_block.block_index] = true;
-        loop {
+        while !to_visit.is_empty() {
             let curr_block_index = to_visit.pop_front().unwrap();
             trace!("curr_block_index={:?}", curr_block_index);
             let curr_block = &self.basic_blocks[curr_block_index.block_index];
@@ -358,7 +383,7 @@ impl CfgMethod {
                         index = previous;
                     }
                     path.reverse();
-                    return path;
+                    return Some(path);
                 }
                 if !visited[successor_block.block_index] {
                     visited[successor_block.block_index] = true;
@@ -367,6 +392,7 @@ impl CfgMethod {
                 }
             }
         }
+        None
     }
 }
 

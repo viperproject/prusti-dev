@@ -24,10 +24,11 @@ lazy_static! {
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
-        settings.set_default("DUMP_BRANCH_CTXT_IN_DEBUG_INFO", false).unwrap();
+        settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
+        settings.set_default("FOLDUNFOLD_STATE_FILTER", "").unwrap();
         settings.set_default("NUM_PARENTS_FOR_DUMPS", 0).unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
@@ -35,9 +36,6 @@ lazy_static! {
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
-        // TODO: Check before enabling that pure variable havoc works properly after the
-        // purification optimisation.
-        settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", false).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
@@ -138,11 +136,11 @@ pub fn dump_debug_info() -> bool {
 }
 
 /// Should we dump the branch context state in debug files?
-pub fn dump_branch_ctxt_in_debug_info() -> bool {
+pub fn dump_path_ctxt_in_debug_info() -> bool {
     SETTINGS
         .read()
         .unwrap()
-        .get::<bool>("DUMP_BRANCH_CTXT_IN_DEBUG_INFO")
+        .get::<bool>("DUMP_PATH_CTXT_IN_DEBUG_INFO")
         .unwrap()
 }
 
@@ -171,6 +169,16 @@ pub fn dump_viper_program() -> bool {
         .unwrap()
         .get::<bool>("DUMP_VIPER_PROGRAM")
         .unwrap()
+}
+
+/// The Viper backend that should be used for the verification
+pub fn foldunfold_state_filter() -> String {
+    SETTINGS
+        .read()
+        .unwrap()
+        .get::<String>("FOLDUNFOLD_STATE_FILTER")
+        .unwrap()
+        .to_string()
 }
 
 /// How many parent folders should be used to disambiguate the Viper dumps (and other debug files)?
@@ -252,15 +260,6 @@ pub fn use_more_complete_exhale() -> bool {
         .read()
         .unwrap()
         .get::<bool>("USE_MORE_COMPLETE_EXHALE")
-        .unwrap()
-}
-
-/// Replace all back-edges with `assume false`.
-pub fn use_assume_false_back_edges() -> bool {
-    SETTINGS
-        .read()
-        .unwrap()
-        .get::<bool>("USE_ASSUME_FALSE_BACK_EDGES")
         .unwrap()
 }
 

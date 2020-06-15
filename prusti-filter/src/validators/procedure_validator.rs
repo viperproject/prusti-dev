@@ -181,7 +181,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                     self.check_mir_stmt(mir, stmt);
                 }
             }
-            self.check_mir_terminator(mir, basic_block_data.terminator.as_ref().unwrap());
+            self.check_mir_terminator(mir, basic_block_data.terminator());
         }
     }
 
@@ -237,7 +237,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                         }
                     }
                 }
-                let term = basic_block_data.terminator.as_ref().unwrap();
+                let term = basic_block_data.terminator();
                 match term.kind {
                     mir::TerminatorKind::DropAndReplace { location: ref lhs_place, .. } |
                     mir::TerminatorKind::Call { destination: Some((ref lhs_place, _)), .. } => {
@@ -267,7 +267,7 @@ impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
                 }
                 let _successor_data = &mir.basic_blocks()[*successor];
                 // TODO: enable only after issue #149 is solved
-                //if let mir::TerminatorKind::Unreachable = successor_data.terminator.as_ref().unwrap().kind {
+                //if let mir::TerminatorKind::Unreachable = successor_data.terminator().kind {
                 //    continue;
                 //}
                 //if !procedure.is_panic_block(successor) {

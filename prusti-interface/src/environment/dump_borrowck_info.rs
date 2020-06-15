@@ -623,7 +623,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                         &loop_loans,
                         &zombie_loans,
                         location,
-                    );
+                    ).ok().unwrap();
                     write_graph!(self, "<tr>");
                     write_graph!(
                         self,
@@ -1261,7 +1261,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             &all_dying_loans,
             &dying_zombie_loans,
             location,
-        );
+        ).ok().unwrap();
         let forest = self.polonius_info.construct_reborrowing_forest(
             &all_dying_loans,
             &dying_zombie_loans,
@@ -1329,7 +1329,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
                     &all_loans,
                     &zombie_loans,
                     location,
-                );
+                ).ok().unwrap();
                 //let restricts_map = &self.polonius_info.borrowck_out_facts.restricts;
                 write_graph!(self, "<tr>");
                 write_graph!(self, "<td colspan=\"2\">Package</td>");

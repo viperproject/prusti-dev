@@ -14,20 +14,26 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use utils::to_string::ToString;
+use encoder::foldunfold::FoldUnfoldError;
+use encoder::foldunfold::FoldUnfoldError::FailedToObtain;
+use encoder::foldunfold::log::EventLog;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BranchCtxt<'a> {
+/// The fold-unfold context of a CFG path
+#[derive(Debug, Clone)]
+pub struct PathCtxt<'a> {
     state: State,
     /// The definition of the predicates
     predicates: &'a HashMap<String, vir::Predicate>,
+    /// A log of some of the relevant actions that lead to this fold-unfold context
+    log: EventLog,
 }
 
-impl<'a> BranchCtxt<'a> {
+impl<'a> PathCtxt<'a> {
     pub fn new(
         local_vars: Vec<vir::LocalVar>,
         predicates: &'a HashMap<String, vir::Predicate>,
     ) -> Self {
-        BranchCtxt {
+        PathCtxt {
             state: State::new(
                 HashMap::from_iter(
                     local_vars
@@ -38,7 +44,20 @@ impl<'a> BranchCtxt<'a> {
                 HashSet::new(),
             ),
             predicates,
+            log: EventLog::new(),
         }
+    }
+
+    pub(super) fn log_mut(&mut self) -> &mut EventLog {
+        &mut self.log
+    }
+
+    pub(super) fn log(&self) -> &EventLog {
+        &self.log
+    }
+
+    fn drain_log(self) -> EventLog {
+        self.log
     }
 
     pub fn state(&self) -> &State {
@@ -115,7 +134,11 @@ impl<'a> BranchCtxt<'a> {
     }
 
     /// left is self, right is other
-    pub fn join(&mut self, mut other: BranchCtxt) -> (Vec<Action>, Vec<Action>) {
+    /// Note: this merges the event logs as well
+    pub fn join(
+        &mut self,
+        mut other: PathCtxt
+    ) -> Result<(Vec<Action>, Vec<Action>), FoldUnfoldError> {
         let mut left_actions: Vec<Action> = vec![];
         let mut right_actions: Vec<Action> = vec![];
 
@@ -197,7 +220,7 @@ impl<'a> BranchCtxt<'a> {
             // Obtain predicates by folding.
             for pred_place in fold_actual_pred {
                 debug!("try to obtain predicate: {}", pred_place);
-                let get_perm_amount = |ctxt: &BranchCtxt| {
+                let get_perm_amount = |ctxt: &PathCtxt| {
                     ctxt.state
                         .acc()
                         .iter()
@@ -209,11 +232,11 @@ impl<'a> BranchCtxt<'a> {
                     .unwrap();
                 let pred_perm = Perm::pred(pred_place.clone(), perm_amount);
                 let try_obtain =
-                    |left_ctxt: &mut BranchCtxt,
-                     right_ctxt: &mut BranchCtxt,
+                    |left_ctxt: &mut PathCtxt,
+                     right_ctxt: &mut PathCtxt,
                      left_actions: &mut Vec<_>,
-                     right_actions: &mut Vec<_>| {
-                        match left_ctxt.obtain(&pred_perm, true) {
+                     right_actions: &mut Vec<_>| -> Result<(), FoldUnfoldError> {
+                        match left_ctxt.obtain(&pred_perm, true)? {
                             ObtainResult::Success(new_actions) => {
                                 left_actions.extend(new_actions);
                             }
@@ -223,7 +246,7 @@ impl<'a> BranchCtxt<'a> {
                                     pred_perm, missing_perm
                                 );
                                 let remove_places =
-                                    |ctxt: &mut BranchCtxt, actions: &mut Vec<_>| {
+                                    |ctxt: &mut PathCtxt, actions: &mut Vec<_>| {
                                         ctxt.state.remove_moved_matching(|moved_place| {
                                             moved_place.has_prefix(&pred_place)
                                         });
@@ -258,17 +281,18 @@ impl<'a> BranchCtxt<'a> {
                                 remove_places(right_ctxt, right_actions);
                             }
                         }
+                        Ok(())
                     };
-                try_obtain(self, &mut other, &mut left_actions, &mut right_actions);
-                try_obtain(&mut other, self, &mut right_actions, &mut left_actions);
+                try_obtain(self, &mut other, &mut left_actions, &mut right_actions)?;
+                try_obtain(&mut other, self, &mut right_actions, &mut left_actions)?;
             }
             // Obtain access permissions by unfolding
             for acc_place in &unfold_actual_acc {
                 let try_obtain =
-                    |ctxt_left: &mut BranchCtxt,
-                     ctxt_right: &mut BranchCtxt,
+                    |ctxt_left: &mut PathCtxt,
+                     ctxt_right: &mut PathCtxt,
                      left_actions: &mut Vec<_>,
-                     right_actions: &mut Vec<_>| {
+                     right_actions: &mut Vec<_>| -> Result<bool, FoldUnfoldError> {
                         if !ctxt_left.state.acc().contains_key(acc_place) {
                             debug!(
                                 "The left branch needs to obtain an access permission: {}",
@@ -277,23 +301,23 @@ impl<'a> BranchCtxt<'a> {
                             let perm_amount = ctxt_right.state.acc()[acc_place];
                             // Unfold something and get `acc_place`
                             let perm = Perm::acc(acc_place.clone(), perm_amount);
-                            match ctxt_left.obtain(&perm, true) {
+                            match ctxt_left.obtain(&perm, true)? {
                                 ObtainResult::Success(new_actions) => {
                                     left_actions.extend(new_actions);
-                                    true
+                                    Ok(true)
                                 }
                                 ObtainResult::Failure(missing_perm) => {
                                     ctxt_right.state.remove_perm(&perm);
                                     right_actions.push(Action::Drop(perm, missing_perm));
-                                    false
+                                    Ok(false)
                                 }
                             }
                         } else {
-                            true
+                            Ok(true)
                         }
                     };
-                if try_obtain(self, &mut other, &mut left_actions, &mut right_actions) {
-                    try_obtain(&mut other, self, &mut right_actions, &mut left_actions);
+                if try_obtain(self, &mut other, &mut left_actions, &mut right_actions)? {
+                    try_obtain(&mut other, self, &mut right_actions, &mut left_actions)?;
                 }
             }
 
@@ -460,21 +484,25 @@ impl<'a> BranchCtxt<'a> {
             self.state.check_consistency();
         }
 
-        return (left_actions, right_actions);
+        // Merge the event logs
+        self.log_mut().join(other.drain_log())?;
+
+        return Ok((left_actions, right_actions));
     }
 
     /// Obtain the required permissions, changing the state inplace and returning the statements.
-    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Vec<Action> {
+    fn obtain_all(&mut self, reqs: Vec<Perm>) -> Result<Vec<Action>, FoldUnfoldError> {
         debug!("[enter] obtain_all: {{{}}}", reqs.iter().to_string());
         reqs.iter()
-            .flat_map(|perm| self.obtain(perm, false).unwrap())
-            .collect()
+            .map(|perm| self.obtain(perm, false).and_then(|x| x.get_actions()))
+            .collect::<Result<Vec<Vec<Action>>, _>>()
+            .map(|res: Vec<Vec<Action>>| res.into_iter().flatten().collect())
     }
 
     /// Obtain the required permission, changing the state inplace and returning the statements.
     ///
     /// ``in_join`` – are we currently trying to join branches?
-    fn obtain(&mut self, req: &Perm, in_join: bool) -> ObtainResult {
+    fn obtain(&mut self, req: &Perm, in_join: bool) -> Result<ObtainResult, FoldUnfoldError> {
         trace!("[enter] obtain(req={})", req);
 
         let mut actions: Vec<Action> = vec![];
@@ -486,12 +514,12 @@ impl<'a> BranchCtxt<'a> {
         if self.state.contains_perm(req) {
             // `req` is satisfied, so we can remove it from `reqs`
             trace!("[exit] obtain: Requirement {} is satisfied", req);
-            return ObtainResult::Success(actions);
+            return Ok(ObtainResult::Success(actions));
         }
         if req.is_acc() && req.is_local() {
             // access permissions on local variables are always satisfied
             trace!("[exit] obtain: Requirement {} is satisfied", req);
-            return ObtainResult::Success(actions);
+            return Ok(ObtainResult::Success(actions));
         }
 
         debug!("Try to satisfy requirement {}", req);
@@ -512,17 +540,22 @@ impl<'a> BranchCtxt<'a> {
                 perm_amount,
                 req.get_perm_amount()
             );
-            assert!(perm_amount >= req.get_perm_amount());
+            assert!(
+                perm_amount >= req.get_perm_amount(),
+                "perm_amount is {}, but it should be >= {}",
+                perm_amount,
+                req.get_perm_amount(),
+            );
             let variant = self.find_variant(&existing_pred_to_unfold, req.get_place());
             let action = self.unfold(&existing_pred_to_unfold, perm_amount, variant);
             actions.push(action);
             debug!("We unfolded {}", existing_pred_to_unfold);
 
             // Check if we are done
-            let new_actions = self.obtain(req, false).unwrap();
+            let new_actions = self.obtain(req, false)?.get_actions()?;
             actions.extend(new_actions);
             trace!("[exit] obtain");
-            return ObtainResult::Success(actions);
+            return Ok(ObtainResult::Success(actions));
         }
 
         // 4. Obtain with a fold
@@ -584,13 +617,13 @@ impl<'a> BranchCtxt<'a> {
                 for fold_req_place in &places_in_pred {
                     let pos = req.get_place().pos().clone();
                     let new_req_place = fold_req_place.clone().set_default_pos(pos);
-                    let obtain_result = self.obtain(&new_req_place, false);
+                    let obtain_result = self.obtain(&new_req_place, false)?;
                     match obtain_result {
                         ObtainResult::Success(new_actions) => {
                             actions.extend(new_actions);
                         }
                         ObtainResult::Failure(_) => {
-                            return obtain_result;
+                            return Ok(obtain_result);
                         }
                     }
                 }
@@ -625,7 +658,7 @@ impl<'a> BranchCtxt<'a> {
                 // Done. Continue checking the remaining requirements
                 debug!("We folded {}", req);
                 trace!("[exit] obtain");
-                return ObtainResult::Success(actions);
+                return Ok(ObtainResult::Success(actions));
             } else {
                 debug!(
                     r"It is not possible to obtain {} ({:?}).
@@ -642,12 +675,12 @@ Predicates: {{
                     self.state.display_acc(),
                     self.state.display_pred()
                 );
-                return ObtainResult::Failure(req.clone());
+                return Ok(ObtainResult::Failure(req.clone()));
             }
         } else if in_join && req.get_perm_amount() == vir::PermAmount::Read {
             // Permissions held by shared references can be dropped
             // without being explicitly moved becauce &T implements Copy.
-            return ObtainResult::Failure(req.clone());
+            return Ok(ObtainResult::Failure(req.clone()));
         } else {
             // We have no predicate to obtain the access permission `req`
             debug!(
@@ -665,7 +698,7 @@ Predicates: {{
                 self.state.display_acc(),
                 self.state.display_pred()
             );
-            return ObtainResult::Failure(req.clone());
+            return Ok(ObtainResult::Failure(req.clone()));
         };
     }
 
@@ -686,7 +719,10 @@ Predicates: {{
         self.state.check_consistency();
     }
 
-    pub fn obtain_permissions(&mut self, permissions: Vec<Perm>) -> Vec<Action> {
+    pub fn obtain_permissions(
+        &mut self,
+        permissions: Vec<Perm>
+    ) -> Result<Vec<Action>, FoldUnfoldError> {
         trace!(
             "[enter] obtain_permissions: {}",
             permissions.iter().to_string()
@@ -697,7 +733,7 @@ Predicates: {{
 
         self.state.check_consistency();
 
-        let actions = self.obtain_all(permissions);
+        let actions = self.obtain_all(permissions)?;
 
         trace!("Acc state after: {{\n{}\n}}", self.state.display_acc());
         trace!("Pred state after: {{\n{}\n}}", self.state.display_pred());
@@ -705,7 +741,7 @@ Predicates: {{
         self.state.check_consistency();
 
         trace!("[exit] obtain_permissions: {}", actions.iter().to_string());
-        actions
+        Ok(actions)
     }
 
     /// Find the variant of enum that `place` has.
@@ -833,10 +869,10 @@ enum ObtainResult {
 }
 
 impl ObtainResult {
-    pub fn unwrap(self) -> Vec<Action> {
+    pub fn get_actions(self) -> Result<Vec<Action>, FoldUnfoldError> {
         match self {
-            ObtainResult::Success(actions) => actions,
-            ObtainResult::Failure(_) => unreachable!(),
+            ObtainResult::Success(actions) => Ok(actions),
+            ObtainResult::Failure(p) => Err(FailedToObtain(p)),
         }
     }
 }

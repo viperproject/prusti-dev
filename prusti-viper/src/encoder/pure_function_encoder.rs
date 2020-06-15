@@ -6,8 +6,8 @@
 
 use encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::error_manager::ErrorCtxt;
-use encoder::error_manager::PanicCause;
+use encoder::errors::{ErrorCtxt, EncodingError};
+use encoder::errors::PanicCause;
 use encoder::foldunfold;
 use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
@@ -24,11 +24,6 @@ use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
 use std::collections::HashMap;
-use syntax::codemap::Span;
-
-pub enum PureFunctionEncodingError {
-    CallImpure(String, Span)
-}
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -651,8 +646,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
-                                self.encoder.register_encoding_error(PureFunctionEncodingError::CallImpure(
-                                    format!("use of impure function {:?} in assertion", func_proc_name),
+                                self.encoder.register_encoding_error(EncodingError::incorrect(
+                                    format!(
+                                        "use of impure function {:?} in assertion is not allowed",
+                                        func_proc_name
+                                    ),
                                     term.source_info.span,
                                 ));
                             }

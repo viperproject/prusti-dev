@@ -16,7 +16,9 @@ use std::{self, mem};
 use prusti_interface::config;
 
 /// Purify vars.
-pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
+pub fn purify_vars(
+    mut method: cfg::CfgMethod
+) -> cfg::CfgMethod {
     let mut collector = VarCollector {
         all_vars: HashSet::new(),
         impure_vars: HashSet::new(),
@@ -30,8 +32,9 @@ pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
         ast::StmtWalker::walk(&mut collector, stmt);
     });
     method.walk_successors(|successor| match successor {
-        cfg::Successor::Undefined | cfg::Successor::Return |
-        cfg::Successor::Goto(_) | cfg::Successor::BackEdge(_) => {}
+        cfg::Successor::Undefined |
+        cfg::Successor::Return |
+        cfg::Successor::Goto(_) => {}
         cfg::Successor::GotoSwitch(conditional_targets, _) => {
             for (expr, _) in conditional_targets {
                 ast::ExprWalker::walk(&mut collector, expr);

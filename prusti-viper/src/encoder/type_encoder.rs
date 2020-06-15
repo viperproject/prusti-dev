@@ -111,7 +111,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Type::TypedRef(type_name)
             }
 
-            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unimplemented!(),
+            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
@@ -531,8 +531,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
                     if num_variants == 0 {
                         debug!("ADT {:?} has no variant", adt_def);
-                    // `false` here is currently unsound. See issue #158
-                    //exprs.push(false.into()); // TODO: See issue #146
+                        // `false` here is currently unsound. See issue #158
+                        //exprs.push(false.into()); // TODO: See issue #146
                     } else if num_variants == 1 {
                         debug!("ADT {:?} has only one variant", adt_def);
 

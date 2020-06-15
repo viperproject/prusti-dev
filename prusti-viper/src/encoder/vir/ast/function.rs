@@ -66,6 +66,7 @@ impl Function {
 
 pub fn compute_identifier(name: &str, formal_args: &[LocalVar], return_type: &Type) -> String {
     let mut identifier = name.to_string();
+    // Include the signature of the function in the function name
     identifier.push_str("__$TY$__");
     fn type_name(typ: &Type) -> &str {
         match typ {
