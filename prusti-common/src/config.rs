@@ -39,6 +39,7 @@ lazy_static! {
         // purification optimization.
         settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", false).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
+        settings.set_default("SERVER_MAX_STORED_VERIFIERS", 8).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
@@ -171,7 +172,7 @@ pub fn quiet() -> bool {
     read_setting("QUIET")
 }
 
-/// The assert timeout (in miliseconds) passed to Silicon.
+/// The assert timeout (in milliseconds) passed to Silicon.
 pub fn assert_timeout() -> u64 {
     read_setting("ASSERT_TIMEOUT")
 }
@@ -189,6 +190,13 @@ pub fn use_assume_false_back_edges() -> bool {
 /// Report the support status of functions using the compiler's error messages
 pub fn report_support_status() -> bool {
     read_setting("REPORT_SUPPORT_STATUS")
+}
+
+/// The maximum amount of instantiated viper verifiers the server will keep around for reuse.
+///
+/// **Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
+pub fn server_max_stored_verifiers() -> usize {
+    read_setting("SERVER_MAX_STORED_VERIFIERS")
 }
 
 /// Disable mangling of generated Viper names.

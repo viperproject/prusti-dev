@@ -19,22 +19,24 @@ extern crate serde_json;
 #[macro_use]
 extern crate prusti_common;
 extern crate futures;
+extern crate lru;
 
 mod service;
 mod verifier_runner;
 mod verifier_thread;
 
+use lru::LruCache;
+use prusti_common::config;
 use prusti_viper::verification_service::*;
 use prusti_viper::verifier::VerifierBuilder;
 pub use service::*;
-use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 pub use verifier_runner::*;
 use verifier_thread::*;
 
 pub struct PrustiServer {
     verifier_builder: Arc<VerifierBuilder>,
-    threads: RwLock<HashMap<ViperBackendConfig, VerifierThread>>,
+    threads: RwLock<LruCache<ViperBackendConfig, VerifierThread>>,
 }
 
 impl PrustiServer {
@@ -43,9 +45,10 @@ impl PrustiServer {
         run_timed!("JVM startup",
             let verifier_builder = Arc::new(VerifierBuilder::new());
         );
+        let thread_cache = LruCache::new(config::server_max_stored_verifiers());
         PrustiServer {
             verifier_builder,
-            threads: RwLock::default(),
+            threads: RwLock::new(thread_cache),
         }
     }
 
@@ -55,7 +58,7 @@ impl PrustiServer {
             .threads
             .read()
             .unwrap()
-            .contains_key(&request.backend_config)
+            .contains(&request.backend_config)
         {
             let thread = VerifierThread::new(
                 self.verifier_builder.clone(),
@@ -64,12 +67,11 @@ impl PrustiServer {
             self.threads
                 .write()
                 .unwrap()
-                .insert(request.backend_config.clone(), thread);
+                .put(request.backend_config.clone(), thread);
         }
-        // TODO: limit thread pool size, getting rid of disused threads when necessary.
 
         self.threads
-            .read()
+            .write()
             .unwrap()
             .get(&request.backend_config)
             .unwrap()
