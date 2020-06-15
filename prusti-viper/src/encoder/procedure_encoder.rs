@@ -2026,8 +2026,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         const_arg_vars.insert(fake_arg_place);
                         return Err(EncodingError::unsupported(
                             format!(
-                                "please use a local variable as argument for function call '{}', \
-                                and not a constant.",
+                                "please use a local variable as argument for function '{}', not a \
+                                constant, when calling the function from a loop",
                                 full_func_proc_name
                             ),
                             call_site_span,
