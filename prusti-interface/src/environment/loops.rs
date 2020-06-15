@@ -360,7 +360,7 @@ impl ProcedureLoops {
                 for &succ_bb in mir[curr_bb].terminator().successors() {
                     if back_edges.contains(&(curr_bb, succ_bb)) {
                         if succ_bb == loop_head || !loop_body.contains(&succ_bb) {
-                            // From this point, we don't allow any loop invariant
+                            // From this point, we consider all blocks to be conditional
                             reached_back_edge = true;
                         }
                     } else {
