@@ -9,7 +9,7 @@ use rustc_span::Span;
 use std::collections::HashMap;
 use std::fmt::Write;
 
-mod typed;
+pub(crate) mod typed;
 
 use typed::StructuralToTyped;
 

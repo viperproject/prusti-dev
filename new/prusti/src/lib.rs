@@ -25,6 +25,7 @@ use rustc_interface::interface::Compiler;
 use rustc_interface::Queries;
 
 mod specs;
+mod verifier;
 
 pub struct PrustiCompilerCalls {
     /// Should Prusti print the AST with desugared specifications.
@@ -82,6 +83,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     println!("{:?} {:?}", def_id, type_map[&def_id]);
                 }
             }
+            verifier::verify(tcx, type_map);
         });
 
         compiler.session().abort_if_errors();

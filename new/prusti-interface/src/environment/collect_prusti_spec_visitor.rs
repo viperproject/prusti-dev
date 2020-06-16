@@ -6,35 +6,35 @@
 
 use config;
 use environment::Environment;
-use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::hir::itemlikevisit::ItemLikeVisitor;
-use rustc::ty::TyCtxt;
+use rustc_hir as hir;
+use rustc_hir::def_id::DefId;
+use rustc_hir::itemlikevisit::ItemLikeVisitor;
+use rustc_middle::ty::TyCtxt;
 use std::collections::HashSet;
 use std::iter::FromIterator;
-use syntax::attr;
+use log::trace;
 
-pub struct CollectPrustiSpecVisitor<'r, 'a: 'r, 'tcx: 'a> {
-    env: &'r Environment<'r, 'a, 'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
-    result: &'r mut Vec<DefId>,
+pub struct CollectPrustiSpecVisitor<'a, 'tcx: 'a> {
+    env: &'a Environment<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    result: Vec<DefId>,
     use_whitelist: bool,
     whitelist: HashSet<String>,
 }
 
-impl<'r, 'a, 'tcx> CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
-    pub fn new(env: &'r Environment<'r, 'a, 'tcx>, result: &'r mut Vec<DefId>) -> Self {
+impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
+    pub fn new(env: &'a Environment<'tcx>) -> Self {
         CollectPrustiSpecVisitor {
             env,
             tcx: env.tcx(),
-            result,
+            result: Vec::new(),
             use_whitelist: config::enable_whitelist(),
             whitelist: HashSet::from_iter(config::verification_whitelist()),
         }
     }
 }
 
-impl<'r, 'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'r, 'a, 'tcx> {
+impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
         if attr::contains_name(&item.attrs, "__PRUSTI_LOOP_SPEC_ID")
             || attr::contains_name(&item.attrs, "__PRUSTI_EXPR_ID")
