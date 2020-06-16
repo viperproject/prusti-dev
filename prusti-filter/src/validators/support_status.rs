@@ -152,7 +152,7 @@ impl SupportStatus {
         for reason in &partially_supported_reasons {
             debug!("Partially supported reason: {:?}", reason);
             let message = format!(
-                "[Prusti] this is partially supported{}, because it {}",
+                "[Prusti: unsupported feature] this is partially supported{}, because it {}",
                 extra_msg, reason.reason
             );
             if error_on_partially_supported {
@@ -165,7 +165,7 @@ impl SupportStatus {
         for reason in &unsupported_reasons {
             debug!("Unsupported reason: {:?}", reason);
             let message = format!(
-                "[Prusti] this is unsupported{}, because it {}",
+                "[Prusti: unsupported feature] this is unsupported{}, because it {}",
                 extra_msg, reason.reason
             );
             env.span_err(reason.position, &message);

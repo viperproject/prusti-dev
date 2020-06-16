@@ -162,23 +162,6 @@ fn successor_to_viper<'a>(
             basic_block_labels[index].clone()
         ),
         Successor::Return => ast.goto(RETURN_LABEL),
-        Successor::BackEdge(target) => {
-            if config::use_assume_false_back_edges() {
-                let fake_position = Position::new(0, 0, "back edge".to_string());
-                ast.seqn(
-                    &vec![
-                        ast.inhale(
-                            ast.false_lit_with_pos(fake_position.to_viper(ast)),
-                            fake_position.to_viper(ast)
-                        ),
-                        ast.goto(RETURN_LABEL),
-                    ],
-                    &[],
-                )
-            } else {
-                ast.goto(&basic_block_labels[target.block_index])
-            }
-        }
         Successor::Goto(target) => ast.goto(&basic_block_labels[target.block_index]),
         Successor::GotoSwitch(ref successors, ref default_target) => {
             let mut stmts: Vec<viper::Stmt<'a>> = vec![];

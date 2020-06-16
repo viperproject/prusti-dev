@@ -55,7 +55,7 @@ fn linear_search<T: Eq>(arr: &VecWrapper<T>, elem: &T) -> UsizeOption {
     let mut i = 0;
     let mut done = false;
 
-    #[invariant("i <= arr.len()")]
+    #[invariant("0 <= i && i < arr.len()")]
     #[invariant("forall k: usize :: (0 <= k && k < i) ==> !arr.present(k, elem)")]
     #[invariant("done ==> (i < arr.len() && arr.present(i, elem))")]
     while i < arr.len() && !done {

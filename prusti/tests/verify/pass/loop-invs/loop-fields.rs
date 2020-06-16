@@ -13,7 +13,7 @@ struct H {
 fn test1(a: H) -> T {
     let mut a = a;
     let mut cont = true;
-    #[invariant="a.g.f <= 5"]
+    #[invariant="a.g.f < 5"]
     #[invariant="cont == (a.g.f < 5)"]
     while cont {
         a.g.f += 1;

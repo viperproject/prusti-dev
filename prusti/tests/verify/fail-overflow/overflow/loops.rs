@@ -5,7 +5,7 @@ extern crate prusti_contracts;
 pub fn test1(a: u32, b: u32) -> u32 {
     let mut c = a;
     let mut d = b;
-    #[invariant="c + d == old(a + b)"]
+    #[invariant="c > 0 && c + d == old(a + b)"]
     while c > 0 {
         c -= 1;
         d += 1;
@@ -19,7 +19,7 @@ pub fn test1(a: u32, b: u32) -> u32 {
 pub fn test2(a: u32, b: u32) -> u32 {
     let mut c = a;
     let mut d = b;
-    #[invariant="c + d == old(a + b)"]
+    #[invariant="c > 0 && c + d == old(a + b)"]
     while c > 0 {
         c -= 1;
         d += 1;
@@ -33,7 +33,7 @@ pub fn test2(a: u32, b: u32) -> u32 {
 pub fn test3(a: u32, b: u32) -> u32 {
     let mut c = a;
     let mut d = b;
-    #[invariant="c + d == old(a + b)"]
+    #[invariant="c > 0 && c + d == old(a + b)"]
     while c > 0 {
         c -= 1;
         d += 1;

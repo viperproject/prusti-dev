@@ -85,7 +85,7 @@ fn knuth_shuffle(v: &mut VecWrapperI32) {
 
     let mut n = 0;
     let bgn = 0;
-    #[invariant="n >= 0"]
+    #[invariant=" 0 <= n && n < l"]
     #[invariant="bgn == 0"]
     #[invariant="l == v.len()"]
     while n < l {

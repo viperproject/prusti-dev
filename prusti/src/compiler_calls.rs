@@ -1,4 +1,4 @@
-// © 2019, ETH Zurich
+// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,19 +16,111 @@ use std::cell::Cell;
 use std::env::var;
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::{Arc,Mutex};
 use std::time::Instant;
 use syntax::ast;
 use typeck;
 use verifier;
 
+use prusti_interface::trait_register::TraitRegister;
+
+pub struct RegisterCalls {
+    default: Box<RustcDefaultCalls>,
+    register: Arc<Mutex<TraitRegister>>,
+}
+
+impl RegisterCalls {
+    pub fn from_register(register: Arc<Mutex<TraitRegister>>) -> Self {
+        Self {
+            default: Box::new(RustcDefaultCalls),
+            register: register
+        }
+    }
+}
+
+impl<'a> CompilerCalls<'a> for RegisterCalls {
+    fn early_callback(
+        &mut self,
+        matches: &getopts::Matches,
+        sopts: &session::config::Options,
+        cfg: &ast::CrateConfig,
+        descriptions: &rustc_errors::registry::Registry,
+        output: session::config::ErrorOutputType,
+    ) -> Compilation {
+        self.default
+            .early_callback(matches, sopts, cfg, descriptions, output)
+    }
+
+    fn no_input(
+        &mut self,
+        matches: &getopts::Matches,
+        sopts: &session::config::Options,
+        cfg: &ast::CrateConfig,
+        odir: &Option<PathBuf>,
+        ofile: &Option<PathBuf>,
+        descriptions: &rustc_errors::registry::Registry,
+    ) -> Option<(session::config::Input, Option<PathBuf>)> {
+        self.default
+            .no_input(matches, sopts, cfg, odir, ofile, descriptions)
+    }
+
+    fn late_callback(
+        &mut self,
+        trans: &CodegenBackend,
+        matches: &getopts::Matches,
+        sess: &session::Session,
+        crate_stores: &rustc::middle::cstore::CrateStore,
+        input: &session::config::Input,
+        odir: &Option<PathBuf>,
+        ofile: &Option<PathBuf>,
+    ) -> Compilation {
+        self.default
+            .late_callback(trans, matches, sess, crate_stores, input, odir, ofile)
+    }
+
+    fn build_controller(
+        self: Box<Self>,
+        sess: &session::Session,
+        matches: &getopts::Matches,
+    ) -> driver::CompileController<'a> {
+        let mut control = self.default.build_controller(sess, matches);
+        let register = self.register.clone();
+
+        // build register
+        let old_after_parse_callback =
+            std::mem::replace(&mut control.after_parse.callback, box |_| {});
+        control.after_parse.callback = box move |state| {
+            trace!("[after_parse.callback] enter");
+            let start = Instant::now();
+
+            prusti_interface::parser::register_attributes(state);
+            prusti_interface::parser::register_traits(state, register.clone());
+
+            let duration = start.elapsed();
+            info!(
+                "Trait register build successful ({}.{} seconds)",
+                duration.as_secs(),
+                duration.subsec_millis() / 10
+            );
+            trace!("[after_parse.callback] exit");
+            old_after_parse_callback(state);
+        };
+        control.after_parse.stop = Compilation::Stop;
+
+        control
+    }
+}
+
 pub struct PrustiCompilerCalls {
     default: Box<RustcDefaultCalls>,
+    register: Arc<Mutex<TraitRegister>>,
 }
 
 impl PrustiCompilerCalls {
-    pub fn new() -> Self {
+    pub fn from_register(register: Arc<Mutex<TraitRegister>>) -> Self {
         Self {
             default: Box::new(RustcDefaultCalls),
+            register: register
         }
     }
 }
@@ -80,6 +172,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         matches: &getopts::Matches,
     ) -> driver::CompileController<'a> {
         let mut control = self.default.build_controller(sess, matches);
+        let register = self.register.clone();
         //control.make_glob_map = ???
         //control.keep_ast = true;
 
@@ -93,7 +186,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             let start = Instant::now();
 
             prusti_interface::parser::register_attributes(state);
-            let untyped_specifications = prusti_interface::parser::rewrite_crate(state);
+            let untyped_specifications = prusti_interface::parser::rewrite_crate(state, register.clone());
             put_specifications.set(Some(untyped_specifications));
 
             let duration = start.elapsed();

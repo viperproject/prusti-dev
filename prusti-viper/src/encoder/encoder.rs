@@ -8,7 +8,7 @@ use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureC
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::error_manager::{ErrorCtxt, ErrorManager, EncodingError};
+use encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
 use encoder::foldunfold;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
@@ -41,6 +41,7 @@ use std::mem;
 use syntax::ast;
 use viper;
 use encoder::stub_procedure_encoder::StubProcedureEncoder;
+use std::ops::AddAssign;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v Environment<'r, 'a, 'tcx>,
@@ -79,6 +80,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
     vir_program_before_viper_writer: RefCell<Box<Write>>,
     pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
+    encoding_errors_counter: RefCell<usize>,
 }
 
 impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
@@ -128,6 +130,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
             typaram_repl: RefCell::new(Vec::new()),
+            encoding_errors_counter: RefCell::new(0),
         }
     }
 
@@ -159,6 +162,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     fn initialize(&mut self) {
         self.collect_closure_instantiations();
+        // These are used in optimization passes
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocRef);
     }
 
     pub fn env(&self) -> &'v Environment<'r, 'a, 'tcx> {
@@ -173,15 +180,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.error_manager.borrow_mut()
     }
 
-    pub(in encoder) fn register_encoding_error<T: Into<EncodingError>>(&self, error: T) {
-        let compilation_error = self.error_manager().translate_encoding_error(error.into());
-        debug!("Compilation error: {:?}", compilation_error);
-        self.env().span_err_with_help_and_note(
-            compilation_error.span,
-            &format!("[Prusti encoding] {}", compilation_error.message),
-            &compilation_error.help,
-            &compilation_error.note,
-        );
+    pub(in encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
+        debug!("Encoding error: {:?}", encoding_error);
+        let prusti_error: PrustiError = encoding_error.into();
+        debug!("Prusti error: {:?}", prusti_error);
+        prusti_error.emit(self.env);
+        self.encoding_errors_counter.borrow_mut().add_assign(1);
+    }
+
+    pub fn count_encoding_errors(&self) -> usize {
+        *self.encoding_errors_counter.borrow()
     }
 
     pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {
@@ -281,6 +289,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 }
             }
         }
+        debug!("closure_instantiations: {:?}", closure_instantiations);
         self.closure_instantiations = closure_instantiations;
     }
 
@@ -355,18 +364,51 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         args: &Vec<places::Local>,
         target: places::Local,
     ) -> ProcedureContract<'tcx> {
-        let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
-        let fun_spec = match opt_fun_spec {
-            Some(fun_spec) => fun_spec.clone(),
-            None => {
-                debug!("Procedure {:?} has no specification", proc_def_id);
-                SpecificationSet::Procedure(vec![], vec![])
-            }
+        // get specification on trait declaration method or inherent impl
+        let fun_spec = if let Some(spec) = self.get_spec_by_def_id(proc_def_id) {
+            spec.clone()
+        } else {
+            debug!("Procedure {:?} has no specification", proc_def_id);
+            SpecificationSet::Procedure(vec![], vec![])
         };
+
         let tymap = self.typaram_repl.borrow_mut();
-        assert!(tymap.len() == 1);
+
+        assert!(tymap.len() == 1, "tymap.len() = {}, but should be 1", tymap.len());
+
+        // get receiver object base type
+        let mut impl_spec = SpecificationSet::Procedure(vec![], vec![]);
+
+        let mut self_ty = None;
+
+        for (key, val) in tymap[0].iter() {
+            if key.is_self() {
+                self_ty = Some(val.clone());
+            }
+        }
+
+        if let Some(ty) = self_ty {
+            if let Some(id) = self.env().tcx().trait_of_item(proc_def_id) {
+                let proc_name = self.env().tcx().item_name(proc_def_id).as_symbol();
+                let procs = self.env().get_trait_method_decl_for_type(ty, id, proc_name);
+                if procs.len() == 1 {
+                    // FIXME(@jakob): if several methods are found, we currently don't know which
+                    // one to pick.
+                    let item = procs[0];
+                    if let Some(spec) = self.get_spec_by_def_id(item.def_id) {
+                        impl_spec = spec.clone();
+                    } else {
+                        debug!("Procedure {:?} has no specification", item.def_id);
+                    }
+                }
+            }
+        }
+
+        // merge specifications
+        let final_spec = fun_spec.refine(&impl_spec);
+
         let contract =
-            compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, Some(&tymap[0]));
+            compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
         contract.to_call_site_contract(args, target)
     }
 
@@ -721,21 +763,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         )
     }
 
-    pub fn encode_havoc_methods(&self) -> HashMap<vir::TypeId, String> {
-        lazy_static! {
-            static ref TYPES: Vec<(vir::TypeId, BuiltinMethodKind)> = vec![
-                (vir::TypeId::Bool, BuiltinMethodKind::HavocBool),
-                (vir::TypeId::Int, BuiltinMethodKind::HavocInt),
-                (vir::TypeId::Ref, BuiltinMethodKind::HavocRef),
-            ];
-        }
-        TYPES.iter()
-            .map(|(type_id, kind)| {
-                (*type_id, self.encode_builtin_method_use(*kind))
-            })
-            .collect()
-    }
-
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
         trace!("encode_builtin_method_def({:?})", method_kind);
         if !self.builtin_methods.borrow().contains_key(&method_kind) {
@@ -835,6 +862,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         stop_at_bbi: Option<mir::BasicBlock>,
         error: ErrorCtxt,
     ) -> vir::Expr {
+        trace!("encode_assertion {:?}", assertion);
         let spec_encoder = SpecEncoder::new(
             self,
             mir,
@@ -1311,11 +1339,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     /// Convert a potential type parameter to a concrete type.
     pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
-        // FIXME: This should use current_tymap.
-        if let Some(first) = self.typaram_repl.borrow().first() {
-            if let Some(replaced_ty) = first.get(&ty) {
-                return replaced_ty.clone();
-            }
+        // TODO: creating each time a current_tymap might be slow. This can be optimized.
+        if let Some(replaced_ty) = self.current_tymap().get(&ty) {
+            trace!("resolve_typaram({:?}) ==> {:?}", ty, replaced_ty);
+            return replaced_ty
         }
         ty
     }

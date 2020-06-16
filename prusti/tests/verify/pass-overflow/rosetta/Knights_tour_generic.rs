@@ -17,6 +17,8 @@
 //!
 //! +   Absence of panics.
 
+// ignore-test Flaky test
+
 extern crate prusti_contracts;
 
 pub struct VecWrapper<T>{

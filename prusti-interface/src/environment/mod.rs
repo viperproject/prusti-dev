@@ -12,9 +12,11 @@ use rustc::ty;
 use rustc::ty::TyCtxt;
 use rustc_driver::driver;
 use std::path::PathBuf;
+use std::collections::HashSet;
 use syntax::attr;
 use syntax_pos::FileName;
 use syntax_pos::MultiSpan;
+use syntax_pos::symbol::Symbol;
 
 pub mod borrowck;
 mod collect_prusti_spec_visitor;
@@ -199,5 +201,37 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     /// Get a Procedure.
     pub fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
         Procedure::new(self.tcx(), proc_def_id)
+    }
+
+    /// Get all relevant trait declarations for some type.
+    pub fn get_traits_decls_for_type(&self, ty: &ty::Ty<'tcx>) -> HashSet<DefId> {
+        let mut res = HashSet::new();
+        let krate = hir::def_id::LOCAL_CRATE;
+        let traits = self.tcx().all_traits(krate);
+        for trait_id in traits.iter() {
+            self.tcx().for_each_relevant_impl(*trait_id, ty, |impl_id| {
+                if let Some(relevant_trait_id) = self.tcx().trait_id_of_impl(impl_id) {
+                    res.insert(relevant_trait_id.clone());
+                }
+            });
+        }
+        res
+    }
+
+    /// Get an associated item by name.
+    pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssociatedItem> {
+        self.tcx().associated_items(id).find(|assoc_item| assoc_item.name == name)
+    }
+
+    /// Get a trait method declaration by name for type.
+    pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssociatedItem> {
+        let mut result = Vec::new();
+        self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
+            let item = self.get_assoc_item(impl_id, name);
+            if let Some(inner) = item {
+                result.push(inner.clone());
+            }
+        });
+        result
     }
 }
