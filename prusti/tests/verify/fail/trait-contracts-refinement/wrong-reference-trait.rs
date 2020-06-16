@@ -1,10 +1,10 @@
 extern crate prusti_contracts;
 
-trait Foo {  //~ ERROR no method 'bar' in super trait
+trait Foo {
     fn foo(&self, arg: i32) -> bool;
 }
 
-#[refine_requires(Foo::bar = "arg > 0")]
+#[refine_requires(Bar::foo = "arg > 0")] //~ ERROR does not refer to super trait
 trait Sub: Foo {}
 
 struct Dummy { }
@@ -22,3 +22,4 @@ fn test_foo(d: &Dummy) {
 }
 
 fn main() {}
+

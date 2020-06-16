@@ -2270,7 +2270,7 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                         if !trait_symbols.contains(&symbol) {
                             self.report_error(
                                 item.span,
-                                &format!("'{}' does not refer to a method in a super trait", symbol));
+                                &format!("no method '{}' in super trait", symbol));
                         }
                     }
 
