@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(plugin, use_extern_macros, proc_macro_path_invoc)]
+#![feature(ip_constructors)]
 #![plugin(tarpc_plugins)]
 
 #[macro_use]

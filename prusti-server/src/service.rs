@@ -8,7 +8,8 @@ use super::PrustiServer;
 use prusti_viper::verification_service::*;
 
 use futures::Future;
-use std::net::SocketAddr;
+use std::io;
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::sync::{mpsc, Arc};
 use std::thread;
 use tarpc::sync::client::ClientExt;
@@ -26,7 +27,7 @@ pub struct ServerSideService {
 }
 
 impl ServerSideService {
-    fn new(server: PrustiServer) -> Self {
+    pub fn new(server: PrustiServer) -> Self {
         Self {
             server: Arc::new(server),
         }
@@ -42,6 +43,16 @@ impl ServerSideService {
             handle.run();
         });
         receiver.recv().unwrap()
+    }
+
+    pub fn listen_on_port(self, port: u16) -> Result<(), io::Error> {
+        let handle = self.listen(
+            SocketAddrV4::new(Ipv4Addr::localhost(), port),
+            server::Options::default(),
+        )?;
+        assert_eq!(handle.addr().port(), port);
+        handle.run();
+        Ok(())
     }
 }
 
