@@ -6,9 +6,9 @@
 
 //! This module defines the interface provided to a verifier.
 
+use rustc_hir::hir_id::HirId;
 use rustc_middle::ty::{self, TyCtxt};
 use std::path::PathBuf;
-use rustc_hir::hir_id::HirId;
 
 // use rustc::hir;
 // use rustc::hir::def_id::DefId;
@@ -60,7 +60,9 @@ impl<'tcx> Environment<'tcx> {
 
     /// Returns the name of the crate that is being compiled
     pub fn crate_name(&self) -> String {
-        self.tcx.crate_name(rustc_span::def_id::LOCAL_CRATE).to_string()
+        self.tcx
+            .crate_name(rustc_span::def_id::LOCAL_CRATE)
+            .to_string()
     }
 
     /// Returns the typing context

@@ -10,9 +10,7 @@
 #![deny(unused_imports)]
 #![deny(unused_mut)]
 #![deny(non_upper_case_globals)]
-
 // #![allow(missing_docs)]
-
 #![feature(rustc_private)]
 
 // #![feature(nll)]
@@ -22,10 +20,10 @@
 // #![feature(crate_in_paths)]
 // #![feature(map_get_key_value)]
 
+extern crate config as config_crate;
 extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
-extern crate config as config_crate;
 
 // extern crate csv;
 // extern crate datafrog;
