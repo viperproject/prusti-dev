@@ -17,13 +17,12 @@ extern crate uuid;
 extern crate viper_sys;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate prusti_common;
 
 mod ast_factory;
 mod ast_utils;
 pub mod errors;
 mod jni_utils;
+#[macro_use]
 pub mod utils;
 mod verification_backend;
 mod verification_context;
