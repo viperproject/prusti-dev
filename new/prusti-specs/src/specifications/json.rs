@@ -12,6 +12,8 @@ pub struct Expression {
 #[derive(Serialize, Deserialize)]
 pub enum AssertionKind {
     Expr(Expression),
+    And(Vec<Assertion>),
+    Implies(Assertion, Assertion)
 }
 
 #[derive(Serialize, Deserialize)]
@@ -37,6 +39,17 @@ impl ToStructure<AssertionKind> for untyped::AssertionKind {
         use super::common::AssertionKind::*;
         match self {
             Expr(expr) => AssertionKind::Expr(expr.to_structure()),
+            And(assertions) => {
+                AssertionKind::And(
+                    assertions.into_iter()
+                              .map(|assertion| Assertion { kind: Box::new(assertion.kind.to_structure()) })
+                              .collect()
+                )
+            }
+            Implies(lhs, rhs) => AssertionKind::Implies(
+                lhs.to_structure(),
+                rhs.to_structure()
+            ),
             x => {
                 unimplemented!("{:?}", x);
             }

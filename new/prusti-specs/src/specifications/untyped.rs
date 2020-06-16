@@ -5,13 +5,8 @@ use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
-pub use common::{ExpressionId, SpecType, SpecificationId};
-
-#[derive(Debug, Clone)]
-pub struct Arg {
-    name: syn::Ident,
-    typ: syn::Type,
-}
+pub use common::{ExpressionId, SpecType, SpecificationId, Arg};
+pub use super::preparser::Parser;
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -38,7 +33,9 @@ impl Assertion {
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> syn::Result<Self> {
-        let assertion: common::Assertion<(), syn::Expr, Arg> = syn::parse2(tokens)?;
+        let mut parser = Parser::new(tokens);
+        let assertion = parser.extract_assertion()?;
+        println!("{:#?}", assertion);
         Ok(assertion.assign_id(spec_id, id_generator))
     }
 }
@@ -95,6 +92,16 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
         use common::AssertionKind::*;
         match self {
             Expr(expr) => Expr(expr.assign_id(spec_id, id_generator)),
+            And(assertions) => And(
+                assertions.into_iter()
+                          .map(|assertion|
+                              Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
+                          .collect()),
+            Implies(lhs, rhs) => Implies(
+                lhs.assign_id(spec_id, id_generator),
+                rhs.assign_id(spec_id, id_generator)
+            ),
+
             x => unimplemented!("{:?}", x),
         }
     }
@@ -146,6 +153,15 @@ impl EncodeTypeCheck for Assertion {
         match &*self.kind {
             AssertionKind::Expr(expression) => {
                 expression.encode_type_check(tokens);
+            }
+            AssertionKind::And(assertions) => {
+                for assertion in assertions {
+                    assertion.encode_type_check(tokens);
+                }
+            }
+            AssertionKind::Implies(lhs, rhs) => {
+                lhs.encode_type_check(tokens);
+                rhs.encode_type_check(tokens);
             }
             x => {
                 unimplemented!("{:?}", x);
