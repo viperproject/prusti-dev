@@ -4,12 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::ast::*;
-use encoder::vir::borrows::borrow_id;
-use encoder::vir::Program;
+use encoder::vir::{ast::*, borrows::borrow_id, Program};
 use prusti_common::config;
-use viper;
-use viper::AstFactory;
+use viper::{self, AstFactory};
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;
@@ -31,7 +28,7 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
         }
 
         let mut viper_functions: Vec<_> = self.functions.iter().map(|f| f.to_viper(ast)).collect();
-        let mut predicates = self.viper_predicates.to_viper(ast);
+        let predicates = self.viper_predicates.to_viper(ast);
 
         info!(
             "Viper encoding uses {} domains, {} fields, {} functions, {} predicates, {} methods",
@@ -42,6 +39,7 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
             viper_methods.len()
         );
 
+        // TODO: move like predicate
         // Add a function that represents the symbolic read permission amount.
         viper_functions.push(ast.function(
             "read$",
@@ -55,19 +53,6 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
             ast.no_position(),
             None,
         ));
-
-        // Add a predicate that represents the dead loan token.
-        predicates.push(
-            ast.predicate(
-                "DeadBorrowToken$",
-                &[LocalVar {
-                    name: "borrow".to_string(),
-                    typ: Type::Int,
-                }
-                .to_viper_decl(ast)],
-                None,
-            ),
-        );
 
         ast.program(
             &domains,
@@ -475,6 +460,9 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
         match self {
             Predicate::Struct(p) => p.to_viper(ast),
             Predicate::Enum(p) => p.to_viper(ast),
+            Predicate::Bodyless(name, this) => {
+                ast.predicate(name, &[this.to_viper_decl(ast)], None)
+            }
         }
     }
 }

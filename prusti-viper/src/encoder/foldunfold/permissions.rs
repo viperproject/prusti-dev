@@ -5,13 +5,15 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::places_utils::{union, union3};
-use encoder::foldunfold::perm::Perm::*;
-use encoder::foldunfold::perm::*;
-use encoder::vir;
-use encoder::vir::PermAmount;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::iter::FromIterator;
+use encoder::{
+    foldunfold::perm::{Perm::*, *},
+    vir,
+    vir::PermAmount,
+};
+use std::{
+    collections::{HashMap, HashSet},
+    iter::FromIterator,
+};
 
 pub trait RequiredPermissionsGetter {
     /// Returns the permissions required for the expression to be well-defined
@@ -421,13 +423,13 @@ impl vir::Predicate {
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
     pub fn get_permissions_with_variant(
         &self,
-        maybe_variant: &vir::MaybeEnumVariantIndex
+        maybe_variant: &vir::MaybeEnumVariantIndex,
     ) -> HashSet<Perm> {
         let perms = match self {
             vir::Predicate::Struct(p) => {
                 assert!(maybe_variant.is_none());
                 p.get_permissions()
-            },
+            }
             vir::Predicate::Enum(p) => {
                 if let Some(variant) = maybe_variant {
                     p.get_permissions(variant)
@@ -435,7 +437,8 @@ impl vir::Predicate {
                     // We must be doing fold/unfold for a pure function.
                     p.get_all_permissions()
                 }
-            },
+            }
+            vir::Predicate::Bodyless(_, _) => HashSet::new(),
         };
         perms
     }
@@ -464,18 +467,14 @@ impl vir::EnumPredicate {
         let this: vir::Expr = self.this.clone().into();
         //let (_, ref variant_name, _) = &self.variants[variant];
         let variant_name = variant.get_variant_name();
-        perms.insert(
-            Perm::Acc(
-                this.clone().variant(variant_name),
-                PermAmount::Write,
-            )
-        );
-        perms.insert(
-            Perm::Pred(
-                this.clone().variant(variant_name),
-                PermAmount::Write,
-            )
-        );
+        perms.insert(Perm::Acc(
+            this.clone().variant(variant_name),
+            PermAmount::Write,
+        ));
+        perms.insert(Perm::Pred(
+            this.clone().variant(variant_name),
+            PermAmount::Write,
+        ));
         perms
     }
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement

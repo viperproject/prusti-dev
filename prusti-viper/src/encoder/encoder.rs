@@ -4,41 +4,38 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
-use encoder::builtin_encoder::BuiltinEncoder;
-use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::error_manager::{EncodingError, ErrorCtxt, ErrorManager};
-use encoder::foldunfold;
-use encoder::places;
-use encoder::procedure_encoder::ProcedureEncoder;
-use encoder::pure_function_encoder::PureFunctionEncoder;
-use encoder::spec_encoder::SpecEncoder;
-use encoder::stub_function_encoder::StubFunctionEncoder;
-use encoder::stub_procedure_encoder::StubProcedureEncoder;
-use encoder::type_encoder::{
-    compute_discriminant_bounds, compute_discriminant_values, TypeEncoder,
+use encoder::{
+    borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef},
+    builtin_encoder::{BuiltinEncoder, BuiltinFunctionKind, BuiltinMethodKind},
+    error_manager::{EncodingError, ErrorCtxt, ErrorManager},
+    foldunfold, places,
+    procedure_encoder::ProcedureEncoder,
+    pure_function_encoder::PureFunctionEncoder,
+    spec_encoder::SpecEncoder,
+    stub_function_encoder::StubFunctionEncoder,
+    stub_procedure_encoder::StubProcedureEncoder,
+    type_encoder::{compute_discriminant_bounds, compute_discriminant_values, TypeEncoder},
+    vir,
+    vir::WithIdentifier,
 };
-use encoder::vir;
-use encoder::vir::WithIdentifier;
-use prusti_common::config;
-use prusti_common::report::log;
-use prusti_interface::constants::PRUSTI_SPEC_ATTR;
-use prusti_interface::data::ProcedureDefId;
-use prusti_interface::environment::Environment;
-use prusti_interface::specifications::{
-    SpecID, SpecificationSet, TypedAssertion, TypedSpecificationMap, TypedSpecificationSet,
+use prusti_common::{config, report::log};
+use prusti_interface::{
+    constants::PRUSTI_SPEC_ATTR,
+    data::ProcedureDefId,
+    environment::Environment,
+    specifications::{
+        SpecID, SpecificationSet, TypedAssertion, TypedSpecificationMap, TypedSpecificationSet,
+    },
 };
-use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::middle::const_val::ConstVal;
-use rustc::mir;
-use rustc::mir::interpret::GlobalId;
-use rustc::ty;
-use std::cell::{RefCell, RefMut};
-use std::collections::HashMap;
-use std::io::Write;
-use std::mem;
+use rustc::{
+    hir, hir::def_id::DefId, middle::const_val::ConstVal, mir, mir::interpret::GlobalId, ty,
+};
+use std::{
+    cell::{RefCell, RefMut},
+    collections::HashMap,
+    io::Write,
+    mem,
+};
 use syntax::ast;
 use viper;
 
@@ -233,6 +230,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     fn get_used_viper_predicates(&self) -> Vec<vir::Predicate> {
         let mut predicates: Vec<_> = self.type_predicates.borrow().values().cloned().collect();
+
+        // Add a predicate that represents the dead loan token.
+        predicates.push(vir::Predicate::Bodyless(
+            "DeadBorrowToken$".to_string(),
+            vir::LocalVar {
+                name: "borrow".to_string(),
+                typ: vir::Type::Int,
+            },
+        ));
+
         predicates.sort_by_key(|f| f.get_identifier());
         predicates
     }

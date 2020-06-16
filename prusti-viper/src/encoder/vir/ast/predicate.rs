@@ -11,6 +11,7 @@ use std::fmt;
 pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
+    Bodyless(String, LocalVar),
 }
 
 impl fmt::Display for Predicate {
@@ -18,6 +19,7 @@ impl fmt::Display for Predicate {
         match self {
             Predicate::Struct(p) => write!(f, "{}", p),
             Predicate::Enum(p) => write!(f, "{}", p),
+            Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
         }
     }
 }
@@ -96,6 +98,7 @@ impl Predicate {
         match self {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
+            Predicate::Bodyless(_, this) => this.clone().into(),
         }
     }
     /// The predicate name getter.
@@ -103,6 +106,7 @@ impl Predicate {
         match self {
             Predicate::Struct(p) => &p.name,
             Predicate::Enum(p) => &p.name,
+            Predicate::Bodyless(ref name, _) => name,
         }
     }
 }
@@ -112,6 +116,7 @@ impl WithIdentifier for Predicate {
         match self {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
+            Predicate::Bodyless(name, _) => name.clone(),
         }
     }
 }
@@ -250,12 +255,10 @@ impl EnumPredicate {
             let location: Expr = Expr::from(self.this.clone()).field(field).into();
             let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
             let pred_perm = variant.construct_access(location, PermAmount::Write);
-            parts.push(
-                Expr::and(
-                    field_perm,
-                    Expr::implies(guard.clone(), pred_perm),
-                )
-            );
+            parts.push(Expr::and(
+                field_perm,
+                Expr::implies(guard.clone(), pred_perm),
+            ));
         }
         parts.into_iter().conjoin()
     }
