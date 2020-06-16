@@ -47,6 +47,10 @@ impl StructuralToTyped<AssertionKind> for json::AssertionKind {
         use json::AssertionKind::*;
         match self {
             Expr(expr) => AssertionKind::Expr(expr.to_typed(typed_expressions)),
+            And(vec_assertions) => {
+                // ???
+                AssertionKind::And()
+            }
         }
     }
 }

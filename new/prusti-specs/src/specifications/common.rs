@@ -247,6 +247,12 @@ pub struct ProcedureSpecification<EID, ET, AT> {
     pub posts: Vec<Assertion<EID, ET, AT>>,
 }
 
+#[derive(Debug, Clone)]
+pub struct Arg {
+    name: syn::Ident,
+    typ: syn::Type,
+}
+
 impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {
     pub fn new(pres: Vec<Assertion<EID, ET, AT>>, posts: Vec<Assertion<EID, ET, AT>>) -> Self {
         Self { pres, posts }

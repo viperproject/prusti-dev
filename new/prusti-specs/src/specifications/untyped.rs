@@ -5,13 +5,8 @@ use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
-pub use common::{ExpressionId, SpecType, SpecificationId};
-
-#[derive(Debug, Clone)]
-pub struct Arg {
-    name: syn::Ident,
-    typ: syn::Type,
-}
+pub use common::{ExpressionId, SpecType, SpecificationId, Arg};
+pub use super::preparser::Parser;
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -38,7 +33,9 @@ impl Assertion {
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> syn::Result<Self> {
-        let assertion: common::Assertion<(), syn::Expr, Arg> = syn::parse2(tokens)?;
+        let mut parser = Parser::new(tokens.clone());
+        let assertion = parser.extract_assertion()?;
+        // let assertion: common::Assertion<(), syn::Expr, Arg> = syn::parse2(tokens)?;
         Ok(assertion.assign_id(spec_id, id_generator))
     }
 }
@@ -95,6 +92,15 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
         use common::AssertionKind::*;
         match self {
             Expr(expr) => Expr(expr.assign_id(spec_id, id_generator)),
+            And(vec_assertions) => {
+                let mut v = vec![];
+                for assertion in vec_assertions {
+                    v.push(Assertion{
+                        kind: assertion.kind.assign_id(spec_id, id_generator)
+                    })
+                }
+                And(v)
+            }
             x => unimplemented!("{:?}", x),
         }
     }
@@ -146,6 +152,11 @@ impl EncodeTypeCheck for Assertion {
         match &*self.kind {
             AssertionKind::Expr(expression) => {
                 expression.encode_type_check(tokens);
+            }
+            AssertionKind::And(vec_assertions) => {
+                for assertion in vec_assertions {
+                    assertion.encode_type_check(tokens);
+                }
             }
             x => {
                 unimplemented!("{:?}", x);
