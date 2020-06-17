@@ -6,8 +6,8 @@
 
 //! Optimisation that removes unused if statements.
 
-use encoder::vir::cfg;
-use encoder::vir::Stmt;
+use vir::cfg;
+use vir::Stmt;
 
 /// Remove empty if statements:
 /// * `if (...) {}`

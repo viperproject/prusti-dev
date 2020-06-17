@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::ast::*;
-use encoder::vir::borrows::borrow_id;
-use prusti_interface::config;
+use config;
 use viper;
 use viper::AstFactory;
+use vir::ast::*;
+use vir::borrows::borrow_id;
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;
@@ -69,10 +69,10 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             &Stmt::Exhale(ref expr, ref pos) => {
                 assert!(!pos.is_default());
                 ast.exhale(expr.to_viper(ast), pos.to_viper(ast))
-            },
+            }
             &Stmt::Assert(ref expr, _, ref pos) => {
                 ast.assert(expr.to_viper(ast), pos.to_viper(ast))
-            },
+            }
             &Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::new(0, 0, "method_call".to_string());
                 ast.method_call(
@@ -130,8 +130,8 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                             .into_iter()
                             .map(|access| {
                                 let fake_position = Position::new(0, 0, "fold_assert".to_string());
-                                let assert = Stmt::Assert(
-                                    access, FoldingBehaviour::None, fake_position);
+                                let assert =
+                                    Stmt::Assert(access, FoldingBehaviour::None, fake_position);
                                 assert.to_viper(ast)
                             })
                             .collect()
@@ -341,17 +341,15 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 ref expr,
                 perm,
                 ref _variant,
-                ref pos
-            ) => {
-                ast.unfolding_with_pos(
-                    ast.predicate_access_predicate(
-                        ast.predicate_access(&args.to_viper(ast)[..], &predicate_name),
-                        perm.to_viper(ast),
-                    ),
-                    expr.to_viper(ast),
-                    pos.to_viper(ast),
-                )
-            },
+                ref pos,
+            ) => ast.unfolding_with_pos(
+                ast.predicate_access_predicate(
+                    ast.predicate_access(&args.to_viper(ast)[..], &predicate_name),
+                    perm.to_viper(ast),
+                ),
+                expr.to_viper(ast),
+                pos.to_viper(ast),
+            ),
             &Expr::Cond(ref guard, ref left, ref right, ref pos) => ast.cond_exp_with_pos(
                 guard.to_viper(ast),
                 left.to_viper(ast),

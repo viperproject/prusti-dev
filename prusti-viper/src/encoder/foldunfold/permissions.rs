@@ -7,8 +7,8 @@
 use super::places_utils::{union, union3};
 use encoder::foldunfold::perm::Perm::*;
 use encoder::foldunfold::perm::*;
-use encoder::vir;
-use encoder::vir::PermAmount;
+use prusti_common::vir;
+use prusti_common::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;

@@ -5,15 +5,26 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::foldunfold::perm::*;
-use encoder::vir;
-use encoder::vir::PermAmount;
-use std::fmt;
 use encoder::foldunfold::FoldUnfoldError;
+use prusti_common::vir;
+use prusti_common::vir::PermAmount;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Action {
-    Fold(String, Vec<vir::Expr>, PermAmount, vir::MaybeEnumVariantIndex, vir::Position),
-    Unfold(String, Vec<vir::Expr>, PermAmount, vir::MaybeEnumVariantIndex),
+    Fold(
+        String,
+        Vec<vir::Expr>,
+        PermAmount,
+        vir::MaybeEnumVariantIndex,
+        vir::Position,
+    ),
+    Unfold(
+        String,
+        Vec<vir::Expr>,
+        PermAmount,
+        vir::MaybeEnumVariantIndex,
+    ),
     /// The dropped perm and the missing permission that caused this
     /// perm to be dropped.
     Drop(Perm, Perm),
@@ -22,15 +33,13 @@ pub enum Action {
 impl Action {
     pub fn to_stmt(&self) -> vir::Stmt {
         match self {
-            Action::Fold(ref pred, ref args, perm_amount, ref variant, ref pos) => {
-                vir::Stmt::Fold(
-                    pred.clone(),
-                    args.clone(),
-                    *perm_amount,
-                    variant.clone(),
-                    pos.clone()
-                )
-            }
+            Action::Fold(ref pred, ref args, perm_amount, ref variant, ref pos) => vir::Stmt::Fold(
+                pred.clone(),
+                args.clone(),
+                *perm_amount,
+                variant.clone(),
+                pos.clone(),
+            ),
             Action::Unfold(ref pred, ref args, perm_amount, ref variant) => {
                 vir::Stmt::Unfold(pred.clone(), args.clone(), *perm_amount, variant.clone())
             }
@@ -43,14 +52,21 @@ impl Action {
             Action::Fold(ref pred, ref args, perm, ref variant, ref position) => {
                 // Currently unsupported in Viper
                 Err(FoldUnfoldError::RequiresFolding(
-                    pred.clone(), args.clone(), *perm, variant.clone(), position.clone()
+                    pred.clone(),
+                    args.clone(),
+                    *perm,
+                    variant.clone(),
+                    position.clone(),
                 ))
             }
 
-            Action::Unfold(ref pred, ref args, perm, ref variant) => {
-                Ok(vir::Expr::unfolding(
-                    pred.clone(), args.clone(), inner_expr, *perm, variant.clone()))
-            }
+            Action::Unfold(ref pred, ref args, perm, ref variant) => Ok(vir::Expr::unfolding(
+                pred.clone(),
+                args.clone(),
+                inner_expr,
+                *perm,
+                variant.clone(),
+            )),
 
             Action::Drop(..) => Ok(inner_expr),
         }

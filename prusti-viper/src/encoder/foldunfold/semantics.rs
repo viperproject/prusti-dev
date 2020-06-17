@@ -6,7 +6,7 @@
 
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::state::*;
-use encoder::vir;
+use prusti_common::vir;
 use std::collections::HashMap;
 
 fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {

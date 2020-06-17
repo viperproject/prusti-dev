@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::super::borrows::Borrow;
-use encoder::vir::ast::*;
+use vir::ast::*;
 
 impl Expr {
     /// Apply the closure to all places in the expression.

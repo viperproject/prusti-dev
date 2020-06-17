@@ -12,9 +12,9 @@ use encoder::mir_interpreter::{
     MultiExprBackwardInterpreterState,
 };
 use encoder::pure_function_encoder::PureFunctionBackwardInterpreter;
-use encoder::vir::ExprIterator;
-use encoder::vir;
 use encoder::Encoder;
+use prusti_common::vir;
+use prusti_common::vir::ExprIterator;
 use prusti_interface::specifications::*;
 use rustc::hir;
 use rustc::hir::def_id::DefId;

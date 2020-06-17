@@ -5,8 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::mir_encoder::MirEncoder;
-use encoder::vir;
 use encoder::Encoder;
+use prusti_common::vir;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 
@@ -27,11 +27,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubFunctionEncoder<'p, 'v, 'r, 'a, '
         StubFunctionEncoder {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new(
-                encoder,
-                mir,
-                proc_def_id,
-            ),
+            mir_encoder: MirEncoder::new(encoder, mir, proc_def_id),
             proc_def_id,
         }
     }

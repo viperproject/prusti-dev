@@ -8,25 +8,26 @@ use encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureC
 use encoder::builtin_encoder::BuiltinEncoder;
 use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::builtin_encoder::BuiltinMethodKind;
-use encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
+use encoder::errors::{EncodingError, ErrorCtxt, ErrorManager, PrustiError};
 use encoder::foldunfold;
 use encoder::places;
 use encoder::procedure_encoder::ProcedureEncoder;
 use encoder::pure_function_encoder::PureFunctionEncoder;
-use encoder::stub_function_encoder::StubFunctionEncoder;
 use encoder::spec_encoder::SpecEncoder;
+use encoder::stub_function_encoder::StubFunctionEncoder;
+use encoder::stub_procedure_encoder::StubProcedureEncoder;
 use encoder::type_encoder::{
-    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
-use encoder::vir;
-use encoder::vir::WithIdentifier;
+    compute_discriminant_bounds, compute_discriminant_values, TypeEncoder,
+};
+use prusti_common::vir;
+use prusti_common::vir::WithIdentifier;
 use prusti_interface::config;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specifications::{
-    SpecID, SpecificationSet, TypedAssertion,
-    TypedSpecificationMap, TypedSpecificationSet,
+    SpecID, SpecificationSet, TypedAssertion, TypedSpecificationMap, TypedSpecificationSet,
 };
 use rustc::hir;
 use rustc::hir::def_id::DefId;
@@ -38,10 +39,9 @@ use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
 use std::io::Write;
 use std::mem;
+use std::ops::AddAssign;
 use syntax::ast;
 use viper;
-use encoder::stub_procedure_encoder::StubProcedureEncoder;
-use std::ops::AddAssign;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v Environment<'r, 'a, 'tcx>,
@@ -374,7 +374,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
         let tymap = self.typaram_repl.borrow_mut();
 
-        assert!(tymap.len() == 1, "tymap.len() = {}, but should be 1", tymap.len());
+        assert!(
+            tymap.len() == 1,
+            "tymap.len() = {}, but should be 1",
+            tymap.len()
+        );
 
         // get receiver object base type
         let mut impl_spec = SpecificationSet::Procedure(vec![], vec![]);
@@ -486,8 +490,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     vir::PermAmount::Read,
                 );
                 let result = vir::LocalVar::new("__result", vir::Type::Int);
-                let postcondition = compute_discriminant_bounds(
-                    adt_def, self.env.tcx(), &result.into());
+                let postcondition =
+                    compute_discriminant_bounds(adt_def, self.env.tcx(), &result.into());
                 let discr_field = self.encode_discriminant_field();
                 let self_local_var_expr: vir::Expr = self_local_var.clone().into();
                 let function = vir::Function {
@@ -501,7 +505,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 let final_function = foldunfold::add_folding_unfolding_to_function(
                     function,
                     self.get_used_viper_predicates_map(),
-                ).ok().unwrap(); // TODO: generate a stub function in case of error
+                )
+                .ok()
+                .unwrap(); // TODO: generate a stub function in case of error
                 final_function
             });
         vir::Expr::FuncApp(
@@ -526,7 +532,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let first_field = first.clone().field(field.clone());
             let second_field = second.clone().field(field);
             let eq = self.encode_memory_eq_func_app(
-                second_field, first_field, ty, vir::Position::default());
+                second_field,
+                first_field,
+                ty,
+                vir::Position::default(),
+            );
             conjuncts.push(eq);
         }
         vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
@@ -552,7 +562,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 let first_field = first.clone().field(elem_field.clone());
                 let second_field = second.clone().field(elem_field);
                 let eq = self.encode_memory_eq_func_app(
-                    first_field, second_field, field_ty, vir::Position::default());
+                    first_field,
+                    second_field,
+                    field_ty,
+                    vir::Position::default(),
+                );
                 conjuncts.push(eq);
             }
         } else {
@@ -560,24 +574,27 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let discr_field = self.encode_discriminant_field();
             let first_discriminant = first.clone().field(discr_field.clone());
             let second_discriminant = second.clone().field(discr_field);
-            conjuncts.push(vir::Expr::eq_cmp(first_discriminant.clone(), second_discriminant));
+            conjuncts.push(vir::Expr::eq_cmp(
+                first_discriminant.clone(),
+                second_discriminant,
+            ));
             let discriminant_values = compute_discriminant_values(adt_def, tcx);
-            let variants = adt_def.variants
-                .iter()
-                .zip(discriminant_values)
-                .map(|(variant_def, variant_index)| {
-                    let guard = vir::Expr::eq_cmp(
-                        first_discriminant.clone(),
-                        variant_index.into(),
-                    );
+            let variants = adt_def.variants.iter().zip(discriminant_values).map(
+                |(variant_def, variant_index)| {
+                    let guard = vir::Expr::eq_cmp(first_discriminant.clone(), variant_index.into());
                     let variant_name = &variant_def.name.as_str();
                     let first_location = first.clone().variant(variant_name);
                     let second_location = second.clone().variant(variant_name);
                     let eq = self.encode_memory_eq_func_app_variant(
-                        first_location, second_location, variant_def, subst,
-                        vir::Position::default());
+                        first_location,
+                        second_location,
+                        variant_def,
+                        subst,
+                        vir::Position::default(),
+                    );
                     vir::Expr::implies(guard, eq)
-                });
+                },
+            );
             conjuncts.extend(variants);
         }
         vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
@@ -587,7 +604,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         &self,
         first: vir::Expr,
         second: vir::Expr,
-        self_ty: ty::Ty<'tcx>
+        self_ty: ty::Ty<'tcx>,
     ) -> Option<vir::Expr> {
         let eq = match self_ty.sty {
             ty::TypeVariants::TyBool
@@ -607,9 +624,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyTuple(elems) => {
                 Some(self.encode_memory_eq_tuple(first.clone(), second.clone(), elems))
             }
-            ty::TypeVariants::TyParam(_) => {
-                None
-            },
+            ty::TypeVariants::TyParam(_) => None,
 
             ref x => unimplemented!("{:?}", x),
         };
@@ -642,7 +657,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             ),
         ];
         let body = self.encode_memory_eq_func_body(
-            first_local_var.clone().into(), second_local_var.clone().into(), self_ty);
+            first_local_var.clone().into(),
+            second_local_var.clone().into(),
+            self_ty,
+        );
         let function = vir::Function {
             name: name.clone(),
             formal_args: vec![first_local_var, second_local_var],
@@ -651,7 +669,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             posts: vec![],
             body: body,
         };
-        self.memory_eq_funcs.borrow_mut().insert(name, Some(function));
+        self.memory_eq_funcs
+            .borrow_mut()
+            .insert(name, Some(function));
     }
 
     /// Note: We generate functions already with the required unfoldings because some types are
@@ -682,24 +702,25 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 vir::PermAmount::Read,
             ),
         ];
-        let mut conjuncts = self_variant.fields
-            .iter()
-            .map(|field| {
-                let field_name = &field.ident.as_str();
-                let field_ty = field.ty(tcx, subst);
-                let encoded_field = self.encode_struct_field(field_name, field_ty);
-                let first_field = vir::Expr::from(first_local_var.clone())
-                    .field(encoded_field.clone());
-                let second_field = vir::Expr::from(second_local_var.clone())
-                    .field(encoded_field.clone());
-                self.encode_memory_eq_func_app(
-                    first_field, second_field, field_ty, vir::Position::default())
-            });
+        let mut conjuncts = self_variant.fields.iter().map(|field| {
+            let field_name = &field.ident.as_str();
+            let field_ty = field.ty(tcx, subst);
+            let encoded_field = self.encode_struct_field(field_name, field_ty);
+            let first_field = vir::Expr::from(first_local_var.clone()).field(encoded_field.clone());
+            let second_field =
+                vir::Expr::from(second_local_var.clone()).field(encoded_field.clone());
+            self.encode_memory_eq_func_app(
+                first_field,
+                second_field,
+                field_ty,
+                vir::Position::default(),
+            )
+        });
         let conjunction = vir::ExprIterator::conjoin(&mut conjuncts);
-        let unfolded_second = vir::Expr::wrap_in_unfolding(
-            second_local_var.clone().into(), conjunction);
-        let unfolded_first = vir::Expr::wrap_in_unfolding(
-            first_local_var.clone().into(), unfolded_second);
+        let unfolded_second =
+            vir::Expr::wrap_in_unfolding(second_local_var.clone().into(), conjunction);
+        let unfolded_first =
+            vir::Expr::wrap_in_unfolding(first_local_var.clone().into(), unfolded_second);
         let body = Some(unfolded_first);
         let function = vir::Function {
             name: name.clone(),
@@ -709,7 +730,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             posts: vec![],
             body: body,
         };
-        self.memory_eq_funcs.borrow_mut().insert(name, Some(function));
+        self.memory_eq_funcs
+            .borrow_mut()
+            .insert(name, Some(function));
     }
 
     pub fn encode_memory_eq_func_app(
@@ -828,7 +851,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 Err(error) => {
                     self.register_encoding_error(error);
                     StubProcedureEncoder::new(self, &procedure).encode()
-                },
+                }
             };
             self.log_vir_program_before_viper(method.to_string());
             self.procedures.borrow_mut().insert(def_id, method);
@@ -872,10 +895,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             targets_are_values,
             stop_at_bbi,
         );
-        spec_encoder.encode_assertion(assertion).set_default_pos(
-            self.error_manager()
-                .register(assertion.get_spans(), error),
-        )
+        spec_encoder
+            .encode_assertion(assertion)
+            .set_default_pos(self.error_manager().register(assertion.get_spans(), error))
     }
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
@@ -1239,10 +1261,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     /// function and its type.
     ///
     /// The called function must be marked as pure.
-    pub fn encode_pure_function_use(
-        &self,
-        proc_def_id: ProcedureDefId,
-    ) -> (String, vir::Type) {
+    pub fn encode_pure_function_use(&self, proc_def_id: ProcedureDefId) -> (String, vir::Type) {
         let procedure = self.env.get_procedure(proc_def_id);
 
         assert!(
@@ -1342,7 +1361,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         // TODO: creating each time a current_tymap might be slow. This can be optimized.
         if let Some(replaced_ty) = self.current_tymap().get(&ty) {
             trace!("resolve_typaram({:?}) ==> {:?}", ty, replaced_ty);
-            return replaced_ty
+            return replaced_ty;
         }
         ty
     }

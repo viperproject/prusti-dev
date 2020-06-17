@@ -6,10 +6,10 @@
 
 //! Various utility methods for working with VIR.
 
-use encoder::vir;
-use encoder::vir::ExprFolder;
-use encoder::vir::StmtFolder;
-use encoder::vir::FallibleStmtFolder;
+use vir;
+use vir::ExprFolder;
+use vir::FallibleStmtFolder;
+use vir::StmtFolder;
 
 /// Substitute (map) expressions in a statement
 impl vir::Stmt {
@@ -37,7 +37,7 @@ impl vir::Stmt {
 
     pub fn fallible_map_expr<F, E>(self, substitutor: F) -> Result<Self, E>
     where
-        F: Fn(vir::Expr) -> Result<vir::Expr, E>
+        F: Fn(vir::Expr) -> Result<vir::Expr, E>,
     {
         trace!("Stmt::fallible_map_expr {}", self);
         struct StmtExprSubstitutor<T, U>

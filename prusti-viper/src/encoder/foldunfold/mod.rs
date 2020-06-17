@@ -8,10 +8,11 @@ use self::path_ctxt::*;
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::perm::*;
 use encoder::foldunfold::permissions::RequiredPermissionsGetter;
-use encoder::vir;
-use encoder::vir::{FallibleExprFolder, ExprFolder, PermAmount};
-use encoder::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
 use encoder::Encoder;
+use prusti_common::vir;
+use prusti_common::vir::borrows::Borrow;
+use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
+use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
 use prusti_interface::config;
 use prusti_interface::report;
 use rustc::mir;
@@ -19,12 +20,11 @@ use std;
 use std::collections::{HashMap, HashSet};
 use std::mem;
 use utils::to_string::ToString;
-use encoder::vir::borrows::Borrow;
 
 mod action;
 mod borrows;
-mod path_ctxt;
 mod log;
+mod path_ctxt;
 mod perm;
 mod permissions;
 mod places_utils;
@@ -37,13 +37,17 @@ pub enum FoldUnfoldError {
     FailedToObtain(Perm),
     /// The algorithm tried to generate a "folding .. in .." Viper expression
     RequiresFolding(
-        String, Vec<vir::Expr>, PermAmount, vir::MaybeEnumVariantIndex, vir::Position
+        String,
+        Vec<vir::Expr>,
+        PermAmount,
+        vir::MaybeEnumVariantIndex,
+        vir::Position,
     ),
 }
 
 pub fn add_folding_unfolding_to_expr(
     expr: vir::Expr,
-    pctxt: &PathCtxt
+    pctxt: &PathCtxt,
 ) -> Result<vir::Expr, FoldUnfoldError> {
     let pctxt_at_label = HashMap::new();
     let expr = ExprReplacer::new(pctxt.clone(), &pctxt_at_label, true).fallible_fold(expr)?;
@@ -91,8 +95,15 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
     let cfg_vars = cfg.get_all_vars();
     let predicates = encoder.get_used_viper_predicates_map();
     let initial_pctxt = PathCtxt::new(cfg_vars, &predicates);
-    FoldUnfold::new(encoder, initial_pctxt, &cfg, borrow_locations, cfg_map, method_pos)
-        .replace_cfg(&cfg)
+    FoldUnfold::new(
+        encoder,
+        initial_pctxt,
+        &cfg,
+        borrow_locations,
+        cfg_map,
+        method_pos,
+    )
+    .replace_cfg(&cfg)
 }
 
 #[derive(Clone)]
@@ -129,14 +140,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             cfg,
             borrow_locations,
             cfg_map,
-            method_pos
+            method_pos,
         }
     }
 
     fn replace_expr(
         &self,
         expr: &vir::Expr,
-        curr_pctxt: &PathCtxt<'p>
+        curr_pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Expr, FoldUnfoldError> {
         ExprReplacer::new(curr_pctxt.clone(), &self.pctxt_at_label, false)
             .fallible_fold(expr.clone())
@@ -145,7 +156,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     fn replace_old_expr(
         &self,
         expr: &vir::Expr,
-        curr_pctxt: &PathCtxt<'p>
+        curr_pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Expr, FoldUnfoldError> {
         ExprReplacer::new(curr_pctxt.clone(), &self.pctxt_at_label, true)
             .fallible_fold(expr.clone())
@@ -167,7 +178,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     fn rewrite_stmt_with_unfoldings(
         &self,
         stmt: vir::Stmt,
-        pctxt: &PathCtxt<'p>
+        pctxt: &PathCtxt<'p>,
     ) -> Result<vir::Stmt, FoldUnfoldError> {
         match stmt {
             vir::Stmt::Inhale(expr, folding) => {
@@ -181,7 +192,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 );
 
                 // Rewrite statement
-                Ok(vir::Stmt::Inhale(self.replace_expr(&expr, &inner_pctxt)?, folding))
+                Ok(vir::Stmt::Inhale(
+                    self.replace_expr(&expr, &inner_pctxt)?,
+                    folding,
+                ))
             }
             vir::Stmt::TransferPerm(lhs, rhs, unchecked) => {
                 // Compute rhs state
@@ -204,7 +218,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                 Ok(vir::Stmt::TransferPerm(
                     new_lhs,
                     self.replace_old_expr(&rhs, &rhs_pctxt)?,
-                    unchecked
+                    unchecked,
                 ))
             }
             vir::Stmt::PackageMagicWand(wand, stmts, label, vars, pos) => {
@@ -220,7 +234,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn get_cfg_block_of_last_borrow(&self, curr_block: CfgBlockIndex, borrow: &Borrow) -> CfgBlockIndex {
+    fn get_cfg_block_of_last_borrow(
+        &self,
+        curr_block: CfgBlockIndex,
+        borrow: &Borrow,
+    ) -> CfgBlockIndex {
         let mir_location = self.borrow_locations[borrow];
         let borrow_creation = &self.cfg_map[&mir_location.block];
         // HACK: Choose the closest block. Can be optimized.
@@ -305,17 +323,17 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             let mut pctxt = if curr_block.predecessors.is_empty() {
                 let mut pctxt = surrounding_pctxt.clone();
                 let end_block = surrounding_block_index;
-                let start_block = self.get_cfg_block_of_last_borrow(
-                    surrounding_block_index,
-                    &curr_node.borrow
-                );
+                let start_block =
+                    self.get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
                 if !start_block.weak_eq(&end_block) {
                     let path = new_cfg.find_path(start_block, end_block).unwrap();
                     debug!(
                         "process_expire_borrows borrow={:?} path={:?}",
                         curr_node.borrow, path
                     );
-                    let dropped_permissions = surrounding_pctxt.log().collect_dropped_permissions(&path, dag);
+                    let dropped_permissions = surrounding_pctxt
+                        .log()
+                        .collect_dropped_permissions(&path, dag);
                     debug!(
                         "process_expire_borrows borrow={:?} dropped_permissions={:?}",
                         curr_node.borrow, dropped_permissions
@@ -338,19 +356,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     let predecessor_node = &cfg.basic_blocks[predecessor].node;
                     let end_block = self.get_cfg_block_of_last_borrow(
                         surrounding_block_index,
-                        &predecessor_node.borrow
+                        &predecessor_node.borrow,
                     );
-                    let start_block = self.get_cfg_block_of_last_borrow(
-                        surrounding_block_index,
-                        &curr_node.borrow
-                    );
+                    let start_block = self
+                        .get_cfg_block_of_last_borrow(surrounding_block_index, &curr_node.borrow);
                     if start_block != end_block {
                         let path = new_cfg.find_path(start_block, end_block).unwrap();
                         debug!(
                             "process_expire_borrows borrow={:?} path={:?}",
                             curr_node.borrow, path
                         );
-                        let dropped_permissions = surrounding_pctxt.log().collect_dropped_permissions(&path, dag);
+                        let dropped_permissions = surrounding_pctxt
+                            .log()
+                            .collect_dropped_permissions(&path, dag);
                         debug!(
                             "process_expire_borrows borrow={:?} dropped_permissions={}",
                             curr_node.borrow,
@@ -421,7 +439,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
             }
 
             // Remove read permissions.
-            let duplicated_perms = surrounding_pctxt.log().get_duplicated_read_permissions(curr_node.borrow);
+            let duplicated_perms = surrounding_pctxt
+                .log()
+                .get_duplicated_read_permissions(curr_node.borrow);
             let mut maybe_original_place = None;
             for (mut read_access, original_place) in duplicated_perms {
                 if let Some(ref place) = curr_node.place {
@@ -633,7 +653,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     | vir::Stmt::Assign(_, _, _) => stmt.clone(),
                     vir::Stmt::Inhale(expr, folding) => {
                         vir::Stmt::Inhale(patch_expr(label, expr), *folding)
-                    },
+                    }
                     vir::Stmt::Exhale(expr, pos) => {
                         vir::Stmt::Exhale(patch_expr(label, expr), pos.clone())
                     }
@@ -645,13 +665,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                             variant.clone(),
                             pos.clone(),
                         )
-                    },
+                    }
                     vir::Stmt::Unfold(ref pred_name, ref args, perm_amount, variant) => {
                         vir::Stmt::Unfold(
                             pred_name.clone(),
                             patch_args(label, args),
                             *perm_amount,
-                            variant.clone()
+                            variant.clone(),
                         )
                     }
                     x => unreachable!("{}", x),
@@ -669,9 +689,9 @@ impl CheckNoOpAction for Vec<Action> {
     }
 }
 
-impl<
-    'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a
-> vir::CfgReplacer<PathCtxt<'p>, Vec<Action>> for FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Vec<Action>>
+    for FoldUnfold<'p, 'v, 'r, 'a, 'tcx>
+{
     type Error = FoldUnfoldError;
 
     /// Dump the current CFG, for debugging purposes
@@ -688,32 +708,35 @@ impl<
             report::log::report_with_writer(
                 "graphviz_method_during_foldunfold",
                 format!("{}.{}.dot", source_filename, method_name),
-                |writer| new_cfg.to_graphviz_with_extra(
-                    writer,
-                    |bb_index| initial_pctxt.get(bb_index).and_then(
-                        |opt_pctxt| opt_pctxt.as_ref().map(
-                            |pctxt| {
-                                let mut acc = pctxt.state().display_acc();
-                                let mut pred = pctxt.state().display_acc();
-                                if !self.foldunfold_state_filter.is_empty() {
-                                    let filter = &self.foldunfold_state_filter;
-                                    acc = acc.split("\n")
-                                        .filter(|x| x.contains(filter))
-                                        .map(|x| x.to_string())
-                                        .collect::<Vec<_>>().join("\n");
-                                    pred = pred.split("\n")
-                                        .filter(|x| x.contains(filter))
-                                        .map(|x| x.to_string())
-                                        .collect::<Vec<_>>().join("\n");
-                                }
-                                vec![
-                                    format!("Acc:\n{}", acc),
-                                    format!("Pred:\n{}", pred),
-                                ]
-                            }
-                        )
-                    ).unwrap_or_else(|| vec![])
-                ),
+                |writer| {
+                    new_cfg.to_graphviz_with_extra(writer, |bb_index| {
+                        initial_pctxt
+                            .get(bb_index)
+                            .and_then(|opt_pctxt| {
+                                opt_pctxt.as_ref().map(|pctxt| {
+                                    let mut acc = pctxt.state().display_acc();
+                                    let mut pred = pctxt.state().display_acc();
+                                    if !self.foldunfold_state_filter.is_empty() {
+                                        let filter = &self.foldunfold_state_filter;
+                                        acc = acc
+                                            .split("\n")
+                                            .filter(|x| x.contains(filter))
+                                            .map(|x| x.to_string())
+                                            .collect::<Vec<_>>()
+                                            .join("\n");
+                                        pred = pred
+                                            .split("\n")
+                                            .filter(|x| x.contains(filter))
+                                            .map(|x| x.to_string())
+                                            .collect::<Vec<_>>()
+                                            .join("\n");
+                                    }
+                                    vec![format!("Acc:\n{}", acc), format!("Pred:\n{}", pred)]
+                                })
+                            })
+                            .unwrap_or_else(|| vec![])
+                    })
+                },
             );
         }
     }
@@ -747,12 +770,14 @@ impl<
         debug!("[enter] replace_stmt: ##### {} #####", stmt);
 
         if let vir::Stmt::ExpireBorrows(ref dag) = stmt {
-            let mut stmts = vec![
-                vir::Stmt::Comment(format!("{}", stmt)),
-            ];
-            stmts.extend(
-                self.process_expire_borrows(dag, pctxt, curr_block_index, new_cfg, label)?
-            );
+            let mut stmts = vec![vir::Stmt::Comment(format!("{}", stmt))];
+            stmts.extend(self.process_expire_borrows(
+                dag,
+                pctxt,
+                curr_block_index,
+                new_cfg,
+                label,
+            )?);
             return Ok(stmts);
         }
 
@@ -775,10 +800,8 @@ impl<
                 let mut labelled_pctxt = pctxt.clone();
                 let labelled_state = labelled_pctxt.mut_state();
                 labelled_state.remove_all();
-                vir::Stmt::Inhale(
-                    lhs.clone(),
-                    vir::FoldingBehaviour::Expr,
-                ).apply_on_state(labelled_state, pctxt.predicates());
+                vir::Stmt::Inhale(lhs.clone(), vir::FoldingBehaviour::Expr)
+                    .apply_on_state(labelled_state, pctxt.predicates());
                 if let vir::Expr::PredicateAccessPredicate(ref _name, box ref arg, perm_amount, _) =
                     lhs
                 {
@@ -796,11 +819,20 @@ impl<
 
         if stmt_index == 0 && config::dump_path_ctxt_in_debug_info() {
             let acc_state = pctxt.state().display_acc().replace("\n", "\n//");
-            stmts.push(vir::Stmt::comment(format!("[state] acc: {{\n//{}\n//}}", acc_state)));
+            stmts.push(vir::Stmt::comment(format!(
+                "[state] acc: {{\n//{}\n//}}",
+                acc_state
+            )));
             let pred_state = pctxt.state().display_pred().replace("\n", "\n//");
-            stmts.push(vir::Stmt::comment(format!("[state] pred: {{\n//{}\n//}}", pred_state)));
+            stmts.push(vir::Stmt::comment(format!(
+                "[state] pred: {{\n//{}\n//}}",
+                pred_state
+            )));
             let moved_state = pctxt.state().display_moved().replace("\n", "\n//");
-            stmts.push(vir::Stmt::comment(format!("[state] moved: {{\n//{}\n//}}", moved_state)));
+            stmts.push(vir::Stmt::comment(format!(
+                "[state] moved: {{\n//{}\n//}}",
+                moved_state
+            )));
         }
 
         // 1. Insert "unfolding in" inside old expressions. This handles *old* requirements.
@@ -810,17 +842,14 @@ impl<
         // 2. Obtain required *curr* permissions. *old* requirements will be handled at steps 0 and/or 4.
         debug!("[step.2] replace_stmt: {}", stmt);
         match &stmt {
-            vir::Stmt::Inhale(_, vir::FoldingBehaviour::Expr) |
-            vir::Stmt::Assert(_, vir::FoldingBehaviour::Expr, _) => {
+            vir::Stmt::Inhale(_, vir::FoldingBehaviour::Expr)
+            | vir::Stmt::Assert(_, vir::FoldingBehaviour::Expr, _) => {
                 // Unfolding expressions will be added in step 4.
             }
             _ => {
                 let all_perms = stmt.get_required_permissions(pctxt.predicates());
-                let pred_permissions: Vec<_> = all_perms
-                    .iter()
-                    .cloned()
-                    .filter(|p| p.is_pred())
-                    .collect();
+                let pred_permissions: Vec<_> =
+                    all_perms.iter().cloned().filter(|p| p.is_pred()).collect();
 
                 let acc_permissions: Vec<_> = all_perms
                     .into_iter()
@@ -855,13 +884,11 @@ impl<
 
                     if self.check_foldunfold_state && !is_last_before_return {
                         stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-                        stmts.push(
-                            vir::Stmt::Assert(
-                                pctxt.state().as_vir_expr(),
-                                vir::FoldingBehaviour::Expr,
-                                vir::Position::new(0, 0, "check fold/unfold state".to_string()),
-                            )
-                        );
+                        stmts.push(vir::Stmt::Assert(
+                            pctxt.state().as_vir_expr(),
+                            vir::FoldingBehaviour::Expr,
+                            vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+                        ));
                     }
                 }
             }
@@ -941,28 +968,26 @@ impl<
                 .pred()
                 .iter()
                 .filter(|(place, perm)| {
-                    **perm == vir::PermAmount::Remaining &&
-                    inhaled_places.iter().any(|ip| place.has_prefix(ip))
+                    **perm == vir::PermAmount::Remaining
+                        && inhaled_places.iter().any(|ip| place.has_prefix(ip))
                 })
                 .map(|(place, _)| place.clone())
                 .collect();
             for place in restorable_places {
                 let stmt = vir::Stmt::Obtain(
                     vir::Expr::pred_permission(place, vir::PermAmount::Read).unwrap(),
-                    vir::Position::default(),   // This should trigger only unfolds,
-                                                // so the default position should be fine.
+                    vir::Position::default(), // This should trigger only unfolds,
+                                              // so the default position should be fine.
                 );
-                stmts.extend(
-                    self.replace_stmt(
-                        stmt_index,
-                        &stmt,
-                        false,
-                        pctxt,
-                        curr_block_index,
-                        new_cfg,
-                        label
-                    )?
-                );
+                stmts.extend(self.replace_stmt(
+                    stmt_index,
+                    &stmt,
+                    false,
+                    pctxt,
+                    curr_block_index,
+                    new_cfg,
+                    label,
+                )?);
             }
         }
 
@@ -972,7 +997,8 @@ impl<
             ref lhs_place,
             ref rhs_place,
             vir::AssignKind::SharedBorrow(borrow),
-        ) = stmt {
+        ) = stmt
+        {
             // Check if in the state we have any write permissions
             // with the borrowed place as a prefix. If yes, change them
             // to read permissions and emit exhale acc(T(place), write-read).
@@ -1028,7 +1054,9 @@ impl<
                         vir::PermAmount::Remaining,
                         vir::Position::default(),
                     );
-                    pctxt.log_mut().log_convertion_to_read(borrow, access.clone());
+                    pctxt
+                        .log_mut()
+                        .log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
                     pctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
@@ -1069,7 +1097,9 @@ impl<
                         vir::PermAmount::Remaining,
                         place.pos().clone(),
                     );
-                    pctxt.log_mut().log_convertion_to_read(borrow, access.clone());
+                    pctxt
+                        .log_mut()
+                        .log_convertion_to_read(borrow, access.clone());
                     let stmt = vir::Stmt::Exhale(access, self.method_pos.clone());
                     pctxt.apply_stmt(&stmt);
                     stmts.push(stmt);
@@ -1152,13 +1182,11 @@ impl<
 
         if some_perms_required && self.check_foldunfold_state {
             stmts.push(vir::Stmt::comment("Assert content of fold/unfold state"));
-            stmts.push(
-                vir::Stmt::Assert(
-                    pctxt.state().as_vir_expr(),
-                    vir::FoldingBehaviour::Expr,
-                    vir::Position::new(0, 0, "check fold/unfold state".to_string()),
-                )
-            );
+            stmts.push(vir::Stmt::Assert(
+                pctxt.state().as_vir_expr(),
+                vir::FoldingBehaviour::Expr,
+                vir::Position::new(0, 0, "check fold/unfold state".to_string()),
+            ));
         }
 
         // Add "fold/unfolding in" expressions in successor
@@ -1174,9 +1202,7 @@ impl<
                 vir::Successor::GotoSwitch(
                     guarded_targets
                         .iter()
-                        .map(|(cond, targ)| {
-                            repl_expr(cond).map(|expr| (expr, targ.clone()))
-                        })
+                        .map(|(cond, targ)| repl_expr(cond).map(|expr| (expr, targ.clone())))
                         .collect::<Result<Vec<_>, _>>()?,
                     *default_target,
                 )
@@ -1190,7 +1216,7 @@ impl<
     /// returning the merged branch context.
     fn prepend_join(
         &mut self,
-        bcs: Vec<&PathCtxt<'p>>
+        bcs: Vec<&PathCtxt<'p>>,
     ) -> Result<(Vec<Vec<Action>>, PathCtxt<'p>), Self::Error> {
         trace!("[enter] prepend_join(..{})", &bcs.len());
         assert!(bcs.len() > 0);
@@ -1318,7 +1344,14 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
         );
 
         let res = if self.wait_old_expr {
-            vir::Expr::Unfolding(name, args, self.fallible_fold_boxed(expr)?, perm, variant, pos)
+            vir::Expr::Unfolding(
+                name,
+                args,
+                self.fallible_fold_boxed(expr)?,
+                perm,
+                variant,
+                pos,
+            )
         } else {
             // Compute inner state
             let mut inner_pctxt = self.curr_pctxt.clone();
@@ -1494,7 +1527,13 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
             // Add appropriate unfolding around this old expression
             // Note: unfoldings must have no effect on siblings
             let mut result = inner_expr;
-            for action in self.curr_pctxt.clone().obtain_permissions(perms)?.into_iter().rev() {
+            for action in self
+                .curr_pctxt
+                .clone()
+                .obtain_permissions(perms)?
+                .into_iter()
+                .rev()
+            {
                 result = action.to_expr(result)?;
             }
             result
@@ -1534,7 +1573,13 @@ impl<'b, 'a: 'b> FallibleExprFolder for ExprReplacer<'b, 'a> {
                 .collect();
 
             let mut result = func_app;
-            for action in self.curr_pctxt.clone().obtain_permissions(perms)?.into_iter().rev() {
+            for action in self
+                .curr_pctxt
+                .clone()
+                .obtain_permissions(perms)?
+                .into_iter()
+                .rev()
+            {
                 result = action.to_expr(result)?;
             }
 
