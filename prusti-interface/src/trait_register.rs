@@ -9,8 +9,9 @@ use std::hash::{Hash,Hasher};
 use std::iter::Iterator;
 use syntax::ast;
 use syntax::ext::quote::rt::Span;
+use syntax::symbol::Symbol;
 use syntax_pos::DUMMY_SP;
-use specifications::SpecID;
+use specifications::{SpecID,UntypedSpecification};
 
 // Handles mapping from type to trait declarations it implements.
 // Handles trait implementation specID caching
@@ -30,9 +31,11 @@ pub struct TraitRegister {
     trait_to_specid: HashMap<RegisterID, SpecID>,
     type_to_trait: HashMap<RegisterID, HashSet<(RegisterID,ast::Item)>>,
     trait_to_inv: HashMap<RegisterID, Vec<ast::Attribute>>,
+    func_ref_to_spec: HashMap<Symbol, HashMap<Symbol, HashMap<RegisterID, Vec<ast::Attribute>>>>,
 }
 
 type TraitInfo = (RegisterID, Option<SpecID>, ast::Item, Vec<ast::Attribute>);
+pub type FunctionRef = (Symbol, Symbol);
 
 impl TraitRegister {
     pub fn new() -> Self {
@@ -40,6 +43,7 @@ impl TraitRegister {
             trait_to_specid: HashMap::new(),
             type_to_trait: HashMap::new(),
             trait_to_inv: HashMap::new(),
+            func_ref_to_spec: HashMap::new(),
         }
     }
 
@@ -61,6 +65,30 @@ impl TraitRegister {
     pub fn get_trait_span(&self, reg_id: &RegisterID) -> Option<Span> {
         let key_val_opt = self.trait_to_inv.get_key_value(&reg_id);
         key_val_opt.map(|(k, _)| k.span.clone())
+    }
+
+    /// Get all attributes for some function reference.
+    pub fn get_funcs_for_trait(&self, trait_ref: &Symbol) -> Vec<Symbol> {
+        self.func_ref_to_spec.get(trait_ref).map_or(Vec::new(), |map| {
+            map
+                .keys()
+                .cloned()
+                .collect()
+        })
+    }
+
+    /// Get all attributes for some function reference.
+    pub fn get_attrs_refine(&self, func_ref: &FunctionRef) -> Vec<ast::Attribute> {
+        let (trait_ref, func) = func_ref;
+        self.func_ref_to_spec.get(trait_ref).map_or(Vec::new(), |map| {
+            map.get(func).map_or(Vec::new(), |inner| {
+                inner
+                    .values()
+                    .cloned()
+                    .flatten()
+                    .collect()
+            })
+        })
     }
 
     /// Registers a SpecID for a trait with RegisterID.
@@ -85,10 +113,38 @@ impl TraitRegister {
         type_id
     }
 
+    /// Returns the internal ID used to represent the item.
+    pub fn get_id(&self, item: &ast::Item) -> RegisterID {
+        RegisterID::from_item(item)
+    }
+
     /// Register trait declaration and return the ID of the registered item.
-    pub fn register_trait_decl(&mut self, item: &ast::Item) -> RegisterID {
+    pub fn register_trait_decl(&mut self, item: &ast::Item, specs: &Vec<UntypedSpecification>) -> RegisterID {
         let trait_id = RegisterID::from_item(item);
         self.trait_to_inv.insert(trait_id.clone(), item.attrs.clone());
+
+        let refines = specs
+            .iter()
+            .zip(item.attrs.iter())
+            .filter(|(s, _)| s.typ.is_refines())
+            .filter(|(s, _)| s.typ.get_function_ref().is_some());
+
+        for (spec, attr) in refines {
+            let (trait_ref, func_ref) = spec.typ.get_function_ref().unwrap();
+            if !self.func_ref_to_spec.contains_key(&trait_ref) {
+                self.func_ref_to_spec.insert(trait_ref.clone(), HashMap::new());
+            }
+            let trait_to_spec_ref = self.func_ref_to_spec.get_mut(&trait_ref).unwrap();
+            if !trait_to_spec_ref.contains_key(&func_ref) {
+                trait_to_spec_ref.insert(func_ref.clone(), HashMap::new());
+            }
+            let func_to_spec = trait_to_spec_ref.get_mut(&func_ref).unwrap();
+            if !func_to_spec.contains_key(&trait_id) {
+                func_to_spec.insert(trait_id.clone(), Vec::new());
+            }
+            func_to_spec.get_mut(&trait_id).unwrap().push(attr.clone());
+        }
+
         trait_id
     }
 

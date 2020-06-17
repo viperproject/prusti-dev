@@ -6,8 +6,7 @@
 
 use compiler_calls::{PrustiCompilerCalls,RegisterCalls};
 use prusti_interface::config;
-use rustc::session::CompileResult;
-use rustc::session::Session;
+use rustc::session::{CompileIncomplete,CompileResult,Session};
 use rustc_driver;
 use std::env;
 use std::sync::{Arc,Mutex};
@@ -67,7 +66,11 @@ pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {
 
     let trait_register = Arc::new(Mutex::new(TraitRegister::new()));
     let register_calls = Box::new(RegisterCalls::from_register(trait_register.clone()));
-    rustc_driver::run_compiler(&args, register_calls, None, None);
+    let res = rustc_driver::run_compiler(&args, register_calls, None, None);
+    match res {
+        (Err(CompileIncomplete::Errored(_)), _) => return res,
+        _ => {}
+    }
 
     let prusti_compiler_calls = Box::new(PrustiCompilerCalls::from_register(trait_register.clone()));
     debug!("rustc command: '{}'", args.join(" "));
