@@ -19,6 +19,8 @@
 #![feature(box_patterns)]
 #![feature(try_from)]
 #![feature(crate_in_paths)]
+#![feature(map_get_key_value)]
+#![feature(iterator_flatten)]
 
 extern crate csv;
 extern crate datafrog;
@@ -53,3 +55,4 @@ pub mod specifications;
 pub mod sysroot;
 pub mod utils;
 pub mod cargo;
+pub mod trait_register;

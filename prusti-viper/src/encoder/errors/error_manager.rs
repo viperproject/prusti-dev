@@ -10,8 +10,7 @@ use syntax::codemap::CodeMap;
 use syntax_pos::MultiSpan;
 use uuid::Uuid;
 use viper::VerificationError;
-use encoder::procedure_encoder::ProcedureEncodingError;
-use encoder::pure_function_encoder::PureFunctionEncodingError;
+use encoder::errors::PrustiError;
 
 /// The cause of a panic!()
 #[derive(Clone, Debug)]
@@ -89,61 +88,8 @@ pub enum ErrorCtxt {
     /// A Viper `assert e1 ==> e2` that encodes a strengthening of the precondition
     /// of a method implementation of a trait.
     AssertMethodPostconditionStrengthening(MultiSpan),
-    /// A Viper `assert false` that encodes an unsupported reason
+    /// A Viper `assert false` that encodes an unsupported feature
     Unsupported(String, String),
-}
-
-/// An error in the encoding. For example, usage of unsupported Rust features.
-#[derive(From)]
-pub enum EncodingError {
-    Procedure(ProcedureEncodingError),
-    PureFunction(PureFunctionEncodingError),
-}
-
-/// The Rust error that will be reported from the compiler
-#[derive(Clone, Debug)]
-pub struct CompilerError {
-    pub message: String,
-    pub span: MultiSpan,
-    pub help: Option<String>,
-    pub note: Option<(String, MultiSpan)>,
-}
-
-impl CompilerError {
-    pub fn new<S: ToString>(message: S, span: MultiSpan) -> Self {
-        CompilerError {
-            message: message.to_string(),
-            span,
-            help: None,
-            note: None,
-        }
-    }
-
-    pub fn set_help<S: ToString>(mut self, message: S) -> Self {
-        self.help = Some(message.to_string());
-        self
-    }
-
-    /// Set the span of the failing assertion expression.
-    ///
-    /// Note: this is a noop if `opt_span` is None
-    pub fn set_failing_assertion(mut self, opt_span: Option<&MultiSpan>) -> Self {
-        if let Some(span) = opt_span {
-            self.note = Some(("the failing assertion is here".to_string(), span.clone()));
-        }
-        self
-    }
-
-    /// Convert the original error span to a note, and add a new error span.
-    ///
-    /// Note: this is a noop if `opt_span` is None
-    pub fn push_primary_span(mut self, opt_span: Option<&MultiSpan>) -> Self {
-        if let Some(span) = opt_span {
-            self.note = Some(("the error originates here".to_string(), self.span));
-            self.span = span.clone();
-        }
-        self
-    }
 }
 
 /// The error manager
@@ -194,7 +140,7 @@ impl<'tcx> ErrorManager<'tcx> {
         self.error_contexts.insert(pos.id(), error_ctxt);
     }
 
-    pub fn translate_verification_error(&self, ver_error: &VerificationError) -> CompilerError {
+    pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
         debug!("Verification error: {:?}", ver_error);
         let pos_id = &ver_error.pos_id;
         let opt_error_span = pos_id
@@ -229,9 +175,9 @@ impl<'tcx> ErrorManager<'tcx> {
 
             match pos_id {
                 Some(ref pos_id) => {
-                    return CompilerError::new(
+                    return PrustiError::internal(
                         format!(
-                            "internal encoding error - unregistered verification error: [{}; {}] {}",
+                            "unregistered verification error: [{}; {}] {}",
                             ver_error.full_id, pos_id, ver_error.message
                         ),
                         error_span
@@ -242,9 +188,9 @@ impl<'tcx> ErrorManager<'tcx> {
                     )
                 }
                 None => {
-                    return CompilerError::new(
+                    return PrustiError::internal(
                         format!(
-                            "internal encoding error - unregistered verification error: [{}] {}",
+                            "unregistered verification error: [{}] {}",
                             ver_error.full_id, ver_error.message
                         ),
                         error_span
@@ -259,117 +205,114 @@ impl<'tcx> ErrorManager<'tcx> {
 
         match (ver_error.full_id.as_str(), error_ctxt) {
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unknown)) => {
-                CompilerError::new("statement might panic", error_span)
+                PrustiError::verification("statement might panic", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Panic)) => {
-                CompilerError::new("panic!(..) statement might panic", error_span)
+                PrustiError::verification("panic!(..) statement might panic", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Assert)) => {
-                CompilerError::new("the asserted expression might not hold", error_span)
+                PrustiError::verification("the asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unreachable)) => {
-                CompilerError::new("unreachable!(..) statement might be reachable", error_span)
+                PrustiError::verification("unreachable!(..) statement might be reachable", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Panic(PanicCause::Unimplemented)) => {
-                CompilerError::new("unimplemented!(..) statement might be reachable", error_span)
+                PrustiError::verification("unimplemented!(..) statement might be reachable", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => {
-                CompilerError::new(format!("assertion might fail with \"{}\"", message), error_span)
+                PrustiError::verification(format!("assertion might fail with \"{}\"", message), error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AbortTerminator) => {
-                CompilerError::new(format!("statement might abort"), error_span)
+                PrustiError::verification("statement might abort", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::UnreachableTerminator) => {
-                CompilerError::new(
-                    format!(
-                        "unreachable code might be reachable. This might be a bug in the compiler."
-                    ),
+                PrustiError::internal(
+                    "unreachable code might be reachable",
                     error_span
                 ).set_failing_assertion(opt_cause_span)
+                    .set_help("This might be a bug in the Rust compiler.")
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
-                CompilerError::new(format!("precondition might not hold."), error_span)
+                PrustiError::verification("precondition might not hold.", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("fold.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
-                CompilerError::new(
-                    format!(
-                        "implicit type invariant expected by the function call might not hold."
-                    ),
+                PrustiError::verification(
+                    "implicit type invariant expected by the function call might not hold.",
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleMethodPostcondition) => {
-                CompilerError::new(format!("postcondition might not hold."), error_span)
+                PrustiError::verification("postcondition might not hold.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
-                CompilerError::new(format!("loop invariant might not hold on entry."), error_span)
+                PrustiError::verification("loop invariant might not hold on entry.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("fold.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
-                CompilerError::new(
-                    format!("implicit type invariant of a variable might not hold on loop entry."),
+                PrustiError::verification(
+                    "implicit type invariant of a variable might not hold on loop entry.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => {
-                CompilerError::new(format!("loop invariant might not hold on entry."), error_span)
+                PrustiError::verification("loop invariant might not hold on entry.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
-                CompilerError::new(
-                    format!("loop invariant might not hold at the end of a loop iteration."),
+                PrustiError::verification(
+                    "loop invariant might not hold at the end of a loop iteration.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
-                CompilerError::new(
-                    format!("loop invariant might not hold at the end of a loop iteration."),
+                PrustiError::verification(
+                    "loop invariant might not hold at the end of a loop iteration.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("application.precondition:assertion.false", ErrorCtxt::PureFunctionCall) => {
-                CompilerError::new(
-                    format!("precondition of pure function call might not hold."),
+                PrustiError::verification(
+                    "precondition of pure function call might not hold.",
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("application.precondition:assertion.false", ErrorCtxt::StubPureFunctionCall) => {
-                CompilerError::new(
-                    format!("use of impure function might be reachable."),
+                PrustiError::incorrect(
+                    "use of impure function might be reachable.",
                     error_span
                 ).set_failing_assertion(opt_cause_span)
                     .set_help("Functions called from assertions should be marked as pure.")
             }
 
             ("package.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) => {
-                CompilerError::new(
-                    format!("pledge in the postcondition might not hold."),
+                PrustiError::verification(
+                    "pledge in the postcondition might not hold.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
@@ -378,8 +321,8 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::DivergingCallInPureFunction,
             ) => {
-                CompilerError::new(
-                    format!("diverging function call in pure function might be reachable."),
+                PrustiError::verification(
+                    "diverging function call in pure function might be reachable.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
@@ -388,7 +331,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unknown),
             ) => {
-                CompilerError::new("statement in pure function might panic", error_span)
+                PrustiError::verification("statement in pure function might panic", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -396,15 +339,17 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Panic),
             ) => {
-                CompilerError::new("panic!(..) statement in pure function might panic", error_span)
-                    .push_primary_span(opt_cause_span)
+                PrustiError::verification(
+                    "panic!(..) statement in pure function might panic",
+                    error_span
+                ).push_primary_span(opt_cause_span)
             }
 
             (
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Assert),
             ) => {
-                CompilerError::new("asserted expression might not hold", error_span)
+                PrustiError::verification("asserted expression might not hold", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -412,7 +357,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unreachable),
             ) => {
-                CompilerError::new(
+                PrustiError::verification(
                     "unreachable!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -422,7 +367,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PanicInPureFunction(PanicCause::Unimplemented),
             ) => {
-                CompilerError::new(
+                PrustiError::verification(
                     "unimplemented!(..) statement in pure function might be reachable",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -431,7 +376,7 @@ impl<'tcx> ErrorManager<'tcx> {
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionDefinition) |
             ("postcondition.violated:assertion.false", ErrorCtxt::PureFunctionCall) |
             ("postcondition.violated:assertion.false", ErrorCtxt::GenericExpression) => {
-                CompilerError::new(
+                PrustiError::verification(
                     "postcondition of pure function definition might not hold",
                     error_span
                 ).push_primary_span(opt_cause_span)
@@ -441,19 +386,19 @@ impl<'tcx> ErrorManager<'tcx> {
                 "application.precondition:assertion.false",
                 ErrorCtxt::PureFunctionAssertTerminator(ref message),
             ) => {
-                CompilerError::new(
+                PrustiError::verification(
                     format!("assertion might fail with \"{}\"", message),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             },
 
             ("apply.failed:assertion.false", ErrorCtxt::ApplyMagicWandOnExpiry) => {
-                CompilerError::new("obligation might not hold on borrow expiry", error_span)
+                PrustiError::verification("obligation might not hold on borrow expiry", error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostcondition) => {
-                CompilerError::new(format!("postcondition might not hold."), error_span)
+                PrustiError::verification(format!("postcondition might not hold."), error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -461,7 +406,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 "assert.failed:assertion.false",
                 ErrorCtxt::AssertMethodPostconditionTypeInvariants,
             ) => {
-                CompilerError::new(
+                PrustiError::verification(
                     format!("type invariants might not hold at the end of the method."),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
@@ -469,38 +414,38 @@ impl<'tcx> ErrorManager<'tcx> {
 
             ("fold.failed:assertion.false", ErrorCtxt::PackageMagicWandForPostcondition) |
             ("fold.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionTypeInvariants) => {
-                CompilerError::new(
+                PrustiError::verification(
                     format!("implicit type invariants might not hold at the end of the method."),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPreconditionWeakening(impl_span)) => {
-                CompilerError::new(format!("the method's precondition may not be a valid weakening of the trait's precondition."), error_span)
+                PrustiError::verification(format!("the method's precondition may not be a valid weakening of the trait's precondition."), error_span)
                     //.push_primary_span(opt_cause_span)
                     .push_primary_span(Some(&impl_span))
                     .set_help("The trait's precondition should imply the implemented method's precondition.")
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertMethodPostconditionStrengthening(impl_span)) => {
-                CompilerError::new(format!("the method's postcondition may not be a valid strengthening of the trait's postcondition."), error_span)
+                PrustiError::verification(format!("the method's postcondition may not be a valid strengthening of the trait's postcondition."), error_span)
                     //.push_primary_span(opt_cause_span)
                     .push_primary_span(Some(&impl_span))
                     .set_help("The implemented method's postcondition should imply the trait's postcondition.")
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason, ref help)) => {
-                CompilerError::new(
-                    format!("an unsupported Rust feature may be reached: {}.", reason),
+                PrustiError::unsupported(
+                    format!("an unsupported Rust feature might be reachable: {}.", reason),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
                 .set_help(help)
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {
-                CompilerError::new(
+                PrustiError::internal(
                     format!(
-                        "internal encoding error - unexpected verification error: [{}] {}",
+                        "unexpected verification error: [{}] {}",
                         full_err_id, ver_error.message
                     ),
                     error_span,
@@ -518,9 +463,9 @@ impl<'tcx> ErrorManager<'tcx> {
                     "Unhandled verification error: {:?}, context: {:?}",
                     ver_error, error_ctxt
                 );
-                CompilerError::new(
+                PrustiError::internal(
                     format!(
-                        "internal encoding error - unhandled verification error: {:?} [{}] {}",
+                        "unhandled verification error: {:?} [{}] {}",
                         error_ctxt, full_err_id, ver_error.message,
                     ),
                     error_span,
@@ -531,15 +476,6 @@ impl<'tcx> ErrorManager<'tcx> {
                     Try increasing it by setting the configuration parameter \
                     ASSERT_TIMEOUT to a larger value."
                 )
-            }
-        }
-    }
-
-    pub fn translate_encoding_error(&self, error: EncodingError) -> CompilerError {
-        match error {
-            EncodingError::Procedure(ProcedureEncodingError::UnsupportedLoanInLoop(msg, span)) |
-            EncodingError::PureFunction(PureFunctionEncodingError::CallImpure(msg, span)) => {
-                CompilerError::new(msg, span.into())
             }
         }
     }

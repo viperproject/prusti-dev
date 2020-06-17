@@ -48,11 +48,6 @@ impl<'p, 'a: 'p, 'tcx: 'a> LoopEncoder<'p, 'a, 'tcx> {
         self.loops().is_loop_head(bbi)
     }
 
-    /// Is the given basic block a loop head guard?
-    pub fn is_loop_guard_switch(&self, bbi: BasicBlockIndex) -> bool {
-        self.loops().is_loop_guard_switch(bbi)
-    }
-
     /// Note: a loop head is loop head of itself
     pub fn get_loop_head(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
         self.loops().get_loop_head(bbi)

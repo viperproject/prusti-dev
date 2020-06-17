@@ -78,7 +78,7 @@ fn heap_sort<T>(array: &mut VecWrapper<T>)
     #[invariant="array.len() < std::usize::MAX/2"]
     #[invariant="len == array.len()"]
     #[invariant="start <= len/2"]
-    #[invariant="continue_loop ==> start > 0"]
+    #[invariant="start > 0"]
     while continue_loop {
         start -= 1;
         shift_down(array, start, len - 1);
@@ -90,11 +90,12 @@ fn heap_sort<T>(array: &mut VecWrapper<T>)
     #[invariant="array.len() < std::usize::MAX/2"]
     #[invariant="len == array.len()"]
     #[invariant="end <= len"]
-    #[invariant="continue_loop ==> end > 1"]
+    #[invariant="end > 1"]
     while continue_loop {
         end -= 1;
-        array.swap(0, end);
-        shift_down(array, 0, end - 1);
+        let zero = 0;
+        array.swap(zero, end);
+        shift_down(array, zero, end - 1);
         continue_loop = end > 1;
     }
 }

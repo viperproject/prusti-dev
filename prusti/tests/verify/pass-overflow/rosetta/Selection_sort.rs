@@ -80,7 +80,7 @@ fn selection_sort(mut array: &mut VecWrapperI32) {
     let mut i = 0;
     let mut continue_loop_1 = i < array.len();
     #[invariant="array.len() == old(array.len())"]
-    #[invariant="0 <= i && i <= array.len()"]
+    #[invariant="0 <= i && i < array.len()"]
     #[invariant="continue_loop_1 ==> i < array.len()"]
     #[invariant="!continue_loop_1 ==> i == array.len()"]
     #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < i) ==>
@@ -100,10 +100,7 @@ fn selection_sort(mut array: &mut VecWrapperI32) {
                      array.lookup(k1) <= array.lookup(k2)"]
 
         #[invariant="i < j"]
-        #[invariant="j <= array.len()"]
-        #[invariant="continue_loop_2 ==> j < array.len()"]
-        #[invariant="!continue_loop_2 ==> j == array.len()"]
-
+        #[invariant="j < array.len()"]
         #[invariant="i <= min"]
         #[invariant="min < array.len()"]
         #[invariant="forall k1: usize :: (0 <= k1 && k1 < i) ==>

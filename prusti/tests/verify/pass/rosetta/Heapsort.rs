@@ -116,7 +116,7 @@ fn heap_sort(array: &mut VecWrapperI32)
     // Create heap
     #[invariant="len == array.len()"]
     #[invariant="start <= len/2"]
-    #[invariant="continue_loop ==> start > 0"]
+    #[invariant="start > 0"]
     while continue_loop {
         start -= 1;
         shift_down(array, start, len - 1);
@@ -127,7 +127,7 @@ fn heap_sort(array: &mut VecWrapperI32)
     let mut continue_loop = end > 1;
     #[invariant="len == array.len()"]
     #[invariant="end <= len"]
-    #[invariant="continue_loop ==> end > 1"]
+    #[invariant="end > 1"]
     while continue_loop {
         end -= 1;
         let start = 0;

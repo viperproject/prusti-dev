@@ -53,7 +53,6 @@ impl fmt::Display for Successor {
         match self {
             &Successor::Undefined => writeln!(f, "Undefined"),
             &Successor::Return => writeln!(f, "Return"),
-            &Successor::BackEdge(ref target) => writeln!(f, "BackEdge Goto({})", target),
             &Successor::Goto(ref target) => writeln!(f, "Goto({})", target),
             &Successor::GotoSwitch(ref guarded_targets, ref default_target) => writeln!(
                 f,

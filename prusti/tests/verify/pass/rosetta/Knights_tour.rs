@@ -191,7 +191,7 @@ impl Board {
         let mut i = 0;
         let mut continue_loop = i < moves.len();
         #[invariant="0 <= i"]
-        #[invariant="continue_loop ==> i < moves.len()"]
+        #[invariant="i < moves.len()"]
         while continue_loop {
             let mut dir = moves.lookup(i);
             let next = p.mov(&mut dir);
@@ -239,7 +239,7 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
         let mut i = 0;
         let mut continue_loop_3 = i < moves.len();
         #[invariant="0 <= i"]
-        #[invariant="continue_loop_3 ==> i < moves.len()"]
+        #[invariant="i < moves.len()"]
         #[invariant="0 <= p.x && p.x < size()"]
         #[invariant="0 <= p.y && p.y < size()"]
         while continue_loop_3 {
@@ -258,7 +258,7 @@ fn knights_tour(x: i32, y: i32) -> Option<Board> {
         let mut min = None;
         let mut min_degree = size() * size();
         #[invariant="0 <= i"]
-        #[invariant="continue_loop_2 ==> i < candidates.len()"]
+        #[invariant="i < candidates.len()"]
         #[invariant="valid(&min)"]
         while continue_loop_2 {
             let (degree, adj) = candidates.lookup(i);

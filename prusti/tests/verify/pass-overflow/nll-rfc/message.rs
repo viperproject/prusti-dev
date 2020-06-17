@@ -100,7 +100,7 @@ fn router(
     let mut tx = tx;
     let mut message_option = rx.recv();
     let mut is_some = message_option.is_some();
-    #[invariant="is_some ==> message_option.is_some()"]
+    #[invariant="message_option.is_some()"]
     while is_some {
         let mut message = message_option.take();
         message_option = rx.recv();
