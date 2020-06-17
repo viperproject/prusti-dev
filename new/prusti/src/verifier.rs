@@ -11,7 +11,7 @@ use rustc_middle::ty::TyCtxt;
 use std::collections::HashMap;
 // use prusti_interface::specifications::TypedSpecificationMap;
 
-pub fn verify(tcx: TyCtxt, spec: HashMap<DefId, typed::ProcedureSpecification>) {
+pub fn verify(tcx: TyCtxt, spec: typed::SpecificationMap) {
     trace!("[verify] enter");
 
     let env = Environment::new(tcx);

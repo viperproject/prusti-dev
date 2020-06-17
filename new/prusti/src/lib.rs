@@ -77,10 +77,15 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             intravisit::walk_crate(&mut visitor, &krate);
             let type_map = visitor.determine_typed_procedure_specs();
             if self.print_typeckd_specs {
-                let mut sorted_def_ids: Vec<_> = type_map.keys().cloned().collect();
-                sorted_def_ids.sort();
-                for def_id in sorted_def_ids {
-                    println!("{:?} {:?}", def_id, type_map[&def_id]);
+                let mut values: Vec<_> = type_map
+                    .values()
+                    .map(|spec| format!("{:?}", spec))
+                    .collect();
+                // We sort in this strange way so that the output is
+                // determinstic enough to be used in tests.
+                values.sort_by_key(|v| (v.len(), v.to_string()));
+                for value in values {
+                    println!("{}", value);
                 }
             }
             verifier::verify(tcx, type_map);

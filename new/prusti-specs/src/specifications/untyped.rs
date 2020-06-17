@@ -160,7 +160,7 @@ impl EncodeTypeCheck for Expression {
         let expr = &self.expr;
         let identifier = format!("{}_{}", self.spec_id, self.id);
         let typeck_call = quote_spanned! { span =>
-            #[doc = #identifier]
+            #[prusti::expr_id = #identifier]
             || -> bool {
                 #expr
             };

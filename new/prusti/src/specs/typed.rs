@@ -3,7 +3,7 @@ use prusti_specs::specifications::json;
 use rustc_hir::BodyId;
 use std::collections::HashMap;
 
-pub use common::{ExpressionId, SpecType};
+pub use common::{ExpressionId, SpecType, SpecificationId};
 
 // TODO: Replace with a proper one.
 type Arg = ();

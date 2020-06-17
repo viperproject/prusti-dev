@@ -1,31 +1,38 @@
-#[prelude_import]
-use std::prelude::v1::*;
-#[macro_use]
-extern crate std;
 // compile-flags: -Zprint-desugared-specs -Zprint-typeckd-specs
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::v1::*;
+#[macro_use]
+extern crate std;
+
 use prusti_contracts::*;
 
-#[allow(unused_doc_comments)]
-#[doc =
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
   "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
 fn prusti_pre_item_test1_$(NUM_UUID)() {
 
-    #[doc = "$(NUM_UUID)_101"]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
     || -> bool { true };
 }
+#[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 fn test1() { }
 
-#[allow(unused_doc_comments)]
-#[doc =
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
   "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
 fn prusti_post_item_test2_$(NUM_UUID)() {
 
-    #[doc = "$(NUM_UUID)_101"]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
     || -> bool { true };
 }
+#[prusti::post_spec_id_ref = "$(NUM_UUID)"]
 fn test2() { }
 
 fn test3() {
@@ -40,46 +47,57 @@ fn test3() {
                 {
                     if false
                     {
-                        #
-                        [doc =
+                        # [prusti :: spec_only] #
+                        [prusti :: spec_id =
+                         "$(NUM_UUID)"] #
+                        [prusti :: assertion =
                          "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
                         let _prusti_loop_invariant =
                         {
-                            # [doc = "$(NUM_UUID)_101"]
-                            || -> bool { true } ;
+                            #
+                            [prusti :: expr_id =
+                             "$(NUM_UUID)_101"] || ->
+                            bool { true } ;
                         } ;
                     }
                 }
             }
             if false {
-                #[doc =
+                #[prusti::spec_only]
+                #[prusti::spec_id = "$(NUM_UUID)"]
+                #[prusti::assertion =
                   "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
                 let _prusti_loop_invariant =
                     {
 
-                        #[doc = "$(NUM_UUID)_101"]
+                        #[prusti::expr_id =
+                          "$(NUM_UUID)_101"]
                         || -> bool { true };
                     };
             }
         }
     }
 }
-#[allow(unused_doc_comments)]
-#[doc =
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
   "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
 fn prusti_pre_item_test4_$(NUM_UUID)() {
 
-    #[doc = "$(NUM_UUID)_101"]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
     || -> bool { true };
 }
-#[allow(unused_doc_comments)]
-#[doc =
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+#[prusti::assertion =
   "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
 fn prusti_post_item_test4_$(NUM_UUID)() {
 
-    #[doc = "$(NUM_UUID)_101"]
+    #[prusti::expr_id = "$(NUM_UUID)_101"]
     || -> bool { true };
 }
+#[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 fn test4() {
     for _ in 0..2 {
         {
@@ -90,24 +108,31 @@ fn test4() {
                 {
                     if false
                     {
-                        #
-                        [doc =
+                        # [prusti :: spec_only] #
+                        [prusti :: spec_id =
+                         "$(NUM_UUID)"] #
+                        [prusti :: assertion =
                          "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
                         let _prusti_loop_invariant =
                         {
-                            # [doc = "$(NUM_UUID)_101"]
-                            || -> bool { true } ;
+                            #
+                            [prusti :: expr_id =
+                             "$(NUM_UUID)_101"] || ->
+                            bool { true } ;
                         } ;
                     }
                 }
             }
             if false {
-                #[doc =
+                #[prusti::spec_only]
+                #[prusti::spec_id = "$(NUM_UUID)"]
+                #[prusti::assertion =
                   "{/"kind/":{/"Expr/":{/"spec_id/":/"$(UUID)/",/"expr_id/":101}}}"]
                 let _prusti_loop_invariant =
                     {
 
-                        #[doc = "$(NUM_UUID)_101"]
+                        #[prusti::expr_id =
+                          "$(NUM_UUID)_101"]
                         || -> bool { true };
                     };
             }
@@ -115,8 +140,9 @@ fn test4() {
     }
 }
 fn main() { }
-DefId(0:4 ~ true[317d]::test3[0]) ProcedureSpecification { pres: [], posts: [] }
-DefId(0:5 ~ true[317d]::main[0]) ProcedureSpecification { pres: [], posts: [] }
-DefId(0:8 ~ true[317d]::test1[0]) ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:6 ~ true[317d]::prusti_pre_item_test1_$(NUM_UUID)[0]), local_id: 5 } } }) }], posts: [] }
-DefId(0:11 ~ true[317d]::test2[0]) ProcedureSpecification { pres: [], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:9 ~ true[317d]::prusti_post_item_test2_$(NUM_UUID)[0]), local_id: 5 } } }) }] }
-DefId(0:22 ~ true[317d]::test4[0]) ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:18 ~ true[317d]::prusti_pre_item_test4_$(NUM_UUID)[0]), local_id: 5 } } }) }], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:20 ~ true[317d]::prusti_post_item_test4_$(NUM_UUID)[0]), local_id: 5 } } }) }] }
+Loop(LoopSpecification { invariant: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:4 ~ true[317d]::test3[0]), local_id: 59 } } }) }] })
+Loop(LoopSpecification { invariant: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:22 ~ true[317d]::test4[0]), local_id: 59 } } }) }] })
+Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:6 ~ true[317d]::prusti_pre_item_test1_$(NUM_UUID)[0]), local_id: 5 } } }) }], posts: [] })
+Procedure(ProcedureSpecification { pres: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:18 ~ true[317d]::prusti_pre_item_test4_$(NUM_UUID)[0]), local_id: 5 } } }) }], posts: [] })
+Procedure(ProcedureSpecification { pres: [], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:9 ~ true[317d]::prusti_post_item_test2_$(NUM_UUID)[0]), local_id: 5 } } }) }] })
+Procedure(ProcedureSpecification { pres: [], posts: [Assertion { kind: Expr(Expression { spec_id: SpecificationId($(UUID)), id: ExpressionId(101), expr: BodyId { hir_id: HirId { owner: DefId(0:20 ~ true[317d]::prusti_post_item_test4_$(NUM_UUID)[0]), local_id: 5 } } }) }] })

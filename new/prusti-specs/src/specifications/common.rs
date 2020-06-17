@@ -40,7 +40,9 @@ impl<'a> TryFrom<&'a str> for SpecType {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord,
+)]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
 pub struct SpecificationId(Uuid);
@@ -52,6 +54,13 @@ impl Display for SpecificationId {
             "{}",
             self.0.to_simple().encode_lower(&mut Uuid::encode_buffer()),
         )
+    }
+}
+
+impl std::convert::TryFrom<String> for SpecificationId {
+    type Error = uuid::Error;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Uuid::parse_str(&value).map(|id| Self(id))
     }
 }
 
@@ -223,11 +232,11 @@ pub struct Specification<EID, ET, AT> {
 #[derive(Debug, Clone)]
 pub struct LoopSpecification<EID, ET, AT> {
     /// Loop invariant.
-    pub invariant: Vec<Specification<EID, ET, AT>>,
+    pub invariant: Vec<Assertion<EID, ET, AT>>,
 }
 
 impl<EID, ET, AT> LoopSpecification<EID, ET, AT> {
-    pub fn new(invariant: Vec<Specification<EID, ET, AT>>) -> Self {
+    pub fn new(invariant: Vec<Assertion<EID, ET, AT>>) -> Self {
         Self { invariant }
     }
     pub fn empty() -> Self {

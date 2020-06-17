@@ -67,10 +67,12 @@ impl AstRewriter {
         );
         let mut statements = TokenStream::new();
         assertion.encode_type_check(&mut statements);
+        let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
         let mut spec_item: syn::ItemFn = syn::parse_quote! {
-            #[allow(unused_doc_comments)]
-            #[doc = #assertion_json]
+            #[prusti::spec_only]
+            #[prusti::spec_id = #spec_id_str]
+            #[prusti::assertion = #assertion_json]
             fn #item_name() {
                 #statements
             }
@@ -80,13 +82,21 @@ impl AstRewriter {
         Ok(syn::Item::Fn(spec_item))
     }
     /// Generate statements for checking the given loop invariant.
-    pub fn generate_spec_loop(&mut self, assertion: untyped::Assertion) -> TokenStream {
+    pub fn generate_spec_loop(
+        &mut self,
+        spec_id: untyped::SpecificationId,
+        assertion: untyped::Assertion,
+    ) -> TokenStream {
         let mut statements = TokenStream::new();
         assertion.encode_type_check(&mut statements);
+        let spec_id_str = spec_id.to_string();
         let assertion_json = crate::specifications::json::to_json_string(&assertion);
         quote! {
-            #[doc = #assertion_json]
-            let _prusti_loop_invariant = {
+            #[prusti::spec_only]
+            #[prusti::spec_id = #spec_id_str]
+            #[prusti::assertion = #assertion_json]
+            let _prusti_loop_invariant =
+            {
                 #statements
             };
         }
