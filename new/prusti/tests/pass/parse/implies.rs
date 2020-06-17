@@ -4,7 +4,7 @@
 
 use prusti_contracts::*;
 
-#[requires(false && true && true)]
+#[requires(true ==> true && true)]
 fn test1() {}
 
 // #[ensures((1+1 == 2) && ((1 + 1) == 2))]

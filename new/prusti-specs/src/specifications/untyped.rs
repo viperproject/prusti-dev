@@ -33,9 +33,9 @@ impl Assertion {
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> syn::Result<Self> {
-        let mut parser = Parser::new(tokens.clone());
+        let mut parser = Parser::new(tokens);
         let assertion = parser.extract_assertion()?;
-        // let assertion: common::Assertion<(), syn::Expr, Arg> = syn::parse2(tokens)?;
+        println!("{:#?}", assertion);
         Ok(assertion.assign_id(spec_id, id_generator))
     }
 }
@@ -92,15 +92,16 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
         use common::AssertionKind::*;
         match self {
             Expr(expr) => Expr(expr.assign_id(spec_id, id_generator)),
-            And(vec_assertions) => {
-                let mut v = vec![];
-                for assertion in vec_assertions {
-                    v.push(Assertion{
-                        kind: assertion.kind.assign_id(spec_id, id_generator)
-                    })
-                }
-                And(v)
-            }
+            And(assertions) => And(
+                assertions.into_iter()
+                          .map(|assertion|
+                              Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
+                          .collect()),
+            Implies(lhs, rhs) => Implies(
+                lhs.assign_id(spec_id, id_generator),
+                rhs.assign_id(spec_id, id_generator)
+            ),
+
             x => unimplemented!("{:?}", x),
         }
     }
@@ -153,10 +154,14 @@ impl EncodeTypeCheck for Assertion {
             AssertionKind::Expr(expression) => {
                 expression.encode_type_check(tokens);
             }
-            AssertionKind::And(vec_assertions) => {
-                for assertion in vec_assertions {
+            AssertionKind::And(assertions) => {
+                for assertion in assertions {
                     assertion.encode_type_check(tokens);
                 }
+            }
+            AssertionKind::Implies(lhs, rhs) => {
+                lhs.encode_type_check(tokens);
+                rhs.encode_type_check(tokens);
             }
             x => {
                 unimplemented!("{:?}", x);

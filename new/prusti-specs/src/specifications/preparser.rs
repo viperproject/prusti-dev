@@ -2,6 +2,7 @@ use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree};
 use std::collections::VecDeque;
 use std::mem;
 use syn::parse::ParseBuffer;
+use quote::ToTokens;
 
 use super::common;
 
@@ -101,7 +102,7 @@ pub struct Parser {
     input: ParserStream,
     conjuncts: Vec<AssertionWithoutId>,
     expr: Vec<TokenTree>,
-    consumed_expression: bool,
+    previous_expression_nested: bool
 }
 
 impl Parser {
@@ -111,14 +112,56 @@ impl Parser {
             input: input,
             conjuncts: Vec::new(),
             expr: Vec::new(),
-            consumed_expression: false,
+            previous_expression_nested: false
         }
     }
 
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         while !self.input.is_empty() {
             if self.input.check_and_consume_operator("&&") {
-                self.convert_expr_into_conjunct()?;
+                // convert the current expression into a conjunct if it was not nested
+                // (and thus already resolved)
+                if !self.previous_expression_nested {
+                    self.convert_expr_into_conjunct()?;
+                }
+            }
+
+            else if self.input.check_and_consume_operator("==>") {
+                if !self.previous_expression_nested {
+                    self.convert_expr_into_conjunct()?;
+                }
+                let mut parser = Parser {
+                    input: mem::replace(&mut self.input, ParserStream::empty()),
+                    conjuncts: Vec::new(),
+                    expr: Vec::new(),
+                    previous_expression_nested: false,
+                };
+                let lhs = self.conjuncts_to_assertion()?;
+                let rhs = parser.extract_assertion()?;
+                return Ok(AssertionWithoutId{
+                    kind: Box::new(common::AssertionKind::Implies(lhs, rhs))
+                });
+            }
+
+            else if let Some(group) = self.input.check_nested_assertion() {
+                if self.expr.is_empty() && (self.input.is_empty() || self.input.peek_any_operator()) {
+                    let mut parser = Parser::new(group.stream());
+                    let conjunct = parser.extract_assertion()?;
+
+                    if let common::AssertionKind::Expr(expr) = *conjunct.kind {
+                        // the expression is just a plain expression, and therefore can be extended
+                        let stream = expr.expr.to_token_stream();
+                        self.expr.extend(stream.into_iter());
+                    }
+                    else{
+                        // the expression is a conjunction, and therefore is pushed to the result
+                        self.previous_expression_nested = true;
+                        self.conjuncts.push(conjunct);
+                    }
+                }
+                else {
+                    self.expr.push(TokenTree::Group(group));
+                }
             }
             else{
                 let token = self.input.pop().unwrap();
@@ -133,12 +176,23 @@ impl Parser {
     }
 
     fn conjuncts_to_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
-        let conjuncts = mem::replace(&mut self.conjuncts, Vec::new());
-        println!("{:#?} {}", conjuncts, conjuncts.len());
-        println!("######################################");
-        Ok(AssertionWithoutId{
-            kind: Box::new(common::AssertionKind::And(conjuncts))
-        })
+        let mut conjuncts = mem::replace(&mut self.conjuncts, Vec::new());
+        if conjuncts.len() == 1 {
+            let conjunct = conjuncts.pop().unwrap();
+            if let common::AssertionKind::Expr(expr) = *conjunct.kind {
+                Ok(AssertionWithoutId{
+                    kind: Box::new(common::AssertionKind::Expr(expr))
+                })
+            }
+            else{
+                unreachable!();
+            }
+        }
+        else{
+            Ok(AssertionWithoutId{
+                kind: Box::new(common::AssertionKind::And(conjuncts))
+            })
+        }
     }
 
     fn convert_expr_into_conjunct(&mut self) -> syn::Result<()> {
