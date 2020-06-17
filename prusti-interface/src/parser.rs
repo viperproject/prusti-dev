@@ -1475,6 +1475,8 @@ impl<'tcx> SpecParser<'tcx> {
                 if spec_trees.len() == 1 {
                     spec_trees[0].clone()
                 } else if spec_trees.len() == 5 && attribute.path.to_string().starts_with("refine_") {
+                    // len 5 because 5 inner tokens in #[refine_...(Trait::method="contract")]
+                    //                                              111112233333345555555555
                     let trait_symbol = if let TokenTree::Token(_, token::Token::Ident(ref ident, _)) = spec_trees[0] {
                         ident.name.clone()
                     } else {
@@ -2241,18 +2243,22 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                 ast::ItemKind::Trait(is_auto, unsafety, generics, bounds, trait_items) => {
                     let mut item = item.into_inner();
 
-                    let reg = self.register.lock().unwrap();
-                    let trait_id = reg.get_id(&item);
-                    let is_registered = reg.is_trait_specid_registered(&item);
                     let trait_symbol = item.ident.name.clone();
-                    let funcs_symbols = reg.get_funcs_for_trait(&trait_symbol);
-                    drop(reg);
+                    let (trait_id, is_registered, funcs_symbols) = {
+                        let reg = self.register.lock().unwrap();
+                        (
+                            reg.get_id(&item),
+                            reg.is_trait_specid_registered(&item),
+                            reg.get_funcs_for_trait(&trait_symbol)
+                        )
+                    };
                     if !is_registered {
                         let empty_spec = SpecificationSet::Struct(Vec::new());
                         let specid = self.register_specification(empty_spec);
-                        let mut reg = self.register.lock().unwrap();
-                        reg.register_specid(trait_id, specid.clone());
-                        drop(reg);
+                        {
+                            let mut reg = self.register.lock().unwrap();
+                            reg.register_specid(trait_id, specid.clone());
+                        }
                         item.attrs.push(self.ast_builder.attribute_name_value(
                                 item.span,
                                 PRUSTI_SPEC_ATTR,
@@ -2280,9 +2286,10 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                             ast::TraitItemKind::Method(..) => {
                                 let method_symbol = trait_item.ident.name.clone();
                                 let func_ref = (trait_symbol.clone(), method_symbol);
-                                let reg = self.register.lock().unwrap();
-                                let func_attrs = reg.get_attrs_refine(&func_ref);
-                                drop(reg);
+                                let func_attrs = {
+                                    let reg = self.register.lock().unwrap();
+                                    reg.get_attrs_refine(&func_ref)
+                                };
                                 let func_specs = self.parse_specs(func_attrs);
                                 new_trait_items.extend(self.rewrite_trait_item_method(trait_item, func_specs));
                             }
