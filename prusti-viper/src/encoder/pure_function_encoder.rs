@@ -228,7 +228,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
         foldunfold::add_folding_unfolding_to_function(
             function,
             self.encoder.get_used_viper_predicates_map(),
-        )
+        ).ok().unwrap() // TODO: return a result
     }
 
     /// Encode the precondition with two expressions:

@@ -8,6 +8,7 @@ use encoder::foldunfold::perm::*;
 use encoder::vir;
 use encoder::vir::PermAmount;
 use std::fmt;
+use encoder::foldunfold::FoldUnfoldError;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Action {
@@ -37,19 +38,21 @@ impl Action {
         }
     }
 
-    pub fn to_expr(&self, inner_expr: vir::Expr) -> vir::Expr {
+    pub fn to_expr(&self, inner_expr: vir::Expr) -> Result<vir::Expr, FoldUnfoldError> {
         match self {
-            Action::Fold(ref _pred, ref _args, _perm, ref _variant, _) => {
+            Action::Fold(ref pred, ref args, perm, ref variant, ref position) => {
                 // Currently unsupported in Viper
-                unimplemented!("action {}", self)
+                Err(FoldUnfoldError::RequiresFolding(
+                    pred.clone(), args.clone(), *perm, variant.clone(), position.clone()
+                ))
             }
 
             Action::Unfold(ref pred, ref args, perm, ref variant) => {
-                vir::Expr::unfolding(
-                    pred.clone(), args.clone(), inner_expr, *perm, variant.clone())
+                Ok(vir::Expr::unfolding(
+                    pred.clone(), args.clone(), inner_expr, *perm, variant.clone()))
             }
 
-            Action::Drop(..) => inner_expr,
+            Action::Drop(..) => Ok(inner_expr),
         }
     }
 }

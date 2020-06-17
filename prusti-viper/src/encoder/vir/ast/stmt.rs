@@ -402,6 +402,188 @@ pub trait StmtFolder {
     }
 }
 
+pub trait FallibleStmtFolder {
+    type Error;
+
+    fn fallible_fold(&mut self, e: Stmt) -> Result<Stmt, Self::Error> {
+        match e {
+            Stmt::Comment(s) => self.fallible_fold_comment(s),
+            Stmt::Label(s) => self.fallible_fold_label(s),
+            Stmt::Inhale(expr, folding) => self.fallible_fold_inhale(expr, folding),
+            Stmt::Exhale(e, p) => self.fallible_fold_exhale(e, p),
+            Stmt::Assert(expr, folding, pos) => self.fallible_fold_assert(expr, folding, pos),
+            Stmt::MethodCall(s, ve, vv) => self.fallible_fold_method_call(s, ve, vv),
+            Stmt::Assign(p, e, k) => self.fallible_fold_assign(p, e, k),
+            Stmt::Fold(s, ve, perm, variant, p) => {
+                self.fallible_fold_fold(s, ve, perm, variant, p)
+            }
+            Stmt::Unfold(s, ve, perm, variant) => self.fallible_fold_unfold(s, ve, perm, variant),
+            Stmt::Obtain(e, p) => self.fallible_fold_obtain(e, p),
+            Stmt::BeginFrame => self.fallible_fold_begin_frame(),
+            Stmt::EndFrame => self.fallible_fold_end_frame(),
+            Stmt::TransferPerm(a, b, c) => self.fallible_fold_transfer_perm(a, b, c),
+            Stmt::PackageMagicWand(w, s, l, v, p) => {
+                self.fallible_fold_package_magic_wand(w, s, l, v, p)
+            }
+            Stmt::ApplyMagicWand(w, p) => self.fallible_fold_apply_magic_wand(w, p),
+            Stmt::ExpireBorrows(d) => self.fallible_fold_expire_borrows(d),
+            Stmt::If(g, t) => self.fallible_fold_if(g, t),
+        }
+    }
+
+    fn fallible_fold_expr(&mut self, expr: Expr) -> Result<Expr, Self::Error> {
+        Ok(expr)
+    }
+
+    fn fallible_fold_comment(&mut self, s: String) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Comment(s))
+    }
+
+    fn fallible_fold_label(&mut self, s: String) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Label(s))
+    }
+
+    fn fallible_fold_inhale(
+        &mut self,
+        expr: Expr,
+        folding: FoldingBehaviour
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Inhale(self.fallible_fold_expr(expr)?, folding))
+    }
+
+    fn fallible_fold_exhale(&mut self, e: Expr, p: Position) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Exhale(self.fallible_fold_expr(e)?, p))
+    }
+
+    fn fallible_fold_assert(
+        &mut self,
+        expr: Expr,
+        folding: FoldingBehaviour,
+        pos: Position
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Assert(self.fallible_fold_expr(expr)?, folding, pos))
+    }
+
+    fn fallible_fold_method_call(
+        &mut self,
+        name: String,
+        args: Vec<Expr>,
+        targets: Vec<LocalVar>
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::MethodCall(
+            name,
+            args.into_iter().map(|e| self.fallible_fold_expr(e)).collect::<Result<_, _>>()?,
+            targets
+        ))
+    }
+
+    fn fallible_fold_assign(
+        &mut self,
+        p: Expr,
+        e: Expr,
+        k: AssignKind
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Assign(
+            self.fallible_fold_expr(p)?,
+            self.fallible_fold_expr(e)?,
+            k
+        ))
+    }
+
+    fn fallible_fold_fold(
+        &mut self,
+        predicate_name: String,
+        args: Vec<Expr>,
+        perm_amount: PermAmount,
+        variant: MaybeEnumVariantIndex,
+        pos: Position
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Fold(
+            predicate_name,
+            args.into_iter().map(|e| self.fallible_fold_expr(e)).collect::<Result<_, _>>()?,
+            perm_amount,
+            variant,
+            pos,
+        ))
+    }
+
+    fn fallible_fold_unfold(
+        &mut self,
+        predicate_name: String,
+        args: Vec<Expr>,
+        perm_amount: PermAmount,
+        variant: MaybeEnumVariantIndex,
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Unfold(
+            predicate_name,
+            args.into_iter().map(|e| self.fallible_fold_expr(e)).collect::<Result<_, _>>()?,
+            perm_amount,
+            variant,
+        ))
+    }
+
+    fn fallible_fold_obtain(&mut self, e: Expr, p: Position) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Obtain(self.fallible_fold_expr(e)?, p))
+    }
+
+    fn fallible_fold_begin_frame(&mut self) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::BeginFrame)
+    }
+
+    fn fallible_fold_end_frame(&mut self) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::EndFrame)
+    }
+
+    fn fallible_fold_transfer_perm(
+        &mut self,
+        a: Expr,
+        b: Expr,
+        unchecked: bool
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::TransferPerm(
+            self.fallible_fold_expr(a)?,
+            self.fallible_fold_expr(b)?,
+            unchecked
+        ))
+    }
+
+    fn fallible_fold_package_magic_wand(
+        &mut self,
+        wand: Expr,
+        body: Vec<Stmt>,
+        label: String,
+        vars: Vec<LocalVar>,
+        pos: Position,
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::PackageMagicWand(
+            self.fallible_fold_expr(wand)?,
+            body.into_iter().map(|x| self.fallible_fold(x)).collect::<Result<_, _>>()?,
+            label,
+            vars,
+            pos,
+        ))
+    }
+
+    fn fallible_fold_apply_magic_wand(
+        &mut self,
+        w: Expr,
+        p: Position
+    ) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::ApplyMagicWand(self.fallible_fold_expr(w)?, p))
+    }
+
+    fn fallible_fold_expire_borrows(&mut self, dag: ReborrowingDAG) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::ExpireBorrows(dag))
+    }
+
+    fn fallible_fold_if(&mut self, g: Expr, t: Vec<Stmt>) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::If(
+            self.fallible_fold_expr(g)?,
+            t.into_iter().map(|x| self.fallible_fold(x)).collect::<Result<_, _>>()?,
+        ))
+    }
+}
+
 pub trait StmtWalker {
     fn walk(&mut self, e: &Stmt) {
         match e {

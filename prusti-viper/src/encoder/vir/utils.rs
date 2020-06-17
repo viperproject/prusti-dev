@@ -9,6 +9,7 @@
 use encoder::vir;
 use encoder::vir::ExprFolder;
 use encoder::vir::StmtFolder;
+use encoder::vir::FallibleStmtFolder;
 
 /// Substitute (map) expressions in a statement
 impl vir::Stmt {
@@ -32,6 +33,30 @@ impl vir::Stmt {
             }
         }
         StmtExprSubstitutor { substitutor }.fold(self)
+    }
+
+    pub fn fallible_map_expr<F, E>(self, substitutor: F) -> Result<Self, E>
+    where
+        F: Fn(vir::Expr) -> Result<vir::Expr, E>
+    {
+        trace!("Stmt::fallible_map_expr {}", self);
+        struct StmtExprSubstitutor<T, U>
+        where
+            T: Fn(vir::Expr) -> Result<vir::Expr, U>,
+        {
+            substitutor: T,
+        }
+        impl<T, U> vir::FallibleStmtFolder for StmtExprSubstitutor<T, U>
+        where
+            T: Fn(vir::Expr) -> Result<vir::Expr, U>,
+        {
+            type Error = U;
+
+            fn fallible_fold_expr(&mut self, e: vir::Expr) -> Result<vir::Expr, U> {
+                (self.substitutor)(e)
+            }
+        }
+        StmtExprSubstitutor { substitutor }.fallible_fold(self)
     }
 }
 
