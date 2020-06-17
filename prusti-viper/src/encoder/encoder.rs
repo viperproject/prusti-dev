@@ -501,7 +501,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 let final_function = foldunfold::add_folding_unfolding_to_function(
                     function,
                     self.get_used_viper_predicates_map(),
-                );
+                ).ok().unwrap(); // TODO: generate a stub function in case of error
                 final_function
             });
         vir::Expr::FuncApp(

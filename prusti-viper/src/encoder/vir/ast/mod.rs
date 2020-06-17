@@ -7,6 +7,7 @@
 pub use self::bodyless_method::*;
 pub use self::common::*;
 pub use self::expr::*;
+pub use self::expr_transformers::*;
 pub use self::function::*;
 pub use self::predicate::*;
 pub use self::stmt::*;
@@ -15,6 +16,7 @@ pub use self::trigger::*;
 mod bodyless_method;
 mod common;
 mod expr;
+mod expr_transformers;
 mod function;
 mod predicate;
 mod stmt;
