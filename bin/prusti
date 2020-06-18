@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# © 2019, ETH Zurich
+# © 2020, ETH Zurich
 #
 # Licensed under the Mozilla Public License Version 2.0 (see LICENSE or
 # http://www.mozilla.org/MPL/2.0/). This file may not be copied,
@@ -13,111 +13,23 @@ error() { >&2 echo -e "[!] ${*}"; }
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 info "Executing Prusti script located in '$DIR'"
 
-# Read and set some environment variables
-export JAVA_HOME=${JAVA_HOME:-"/usr/lib/jvm/default-java"}
-export RUST_LOG=${RUST_LOG:-info}
-
-# Set RUSTUP_TOOLCHAIN
-if [ -r "/usr/local/prusti/rust-toolchain" ]; then
-	RUSTUP_TOOLCHAIN="$(cat "/usr/local/prusti/rust-toolchain")"
+# Set PRUSTI_RUSTC
+if [ -x "$DIR/../target/debug/prusti-rustc" ]; then
+	[[ "$DIR/../target/debug/prusti-rustc" -nt "$PRUSTI_RUSTC" ]] \
+	    && PRUSTI_RUSTC="$DIR/../target/debug/prusti-rustc"
 fi
-if [ -r "$DIR/../rust-toolchain" ]; then
-	RUSTUP_TOOLCHAIN="$(cat "$DIR/../rust-toolchain")"
+if [ -x "$DIR/../target/release/prusti-rustc" ]; then
+	[[ "$DIR/../target/release/prusti-rustc" -nt "$PRUSTI_RUSTC" ]] \
+	    && PRUSTI_RUSTC="$DIR/../target/release/prusti-rustc"
 fi
-if [ -z "$RUSTUP_TOOLCHAIN" ]; then
-	error "Unable to set RUSTUP_TOOLCHAIN."
-	error "It looks like Prusti has not been downloaded or installed properly."
-	exit 1
-else
-	info "Using RUSTUP_TOOLCHAIN '$RUSTUP_TOOLCHAIN'"
-fi
-
-# The compiler version for which Prusti has been compiled
-RUST_VERSION="$RUSTUP_TOOLCHAIN-x86_64-unknown-linux-gnu"
-
-# Check JAVA_HOME
-if [ ! -d "$JAVA_HOME" ]; then
-	error "Unable to find JAVA_HOME."
-	error "It looks like the JAVA_HOME environment variable has not been set."
-	exit 1
-fi
-
-# Set COMPILER_PATH
-if [ -d "/usr/local/rustup/toolchains/${RUST_VERSION}" ]; then
-	COMPILER_PATH="/usr/local/rustup/toolchains/${RUST_VERSION}"
-fi
-if [ -d "$HOME/.rustup/toolchains/${RUST_VERSION}" ]; then
-	COMPILER_PATH="$HOME/.rustup/toolchains/${RUST_VERSION}"
-fi
-if [ -d "$RUSTUP_HOME/toolchains/${RUST_VERSION}" ]; then
-	COMPILER_PATH="$RUSTUP_HOME/toolchains/${RUST_VERSION}"
-fi
-if [ -z "$COMPILER_PATH" ]; then
-	error "Unable to find COMPILER_PATH."
-	error "It looks like the Rust compiler version '${RUST_VERSION}' has not been installed with the rustup tool."
-	exit 1
-else
-	info "Using COMPILER_PATH '$COMPILER_PATH'"
-	# TODO: can ''-L $COMPILER_PATH/...' be substituted with '--sysroot $COMPILER_PATH'?
-fi
-
-# Set PRUSTI_DRIVER
-if [ -x "/usr/local/prusti/prusti-driver" ]; then
-	PRUSTI_DRIVER="/usr/local/prusti/prusti-driver"
-fi
-if [ -x "$DIR/../target/debug/prusti-driver" ]; then
-	[[ "$DIR/../target/debug/prusti-driver" -nt "$PRUSTI_DRIVER" ]] && PRUSTI_DRIVER="$DIR/../target/debug/prusti-driver"
-fi
-if [ -x "$DIR/../target/release/prusti-driver" ]; then
-	[[ "$DIR/../target/release/prusti-driver" -nt "$PRUSTI_DRIVER" ]] && PRUSTI_DRIVER="$DIR/../target/release/prusti-driver"
-fi
-if [ -z "$PRUSTI_DRIVER" ]; then
-	error "Unable to find PRUSTI_DRIVER."
+if [ -z "$PRUSTI_RUSTC" ]; then
+	error "Unable to find PRUSTI_RUSTC."
 	error "It looks like Prusti has not been compiled or installed properly."
 	exit 1
 else
-    info "Using PRUSTI_DRIVER '$PRUSTI_DRIVER'"
+    info "Using PRUSTI_RUSTC '$PRUSTI_RUSTC'"
 fi
-
-# Set PRUSTI_HOME
-PRUSTI_HOME="$(dirname "$PRUSTI_DRIVER")"
-info "Using PRUSTI_HOME '$PRUSTI_HOME'"
-
-# Set PRUSTI_CONTRACTS_LIB
-if [ -r "${PRUSTI_HOME}/libprusti_contracts.rlib" ]; then
-	PRUSTI_CONTRACTS_LIB="${PRUSTI_HOME}/libprusti_contracts.rlib"
-fi
-for file in "${PRUSTI_HOME}"/deps/libprusti_contracts-*.rlib; do
-	[[ "$file" -nt "$PRUSTI_CONTRACTS_LIB" ]] && PRUSTI_CONTRACTS_LIB="$file"
-done
-if [ -z "$PRUSTI_CONTRACTS_LIB" ]; then
-	error "Unable to find PRUSTI_CONTRACTS_LIB."
-	error "It looks like Prusti has not been compiled or installed."
-	exit 1
-else
-    info "Using PRUSTI_CONTRACTS_LIB '$PRUSTI_CONTRACTS_LIB'"
-    export PRUSTI_CONTRACTS_LIB
-fi
-
-# Set JAVA_LIBJVM_DIR
-JAVA_LIBJVM_DIR="$(dirname "$(find "$(readlink -f "$JAVA_HOME")" -name "libjvm.so")")"
-if [ ! -f "$JAVA_LIBJVM_DIR/libjvm.so" ]; then
-	error "Unable to find JAVA_LIBJVM_DIR."
-	error "It looks like the Java JRE has not been installed."
-	exit 1
-else
-    info "Using JAVA_LIBJVM_DIR '$JAVA_LIBJVM_DIR'"
-fi
-
-export LD_LIBRARY_PATH=${COMPILER_PATH}/lib:${JAVA_LIBJVM_DIR}:${PRUSTI_HOME}:${PRUSTI_HOME}/deps
-info "Using LD_LIBRARY_PATH '$LD_LIBRARY_PATH'"
-
-#info "CARGO_PKG_NAME: $CARGO_PKG_NAME"
 
 info "Arguments: $@"
-
-# Run Prusti
 info "Run Prusti...\n"
-# TODO: remove the grep as soon as Polonius no longer produces that output
-set -o pipefail
-exec "${PRUSTI_DRIVER}" "$@" | (grep -v "borrow_live_at is complete\|Could not resolve expression .* during the axiomatisation of function" || true)
+exec "${PRUSTI_RUSTC}" "$@"
