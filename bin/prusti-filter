@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# © 2019, ETH Zurich
+# © 2020, ETH Zurich
 #
 # Licensed under the Mozilla Public License Version 2.0 (see LICENSE or
 # http://www.mozilla.org/MPL/2.0/). This file may not be copied,
@@ -11,44 +11,16 @@ error() { >&2 echo -e "[!] ${*}"; }
 
 # Get the directory in which this script is contained
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-info "Executing Prusti-filter script located in '$DIR'"
-
-# Read and set some environment variables
-export RUST_LOG=${RUST_LOG:-info}
-
-export RUSTUP_TOOLCHAIN="$(cat $DIR/../rust-toolchain)"
-
-# The compiler version for which Prusti-filter has been compiled
-RUST_VERSION="$RUSTUP_TOOLCHAIN-x86_64-unknown-linux-gnu"
-
-# Set COMPILER_PATH
-if [ -d "/usr/local/rustup/toolchains/${RUST_VERSION}" ]; then
-	COMPILER_PATH="/usr/local/rustup/toolchains/${RUST_VERSION}"
-fi
-if [ -d "$HOME/.rustup/toolchains/${RUST_VERSION}" ]; then
-	COMPILER_PATH="$HOME/.rustup/toolchains/${RUST_VERSION}"
-fi
-if [ -d "$RUSTUP_HOME/toolchains/${RUST_VERSION}" ]; then
-	COMPILER_PATH="$RUSTUP_HOME/toolchains/${RUST_VERSION}"
-fi
-if [ -z "$COMPILER_PATH" ]; then
-	error "Unable to find COMPILER_PATH."
-	error "It looks like the Rust compiler version '${RUST_VERSION}' has not been installed with the rustup tool."
-	exit 1
-else
-	info "Using COMPILER_PATH '$COMPILER_PATH'"
-	# TODO: can ''-L $COMPILER_PATH/...' be substituted with '--sysroot $COMPILER_PATH'?
-fi
+info "Executing Prusti script located in '$DIR'"
 
 # Set PRUSTI_FILTER
-if [ -x "/usr/local/prusti/prusti-filter-driver" ]; then
-	PRUSTI_FILTER="/usr/local/prusti/prusti-filter-driver"
+if [ -x "$DIR/../target/debug/prusti-filter" ]; then
+	[[ "$DIR/../target/debug/prusti-filter" -nt "$PRUSTI_FILTER" ]] \
+	    && PRUSTI_FILTER="$DIR/../target/debug/prusti-filter"
 fi
-if [ -x "$DIR/../target/debug/prusti-filter-driver" ]; then
-	[[ "$DIR/../target/debug/prusti-filter-driver" -nt "$PRUSTI_FILTER" ]] && PRUSTI_FILTER="$DIR/../target/debug/prusti-filter-driver"
-fi
-if [ -x "$DIR/../target/release/prusti-filter-driver" ]; then
-	[[ "$DIR/../target/release/prusti-filter-driver" -nt "$PRUSTI_FILTER" ]] && PRUSTI_FILTER="$DIR/../target/release/prusti-filter-driver"
+if [ -x "$DIR/../target/release/prusti-filter" ]; then
+	[[ "$DIR/../target/release/prusti-filter" -nt "$PRUSTI_FILTER" ]] \
+	    && PRUSTI_FILTER="$DIR/../target/release/prusti-filter"
 fi
 if [ -z "$PRUSTI_FILTER" ]; then
 	error "Unable to find PRUSTI_FILTER."
@@ -58,31 +30,6 @@ else
     info "Using PRUSTI_FILTER '$PRUSTI_FILTER'"
 fi
 
-# Set PRUSTI_HOME
-PRUSTI_HOME="$(dirname "$PRUSTI_FILTER")"
-info "Using PRUSTI_HOME '$PRUSTI_HOME'"
-
-# Set PRUSTI_CONTRACTS_LIB
-if [ -x "${PRUSTI_HOME}/libprusti_contracts.rlib" ]; then
-	PRUSTI_CONTRACTS_LIB="${PRUSTI_HOME}/libprusti_contracts.rlib"
-fi
-for file in "${PRUSTI_HOME}"/deps/libprusti_contracts-*.rlib; do
-	[[ "$file" -nt "$PRUSTI_CONTRACTS_LIB" ]] && PRUSTI_CONTRACTS_LIB="$file"
-done
-if [ -z "$PRUSTI_CONTRACTS_LIB" ]; then
-	error "Unable to find PRUSTI_CONTRACTS_LIB."
-	error "It looks like Prusti-filter has not been compiled or installed."
-	exit 1
-else
-    info "Using PRUSTI_CONTRACTS_LIB '$PRUSTI_CONTRACTS_LIB'"
-    export PRUSTI_CONTRACTS_LIB
-fi
-
-export LD_LIBRARY_PATH=${COMPILER_PATH}/lib:${PRUSTI_HOME}:${PRUSTI_HOME}/deps
-info "Using LD_LIBRARY_PATH '$LD_LIBRARY_PATH'"
-
 info "Arguments: $@"
-
-# Run Prusti-filter
 info "Run Prusti-filter...\n"
 exec "${PRUSTI_FILTER}" "$@"
