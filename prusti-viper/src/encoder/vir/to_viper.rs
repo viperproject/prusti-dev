@@ -494,7 +494,7 @@ impl<'a, 'v> ToViper<'v, viper::Domain<'v>> for &'a Domain {
 impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunction {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
         ast.domain_func(
-            &self.name,
+            &self.get_identifier(),
             &self.formal_args.to_viper_decl(ast),
             self.return_type.to_viper(ast),
             self.unique,

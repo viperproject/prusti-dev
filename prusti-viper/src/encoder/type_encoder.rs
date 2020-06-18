@@ -259,6 +259,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                 self.encoder.encode_struct_field(&field_name, field_ty)
                             })
                             .collect();
+                        self.encoder.encode_snapshot_domain(self.ty);
                         vec![vir::Predicate::new_struct(typ, fields)]
                     } else {
                         debug!("ADT {:?} has {} variants", adt_def, num_variants);

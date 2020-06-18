@@ -77,6 +77,12 @@ impl fmt::Display for DomainFunction {
     }
 }
 
+impl WithIdentifier for DomainFunction {
+    fn get_identifier(&self) -> String {
+        compute_identifier(&self.name, &self.formal_args, &self.return_type)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DomainAxiom {
     pub name: String,

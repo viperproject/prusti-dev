@@ -67,6 +67,8 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     fields: RefCell<HashMap<String, vir::Field>>,
     domains: RefCell<HashMap<String, vir::Domain>>,
     snapshot_functions: RefCell<HashMap<String, vir::Function>>,
+    predicate_snapshot_type_names: RefCell<HashMap<String, String>>,
+    predicate_snapshot_func_names: RefCell<HashMap<String, String>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -132,6 +134,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             typaram_repl: RefCell::new(Vec::new()),
             domains: RefCell::new(HashMap::new()),
             snapshot_functions: RefCell::new(HashMap::new()),
+            predicate_snapshot_type_names: RefCell::new(HashMap::new()),
+            predicate_snapshot_func_names: RefCell::new(HashMap::new()),
         }
     }
 
@@ -888,16 +892,47 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     .borrow_mut()
                     .insert(predicate_name.to_string(), predicate);
             }
+        }
+        self.type_predicates.borrow()[&predicate_name].clone()
+    }
 
-            // TODO CMFIXME Perhaps we have to do this per predicate...
-            let domain_encoder = DomainEncoder::new(self, ty);
-            let domain_name = domain_encoder.encode_snap_domain_name();
+    pub fn encode_snapshot_domain(&self, ty: ty::Ty<'tcx>)  {
+        // TODO CMFIXME Perhaps we have to do this per predicate...
+        let domain_encoder = DomainEncoder::new(self, ty);
+        let domain_name = domain_encoder.encode_domain_name();
+        if !self.domains.borrow().contains_key(&domain_name) {
             let domain = domain_encoder.encode_snap_domain_def();
             self.domains
                 .borrow_mut()
-                .insert(domain_name, domain);
+                .insert(domain_name.clone(), domain);
+            let get_snap_func = domain_encoder.encode_snap_compute_def();
+            self.snapshot_functions
+                .borrow_mut()
+                .insert(get_snap_func.name.clone(), get_snap_func.clone());
+            self.predicate_snapshot_type_names
+                .borrow_mut()
+                .insert(self.encode_type_predicate_use(ty), domain_name.clone());
+            self.predicate_snapshot_func_names
+                .borrow_mut()
+                .insert(self.encode_type_predicate_use(ty), get_snap_func.name.clone());
         }
-        self.type_predicates.borrow()[&predicate_name].clone()
+    }
+
+    pub fn encode_get_snapshot_func_name(&self, predicate_name: String) -> String {
+        self.predicate_snapshot_func_names
+            .borrow()
+            .get(&predicate_name)
+            .unwrap()
+            .clone()
+    }
+
+    pub fn encode_get_domain_type(&self, predicate_name: String) -> vir::Type {
+        let domain_name = self.predicate_snapshot_type_names
+            .borrow()
+            .get(&predicate_name)
+            .unwrap()
+            .clone();
+        vir::Type::Domain(domain_name)
     }
 
     pub fn encode_pure_snapshot_use(&self, _ty: ty::Ty<'tcx>) -> String {
