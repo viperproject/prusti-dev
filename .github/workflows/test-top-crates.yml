@@ -2,19 +2,17 @@ name: Test on top crates
 
 on:
   push:
-    branches: [ '*' ]
+    branches: [ 'master' ]
 
 env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
-  CRATES_DIR: "top-crates"
+  CRATES_DIR: "../top-crates"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Show info
-      run: ls /home/runner/work/prusti-dev
     - name: Check out the repo
       uses: actions/checkout@v2
     - name: Setup Java JDK
@@ -36,19 +34,15 @@ jobs:
     - name: Compile Prusti in release mode
       run: cargo build --all --release
     - name: Download top crates
-      working-directory: ./..
       run: |
         mkdir -p "$CRATES_DIR"
-        ./prusti-dev/evaluation/script/download-top-10.sh "$CRATES_DIR"
-        ./prusti-dev/evaluation/script/set-cargo-lock.sh "$CRATES_DIR"
+        ./evaluation/script/download-top-20.sh "$CRATES_DIR"
+        ./evaluation/script/set-cargo-lock.sh "$CRATES_DIR"
     - name: Compile crates with standard rustc
-      working-directory: ./..
-      run: ./prusti-dev/evaluation/script/compile-crates.sh "$CRATES_DIR"
+      run: ./evaluation/script/compile-crates.sh "$CRATES_DIR"
     - name: Run Prusti on the top crates
-      working-directory: ./..
-      run: ./prusti-dev/evaluation/script/core-evaluation.sh "$CRATES_DIR"
+      run: ./evaluation/script/core-evaluation.sh "$CRATES_DIR"
     - name: Check outcome
-      working-directory: ./..
       run: |
         if grep "^[^,]*,false," "$CRATES_DIR"/filtering-report.csv; then
             echo "Prusti-filter failed on some crates"
