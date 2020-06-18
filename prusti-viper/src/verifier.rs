@@ -206,7 +206,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         let program = {
             let ast = &self.ast_factory;
 
-            let domains = self.encoder.get_used_viper_domains();
+            let domains = self.encoder.get_used_viper_domains().to_viper(ast);
             let fields = self.encoder.get_used_viper_fields().to_viper(ast);
             let builtin_methods = self.encoder.get_used_builtin_methods();
             let mut methods = self.encoder.get_used_viper_methods();

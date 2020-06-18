@@ -39,8 +39,8 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::mem;
 use syntax::ast;
-use viper;
 use encoder::stub_procedure_encoder::StubProcedureEncoder;
+use encoder::domain_encoder::DomainEncoder;
 
 pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     env: &'v Environment<'r, 'a, 'tcx>,
@@ -65,6 +65,8 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
     fields: RefCell<HashMap<String, vir::Field>>,
+    domains: RefCell<HashMap<String, vir::Domain>>,
+    snapshot_functions: RefCell<HashMap<String, vir::Function>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -128,6 +130,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir_program_before_foldunfold_writer,
             vir_program_before_viper_writer,
             typaram_repl: RefCell::new(Vec::new()),
+            domains: RefCell::new(HashMap::new()),
+            snapshot_functions: RefCell::new(HashMap::new()),
         }
     }
 
@@ -184,8 +188,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         );
     }
 
-    pub fn get_used_viper_domains(&self) -> Vec<viper::Domain<'v>> {
-        vec![]
+    pub fn get_used_viper_domains(&self) -> Vec<vir::Domain> {
+        let mut domains : Vec<vir::Domain> = self.domains.borrow().values().cloned().collect();
+        domains.sort_by_key(|d| d.get_identifier());
+        domains
     }
 
     pub fn get_used_viper_fields(&self) -> Vec<vir::Field> {
@@ -216,6 +222,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
         for function in self.memory_eq_funcs.borrow().values() {
             functions.push(function.as_ref().unwrap().clone());
+        }
+        for function in self.snapshot_functions.borrow().values() {
+            functions.push(function.clone());
         }
         functions.sort_by_key(|f| f.get_identifier());
         functions
@@ -879,8 +888,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     .borrow_mut()
                     .insert(predicate_name.to_string(), predicate);
             }
+
+            // TODO CMFIXME Perhaps we have to do this per predicate...
+            let domain_encoder = DomainEncoder::new(self, ty);
+            let domain_name = domain_encoder.encode_snap_domain_name();
+            let domain = domain_encoder.encode_snap_domain_def();
+            self.domains
+                .borrow_mut()
+                .insert(domain_name, domain);
         }
         self.type_predicates.borrow()[&predicate_name].clone()
+    }
+
+    pub fn encode_pure_snapshot_use(&self, _ty: ty::Ty<'tcx>) -> String {
+        // TODO CMFIXME
+        unimplemented!()
     }
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {

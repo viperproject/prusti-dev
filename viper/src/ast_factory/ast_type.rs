@@ -38,12 +38,13 @@ impl<'a> AstFactory<'a> {
     pub fn domain_type(
         &self,
         domain_name: &str,
-        type_vars_map: &[(Type, Type)],
-        type_parameters: &[Type],
     ) -> Type<'a> {
+        // TODO type parameters are not needed (yet)
+        let partial_typ_vars_map: &[(Type,Type)] = &[];
+        let type_parameters: &[Type] = &[];
         let obj = self.jni.unwrap_result(ast::DomainType::with(self.env).new(
             self.jni.new_string(domain_name),
-            self.jni.new_map(&map_to_jobject_pairs!(type_vars_map)),
+            self.jni.new_map(&map_to_jobject_pairs!(partial_typ_vars_map)),
             self.jni.new_seq(&map_to_jobjects!(type_parameters)),
         ));
         Type::new(obj)

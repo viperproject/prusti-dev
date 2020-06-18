@@ -31,6 +31,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             &Type::Bool => ast.bool_type(),
             //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
+            &Type::Domain(ref name) => ast.domain_type(&name),
         }
     }
 }
@@ -536,6 +537,12 @@ impl<'v, 'a, 'b> ToViper<'v, Vec<viper::Trigger<'v>>> for (&'a Vec<Trigger>, &'b
 impl<'v> ToViperDecl<'v, Vec<viper::LocalVarDecl<'v>>> for Vec<LocalVar> {
     fn to_viper_decl(&self, ast: &AstFactory<'v>) -> Vec<viper::LocalVarDecl<'v>> {
         self.iter().map(|x| x.to_viper_decl(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Domain<'v>>> for Vec<Domain> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Domain<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
     }
 }
 
