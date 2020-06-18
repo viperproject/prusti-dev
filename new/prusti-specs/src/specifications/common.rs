@@ -137,7 +137,7 @@ pub struct Assertion<EID, ET, AT> {
 
 #[derive(Debug, Clone)]
 /// A single trigger for a quantifier.
-pub struct Trigger<EID, ET>(Vec<Expression<EID, ET>>);
+pub struct Trigger<EID, ET>(pub Vec<Expression<EID, ET>>);
 
 impl<EID, ET> Trigger<EID, ET> {
     /// Construct a new trigger, which is a “conjunction” of terms.
@@ -160,7 +160,7 @@ impl<EID, ET> IntoIterator for Trigger<EID, ET> {
 
 #[derive(Debug, Clone)]
 /// A set of triggers used in the quantifier.
-pub struct TriggerSet<EID, ET>(Vec<Trigger<EID, ET>>);
+pub struct TriggerSet<EID, ET>(pub Vec<Trigger<EID, ET>>);
 
 impl<EID, ET> TriggerSet<EID, ET> {
     /// Construct a new trigger set.
@@ -258,8 +258,8 @@ pub struct ProcedureSpecification<EID, ET, AT> {
 
 #[derive(Debug, Clone)]
 pub struct Arg {
-    name: syn::Ident,
-    typ: syn::Type,
+    pub name: syn::Ident,
+    pub typ: syn::Type,
 }
 
 impl<EID, ET, AT> ProcedureSpecification<EID, ET, AT> {

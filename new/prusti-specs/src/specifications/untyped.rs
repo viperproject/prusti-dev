@@ -7,6 +7,7 @@ use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType, SpecificationId, Arg};
 pub use super::preparser::Parser;
+use crate::specifications::common::ForAllVars;
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -83,6 +84,39 @@ impl AssignExpressionId<Expression> for common::Expression<(), syn::Expr> {
     }
 }
 
+impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<(), Arg> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> ForAllVars<ExpressionId, Arg> {
+        ForAllVars {
+            id: id_generator.generate(),
+            vars: self.vars
+        }
+    }
+}
+
+impl AssignExpressionId<TriggerSet> for common::TriggerSet<(), syn::Expr> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> TriggerSet {
+        TriggerSet {
+            0: self.0
+                .into_iter()
+                .map(|x| common::Trigger {
+                    0: x.0
+                        .into_iter()
+                        .map(|y| y.assign_id(spec_id, id_generator))
+                        .collect()
+                })
+                .collect()
+        }
+    }
+}
+
 impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, Arg> {
     fn assign_id(
         self,
@@ -101,7 +135,11 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 lhs.assign_id(spec_id, id_generator),
                 rhs.assign_id(spec_id, id_generator)
             ),
-
+            ForAll(vars, triggers, body) => ForAll(
+                vars.assign_id(spec_id, id_generator),
+                triggers.assign_id(spec_id, id_generator),
+                body.assign_id(spec_id, id_generator)
+            ),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -148,6 +186,18 @@ impl EncodeTypeCheck for Specification {
     }
 }
 
+impl EncodeTypeCheck for TriggerSet {
+    fn encode_type_check(&self, tokens: &mut TokenStream) {
+        self.0
+            .iter()
+            .for_each(|x| x.0
+                .iter()
+                .for_each(|y| y.encode_type_check(tokens)
+                )
+            );
+    }
+}
+
 impl EncodeTypeCheck for Assertion {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
         match &*self.kind {
@@ -162,6 +212,11 @@ impl EncodeTypeCheck for Assertion {
             AssertionKind::Implies(lhs, rhs) => {
                 lhs.encode_type_check(tokens);
                 rhs.encode_type_check(tokens);
+            }
+            AssertionKind::ForAll(vars, triggers, body) => {
+                // vars.encode_type_check(tokens);  TODO not needed?
+                triggers.encode_type_check(tokens);
+                body.encode_type_check(tokens);
             }
             x => {
                 unimplemented!("{:?}", x);
