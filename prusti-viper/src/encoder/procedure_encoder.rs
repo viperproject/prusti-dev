@@ -25,7 +25,7 @@ use prusti_common::vir::optimisations::methods::{
 };
 use prusti_common::vir::{self, CfgBlockIndex, Successor};
 use prusti_common::vir::{ExprIterator, FoldingBehaviour};
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::borrowck::facts;
 use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo, PoloniusInfoError};
@@ -35,7 +35,7 @@ use prusti_interface::environment::polonius_info::{
 use prusti_interface::environment::BasicBlockIndex;
 use prusti_interface::environment::PermissionKind;
 use prusti_interface::environment::Procedure;
-use prusti_interface::report::log;
+use prusti_common::report::log;
 use prusti_interface::specifications::*;
 use rustc::hir::Mutability;
 use rustc::mir;

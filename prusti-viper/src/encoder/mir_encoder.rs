@@ -8,7 +8,7 @@ use encoder::builtin_encoder::BuiltinFunctionKind;
 use encoder::errors::ErrorCtxt;
 use encoder::Encoder;
 use prusti_common::vir;
-use prusti_interface::config;
+use prusti_common::config;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;

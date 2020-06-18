@@ -7,11 +7,11 @@
 use encoder::Encoder;
 use prusti_common::vir::{self, optimisations, ToViper, ToViperDecl};
 use prusti_filter::validators::Validator;
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
-use prusti_interface::report::log;
+use prusti_common::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
 use std::ffi::OsString;
 use std::fs::{canonicalize, create_dir_all};

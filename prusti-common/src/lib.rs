@@ -21,5 +21,6 @@ extern crate uuid;
 extern crate viper;
 
 pub mod config;
+pub mod report;
 pub mod utils;
 pub mod vir;

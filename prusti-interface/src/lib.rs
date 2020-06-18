@@ -45,12 +45,10 @@ extern crate lazy_static;
 
 pub mod ast_builder;
 pub mod cargo;
-pub mod config;
 pub mod constants;
 pub mod data;
 pub mod environment;
 pub mod parser;
-pub mod report;
 pub mod specifications;
 pub mod sysroot;
 pub mod trait_register;

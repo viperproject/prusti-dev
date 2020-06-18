@@ -8,9 +8,9 @@ use encoder::mir_encoder::MirEncoder;
 use encoder::Encoder;
 use prusti_common::vir;
 use prusti_common::vir::Successor;
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::environment::Procedure;
-use prusti_interface::report::log;
+use prusti_common::report::log;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 
