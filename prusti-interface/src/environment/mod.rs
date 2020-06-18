@@ -11,12 +11,12 @@ use rustc::hir::def_id::DefId;
 use rustc::ty;
 use rustc::ty::TyCtxt;
 use rustc_driver::driver;
-use std::path::PathBuf;
 use std::collections::HashSet;
+use std::path::PathBuf;
 use syntax::attr;
+use syntax_pos::symbol::Symbol;
 use syntax_pos::FileName;
 use syntax_pos::MultiSpan;
-use syntax_pos::symbol::Symbol;
 
 pub mod borrowck;
 mod collect_prusti_spec_visitor;
@@ -32,8 +32,8 @@ use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
 pub use self::procedure::{BasicBlockIndex, Procedure};
-use config;
 use data::ProcedureDefId;
+use prusti_common::config;
 use syntax::codemap::CodeMap;
 use syntax::codemap::Span;
 use utils::get_attr_value;
@@ -106,7 +106,7 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         sp: S,
         msg: &str,
         help: &Option<String>,
-        note: &Option<(String, S)>
+        note: &Option<(String, S)>,
     ) {
         let mut diagnostic = self.state.session.struct_err(msg);
         diagnostic.set_span(sp);
@@ -220,11 +220,18 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
 
     /// Get an associated item by name.
     pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssociatedItem> {
-        self.tcx().associated_items(id).find(|assoc_item| assoc_item.name == name)
+        self.tcx()
+            .associated_items(id)
+            .find(|assoc_item| assoc_item.name == name)
     }
 
     /// Get a trait method declaration by name for type.
-    pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssociatedItem> {
+    pub fn get_trait_method_decl_for_type(
+        &self,
+        typ: ty::Ty<'tcx>,
+        trait_id: DefId,
+        name: Symbol,
+    ) -> Vec<ty::AssociatedItem> {
         let mut result = Vec::new();
         self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
             let item = self.get_assoc_item(impl_id, name);

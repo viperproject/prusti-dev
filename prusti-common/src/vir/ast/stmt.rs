@@ -6,7 +6,7 @@
 
 use super::super::borrows::{Borrow, DAG as ReborrowingDAG};
 use super::super::cfg::CfgBlockIndex;
-use encoder::vir::ast::*;
+use vir::ast::*;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

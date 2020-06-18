@@ -5,9 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::foldunfold::perm::*;
-use encoder::vir;
-use encoder::vir::ExprIterator;
-use encoder::vir::PermAmount;
+use prusti_common::vir;
+use prusti_common::vir::ExprIterator;
+use prusti_common::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
@@ -98,8 +98,8 @@ impl State {
                     && other_place.is_simple_place()
                     && place.has_proper_prefix(&other_place)
                 {
-                    if !((self.pred[place] == PermAmount::Read ||
-                          self.pred[place] == PermAmount::Remaining)
+                    if !((self.pred[place] == PermAmount::Read
+                        || self.pred[place] == PermAmount::Remaining)
                         && self.pred[other_place] == PermAmount::Read)
                     {
                         panic!(

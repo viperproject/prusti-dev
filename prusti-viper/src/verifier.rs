@@ -4,20 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::{self, optimisations, ToViper, ToViperDecl};
 use encoder::Encoder;
+use prusti_common::vir::{self, optimisations, ToViper, ToViperDecl};
 use prusti_filter::validators::Validator;
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
-use prusti_interface::report::log;
+use prusti_common::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
+use std::ffi::OsString;
+use std::fs::{canonicalize, create_dir_all};
+use std::path::PathBuf;
 use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
-use std::path::PathBuf;
-use std::fs::{create_dir_all, canonicalize};
-use std::ffi::OsString;
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
@@ -34,7 +34,7 @@ impl VerifierBuilder {
         VerifierBuilder {
             viper: Viper::new_with_args(
                 config::extra_jvm_args(),
-                VerificationBackend::from_str(&config::viper_backend())
+                VerificationBackend::from_str(&config::viper_backend()),
             ),
         }
     }
@@ -60,10 +60,10 @@ pub struct VerificationContext<'v> {
 }
 
 impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
-    where
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a,
+where
+    'r: 'v,
+    'a: 'r,
+    'tcx: 'a,
 {
     fn new(verification_ctx: viper::VerificationContext<'v>) -> Self {
         VerificationContext { verification_ctx }
@@ -214,8 +214,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             let mut methods = self.encoder.get_used_viper_methods();
             let mut functions = self.encoder.get_used_viper_functions();
             if config::simplify_encoding() {
-                let (new_methods, new_functions) = optimisations::functions::inline_constant_functions(
-                    methods, functions);
+                let (new_methods, new_functions) =
+                    optimisations::functions::inline_constant_functions(methods, functions);
                 methods = new_methods
                     .into_iter()
                     .map(|m| {
@@ -225,12 +225,11 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                     .collect();
                 functions = new_functions
                     .into_iter()
-                    .map(|f| {
-                        optimisations::folding::FoldingOptimiser::optimise(f)
-                    })
+                    .map(|f| optimisations::folding::FoldingOptimiser::optimise(f))
                     .collect();
             }
-            let mut viper_functions: Vec<_> = functions.into_iter().map(|f| f.to_viper(ast)).collect();
+            let mut viper_functions: Vec<_> =
+                functions.into_iter().map(|f| f.to_viper(ast)).collect();
             let mut viper_methods: Vec<_> = methods.into_iter().map(|m| m.to_viper(ast)).collect();
             viper_methods.extend(builtin_methods.into_iter().map(|m| m.to_viper(ast)));
             let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
@@ -266,12 +265,18 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                         name: "borrow".to_string(),
                         typ: vir::Type::Int,
                     }
-                        .to_viper_decl(ast)],
+                    .to_viper_decl(ast)],
                     None,
                 ),
             );
 
-            ast.program(&domains, &fields, &viper_functions, &predicates, &viper_methods)
+            ast.program(
+                &domains,
+                &fields,
+                &viper_functions,
+                &predicates,
+                &viper_methods,
+            )
         };
 
         if config::dump_viper_program() {
@@ -283,17 +288,19 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             if num_parents > 0 {
                 // Take `num_parents` parent folders and add them to `dump_path`
                 let mut components = vec![];
-                if let Some(abs_parent_path) = canonicalize(&source_path).ok().and_then(
-                    |full_path| full_path.parent().map(|parent| parent.to_path_buf())
-                ) {
+                if let Some(abs_parent_path) = canonicalize(&source_path)
+                    .ok()
+                    .and_then(|full_path| full_path.parent().map(|parent| parent.to_path_buf()))
+                {
                     components.extend(
-                        abs_parent_path.ancestors()
+                        abs_parent_path
+                            .ancestors()
                             .flat_map(|path| path.file_name())
                             .take(num_parents as usize)
                             .map(|x| x.to_os_string())
                             .collect::<Vec<_>>()
                             .into_iter()
-                            .rev()
+                            .rev(),
                     );
                 } else {
                     components.push(OsString::from("io_error"))

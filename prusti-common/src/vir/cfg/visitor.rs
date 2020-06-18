@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::ast::*;
-use encoder::vir::cfg::method::*;
+use vir::ast::*;
+use vir::cfg::method::*;
 use utils::to_string::ToString;
 use std::fmt::Debug;
 

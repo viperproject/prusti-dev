@@ -4,13 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::cfg::method::*;
-use encoder::vir::ast::Position;
-use encoder::vir::to_viper::{ToViper, ToViperDecl};
-use prusti_interface::config;
+use config;
+use std::collections::HashMap;
 use viper;
 use viper::AstFactory;
-use std::collections::HashMap;
+use vir::ast::Position;
+use vir::cfg::method::*;
+use vir::to_viper::{ToViper, ToViperDecl};
 
 impl<'v> ToViper<'v, viper::Method<'v>> for CfgMethod {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Method<'v> {
@@ -80,21 +80,27 @@ impl CfgMethod {
         declarations: &mut Vec<viper::Declaration<'v>>,
     ) {
         path.reverse();
-        let mut remaining_blocks: HashMap<_, _> = self.basic_blocks
+        let mut remaining_blocks: HashMap<_, _> = self
+            .basic_blocks
             .iter()
             .enumerate()
             .map(|(index, block)| {
-                (index_to_label(&self.basic_blocks_labels, index), (index, block))
+                (
+                    index_to_label(&self.basic_blocks_labels, index),
+                    (index, block),
+                )
             })
             .collect();
         let mut current_label = index_to_label(&self.basic_blocks_labels, 0);
         while let Some((index, block)) = remaining_blocks.remove(&current_label) {
             blocks_ast.push(block_to_viper(ast, &self.basic_blocks_labels, block, index));
             declarations.push(
-                ast.label(&index_to_label(&self.basic_blocks_labels, index), &[]).into(),
+                ast.label(&index_to_label(&self.basic_blocks_labels, index), &[])
+                    .into(),
             );
 
-            let mut successors: Vec<_> = block.successor
+            let mut successors: Vec<_> = block
+                .successor
                 .get_following()
                 .into_iter()
                 .map(|ci| index_to_label(&self.basic_blocks_labels, ci.block_index))
@@ -105,8 +111,12 @@ impl CfgMethod {
                 current_label = successors.pop().unwrap();
             } else if let Some(next_label) = path.pop() {
                 current_label = next_label;
-                assert!(successors.contains(&current_label),
-                        "successors: {:?} next_label: {:?}", successors, current_label);
+                assert!(
+                    successors.contains(&current_label),
+                    "successors: {:?} next_label: {:?}",
+                    successors,
+                    current_label
+                );
             } else {
                 break;
             }
@@ -119,14 +129,9 @@ impl CfgMethod {
                 ast.label(&label, &block.invs.to_viper(ast)),
                 ast.inhale(
                     ast.false_lit_with_pos(fake_position.to_viper(ast)),
-                    fake_position.to_viper(ast)
+                    fake_position.to_viper(ast),
                 ),
-                successor_to_viper(
-                    ast,
-                    index,
-                    &self.basic_blocks_labels,
-                    &block.successor,
-                )
+                successor_to_viper(ast, index, &self.basic_blocks_labels, &block.successor),
             ];
             blocks_ast.push(ast.seqn(&stmts, &[]));
             declarations.push(ast.label(&label, &[]).into());
@@ -138,7 +143,6 @@ impl CfgMethod {
         }
     }
 }
-
 
 impl<'v> ToViper<'v, Vec<viper::Method<'v>>> for Vec<CfgMethod> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Method<'v>> {

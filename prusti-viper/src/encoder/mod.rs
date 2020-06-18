@@ -14,8 +14,8 @@ mod foldunfold;
 mod initialisation;
 mod loop_encoder;
 mod mir_encoder;
-mod mir_successor;
 mod mir_interpreter;
+mod mir_successor;
 mod optimiser;
 mod places;
 mod procedure_encoder;
@@ -25,5 +25,3 @@ mod stub_function_encoder;
 mod stub_procedure_encoder;
 mod type_encoder;
 mod utils;
-
-pub mod vir;

@@ -37,7 +37,6 @@
 //! TODO: Implement `prusti_interface`.
 
 #![deny(unused_imports)]
-
 #![feature(plugin_registrar)]
 #![feature(quote)]
 #![feature(box_syntax)]
@@ -50,6 +49,7 @@
 extern crate getopts;
 #[macro_use]
 extern crate log;
+extern crate prusti_common;
 extern crate prusti_interface;
 extern crate prusti_viper;
 extern crate rustc;

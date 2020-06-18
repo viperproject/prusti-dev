@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir;
-use encoder::vir::cfg::method::*;
+use config;
 use std::io::Write;
-use prusti_interface::config;
+use vir;
+use vir::cfg::method::*;
 
 fn escape_html<S: ToString>(s: S) -> String {
     s.to_string()
@@ -22,11 +22,7 @@ impl CfgMethod {
         self.to_graphviz_with_extra(graph, |_| vec![])
     }
 
-    pub fn to_graphviz_with_extra<F: Fn(usize) -> Vec<String>>(
-        &self,
-        graph: &mut Write,
-        extra: F
-    ) {
+    pub fn to_graphviz_with_extra<F: Fn(usize) -> Vec<String>>(&self, graph: &mut Write, extra: F) {
         writeln!(graph, "digraph CFG {{").unwrap();
         writeln!(graph, "graph [fontname=monospace];").unwrap();
         writeln!(graph, "node [fontname=monospace];").unwrap();
@@ -39,13 +35,8 @@ impl CfgMethod {
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let label = self.index_to_label(index);
             let extra_rows = extra(index);
-            let (content, reborrowing_dags) = self.block_to_graphviz(
-                index,
-                &label,
-                block,
-                &extra_rows,
-                &[],
-            );
+            let (content, reborrowing_dags) =
+                self.block_to_graphviz(index, &label, block, &extra_rows, &[]);
             writeln!(
                 graph,
                 "\"block_{}\" [shape=none,label=<{}>];",
@@ -154,7 +145,7 @@ impl CfgMethod {
 
         for row in header_rows {
             lines.push(
-                "<tr><td align=\"left\" balign=\"left\"><font color=\"steelblue\">".to_string()
+                "<tr><td align=\"left\" balign=\"left\"><font color=\"steelblue\">".to_string(),
             );
             lines.push(escape_html(row));
             lines.push("</font></td></tr>".to_string());
@@ -226,7 +217,7 @@ impl CfgMethod {
 
         for row in footer_rows {
             lines.push(
-                "<tr><td align=\"left\" balign=\"left\"><font color=\"steelblue\">".to_string()
+                "<tr><td align=\"left\" balign=\"left\"><font color=\"steelblue\">".to_string(),
             );
             lines.push(escape_html(row));
             lines.push("</font></td></tr>".to_string());

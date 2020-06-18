@@ -1,5 +1,5 @@
+use prusti_common::vir::{CfgBlockIndex, Expr, Successor};
 use prusti_interface::environment::BasicBlockIndex;
-use encoder::vir::{CfgBlockIndex, Successor, Expr};
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum MirSuccessor {
@@ -22,14 +22,14 @@ impl MirSuccessor {
                     targets.push(*target);
                 }
                 targets
-            },
+            }
         }
     }
 
     pub fn encode<F: FnMut(BasicBlockIndex) -> CfgBlockIndex>(
         self,
         return_block: CfgBlockIndex,
-        mut resolve_target: F
+        mut resolve_target: F,
     ) -> Successor {
         match self {
             MirSuccessor::Return => Successor::Goto(return_block),
@@ -37,12 +37,13 @@ impl MirSuccessor {
             MirSuccessor::Goto(bbi) => Successor::Goto(resolve_target(bbi)),
             MirSuccessor::GotoSwitch(mut conditional_targets, default_bbi) => {
                 Successor::GotoSwitch(
-                    conditional_targets.drain(..)
+                    conditional_targets
+                        .drain(..)
                         .map(|(guard, bbi)| (guard, resolve_target(bbi)))
                         .collect(),
-                    resolve_target(default_bbi)
+                    resolve_target(default_bbi),
                 )
-            },
+            }
         }
     }
 }
