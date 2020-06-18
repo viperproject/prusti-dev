@@ -1,10 +1,13 @@
-use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree, Ident, };
 use std::collections::VecDeque;
 use std::mem;
-use syn::parse::ParseBuffer;
+use syn::parse::{ParseBuffer, ParseStream, Parse};
+use syn::{self, Token, PatType, Pat, Error};
 use quote::ToTokens;
 
 use super::common;
+use crate::specifications::common::AssertionKind::ForAll;
+use crate::specifications::common::{ForAllVars, TriggerSet, Trigger};
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, common::Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
@@ -44,7 +47,7 @@ impl ParserStream {
         }
     }
     /// Check if the input starts with the keyword and if yes consume it.
-    fn check_keyword(&mut self, keyword: &str) -> bool {
+    fn check_and_consume_keyword(&mut self, keyword: &str) -> bool {
         if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
             if ident.to_string() == keyword {
                 self.pop();
@@ -96,13 +99,73 @@ impl ParserStream {
         }
         None
     }
+
+    fn parse_identifier(&mut self) -> Option<Ident> {
+        if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
+            if let Some(TokenTree::Ident(ident)) = self.pop() {
+                return Some(ident);
+            }
+        }
+        None
+    }
+
+    fn create_stream_until(&mut self, operator: &str) -> TokenStream {
+        let mut stream = TokenStream::new();
+        let mut t = vec![];
+        while !self.peek_operator(operator) && !self.is_empty() {
+            t.push(self.pop().unwrap());
+        }
+        stream.extend(t.into_iter());
+        stream
+    }
+
+    fn create_stream(&mut self) -> TokenStream {
+        let mut stream = TokenStream::new();
+        let mut t = vec![];
+        while !self.is_empty() {
+            t.push(self.pop().unwrap());
+        }
+        stream.extend(t.into_iter());
+        stream
+    }
+}
+
+#[derive(Debug)]
+struct OneArg {
+    name: syn::Ident,
+    colon: Token![:],
+    typ: syn::Type
+}
+
+impl Parse for OneArg {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self{
+            name: input.parse()?,
+            colon: input.parse()?,
+            typ: input.parse()?
+        })
+    }
+}
+
+#[derive(Debug)]
+struct AllArgs {
+    args: syn::punctuated::Punctuated<OneArg, Token![,]>
+}
+
+impl Parse for AllArgs {
+    fn parse(input: ParseStream) -> syn::Result<Self>{
+        let parsed: syn::punctuated::Punctuated<OneArg, Token![,]> = input.parse_terminated(OneArg::parse)?;
+        Ok(Self{
+            args: parsed
+        })
+    }
 }
 
 pub struct Parser {
     input: ParserStream,
     conjuncts: Vec<AssertionWithoutId>,
     expr: Vec<TokenTree>,
-    previous_expression_nested: bool
+    previous_expression_nested: bool,
 }
 
 impl Parser {
@@ -112,7 +175,7 @@ impl Parser {
             input: input,
             conjuncts: Vec::new(),
             expr: Vec::new(),
-            previous_expression_nested: false
+            previous_expression_nested: false,
         }
     }
 
@@ -141,6 +204,81 @@ impl Parser {
                 return Ok(AssertionWithoutId{
                     kind: Box::new(common::AssertionKind::Implies(lhs, rhs))
                 });
+            }
+
+            else if self.input.check_and_consume_keyword("forall") {
+                if let Some(group) = self.input.check_nested_assertion() {
+                    let mut stream = ParserStream::from_token_stream(group.stream());
+
+                    // parse head
+                    stream.check_and_consume_operator("|");
+                    let token_stream = stream.create_stream_until("|");
+                    let all_args: AllArgs = syn::parse2(token_stream)?;
+                    stream.check_and_consume_operator("|");
+
+                    let mut vars = vec![];
+                    for var in all_args.args {
+                        vars.push(common::Arg {
+                            typ: var.typ,
+                            name: var.name
+                        })
+                    }
+
+                    // parse body
+                    let token_stream = stream.create_stream_until(",");
+                    let mut parser = Parser::new(token_stream);
+                    let body = parser.extract_assertion()?;
+
+                    // parse triggers (check if they are present at all)
+                    if stream.peek_operator(",") {
+                        stream.check_and_consume_operator(",");
+                        stream.check_and_consume_keyword("triggers");
+                        stream.check_and_consume_operator("=");
+                        let token_stream = stream.create_stream();
+                        let arr: syn::ExprArray = syn::parse2(token_stream)?;
+                        let mut vec_of_triggers = vec![];
+                        for item in arr.elems {
+                            if let syn::Expr::Tuple(tuple) = item {
+                                vec_of_triggers.push(
+                                    Trigger(tuple.elems
+                                        .into_iter()
+                                        .map(|x| ExpressionWithoutId {
+                                            id: (),
+                                            spec_id: common::SpecificationId::dummy(),
+                                            expr: x })
+                                        .collect()
+                                    )
+                                );
+                            }
+                            else {
+                                panic!("parse error");
+                            }
+                        }
+
+                        return Ok(AssertionWithoutId {
+                            kind: Box::new(common::AssertionKind::ForAll(
+                                ForAllVars {
+                                    id: (),
+                                    vars
+                                },
+                                TriggerSet(vec_of_triggers),
+                                body,
+                            ))
+                        })
+                    }
+                    else{
+                        return Ok(AssertionWithoutId {
+                            kind: Box::new(common::AssertionKind::ForAll(
+                                ForAllVars {
+                                    id: (),
+                                    vars
+                                },
+                                TriggerSet(vec![]),
+                                body,
+                            ))
+                        })
+                    }
+                }
             }
 
             else if let Some(group) = self.input.check_nested_assertion() {

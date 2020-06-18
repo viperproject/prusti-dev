@@ -55,6 +55,11 @@ impl StructuralToTyped<AssertionKind> for json::AssertionKind {
             Implies(lhs, rhs) => AssertionKind::Implies(
                 lhs.to_typed(typed_expressions),
                 rhs.to_typed(typed_expressions)
+            ),
+            ForAll(vars, triggers, body) => AssertionKind::ForAll(
+                vars.to_typed(typed_expressions),
+                triggers.to_typed(typed_expressions),
+                body.to_typed(typed_expressions)
             )
         }
     }

@@ -1,5 +1,6 @@
 use super::untyped;
 use serde::{Deserialize, Serialize};
+use crate::specifications::common::Arg;
 
 #[derive(Serialize, Deserialize)]
 pub struct Expression {
@@ -13,12 +14,23 @@ pub struct Expression {
 pub enum AssertionKind {
     Expr(Expression),
     And(Vec<Assertion>),
-    Implies(Assertion, Assertion)
+    Implies(Assertion, Assertion),
+    ForAll(ForAllVars, TriggerSet, Assertion),
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Assertion {
     pub kind: Box<AssertionKind>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ForAllVars {
+
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TriggerSet {
+
 }
 
 trait ToStructure<T> {
@@ -49,6 +61,11 @@ impl ToStructure<AssertionKind> for untyped::AssertionKind {
             Implies(lhs, rhs) => AssertionKind::Implies(
                 lhs.to_structure(),
                 rhs.to_structure()
+            ),
+            ForAll(vars, triggers, body) => AssertionKind::ForAll(
+                vars.to_structure(),
+                triggers.to_structure(),
+                body.to_structure()
             ),
             x => {
                 unimplemented!("{:?}", x);
