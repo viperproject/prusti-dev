@@ -6,6 +6,7 @@
 
 #![feature(box_patterns)]
 #![feature(box_syntax)]
+#![feature(nll)]
 #![feature(slice_sort_by_cached_key)]
 
 #[macro_use]
@@ -20,5 +21,5 @@ extern crate uuid;
 extern crate viper;
 
 pub mod config;
-mod utils;
+pub mod utils;
 pub mod vir;

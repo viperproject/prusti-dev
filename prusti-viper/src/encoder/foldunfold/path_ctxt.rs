@@ -5,18 +5,20 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::foldunfold::action::*;
+use encoder::foldunfold::log::EventLog;
 use encoder::foldunfold::perm::*;
+use encoder::foldunfold::permissions::*;
 use encoder::foldunfold::places_utils::*;
+use encoder::foldunfold::semantics::ApplyOnState;
 use encoder::foldunfold::state::*;
+use encoder::foldunfold::FoldUnfoldError;
+use encoder::foldunfold::FoldUnfoldError::FailedToObtain;
+use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use prusti_common::vir::PermAmount;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::iter::FromIterator;
-use utils::to_string::ToString;
-use encoder::foldunfold::FoldUnfoldError;
-use encoder::foldunfold::FoldUnfoldError::FailedToObtain;
-use encoder::foldunfold::log::EventLog;
 
 /// The fold-unfold context of a CFG path
 #[derive(Debug, Clone)]
@@ -137,7 +139,7 @@ impl<'a> PathCtxt<'a> {
     /// Note: this merges the event logs as well
     pub fn join(
         &mut self,
-        mut other: PathCtxt
+        mut other: PathCtxt,
     ) -> Result<(Vec<Action>, Vec<Action>), FoldUnfoldError> {
         let mut left_actions: Vec<Action> = vec![];
         let mut right_actions: Vec<Action> = vec![];
@@ -231,91 +233,86 @@ impl<'a> PathCtxt<'a> {
                     .or_else(|| get_perm_amount(&other))
                     .unwrap();
                 let pred_perm = Perm::pred(pred_place.clone(), perm_amount);
-                let try_obtain =
-                    |left_ctxt: &mut PathCtxt,
-                     right_ctxt: &mut PathCtxt,
-                     left_actions: &mut Vec<_>,
-                     right_actions: &mut Vec<_>| -> Result<(), FoldUnfoldError> {
-                        match left_ctxt.obtain(&pred_perm, true)? {
-                            ObtainResult::Success(new_actions) => {
-                                left_actions.extend(new_actions);
-                            }
-                            ObtainResult::Failure(missing_perm) => {
-                                debug!(
-                                    "Failed to obtain: {} because of {}",
-                                    pred_perm, missing_perm
-                                );
-                                let remove_places =
-                                    |ctxt: &mut PathCtxt, actions: &mut Vec<_>| {
-                                        ctxt.state.remove_moved_matching(|moved_place| {
-                                            moved_place.has_prefix(&pred_place)
-                                        });
-                                        for acc_place in ctxt.state.acc_places() {
-                                            if acc_place.has_proper_prefix(&pred_place) {
-                                                let perm_amount =
-                                                    ctxt.state.remove_acc_place(&acc_place);
-                                                let perm = Perm::acc(acc_place, perm_amount);
-                                                debug!(
-                                                    "dropping perm={} missing_perm={}",
-                                                    perm, missing_perm
-                                                );
-                                                actions
-                                                    .push(Action::Drop(perm, missing_perm.clone()));
-                                            }
-                                        }
-                                        for place in ctxt.state.pred_places() {
-                                            if place.has_prefix(&pred_place) {
-                                                let perm_amount =
-                                                    ctxt.state.remove_pred_place(&place);
-                                                let perm = Perm::pred(place, perm_amount);
-                                                debug!(
-                                                    "dropping perm={} missing_perm={}",
-                                                    perm, missing_perm
-                                                );
-                                                actions
-                                                    .push(Action::Drop(perm, missing_perm.clone()));
-                                            }
-                                        }
-                                    };
-                                remove_places(left_ctxt, left_actions);
-                                remove_places(right_ctxt, right_actions);
-                            }
+                let try_obtain = |left_ctxt: &mut PathCtxt,
+                                  right_ctxt: &mut PathCtxt,
+                                  left_actions: &mut Vec<_>,
+                                  right_actions: &mut Vec<_>|
+                 -> Result<(), FoldUnfoldError> {
+                    match left_ctxt.obtain(&pred_perm, true)? {
+                        ObtainResult::Success(new_actions) => {
+                            left_actions.extend(new_actions);
                         }
-                        Ok(())
-                    };
+                        ObtainResult::Failure(missing_perm) => {
+                            debug!(
+                                "Failed to obtain: {} because of {}",
+                                pred_perm, missing_perm
+                            );
+                            let remove_places = |ctxt: &mut PathCtxt, actions: &mut Vec<_>| {
+                                ctxt.state.remove_moved_matching(|moved_place| {
+                                    moved_place.has_prefix(&pred_place)
+                                });
+                                for acc_place in ctxt.state.acc_places() {
+                                    if acc_place.has_proper_prefix(&pred_place) {
+                                        let perm_amount = ctxt.state.remove_acc_place(&acc_place);
+                                        let perm = Perm::acc(acc_place, perm_amount);
+                                        debug!(
+                                            "dropping perm={} missing_perm={}",
+                                            perm, missing_perm
+                                        );
+                                        actions.push(Action::Drop(perm, missing_perm.clone()));
+                                    }
+                                }
+                                for place in ctxt.state.pred_places() {
+                                    if place.has_prefix(&pred_place) {
+                                        let perm_amount = ctxt.state.remove_pred_place(&place);
+                                        let perm = Perm::pred(place, perm_amount);
+                                        debug!(
+                                            "dropping perm={} missing_perm={}",
+                                            perm, missing_perm
+                                        );
+                                        actions.push(Action::Drop(perm, missing_perm.clone()));
+                                    }
+                                }
+                            };
+                            remove_places(left_ctxt, left_actions);
+                            remove_places(right_ctxt, right_actions);
+                        }
+                    }
+                    Ok(())
+                };
                 try_obtain(self, &mut other, &mut left_actions, &mut right_actions)?;
                 try_obtain(&mut other, self, &mut right_actions, &mut left_actions)?;
             }
             // Obtain access permissions by unfolding
             for acc_place in &unfold_actual_acc {
-                let try_obtain =
-                    |ctxt_left: &mut PathCtxt,
-                     ctxt_right: &mut PathCtxt,
-                     left_actions: &mut Vec<_>,
-                     right_actions: &mut Vec<_>| -> Result<bool, FoldUnfoldError> {
-                        if !ctxt_left.state.acc().contains_key(acc_place) {
-                            debug!(
-                                "The left branch needs to obtain an access permission: {}",
-                                acc_place
-                            );
-                            let perm_amount = ctxt_right.state.acc()[acc_place];
-                            // Unfold something and get `acc_place`
-                            let perm = Perm::acc(acc_place.clone(), perm_amount);
-                            match ctxt_left.obtain(&perm, true)? {
-                                ObtainResult::Success(new_actions) => {
-                                    left_actions.extend(new_actions);
-                                    Ok(true)
-                                }
-                                ObtainResult::Failure(missing_perm) => {
-                                    ctxt_right.state.remove_perm(&perm);
-                                    right_actions.push(Action::Drop(perm, missing_perm));
-                                    Ok(false)
-                                }
+                let try_obtain = |ctxt_left: &mut PathCtxt,
+                                  ctxt_right: &mut PathCtxt,
+                                  left_actions: &mut Vec<_>,
+                                  right_actions: &mut Vec<_>|
+                 -> Result<bool, FoldUnfoldError> {
+                    if !ctxt_left.state.acc().contains_key(acc_place) {
+                        debug!(
+                            "The left branch needs to obtain an access permission: {}",
+                            acc_place
+                        );
+                        let perm_amount = ctxt_right.state.acc()[acc_place];
+                        // Unfold something and get `acc_place`
+                        let perm = Perm::acc(acc_place.clone(), perm_amount);
+                        match ctxt_left.obtain(&perm, true)? {
+                            ObtainResult::Success(new_actions) => {
+                                left_actions.extend(new_actions);
+                                Ok(true)
                             }
-                        } else {
-                            Ok(true)
+                            ObtainResult::Failure(missing_perm) => {
+                                ctxt_right.state.remove_perm(&perm);
+                                right_actions.push(Action::Drop(perm, missing_perm));
+                                Ok(false)
+                            }
                         }
-                    };
+                    } else {
+                        Ok(true)
+                    }
+                };
                 if try_obtain(self, &mut other, &mut left_actions, &mut right_actions)? {
                     try_obtain(&mut other, self, &mut right_actions, &mut left_actions)?;
                 }
@@ -721,7 +718,7 @@ Predicates: {{
 
     pub fn obtain_permissions(
         &mut self,
-        permissions: Vec<Perm>
+        permissions: Vec<Perm>,
     ) -> Result<Vec<Action>, FoldUnfoldError> {
         trace!(
             "[enter] obtain_permissions: {}",
@@ -748,24 +745,28 @@ Predicates: {{
     fn find_variant(
         &self,
         place: &vir::Expr,
-        prefixed_place: &vir::Expr
+        prefixed_place: &vir::Expr,
     ) -> vir::MaybeEnumVariantIndex {
-        trace!("[enter] find_variant(place={}, prefixed_place={})", place, prefixed_place);
+        trace!(
+            "[enter] find_variant(place={}, prefixed_place={})",
+            place,
+            prefixed_place
+        );
         let parent = prefixed_place.get_parent_ref().unwrap();
         let result = if place == parent {
             match prefixed_place {
-                vir::Expr::Variant(_, field, _) => {
-                    Some(field.into())
-                },
-                _ => {
-                    None
-                }
+                vir::Expr::Variant(_, field, _) => Some(field.into()),
+                _ => None,
             }
         } else {
             self.find_variant(place, parent)
         };
-        trace!("[exit] find_variant(place={}, prefixed_place={}) = {:?}",
-               place, prefixed_place, result);
+        trace!(
+            "[exit] find_variant(place={}, prefixed_place={}) = {:?}",
+            place,
+            prefixed_place,
+            result
+        );
         result
     }
 
@@ -776,12 +777,8 @@ Predicates: {{
         self.state
             .acc_places()
             .into_iter()
-            .find(|place| {
-                place.has_proper_prefix(req_place) && place.is_variant()
-            })
-            .and_then(|prefixed_place| {
-                self.find_variant(req_place, &prefixed_place)
-            })
+            .find(|place| place.has_proper_prefix(req_place) && place.is_variant())
+            .and_then(|prefixed_place| self.find_variant(req_place, &prefixed_place))
     }
 }
 
@@ -832,15 +829,15 @@ pub fn compute_fold_target(
     }
 
     let mut places = HashSet::new();
-    let mut place_check = |item: &vir::Expr, item_set: &HashSet<vir::Expr>,
-                                            other_set: &HashSet<vir::Expr>| {
-        let is_leaf = !item_set.iter().any(|p| p.has_proper_prefix(item));
-        let below_all_others = !other_set.iter().any(|p| p.has_prefix(item));
-        let no_conflict_base = !conflicting_base.iter().any(|base| item.has_prefix(base));
-        if is_leaf && below_all_others && no_conflict_base {
-            places.insert(item.clone());
-        }
-    };
+    let mut place_check =
+        |item: &vir::Expr, item_set: &HashSet<vir::Expr>, other_set: &HashSet<vir::Expr>| {
+            let is_leaf = !item_set.iter().any(|p| p.has_proper_prefix(item));
+            let below_all_others = !other_set.iter().any(|p| p.has_prefix(item));
+            let no_conflict_base = !conflicting_base.iter().any(|base| item.has_prefix(base));
+            if is_leaf && below_all_others && no_conflict_base {
+                places.insert(item.clone());
+            }
+        };
     for left_item in left.iter() {
         place_check(left_item, left, right);
     }

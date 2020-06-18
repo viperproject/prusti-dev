@@ -4,11 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use vir::ast::*;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt;
 use std::iter::FromIterator;
 use uuid::Uuid;
+use vir::ast::*;
 
 pub(super) const RETURN_LABEL: &str = "end_of_method";
 
@@ -21,7 +21,7 @@ pub struct CfgMethod {
     pub(in super::super) local_vars: Vec<LocalVar>,
     pub(super) labels: HashSet<String>,
     pub(super) reserved_labels: HashSet<String>,
-    pub(crate) basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
+    pub basic_blocks: Vec<CfgBlock>, // FIXME: Hack, should be pub(super).
     pub(super) basic_blocks_labels: Vec<String>,
     fresh_var_index: i32,
     fresh_label_index: i32,
@@ -249,7 +249,11 @@ impl CfgMethod {
             .chars()
             .skip(1)
             .all(|c| c.is_alphanumeric() || c == '_'));
-        assert!(self.basic_blocks_labels.iter().all(|l| l != label), "Label {} is already used", label);
+        assert!(
+            self.basic_blocks_labels.iter().all(|l| l != label),
+            "Label {} is already used",
+            label
+        );
         assert!(label != RETURN_LABEL);
         let index = self.basic_blocks.len();
         self.basic_blocks_labels.push(label.to_string());
@@ -297,7 +301,9 @@ impl CfgMethod {
         let mut result = HashMap::new();
         for (index, block) in self.basic_blocks.iter().enumerate() {
             for successor in block.successor.get_following() {
-                let entry = result.entry(successor.block_index).or_insert_with(|| {Vec::new()});
+                let entry = result
+                    .entry(successor.block_index)
+                    .or_insert_with(|| Vec::new());
                 entry.push(index);
             }
         }
@@ -306,7 +312,9 @@ impl CfgMethod {
 
     #[allow(dead_code)]
     pub fn get_indices(&self) -> Vec<CfgBlockIndex> {
-        (0..self.basic_blocks.len()).map(|i| self.block_index(i)).collect()
+        (0..self.basic_blocks.len())
+            .map(|i| self.block_index(i))
+            .collect()
     }
 
     #[allow(dead_code)]

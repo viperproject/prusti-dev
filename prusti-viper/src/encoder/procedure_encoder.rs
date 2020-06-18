@@ -17,6 +17,8 @@ use encoder::mir_successor::MirSuccessor;
 use encoder::optimiser;
 use encoder::places::{Local, LocalVariableManager, Place};
 use encoder::Encoder;
+use prusti_common::utils::to_string::ToString;
+use prusti_common::vir::borrows::Borrow;
 use prusti_common::vir::fixes::fix_ghost_vars;
 use prusti_common::vir::optimisations::methods::{
     remove_empty_if, remove_trivial_assertions, remove_unused_vars,
@@ -47,7 +49,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use syntax::attr::SignedInt;
 use syntax::codemap::{MultiSpan, Span};
-use utils::to_string::ToString;
 
 type Result<T> = std::result::Result<T, EncodingError>;
 
@@ -415,7 +416,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         }
 
         // Add fold/unfold
-        let loan_locations = self.polonius_info().loan_locations();
+        let loan_locations = self
+            .polonius_info()
+            .loan_locations()
+            .iter()
+            .map(|(loan, location)| (loan.into(), *location))
+            .collect();
         let method_pos = self
             .encoder
             .error_manager()
@@ -1244,9 +1250,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     let guard = self.construct_location_guard(loan_location);
                     vir::borrows::Node::new(
                         guard,
-                        node.loan,
-                        node.reborrowing_loans.clone(),
-                        node.reborrowed_loans.clone(),
+                        node.loan.into(),
+                        convert_loans_to_borrows(&node.reborrowing_loans),
+                        convert_loans_to_borrows(&node.reborrowed_loans),
                         Vec::new(),
                         Vec::new(),
                         Vec::new(),
@@ -1342,13 +1348,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let guard = self.construct_location_guard(loan_location);
         vir::borrows::Node::new(
             guard,
-            node.loan,
-            node.reborrowing_loans.clone(),
-            node.reborrowed_loans.clone(),
+            node.loan.into(),
+            convert_loans_to_borrows(&node.reborrowing_loans),
+            convert_loans_to_borrows(&node.reborrowed_loans),
             stmts,
             borrowed_places,
-            conflicting_loans,
-            alive_conflicting_loans,
+            convert_loans_to_borrows(&conflicting_loans),
+            convert_loans_to_borrows(&alive_conflicting_loans),
             Some(lhs_place.clone()),
         )
     }
@@ -1430,11 +1436,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             ErrorCtxt::ApplyMagicWandOnExpiry,
         );
         // Inhale the magic wand.
-        let magic_wand =
-            vir::Expr::MagicWand(box lhs.clone(), box rhs.clone(), Some(loan), pos.clone());
+        let magic_wand = vir::Expr::MagicWand(
+            box lhs.clone(),
+            box rhs.clone(),
+            Some(loan.into()),
+            pos.clone(),
+        );
         stmts.push(vir::Stmt::Inhale(magic_wand, vir::FoldingBehaviour::Stmt));
         // Emit the apply statement.
-        let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan, pos);
+        let statement = vir::Stmt::apply_magic_wand(lhs, rhs, loan.into(), pos);
         debug!("{:?} at {:?}", statement, loan_location);
         stmts.push(statement);
 
@@ -1446,9 +1456,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let guard = self.construct_location_guard(loan_location);
         vir::borrows::Node::new(
             guard,
-            node.loan,
-            node.reborrowing_loans.clone(),
-            node.reborrowed_loans.clone(),
+            node.loan.into(),
+            convert_loans_to_borrows(&node.reborrowing_loans),
+            convert_loans_to_borrows(&node.reborrowed_loans),
             stmts,
             Vec::new(),
             Vec::new(),
@@ -2792,7 +2802,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.magic_wand_at_location
                     .insert(location, (post_label.to_string(), lhs.clone(), rhs.clone()));
             }
-            magic_wands.push(vir::Expr::magic_wand(lhs, rhs, loan));
+            magic_wands.push(vir::Expr::magic_wand(lhs, rhs, loan.map(|l| l.into())));
         }
 
         // Encode permissions for return type
@@ -3769,12 +3779,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         lhs.clone(),
                         ref_field.clone(),
                         location,
-                        vir::AssignKind::SharedBorrow(loan),
+                        vir::AssignKind::SharedBorrow(loan.into()),
                     );
                     stmts.push(vir::Stmt::Assign(
                         lhs.clone().field(ref_field.clone()),
                         src.field(ref_field),
-                        vir::AssignKind::SharedBorrow(loan),
+                        vir::AssignKind::SharedBorrow(loan.into()),
                     ));
                     stmts
                 } else {
@@ -4084,9 +4094,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let (encoded_value, _, _) = self.mir_encoder.encode_place(place);
         let loan = self.polonius_info().get_loan_at_location(location);
         let vir_assign_kind = match mir_borrow_kind {
-            mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan),
+            mir::BorrowKind::Shared => vir::AssignKind::SharedBorrow(loan.into()),
             mir::BorrowKind::Unique => unimplemented!(),
-            mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan),
+            mir::BorrowKind::Mut { .. } => vir::AssignKind::MutableBorrow(loan.into()),
         };
         // Initialize ref_var.ref_field
         let field = self.encoder.encode_value_field(ty);
@@ -4429,4 +4439,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         &self.label_after_location[&location]
     }
+}
+
+fn convert_loans_to_borrows(loans: &Vec<facts::Loan>) -> Vec<Borrow> {
+    loans.iter().map(|l| l.into()).collect()
 }

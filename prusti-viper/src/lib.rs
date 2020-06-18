@@ -8,7 +8,6 @@
 #![feature(box_patterns)]
 #![feature(nll)]
 #![feature(box_syntax)]
-#![feature(slice_sort_by_cached_key)]
 #![feature(iterator_flatten)]
 #![deny(unreachable_patterns)]
 #![deny(unused_mut)]
@@ -31,8 +30,6 @@ extern crate syntax;
 extern crate syntax_pos;
 extern crate uuid;
 extern crate viper;
-#[macro_use]
-extern crate lazy_static;
 
 #[cfg(debug_assertions)]
 #[macro_use]

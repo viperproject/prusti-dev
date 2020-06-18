@@ -7,8 +7,10 @@
 use self::path_ctxt::*;
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::perm::*;
-use encoder::foldunfold::permissions::RequiredPermissionsGetter;
+use encoder::foldunfold::permissions::*;
+use encoder::foldunfold::semantics::ApplyOnState;
 use encoder::Encoder;
+use prusti_common::utils::to_string::ToString;
 use prusti_common::vir;
 use prusti_common::vir::borrows::Borrow;
 use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
@@ -19,7 +21,7 @@ use rustc::mir;
 use std;
 use std::collections::{HashMap, HashSet};
 use std::mem;
-use utils::to_string::ToString;
+use std::ops::Deref;
 
 mod action;
 mod borrows;
@@ -88,7 +90,7 @@ pub fn add_folding_unfolding_to_function(
 pub fn add_fold_unfold<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>(
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     cfg: vir::CfgMethod,
-    borrow_locations: &'p HashMap<vir::borrows::Borrow, mir::Location>,
+    borrow_locations: &'p HashMap<Borrow, mir::Location>,
     cfg_map: &'p HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
     method_pos: vir::Position,
 ) -> Result<vir::CfgMethod, FoldUnfoldError> {
@@ -393,7 +395,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
                     if !action.is_empty() {
                         //let stmts_to_add = action.iter().map(|a| a.to_stmt()).collect();
                         let mut stmts_to_add = Vec::new();
-                        for a in action {
+                        for a in &action.0 {
                             stmts_to_add.push(a.to_stmt());
                             if let Action::Drop(perm, missing_perm) = a {
                                 if dag.in_borrowed_places(missing_perm.get_place())
@@ -524,7 +526,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
         for (&i, action) in final_blocks.iter().zip(actions.iter()) {
             if !action.is_empty() {
                 let mut stmts_to_add = Vec::new();
-                for a in action {
+                for a in action.deref() {
                     stmts_to_add.push(a.to_stmt());
                     if let Action::Drop(perm, missing_perm) = a {
                         if dag.in_borrowed_places(missing_perm.get_place())
@@ -683,13 +685,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> FoldUnfold<'p, 'v, 'r, 'a, 'tcx> {
     }
 }
 
-impl CheckNoOpAction for Vec<Action> {
+#[derive(Debug)]
+struct ActionVec(pub Vec<Action>);
+
+impl Deref for ActionVec {
+    type Target = Vec<Action>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+// TODO: get rid of newtype wrapper when rust updated to 1.41.0+, where the orphan rules are relaxed to allow things like this
+impl CheckNoOpAction for ActionVec {
     fn is_noop(&self) -> bool {
         self.is_empty()
     }
 }
 
-impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Vec<Action>>
+impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, ActionVec>
     for FoldUnfold<'p, 'v, 'r, 'a, 'tcx>
 {
     type Error = FoldUnfoldError;
@@ -1217,11 +1231,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Vec<Ac
     fn prepend_join(
         &mut self,
         bcs: Vec<&PathCtxt<'p>>,
-    ) -> Result<(Vec<Vec<Action>>, PathCtxt<'p>), Self::Error> {
+    ) -> Result<(Vec<ActionVec>, PathCtxt<'p>), Self::Error> {
         trace!("[enter] prepend_join(..{})", &bcs.len());
         assert!(bcs.len() > 0);
         if bcs.len() == 1 {
-            Ok((vec![vec![]], bcs[0].clone()))
+            Ok((vec![ActionVec(vec![])], bcs[0].clone()))
         } else {
             // Define two subgroups
             let mid = bcs.len() / 2;
@@ -1236,13 +1250,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Vec<Ac
             let (merge_actions_left, merge_actions_right) = left_pctxt.join(right_pctxt)?;
             let merged_pctxt = left_pctxt;
 
-            let mut branch_actions_vec: Vec<Vec<Action>> = vec![];
+            let mut branch_actions_vec: Vec<ActionVec> = vec![];
             for mut left_actions in left_actions_vec {
-                left_actions.extend(merge_actions_left.iter().cloned());
+                left_actions.0.extend(merge_actions_left.iter().cloned());
                 branch_actions_vec.push(left_actions);
             }
             for mut right_actions in right_actions_vec {
-                right_actions.extend(merge_actions_right.iter().cloned());
+                right_actions.0.extend(merge_actions_right.iter().cloned());
                 branch_actions_vec.push(right_actions);
             }
 
@@ -1263,10 +1277,10 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> vir::CfgReplacer<PathCtxt<'p>, Vec<Ac
         &mut self,
         pctxt: &mut PathCtxt,
         block_index: CfgBlockIndex,
-        actions: Vec<Action>,
+        actions: ActionVec,
     ) -> Result<Vec<vir::Stmt>, Self::Error> {
         let mut stmts = Vec::new();
-        for action in actions {
+        for action in actions.0 {
             stmts.push(action.to_stmt());
             pctxt.log_mut().log_prejoin_action(block_index, action);
         }

@@ -5,13 +5,34 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::ast::{Expr, ExprIterator, Stmt};
-use prusti_interface::environment::borrowck;
-pub use prusti_interface::environment::borrowck::facts::loan_id as borrow_id;
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
 
 /// The method-unique borrow identifier.
-pub type Borrow = borrowck::facts::Loan;
+#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash)]
+pub struct Borrow(usize);
+
+impl From<usize> for Borrow {
+    fn from(index: usize) -> Borrow {
+        Borrow(index)
+    }
+}
+
+impl Into<usize> for Borrow {
+    fn into(self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl fmt::Debug for Borrow {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "L{}", self.0)
+    }
+}
+
+pub fn borrow_id(borrow: Borrow) -> usize {
+    borrow.into()
+}
 
 /// Node of the reborrowing DAG.
 #[derive(Clone, PartialEq, Eq)]
