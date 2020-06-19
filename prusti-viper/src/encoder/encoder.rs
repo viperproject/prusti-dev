@@ -1345,11 +1345,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                             )
                         ),
                         Box::new(
-                            vir::Expr::FuncApp(
-                                mirror_func.name.clone(),
+                            vir::Expr::DomainFuncApp(
+                                mirror_func.clone(),
                                 vec![], // TODO CMFIXME
-                                mirror_func.formal_args.clone(),
-                                mirror_func.return_type.clone(),
                                 vir::Position::default(),
                             )
                         ), vir::Position::default(),

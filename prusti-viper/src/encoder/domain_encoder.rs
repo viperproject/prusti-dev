@@ -39,7 +39,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::Domain {
             name: self.encode_domain_name(),
             functions: self.encode_snap_functions(),
-            axioms: self.encode_snap_axioms(),
+            axioms: vec![],
             type_vars: vec![]
         }
     }
@@ -93,8 +93,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_snap_compute_def(&self) -> vir::Function {
 
         let domain: vir::Domain = self.encoder.encode_snapshot_domain(self.ty);
-        let cons_function = domain.functions[0];
-        let return_type = cons_function.return_type;
+        let cons_function = domain.functions[0].clone();
+        let return_type = cons_function.return_type.clone();
         let body = vir::Expr::DomainFuncApp(
             cons_function,
             self.encode_snap_args(),
