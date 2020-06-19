@@ -90,12 +90,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::LocalVar { name, typ }
     }
 
-    fn encode_snap_axioms(&self) -> Vec<vir::DomainAxiom> {
-        vec![] // TODO
-    }
-
     pub fn encode_snap_compute_def(&self) -> vir::Function {
+
+        let domain: vir::Domain = self.encoder.encode_snapshot_domain(self.ty);
+        let cons_function = domain.functions[0];
+        let return_type = cons_function.return_type;
+        let body = vir::Expr::DomainFuncApp(
+            cons_function,
+            self.encode_snap_args(),
+            vir::Position::default(),
+        );
+        self.encode_snap_func(return_type, body)
+/*
         let return_type = vir::Type::Domain(self.encode_domain_name());
+        // TODO CMFIXME: use DomainFuncApp
         let body = vir::Expr::FuncApp(
             SNAPSHOT_CONS.to_string(),
             self.encode_snap_args(),
@@ -103,7 +111,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
             return_type.clone(),
             vir::Position::default(),
         );
-        self.encode_snap_func(return_type, body)
+ */
     }
 
     fn encode_snap_get_name(&self) -> String {

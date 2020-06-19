@@ -913,7 +913,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    pub fn encode_snapshot_domain(&self, ty: ty::Ty<'tcx>)  {
+    pub fn encode_snapshot_domain(&self, ty: ty::Ty<'tcx>) -> vir::Domain {
         // TODO CMFIXME Perhaps we have to do this per predicate...
         let domain_encoder = DomainEncoder::new(self, ty);
         let domain_name = domain_encoder.encode_domain_name();
@@ -933,6 +933,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 .borrow_mut()
                 .insert(self.encode_type_predicate_use(ty), get_snap_func.name.clone());
         }
+        self.domains.borrow()[&domain_name].clone()
     }
 
     pub fn encode_pure_snapshot_mirror(&self,
