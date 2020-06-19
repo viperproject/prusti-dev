@@ -69,6 +69,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     snapshot_functions: RefCell<HashMap<String, vir::Function>>,
     predicate_snapshot_type_names: RefCell<HashMap<String, String>>,
     predicate_snapshot_func_names: RefCell<HashMap<String, String>>,
+    pure_snapshot_mirrors: RefCell<HashMap<String, vir::DomainFunction>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -136,6 +137,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             snapshot_functions: RefCell::new(HashMap::new()),
             predicate_snapshot_type_names: RefCell::new(HashMap::new()),
             predicate_snapshot_func_names: RefCell::new(HashMap::new()),
+            pure_snapshot_mirrors: RefCell::new(HashMap::new()),
         }
     }
 
@@ -193,7 +195,22 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn get_used_viper_domains(&self) -> Vec<vir::Domain> {
+
+        let mirrors = self.pure_snapshot_mirrors
+            .borrow().
+            values()
+            .cloned()
+            .collect();
+
         let mut domains : Vec<vir::Domain> = self.domains.borrow().values().cloned().collect();
+        domains.push(
+          vir::Domain {
+              name: "Pure$Function$Snapshot$Mirrors".to_string(),
+              functions: mirrors,
+              axioms: vec![],
+              type_vars: vec![]
+          }  
+        );
         domains.sort_by_key(|d| d.get_identifier());
         domains
     }
