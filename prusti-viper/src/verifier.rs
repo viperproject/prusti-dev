@@ -201,9 +201,14 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                         proc_name
                     ),
                     &Some(
-                        "Enable the REPORT_SUPPORT_STATUS configuration flag for more details on \
-                        why the function is not fully supported, or disable \
-                        SKIP_UNSUPPORTED_FUNCTIONS to verify this function anyway.".to_string()
+                        if report_support_status {
+                            "Disable the SKIP_UNSUPPORTED_FUNCTIONS configuration flag to verify \
+                            this function anyway.".to_string()
+                        } else {
+                            "Enable the REPORT_SUPPORT_STATUS configuration flag for more details \
+                            on why the function is not fully supported, or disable \
+                            SKIP_UNSUPPORTED_FUNCTIONS to verify this function anyway.".to_string()
+                        }
                     ),
                     &None,
                 );
