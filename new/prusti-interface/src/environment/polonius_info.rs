@@ -1332,78 +1332,21 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             );
         }
         sorted_loans.reverse();
-        let nodes: Vec<_> = sorted_loans
-            .iter()
-            .enumerate()
-            .map(|(n, &loan)| {
-                let mut i = 0;
-                let mut reborrowing_loans = Vec::new();
-                while i < n {
-                    let loan_i = sorted_loans[i];
-                    if self.additional_facts.reborrows.contains(&(loan_i, loan)) {
-                        // If the i'th loan reborrows the loan.
-                        let mut j = i + 1;
-                        while j < n {
-                            let loan_j = sorted_loans[j];
-                            if self.additional_facts.reborrows.contains(&(loan_j, loan))
-                                && self.additional_facts.reborrows.contains(&(loan_i, loan_j))
-                            {
-                                break;
-                            }
-                            j += 1;
-                        }
-                        if j == n {
-                            // And there is no other loan that would
-                            // reborrow the loan, then this means that i'th
-                            // loan is directly reborrowing the loan.
-                            reborrowing_loans.push(loan_i);
-                        }
-                    }
-                    i += 1;
-                }
-                let mut reborrowed_loans = Vec::new();
-                let mut i = sorted_loans.len() - 1;
-                while i > n {
-                    let loan_i = sorted_loans[i];
-                    if self.additional_facts.reborrows.contains(&(loan, loan_i)) {
-                        // If the i'th loan is reborrowed by the loan.
-                        let mut j = i - 1;
-                        while j > n {
-                            let loan_j = sorted_loans[j];
-                            if self.additional_facts.reborrows.contains(&(loan, loan_j))
-                                && self.additional_facts.reborrows.contains(&(loan_j, loan_i))
-                            {
-                                break;
-                            }
-                            j -= 1;
-                        }
-                        if j == n {
-                            // And there is no other loan that would
-                            // reborrow the loan, then this means that i'th
-                            // loan is directly reborrowed by the loan.
-                            reborrowed_loans.push(loan_i);
-                        }
-                    }
-                    i -= 1;
-                }
+        let nodes: Vec<_> = sorted_loans.iter()
+            .map(|&loan| {
+                let reborrowing_loans = sorted_loans.iter().cloned()
+                    .filter(|&l| self.additional_facts.reborrows_direct.contains(&(l, loan)))
+                    .collect::<Vec<_>>();
+                let reborrowed_loans = sorted_loans.iter().cloned()
+                    .filter(|&l| self.additional_facts.reborrows_direct.contains(&(loan, l)))
+                    .collect::<Vec<_>>();
                 let kind = self.construct_reborrowing_kind(loan, representative_loan);
+                let zombity = self.construct_reborrowing_zombity(
+                    loan, &loans, zombie_loans, location);
+                let incoming_zombies = self.check_incoming_zombies(
+                    loan, &loans, zombie_loans, location);
                 ReborrowingDAGNode {
-                    loan: loan,
-                    kind: kind,
-                    zombity: self.construct_reborrowing_zombity(
-                        loan,
-                        &loans,
-                        zombie_loans,
-                        location,
-                    ),
-                    incoming_zombies: self.check_incoming_zombies(
-                        loan,
-                        &loans,
-                        zombie_loans,
-                        location,
-                    ),
-                    reborrowing_loans: reborrowing_loans,
-                    reborrowed_loans: reborrowed_loans,
+                    loan, kind, zombity, incoming_zombies, reborrowing_loans, reborrowed_loans
                 }
             })
             .collect();

@@ -18,7 +18,7 @@ use crate::encoder::builtin_encoder::BuiltinMethodKind;
 // use crate::encoder::spec_encoder::SpecEncoder;
 // use crate::encoder::type_encoder::{
 //     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
-use crate::encoder::vir;
+use prusti_common::vir;
 // use crate::encoder::vir::WithIdentifier;
 // use prusti_interface::config;
 // use prusti_interface::constants::PRUSTI_SPEC_ATTR;

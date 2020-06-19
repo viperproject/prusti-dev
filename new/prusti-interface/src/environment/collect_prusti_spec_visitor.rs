@@ -68,15 +68,8 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
         if let hir::ItemKind::Fn(..) = item.kind {
             let def_id = self.tcx.hir().local_def_id(item.hir_id).to_def_id();
             let item_def_path = self.env.get_item_def_path(def_id);
-            if !self.use_whitelist || self.whitelist.contains(&item_def_path) {
-                trace!("Add {} to result", item_def_path);
-                self.result.push(def_id);
-            } else {
-                debug!(
-                    "Skip verification of item '{}': not in the whitelist",
-                    item_def_path
-                )
-            }
+            trace!("Add {} to result", item_def_path);
+            self.result.push(def_id);
         }
     }
 
@@ -99,15 +92,8 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
         }
         let def_id = self.tcx.hir().local_def_id(trait_item.hir_id).to_def_id();
         let item_def_path = self.env.get_item_def_path(def_id);
-        if !self.use_whitelist || self.whitelist.contains(&item_def_path) {
-            trace!("Add {} to result", item_def_path);
-            self.result.push(def_id);
-        } else {
-            debug!(
-                "Skip verification of trait item '{}': not in the whitelist",
-                item_def_path
-            )
-        }
+        trace!("Add {} to result", item_def_path);
+        self.result.push(def_id);
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
@@ -125,14 +111,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
 
         let def_id = self.tcx.hir().local_def_id(impl_item.hir_id).to_def_id();
         let item_def_path = self.env.get_item_def_path(def_id);
-        if !self.use_whitelist || self.whitelist.contains(&item_def_path) {
-            trace!("Add {} to result", item_def_path);
-            self.result.push(def_id);
-        } else {
-            debug!(
-                "Skip verification of impl item '{}': not in the whitelist",
-                item_def_path
-            )
-        }
+        trace!("Add {} to result", item_def_path);
+        self.result.push(def_id);
     }
 }

@@ -49,9 +49,9 @@ info "Using evaluation_log_file='$evaluation_log_file'"
 (
 	# "$DIR/compile-crates.sh" "$CRATE_DOWNLOAD_DIR" "$TIMEOUT"
 
-	"$DIR/filter-crates.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" "$((TIMEOUT * 2))"
+	# "$DIR/filter-crates.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" "$((TIMEOUT * 2))"
 
-	"$DIR/whitelist-crates.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv"
+	# "$DIR/whitelist-crates.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv"
 
 	"$DIR/verify-crates-coarse-grained.sh" "$CRATE_DOWNLOAD_DIR" "$CRATE_DOWNLOAD_DIR/supported-crates.csv" \
 		"supported-procedures.csv" "$((TIMEOUT * 2))"

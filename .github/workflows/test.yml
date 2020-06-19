@@ -22,6 +22,7 @@ jobs:
     - name: Add Java JDK to the library path
       run: echo "::set-env name=LD_LIBRARY_PATH::"$(dirname "$(find "$JAVA_HOME" -name "libjvm.so")")""
     - name: Setup Viper
+      working-directory: ./..
       run: |
         wget -q 'http://viper.ethz.ch/downloads/ViperToolsNightlyLinux.zip'
         unzip ViperToolsNightlyLinux.zip -d viper_tools
@@ -41,7 +42,6 @@ jobs:
     - name: Run cargo tests
       run: cd new && cargo test --all --verbose
       env:
-        RUST_BACKTRACE: 1
         RUST_TEST_THREADS: 1
         PRUSTI_ASSERT_TIMEOUT: 60000
     - name: Check formatting

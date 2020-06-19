@@ -6,10 +6,8 @@
 
 use encoder::mir_encoder::MirEncoder;
 /// Module that allows querying the initialisation information.
-use encoder::vir;
-use prusti_interface::environment::mir_analyses::initialization::{
-    compute_definitely_initialized,
-};
+use prusti_common::vir;
+use prusti_interface::environment::mir_analyses::initialization::compute_definitely_initialized;
 use prusti_interface::environment::place_set::PlaceSet;
 use rustc::hir::def_id::DefId;
 use rustc::{mir, ty};

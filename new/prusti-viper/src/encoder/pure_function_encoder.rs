@@ -6,18 +6,18 @@
 
 use encoder::borrows::{compute_procedure_contract, ProcedureContract};
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::errors::{ErrorCtxt, EncodingError};
 use encoder::errors::PanicCause;
+use encoder::errors::{EncodingError, ErrorCtxt};
 use encoder::foldunfold;
 use encoder::mir_encoder::MirEncoder;
 use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
 use encoder::mir_interpreter::{
     run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
 };
-use encoder::vir;
-use encoder::vir::ExprIterator;
 use encoder::Encoder;
-use prusti_interface::config;
+use prusti_common::vir;
+use prusti_common::vir::ExprIterator;
+use prusti_common::config;
 use prusti_interface::specifications::SpecificationSet;
 use rustc::hir;
 use rustc::hir::def_id::DefId;
@@ -229,6 +229,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             function,
             self.encoder.get_used_viper_predicates_map(),
         )
+        .ok()
+        .unwrap() // TODO: return a result
     }
 
     /// Encode the precondition with two expressions:
@@ -375,7 +377,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, '
     pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         &self.mir_encoder
     }
-
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
@@ -550,9 +551,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::DropAndReplace { ..  } => {
-                unimplemented!()
-            },
+            TerminatorKind::DropAndReplace { .. } => unimplemented!(),
 
             TerminatorKind::Call {
                 ref args,
@@ -575,7 +574,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     }),
                 ..
             } => {
-                let full_func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                let full_func_proc_name: &str =
+                    &self.encoder.env().tcx().absolute_item_path_str(def_id);
                 let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                 let own_substs =
@@ -646,13 +646,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
-                                self.encoder.register_encoding_error(EncodingError::incorrect(
-                                    format!(
+                                self.encoder
+                                    .register_encoding_error(EncodingError::incorrect(
+                                        format!(
                                         "use of impure function {:?} in assertion is not allowed",
                                         func_proc_name
                                     ),
-                                    term.source_info.span,
-                                ));
+                                        term.source_info.span,
+                                    ));
                             }
 
                             let formal_args: Vec<vir::LocalVar> = args

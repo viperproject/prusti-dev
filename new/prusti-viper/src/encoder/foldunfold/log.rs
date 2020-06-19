@@ -9,11 +9,11 @@
 
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::perm::Perm;
-use encoder::vir;
+use encoder::foldunfold::FoldUnfoldError;
+use prusti_common::utils::to_string::ToString;
+use prusti_common::vir;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use utils::to_string::ToString;
-use encoder::foldunfold::FoldUnfoldError;
 
 // Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
 // (e.g. we duplicate the evaluation of the loop condition in the encoding of loops).

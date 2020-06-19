@@ -25,5 +25,3 @@ mod encoder;
 // mod stub_procedure_encoder;
 // mod type_encoder;
 // mod utils;
-
-pub mod vir;
