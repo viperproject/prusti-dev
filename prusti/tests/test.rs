@@ -210,8 +210,15 @@ fn run_verification(group_name: &str) {
 
 #[test]
 fn test_runner() {
+    // Test the error messages of the parser
     run_no_verification("parse");
+
+    // Test the error messages of the type-checking of specifications
     run_no_verification("typecheck");
+
+    // Test the error messages of prusti-filter
     run_filter("filter");
+
+    // Test the error messages of the verifier
     run_verification("verify");
 }
