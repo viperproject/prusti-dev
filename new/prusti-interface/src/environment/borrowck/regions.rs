@@ -6,14 +6,16 @@
 
 /// Code for finding `rustc::ty::sty::RegionVid` associated with local
 /// reference typed variables.
-use environment::borrowck::facts;
+use crate::environment::borrowck::facts;
 use regex::Regex;
-use rustc::mir;
-use rustc_data_structures::indexed_vec::Idx;
+use rustc_middle::mir;
+// use rustc_data_structures::indexed_vec::Idx;
+use rustc_index::vec::Idx;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use log::{trace, debug};
 
 pub fn load_variable_regions(path: &Path) -> io::Result<HashMap<mir::Local, facts::Region>> {
     trace!("[enter] load_variable_regions(path={:?})", path);

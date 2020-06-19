@@ -4,9 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::cfg::method::*;
-use encoder::vir::ast::Position;
-use encoder::vir::to_viper::{ToViper, ToViperDecl};
+use crate::encoder::vir::cfg::method::*;
+use crate::encoder::vir::ast::Position;
+use crate::encoder::vir::to_viper::{ToViper, ToViperDecl};
 use prusti_interface::config;
 use viper;
 use viper::AstFactory;

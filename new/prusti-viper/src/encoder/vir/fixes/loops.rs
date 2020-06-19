@@ -8,6 +8,7 @@
 
 use std::collections::{HashMap, HashSet};
 use super::super::{ast, cfg};
+use log::trace;
 
 /// Once we cut the back-edges, Viper does not havoc the local variables assigned inside loops
 /// anymore and we need to do that manually.

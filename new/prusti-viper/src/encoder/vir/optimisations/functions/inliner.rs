@@ -10,6 +10,7 @@ use super::super::super::ast;
 use super::super::super::cfg;
 use std::collections::HashMap;
 use std::mem;
+use log::trace;
 
 /// Convert functions whose body does not depend on arguments such as
 ///

@@ -11,8 +11,9 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::ty::TyCtxt;
 use std::collections::HashMap;
 use std::time::Instant;
+use prusti_interface::config::ConfigFlags;
 
-pub fn verify(tcx: TyCtxt, spec: typed::SpecificationMap) {
+pub fn verify(flags: ConfigFlags, tcx: TyCtxt, spec: typed::SpecificationMap) {
     trace!("[verify] enter");
 
     let env = Environment::new(tcx);
@@ -33,6 +34,13 @@ pub fn verify(tcx: TyCtxt, spec: typed::SpecificationMap) {
             "Verification of {} items...",
             verification_task.procedures.len()
         ));
+
+        if flags.print_collected_verfication_items {
+            println!("Collected verification items {}:", verification_task.procedures.len());
+            for procedure in &verification_task.procedures {
+                println!("procedure: {} at {:?}", env.get_item_def_path(*procedure), env.get_item_span(*procedure));
+            }
+        }
 
         let verification_result = if verification_task.procedures.is_empty() {
             VerificationResult::Success

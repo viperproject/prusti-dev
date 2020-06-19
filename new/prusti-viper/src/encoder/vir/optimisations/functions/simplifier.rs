@@ -7,6 +7,7 @@
 //! Function simplifier that simplifies expressions.
 
 use super::super::super::ast::{self, ExprFolder};
+use log::trace;
 
 pub trait Simplifier {
     /// Simplify by doing constant evaluation.

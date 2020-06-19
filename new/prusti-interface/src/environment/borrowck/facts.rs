@@ -11,8 +11,9 @@
 /// source code.
 use csv::ReaderBuilder;
 use regex::Regex;
-use rustc::mir;
-use rustc_data_structures::indexed_vec::Idx;
+use rustc_middle::mir;
+// use rustc_data_structures::indexed_vec::Idx;
+use rustc_index::vec::Idx;
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::fmt;
@@ -55,10 +56,14 @@ macro_rules! index_type {
 }
 
 index_type!(PointIndex, P);
-/// A unique identifier of a loan.
+// A unique identifier of a loan.
 index_type!(Loan, L);
-/// A unique identifier of a region.
+// A unique identifier of a region.
 index_type!(Region, R);
+// A unique identifier of a variable.
+index_type!(Variable, V);
+// A unique identifier of a path.
+index_type!(Place, X);
 
 pub fn loan_id(loan: Loan) -> usize {
     loan.into()
@@ -142,8 +147,19 @@ impl FromStr for Point {
     }
 }
 
-pub type AllInputFacts = polonius_engine::AllFacts<Region, Loan, PointIndex>;
-pub type AllOutputFacts = polonius_engine::Output<Region, Loan, PointIndex>;
+#[derive(Debug, Clone, Copy)]
+pub struct PoloniusFactTypes;
+
+impl polonius_engine::FactTypes for PoloniusFactTypes {
+    type Origin = Region;
+    type Loan = Loan;
+    type Point = PointIndex;
+    type Variable = Variable;
+    type Path = Place;
+}
+
+pub type AllInputFacts = polonius_engine::AllFacts<PoloniusFactTypes>;
+pub type AllOutputFacts = polonius_engine::Output<PoloniusFactTypes>;
 
 /// A table that stores a mapping between interned elements of type
 /// `SourceType` and their indices.
@@ -220,6 +236,18 @@ impl InternTo<String, PointIndex> for Interner {
     }
 }
 
+impl InternTo<String, Variable> for Interner {
+    fn intern(&mut self, element: String) -> Variable {
+        unimplemented!();
+    }
+}
+
+impl InternTo<String, Place> for Interner {
+    fn intern(&mut self, element: String) -> Place {
+        unimplemented!();
+    }
+}
+
 impl<A, B> InternTo<(String, String), (A, B)> for Interner
 where
     Interner: InternTo<String, A>,
@@ -293,12 +321,45 @@ impl FactLoader {
             load_facts::<(String, String, String), _>(&mut self.interner, facts_dir, "outlives");
         self.facts.outlives.extend(facts);
 
-        let facts =
-            load_facts::<(String, String), _>(&mut self.interner, facts_dir, "region_live_at");
-        self.facts.region_live_at.extend(facts);
-
         let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "invalidates");
         self.facts.invalidates.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "var_used_at");
+        self.facts.var_used_at.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "var_defined_at");
+        self.facts.var_defined_at.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "var_dropped_at");
+        self.facts.var_dropped_at.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "use_of_var_derefs_origin");
+        self.facts.use_of_var_derefs_origin.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "drop_of_var_derefs_origin");
+        self.facts.drop_of_var_derefs_origin.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "child_path");
+        self.facts.child_path.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "path_is_var");
+        self.facts.path_is_var.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "path_assigned_at_base");
+        self.facts.path_assigned_at_base.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "path_moved_at_base");
+        self.facts.path_moved_at_base.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "path_accessed_at_base");
+        self.facts.path_accessed_at_base.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "known_subset");
+        self.facts.known_subset.extend(facts);
+
+        let facts = load_facts::<(String, String), _>(&mut self.interner, facts_dir, "placeholder");
+        self.facts.placeholder.extend(facts);
+
     }
 }
 

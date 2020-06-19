@@ -8,6 +8,20 @@ use config_crate::{Config, Environment, File};
 use std::env;
 use std::sync::RwLock;
 
+/// The flags provided by using `-Z` arguments on the command line. These are
+/// almost exclusively used for testing.
+#[derive(Clone, Copy, Default)]
+pub struct ConfigFlags {
+    /// Should Prusti print the AST with desugared specifications.
+    pub print_desugared_specs: bool,
+    /// Should Prusti print the type-checked specifications.
+    pub print_typeckd_specs: bool,
+    /// Should Prusti print the items collected for verification.
+    pub print_collected_verfication_items: bool,
+    /// Should Prusti skip the verification part.
+    pub skip_verify: bool,
+}
+
 lazy_static! {
     // Is this RwLock<..> necessary?
     static ref SETTINGS: RwLock<Config> = RwLock::new({

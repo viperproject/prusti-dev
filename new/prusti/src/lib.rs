@@ -19,7 +19,7 @@ extern crate rustc_session;
 extern crate rustc_span;
 extern crate smallvec;
 
-use prusti_interface::specs;
+use prusti_interface::{specs, config::ConfigFlags};
 use rustc_driver::Compilation;
 use rustc_hir::intravisit;
 use rustc_interface::interface::Compiler;
@@ -28,12 +28,13 @@ use rustc_interface::Queries;
 mod verifier;
 
 pub struct PrustiCompilerCalls {
-    /// Should Prusti print the AST with desugared specifications.
-    pub print_desugared_specs: bool,
-    /// Should Prusti print the type-checked specifications.
-    pub print_typeckd_specs: bool,
-    /// Should Prusti execute the actual verification.
-    pub verify: bool,
+    flags: ConfigFlags,
+}
+
+impl PrustiCompilerCalls {
+    pub fn new(flags: ConfigFlags) -> Self {
+        Self { flags }
+    }
 }
 
 impl rustc_driver::Callbacks for PrustiCompilerCalls {
@@ -44,7 +45,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
-        if self.print_desugared_specs {
+        if self.flags.print_desugared_specs {
             rustc_driver::pretty::print_after_parsing(
                 compiler.session(),
                 compiler.input(),
@@ -69,7 +70,7 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             let mut visitor = specs::SpecCollector::new(tcx);
             intravisit::walk_crate(&mut visitor, &krate);
             let type_map = visitor.determine_typed_procedure_specs();
-            if self.print_typeckd_specs {
+            if self.flags.print_typeckd_specs {
                 let mut values: Vec<_> = type_map
                     .values()
                     .map(|spec| format!("{:?}", spec))
@@ -81,8 +82,8 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     println!("{}", value);
                 }
             }
-            if self.verify {
-                verifier::verify(tcx, type_map);
+            if !self.flags.skip_verify {
+                verifier::verify(self.flags, tcx, type_map);
             }
         });
 

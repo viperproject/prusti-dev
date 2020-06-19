@@ -6,9 +6,10 @@
 
 //! Various utility methods for working with VIR.
 
-use encoder::vir;
-use encoder::vir::ExprFolder;
-use encoder::vir::StmtFolder;
+use crate::encoder::vir;
+use crate::encoder::vir::ExprFolder;
+use crate::encoder::vir::StmtFolder;
+use log::trace;
 
 /// Substitute (map) expressions in a statement
 impl vir::Stmt {

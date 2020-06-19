@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// #![feature(rustc_private)]
-// #![feature(box_patterns)]
+#![feature(rustc_private)]
+#![feature(box_patterns)]
 // #![feature(nll)]
-// #![feature(box_syntax)]
+#![feature(box_syntax)]
 // #![feature(slice_sort_by_cached_key)]
 // #![feature(iterator_flatten)]
 
@@ -17,6 +17,8 @@
 // #![deny(unused_imports)]
 // #![deny(unused_doc_comments)]
 
+extern crate rustc_middle;
+extern crate rustc_hir;
 // #[macro_use]
 // extern crate log;
 // extern crate num_rational;
@@ -31,13 +33,13 @@
 // extern crate syntax_pos;
 // extern crate uuid;
 // extern crate viper;
-// #[macro_use]
-// extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 
 // #[cfg(debug_assertions)]
 // #[macro_use]
 // extern crate pretty_assertions;
 
-// mod encoder;
-// mod utils;
+mod encoder;
+mod utils;
 pub mod verifier;

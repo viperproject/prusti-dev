@@ -23,8 +23,8 @@ use rustc_span::Span;
 // use syntax_pos::MultiSpan;
 // use syntax_pos::symbol::Symbol;
 
-// pub mod borrowck;
-// mod collect_prusti_spec_visitor;
+pub mod borrowck;
+mod collect_prusti_spec_visitor;
 // mod dump_borrowck_info;
 // mod loops;
 // mod loops_utils;
@@ -33,7 +33,7 @@ use rustc_span::Span;
 // pub mod polonius_info;
 // mod procedure;
 
-// use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
+use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 // pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 // pub use self::loops_utils::*;
 // pub use self::procedure::{BasicBlockIndex, Procedure};
@@ -134,11 +134,10 @@ impl<'tcx> Environment<'tcx> {
 
     /// Get ids of Rust procedures that are annotated with a Prusti specification
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
-        // let tcx = self.tcx;
-        // let mut visitor = CollectPrustiSpecVisitor::new(self);
-        // tcx.hir().krate().visit_all_item_likes(&mut visitor);
-        // visitor.get_annotated_procedures()
-        unimplemented!();
+        let tcx = self.tcx;
+        let mut visitor = CollectPrustiSpecVisitor::new(self);
+        tcx.hir().krate().visit_all_item_likes(&mut visitor);
+        visitor.get_annotated_procedures()
     }
 
     // pub fn get_attr(&self, def_id: ProcedureDefId, name: &str) -> Option<String> {
@@ -155,18 +154,11 @@ impl<'tcx> Environment<'tcx> {
     //     }
     // }
 
-    // /// Find whether the procedure has a particular attribute
-    // pub fn has_attribute_name(&self, def_id: ProcedureDefId, name: &str) -> bool {
-    //     let tcx = self.tcx();
-    //     let opt_node_id = tcx.hir.as_local_node_id(def_id);
-    //     match opt_node_id {
-    //         None => {
-    //             debug!("Incomplete encoding of procedures from an external crate");
-    //             false
-    //         }
-    //         Some(node_id) => attr::contains_name(tcx.hir.attrs(node_id), name),
-    //     }
-    // }
+    /// Find whether the procedure has a particular attribute
+    pub fn has_attribute_name(&self, def_id: ProcedureDefId, name: &str) -> bool {
+        let tcx = self.tcx();
+        crate::environment::collect_prusti_spec_visitor::contains_name(tcx.get_attrs(def_id), name)
+    }
 
     // /// Dump various information from the borrow checker.
     // ///

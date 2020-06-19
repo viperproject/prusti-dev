@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // use encoder::vir::{self, optimisations, ToViper, ToViperDecl};
-// use encoder::Encoder;
+use crate::encoder::Encoder;
 // use prusti_filter::validators::Validator;
 use prusti_interface::config;
 use prusti_interface::data::VerificationResult;
@@ -137,7 +137,7 @@ where
     ast_factory: viper::AstFactory<'v>,
     verifier: viper::Verifier<'v, viper::state::Started>,
     env: &'v Environment<'tcx>,
-    // encoder: Encoder<'v, 'r, 'a, 'tcx>,
+    encoder: Encoder<'v, 'tcx>,
 }
 
 impl<'v, 'tcx> Verifier<'v, 'tcx> {
@@ -153,7 +153,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
             ast_factory,
             verifier,
             env,
-            // encoder: Encoder::new(env, spec),
+            encoder: Encoder::new(env, spec),
         }
     }
 
@@ -190,10 +190,10 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 //             }
 //         }
 
-//         for &proc_id in task.procedures.iter().rev() {
-//             self.encoder.queue_procedure_encoding(proc_id);
-//         }
-//         self.encoder.process_encoding_queue();
+        for &proc_id in task.procedures.iter().rev() {
+            self.encoder.queue_procedure_encoding(proc_id);
+        }
+        self.encoder.process_encoding_queue();
 
 //         let encoding_errors_count = self.encoder.count_encoding_errors();
 

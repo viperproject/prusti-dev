@@ -6,6 +6,7 @@ extern crate rustc_driver;
 use log::debug;
 use prusti::PrustiCompilerCalls;
 use std::env;
+use prusti_interface::config::ConfigFlags;
 
 /// Initialize Prusti and the Rust compiler loggers.
 fn init_loggers() {
@@ -31,23 +32,23 @@ fn main() {
     let rustc_args: Vec<String> = env::args().collect();
 
     let mut args = Vec::new();
-    let mut print_desugared_specs = false;
-    let mut print_typeckd_specs = false;
-    let mut verify = true;
+    let mut flags = ConfigFlags::default();
     for arg in rustc_args {
         debug!("Arg: {}", arg);
         if arg == "-Zprint-desugared-specs" {
-            print_desugared_specs = true;
+            flags.print_desugared_specs = true;
         } else if arg == "-Zprint-typeckd-specs" {
-            print_typeckd_specs = true;
+            flags.print_typeckd_specs = true;
+        } else if arg == "-Zprint-collected-verification-items" {
+            flags.print_collected_verfication_items = true;
         } else if arg == "-Zskip-verify" {
-            verify = false;
+            flags.skip_verify = true;
         } else {
             args.push(arg);
         }
     }
 
-    let mut callbacks = PrustiCompilerCalls {print_desugared_specs, print_typeckd_specs, verify};
+    let mut callbacks = PrustiCompilerCalls::new(flags);
 
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {

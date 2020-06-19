@@ -9,6 +9,7 @@ use prusti_interface::environment::borrowck;
 pub use prusti_interface::environment::borrowck::facts::loan_id as borrow_id;
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
+use log::{trace, debug};
 
 /// The method-unique borrow identifier.
 pub type Borrow = borrowck::facts::Loan;

@@ -6,8 +6,8 @@
 
 //! Optimisation that removes unused temporary variables.
 
-use encoder::vir::cfg;
-use encoder::vir::{Const, Expr, Stmt};
+use crate::encoder::vir::cfg;
+use crate::encoder::vir::{Const, Expr, Stmt};
 
 /// Remove trivial assertions:
 /// * `assert true`

@@ -26,6 +26,7 @@ extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_ast;
+extern crate rustc_attr;
 
 // extern crate csv;
 // extern crate datafrog;
@@ -35,7 +36,8 @@ extern crate rustc_ast;
 // extern crate polonius_engine;
 // extern crate regex;
 // extern crate rustc;
-// extern crate rustc_data_structures;
+extern crate rustc_data_structures;
+extern crate rustc_index;
 // extern crate rustc_driver;
 // extern crate rustc_hash;
 // extern crate rustc_mir;
