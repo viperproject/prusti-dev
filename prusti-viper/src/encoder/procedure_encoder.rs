@@ -13,7 +13,7 @@ use encoder::{
     loop_encoder::LoopEncoder,
     mir_encoder::{MirEncoder, POSTCONDITION_LABEL, PRECONDITION_LABEL},
     mir_successor::MirSuccessor,
-    optimiser, optimizer,
+    optimizer,
     places::{Local, LocalVariableManager, Place},
     vir::{
         self,
@@ -31,7 +31,7 @@ use prusti_common::{
         self,
         borrows::Borrow,
         fixes::fix_ghost_vars,
-        optimisations::methods::{remove_empty_if, remove_trivial_assertions, remove_unused_vars},
+        optimizations::methods::{remove_empty_if, remove_trivial_assertions, remove_unused_vars},
         CfgBlockIndex, ExprIterator, FoldingBehaviour, Successor,
     },
 };

@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use verification_service::ViperBackendConfig;
 use viper::{self, AstFactory, VerificationBackend, Viper};
 use encoder::Encoder;
-use prusti_common::vir::{self, optimisations, ToViper, ToViperDecl};
+use prusti_common::vir::{self, optimizations, ToViper, ToViperDecl};
 use prusti_filter::validators::Validator;
 use prusti_common::config;
 use prusti_interface::data::VerificationResult;
