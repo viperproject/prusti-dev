@@ -10,7 +10,7 @@ use std::fmt;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Domain {
     pub name: String,
-    pub functions: Vec<DomainFunction>,
+    pub functions: Vec<DomainFunc>,
     pub axioms: Vec<DomainAxiom>,
     pub type_vars: Vec<Type>,
 }
@@ -51,7 +51,7 @@ impl fmt::Display for Domain {
 
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct DomainFunction {
+pub struct DomainFunc {
     pub name: String,
     pub formal_args: Vec<LocalVar>,
     pub return_type: Type,
@@ -59,7 +59,7 @@ pub struct DomainFunction {
     pub domain_name: String,
 }
 
-impl fmt::Display for DomainFunction {
+impl fmt::Display for DomainFunc {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.unique {
             write!(f, "unique ")?;
@@ -77,7 +77,7 @@ impl fmt::Display for DomainFunction {
     }
 }
 
-impl WithIdentifier for DomainFunction {
+impl WithIdentifier for DomainFunc {
     fn get_identifier(&self) -> String {
         compute_identifier(&self.name, &self.formal_args, &self.return_type)
     }

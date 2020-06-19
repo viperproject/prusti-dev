@@ -42,7 +42,7 @@ pub enum Expr {
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
     /// Domain function application: domain function, args, Viper position (unused)
-    DomainFuncApp(DomainFunction, Vec<Expr>, Position),
+    DomainFuncApp(DomainFunc, Vec<Expr>, Position),
     /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
     InhaleExhale(Box<Expr>, Box<Expr>, Position),
 }
@@ -1447,7 +1447,7 @@ pub trait ExprFolder: Sized {
     }
     fn fold_domain_func_app(
         &mut self,
-        func: DomainFunction,
+        func: DomainFunc,
         args: Vec<Expr>,
         pos: Position,
     ) -> Expr {
@@ -1602,7 +1602,7 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(arg);
         }
     }
-    fn walk_domain_func_app(&mut self, func: &DomainFunction, args: &Vec<Expr>, _pos: &Position) {
+    fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &Vec<Expr>, _pos: &Position) {
         for arg in args {
             self.walk(arg)
         }

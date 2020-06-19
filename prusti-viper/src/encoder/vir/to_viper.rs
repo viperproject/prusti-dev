@@ -508,7 +508,7 @@ impl<'a, 'v> ToViper<'v, viper::Domain<'v>> for &'a Domain {
     }
 }
 
-impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunction {
+impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
     fn to_viper(&self, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
         ast.domain_func(
             &self.get_identifier(),
@@ -563,7 +563,7 @@ impl<'v> ToViper<'v, Vec<viper::Domain<'v>>> for Vec<Domain> {
     }
 }
 
-impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<DomainFunction> {
+impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<DomainFunc> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::DomainFunc<'v>> {
         self.iter().map(|x| x.to_viper(ast)).collect()
     }

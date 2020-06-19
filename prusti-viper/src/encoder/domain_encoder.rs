@@ -44,8 +44,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_snap_functions(&self) -> Vec<vir::DomainFunction> {
-        let cons_fun = vir::DomainFunction {
+    fn encode_snap_functions(&self) -> Vec<vir::DomainFunc> {
+        let cons_fun = vir::DomainFunc {
             name: SNAPSHOT_CONS.to_string(),
             formal_args: self.encode_snap_formal_args(),
             return_type: vir::Type::Domain(self.encode_domain_name()),
@@ -127,14 +127,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
             pres: vec![vir::Expr::PredicateAccessPredicate(
                 self.predicate_name.clone(),
                 Box::new(vir::Expr::Local(arg_var, vir::Position::default())),
-                PermAmount::Write,
+                PermAmount::Read,
                 vir::Position::default())],
             posts: vec![],
             body: Some(vir::Expr::Unfolding(
                 self.predicate_name.clone(),
                 vec![vir::Expr::Local(self.encode_snap_arg_var(), vir::Position::default())],
                 Box::new(body),
-                vir::PermAmount::Write,
+                vir::PermAmount::Read,
                 None,
                 vir::Position::default(),
             )),

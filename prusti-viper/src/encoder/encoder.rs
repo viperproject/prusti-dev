@@ -18,7 +18,7 @@ use encoder::spec_encoder::SpecEncoder;
 use encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use encoder::vir;
-use encoder::vir::{WithIdentifier, DomainFunction, LocalVar, Type};
+use encoder::vir::{WithIdentifier, DomainFunc, LocalVar, Type};
 use prusti_interface::config;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
@@ -69,7 +69,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     snapshot_functions: RefCell<HashMap<String, vir::Function>>,
     predicate_snapshot_type_names: RefCell<HashMap<String, String>>,
     predicate_snapshot_func_names: RefCell<HashMap<String, String>>,
-    pure_snapshot_mirrors: RefCell<HashMap<ProcedureDefId, vir::DomainFunction>>,
+    pure_snapshot_mirrors: RefCell<HashMap<ProcedureDefId, vir::DomainFunc>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -939,7 +939,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_pure_snapshot_mirror(&self,
                                        def_id: ProcedureDefId,
                                        pure_function: vir::Function)
-        -> Option<vir::DomainFunction> {
+        -> Option<vir::DomainFunc> {
         let mut mirrors = self.pure_snapshot_mirrors.borrow_mut();
 
         // TODO CMFIXME
@@ -958,7 +958,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     })
                 .collect();
 
-            let mirror_function = DomainFunction {
+            let mirror_function = DomainFunc {
                 name: format!("mirror${}", self.env.get_item_name(def_id)),
                 formal_args,
                 return_type: pure_function.return_type.clone(),
@@ -1331,6 +1331,29 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             let mirror = self.encode_pure_snapshot_mirror(proc_def_id, function.clone());
             if let Some(mirror_func) = mirror {
 
+
+                let mut mirror_args = vec![];
+                for (func_arg, mirror_arg) in function.formal_args
+                    .iter()
+                    .zip(mirror_func.formal_args.iter()) {
+                    let arg = vir::Expr::Local(func_arg.clone(), vir::Position::default());
+                    match &func_arg.typ {
+                        vir::Type::TypedRef(name) => {
+                            mirror_args.
+                            push(
+                                vir::Expr::FuncApp(
+                                    self.encode_get_snapshot_func_name(name.clone()),
+                                    vec![arg],
+                                    vec![func_arg.clone()],
+                                    mirror_arg.typ.clone(),
+                                    vir::Position::default(),
+                                )
+                            );
+                        }
+                        _ => mirror_args.push(arg)
+                    }
+                }
+
                 let mut posts = function.posts.clone();
                 posts.push(vir::Expr::InhaleExhale(Box::new(
                     vir::Expr::BinOp(
@@ -1338,7 +1361,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                         Box::new(
                             vir::Expr::Local(
                                 LocalVar {
-                                    name: "result".to_string(),
+                                    name: "__result".to_string(),
                                     typ: function.return_type.clone()
                                 },
                                 vir::Position::default(),
@@ -1347,7 +1370,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                         Box::new(
                             vir::Expr::DomainFuncApp(
                                 mirror_func.clone(),
-                                vec![], // TODO CMFIXME
+                                mirror_args,
                                 vir::Position::default(),
                             )
                         ), vir::Position::default(),
