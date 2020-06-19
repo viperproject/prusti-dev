@@ -15,6 +15,8 @@
 #![feature(box_patterns)]
 #![feature(try_from)]
 #![feature(crate_in_paths)]
+#![feature(map_get_key_value)]
+#![feature(iterator_flatten)]
 
 extern crate csv;
 extern crate datafrog;
@@ -22,6 +24,7 @@ extern crate datafrog;
 extern crate log;
 extern crate polonius;
 extern crate polonius_engine;
+extern crate prusti_common;
 extern crate regex;
 extern crate rustc;
 extern crate rustc_data_structures;
@@ -46,4 +49,5 @@ pub mod environment;
 pub mod parser;
 pub mod specifications;
 pub mod sysroot;
+pub mod trait_register;
 pub mod utils;

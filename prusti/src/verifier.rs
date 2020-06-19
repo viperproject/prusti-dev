@@ -6,14 +6,17 @@
 
 //! A module that invokes the verifier `prusti-viper`
 
-use prusti_common::config;
-use prusti_common::report::user;
-use prusti_interface::data::{VerificationResult, VerificationTask};
-use prusti_interface::environment::Environment;
-use prusti_interface::specifications::TypedSpecificationMap;
+use prusti_common::{config, report::user};
+use prusti_interface::{
+    data::{VerificationResult, VerificationTask},
+    environment::Environment,
+    specifications::TypedSpecificationMap,
+};
 use prusti_server::{PrustiServerConnection, ServerSideService, VerifierRunner};
-use prusti_viper::verification_service::*;
-use prusti_viper::verifier::{Verifier, VerifierBuilder};
+use prusti_viper::{
+    verification_service::*,
+    verifier::{Verifier, VerifierBuilder},
+};
 use rustc_driver::driver;
 
 /// Verify a (typed) specification on compiler state.

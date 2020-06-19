@@ -173,7 +173,7 @@ fn binary_search(arr: &mut VecWrapperI32, elem: &mut i32) -> UsizeOption
     let mut continue_loop = size > 0;
 
     #[invariant="base + size <= arr.len()"]
-    #[invariant="continue_loop == (size > 0 && result.is_none())"]
+    #[invariant="size > 0 && result.is_none()"]
     #[invariant="arr.len() == old(arr.len())"]
     #[invariant="*elem == old(*elem)"]
     #[invariant="forall k1: usize, k2: usize :: (0 <= k1 && k1 < k2 && k2 < arr.len()) ==>

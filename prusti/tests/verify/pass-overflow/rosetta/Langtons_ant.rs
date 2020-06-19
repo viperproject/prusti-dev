@@ -202,7 +202,7 @@ fn main(){
  
     #[invariant="grid.y_size() == 100"]
     #[invariant="grid.x_size() == 100"]
-    #[invariant="continue_loop ==> ant.valid(grid.y_size(), grid.x_size())"]
+    #[invariant="ant.valid(grid.y_size(), grid.x_size())"]
     #[invariant="forall y: isize, x: isize ::
                 (0 <= x && x < grid.x_size() && 0 <= y && y < grid.y_size()) ==>
                 (grid.lookup(y, x) == 0 || grid.lookup(y, x) == 1)"]

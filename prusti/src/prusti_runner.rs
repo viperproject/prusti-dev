@@ -4,13 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use compiler_calls::PrustiCompilerCalls;
-use prusti_common::config;
-use prusti_common::report::user;
-use rustc::session::CompileResult;
-use rustc::session::Session;
+use compiler_calls::{PrustiCompilerCalls, RegisterCalls};
+use prusti_common::{config, report::user};
+use prusti_interface::trait_register::TraitRegister;
+use rustc::session::{CompileIncomplete, CompileResult, Session};
 use rustc_driver;
-use std::env;
+use std::{
+    env,
+    sync::{Arc, Mutex},
+};
 
 /// Add arguments required by Prusti, then run the compiler with Prusti callbacks
 pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {
@@ -63,8 +65,16 @@ pub fn run_prusti(mut args: Vec<String>) -> (CompileResult, Option<Session>) {
         warn!("Configuration variable CONTRACTS_LIB is empty");
     }
 
-    let prusti_compiler_calls = Box::new(PrustiCompilerCalls::new());
+    let trait_register = Arc::new(Mutex::new(TraitRegister::new()));
+    let register_calls = Box::new(RegisterCalls::from_register(trait_register.clone()));
+    let res = rustc_driver::run_compiler(&args, register_calls, None, None);
+    match res {
+        (Err(CompileIncomplete::Errored(_)), _) => return res,
+        _ => {}
+    }
 
+    let prusti_compiler_calls =
+        Box::new(PrustiCompilerCalls::from_register(trait_register.clone()));
     debug!("rustc command: '{}'", args.join(" "));
     rustc_driver::run_compiler(&args, prusti_compiler_calls, None, None)
 }

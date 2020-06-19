@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir;
+use prusti_common::vir;
 use std::collections::HashMap;
 use std::mem;
 
@@ -65,7 +65,7 @@ impl vir::StmtFolder for Optimizer {
         &mut self,
         expr: vir::Expr,
         folding: vir::FoldingBehaviour,
-        pos: vir::Position
+        pos: vir::Position,
     ) -> vir::Stmt {
         let pulled_unfodling = self.replace_expr_unfolding(expr);
         let replaced_old = self.replace_expr_old(pulled_unfodling);
@@ -153,17 +153,17 @@ impl vir::ExprFolder for Replacer {
         kind: vir::BinOpKind,
         first: Box<vir::Expr>,
         second: Box<vir::Expr>,
-        pos: vir::Position
+        pos: vir::Position,
     ) -> vir::Expr {
         let folded_first = self.fold_boxed(first);
         let folded_second = self.fold_boxed(second);
         let original_expr = vir::Expr::BinOp(kind, folded_first, folded_second, pos.clone());
-        if (kind == vir::BinOpKind::Add ||
-            kind == vir::BinOpKind::Sub ||
-            kind == vir::BinOpKind::Mul ||
-            kind == vir::BinOpKind::Div ||
-            kind == vir::BinOpKind::Mod) &&
-            !self.bound_vars.iter().any(|v| original_expr.find(v))
+        if (kind == vir::BinOpKind::Add
+            || kind == vir::BinOpKind::Sub
+            || kind == vir::BinOpKind::Mul
+            || kind == vir::BinOpKind::Div
+            || kind == vir::BinOpKind::Mod)
+            && !self.bound_vars.iter().any(|v| original_expr.find(v))
         {
             if let Some(local) = self.map.get(&original_expr) {
                 vir::Expr::Local(local.clone(), pos)
@@ -179,8 +179,10 @@ impl vir::ExprFolder for Replacer {
 }
 
 struct UnfoldingExtractor {
-    unfoldings: HashMap<(String, Vec<vir::Expr>),
-                        (vir::PermAmount, vir::MaybeEnumVariantIndex, vir::Position)>,
+    unfoldings: HashMap<
+        (String, Vec<vir::Expr>),
+        (vir::PermAmount, vir::MaybeEnumVariantIndex, vir::Position),
+    >,
     in_quantifier: bool,
 }
 
@@ -192,7 +194,10 @@ impl vir::ExprFolder for UnfoldingExtractor {
         body: Box<vir::Expr>,
         pos: vir::Position,
     ) -> vir::Expr {
-        assert!(self.unfoldings.is_empty(), "Nested quantifiers are not supported.");
+        assert!(
+            self.unfoldings.is_empty(),
+            "Nested quantifiers are not supported."
+        );
         debug!("original body: {}", body);
 
         self.in_quantifier = true;
@@ -204,7 +209,8 @@ impl vir::ExprFolder for UnfoldingExtractor {
         let unfoldings = mem::replace(&mut self.unfoldings, HashMap::new());
 
         for ((name, args), (perm_amount, variant, _)) in unfoldings {
-            forall = vir::Expr::Unfolding(name, args, box forall, perm_amount, variant, pos.clone());
+            forall =
+                vir::Expr::Unfolding(name, args, box forall, perm_amount, variant, pos.clone());
         }
         debug!("replaced quantifier: {}", forall);
 
@@ -230,7 +236,7 @@ impl vir::ExprFolder for UnfoldingExtractor {
         &mut self,
         label: String,
         body: Box<vir::Expr>,
-        pos: vir::Position
+        pos: vir::Position,
     ) -> vir::Expr {
         vir::Expr::LabelledOld(label, body, pos)
     }

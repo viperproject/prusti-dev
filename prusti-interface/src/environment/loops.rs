@@ -155,7 +155,8 @@ impl<'b, 'tcx> Visitor<'tcx> for AccessCollector<'b, 'tcx> {
 /// Returns the list of basic blocks ordered in the topological order (ignoring back edges).
 fn order_basic_blocks<'tcx>(
     mir: &mir::Mir<'tcx>,
-    back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>
+    back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
+    loop_depth: &Fn(BasicBlockIndex) -> usize,
 ) -> Vec<BasicBlockIndex> {
     let basic_blocks = mir.basic_blocks();
     let mut sorted_blocks = Vec::new();
@@ -166,6 +167,7 @@ fn order_basic_blocks<'tcx>(
     fn visit<'tcx>(
         basic_blocks: &IndexVec<BasicBlockIndex, mir::BasicBlockData<'tcx>>,
         back_edges: &HashSet<(BasicBlockIndex, BasicBlockIndex)>,
+        loop_depth: &Fn(BasicBlockIndex) -> usize,
         current: BasicBlockIndex,
         sorted_blocks: &mut Vec<BasicBlockIndex>,
         permanent_mark: &mut IndexVec<BasicBlockIndex, bool>,
@@ -176,18 +178,31 @@ fn order_basic_blocks<'tcx>(
         }
         assert!(!temporary_mark[current], "Not a DAG!");
         temporary_mark[current] = true;
-        for &successor in basic_blocks[current].terminator().successors() {
-            if back_edges.contains(&(current, successor)) {
-                continue;
+        let curr_depth = loop_depth(current);
+        // We want to order the loop body before exit edges
+        let successors_groups: Vec<Vec<_>> = vec![
+            basic_blocks[current].terminator().successors().filter(
+                |&&bb| loop_depth(bb) < curr_depth
+            ).cloned().collect(),
+            basic_blocks[current].terminator().successors().filter(
+                |&&bb| loop_depth(bb) >= curr_depth
+            ).cloned().collect(),
+        ];
+        for group in &successors_groups {
+            for &successor in group.iter() {
+                if back_edges.contains(&(current, successor)) {
+                    continue;
+                }
+                visit(
+                    basic_blocks,
+                    back_edges,
+                    loop_depth,
+                    successor,
+                    sorted_blocks,
+                    permanent_mark,
+                    temporary_mark,
+                );
             }
-            visit(
-                basic_blocks,
-                back_edges,
-                successor,
-                sorted_blocks,
-                permanent_mark,
-                temporary_mark,
-            );
         }
         permanent_mark[current] = true;
         sorted_blocks.push(current);
@@ -201,7 +216,8 @@ fn order_basic_blocks<'tcx>(
         };
         visit(
             basic_blocks,
-            &back_edges,
+            back_edges,
+            loop_depth,
             index,
             &mut sorted_blocks,
             &mut permanent_mark,
@@ -224,9 +240,11 @@ pub struct ProcedureLoops {
     pub ordered_loop_bodies: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
     /// A map from loop bodies to the ordered vector of enclosing loop heads (from outer to inner).
     enclosing_loop_heads: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
-    /// A map from loop heads to the corresponding guard-switch block (None if the loop is infinite).
-    loop_guard_switch: HashMap<BasicBlockIndex, Option<BasicBlockIndex>>,
-    /// A map from loop heads to the nonconditional blocks.
+    /// A map from loop heads to the ordered blocks from which an CFG edge exits from the loop.
+    /// Note that only some special exit edges are considered.
+    loop_exit_blocks: HashMap<BasicBlockIndex, Vec<BasicBlockIndex>>,
+    /// A map from loop heads to the nonconditional blocks (i.e. those that are always executed
+    /// in any loop iteration).
     nonconditional_loop_blocks: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>>,
     /// Back edges.
     pub back_edges: HashSet<(BasicBlockIndex, BasicBlockIndex)>,
@@ -240,7 +258,7 @@ pub struct ProcedureLoops {
 impl ProcedureLoops {
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Mir<'tcx>) -> ProcedureLoops {
         let dominators = mir.dominators();
-        let back_edges = {
+        let back_edges: HashSet<(_, _)> = {
             let mut visitor = LoopHeadCollector {
                 back_edges: HashSet::new(),
                 dominators: &dominators,
@@ -249,22 +267,10 @@ impl ProcedureLoops {
             visitor.back_edges.into_iter().collect()
         };
 
-        let ordered_blocks = order_basic_blocks(mir, &back_edges);
-        let block_order: HashMap<BasicBlockIndex, usize> = ordered_blocks
-            .iter().cloned().enumerate().map(|(i, v)| (v, i)).collect();
-
         let mut loop_bodies = HashMap::new();
         for &(source, target) in back_edges.iter() {
             let body = loop_bodies.entry(target).or_insert(HashSet::new());
             collect_loop_body(target, source, mir, body);
-        }
-
-        let mut ordered_loop_bodies = HashMap::new();
-        for (&loop_head, loop_body) in loop_bodies.iter() {
-            let mut ordered_body: Vec<_> = loop_body.iter().cloned().collect();
-            ordered_body.sort_by_key(|bb| block_order[bb]);
-            debug_assert_eq!(loop_head, ordered_body[0]);
-            ordered_loop_bodies.insert(loop_head, ordered_body);
         }
 
         let mut enclosing_loop_heads_set: HashMap<BasicBlockIndex, HashSet<BasicBlockIndex>> =
@@ -298,50 +304,79 @@ impl ProcedureLoops {
                 .unwrap_or(0)
         };
 
-        // In Rust, the evaluation of a loop guard happens over several blocks.
-        // Here, we identify the first CFG block such that
-        // 1. has an out-edge that exists from the loop
-        // 2. is always executed when executing a loop iteration (i.e. is not in a conditional branch)
-        let mut loop_guard_switch = HashMap::new();
+        let ordered_blocks = order_basic_blocks(mir, &back_edges, &get_loop_depth);
+        let block_order: HashMap<BasicBlockIndex, usize> = ordered_blocks
+            .iter().cloned().enumerate().map(|(i, v)| (v, i)).collect();
+        debug!("ordered_blocks: {:?}", ordered_blocks);
+
+        let mut ordered_loop_bodies = HashMap::new();
+        for (&loop_head, loop_body) in loop_bodies.iter() {
+            let mut ordered_body: Vec<_> = loop_body.iter().cloned().collect();
+            ordered_body.sort_by_key(|bb| block_order[bb]);
+            debug_assert_eq!(loop_head, ordered_body[0]);
+            ordered_loop_bodies.insert(loop_head, ordered_body);
+        }
+
+        // In Rust, the evaluation of a loop guard may happen over several blocks.
+        // Here, we identify the CFG blocks that decide whether to exit from the loop or not.
+        // They are those blocks in the loop that:
+        // 1. have a SwitchInt terminator
+        // 2. have an out-edge that exists from the loop
+        // 3. are always executed when executing a loop iteration (i.e. are not in a branch)
+        // NOTE: this still doesn't handle return/break/continue in loop guards!
+        let mut loop_exit_blocks = HashMap::new();
         let mut nonconditional_loop_blocks = HashMap::new();
         for &loop_head in loop_heads.iter() {
             let loop_head_depth = loop_head_depths[&loop_head];
             let loop_body = &loop_bodies[&loop_head];
             let ordered_loop_body = &ordered_loop_bodies[&loop_head];
 
-            let mut guard_switch = None;
+            let mut exit_blocks = vec![];
             let mut nonconditional_blocks = vec![];
+            let mut reached_back_edge = false;
             let mut border = HashSet::new();
             border.insert(loop_head);
 
             for &curr_bb in ordered_loop_body {
                 debug_assert!(border.contains(&curr_bb));
 
-                if border.len() == 1 {
+                if border.len() == 1 && !reached_back_edge {
                     nonconditional_blocks.push(curr_bb);
-                    if guard_switch.is_none() {
-                        let has_exit_edge = mir[curr_bb].terminator().successors()
-                            .any(|bb| get_loop_depth(*bb) < loop_head_depth);
-                        if has_exit_edge {
-                            // curr_bb has an out-edge that exits from the loop
-                            guard_switch = Some(curr_bb);
-                        }
+                    let term = mir[curr_bb].terminator();
+                    let is_switch_int = match term.kind {
+                        mir::TerminatorKind::SwitchInt { .. } => true,
+                        _ => false
+                    };
+                    let has_exit_edge = term.successors().any(
+                        |&bb| get_loop_depth(bb) < loop_head_depth
+                    );
+                    if is_switch_int && has_exit_edge {
+                        exit_blocks.push(curr_bb);
                     }
                 }
 
                 border.remove(&curr_bb);
 
                 for &succ_bb in mir[curr_bb].terminator().successors() {
-                    // Consider only forward in-loop edges
-                    if succ_bb != loop_head && loop_body.contains(&succ_bb) {
-                        border.insert(succ_bb);
+                    if back_edges.contains(&(curr_bb, succ_bb)) {
+                        if succ_bb == loop_head || !loop_body.contains(&succ_bb) {
+                            // From this point, we consider all blocks to be conditional
+                            reached_back_edge = true;
+                        }
+                    } else {
+                        // Consider only forward in-loop edges
+                        if loop_body.contains(&succ_bb) {
+                            border.insert(succ_bb);
+                        }
                     }
                 }
             }
 
-            loop_guard_switch.insert(loop_head, guard_switch);
+            loop_exit_blocks.insert(loop_head, exit_blocks);
             nonconditional_loop_blocks.insert(loop_head, nonconditional_blocks.into_iter().collect());
         }
+        debug!("loop_exit_blocks: {:?}", loop_exit_blocks);
+        debug!("nonconditional_loop_blocks: {:?}", nonconditional_loop_blocks);
 
         ProcedureLoops {
             loop_heads,
@@ -349,7 +384,7 @@ impl ProcedureLoops {
             loop_bodies,
             ordered_loop_bodies,
             enclosing_loop_heads,
-            loop_guard_switch,
+            loop_exit_blocks,
             nonconditional_loop_blocks,
             back_edges,
             dominators,
@@ -369,20 +404,14 @@ impl ProcedureLoops {
         self.loop_heads.contains(&bbi)
     }
 
-    pub fn get_loop_guard_switch(&self, bbi: BasicBlockIndex) -> Option<BasicBlockIndex> {
+    pub fn get_loop_exit_blocks(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {
         debug_assert!(self.is_loop_head(bbi));
-        self.loop_guard_switch[&bbi].clone()
-    }
-
-    pub fn is_loop_guard_switch(&self, bbi: BasicBlockIndex) -> bool {
-        self.get_loop_head(bbi).and_then(
-            |loop_head| self.get_loop_guard_switch(loop_head)
-        ) == Some(bbi)
+        &self.loop_exit_blocks[&bbi]
     }
 
     pub fn is_conditional_branch(&self, loop_head: BasicBlockIndex, bbi: BasicBlockIndex) -> bool {
         debug_assert!(self.is_loop_head(loop_head));
-        self.nonconditional_loop_blocks[&loop_head].contains(&bbi)
+        !self.nonconditional_loop_blocks[&loop_head].contains(&bbi)
     }
 
     pub fn get_enclosing_loop_heads(&self, bbi: BasicBlockIndex) -> &[BasicBlockIndex] {

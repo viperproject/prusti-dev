@@ -10,6 +10,7 @@ use encoder::{
     vir,
     vir::PermAmount,
 };
+use prusti_common::{vir, vir::PermAmount};
 use std::{
     collections::{HashMap, HashSet},
     iter::FromIterator,
@@ -322,10 +323,14 @@ impl RequiredPermissionsGetter for vir::Expr {
     }
 }
 
-impl vir::Expr {
+pub trait ExprPermissionsGetter {
+    fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm>;
+}
+
+impl ExprPermissionsGetter for vir::Expr {
     /// Returns the permissions that must be inhaled/exhaled in a `inhale/exhale expr` statement
     /// This must be a subset of `get_required_permissions`
-    pub fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
+    fn get_permissions(&self, predicates: &HashMap<String, vir::Predicate>) -> HashSet<Perm> {
         trace!("get_permissions {}", self);
         match self {
             vir::Expr::Local(_, _)
@@ -419,9 +424,16 @@ impl vir::Expr {
     }
 }
 
-impl vir::Predicate {
+pub trait PredicatePermissionsGetter {
+    fn get_permissions_with_variant(
+        &self,
+        maybe_variant: &vir::MaybeEnumVariantIndex,
+    ) -> HashSet<Perm>;
+}
+
+impl PredicatePermissionsGetter for vir::Predicate {
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    pub fn get_permissions_with_variant(
+    fn get_permissions_with_variant(
         &self,
         maybe_variant: &vir::MaybeEnumVariantIndex,
     ) -> HashSet<Perm> {
@@ -444,9 +456,13 @@ impl vir::Predicate {
     }
 }
 
-impl vir::StructPredicate {
+pub trait StructPredicatePermissionsGetter {
+    fn get_permissions(&self) -> HashSet<Perm>;
+}
+
+impl StructPredicatePermissionsGetter for vir::StructPredicate {
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    pub fn get_permissions(&self) -> HashSet<Perm> {
+    fn get_permissions(&self) -> HashSet<Perm> {
         match self.body {
             Some(ref body) => {
                 // A predicate body should not contain unfolding expression
@@ -458,9 +474,14 @@ impl vir::StructPredicate {
     }
 }
 
-impl vir::EnumPredicate {
+pub trait EnumPredicatePermissionsGetter {
+    fn get_permissions(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm>;
+    fn get_all_permissions(&self) -> HashSet<Perm>;
+}
+
+impl EnumPredicatePermissionsGetter for vir::EnumPredicate {
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    pub fn get_permissions(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
+    fn get_permissions(&self, variant: &vir::EnumVariantIndex) -> HashSet<Perm> {
         // A predicate body should not contain unfolding expression
         let predicates = HashMap::new();
         let mut perms = self.discriminant.get_required_permissions(&predicates);
@@ -477,8 +498,9 @@ impl vir::EnumPredicate {
         ));
         perms
     }
+
     /// Returns the permissions that must be added/removed in a `fold/unfold pred` statement
-    pub fn get_all_permissions(&self) -> HashSet<Perm> {
+    fn get_all_permissions(&self) -> HashSet<Perm> {
         // A predicate body should not contain unfolding expression
         let predicates = HashMap::new();
         let mut perms = self.discriminant.get_required_permissions(&predicates);

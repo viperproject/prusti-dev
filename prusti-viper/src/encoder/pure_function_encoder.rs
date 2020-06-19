@@ -4,31 +4,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::borrows::{compute_procedure_contract, ProcedureContract};
-use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::error_manager::ErrorCtxt;
-use encoder::error_manager::PanicCause;
-use encoder::foldunfold;
-use encoder::mir_encoder::MirEncoder;
-use encoder::mir_encoder::{PRECONDITION_LABEL, WAND_LHS_LABEL};
-use encoder::mir_interpreter::{
-    run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+use encoder::{
+    borrows::{compute_procedure_contract, ProcedureContract},
+    builtin_encoder::BuiltinFunctionKind,
+    errors::{EncodingError, ErrorCtxt, PanicCause},
+    foldunfold,
+    mir_encoder::{MirEncoder, PRECONDITION_LABEL, WAND_LHS_LABEL},
+    mir_interpreter::{
+        run_backward_interpretation, BackwardMirInterpreter, MultiExprBackwardInterpreterState,
+    },
+    Encoder,
 };
-use encoder::vir;
-use encoder::vir::ExprIterator;
-use encoder::Encoder;
-use prusti_common::config;
+use prusti_common::{config, vir, vir::ExprIterator};
 use prusti_interface::specifications::SpecificationSet;
-use rustc::hir;
-use rustc::hir::def_id::DefId;
-use rustc::mir;
-use rustc::ty;
+use rustc::{hir, hir::def_id::DefId, mir, ty};
 use std::collections::HashMap;
-use syntax::codemap::Span;
-
-pub enum PureFunctionEncodingError {
-    CallImpure(String, Span)
-}
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -234,6 +224,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
             function,
             self.encoder.get_used_viper_predicates_map(),
         )
+        .ok()
+        .unwrap() // TODO: return a result
     }
 
     /// Encode the precondition with two expressions:
@@ -380,7 +372,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, '
     pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
         &self.mir_encoder
     }
-
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
@@ -555,9 +546,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                 )
             }
 
-            TerminatorKind::DropAndReplace { ..  } => {
-                unimplemented!()
-            },
+            TerminatorKind::DropAndReplace { .. } => unimplemented!(),
 
             TerminatorKind::Call {
                 ref args,
@@ -580,7 +569,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                     }),
                 ..
             } => {
-                let full_func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                let full_func_proc_name: &str =
+                    &self.encoder.env().tcx().absolute_item_path_str(def_id);
                 let func_proc_name = &self.encoder.env().get_item_name(def_id);
 
                 let own_substs =
@@ -651,10 +641,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
-                                self.encoder.register_encoding_error(PureFunctionEncodingError::CallImpure(
-                                    format!("use of impure function {:?} in assertion", func_proc_name),
-                                    term.source_info.span,
-                                ));
+                                self.encoder
+                                    .register_encoding_error(EncodingError::incorrect(
+                                        format!(
+                                        "use of impure function {:?} in assertion is not allowed",
+                                        func_proc_name
+                                    ),
+                                        term.source_info.span,
+                                    ));
                             }
 
                             let formal_args: Vec<vir::LocalVar> = args

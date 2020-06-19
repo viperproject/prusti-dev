@@ -4,27 +4,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::foldunfold;
-use encoder::spec_encoder::SpecEncoder;
-use encoder::utils::range_extract;
-use encoder::utils::PlusOne;
-use encoder::vir;
-use encoder::vir::ExprFolder;
-use encoder::vir::ExprIterator;
-use encoder::Encoder;
-use prusti_common::config;
+use encoder::{
+    foldunfold,
+    spec_encoder::SpecEncoder,
+    utils::{range_extract, PlusOne},
+    Encoder,
+};
+use prusti_common::{
+    config, vir,
+    vir::{ExprFolder, ExprIterator},
+};
 use prusti_interface::specifications::*;
-use rustc::middle::const_val::ConstVal;
-use rustc::ty;
-use rustc::ty::layout;
-use rustc::ty::layout::IntegerExt;
+use rustc::{
+    middle::const_val::ConstVal,
+    ty,
+    ty::{layout, layout::IntegerExt},
+};
 use rustc_data_structures::indexed_vec::Idx;
-use std;
-use std::collections::hash_map::DefaultHasher;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use syntax::ast;
-use syntax::attr::SignedInt;
+use std::{
+    self,
+    collections::{hash_map::DefaultHasher, HashMap},
+    hash::{Hash, Hasher},
+};
+use syntax::{ast, attr::SignedInt};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -39,27 +41,27 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     /// Is this type supported?
     fn is_supported_type(&self, ty: ty::Ty<'tcx>) -> bool {
         match ty.sty {
-            ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) |
-            ty::TypeVariants::TyChar |
-            ty::TypeVariants::TyRef(_, _, _) |
-            ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_) |
-            ty::TypeVariants::TyNever |
-            ty::TypeVariants::TyParam(_) => {
-                true
-            }
-            _ => {
-                false
-            }
+            ty::TypeVariants::TyBool
+            | ty::TypeVariants::TyInt(_)
+            | ty::TypeVariants::TyUint(_)
+            | ty::TypeVariants::TyChar
+            | ty::TypeVariants::TyRef(_, _, _)
+            | ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_)
+            | ty::TypeVariants::TyNever
+            | ty::TypeVariants::TyParam(_) => true,
+            _ => false,
         }
     }
 
     fn is_supported_subst(&self, subst: &ty::subst::Substs<'tcx>) -> bool {
         subst.iter().all(|kind| {
             if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
-                trace!("is_supported_subst({:?}) = {}", ty, self.is_supported_type(ty));
+                trace!(
+                    "is_supported_subst({:?}) = {}",
+                    ty,
+                    self.is_supported_type(ty)
+                );
                 self.is_supported_type(ty)
             } else {
                 true
@@ -70,22 +72,26 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
     /// Is this type supported?
     fn is_supported_field_type(&self, ty: ty::Ty<'tcx>) -> bool {
         match ty.sty {
-            ty::TypeVariants::TyAdt(_, subst) => {
-                self.is_supported_subst(subst)
-            }
-            _ => {
-                self.is_supported_type(ty)
-            }
+            ty::TypeVariants::TyAdt(_, subst) => self.is_supported_subst(subst),
+            _ => self.is_supported_type(ty),
         }
     }
 
     /// Are all fields in the struct of a supported type?
-    fn is_supported_struct_type(&self, adt_def: &ty::AdtDef, subst: &ty::subst::Substs<'tcx>) -> bool {
+    fn is_supported_struct_type(
+        &self,
+        adt_def: &ty::AdtDef,
+        subst: &ty::subst::Substs<'tcx>,
+    ) -> bool {
         let tcx = self.encoder.env().tcx();
         let supported_fields = adt_def.variants.iter().all(|variant| {
             variant.fields.iter().all(|field| {
                 let field_ty = field.ty(tcx, subst);
-                trace!("is_supported_type({:?}) = {}", field_ty, self.is_supported_type(field_ty));
+                trace!(
+                    "is_supported_type({:?}) = {}",
+                    field_ty,
+                    self.is_supported_type(field_ty)
+                );
                 self.is_supported_field_type(field_ty)
             })
         });
@@ -111,7 +117,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Type::TypedRef(type_name)
             }
 
-            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unimplemented!(),
+            ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
 
             ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
                 unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
@@ -264,9 +270,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         debug!("ADT {:?} has {} variants", adt_def, num_variants);
                         let discriminant_field = self.encoder.encode_discriminant_field();
                         let this = vir::Predicate::construct_this(typ.clone());
-                        let discriminant_loc = vir::Expr::from(this.clone()).field(discriminant_field);
-                        let discriminant_bounds = compute_discriminant_bounds(
-                            adt_def, tcx, &discriminant_loc);
+                        let discriminant_loc =
+                            vir::Expr::from(this.clone()).field(discriminant_field);
+                        let discriminant_bounds =
+                            compute_discriminant_bounds(adt_def, tcx, &discriminant_loc);
 
                         let discriminant_values = compute_discriminant_values(adt_def, tcx);
                         let variants: Vec<_> = adt_def
@@ -488,9 +495,20 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     let mut exprs: Vec<vir::Expr> = vec![];
                     let num_variants = adt_def.variants.len();
                     let tcx = self.encoder.env().tcx();
-                    let opt_spec = self.encoder.get_spec_by_def_id(adt_def.did);
 
-                    if let Some(spec) = opt_spec {
+                    let mut specs: Vec<&TypedSpecificationSet> = Vec::new();
+                    if let Some(spec) = self.encoder.get_spec_by_def_id(adt_def.did) {
+                        specs.push(spec);
+                    }
+
+                    let traits = self.encoder.env().get_traits_decls_for_type(&self.ty);
+                    for trait_id in traits {
+                        if let Some(spec) = self.encoder.get_spec_by_def_id(trait_id) {
+                            specs.push(spec);
+                        }
+                    }
+
+                    for spec in specs.into_iter() {
                         //let encoded_args = vec![vir::Expr::from(self_local_var.clone())];
                         let encoded_args = vec![];
                         let spec_encoder = SpecEncoder::new_simple(self.encoder, &encoded_args);
@@ -530,7 +548,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                             let field_name = &field.ident.as_str();
                             let field_ty = field.ty(tcx, subst);
                             let elem_field = self.encoder.encode_struct_field(field_name, field_ty);
-                            let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
+                            let elem_loc =
+                                vir::Expr::from(self_local_var.clone()).field(elem_field);
                             exprs.push(self.encoder.encode_invariant_func_app(field_ty, elem_loc));
                         }
                     } else {
@@ -580,7 +599,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let final_function = foldunfold::add_folding_unfolding_to_function(
             function,
             self.encoder.get_used_viper_predicates_map(),
-        );
+        )
+        .ok()
+        .unwrap(); // TODO: generate a stub function in case of error
         debug!(
             "[exit] encode_invariant_def({:?}):\n{}",
             self.ty, final_function
@@ -636,10 +657,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 }
 
 /// Compute the values that a discriminant can take.
-pub fn compute_discriminant_values(
-    adt_def: &ty::AdtDef,
-    tcx: ty::TyCtxt,
-) -> Vec<i128> {
+pub fn compute_discriminant_values(adt_def: &ty::AdtDef, tcx: ty::TyCtxt) -> Vec<i128> {
     let mut discr_values: Vec<i128> = vec![];
     // Handle *signed* discriminats
     if let SignedInt(ity) = adt_def.repr.discr_type() {

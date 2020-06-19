@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir;
+use prusti_common::vir;
 use rustc::mir;
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
@@ -37,20 +37,6 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
 ) -> Option<S> {
     let basic_blocks = mir.basic_blocks();
     let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
-    let mut predecessors: HashMap<mir::BasicBlock, Vec<mir::BasicBlock>> = HashMap::new();
-
-    // Compute the predecessors of each MIR block
-    for bb in basic_blocks.indices() {
-        predecessors.insert(bb, vec![]);
-    }
-    for (bb, bb_data) in basic_blocks.iter_enumerated() {
-        if let Some(ref term) = bb_data.terminator {
-            for succ_bb in term.successors() {
-                let preds_of_succ = predecessors.get_mut(succ_bb).unwrap();
-                preds_of_succ.push(bb);
-            }
-        }
-    }
 
     // Find the final basic blocks
     let mut pending_blocks: Vec<mir::BasicBlock> = basic_blocks
@@ -68,7 +54,7 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         let bb_data = &basic_blocks[curr_bb];
 
         // Apply the terminator
-        let terminator = bb_data.terminator.as_ref().unwrap();
+        let terminator = bb_data.terminator();
         let states = HashMap::from_iter(terminator.successors().map(|bb| (*bb, &heads[bb])));
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
@@ -87,10 +73,10 @@ pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tc
         heads.insert(curr_bb, curr_state);
 
         // Put the preceding basic blocks
-        for pred_bb in &predecessors[&curr_bb] {
-            if let Some(ref term) = basic_blocks[*pred_bb].terminator {
+        for &pred_bb in mir.predecessors_for(curr_bb).iter() {
+            if let Some(ref term) = basic_blocks[pred_bb].terminator {
                 if term.successors().all(|succ_bb| heads.contains_key(succ_bb)) {
-                    pending_blocks.push(*pred_bb);
+                    pending_blocks.push(pred_bb);
                 }
             }
         }
@@ -122,7 +108,6 @@ pub fn run_backward_interpretation_point_to_point<
 ) -> Option<S> {
     let basic_blocks = mir.basic_blocks();
     let mut heads: HashMap<mir::BasicBlock, S> = HashMap::new();
-    let mut predecessors: HashMap<mir::BasicBlock, Vec<mir::BasicBlock>> = HashMap::new();
     trace!(
         "[start] run_backward_interpretation_point_to_point:\n - from final block {:?}, statement {}\n - and state {:?}\n - to initial block {:?}\n - using empty state {:?}",
         final_bbi,
@@ -131,19 +116,6 @@ pub fn run_backward_interpretation_point_to_point<
         initial_bbi,
         empty_state
     );
-
-    // Compute the predecessors of each MIR block
-    for bb in basic_blocks.indices() {
-        predecessors.insert(bb, vec![]);
-    }
-    for (bb, bb_data) in basic_blocks.iter_enumerated() {
-        if let Some(ref term) = bb_data.terminator {
-            for succ_bb in term.successors() {
-                let preds_of_succ = predecessors.get_mut(succ_bb).unwrap();
-                preds_of_succ.push(bb);
-            }
-        }
-    }
 
     // Find the final basic blocks
     let mut pending_blocks: Vec<mir::BasicBlock> = vec![final_bbi];
@@ -155,7 +127,7 @@ pub fn run_backward_interpretation_point_to_point<
         trace!("curr_bb: {:?}", curr_bb);
 
         // Apply the terminator
-        let terminator = bb_data.terminator.as_ref().unwrap();
+        let terminator = bb_data.terminator();
         let terminator_index = bb_data.statements.len();
         let states = {
             // HACK: define the state even if only one successor is defined
@@ -198,11 +170,11 @@ pub fn run_backward_interpretation_point_to_point<
 
         if curr_bb != initial_bbi {
             // Put the preceding basic blocks
-            for pred_bb in &predecessors[&curr_bb] {
+            for &pred_bb in mir.predecessors_for(curr_bb).iter() {
                 // Note: here we don't check that all the successors of `pred_bb` has been visited.
                 // It's a known limitation, because this is the point-to-point interpretation.
                 // Use `run_backward_interpretation` if the check is important.
-                pending_blocks.push(*pred_bb);
+                pending_blocks.push(pred_bb);
             }
         }
     }

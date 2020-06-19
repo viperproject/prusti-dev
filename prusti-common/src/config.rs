@@ -25,19 +25,17 @@ lazy_static! {
         settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
-        settings.set_default("DUMP_BRANCH_CTXT_IN_DEBUG_INFO", false).unwrap();
+        settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_REBORROWING_DAG_IN_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_BORROWCK_INFO", false).unwrap();
         settings.set_default("DUMP_VIPER_PROGRAM", false).unwrap();
+        settings.set_default("FOLDUNFOLD_STATE_FILTER", "").unwrap();
         settings.set_default("CONTRACTS_LIB", "").unwrap();
         settings.set_default::<Vec<String>>("EXTRA_JVM_ARGS", vec![]).unwrap();
         settings.set_default::<Vec<String>>("EXTRA_VERIFIER_ARGS", vec![]).unwrap();
         settings.set_default("QUIET", false).unwrap();
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
-        // TODO: Check before enabling that pure variable havoc works properly after the
-        // purification optimization.
-        settings.set_default("USE_ASSUME_FALSE_BACK_EDGES", false).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
         settings.set_default("SERVER_MAX_STORED_VERIFIERS", 8).unwrap();
 
@@ -118,8 +116,8 @@ pub fn dump_debug_info() -> bool {
 }
 
 /// Should we dump the branch context state in debug files?
-pub fn dump_branch_ctxt_in_debug_info() -> bool {
-    read_setting("DUMP_BRANCH_CTXT_IN_DEBUG_INFO")
+pub fn dump_path_ctxt_in_debug_info() -> bool {
+    read_setting("DUMP_PATH_CTXT_IN_DEBUG_INFO")
 }
 
 /// Should we dump the reborrowing DAGs in debug files?
@@ -135,6 +133,11 @@ pub fn dump_borrowck_info() -> bool {
 /// Should we dump the Viper program?
 pub fn dump_viper_program() -> bool {
     read_setting("DUMP_VIPER_PROGRAM")
+}
+
+/// The Viper backend that should be used for the verification
+pub fn foldunfold_state_filter() -> String {
+    read_setting("FOLDUNFOLD_STATE_FILTER")
 }
 
 /// In which folder should we sore log/dumps?
@@ -180,11 +183,6 @@ pub fn assert_timeout() -> u64 {
 /// Use the Silicon configuration option `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("USE_MORE_COMPLETE_EXHALE")
-}
-
-/// Replace all back-edges with `assume false`.
-pub fn use_assume_false_back_edges() -> bool {
-    read_setting("USE_ASSUME_FALSE_BACK_EDGES")
 }
 
 /// Report the support status of functions using the compiler's error messages

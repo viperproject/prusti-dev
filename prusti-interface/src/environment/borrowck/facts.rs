@@ -10,6 +10,8 @@
 /// [Polonius](https://github.com/rust-lang-nursery/polonius/blob/master/src/facts.rs)
 /// source code.
 use csv::ReaderBuilder;
+use polonius_engine;
+use prusti_common::vir::borrows::Borrow;
 use regex::Regex;
 use rustc::mir;
 use rustc_data_structures::indexed_vec::Idx;
@@ -19,8 +21,6 @@ use std::fmt;
 use std::hash::Hash;
 use std::path::Path;
 use std::str::FromStr;
-
-use polonius_engine;
 
 /// Macro for declaring index types for referencing interned facts.
 macro_rules! index_type {
@@ -62,6 +62,18 @@ index_type!(Region, R);
 
 pub fn loan_id(loan: Loan) -> usize {
     loan.into()
+}
+
+impl Into<Borrow> for Loan {
+    fn into(self) -> Borrow {
+        self.0.into()
+    }
+}
+
+impl<'a> Into<Borrow> for &'a Loan {
+    fn into(self) -> Borrow {
+        self.0.into()
+    }
 }
 
 impl FromStr for Region {

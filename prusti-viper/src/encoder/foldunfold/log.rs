@@ -9,12 +9,17 @@
 
 use encoder::foldunfold::action::Action;
 use encoder::foldunfold::perm::Perm;
-use encoder::vir;
+use encoder::foldunfold::FoldUnfoldError;
+use prusti_common::utils::to_string::ToString;
+use prusti_common::vir;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use utils::to_string::ToString;
 
-#[derive(Clone)]
+// Note: Now every PathCtxt has its own EventLog, because a Borrow no longer unique
+// (e.g. we duplicate the evaluation of the loop condition in the encoding of loops).
+// The idea is to progressively transform this *log* into a *state*, removing past actions that are
+// no longer needed.
+#[derive(Clone, Debug)]
 pub(super) struct EventLog {
     /// Actions performed by the fold-unfold algorithm before the join. We can use a single
     /// CfgBlockIndex because fold-unfold algorithms generates a new basic block for dropped
@@ -53,6 +58,7 @@ impl EventLog {
             id_generator: 0,
         }
     }
+
     pub fn log_prejoin_action(&mut self, block_index: vir::CfgBlockIndex, action: Action) {
         trace!(
             "[enter] log_prejoin_action(block_index={}, action={})",
@@ -66,6 +72,7 @@ impl EventLog {
         entry.push(action);
         trace!("[exit] log_prejoin_action {}", entry.iter().to_string());
     }
+
     pub fn collect_dropped_permissions(
         &self,
         path: &[vir::CfgBlockIndex],
@@ -87,6 +94,7 @@ impl EventLog {
         }
         dropped_permissions
     }
+
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     pub fn log_read_permission_duplication(
         &mut self,
@@ -98,6 +106,7 @@ impl EventLog {
         entry.push((perm, original_place, self.id_generator));
         self.id_generator += 1;
     }
+
     pub fn get_duplicated_read_permissions(
         &self,
         borrow: vir::borrows::Borrow,
@@ -146,6 +155,7 @@ impl EventLog {
             .map(|(access, original_place, _)| (access, original_place))
             .collect()
     }
+
     /// `perm` is an instance of either `PredicateAccessPredicate` or `FieldAccessPredicate`.
     pub fn log_convertion_to_read(&mut self, borrow: vir::borrows::Borrow, perm: vir::Expr) {
         assert!(perm.get_perm_amount() == vir::PermAmount::Remaining);
@@ -155,11 +165,47 @@ impl EventLog {
             .or_insert(Vec::new());
         entry.push(perm);
     }
+
     pub fn get_converted_to_read_places(&self, borrow: vir::borrows::Borrow) -> Vec<vir::Expr> {
         if let Some(accesses) = self.converted_to_read_places.get(&borrow) {
             accesses.clone()
         } else {
             Vec::new()
         }
+    }
+
+    pub fn log_borrow_expiration(&mut self, borrow: vir::borrows::Borrow) {
+        self.duplicated_reads.remove(&borrow);
+        self.blocked_place.remove(&borrow);
+        self.converted_to_read_places.remove(&borrow);
+    }
+
+    /// Join `other` into `self`
+    pub(super) fn join(&mut self, mut other: Self) -> Result<(), FoldUnfoldError> {
+        for (other_key, other_value) in other.prejoin_actions.drain() {
+            if !self.prejoin_actions.contains_key(&other_key) {
+                self.prejoin_actions.insert(other_key, other_value);
+            }
+        }
+        // FIXME: This is not enough if the same borrow is created in two different paths
+        for (other_key, other_value) in other.duplicated_reads.drain() {
+            if !self.duplicated_reads.contains_key(&other_key) {
+                self.duplicated_reads.insert(other_key, other_value);
+            }
+        }
+        // FIXME: This is not enough if the same borrow is created in two different paths
+        for (other_key, other_value) in other.blocked_place.drain() {
+            if !self.blocked_place.contains_key(&other_key) {
+                self.blocked_place.insert(other_key, other_value);
+            }
+        }
+        // FIXME: This is not enough if the same borrow is created in two different paths
+        for (other_key, other_value) in other.converted_to_read_places.drain() {
+            if !self.converted_to_read_places.contains_key(&other_key) {
+                self.converted_to_read_places.insert(other_key, other_value);
+            }
+        }
+        self.id_generator = self.id_generator.max(other.id_generator);
+        Ok(())
     }
 }

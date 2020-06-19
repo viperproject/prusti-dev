@@ -8,8 +8,8 @@
 #![feature(box_patterns)]
 #![feature(nll)]
 #![feature(box_syntax)]
-#![feature(slice_sort_by_cached_key)]
 #![feature(custom_attribute)]
+#![feature(iterator_flatten)]
 #![deny(unreachable_patterns)]
 #![deny(unused_mut)]
 #![deny(unused_variables)]
@@ -27,14 +27,12 @@ extern crate regex;
 extern crate rustc;
 extern crate rustc_data_structures;
 extern crate rustc_mir;
+extern crate serde;
+extern crate serde_json;
 extern crate syntax;
 extern crate syntax_pos;
 extern crate uuid;
 extern crate viper;
-#[macro_use]
-extern crate lazy_static;
-extern crate serde;
-extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]

@@ -18,6 +18,20 @@ use std::fs::create_dir_all;
 use std::path::PathBuf;
 use verification_service::ViperBackendConfig;
 use viper::{self, AstFactory, VerificationBackend, Viper};
+use encoder::Encoder;
+use prusti_common::vir::{self, optimisations, ToViper, ToViperDecl};
+use prusti_filter::validators::Validator;
+use prusti_common::config;
+use prusti_interface::data::VerificationResult;
+use prusti_interface::data::VerificationTask;
+use prusti_interface::environment::Environment;
+use prusti_common::report::log;
+use prusti_interface::specifications::TypedSpecificationMap;
+use std::ffi::OsString;
+use std::fs::{canonicalize, create_dir_all};
+use std::path::PathBuf;
+use std::time::Instant;
+use viper::{self, VerificationBackend, Viper};
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
@@ -192,6 +206,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 self.encoder.queue_procedure_encoding(proc_id);
             }
             self.encoder.process_encoding_queue();
+
+            let encoding_errors_count = self.encoder.count_encoding_errors();
         });
 
         let mut program = self.encoder.get_viper_program();
@@ -209,22 +225,16 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             viper::VerificationResult::Success() => vec![],
         };
 
-        if verification_errors.is_empty() {
+        if encoding_errors_count == 0 && verification_errors.is_empty() {
             VerificationResult::Success
         } else {
             let error_manager = self.encoder.error_manager();
 
             for verification_error in verification_errors {
                 debug!("Verification error: {:?}", verification_error);
-                let compilation_error =
-                    error_manager.translate_verification_error(&verification_error);
-                debug!("Compilation error: {:?}", compilation_error);
-                self.env.span_err_with_help_and_note(
-                    compilation_error.span,
-                    &format!("[Prusti] {}", compilation_error.message),
-                    &compilation_error.help,
-                    &compilation_error.note,
-                );
+                let prusti_error = error_manager.translate_verification_error(&verification_error);
+                debug!("Prusti error: {:?}", prusti_error);
+                prusti_error.emit(self.env);
             }
             VerificationResult::Failure
         }

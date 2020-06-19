@@ -5,18 +5,18 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::builtin_encoder::BuiltinFunctionKind;
-use encoder::error_manager::ErrorCtxt;
-use encoder::vir;
+use encoder::errors::ErrorCtxt;
 use encoder::Encoder;
+use prusti_common::vir;
 use prusti_common::config;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
 use rustc::ty;
 use rustc_data_structures::indexed_vec::Idx;
 use std;
+use std::option::Option;
 use syntax::ast;
 use syntax::codemap::Span;
-use std::option::Option;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
 pub static POSTCONDITION_LABEL: &'static str = "post";
@@ -109,7 +109,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn encode_projection(
         &self,
         place_projection: &mir::PlaceProjection<'tcx>,
-        encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>
+        encoded_base_place: Option<(vir::Expr, ty::Ty<'tcx>, Option<usize>)>,
     ) -> (vir::Expr, ty::Ty<'tcx>, Option<usize>) {
         trace!("Encode projection {:?}", place_projection);
 
@@ -625,7 +625,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> MirEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
         let bb_data = &self.mir.basic_blocks()[bbi];
-        bb_data.terminator.as_ref().unwrap().source_info.span
+        bb_data.terminator().source_info.span
     }
 
     pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
