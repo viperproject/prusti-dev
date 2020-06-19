@@ -5,13 +5,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::VerifierRunner;
-use futures::Canceled;
-use futures::{sync::oneshot, Future};
-use prusti_viper::encoder::vir::Program;
-use prusti_viper::verification_service::ViperBackendConfig;
-use prusti_viper::verifier::VerifierBuilder;
-use std::sync::{mpsc, Arc, Mutex};
-use std::thread;
+use futures::{sync::oneshot, Canceled, Future};
+use prusti_common::vir::Program;
+use prusti_viper::{verification_service::ViperBackendConfig, verifier::VerifierBuilder};
+use std::{
+    sync::{mpsc, Arc, Mutex},
+    thread,
+};
 use viper::VerificationResult;
 
 pub type FutVerificationResult = Box<Future<Item = VerificationResult, Error = Canceled>>;

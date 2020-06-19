@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::{mir_encoder::MirEncoder, vir, vir::Successor, Encoder};
+use encoder::{mir_encoder::MirEncoder, Encoder};
 use prusti_common::{config, report::log, vir, vir::Successor};
 use prusti_interface::environment::Procedure;
 use rustc::{hir::def_id::DefId, mir};

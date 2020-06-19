@@ -6,7 +6,7 @@
 
 //! A module that contains various VIR optimizations.
 
-use encoder::vir::Program;
+use vir::Program;
 
 pub mod folding;
 pub mod functions;

@@ -28,15 +28,12 @@ extern crate rustc;
 extern crate rustc_data_structures;
 extern crate rustc_mir;
 extern crate serde;
-extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
 extern crate syntax;
 extern crate syntax_pos;
 extern crate uuid;
 extern crate viper;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate derive_more;
 
 #[cfg(debug_assertions)]
 #[macro_use]

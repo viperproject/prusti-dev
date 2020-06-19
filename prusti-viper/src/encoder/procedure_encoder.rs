@@ -15,12 +15,6 @@ use encoder::{
     mir_successor::MirSuccessor,
     optimizer,
     places::{Local, LocalVariableManager, Place},
-    vir::{
-        self,
-        fixes::{fix_ghost_vars, havoc_assigned_locals},
-        optimizations::methods::{remove_empty_if, remove_trivial_assertions, remove_unused_vars},
-        CfgBlockIndex, ExprIterator, FoldingBehaviour, Successor,
-    },
     Encoder,
 };
 use prusti_common::{

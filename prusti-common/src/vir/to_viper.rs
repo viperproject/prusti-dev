@@ -5,12 +5,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config;
-use encoder::vir::{ast::*, borrows::borrow_id, Program};
-use prusti_common::config;
-use viper::{
-    self, AstFactory, {self, AstFactory},
-};
-use vir::{ast::*, borrows::borrow_id};
+use viper::{self, AstFactory};
+use vir::{ast::*, borrows::borrow_id, Program};
 
 pub trait ToViper<'v, T> {
     fn to_viper(&self, ast: &AstFactory<'v>) -> T;

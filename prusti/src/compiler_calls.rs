@@ -83,25 +83,20 @@ impl<'a> CompilerCalls<'a> for RegisterCalls {
         sess: &session::Session,
         matches: &getopts::Matches,
     ) -> driver::CompileController<'a> {
-        let mut control = self.default.build_controller(sess, matches);
         let register = self.register.clone();
+        let mut control = self.default.build_controller(sess, matches);
 
         // build register
         let old_after_parse_callback =
             std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            let start = Instant::now();
 
-            prusti_interface::parser::register_attributes(state);
-            prusti_interface::parser::register_traits(state, register.clone());
-
-            let duration = start.elapsed();
-            info!(
-                "Trait register build successful ({}.{} seconds)",
-                duration.as_secs(),
-                duration.subsec_millis() / 10
+            run_timed!("trait register build",
+                prusti_interface::parser::register_attributes(state);
+                prusti_interface::parser::register_traits(state, register.clone());
             );
+
             trace!("[after_parse.callback] exit");
             old_after_parse_callback(state);
         };
@@ -170,8 +165,8 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         sess: &session::Session,
         matches: &getopts::Matches,
     ) -> driver::CompileController<'a> {
-        let mut control = self.default.build_controller(sess, matches);
         let register = self.register.clone();
+        let mut control = self.default.build_controller(sess, matches);
         //control.make_glob_map = ???
         //control.keep_ast = true;
 

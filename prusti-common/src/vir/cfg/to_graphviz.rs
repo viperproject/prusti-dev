@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config;
-use prusti_common::config;
 use std::io::Write;
 use vir::{self, cfg::method::*};
 

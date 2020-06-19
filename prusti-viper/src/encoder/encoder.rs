@@ -7,7 +7,6 @@
 use encoder::{
     borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef},
     builtin_encoder::{BuiltinEncoder, BuiltinFunctionKind, BuiltinMethodKind},
-    error_manager::{EncodingError, ErrorCtxt, ErrorManager},
     errors::{EncodingError, ErrorCtxt, ErrorManager, PrustiError},
     foldunfold, places,
     procedure_encoder::ProcedureEncoder,
@@ -16,8 +15,6 @@ use encoder::{
     stub_function_encoder::StubFunctionEncoder,
     stub_procedure_encoder::StubProcedureEncoder,
     type_encoder::{compute_discriminant_bounds, compute_discriminant_values, TypeEncoder},
-    vir,
-    vir::WithIdentifier,
 };
 use prusti_common::{config, report::log, vir, vir::WithIdentifier};
 use prusti_interface::{

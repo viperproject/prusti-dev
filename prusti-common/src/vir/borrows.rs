@@ -9,7 +9,7 @@ use std::collections::{HashMap, VecDeque};
 use std::fmt;
 
 /// The method-unique borrow identifier.
-#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash)]
+#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Borrow(usize);
 
 impl From<usize> for Borrow {

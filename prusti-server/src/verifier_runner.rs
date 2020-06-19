@@ -4,12 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::config;
-use prusti_common::report::log;
-use prusti_common::run_timed;
-use prusti_viper::encoder::vir::{Program, ToViper};
-use prusti_viper::verification_service::ViperBackendConfig;
-use prusti_viper::verifier::{VerificationContext, VerifierBuilder};
+use prusti_common::{
+    config,
+    report::log,
+    run_timed,
+    vir::{Program, ToViper},
+};
+use prusti_viper::{
+    verification_service::ViperBackendConfig,
+    verifier::{VerificationContext, VerifierBuilder},
+};
 use viper::{self, VerificationResult};
 
 pub struct VerifierRunner<'v> {

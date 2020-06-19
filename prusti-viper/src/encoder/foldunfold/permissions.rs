@@ -4,11 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::places_utils::{union, union3};
-use encoder::{
-    foldunfold::perm::{Perm::*, *},
-    vir,
-    vir::PermAmount,
+use super::{
+    perm::{Perm::*, *},
+    places_utils::{union, union3},
 };
 use prusti_common::{vir, vir::PermAmount};
 use std::{

@@ -5,12 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use config;
-use encoder::vir::{
-    ast::Position,
-    cfg::method::*,
-    to_viper::{ToViper, ToViperDecl},
-};
-use prusti_common::config;
 use std::collections::HashMap;
 use viper::{self, AstFactory};
 use vir::{

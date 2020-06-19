@@ -1,5 +1,4 @@
-use encoder::vir::ast::*;
-use encoder::vir::cfg::CfgMethod;
+use vir::{ast::*, cfg::CfgMethod};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Program {

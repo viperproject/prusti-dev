@@ -4,34 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::Program;
 use encoder::Encoder;
-use prusti_common::config;
-use prusti_common::report::log;
-use prusti_common::run_timed;
+use prusti_common::{config, report::log, run_timed, vir::Program};
 use prusti_filter::validators::Validator;
-use prusti_interface::data::VerificationResult;
-use prusti_interface::data::VerificationTask;
-use prusti_interface::environment::Environment;
-use prusti_interface::specifications::TypedSpecificationMap;
-use std::fs::create_dir_all;
-use std::path::PathBuf;
+use prusti_interface::{
+    data::{VerificationResult, VerificationTask},
+    environment::Environment,
+    specifications::TypedSpecificationMap,
+};
+use std::{fs::create_dir_all, path::PathBuf};
 use verification_service::ViperBackendConfig;
 use viper::{self, AstFactory, VerificationBackend, Viper};
-use encoder::Encoder;
-use prusti_common::vir::{self, optimizations, ToViper, ToViperDecl};
-use prusti_filter::validators::Validator;
-use prusti_common::config;
-use prusti_interface::data::VerificationResult;
-use prusti_interface::data::VerificationTask;
-use prusti_interface::environment::Environment;
-use prusti_common::report::log;
-use prusti_interface::specifications::TypedSpecificationMap;
-use std::ffi::OsString;
-use std::fs::{canonicalize, create_dir_all};
-use std::path::PathBuf;
-use std::time::Instant;
-use viper::{self, VerificationBackend, Viper};
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
@@ -206,9 +189,9 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 self.encoder.queue_procedure_encoding(proc_id);
             }
             self.encoder.process_encoding_queue();
-
-            let encoding_errors_count = self.encoder.count_encoding_errors();
         });
+
+        let encoding_errors_count = self.encoder.count_encoding_errors();
 
         let mut program = self.encoder.get_viper_program();
         if config::simplify_encoding() {
