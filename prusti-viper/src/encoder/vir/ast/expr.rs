@@ -41,6 +41,8 @@ pub enum Expr {
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
+    /// Inhale Exhale: inhale expression, exhale expression, Viper position
+    InhaleExhale(Box<Expr>, Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -160,6 +162,8 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
+            Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
+                write!(f, "[({}), ({})]", inhale_expr, exhale_expr),
         }
     }
 }
@@ -223,6 +227,7 @@ impl Expr {
             Expr::ForAll(_, _, _, ref p) => p,
             Expr::LetExpr(_, _, _, ref p) => p,
             Expr::FuncApp(_, _, _, _, ref p) => p,
+            Expr::InhaleExhale(_, _, ref p) => p,
         }
     }
 
@@ -248,6 +253,7 @@ impl Expr {
             Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
+            Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
         }
     }
 
@@ -1012,7 +1018,8 @@ impl Expr {
                     | Expr::LabelledOld(..)
                     | Expr::ForAll(..)
                     | Expr::LetExpr(..)
-                    | Expr::FuncApp(..) => true.into(),
+                    | Expr::FuncApp(..)
+                    | Expr::InhaleExhale(..) => true.into(),
                 }
             }
         }
@@ -1279,6 +1286,9 @@ impl Hash for Expr {
             Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
                 (name, args, base, perm, variant).hash(state)
             }
+            Expr::InhaleExhale(box ref inhale_expr, box ref exhale_expr, _) => {
+                (inhale_expr, exhale_expr).hash(state)
+            }
         }
     }
 }
@@ -1419,6 +1429,18 @@ pub trait ExprFolder: Sized {
             pos
         )
     }
+    fn fold_inhale_exhale(
+        &mut self,
+        inhale_expr: Box<Expr>,
+        exhale_expr: Box<Expr>,
+        pos: Position,
+    ) -> Expr {
+        Expr::InhaleExhale(
+            self.fold_boxed(inhale_expr),
+            self.fold_boxed(exhale_expr),
+            pos
+        )
+    }
 }
 
 pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
@@ -1443,6 +1465,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::ForAll(x, y, z, p) => this.fold_forall(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
+        Expr::InhaleExhale(x, y, p) => this.fold_inhale_exhale(x, y, p),
     }
 }
 
@@ -1554,6 +1577,10 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(arg);
         }
     }
+    fn walk_inhale_exhale(&mut self, inhale_expr: &Expr, exhale_expr: &Expr, _pos: &Position) {
+        self.walk(inhale_expr);
+        self.walk(exhale_expr);
+    }
 }
 
 pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
@@ -1578,6 +1605,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::ForAll(ref x, ref y, ref z, ref p) => this.walk_forall(x, y, z, p),
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
+        Expr::InhaleExhale(ref x, ref y, ref p) => this.walk_inhale_exhale(x, y, p),
     }
 }
 

@@ -310,6 +310,8 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .collect::<Vec<_>>()
                     .get_required_permissions(predicates)
             }
+
+            vir::Expr::InhaleExhale(..) => HashSet::new(),
         };
         trace!(
             "[exit] get_required_permissions(expr={}): {:#?}",
@@ -332,7 +334,8 @@ impl vir::Expr {
             | vir::Expr::AddrOf(_, _, _)
             | vir::Expr::LabelledOld(_, _, _)
             | vir::Expr::Const(_, _)
-            | vir::Expr::FuncApp(..) => HashSet::new(),
+            | vir::Expr::FuncApp(..)
+            | vir::Expr::InhaleExhale(..) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
                 assert_eq!(args.len(), 1);

@@ -1325,9 +1325,53 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             } else {
                 pure_function_encoder.encode_function()
             };
-            self.encode_pure_snapshot_mirror(proc_def_id, function.clone());
-            self.log_vir_program_before_viper(function.to_string());
-            self.pure_functions.borrow_mut().insert(key, function);
+
+            // TODO CMFIXME
+            let mirror = self.encode_pure_snapshot_mirror(proc_def_id, function.clone());
+            if let Some(mirror_func) = mirror {
+
+                let mut posts = function.posts.clone();
+                posts.push(vir::Expr::InhaleExhale(Box::new(
+                    vir::Expr::BinOp(
+                        vir::BinOpKind::EqCmp,
+                        Box::new(
+                            vir::Expr::Local(
+                                LocalVar {
+                                    name: "result".to_string(),
+                                    typ: function.return_type.clone()
+                                },
+                                vir::Position::default(),
+                            )
+                        ),
+                        Box::new(
+                            vir::Expr::FuncApp(
+                                mirror_func.name.clone(),
+                                vec![], // TODO CMFIXME
+                                mirror_func.formal_args.clone(),
+                                mirror_func.return_type.clone(),
+                                vir::Position::default(),
+                            )
+                        ), vir::Position::default(),
+                    )),
+                    Box::new(
+                        vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
+                    ),
+                    vir::Position::default()
+                ));
+                let function =  vir::Function {
+                    name: function.name,
+                    formal_args: function.formal_args,
+                    return_type: function.return_type,
+                    pres: function.pres,
+                    posts,
+                    body: function.body,
+                };
+                self.log_vir_program_before_viper(function.to_string());
+                self.pure_functions.borrow_mut().insert(key, function);
+            } else {
+                self.log_vir_program_before_viper(function.to_string());
+                self.pure_functions.borrow_mut().insert(key, function);
+            }
         }
 
         // FIXME; hideous monstrosity...

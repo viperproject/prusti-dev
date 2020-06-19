@@ -385,7 +385,13 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     return_type.to_viper(ast),
                     pos.to_viper(ast),
                 )
-            }
+            },
+            &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
+                ast.inhale_exhale_pred(
+                    inhale_expr.to_viper(ast),
+                    exhale_expr.to_viper(ast)
+                )
+            },
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
