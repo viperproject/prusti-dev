@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use getopts;
+use prusti_common::Stopwatch;
 use prusti_interface;
 use rustc::{self, session};
 use rustc_codegen_utils::codegen_backend::CodegenBackend;
@@ -92,10 +93,10 @@ impl<'a> CompilerCalls<'a> for RegisterCalls {
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
 
-            run_timed!("trait register build",
-                prusti_interface::parser::register_attributes(state);
-                prusti_interface::parser::register_traits(state, register.clone());
-            );
+            let stopwatch = Stopwatch::start("trait register build");
+            prusti_interface::parser::register_attributes(state);
+            prusti_interface::parser::register_traits(state, register.clone());
+            stopwatch.finish();
 
             trace!("[after_parse.callback] exit");
             old_after_parse_callback(state);
@@ -177,11 +178,12 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            run_timed!("annotation parsing",
-                prusti_interface::parser::register_attributes(state);
-                let untyped_specifications = prusti_interface::parser::rewrite_crate(state, register.clone());
-                put_specifications.set(Some(untyped_specifications));
-            );
+            let stopwatch = Stopwatch::start("annotation parsing");
+            prusti_interface::parser::register_attributes(state);
+            let untyped_specifications =
+                prusti_interface::parser::rewrite_crate(state, register.clone());
+            put_specifications.set(Some(untyped_specifications));
+            stopwatch.finish();
             trace!("[after_parse.callback] exit");
             old_after_parse_callback(state);
         };
@@ -191,11 +193,11 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
 
-            run_timed!("annotation type-checking",
-                let untyped_specifications = get_specifications.replace(None).unwrap();
-                let typed_specifications = typeck::type_specifications(state, untyped_specifications);
-                debug!("typed_specifications = {:?}", typed_specifications);
-            );
+            let stopwatch = Stopwatch::start("annotation type-checking");
+            let untyped_specifications = get_specifications.replace(None).unwrap();
+            let typed_specifications = typeck::type_specifications(state, untyped_specifications);
+            debug!("typed_specifications = {:?}", typed_specifications);
+            stopwatch.finish();
 
             // Call the verifier
             if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {

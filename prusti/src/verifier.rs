@@ -6,7 +6,7 @@
 
 //! A module that invokes the verifier `prusti-viper`
 
-use prusti_common::{config, report::user};
+use prusti_common::{config, report::user, Stopwatch};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
@@ -78,9 +78,9 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
                     };
                     service.verify(request)
                 } else {
-                    run_timed!("JVM startup",
-                        let verifier_builder = VerifierBuilder::new();
-                    );
+                    let stopwatch = Stopwatch::start("JVM startup");
+                    let verifier_builder = VerifierBuilder::new();
+                    stopwatch.finish();
                     VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
                         runner.verify(program, program_name.as_str())
                     })

@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::Encoder;
-use prusti_common::{config, report::log, run_timed, vir::Program};
+use prusti_common::{config, report::log, vir::Program, Stopwatch};
 use prusti_filter::validators::Validator;
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
@@ -159,82 +159,84 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             task.procedures.len()
         );
 
-        run_timed("encoding to Viper", || {
-            // Dump the configuration
-            log::report("config", "prusti", config::dump());
+        let stopwatch = Stopwatch::start("encoding to Viper");
 
-            // Check support status, and queue encoding
-            let validator = Validator::new(self.env.tcx());
+        // Dump the configuration
+        log::report("config", "prusti", config::dump());
 
-            let report_support_status = config::report_support_status();
-            let skip_unsupported_functions = config::skip_unsupported_functions();
-            let mut skipped_functions_count = 0;
+        // Check support status, and queue encoding
+        let validator = Validator::new(self.env.tcx());
 
-            for &proc_id in &task.procedures {
-                let proc_name = self.env.get_absolute_item_name(proc_id);
-                let proc_span = self.env.get_item_span(proc_id);
-                let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
+        let report_support_status = config::report_support_status();
+        let skip_unsupported_functions = config::skip_unsupported_functions();
+        let mut skipped_functions_count = 0;
 
-                let support_status = if is_pure_function {
-                    validator.pure_function_support_status(proc_id)
-                } else {
-                    validator.procedure_support_status(proc_id)
-                };
+        for &proc_id in &task.procedures {
+            let proc_name = self.env.get_absolute_item_name(proc_id);
+            let proc_span = self.env.get_item_span(proc_id);
+            let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
 
-                if report_support_status {
-                    support_status.report_support_status(
-                        &self.env,
-                        is_pure_function,
-                        // Avoid raising compiler errors for partially supported functions
-                        false,
-                        // Avoid raising compiler errors if we are going to skip unsupported functions
-                        !skip_unsupported_functions,
-                    );
-                }
+            let support_status = if is_pure_function {
+                validator.pure_function_support_status(proc_id)
+            } else {
+                validator.procedure_support_status(proc_id)
+            };
 
-                if !support_status.is_supported() && skip_unsupported_functions {
-                    warn!(
-                        "Skip verification of {}, as it is not fully supported.",
-                        proc_name
-                    );
-                    self.env.span_warn_with_help_and_note(
-                        proc_span,
-                        &format!(
-                            "this function will be ignored because it is not fully supported by \
+            if report_support_status {
+                support_status.report_support_status(
+                    &self.env,
+                    is_pure_function,
+                    // Avoid raising compiler errors for partially supported functions
+                    false,
+                    // Avoid raising compiler errors if we are going to skip unsupported functions
+                    !skip_unsupported_functions,
+                );
+            }
+
+            if !support_status.is_supported() && skip_unsupported_functions {
+                warn!(
+                    "Skip verification of {}, as it is not fully supported.",
+                    proc_name
+                );
+                self.env.span_warn_with_help_and_note(
+                    proc_span,
+                    &format!(
+                        "this function will be ignored because it is not fully supported by \
                         Prusti: {}",
-                            proc_name
-                        ),
-                        &Some(if report_support_status {
-                            "Disable the SKIP_UNSUPPORTED_FUNCTIONS configuration flag to verify \
+                        proc_name
+                    ),
+                    &Some(if report_support_status {
+                        "Disable the SKIP_UNSUPPORTED_FUNCTIONS configuration flag to verify \
                             this function anyway."
-                                .to_string()
-                        } else {
-                            "Enable the REPORT_SUPPORT_STATUS configuration flag for more details \
+                            .to_string()
+                    } else {
+                        "Enable the REPORT_SUPPORT_STATUS configuration flag for more details \
                             on why the function is not fully supported, or disable \
                             SKIP_UNSUPPORTED_FUNCTIONS to verify this function anyway."
-                                .to_string()
-                        }),
-                        &None,
-                    );
-                    skipped_functions_count += 1;
-                } else {
-                    self.encoder.queue_procedure_encoding(proc_id);
-                }
-            }
-            info!(
-                "Out of {} functions, {} are not fully supported and has been skipped.",
-                task.procedures.len(),
-                skipped_functions_count,
-            );
-
-            // Do the encoding
-            self.encoder.process_encoding_queue();
-
-            for &proc_id in task.procedures.iter().rev() {
+                            .to_string()
+                    }),
+                    &None,
+                );
+                skipped_functions_count += 1;
+            } else {
                 self.encoder.queue_procedure_encoding(proc_id);
             }
-            self.encoder.process_encoding_queue();
-        });
+        }
+        info!(
+            "Out of {} functions, {} are not fully supported and has been skipped.",
+            task.procedures.len(),
+            skipped_functions_count,
+        );
+
+        // Do the encoding
+        self.encoder.process_encoding_queue();
+
+        for &proc_id in task.procedures.iter().rev() {
+            self.encoder.queue_procedure_encoding(proc_id);
+        }
+        self.encoder.process_encoding_queue();
+
+        stopwatch.finish();
 
         let encoding_errors_count = self.encoder.count_encoding_errors();
 

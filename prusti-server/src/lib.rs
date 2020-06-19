@@ -14,22 +14,20 @@ extern crate prusti_viper;
 extern crate viper;
 #[macro_use]
 extern crate log;
+extern crate futures;
+extern crate lru;
+extern crate prusti_common;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
-#[macro_use]
-extern crate prusti_common;
-extern crate futures;
-extern crate lru;
 
 mod service;
 mod verifier_runner;
 mod verifier_thread;
 
 use lru::LruCache;
-use prusti_common::config;
-use prusti_viper::verification_service::*;
-use prusti_viper::verifier::VerifierBuilder;
+use prusti_common::{config, Stopwatch};
+use prusti_viper::{verification_service::*, verifier::VerifierBuilder};
 pub use service::*;
 use std::sync::{Arc, RwLock};
 pub use verifier_runner::*;
@@ -42,10 +40,10 @@ pub struct PrustiServer {
 
 impl PrustiServer {
     pub fn new() -> PrustiServer {
-        debug!("Prepare verifier builder...");
-        run_timed!("JVM startup",
-            let verifier_builder = Arc::new(VerifierBuilder::new());
-        );
+        let stopwatch = Stopwatch::start("JVM startup");
+        let verifier_builder = Arc::new(VerifierBuilder::new());
+        stopwatch.finish();
+
         let thread_cache = LruCache::new(config::server_max_stored_verifiers());
         PrustiServer {
             verifier_builder,
