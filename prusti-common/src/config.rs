@@ -6,8 +6,7 @@
 
 use config_crate::{Config, Environment, File};
 use serde::Deserialize;
-use std::env;
-use std::sync::RwLock;
+use std::{env, sync::RwLock};
 
 lazy_static! {
     // Is this RwLock<..> necessary?
@@ -21,8 +20,6 @@ lazy_static! {
         settings.set_default("CHECK_PANICS", true).unwrap();
         settings.set_default("ENCODE_UNSIGNED_NUM_CONSTRAINT", false).unwrap();
         settings.set_default("SIMPLIFY_ENCODING", true).unwrap();
-        settings.set_default("ENABLE_WHITELIST", false).unwrap();
-        settings.set_default::<Vec<String>>("WHITELIST", vec![]).unwrap();
         settings.set_default("LOG_DIR", "./log/").unwrap();
         settings.set_default("DUMP_DEBUG_INFO", false).unwrap();
         settings.set_default("DUMP_PATH_CTXT_IN_DEBUG_INFO", false).unwrap();
@@ -37,6 +34,7 @@ lazy_static! {
         settings.set_default("ASSERT_TIMEOUT", 10_000).unwrap();
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
+        settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
         settings.set_default("SERVER_MAX_STORED_VERIFIERS", 8).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
@@ -98,16 +96,6 @@ pub fn check_panics() -> bool {
 /// Should we simplify the encoding before passing it to Viper?
 pub fn simplify_encoding() -> bool {
     read_setting("SIMPLIFY_ENCODING")
-}
-
-/// Whether to use the verifiation whitelist
-pub fn enable_whitelist() -> bool {
-    read_setting("ENABLE_WHITELIST")
-}
-
-/// Get the whitelist of procedures that should be verified
-pub fn verification_whitelist() -> Vec<String> {
-    read_setting("WHITELIST")
 }
 
 /// Should we dump debug files?
@@ -238,4 +226,9 @@ pub fn verify_only_basic_block_path() -> Vec<String> {
 /// Replace the given basic blocks with ``assume false``.
 pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("DELETE_BASIC_BLOCKS")
+}
+
+/// Skip functions that are unsupported or partially supported
+pub fn skip_unsupported_functions() -> bool {
+    read_setting("SKIP_UNSUPPORTED_FUNCTIONS")
 }

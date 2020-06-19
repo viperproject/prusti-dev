@@ -2,7 +2,7 @@
 
 # Run cargo-prusti on all the crates (COARSE grained verification)
 #
-# Usage: script <crate/download/dir> <file/with/list/of/crates> <file_name/of/whitelist> [timeout-per-crate-in-seconds]
+# Usage: script <crate/download/dir> <file/with/list/of/crates> [timeout-per-crate-in-seconds]
 
 set -uo pipefail
 
@@ -36,9 +36,6 @@ if [[ ! -r "$CRATES_LIST_PATH" ]]; then
 	exit 1
 fi
 
-# Get the filename of the whitelist
-WHITELIST_FILENAME="$3"
-
 # Compilation timeout
 VERIFICATION_TIMEOUT="${4:-900}"
 info "Using VERIFICATION_TIMEOUT=$VERIFICATION_TIMEOUT seconds"
@@ -56,9 +53,9 @@ export PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT="${PRUSTI_ENCODE_UNSIGNED_NUM_CONST
 info "Using PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT=$PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT"
 
 start_date="$(date '+%Y-%m-%d-%H%M%S')"
-verification_report="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME-$start_date.csv"
-verification_report_final="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$WHITELIST_FILENAME.csv"
-echo "Crate name,Successful verification,Whitelist items,Verified items,Successful items,Duration (s),Exit status,Start,End,Parsing duration,Type-checking duration,Encoding duration,Verification duration" > "$verification_report"
+verification_report="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report-$start_date.csv"
+verification_report_final="$CRATE_DOWNLOAD_DIR/coarse-grained-verification-report.csv"
+echo "Crate name,Successful verification,Verified items,Successful items,Duration (s),Exit status,Start,End,Parsing duration,Type-checking duration,Encoding duration,Verification duration" > "$verification_report"
 info "Report: '$verification_report'"
 
 info "Run verification on $(cat "$CRATES_LIST_PATH" | wc -l) crates"
@@ -68,7 +65,6 @@ export RUSTFLAGS="-Zborrowck=mir -Zpolonius -Znll-facts" # "-C overflow-check=ye
 export POLONIUS_ALGORITHM="Naive"
 export RUST_BACKTRACE=1
 export PRUSTI_FULL_COMPILATION=true
-export PRUSTI_ENABLE_WHITELIST=true
 
 export RUSTUP_TOOLCHAIN="$(cat "$DIR/../../rust-toolchain")"
 info "Using RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN"
@@ -79,7 +75,6 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	CRATE_ROOT="$CRATE_DIR/source"
 	cd "$CRATE_ROOT"
 
-	WHITELIST_FILE="$CRATE_DIR/$WHITELIST_FILENAME"
 	log_file="$CRATE_DIR/verify-coarse-grained-$start_date.log"
 
 	start_crate="$(date '+%Y-%m-%d %H:%M:%S')"
@@ -92,17 +87,12 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 	# Full cargo clean
 	cargo clean
 
-	whitelist_items="$(cat "$WHITELIST_FILE" | wc -l)"
-	info "Procedures in whitelist: $whitelist_items"
-
 	(
 		echo "CHECK_PANICS = $PRUSTI_CHECK_PANICS"
 		echo "CHECK_BINARY_OPERATIONS = $PRUSTI_CHECK_BINARY_OPERATIONS"
 		echo "ENCODE_UNSIGNED_NUM_CONSTRAINT = $PRUSTI_ENCODE_UNSIGNED_NUM_CONSTRAINT"
-		echo "ENABLE_WHITELIST = true"
-		echo "WHITELIST = ["
-		cat "$WHITELIST_FILE" | sed 's/$/,/' | sed '$ s/.$//'
-		echo "]"
+		echo "REPORT_SUPPORT_STATUS = false"
+		echo "SKIP_UNSUPPORTED_FUNCTIONS = true"
 	) > "$CRATE_ROOT/Prusti.toml"
 
 	exit_status="0"
@@ -120,12 +110,12 @@ cat "$CRATES_LIST_PATH" | while read crate_name; do
 
 	if [[ "$exit_status" == "0" ]]; then
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
-		info "Successful verification ($whitelist_items/$verified_items/$successful_items)"
-		echo "$crate_name,true,$whitelist_items,$verified_items,$successful_items,$duration,$exit_status,$start_crate,$end_crate,$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
+		info "Successful verification ($verified_items/$successful_items)"
+		echo "$crate_name,true,$verified_items,$successful_items,$duration,$exit_status,$start_crate,$end_crate,$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
 	else
 		end_crate="$(date '+%Y-%m-%d %H:%M:%S')"
-		info "Verification failed with exit status $exit_status ($whitelist_items/$verified_items/$successful_items)"
-		echo "$crate_name,false,$whitelist_items,$verified_items,$successful_items,$duration,$exit_status,$start_crate,$end_crate,$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
+		info "Verification failed with exit status $exit_status ($verified_items/$successful_items)"
+		echo "$crate_name,false,$verified_items,$successful_items,$duration,$exit_status,$start_crate,$end_crate,$parsing_duration,$type_checking_duration,$encoding_duration,$verification_duration" >> "$verification_report"
 	fi
 done
 

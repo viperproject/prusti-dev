@@ -148,7 +148,7 @@ fn main() {
                         &function.procedure
                     };
 
-                    support_status.report_support_status(&env, is_pure_function, true);
+                    support_status.report_support_status(&env, is_pure_function, true, true);
                 }
             } else {
                 // Write result
