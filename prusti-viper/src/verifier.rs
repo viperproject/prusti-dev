@@ -186,7 +186,9 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 support_status.report_support_status(
                     &self.env,
                     is_pure_function,
+                    // Avoid raising compiler errors for partially supported functions
                     false,
+                    // Avoid raising compiler errors if we are going to skip unsupported functions
                     !skip_unsupported_functions,
                 );
             }
