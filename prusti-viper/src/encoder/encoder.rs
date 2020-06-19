@@ -18,7 +18,7 @@ use encoder::spec_encoder::SpecEncoder;
 use encoder::type_encoder::{
     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use encoder::vir;
-use encoder::vir::WithIdentifier;
+use encoder::vir::{WithIdentifier, DomainFunction, LocalVar, Type};
 use prusti_interface::config;
 use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
@@ -69,7 +69,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     snapshot_functions: RefCell<HashMap<String, vir::Function>>,
     predicate_snapshot_type_names: RefCell<HashMap<String, String>>,
     predicate_snapshot_func_names: RefCell<HashMap<String, String>>,
-    pure_snapshot_mirrors: RefCell<HashMap<String, vir::DomainFunction>>,
+    pure_snapshot_mirrors: RefCell<HashMap<ProcedureDefId, vir::DomainFunction>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -197,8 +197,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn get_used_viper_domains(&self) -> Vec<vir::Domain> {
 
         let mirrors = self.pure_snapshot_mirrors
-            .borrow().
-            values()
+            .borrow()
+            .values()
             .cloned()
             .collect();
 
@@ -935,6 +935,44 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
+    pub fn encode_pure_snapshot_mirror(&self,
+                                       def_id: ProcedureDefId,
+                                       pure_function: vir::Function)
+        -> Option<vir::DomainFunction> {
+        let mut mirrors = self.pure_snapshot_mirrors.borrow_mut();
+
+        // TODO CMFIXME
+        if !mirrors.contains_key(&def_id) {
+
+            let formal_args = pure_function
+                .formal_args
+                .iter()
+                .map(|a| LocalVar {
+                        name: a.name.clone(),
+                        typ: match a.typ.clone() {
+                            Type::TypedRef(name) => self.encode_get_domain_type(name.clone()),
+                            Type::Domain(_) => unreachable!(),
+                            t=> t,
+                        }
+                    })
+                .collect();
+
+            let mirror_function = DomainFunction {
+                name: format!("mirror${}", self.env.get_item_name(def_id)),
+                formal_args,
+                return_type: pure_function.return_type.clone(),
+                unique: false,
+                domain_name: "Pure$Function$Snapshot$Mirrors".to_string(),
+            };
+
+            mirrors.insert(def_id, mirror_function);
+        }
+        match mirrors.get(&def_id) {
+            Some(func) => Some(func.clone()),
+            None => None,
+        }
+    }
+
     pub fn encode_get_snapshot_func_name(&self, predicate_name: String) -> String {
         match self.predicate_snapshot_func_names
             .borrow()
@@ -1287,6 +1325,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             } else {
                 pure_function_encoder.encode_function()
             };
+            self.encode_pure_snapshot_mirror(proc_def_id, function.clone());
             self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(key, function);
         }
