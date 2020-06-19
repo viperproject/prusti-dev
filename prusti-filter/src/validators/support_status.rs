@@ -142,7 +142,13 @@ impl SupportStatus {
             .collect()
     }
 
-    pub fn report_support_status(&self, env: &Environment, is_pure_function: bool, error_on_partially_supported: bool) {
+    pub fn report_support_status(
+        &self,
+        env: &Environment,
+        is_pure_function: bool,
+        error_on_partially_supported: bool,
+        error_on_unsupported: bool,
+    ) {
         let extra_msg = if is_pure_function {
             " in pure functions"
         } else {
@@ -168,7 +174,11 @@ impl SupportStatus {
                 "[Prusti: unsupported feature] this is unsupported{}, because it {}",
                 extra_msg, reason.reason
             );
-            env.span_err(reason.position, &message);
+            if error_on_unsupported {
+                env.span_err(reason.position, &message);
+            } else {
+                env.span_warn(reason.position, &message);
+            }
         }
     }
 }
