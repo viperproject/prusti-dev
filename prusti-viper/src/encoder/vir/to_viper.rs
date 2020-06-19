@@ -386,6 +386,17 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             },
+            &Expr::DomainFuncApp(
+                ref function,
+                ref args,
+                ref _pos,
+            ) => {
+                ast.domain_func_app(
+                    function.to_viper(ast),
+                    &args.to_viper(ast),
+                    &[], // TODO not necessary so far
+                )
+            },
             &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
                 ast.inhale_exhale_pred(
                     inhale_expr.to_viper(ast),

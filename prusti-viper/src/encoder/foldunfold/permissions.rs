@@ -311,6 +311,8 @@ impl RequiredPermissionsGetter for vir::Expr {
                     .get_required_permissions(predicates)
             }
 
+            vir::Expr::DomainFuncApp(..) => HashSet::new(),
+
             vir::Expr::InhaleExhale(..) => HashSet::new(),
         };
         trace!(
@@ -335,6 +337,7 @@ impl vir::Expr {
             | vir::Expr::LabelledOld(_, _, _)
             | vir::Expr::Const(_, _)
             | vir::Expr::FuncApp(..)
+            | vir::Expr::DomainFuncApp(..)
             | vir::Expr::InhaleExhale(..) => HashSet::new(),
 
             vir::Expr::Unfolding(_, args, expr, perm_amount, variant, _) => {
