@@ -919,20 +919,38 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_get_snapshot_func_name(&self, predicate_name: String) -> String {
-        self.predicate_snapshot_func_names
+        match self.predicate_snapshot_func_names
             .borrow()
-            .get(&predicate_name)
-            .unwrap()
-            .clone()
+            .get(&predicate_name) {
+                Some(name) => name.clone(),
+                None => "get_snap$i32".to_string(), // TODO
+        }
     }
 
     pub fn encode_get_domain_type(&self, predicate_name: String) -> vir::Type {
-        let domain_name = self.predicate_snapshot_type_names
+        match self.predicate_snapshot_type_names
             .borrow()
-            .get(&predicate_name)
-            .unwrap()
-            .clone();
-        vir::Type::Domain(domain_name)
+            .get(&predicate_name) {
+                Some(name) => vir::Type::Domain(name.clone()),
+                None => vir::Type::TypedRef("Int".to_string()), // TODO
+        }
+    }
+
+    pub fn encode_snapshot_primitive(&self, ty: ty::Ty<'tcx>) {
+        let name = self.encode_type_predicate_use(ty).clone();
+        if !self.predicate_snapshot_func_names.borrow().contains_key(&name.clone()) {
+            let domain_encoder = DomainEncoder::new(self, ty);
+            let get_snap_func = domain_encoder.encode_snap_primitive();
+            self.snapshot_functions
+                .borrow_mut()
+                .insert(get_snap_func.name.clone(), get_snap_func.clone());
+            self.predicate_snapshot_type_names
+                .borrow_mut()
+                .insert(name.clone(), name.clone()); // TODO FIXME
+            self.predicate_snapshot_func_names
+                .borrow_mut()
+                .insert(name.clone(), get_snap_func.name.clone());
+        }
     }
 
     pub fn encode_pure_snapshot_use(&self, _ty: ty::Ty<'tcx>) -> String {

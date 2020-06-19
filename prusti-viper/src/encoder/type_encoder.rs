@@ -213,6 +213,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 } else {
                     false
                 };
+                self.encoder.encode_snapshot_primitive(self.ty);
                 vec![vir::Predicate::new_primitive_value(
                     typ,
                     self.encoder.encode_value_field(self.ty),

@@ -18,21 +18,21 @@ const SNAPSHOT_ARG: &str = "_arg";
 pub struct DomainEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     ty: ty::Ty<'tcx>, // TODO this is the type we are talking about
-    domain_name: String,
+    predicate_name: String,
 }
 
 impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, ty: ty::Ty<'tcx>) -> Self {
-        let domain_name = format!(
-            "{}{}",
-            encoder.encode_type_predicate_use(ty).clone(),
-            SNAPSHOT_DOMAIN_SUFFIX
-        );
-        DomainEncoder { encoder, ty, domain_name }
+        let predicate_name = encoder.encode_type_predicate_use(ty).clone();
+        DomainEncoder { encoder, ty, predicate_name }
     }
 
     pub fn encode_domain_name(&self) -> String {
-        self.domain_name.clone()
+        format!(
+            "{}{}",
+            self.predicate_name,
+            SNAPSHOT_DOMAIN_SUFFIX
+        )
     }
 
     pub fn encode_snap_domain_def(&self) -> vir::Domain {
@@ -48,9 +48,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let cons_fun = vir::DomainFunction {
             name: SNAPSHOT_CONS.to_string(),
             formal_args: self.encode_snap_formal_args(),
-            return_type: vir::Type::Domain(self.domain_name.clone()),
+            return_type: vir::Type::Domain(self.encode_domain_name()),
             unique: false,
-            domain_name: self.domain_name.clone(),
+            domain_name: self.encode_domain_name(),
         };
         vec![cons_fun]
     }
@@ -69,6 +69,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     );
                     counter += 1
                 }
+            },
+            ty::TypeVariants::TyInt(_) => {
+                formal_args.push(self.encode_snap_arg_var())
             },
             _ => unreachable!(),
         }
@@ -92,29 +95,37 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_snap_compute_def(&self) -> vir::Function {
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
+        let return_type = vir::Type::Domain(self.encode_domain_name());
+        let body = vir::Expr::FuncApp(
+            SNAPSHOT_CONS.to_string(),
+            self.encode_snap_args(),
+            self.encode_snap_formal_args(),
+            return_type.clone(),
+            vir::Position::default(),
+        );
+        self.encode_snap_func(return_type, body)
+    }
+
+    fn encode_snap_get_name(&self) -> String {
+        format!("{}${}", SNAPSHOT_GET.to_string(), self.predicate_name)
+    }
+
+    fn encode_snap_func(&self, return_type: vir::Type, body: vir::Expr) -> vir::Function {
         let arg_var = self.encode_snap_arg_var();
-        let return_type = vir::Type::Domain(self.domain_name.clone());
         vir::Function {
-            name: SNAPSHOT_GET.to_string(),
+            name: self.encode_snap_get_name(),
             formal_args: vec![arg_var.clone()],
             return_type: return_type.clone(),
             pres: vec![vir::Expr::PredicateAccessPredicate(
-                predicate_name.clone(),
+                self.predicate_name.clone(),
                 Box::new(vir::Expr::Local(arg_var, vir::Position::default())),
                 PermAmount::Write,
                 vir::Position::default())],
             posts: vec![],
             body: Some(vir::Expr::Unfolding(
-                predicate_name,
+                self.predicate_name.clone(),
                 vec![vir::Expr::Local(self.encode_snap_arg_var(), vir::Position::default())],
-                Box::new(vir::Expr::FuncApp(
-                    SNAPSHOT_CONS.to_string(),
-                    self.encode_snap_args(),
-                    self.encode_snap_formal_args(),
-                    return_type,
-                    vir::Position::default(),
-                )),
+                Box::new(body),
                 vir::PermAmount::Write,
                 None,
                 vir::Position::default(),
@@ -123,8 +134,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_snap_arg_var(&self) -> vir::LocalVar {
-        let predicate_name = self.encoder.encode_type_predicate_use(self.ty);
-        let typ = vir::Type::TypedRef(predicate_name.clone());
+        let typ = vir::Type::TypedRef(self.predicate_name.clone());
         let arg_name = SNAPSHOT_ARG.to_string();
         vir::LocalVar { name: arg_name, typ }
     }
@@ -145,6 +155,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         )
                     ).collect()
             },
+            ty::TypeVariants::TyInt(_) => {
+                vec![vir::Expr::Local(self.encode_snap_arg_var(), vir::Position::default())]
+            },
             _ => unreachable!(),
         }
     }
@@ -163,12 +176,35 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ), field, vir::Position::default()
                 )],
                 vec![vir::LocalVar::new("self", field_type)],
-                self.encoder.encode_get_domain_type(name.clone()),
+                self.encode_type_name(name.clone()),
                 vir::Position::default(),
             ),
             Type::Int => { unimplemented!() } // TODO
             Type::Bool => { unimplemented!() }
             Type::Domain(_) => unreachable!(),
         }
+    }
+
+    fn encode_type_name(&self, name: String) -> vir::Type {
+        if name == "i32" { // TODO
+            vir::Type::Int
+        } else {
+            self.encoder.encode_get_domain_type(name)
+        }
+    }
+
+    pub fn encode_snap_primitive(&self) -> vir:: Function {
+        let return_type = self.encoder.encode_value_type(self.ty);
+        let body = vir::Expr::Field(
+            Box::new(
+                vir::Expr::Local(
+                    self.encode_snap_arg_var(),
+                    vir::Position::default()
+                )
+            ),
+            vir::Field{ name: "val_int".to_string(), typ: vir::Type::Int },
+            vir::Position::default()
+        );
+        self.encode_snap_func(return_type, body)
     }
 }
