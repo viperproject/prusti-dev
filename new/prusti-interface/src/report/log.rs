@@ -6,7 +6,7 @@
 
 //! This module defines functions for log messages, meant for developers
 
-use config;
+use crate::config;
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
@@ -21,7 +21,7 @@ fn log_dir() -> Option<PathBuf> {
     }
 }
 
-pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<Write>> {
+pub fn build_writer<S: ToString>(namespace: &str, name: S) -> io::Result<Box<dyn Write>> {
     Ok(match log_dir() {
         Some(log_dir) => {
             let mut path = log_dir.join(namespace);

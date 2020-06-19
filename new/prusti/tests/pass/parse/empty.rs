@@ -1,3 +1,3 @@
-// compile-flags: -Zprint-desugared-specs
+// compile-flags: -Zprint-desugared-specs -Zskip-verify
 
 fn main() {}

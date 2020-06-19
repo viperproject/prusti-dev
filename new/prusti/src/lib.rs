@@ -19,28 +19,21 @@ extern crate rustc_session;
 extern crate rustc_span;
 extern crate smallvec;
 
+use prusti_interface::specs;
 use rustc_driver::Compilation;
 use rustc_hir::intravisit;
 use rustc_interface::interface::Compiler;
 use rustc_interface::Queries;
 
-mod specs;
 mod verifier;
 
 pub struct PrustiCompilerCalls {
     /// Should Prusti print the AST with desugared specifications.
-    print_desugared_specs: bool,
+    pub print_desugared_specs: bool,
     /// Should Prusti print the type-checked specifications.
-    print_typeckd_specs: bool,
-}
-
-impl PrustiCompilerCalls {
-    pub fn new(print_desugared_specs: bool, print_typeckd_specs: bool) -> Self {
-        Self {
-            print_desugared_specs,
-            print_typeckd_specs,
-        }
-    }
+    pub print_typeckd_specs: bool,
+    /// Should Prusti execute the actual verification.
+    pub verify: bool,
 }
 
 impl rustc_driver::Callbacks for PrustiCompilerCalls {
@@ -88,7 +81,9 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
                     println!("{}", value);
                 }
             }
-            verifier::verify(tcx, type_map);
+            if self.verify {
+                verifier::verify(tcx, type_map);
+            }
         });
 
         compiler.session().abort_if_errors();

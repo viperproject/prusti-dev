@@ -7,7 +7,7 @@ use rustc_span::Span;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-pub(crate) mod typed;
+pub mod typed;
 
 use typed::StructuralToTyped;
 
@@ -17,7 +17,7 @@ struct SpecItem {
     specification: JsonAssertion,
 }
 
-pub(crate) struct SpecCollector<'tcx> {
+pub struct SpecCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     spec_items: Vec<SpecItem>,
     current_spec_item: Option<SpecItem>,

@@ -7,9 +7,11 @@
 //! This module defines the interface provided to a verifier.
 
 use rustc_hir::hir_id::HirId;
+use rustc_hir::def_id::DefId;
 use rustc_middle::ty::{self, TyCtxt};
 use std::path::PathBuf;
 
+use rustc_span::Span;
 // use rustc::hir;
 // use rustc::hir::def_id::DefId;
 // use rustc::ty;
@@ -36,7 +38,7 @@ use std::path::PathBuf;
 // pub use self::loops_utils::*;
 // pub use self::procedure::{BasicBlockIndex, Procedure};
 // use config;
-use data::ProcedureDefId;
+use crate::data::ProcedureDefId;
 // use syntax::codemap::CodeMap;
 // use syntax::codemap::Span;
 // use utils::get_attr_value;
@@ -175,23 +177,23 @@ impl<'tcx> Environment<'tcx> {
     //     }
     // }
 
-    // /// Get an absolute `def_path`. Note: not preserved across compilations!
-    // pub fn get_item_def_path(&self, def_id: DefId) -> String {
-    //     let def_path = self.tcx().def_path(def_id);
-    //     let mut crate_name = self.tcx().crate_name(def_path.krate).to_string();
-    //     crate_name.push_str(&def_path.to_string_no_crate());
-    //     crate_name
-    // }
+    /// Get an absolute `def_path`. Note: not preserved across compilations!
+    pub fn get_item_def_path(&self, def_id: DefId) -> String {
+        let def_path = self.tcx.def_path(def_id);
+        let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
+        crate_name.push_str(&def_path.to_string_no_crate());
+        crate_name
+    }
 
-    // /// Get the span of a definition
-    // /// Note: panics on non-local `def_id`
-    // pub fn get_item_span(&self, def_id: DefId) -> Span {
-    //     self.tcx().hir.span_if_local(def_id).unwrap()
-    // }
+    /// Get the span of a definition
+    /// Note: panics on non-local `def_id`
+    pub fn get_item_span(&self, def_id: DefId) -> Span {
+        self.tcx.hir().span_if_local(def_id).unwrap()
+    }
 
-    // pub fn get_absolute_item_name(&self, def_id: DefId) -> String {
-    //     self.tcx().absolute_item_path_str(def_id)
-    // }
+    pub fn get_absolute_item_name(&self, def_id: DefId) -> String {
+        self.tcx.def_path_str(def_id)
+    }
 
     // pub fn get_item_name(&self, def_id: DefId) -> String {
     //     self.tcx().item_path_str(def_id)

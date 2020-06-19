@@ -12,10 +12,11 @@
 #![deny(non_upper_case_globals)]
 // #![allow(missing_docs)]
 #![feature(rustc_private)]
+#![feature(box_syntax)]
+#![feature(box_patterns)]
 
 // #![feature(nll)]
-// #![feature(box_syntax)]
-// #![feature(box_patterns)]
+
 // #![feature(try_from)]
 // #![feature(crate_in_paths)]
 // #![feature(map_get_key_value)]
@@ -24,6 +25,7 @@ extern crate config as config_crate;
 extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
+extern crate rustc_ast;
 
 // extern crate csv;
 // extern crate datafrog;
@@ -53,7 +55,8 @@ pub mod data;
 pub mod environment;
 // pub mod parser;
 pub mod report;
-// pub mod specifications;
+// pub mod specifications; TODO: Delete.
+pub mod specs;
 // pub mod sysroot;
 // pub mod utils;
 // pub mod cargo;

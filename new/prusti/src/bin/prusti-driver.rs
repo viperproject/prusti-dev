@@ -33,18 +33,21 @@ fn main() {
     let mut args = Vec::new();
     let mut print_desugared_specs = false;
     let mut print_typeckd_specs = false;
+    let mut verify = true;
     for arg in rustc_args {
         debug!("Arg: {}", arg);
         if arg == "-Zprint-desugared-specs" {
             print_desugared_specs = true;
         } else if arg == "-Zprint-typeckd-specs" {
             print_typeckd_specs = true;
+        } else if arg == "-Zskip-verify" {
+            verify = false;
         } else {
             args.push(arg);
         }
     }
 
-    let mut callbacks = PrustiCompilerCalls::new(print_desugared_specs, print_typeckd_specs);
+    let mut callbacks = PrustiCompilerCalls {print_desugared_specs, print_typeckd_specs, verify};
 
     // Invoke compiler, and handle return code.
     let exit_code = rustc_driver::catch_with_exit_code(move || {
