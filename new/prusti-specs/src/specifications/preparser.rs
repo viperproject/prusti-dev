@@ -206,12 +206,50 @@ impl Parse for AllArgs {
     }
 }
 
+/// The structure to parse Prusti assertions.
+///
+/// Check common::AssertionKind to see all types of Prusti assertions.
+///
+/// Each Prusti assertion (`A`) is a Rust expression (`E`) or a `forall` expression.
+/// On Prusti assertions, the following operators can be used to create more Prusti assertions:
+/// - `A && A` (conjunction)
+/// - `A ==> A` (implication)
+/// Parentheses can be used as usual.
+///
+/// The following are also Prusti assertions:
+/// `forall(|NAME1: TYPE1, NAME2: TYPE2, ...| A)`
+/// `forall(|NAME1: TYPE1, NAME2: TYPE2, ...| A, triggers=[(E, ...), ...])`
+///
+/// Prusti assertions can only be joined together by `&&` and `==>`, for example the following
+/// is not allowed, since `(E ==> E)` is a Prusti assertion:
+/// `(E ==> E) || E`
+/// However, this is fine, as `&&` is also a Rust operator:
+/// `(E && E) && E`
+///
+/// Having `&&` and `||` in the same subexpression is not allowed to preven ambiguities:
+/// `E && E || E`
+///
+/// However, this is fine, since the implication resolves the ambiguity:
+/// (note that both the lhs and rhs of the implication form a Prusti assertion)
+/// `E && E ==> E || E`
+///
+/// Basic usage (`tokens` is of type `proc_macro2::TokenStream`):
+/// ```
+/// let mut parser = Parser::from_token_stream(tokens);
+/// let assertion = parser.extract_assertion()?;
+/// ```
 pub struct Parser {
+    /// The helper to manipulate input.
     input: ParserStream,
+    /// Members of the conjunction.
     conjuncts: Vec<AssertionWithoutId>,
+    /// Currently being parsed Rust expression.
     expr: Vec<TokenTree>,
+    /// A flag to denote whether the previous expression is already resolved (parsed into a conjunct).
     previous_expression_resolved: bool,
+    /// A flag to denote that once the current expression finishes, an operator will be expected.
     expected_operator: bool,
+    /// A flag to denote that the next token must be an operator.
     expected_only_operator: bool
 }
 
@@ -239,6 +277,7 @@ impl Parser {
         }
     }
 
+    /// Creates a single Prusti assertion from the input and returns it.
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         if self.input.contains_both_and_or() {
             return Err(self.error_ambiguous_expression());
@@ -247,10 +286,13 @@ impl Parser {
         while !self.input.is_empty() {
             if self.input.check_and_consume_operator("&&") {
 
+                // handles the case when there is no lhs of the && operator
                 if !self.expected_operator {
                     return Err(self.error_expected_assertion());
                 }
 
+                // convert the currently being parsed expression into a conjunct if not already
+                // done so
                 if self.previous_expression_resolved {
                     self.previous_expression_resolved = false;
                 }
@@ -274,12 +316,13 @@ impl Parser {
 
             else if self.input.check_and_consume_operator("==>") {
 
+                // handles the case when there is no lhs of the ==> operator
                 if !self.expected_operator {
                     return Err(self.error_expected_assertion());
                 }
 
-                // convert the current expression into a conjunct if it was not nested
-                // (and thus already resolved)
+                // convert the currently being parsed expression into a conjunct if not already
+                // done so
                 if !self.previous_expression_resolved {
                     if self.expr.is_empty() {
                         return Err(self.error_expected_assertion());
@@ -289,14 +332,13 @@ impl Parser {
                     }
                 }
 
-                // handles the case when there is no rhs of the && operator
+                // handles the case when there is no rhs of the ==> operator
                 if self.input.is_empty() {
                     return Err(self.error_expected_assertion());
                 }
 
                 // recursively parse the rhs assertion; note that this automatically handles the
-                // operator precedence: implication will be then weaker than conjunction, and
-                // parsed from left to right
+                // operator precedence: implication will be then weaker than conjunction
                 let mut parser = Parser::from_parser_stream(&mut self.input);
 
                 let lhs = self.conjuncts_to_assertion();
@@ -407,12 +449,16 @@ impl Parser {
             }
 
             else if let Some(group) = self.input.check_and_consume_parenthesized_block() {
+                // handling a parenthesized block
                 if self.expected_only_operator {
                     return Err(self.error_expected_operator());
                 }
 
                 if self.expr.is_empty() && (self.input.peek_any_operator() || self.input.is_empty()) {
-                    // we can parse as prusti assertion
+                    // if there is no expression currently being parsed (in which case the
+                    // parenthesized block would be a part of it) and there is a Prusti operator
+                    // or nothing at all after the parenthesized block, then we might parser
+                    // this as a Prusti assertion
 
                     if self.expected_operator {
                         return Err(self.error_expected_operator());
@@ -431,15 +477,14 @@ impl Parser {
                     self.expected_operator = true;
                 }
                 else{
-                    // due to a rust operator after the parenthesized block
-                    // (assuming there is no syntax error), we have to parse
-                    // as plain Rust expression
+                    // if this was not the case, we just parse as a Rust expression and stick
+                    // it to any possible already being-parsed expression
                     self.expr.push(TokenTree::Group(group));
                 }
             }
 
             else{
-                // nothing special, just continuing with a plain Rust expression
+                // if nothing of the above happened, we just continue parsing as a Rust expression
                 if self.expected_only_operator {
                     self.input.pop();
                     return Err(self.error_expected_operator());
