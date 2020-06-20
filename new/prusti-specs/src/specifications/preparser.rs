@@ -211,7 +211,8 @@ pub struct Parser {
     conjuncts: Vec<AssertionWithoutId>,
     expr: Vec<TokenTree>,
     previous_expression_resolved: bool,
-    expected_operator: bool
+    expected_operator: bool,
+    expected_only_operator: bool
 }
 
 impl Parser {
@@ -222,7 +223,8 @@ impl Parser {
             conjuncts: Vec::new(),
             expr: Vec::new(),
             previous_expression_resolved: false,
-            expected_operator: false
+            expected_operator: false,
+            expected_only_operator: false
         }
     }
 
@@ -232,7 +234,8 @@ impl Parser {
             conjuncts: Vec::new(),
             expr: Vec::new(),
             previous_expression_resolved: false,
-            expected_operator: false
+            expected_operator: false,
+            expected_only_operator: false
         }
     }
 
@@ -266,6 +269,7 @@ impl Parser {
                 }
 
                 self.expected_operator = false;
+                self.expected_only_operator = false;
             }
 
             else if self.input.check_and_consume_operator("==>") {
@@ -393,6 +397,7 @@ impl Parser {
 
                     self.conjuncts.push(conjunct);
                     self.previous_expression_resolved = true;
+                    self.expected_only_operator = true;
                     self.expected_operator = true;
 
                 }
@@ -402,6 +407,10 @@ impl Parser {
             }
 
             else if let Some(group) = self.input.check_and_consume_parenthesized_block() {
+                if self.expected_only_operator {
+                    return Err(self.error_expected_operator());
+                }
+
                 if self.expr.is_empty() && (self.input.peek_any_operator() || self.input.is_empty()) {
                     // we can parse as prusti assertion
 
@@ -431,6 +440,11 @@ impl Parser {
 
             else{
                 // nothing special, just continuing with a plain Rust expression
+                if self.expected_only_operator {
+                    self.input.pop();
+                    return Err(self.error_expected_operator());
+                }
+
                 let token = self.input.pop().unwrap();
                 self.expr.push(token);
                 self.expected_operator = true;
