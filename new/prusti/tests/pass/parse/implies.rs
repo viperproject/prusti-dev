@@ -6,7 +6,8 @@ use prusti_contracts::*;
 
 // #[requires(forall(|a: Map<u32,u32>, b: u32| a == 5 ==> b == 10, triggers=[(1+1,), (2,3), (4,)]))]
 // #[requires((true ==> true) || true)]
-#[requires(true && true || true)]
+// #[requires(true && true || true)]
+#[requires((true && true) || true ==> forall(|| 1+1) || true && true)]
 fn test1() {}
 
 // #[ensures((1+1 == 2) && ((1 + 1) == 2))]
