@@ -70,6 +70,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     predicate_snapshot_type_names: RefCell<HashMap<String, String>>,
     predicate_snapshot_func_names: RefCell<HashMap<String, String>>,
     pure_snapshot_mirrors: RefCell<HashMap<ProcedureDefId, vir::DomainFunc>>,
+    snap_equals_func_names: RefCell<HashMap<String, vir::Function>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -138,6 +139,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             predicate_snapshot_type_names: RefCell::new(HashMap::new()),
             predicate_snapshot_func_names: RefCell::new(HashMap::new()),
             pure_snapshot_mirrors: RefCell::new(HashMap::new()),
+            snap_equals_func_names: RefCell::new(HashMap::new()),
         }
     }
 
@@ -241,10 +243,18 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         for function in self.type_discriminant_funcs.borrow().values() {
             functions.push(function.clone());
         }
+        // TODO CMFIXME
+        if self.memory_eq_funcs.borrow().is_empty() {
+            println!("CM: No memory_eq_func has been generated!");
+        }
         for function in self.memory_eq_funcs.borrow().values() {
+            println!("CM: generated memory_eq_func: {:?}", function.as_ref().unwrap().name.clone());
             functions.push(function.as_ref().unwrap().clone());
         }
         for function in self.snapshot_functions.borrow().values() {
+            functions.push(function.clone());
+        }
+        for function in self.snap_equals_func_names.borrow().values() {
             functions.push(function.clone());
         }
         functions.sort_by_key(|f| f.get_identifier());
@@ -520,21 +530,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
     }
 
-    // TODO CMFIXME: cleanup
-    fn encode_snapshot_call(&self, arg: vir::Expr) -> vir::Expr {
-        let predicate_name = arg.typed_ref_name().unwrap(); // TODO
-        let snapshot_func_name = self.encode_get_snapshot_func_name(predicate_name.clone());
-        let return_type = self.encode_get_domain_type(predicate_name.clone());
-        let formal_arg = vir::LocalVar { name: "self".to_string(), typ: arg.get_type().clone()};
-        vir::Expr::FuncApp(
-            snapshot_func_name,
-            vec![arg],
-            vec![formal_arg],
-            return_type,
-            vir::Position::default(),
-        )
-    }
-
     fn encode_memory_eq_adt(
         &self,
         first: vir::Expr,
@@ -548,14 +543,20 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         if num_variants == 1 {
             // A struct.
             // TODO CMFIXME use the new snapshots here
-            println!("CM: Does my equality stuff even get executed?!");
-            let snapshot_cmp = vir::Expr::BinOp(
-                vir::BinOpKind::EqCmp,
-                Box::new(self.encode_snapshot_call(first)),
-                Box::new(self.encode_snapshot_call(second)),
+            let arg_type = first.get_type().clone();
+            let predicate_name = arg_type.name().clone();
+            let equals_func = self.encode_snapshot_equals_use(predicate_name.clone());
+            let equals_call = vir::Expr::FuncApp(
+                equals_func,
+                vec![first, second],
+                vec![
+                    vir::LocalVar::new("_left".to_string(), arg_type.clone()),
+                    vir::LocalVar::new("_right".to_string(), arg_type.clone()),
+                ],
+                vir::Type::Bool,
                 vir::Position::default(),
             );
-            conjuncts.push(snapshot_cmp);
+            conjuncts.push(equals_call);
             /*
             let variant_def = &adt_def.variants[0];
             for field in &variant_def.fields {
@@ -939,29 +940,36 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
+    // TODO CMFIXME
     pub fn encode_snapshot_domain(&self, ty: ty::Ty<'tcx>) -> vir::Domain {
         // TODO CMFIXME Perhaps we have to do this per predicate...
         let domain_encoder = DomainEncoder::new(self, ty);
         let domain_name = domain_encoder.encode_domain_name();
         if !self.domains.borrow().contains_key(&domain_name) {
+            let predicate_name = self.encode_type_predicate_use(ty);
             let domain = domain_encoder.encode_snap_domain_def();
             self.domains
                 .borrow_mut()
-                .insert(domain_name.clone(), domain);
+                .insert(domain_name.clone(), domain); // TODO also use predicate_name as key?
             let get_snap_func = domain_encoder.encode_snap_compute_def();
             self.snapshot_functions
                 .borrow_mut()
                 .insert(get_snap_func.name.clone(), get_snap_func.clone());
             self.predicate_snapshot_type_names
                 .borrow_mut()
-                .insert(self.encode_type_predicate_use(ty), domain_name.clone());
+                .insert(predicate_name.clone(), domain_name.clone());
             self.predicate_snapshot_func_names
                 .borrow_mut()
-                .insert(self.encode_type_predicate_use(ty), get_snap_func.name.clone());
+                .insert(predicate_name.clone(), get_snap_func.name.clone());
+            let equals_function = domain_encoder.encode_equals_def();
+            self.snap_equals_func_names
+                .borrow_mut()
+                .insert(predicate_name.clone(), equals_function);
         }
         self.domains.borrow()[&domain_name].clone()
     }
 
+    // TODO CMFIXME
     pub fn encode_pure_snapshot_mirror(&self,
                                        def_id: ProcedureDefId,
                                        pure_function: vir::Function)
@@ -1000,6 +1008,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
+    // TODO CMFIXME
     pub fn encode_get_snapshot_func_name(&self, predicate_name: String) -> String {
         match self.predicate_snapshot_func_names
             .borrow()
@@ -1009,6 +1018,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
+    // TODO CMFIXME
     pub fn encode_get_domain_type(&self, predicate_name: String) -> vir::Type {
         match self.predicate_snapshot_type_names
             .borrow()
@@ -1018,6 +1028,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
+    // TODO CMFIXME
     pub fn encode_snapshot_primitive(&self, ty: ty::Ty<'tcx>) {
         let name = self.encode_type_predicate_use(ty).clone();
         if !self.predicate_snapshot_func_names.borrow().contains_key(&name.clone()) {
@@ -1035,9 +1046,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_pure_snapshot_use(&self, _ty: ty::Ty<'tcx>) -> String {
-        // TODO CMFIXME
-        unimplemented!()
+    // TODO CMFIXME
+    pub fn encode_snapshot_equals_use(&self, predicate_name: String) -> String {
+        if !self.snap_equals_func_names.borrow().contains_key(&predicate_name) {
+            unreachable!()
+        }
+        self.snap_equals_func_names.borrow()[&predicate_name].name.clone()
     }
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
@@ -1051,8 +1065,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             // Trigger encoding of definition
             self.encode_type_invariant_def(ty);
         }
-        let invariant_name = self.type_invariant_names.borrow()[&ty.sty].clone();
-        invariant_name
+        self.type_invariant_names.borrow()[&ty.sty].clone()
     }
 
     pub fn encode_type_invariant_def(&self, ty: ty::Ty<'tcx>) -> vir::Function {
@@ -1465,11 +1478,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
-        // TODO CMFIXME
-        println!("CM: {:?}", proc_def_id);
-
         let procedure = self.env.get_procedure(proc_def_id);
-
         let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
 
         // If we haven't seen this particular stub before, generate and insert it.

@@ -13,8 +13,10 @@ use encoder::vir::{PermAmount, Type};
 const SNAPSHOT_DOMAIN_SUFFIX: &str = "$Snap";
 const SNAPSHOT_CONS: &str = "cons$";
 const SNAPSHOT_GET: &str = "get_snap$";
+const SNAPSHOT_EQUALS: &str = "equals$";
 const SNAPSHOT_ARG: &str = "_arg";
 
+// TODO CMFIXME
 pub struct DomainEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     ty: ty::Ty<'tcx>, // TODO this is the type we are talking about
@@ -91,7 +93,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_snap_compute_def(&self) -> vir::Function {
-
         let domain: vir::Domain = self.encoder.encode_snapshot_domain(self.ty);
         let cons_function = domain.functions[0].clone();
         let return_type = cons_function.return_type.clone();
@@ -102,6 +103,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
         );
         self.encode_snap_func(return_type, body)
     }
+
 
     fn encode_snap_get_name(&self) -> String {
         format!("{}${}", SNAPSHOT_GET.to_string(), self.predicate_name)
@@ -131,9 +133,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_snap_arg_var(&self) -> vir::LocalVar {
-        let typ = vir::Type::TypedRef(self.predicate_name.clone());
+        let typ = self.encode_pred_ref_type();
         let arg_name = SNAPSHOT_ARG.to_string();
         vir::LocalVar { name: arg_name, typ }
+    }
+
+    fn encode_pred_ref_type(&self) -> vir::Type {
+        vir::Type::TypedRef(self.predicate_name.clone())
     }
 
     fn encode_snap_args(&self) -> Vec<vir::Expr> {
@@ -203,5 +209,55 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
             vir::Position::default()
         );
         self.encode_snap_func(return_type, body)
+    }
+
+    pub fn encode_equals_def(&self) -> vir::Function {
+        let arg_left = vir::LocalVar::new("_left".to_string(), self.encode_pred_ref_type());
+        let arg_right = vir::LocalVar::new("_right".to_string(), self.encode_pred_ref_type());
+
+        vir::Function {
+            name: self.encode_equals_get_name(),
+            formal_args: vec![arg_left.clone(), arg_right.clone()],
+            return_type: vir::Type::Bool,
+            pres: vec![
+                vir::Expr::PredicateAccessPredicate(
+                    self.predicate_name.clone(),
+                    Box::new(vir::Expr::Local(arg_left.clone(), vir::Position::default())),
+                    PermAmount::Read,
+                    vir::Position::default()
+                ),
+                vir::Expr::PredicateAccessPredicate(
+                    self.predicate_name.clone(),
+                    Box::new(vir::Expr::Local(arg_right.clone(), vir::Position::default())),
+                    PermAmount::Read,
+                    vir::Position::default()
+                ),
+            ],
+            posts: vec![],
+            body: Some(vir::Expr::BinOp(
+                vir::BinOpKind::EqCmp,
+                Box::new(self.encode_snapshot_call(arg_left)),
+                Box::new(self.encode_snapshot_call(arg_right)),
+                vir::Position::default(),
+            )),
+        }
+    }
+
+    fn encode_equals_get_name(&self) -> String {
+        format!("{}${}", SNAPSHOT_EQUALS.to_string(), self.predicate_name)
+    }
+
+    // TODO CMFIXME: cleanup
+    fn encode_snapshot_call(&self, formal_arg: vir::LocalVar) -> vir::Expr {
+        let snapshot_func_name = self.encoder.encode_get_snapshot_func_name(self.predicate_name.clone());
+        let return_type = self.encoder.encode_get_domain_type(self.predicate_name.clone());
+        let arg = vir::Expr::Local(formal_arg.clone(), vir::Position::default());
+        vir::Expr::FuncApp(
+            snapshot_func_name,
+            vec![arg],
+            vec![formal_arg],
+            return_type,
+            vir::Position::default(),
+        )
     }
 }

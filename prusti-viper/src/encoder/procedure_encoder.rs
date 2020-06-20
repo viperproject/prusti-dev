@@ -156,6 +156,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     pub fn encode(mut self) -> Result<vir::CfgMethod, ProcedureEncodingError> {
         trace!("Encode procedure {}", self.cfg_method.name());
 
+        println!("CM: Encode procedure {}", self.cfg_method.name());
+
         // Retrieve the contract
         self.procedure_contract = Some(
             self.encoder.get_procedure_contract_for_def(self.proc_def_id)
@@ -1021,6 +1023,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         if let Some(ref term) = bb_data.terminator {
             trace!("Encode terminator of {:?}", bbi);
             let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
+            println!("CM: old encode terminators [mir] {:?}", term.kind);
             self.cfg_method.add_stmt(
                 cfg_block,
                 vir::Stmt::comment(format!("[mir] {:?}", term.kind)),
@@ -1884,6 +1887,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ..
             } => {
                 let full_func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
+                println!("CM: procedure encode for terminatorKind Call {}", full_func_proc_name);
 
                 let own_substs =
                     ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
@@ -1905,6 +1909,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     tymap_stack.push(tymap);
                 }
 
+                // TODO CMFIXME: look for calls to std::cmp::PartialEq::eq here?
                 match full_func_proc_name {
                     "std::rt::begin_panic" | "std::panicking::begin_panic" => {
                         // This is called when a Rust assertion fails
@@ -2025,6 +2030,122 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
                     }
 
+                    // TODO CMFIXME
+                    "core::cmp::PartialEq::eq" => {
+                        assert!(args.len() == 2);
+                        let arg_exprs = vec![
+                            self.mir_encoder.encode_operand_expr(&args[0]),
+                            self.mir_encoder.encode_operand_expr(&args[1]),
+                        ];
+                        let return_type = vir::Type::Bool;
+                        let arg_type = self.mir_encoder.
+                            encode_operand_expr_type(&args[0]);
+                        let function_name = self.encoder.
+                            encode_snapshot_equals_use(arg_type.name().clone());
+
+                        // TODO CMFIXME deal with the possibility that equals is unsupported
+
+                        let formal_args: Vec<vir::LocalVar> = args
+                            .iter()
+                            .enumerate()
+                            .map(|(i, _arg)| {
+                                vir::LocalVar::new(
+                                    format!("x{}", i),
+                                    arg_type.clone(),
+                                )
+                            })
+                            .collect();
+
+                        // TODO CMFIXME we essentially have to do the same things as for pure funs
+                        assert!(destination.is_some());
+                        let pos = self
+                            .encoder
+                            .error_manager()
+                            .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
+                        let func_call = vir::Expr::func_app(
+                            function_name,
+                            arg_exprs,
+                            formal_args,
+                            return_type,
+                            pos,
+                        );
+
+                        let label = self.cfg_method.get_fresh_label_name();
+                        stmts.push(vir::Stmt::Label(label.clone()));
+
+                        // Havoc the content of the lhs
+                        let (target_place, _target_ty, _) = match destination.as_ref() {
+                            Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
+                            None => unreachable!(),
+                        };
+                        stmts.extend(self.encode_havoc(&target_place));
+                        let type_predicate = self
+                            .mir_encoder
+                            .encode_place_predicate_permission(
+                                target_place.clone(),
+                                vir::PermAmount::Write,
+                            )
+                            .unwrap();
+                        stmts.push(
+                            vir::Stmt::Inhale(
+                                type_predicate,
+                                vir::FoldingBehaviour::Stmt
+                            )
+                        );
+
+                        // Initialize the lhs
+                        let target_value = match destination.as_ref() {
+                            Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
+                            None => unreachable!(),
+                        };
+                        stmts.push(
+                            vir::Stmt::Inhale(
+                                vir::Expr::eq_cmp(
+                                    target_value.into(),
+                                    func_call,
+                                ),
+                                vir::FoldingBehaviour::Stmt,
+                            )
+                        );
+
+                        // Store a label for permissions got back from the call
+                        debug!(
+                            "Pure function call location {:?} has label {}",
+                            location, label
+                        );
+                        self.label_after_location.insert(location, label.clone());
+
+                        // Transfer the permissions for the arguments used in the call
+                        for operand in args.iter() {
+                            let operand_ty = self.mir_encoder.get_operand_ty(operand);
+                            let operand_place = self.mir_encoder.encode_operand_place(operand);
+                            match (operand_place, &operand_ty.sty) {
+                                (
+                                    Some(ref place),
+                                    ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
+                                                                   ty: ref inner_ty,
+                                                                   ..
+                                                               }),
+                                )
+                                | (
+                                    Some(ref place),
+                                    ty::TypeVariants::TyRef(_, ref inner_ty, _),
+                                ) => {
+                                    let ref_field =
+                                        self.encoder.encode_dereference_field(inner_ty);
+                                    let ref_place = place.clone().field(ref_field);
+                                    stmts.extend(self.encode_transfer_permissions(
+                                        ref_place.clone(),
+                                        ref_place.clone().old(&label),
+                                        location,
+                                    ));
+                                }
+                                _ => {} // Nothing
+                            }
+                        }
+                        // TODO CMFIXME END of duplication
+                    }
+
                     _ => {
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
@@ -2032,6 +2153,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let (function_name, return_type) =
                                 self.encoder.encode_pure_function_use(def_id);
                             debug!("Encoding pure function call '{}'", function_name);
+                            println!("CM: Encoding pure function call '{}'", function_name);
                             assert!(destination.is_some());
 
                             let mut arg_exprs = vec![];
@@ -2165,12 +2287,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         */
                         } else {
                             debug!("Encoding non-pure function call '{}'", full_func_proc_name);
+                            println!("CM: Encoding non-pure function call '{}'", full_func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
                             let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
                             let mut fake_vars = vec![];
                             let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
                             let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
                             let mut constant_args = Vec::new();
+
+                            println!("CM: We have {} args", args.len());
 
                             for operand in args.iter() {
                                 let arg_ty = self.mir_encoder.get_operand_ty(operand);
@@ -4484,6 +4609,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.encode_copy_primitive_value(src, dst, self_ty, location)
             }
             ty::TypeVariants::TyAdt(adt_def, _subst) if !adt_def.is_box() => {
+                println!("CM: called procedure_encoder::encode_copy2 for ADT");
                 self.encode_deep_copy_adt(src, dst, self_ty)
             }
             ty::TypeVariants::TyTuple(elems) => {
