@@ -520,6 +520,21 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
     }
 
+    // TODO CMFIXME: cleanup
+    fn encode_snapshot_call(&self, arg: vir::Expr) -> vir::Expr {
+        let predicate_name = arg.typed_ref_name().unwrap(); // TODO
+        let snapshot_func_name = self.encode_get_snapshot_func_name(predicate_name.clone());
+        let return_type = self.encode_get_domain_type(predicate_name.clone());
+        let formal_arg = vir::LocalVar { name: "self".to_string(), typ: arg.get_type().clone()};
+        vir::Expr::FuncApp(
+            snapshot_func_name,
+            vec![arg],
+            vec![formal_arg],
+            return_type,
+            vir::Position::default(),
+        )
+    }
+
     fn encode_memory_eq_adt(
         &self,
         first: vir::Expr,
@@ -532,6 +547,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let mut conjuncts = Vec::new();
         if num_variants == 1 {
             // A struct.
+            // TODO CMFIXME use the new snapshots here
+            println!("CM: Does my equality stuff even get executed?!");
+            let snapshot_cmp = vir::Expr::BinOp(
+                vir::BinOpKind::EqCmp,
+                Box::new(self.encode_snapshot_call(first)),
+                Box::new(self.encode_snapshot_call(second)),
+                vir::Position::default(),
+            );
+            conjuncts.push(snapshot_cmp);
+            /*
             let variant_def = &adt_def.variants[0];
             for field in &variant_def.fields {
                 let field_name = &field.ident.as_str();
@@ -543,6 +568,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     first_field, second_field, field_ty, vir::Position::default());
                 conjuncts.push(eq);
             }
+            */
         } else {
             // An enum.
             let discr_field = self.encode_discriminant_field();
