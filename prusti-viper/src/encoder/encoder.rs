@@ -1356,8 +1356,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             // TODO CMFIXME
             let mirror = self.encode_pure_snapshot_mirror(proc_def_id, function.clone());
             if let Some(mirror_func) = mirror {
-
-
                 let mut mirror_args = vec![];
                 for (func_arg, mirror_arg) in function.formal_args
                     .iter()
@@ -1467,6 +1465,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
+        // TODO CMFIXME
+        println!("CM: {:?}", proc_def_id);
+
         let procedure = self.env.get_procedure(proc_def_id);
 
         let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());

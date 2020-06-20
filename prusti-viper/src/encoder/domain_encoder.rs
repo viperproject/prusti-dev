@@ -101,17 +101,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
             vir::Position::default(),
         );
         self.encode_snap_func(return_type, body)
-/*
-        let return_type = vir::Type::Domain(self.encode_domain_name());
-        // TODO CMFIXME: use DomainFuncApp
-        let body = vir::Expr::FuncApp(
-            SNAPSHOT_CONS.to_string(),
-            self.encode_snap_args(),
-            self.encode_snap_formal_args(),
-            return_type.clone(),
-            vir::Position::default(),
-        );
- */
     }
 
     fn encode_snap_get_name(&self) -> String {
