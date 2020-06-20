@@ -647,7 +647,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             } else {
                                 self.encoder.encode_stub_pure_function_use(def_id)
                             };
-                            if is_pure_function {
+                            // TODO CMFIXME
+                            if is_pure_function || function_name.eq("equals$") {
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);

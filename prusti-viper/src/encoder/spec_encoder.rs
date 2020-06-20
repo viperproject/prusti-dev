@@ -395,7 +395,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let mut curr_def_id = tcx.hir.local_def_id(curr_node_id);
         let mut curr_namespace = "_pure".to_string();
 
-        // Encode the expression
         let mut encoded_expr = self.encoder.encode_pure_function_body(curr_def_id, true);
 
         // For each of the enclosing closures, replace with the variables captured in the closure.

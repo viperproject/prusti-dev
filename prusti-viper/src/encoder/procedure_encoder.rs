@@ -156,8 +156,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
     pub fn encode(mut self) -> Result<vir::CfgMethod, ProcedureEncodingError> {
         trace!("Encode procedure {}", self.cfg_method.name());
 
-        println!("CM: Encode procedure {}", self.cfg_method.name());
-
         // Retrieve the contract
         self.procedure_contract = Some(
             self.encoder.get_procedure_contract_for_def(self.proc_def_id)
@@ -1023,7 +1021,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         if let Some(ref term) = bb_data.terminator {
             trace!("Encode terminator of {:?}", bbi);
             let cfg_block = *self.mir_to_vir_blocks.get(&bbi).unwrap();
-            println!("CM: old encode terminators [mir] {:?}", term.kind);
             self.cfg_method.add_stmt(
                 cfg_block,
                 vir::Stmt::comment(format!("[mir] {:?}", term.kind)),
@@ -1887,7 +1884,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 ..
             } => {
                 let full_func_proc_name: &str = &self.encoder.env().tcx().absolute_item_path_str(def_id);
-                println!("CM: procedure encode for terminatorKind Call {}", full_func_proc_name);
 
                 let own_substs =
                     ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), def_id);
@@ -2153,7 +2149,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             let (function_name, return_type) =
                                 self.encoder.encode_pure_function_use(def_id);
                             debug!("Encoding pure function call '{}'", function_name);
-                            println!("CM: Encoding pure function call '{}'", function_name);
                             assert!(destination.is_some());
 
                             let mut arg_exprs = vec![];
@@ -2287,15 +2282,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         */
                         } else {
                             debug!("Encoding non-pure function call '{}'", full_func_proc_name);
-                            println!("CM: Encoding non-pure function call '{}'", full_func_proc_name);
                             let mut stmts_after: Vec<vir::Stmt> = vec![];
                             let mut fake_exprs: HashMap<vir::Expr, vir::Expr> = HashMap::new();
                             let mut fake_vars = vec![];
                             let mut const_arg_vars: HashSet<vir::Expr> = HashSet::new();
                             let mut type_invs: HashMap<String, vir::Function> = HashMap::new();
                             let mut constant_args = Vec::new();
-
-                            println!("CM: We have {} args", args.len());
 
                             for operand in args.iter() {
                                 let arg_ty = self.mir_encoder.get_operand_ty(operand);
@@ -4609,7 +4601,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 self.encode_copy_primitive_value(src, dst, self_ty, location)
             }
             ty::TypeVariants::TyAdt(adt_def, _subst) if !adt_def.is_box() => {
-                println!("CM: called procedure_encoder::encode_copy2 for ADT");
                 self.encode_deep_copy_adt(src, dst, self_ty)
             }
             ty::TypeVariants::TyTuple(elems) => {

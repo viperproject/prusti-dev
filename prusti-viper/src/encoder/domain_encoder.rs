@@ -13,7 +13,7 @@ use encoder::vir::{PermAmount, Type};
 const SNAPSHOT_DOMAIN_SUFFIX: &str = "$Snap";
 const SNAPSHOT_CONS: &str = "cons$";
 const SNAPSHOT_GET: &str = "get_snap$";
-const SNAPSHOT_EQUALS: &str = "equals$";
+pub const SNAPSHOT_EQUALS: &str = "equals$";
 const SNAPSHOT_ARG: &str = "_arg";
 
 // TODO CMFIXME
@@ -244,7 +244,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     fn encode_equals_get_name(&self) -> String {
-        format!("{}${}", SNAPSHOT_EQUALS.to_string(), self.predicate_name)
+        SNAPSHOT_EQUALS.to_string()
+        //format!("{}${}", SNAPSHOT_EQUALS.to_string(), self.predicate_name)
     }
 
     // TODO CMFIXME: cleanup

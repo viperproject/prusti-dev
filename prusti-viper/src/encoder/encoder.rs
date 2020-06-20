@@ -243,12 +243,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         for function in self.type_discriminant_funcs.borrow().values() {
             functions.push(function.clone());
         }
-        // TODO CMFIXME
-        if self.memory_eq_funcs.borrow().is_empty() {
-            println!("CM: No memory_eq_func has been generated!");
-        }
         for function in self.memory_eq_funcs.borrow().values() {
-            println!("CM: generated memory_eq_func: {:?}", function.as_ref().unwrap().name.clone());
             functions.push(function.as_ref().unwrap().clone());
         }
         for function in self.snapshot_functions.borrow().values() {
@@ -1478,6 +1473,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
+        // TODO CMFIXME this is an ungly hack
+        if self.env.get_item_name(proc_def_id).eq("std::cmp::PartialEq::eq") {
+            return ("equals$".to_string(), vir::Type::Bool);
+        }
+
         let procedure = self.env.get_procedure(proc_def_id);
         let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
 
