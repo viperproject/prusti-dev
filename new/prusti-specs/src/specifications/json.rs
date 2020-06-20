@@ -15,7 +15,7 @@ pub enum AssertionKind {
     Expr(Expression),
     And(Vec<Assertion>),
     Implies(Assertion, Assertion),
-    ForAll(ForAllVars, TriggerSet, Assertion),
+    // ForAll(ForAllVars, TriggerSet, Assertion),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -62,11 +62,11 @@ impl ToStructure<AssertionKind> for untyped::AssertionKind {
                 lhs.to_structure(),
                 rhs.to_structure()
             ),
-            ForAll(vars, triggers, body) => AssertionKind::ForAll(
-                vars.to_structure(),
-                triggers.to_structure(),
-                body.to_structure()
-            ),
+            // ForAll(vars, triggers, body) => AssertionKind::ForAll(
+            //     vars.to_structure(),
+            //     triggers.to_structure(),
+            //     body.to_structure()
+            // ),
             x => {
                 unimplemented!("{:?}", x);
             }

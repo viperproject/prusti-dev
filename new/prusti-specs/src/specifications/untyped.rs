@@ -34,9 +34,9 @@ impl Assertion {
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> syn::Result<Self> {
-        let mut parser = Parser::new(tokens);
+        let mut parser = Parser::from_token_stream(tokens);
         let assertion = parser.extract_assertion()?;
-        println!("{:#?}", assertion);
+        println!("################ {:#?}", assertion);
         Ok(assertion.assign_id(spec_id, id_generator))
     }
 }
@@ -135,11 +135,11 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 lhs.assign_id(spec_id, id_generator),
                 rhs.assign_id(spec_id, id_generator)
             ),
-            ForAll(vars, triggers, body) => ForAll(
-                vars.assign_id(spec_id, id_generator),
-                triggers.assign_id(spec_id, id_generator),
-                body.assign_id(spec_id, id_generator)
-            ),
+            // ForAll(vars, triggers, body) => ForAll(
+            //     vars.assign_id(spec_id, id_generator),
+            //     triggers.assign_id(spec_id, id_generator),
+            //     body.assign_id(spec_id, id_generator)
+            // ),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -213,11 +213,11 @@ impl EncodeTypeCheck for Assertion {
                 lhs.encode_type_check(tokens);
                 rhs.encode_type_check(tokens);
             }
-            AssertionKind::ForAll(vars, triggers, body) => {
-                // vars.encode_type_check(tokens);  TODO not needed?
-                triggers.encode_type_check(tokens);
-                body.encode_type_check(tokens);
-            }
+            // AssertionKind::ForAll(vars, triggers, body) => {
+            //     // vars.encode_type_check(tokens);  TODO not needed?
+            //     triggers.encode_type_check(tokens);
+            //     body.encode_type_check(tokens);
+            // }
             x => {
                 unimplemented!("{:?}", x);
             }

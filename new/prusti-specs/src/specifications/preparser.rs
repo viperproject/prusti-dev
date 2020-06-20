@@ -8,6 +8,7 @@ use quote::ToTokens;
 use super::common;
 use crate::specifications::common::AssertionKind::ForAll;
 use crate::specifications::common::{ForAllVars, TriggerSet, Trigger};
+use syn::spanned::Spanned;
 
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, common::Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
@@ -31,6 +32,41 @@ impl ParserStream {
             tokens: token_queue,
             last_span: Span::call_site(),
         }
+    }
+
+    fn contains_both_and_or(&mut self) -> bool {
+        let tokens = self.tokens.clone();
+        let mut contains_and = false;
+        let mut contains_or = false;
+        let mut and_span: Option<Span> = None;
+        let mut or_span: Option<Span> = None;
+
+        while !self.tokens.is_empty() {
+            if self.peek_operator("&&") {
+                contains_and = true;
+                and_span = Some(self.tokens.front().span());
+            }
+            else if self.peek_operator("||") {
+                contains_or = true;
+                or_span = Some(self.tokens.front().span());
+            }
+            else if self.peek_operator("==>") {
+                contains_and = false;
+                contains_or = false;
+            }
+
+            if contains_and && contains_or {
+                if let Some(a_s) = and_span {
+                    if let Some(o_s) = or_span {
+                        self.last_span = a_s.join(o_s).unwrap();
+                    }
+                }
+                return true;
+            }
+            self.pop();
+        }
+        self.tokens = tokens;
+        return false;
     }
     fn last_span(&self) -> Span {
         self.last_span
@@ -81,13 +117,22 @@ impl ParserStream {
         if !self.peek_operator(operator) {
             return false;
         }
+
+        let mut span: Option<Span> = None;
         for _ in operator.chars() {
             self.pop();
+            if let Some(maybe_span) = span {
+                span = maybe_span.join(self.last_span);
+            }
+            else {
+                span = Some(self.last_span);
+            }
         }
+        self.last_span = span.unwrap();
         true
     }
     /// Check if we have a nested assertion here.
-    fn check_nested_assertion(&mut self) -> Option<Group> {
+    fn check_and_consume_parenthesized_block(&mut self) -> Option<Group> {
         if let Some(TokenTree::Group(group)) = self.tokens.front() {
             if group.delimiter() == Delimiter::Parenthesis {
                 if let Some(TokenTree::Group(group)) = self.pop() {
@@ -165,57 +210,126 @@ pub struct Parser {
     input: ParserStream,
     conjuncts: Vec<AssertionWithoutId>,
     expr: Vec<TokenTree>,
-    previous_expression_nested: bool,
+    previous_expression_resolved: bool,
+    expected_operator: bool
 }
 
 impl Parser {
-    pub fn new(tokens: TokenStream) -> Self {
+    pub fn from_token_stream(tokens: TokenStream) -> Self {
         let mut input = ParserStream::from_token_stream(tokens);
         Self {
             input: input,
             conjuncts: Vec::new(),
             expr: Vec::new(),
-            previous_expression_nested: false,
+            previous_expression_resolved: false,
+            expected_operator: false
+        }
+    }
+
+    fn from_parser_stream(input: &mut ParserStream) -> Self {
+        Self {
+            input: mem::replace(input, ParserStream::empty()),
+            conjuncts: Vec::new(),
+            expr: Vec::new(),
+            previous_expression_resolved: false,
+            expected_operator: false
         }
     }
 
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
+        if self.input.contains_both_and_or() {
+            return Err(self.error_ambiguous_expression());
+        }
+
         while !self.input.is_empty() {
             if self.input.check_and_consume_operator("&&") {
-                // convert the current expression into a conjunct if it was not nested
-                // (and thus already resolved)
-                if !self.previous_expression_nested {
-                    self.convert_expr_into_conjunct()?;
+
+                if !self.expected_operator {
+                    return Err(self.error_expected_assertion());
                 }
+
+                if self.previous_expression_resolved {
+                    self.previous_expression_resolved = false;
+                }
+                else {
+                    if self.expr.is_empty() {
+                        return Err(self.error_expected_assertion());
+                    }
+                    if let Err(err) = self.convert_expr_into_conjunct() {
+                        return Err(err);
+                    }
+                }
+
+                // handles the case when there is no rhs of the && operator
+                if self.input.is_empty() {
+                    return Err(self.error_expected_assertion());
+                }
+
+                self.expected_operator = false;
             }
 
             else if self.input.check_and_consume_operator("==>") {
-                if !self.previous_expression_nested {
-                    self.convert_expr_into_conjunct()?;
+
+                if !self.expected_operator {
+                    return Err(self.error_expected_assertion());
                 }
-                let mut parser = Parser {
-                    input: mem::replace(&mut self.input, ParserStream::empty()),
-                    conjuncts: Vec::new(),
-                    expr: Vec::new(),
-                    previous_expression_nested: false,
-                };
-                let lhs = self.conjuncts_to_assertion()?;
-                let rhs = parser.extract_assertion()?;
+
+                // convert the current expression into a conjunct if it was not nested
+                // (and thus already resolved)
+                if !self.previous_expression_resolved {
+                    if self.expr.is_empty() {
+                        return Err(self.error_expected_assertion());
+                    }
+                    if let Err(err) = self.convert_expr_into_conjunct() {
+                        return Err(err);
+                    }
+                }
+
+                // handles the case when there is no rhs of the && operator
+                if self.input.is_empty() {
+                    return Err(self.error_expected_assertion());
+                }
+
+                // recursively parse the rhs assertion; note that this automatically handles the
+                // operator precedence: implication will be then weaker than conjunction, and
+                // parsed from left to right
+                let mut parser = Parser::from_parser_stream(&mut self.input);
+
+                let lhs = self.conjuncts_to_assertion();
+                if let Err(err) = lhs {
+                    return Err(err);
+                }
+
+                let rhs = parser.extract_assertion();
+                if let Err(err) = rhs {
+                    return Err(err);
+                }
+
                 return Ok(AssertionWithoutId{
-                    kind: Box::new(common::AssertionKind::Implies(lhs, rhs))
+                    kind: Box::new(common::AssertionKind::Implies(lhs.unwrap(), rhs.unwrap()))
                 });
             }
 
             else if self.input.check_and_consume_keyword("forall") {
-                if let Some(group) = self.input.check_nested_assertion() {
+                if self.expected_operator {
+                    return Err(self.error_expected_operator());
+                }
+
+                // check whether there is a parenthesized block after forall
+                if let Some(group) = self.input.check_and_consume_parenthesized_block() {
+
+                    // construct a ParserStream off of the parenthesized block for further parsing
                     let mut stream = ParserStream::from_token_stream(group.stream());
 
-                    // parse head
-                    stream.check_and_consume_operator("|");
+                    // parse vars
+                    if !stream.check_and_consume_operator("|") {
+                        return Err(self.error_expected_or());
+                    }
                     let token_stream = stream.create_stream_until("|");
                     let all_args: AllArgs = syn::parse2(token_stream)?;
-                    stream.check_and_consume_operator("|");
-
+                    if !stream.check_and_consume_operator("|") {
+                        return Err(self.error_expected_or());
+                    }
                     let mut vars = vec![];
                     for var in all_args.args {
                         vars.push(common::Arg {
@@ -226,16 +340,24 @@ impl Parser {
 
                     // parse body
                     let token_stream = stream.create_stream_until(",");
-                    let mut parser = Parser::new(token_stream);
+                    let mut parser = Parser::from_token_stream(token_stream);
                     let body = parser.extract_assertion()?;
+
+                    // create triggers in case they are not present
+                    let mut trigger_set = TriggerSet(vec![]);
 
                     // parse triggers (check if they are present at all)
                     if stream.peek_operator(",") {
                         stream.check_and_consume_operator(",");
-                        stream.check_and_consume_keyword("triggers");
-                        stream.check_and_consume_operator("=");
+                        if !stream.check_and_consume_keyword("triggers") {
+                            return Err(self.error_expected_triggers());
+                        }
+                        if !stream.check_and_consume_operator("=") {
+                            return Err(self.error_expected_equals());
+                        }
                         let token_stream = stream.create_stream();
                         let arr: syn::ExprArray = syn::parse2(token_stream)?;
+
                         let mut vec_of_triggers = vec![];
                         for item in arr.elems {
                             if let syn::Expr::Tuple(tuple) = item {
@@ -251,80 +373,88 @@ impl Parser {
                                 );
                             }
                             else {
-                                panic!("parse error");
+                                return Err(self.error_expected_tuple());
                             }
                         }
 
-                        return Ok(AssertionWithoutId {
-                            kind: Box::new(common::AssertionKind::ForAll(
-                                ForAllVars {
-                                    id: (),
-                                    vars
-                                },
-                                TriggerSet(vec_of_triggers),
-                                body,
-                            ))
-                        })
+                        trigger_set = TriggerSet(vec_of_triggers);
                     }
-                    else{
-                        return Ok(AssertionWithoutId {
-                            kind: Box::new(common::AssertionKind::ForAll(
-                                ForAllVars {
-                                    id: (),
-                                    vars
-                                },
-                                TriggerSet(vec![]),
-                                body,
-                            ))
-                        })
-                    }
+
+                    let conjunct = AssertionWithoutId {
+                        kind: Box::new(common::AssertionKind::ForAll(
+                            ForAllVars {
+                                id: (),
+                                vars
+                            },
+                            trigger_set,
+                            body,
+                        ))
+                    };
+
+                    self.conjuncts.push(conjunct);
+                    self.previous_expression_resolved = true;
+                    self.expected_operator = true;
+
+                }
+                else {
+                    return Err(self.error_expected_parenthesis());
                 }
             }
 
-            else if let Some(group) = self.input.check_nested_assertion() {
-                if self.expr.is_empty() && (self.input.is_empty() || self.input.peek_any_operator()) {
-                    let mut parser = Parser::new(group.stream());
-                    let conjunct = parser.extract_assertion()?;
+            else if let Some(group) = self.input.check_and_consume_parenthesized_block() {
+                if self.expr.is_empty() && (self.input.peek_any_operator() || self.input.is_empty()) {
+                    // we can parse as prusti assertion
 
-                    if let common::AssertionKind::Expr(expr) = *conjunct.kind {
-                        // the expression is just a plain expression, and therefore can be extended
-                        let stream = expr.expr.to_token_stream();
-                        self.expr.extend(stream.into_iter());
+                    if self.expected_operator {
+                        return Err(self.error_expected_operator());
                     }
-                    else{
-                        // the expression is a conjunction, and therefore is pushed to the result
-                        self.previous_expression_nested = true;
-                        self.conjuncts.push(conjunct);
+
+                    let mut parser = Parser::from_token_stream(group.stream());
+                    let conjunct = parser.extract_assertion();
+
+                    if let Err(err) = conjunct {
+                        return Err(err);
                     }
+
+                    let conjunct = conjunct.unwrap();
+                    self.conjuncts.push(conjunct);
+                    self.previous_expression_resolved = true;
+                    self.expected_operator = true;
                 }
-                else {
+                else{
+                    // due to a rust operator after the parenthesized block
+                    // (assuming there is no syntax error), we have to parse
+                    // as plain Rust expression
                     self.expr.push(TokenTree::Group(group));
                 }
             }
+
             else{
+                // nothing special, just continuing with a plain Rust expression
                 let token = self.input.pop().unwrap();
                 self.expr.push(token);
+                self.expected_operator = true;
             }
         }
 
+        // when the input is parsed, convert the trailing expression into a conjunct (if any)
         if !self.expr.is_empty() {
-            self.convert_expr_into_conjunct();
+            if let Err(err) = self.convert_expr_into_conjunct() {
+                return Err(err);
+            }
         }
+
+        // build a conjunction off of the assertions parsed
         self.conjuncts_to_assertion()
     }
 
     fn conjuncts_to_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         let mut conjuncts = mem::replace(&mut self.conjuncts, Vec::new());
+
+        // if there is just one conjunction, don't construct a conjunction and just return it
+        // as a single assertion
         if conjuncts.len() == 1 {
-            let conjunct = conjuncts.pop().unwrap();
-            if let common::AssertionKind::Expr(expr) = *conjunct.kind {
-                Ok(AssertionWithoutId{
-                    kind: Box::new(common::AssertionKind::Expr(expr))
-                })
-            }
-            else{
-                unreachable!();
-            }
+            Ok(conjuncts.pop().unwrap())
         }
         else{
             Ok(AssertionWithoutId{
@@ -339,10 +469,15 @@ impl Parser {
         token_stream.extend(expr.into_iter());
         self.expr.clear();
 
+        let maybe_expr = syn::parse2(token_stream);
+        if let Err(err) = maybe_expr {
+            return Err(err);
+        }
+
         let expr = ExpressionWithoutId {
             spec_id: common::SpecificationId::dummy(),
             id: (),
-            expr: syn::parse2(token_stream)?,
+            expr: maybe_expr.unwrap(),
         };
         self.conjuncts.push(AssertionWithoutId{
             kind: Box::new(common::AssertionKind::Expr(expr))
@@ -350,7 +485,35 @@ impl Parser {
         Ok(())
     }
 
-    fn missing_assertion_error(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "missing assertion")
+    fn error_expected_assertion(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "expected Prusti assertion")
+    }
+
+    fn error_expected_operator(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "expected Prusti operator")
+    }
+
+    fn error_expected_parenthesis(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "expected `(`")
+    }
+
+    fn error_expected_or(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "expected `|`")
+    }
+
+    fn error_expected_triggers(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "expected `triggers`")
+    }
+
+    fn error_expected_equals(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "expected `=`")
+    }
+
+    fn error_expected_tuple(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "expected tuple")
+    }
+
+    fn error_ambiguous_expression(&self) -> syn::Error {
+        syn::Error::new(self.input.last_span(), "found || and && in the same subexpression")
     }
 }
