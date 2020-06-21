@@ -6,8 +6,9 @@
 
 use super::VerifierRunner;
 use futures::{sync::oneshot, Canceled, Future};
-use prusti_common::vir::Program;
-use prusti_viper::{verification_service::ViperBackendConfig, verifier::VerifierBuilder};
+use prusti_common::{
+    verification_service::ViperBackendConfig, verifier::VerifierBuilder, vir::Program,
+};
 use std::{
     sync::{mpsc, Arc, Mutex},
     thread,

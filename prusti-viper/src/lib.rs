@@ -28,8 +28,6 @@ extern crate rustc;
 extern crate rustc_data_structures;
 extern crate rustc_mir;
 extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 extern crate syntax;
 extern crate syntax_pos;
 extern crate uuid;
@@ -41,5 +39,4 @@ extern crate pretty_assertions;
 
 pub mod encoder;
 mod utils;
-pub mod verification_service;
 pub mod verifier;

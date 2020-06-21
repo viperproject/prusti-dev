@@ -6,17 +6,16 @@
 
 //! A module that invokes the verifier `prusti-viper`
 
-use prusti_common::{config, report::user, Stopwatch};
+use prusti_common::{
+    config, report::user, verification_service::*, verifier::VerifierBuilder, Stopwatch,
+};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
     specifications::TypedSpecificationMap,
 };
 use prusti_server::{PrustiServerConnection, ServerSideService, VerifierRunner};
-use prusti_viper::{
-    verification_service::*,
-    verifier::{Verifier, VerifierBuilder},
-};
+use prusti_viper::verifier::Verifier;
 use rustc_driver::driver;
 
 /// Verify a (typed) specification on compiler state.

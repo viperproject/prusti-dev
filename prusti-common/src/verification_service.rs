@@ -1,5 +1,6 @@
-use prusti_common::{config, vir::Program};
+use config;
 use viper::{self, VerificationBackend};
+use vir::Program;
 
 pub trait VerificationService {
     fn verify(&self, request: VerificationRequest) -> viper::VerificationResult;

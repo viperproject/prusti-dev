@@ -7,12 +7,10 @@
 use prusti_common::{
     config,
     report::log,
+    verification_service::ViperBackendConfig,
+    verifier::*,
     vir::{Program, ToViper},
     Stopwatch,
-};
-use prusti_viper::{
-    verification_service::ViperBackendConfig,
-    verifier::{VerificationContext, VerifierBuilder},
 };
 use viper::{self, VerificationResult};
 

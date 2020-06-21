@@ -10,7 +10,6 @@
 
 #[macro_use]
 extern crate tarpc;
-extern crate prusti_viper;
 extern crate viper;
 #[macro_use]
 extern crate log;
@@ -26,8 +25,7 @@ mod verifier_runner;
 mod verifier_thread;
 
 use lru::LruCache;
-use prusti_common::{config, Stopwatch};
-use prusti_viper::{verification_service::*, verifier::VerifierBuilder};
+use prusti_common::{config, verification_service::*, verifier::VerifierBuilder, Stopwatch};
 pub use service::*;
 use std::sync::{Arc, RwLock};
 pub use verifier_runner::*;

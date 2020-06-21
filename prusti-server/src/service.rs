@@ -5,16 +5,19 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::PrustiServer;
-use prusti_viper::verification_service::*;
+use prusti_common::verification_service::*;
 
 use futures::Future;
-use std::io;
-use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
-use std::sync::{mpsc, Arc};
-use std::thread;
-use tarpc::sync::client::ClientExt;
-use tarpc::sync::{client, server};
-use tarpc::util::Never;
+use std::{
+    io,
+    net::{Ipv4Addr, SocketAddr, SocketAddrV4},
+    sync::{mpsc, Arc},
+    thread,
+};
+use tarpc::{
+    sync::{client, client::ClientExt, server},
+    util::Never,
+};
 use viper::VerificationResult;
 
 service! {
