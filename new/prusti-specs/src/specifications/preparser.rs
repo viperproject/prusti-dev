@@ -34,6 +34,7 @@ impl ParserStream {
         }
     }
 
+    /// Check if there is a subexpression that contains both and and or
     fn contains_both_and_or(&mut self) -> bool {
         let tokens = self.tokens.clone();
         let mut contains_and = false;
@@ -108,7 +109,7 @@ impl ParserStream {
         }
         true
     }
-    /// Check whether the input starts an operator.
+    /// Check whether the input starts with an operator.
     fn peek_any_operator(&self) -> bool {
         self.peek_operator("==>") || self.peek_operator("&&")
     }
@@ -154,6 +155,8 @@ impl ParserStream {
         None
     }
 
+    /// Creates a TokenStream until a certain operator is met, or until the end of the stream.
+    /// The terminating operator is not consumed.
     fn create_stream_until(&mut self, operator: &str) -> TokenStream {
         let mut stream = TokenStream::new();
         let mut t = vec![];
@@ -164,6 +167,7 @@ impl ParserStream {
         stream
     }
 
+    /// Convert the content into TokenStream.
     fn create_stream(&mut self) -> TokenStream {
         let mut stream = TokenStream::new();
         let mut t = vec![];
@@ -234,10 +238,10 @@ impl Parse for AllArgs {
 /// `E && E ==> E || E`
 ///
 /// Basic usage (`tokens` is of type `proc_macro2::TokenStream`):
-/// ```
+///
 /// let mut parser = Parser::from_token_stream(tokens);
 /// let assertion = parser.extract_assertion()?;
-/// ```
+///
 pub struct Parser {
     /// The helper to manipulate input.
     input: ParserStream,
@@ -507,6 +511,7 @@ impl Parser {
         self.conjuncts_to_assertion()
     }
 
+    /// Convert all conjuncts into And assertion.
     fn conjuncts_to_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         let mut conjuncts = mem::replace(&mut self.conjuncts, Vec::new());
 
@@ -522,6 +527,7 @@ impl Parser {
         }
     }
 
+    /// Convert parsed Rust expression into a Prusti conjunct.
     fn convert_expr_into_conjunct(&mut self) -> syn::Result<()> {
         let expr = self.expr.clone();
         let mut token_stream = TokenStream::new();

@@ -36,7 +36,6 @@ impl Assertion {
     ) -> syn::Result<Self> {
         let mut parser = Parser::from_token_stream(tokens);
         let assertion = parser.extract_assertion()?;
-        println!("################ {:#?}", assertion);
         Ok(assertion.assign_id(spec_id, id_generator))
     }
 }
@@ -214,7 +213,7 @@ impl EncodeTypeCheck for Assertion {
                 rhs.encode_type_check(tokens);
             }
             // AssertionKind::ForAll(vars, triggers, body) => {
-            //     // vars.encode_type_check(tokens);  TODO not needed?
+            //     // vars.encode_type_check(tokens);
             //     triggers.encode_type_check(tokens);
             //     body.encode_type_check(tokens);
             // }
