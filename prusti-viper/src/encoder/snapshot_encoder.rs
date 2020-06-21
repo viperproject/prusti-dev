@@ -344,7 +344,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         if name == "i32" { // TODO
             vir::Type::Int
         } else {
-            self.encoder.encode_get_domain_type(name)
+            match &self.encoder.encode_get_domain_type(name) {
+                Some(typ) => typ.clone(),
+                None => unreachable!(),
+            }
         }
     }
 

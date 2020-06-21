@@ -69,7 +69,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     fields: RefCell<HashMap<String, vir::Field>>,
     snapshots: RefCell<HashMap<String, Snapshot>>,
     snap_eq_funcs: RefCell<HashMap<String, vir::Function>>,
-    snap_mirror_funcs: RefCell<HashMap<ProcedureDefId, vir::DomainFunc>>,
+    snap_mirror_funcs: RefCell<HashMap<ProcedureDefId, Option<vir::DomainFunc>>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -197,7 +197,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let mirrors = self.snap_mirror_funcs
             .borrow()
             .values()
-            .cloned()
+            .filter_map(|p| p.clone())
             .collect();
 
         let mut domains : Vec<vir::Domain> = self.snapshots.borrow()
@@ -965,10 +965,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn encode_get_domain_type(&self, predicate_name: String) -> vir::Type {
+    pub fn encode_get_domain_type(&self, predicate_name: String) -> Option<vir::Type> {
         match self.snapshots.borrow().get(&predicate_name) {
-            Some(snap) => snap.get_type(),
-            None => unreachable!(),
+            Some(snap) => Some(snap.get_type()),
+            None => None
         }
     }
 
@@ -1375,6 +1375,13 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        -> Option<vir::DomainFunc> {
         let mut mirrors = self.snap_mirror_funcs.borrow_mut();
         if !mirrors.contains_key(&def_id) {
+            // TODO CMFIXME do not generate a mirror as some unsupported type is involved
+            for a in &pure_function.formal_args {
+                if self.encode_get_domain_type(a.name.clone()).is_none() {
+                    mirrors.insert(def_id, None);
+                    return None;
+                }
+            }
             let formal_args = pure_function
                 .formal_args
                 .iter()
@@ -1382,7 +1389,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     name: a.name.clone(),
                     typ: match a.typ.clone() {
                         Type::TypedRef(name) => {
-                            self.encode_get_domain_type(name.clone())
+                            self.encode_get_domain_type(name.clone()).unwrap()
                         },
                         Type::Domain(_) => unreachable!(),
                         t=> t,
@@ -1398,12 +1405,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
             };
 
-            mirrors.insert(def_id, mirror_function);
+            mirrors.insert(def_id, Some(mirror_function));
         }
-        match mirrors.get(&def_id) {
-            Some(func) => Some(func.clone()),
-            None => None,
-        }
+        mirrors.get(&def_id).unwrap().clone()
     }
 
     /// Encode the use (call) of a pure function, returning the name of the
