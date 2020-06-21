@@ -12,7 +12,6 @@
 #[macro_use]
 extern crate log;
 extern crate config as config_crate;
-extern crate walkdir;
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
@@ -23,7 +22,6 @@ extern crate viper;
 extern crate serde_derive;
 
 pub mod config;
-pub mod driver_utils;
 pub mod report;
 mod stopwatch;
 pub mod utils;

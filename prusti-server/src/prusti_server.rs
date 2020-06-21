@@ -6,10 +6,10 @@
 
 //#![feature(use_extern_macros)]
 
-extern crate prusti_common;
+extern crate utils;
 
-use prusti_common::driver_utils;
 use std::{path::PathBuf, process::Command};
+use utils::driver_utils;
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {

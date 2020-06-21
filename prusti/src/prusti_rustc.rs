@@ -1,13 +1,14 @@
 #![feature(nll)]
 
-extern crate prusti_common;
-extern crate walkdir;
+extern crate utils;
 
-use prusti_common::driver_utils;
-use std::env;
-use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::{
+    env,
+    io::{BufRead, BufReader},
+    path::PathBuf,
+    process::{Command, Stdio},
+};
+use utils::driver_utils;
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
