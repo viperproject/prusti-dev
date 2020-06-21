@@ -942,45 +942,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    // TODO CMFIXME
-    pub fn encode_pure_snapshot_mirror(&self,
-                                       def_id: ProcedureDefId,
-                                       pure_function: &vir::Function)
-        -> Option<vir::DomainFunc> {
-        let mut mirrors = self.snap_mirror_funcs.borrow_mut();
-
-        // TODO CMFIXME
-        if !mirrors.contains_key(&def_id) {
-
-            let formal_args = pure_function
-                .formal_args
-                .iter()
-                .map(|a| LocalVar {
-                        name: a.name.clone(),
-                        typ: match a.typ.clone() {
-                            Type::TypedRef(name) => self.encode_get_domain_type(name.clone()),
-                            Type::Domain(_) => unreachable!(),
-                            t=> t,
-                        }
-                    })
-                .collect();
-
-            let mirror_function = DomainFunc {
-                name: format!("mirror${}", self.env.get_item_name(def_id)),
-                formal_args,
-                return_type: pure_function.return_type.clone(),
-                unique: false,
-                domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
-            };
-
-            mirrors.insert(def_id, mirror_function);
-        }
-        match mirrors.get(&def_id) {
-            Some(func) => Some(func.clone()),
-            None => None,
-        }
-    }
-
     pub fn encode_get_snapshot_func_name(&self, predicate_name: String) -> String {
         match self.snapshots.borrow().get(&predicate_name) {
             Some(snap) => snap.get_snap_name(),
@@ -1389,6 +1350,43 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             }
         } else {
             function
+        }
+    }
+
+    pub fn encode_pure_snapshot_mirror(&self,
+                                       def_id: ProcedureDefId,
+                                       pure_function: &vir::Function)
+                                       -> Option<vir::DomainFunc> {
+        let mut mirrors = self.snap_mirror_funcs.borrow_mut();
+        if !mirrors.contains_key(&def_id) {
+            let formal_args = pure_function
+                .formal_args
+                .iter()
+                .map(|a| LocalVar {
+                    name: a.name.clone(),
+                    typ: match a.typ.clone() {
+                        Type::TypedRef(name) => {
+                            self.encode_get_domain_type(name.clone())
+                        },
+                        Type::Domain(_) => unreachable!(),
+                        t=> t,
+                    }
+                })
+                .collect();
+
+            let mirror_function = DomainFunc {
+                name: format!("mirror${}", self.env.get_item_name(def_id)),
+                formal_args,
+                return_type: pure_function.return_type.clone(),
+                unique: false,
+                domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
+            };
+
+            mirrors.insert(def_id, mirror_function);
+        }
+        match mirrors.get(&def_id) {
+            Some(func) => Some(func.clone()),
+            None => None,
         }
     }
 
