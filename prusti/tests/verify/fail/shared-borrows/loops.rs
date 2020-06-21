@@ -66,7 +66,7 @@ pub fn test3_1(n: &i32) {
 pub fn test4(n: &i32) {
     let mut i = 0;
     let mut cond = i < *n;
-    #[invariant="0 <= i && i <= *n"] //~ ERROR loop invariant might not hold at the end of a loop iteration.
+    #[invariant="i == 0"] //~ ERROR loop invariant might not hold at the end of a loop iteration.
     while cond {
         i += 1;
         borrow(n);

@@ -4,10 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir;
+use prusti_common::vir;
 use encoder::Encoder;
 use rustc::ty;
-use encoder::vir::{PermAmount, Type};
+use prusti_common::vir::{PermAmount, Type};
 
 
 const SNAPSHOT_DOMAIN_PREFIX: &str = "Snap$";

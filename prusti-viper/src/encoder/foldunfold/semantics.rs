@@ -5,8 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::foldunfold::perm::*;
+use encoder::foldunfold::permissions::*;
 use encoder::foldunfold::state::*;
-use encoder::vir;
+use prusti_common::vir;
 use std::collections::HashMap;
 
 fn inhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
@@ -28,8 +29,12 @@ fn exhale_expr(expr: &vir::Expr, state: &mut State, predicates: &HashMap<String,
     );
 }
 
-impl vir::Stmt {
-    pub fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
+pub trait ApplyOnState {
+    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>);
+}
+
+impl ApplyOnState for vir::Stmt {
+    fn apply_on_state(&self, state: &mut State, predicates: &HashMap<String, vir::Predicate>) {
         debug!("apply_on_state '{}'", self);
         trace!("State acc before {{\n{}\n}}", state.display_acc());
         trace!("State pred before {{\n{}\n}}", state.display_pred());

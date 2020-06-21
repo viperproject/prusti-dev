@@ -8,7 +8,8 @@ use std::time::Duration;
 /// Blocks the current thread forever.
 fn sleep_forever() -> ! {
     loop {
-        thread::sleep(Duration::from_secs(1000));
+        let x = 1000;
+        thread::sleep(Duration::from_secs(x));
     }
 }
 

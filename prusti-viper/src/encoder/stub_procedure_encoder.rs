@@ -5,14 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use encoder::mir_encoder::MirEncoder;
-use encoder::vir;
 use encoder::Encoder;
+use prusti_common::vir;
+use prusti_common::vir::Successor;
+use prusti_common::config;
+use prusti_interface::environment::Procedure;
+use prusti_common::report::log;
 use rustc::hir::def_id::DefId;
 use rustc::mir;
-use prusti_interface::environment::Procedure;
-use encoder::vir::Successor;
-use prusti_interface::config;
-use prusti_interface::report::log;
 
 pub struct StubProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -23,10 +23,7 @@ pub struct StubProcedureEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 }
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 'tcx> {
-    pub fn new(
-        encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        procedure: &'p Procedure<'a, 'tcx>
-    ) -> Self {
+    pub fn new(encoder: &'p Encoder<'v, 'r, 'a, 'tcx>, procedure: &'p Procedure<'a, 'tcx>) -> Self {
         let def_id = procedure.get_id();
         trace!("StubProcedureEncoder constructor: {:?}", def_id);
 
@@ -35,13 +32,9 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 
         StubProcedureEncoder {
             encoder,
             mir,
-            mir_encoder: MirEncoder::new(
-                encoder,
-                mir,
-                def_id,
-            ),
+            mir_encoder: MirEncoder::new(encoder, mir, def_id),
             def_id,
-            procedure
+            procedure,
         }
     }
 
@@ -67,8 +60,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubProcedureEncoder<'p, 'v, 'r, 'a, 
             let type_name = self
                 .encoder
                 .encode_type_predicate_use(self.mir_encoder.get_local_ty(local));
-            cfg_method
-                .add_formal_return(&name, vir::Type::TypedRef(type_name))
+            cfg_method.add_formal_return(&name, vir::Type::TypedRef(type_name))
         }
 
         // Initialize a single CFG block

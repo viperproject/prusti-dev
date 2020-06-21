@@ -4,20 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::vir::{self, optimisations, ToViper, ToViperDecl};
 use encoder::Encoder;
+use prusti_common::vir::{self, optimisations, ToViper, ToViperDecl};
 use prusti_filter::validators::Validator;
-use prusti_interface::config;
+use prusti_common::config;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
-use prusti_interface::report::log;
+use prusti_common::report::log;
 use prusti_interface::specifications::TypedSpecificationMap;
+use std::ffi::OsString;
+use std::fs::{canonicalize, create_dir_all};
+use std::path::PathBuf;
 use std::time::Instant;
 use viper::{self, VerificationBackend, Viper};
-use std::path::PathBuf;
-use std::fs::{create_dir_all, canonicalize};
-use std::ffi::OsString;
 
 /// A verifier builder is an object that lives entire program's
 /// lifetime, has no mutable state, and is responsible for constructing
@@ -34,7 +34,7 @@ impl VerifierBuilder {
         VerifierBuilder {
             viper: Viper::new_with_args(
                 config::extra_jvm_args(),
-                VerificationBackend::from_str(&config::viper_backend())
+                VerificationBackend::from_str(&config::viper_backend()),
             ),
         }
     }
@@ -60,10 +60,10 @@ pub struct VerificationContext<'v> {
 }
 
 impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
-    where
-        'r: 'v,
-        'a: 'r,
-        'tcx: 'a,
+where
+    'r: 'v,
+    'a: 'r,
+    'tcx: 'a,
 {
     fn new(verification_ctx: viper::VerificationContext<'v>) -> Self {
         VerificationContext { verification_ctx }
@@ -160,40 +160,75 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
     pub fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
         let start = Instant::now();
 
+        info!("Received {} functions to be verified:", task.procedures.len());
+
         // Dump the configuration
         log::report("config", "prusti", config::dump());
 
+        // Check support status, and queue encoding
         let validator = Validator::new(self.env.tcx());
-
-        info!("Received {} items to be verified:", task.procedures.len());
+        let report_support_status = config::report_support_status();
+        let skip_unsupported_functions = config::skip_unsupported_functions();
+        let mut skipped_functions_count = 0;
 
         for &proc_id in &task.procedures {
             let proc_name = self.env.get_absolute_item_name(proc_id);
-            let proc_def_path = self.env.get_item_def_path(proc_id);
             let proc_span = self.env.get_item_span(proc_id);
-            info!(" - {} from {:?} ({})", proc_name, proc_span, proc_def_path);
-        }
+            let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
 
-        // Report support status
-        if config::report_support_status() {
-            for &proc_id in &task.procedures {
-                // Do some checks
-                let is_pure_function = self.env.has_attribute_name(proc_id, "pure");
+            let support_status = if is_pure_function {
+                validator.pure_function_support_status(proc_id)
+            } else {
+                validator.procedure_support_status(proc_id)
+            };
 
-                let support_status = if is_pure_function {
-                    validator.pure_function_support_status(proc_id)
-                } else {
-                    validator.procedure_support_status(proc_id)
-                };
+            if report_support_status {
+                support_status.report_support_status(
+                    &self.env,
+                    is_pure_function,
+                    // Avoid raising compiler errors for partially supported functions
+                    false,
+                    // Avoid raising compiler errors if we are going to skip unsupported functions
+                    !skip_unsupported_functions,
+                );
+            }
 
-                support_status.report_support_status(&self.env, is_pure_function, false);
+            if !support_status.is_supported() && skip_unsupported_functions {
+                warn!("Skip verification of {}, as it is not fully supported.", proc_name);
+                self.env.span_warn_with_help_and_note(
+                    proc_span,
+                    &format!(
+                        "this function will be ignored because it is not fully supported by \
+                        Prusti: {}",
+                        proc_name
+                    ),
+                    &Some(
+                        if report_support_status {
+                            "Disable the SKIP_UNSUPPORTED_FUNCTIONS configuration flag to verify \
+                            this function anyway.".to_string()
+                        } else {
+                            "Enable the REPORT_SUPPORT_STATUS configuration flag for more details \
+                            on why the function is not fully supported, or disable \
+                            SKIP_UNSUPPORTED_FUNCTIONS to verify this function anyway.".to_string()
+                        }
+                    ),
+                    &None,
+                );
+                skipped_functions_count += 1;
+            } else {
+                self.encoder.queue_procedure_encoding(proc_id);
             }
         }
+        info!(
+            "Out of {} functions, {} are not fully supported and has been skipped.",
+            task.procedures.len(),
+            skipped_functions_count,
+        );
 
-        for &proc_id in task.procedures.iter().rev() {
-            self.encoder.queue_procedure_encoding(proc_id);
-        }
+        // Do the encoding
         self.encoder.process_encoding_queue();
+
+        let encoding_errors_count = self.encoder.count_encoding_errors();
 
         let duration = start.elapsed();
         info!(
@@ -212,8 +247,8 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             let mut methods = self.encoder.get_used_viper_methods();
             let mut functions = self.encoder.get_used_viper_functions();
             if config::simplify_encoding() {
-                let (new_methods, new_functions) = optimisations::functions::inline_constant_functions(
-                    methods, functions);
+                let (new_methods, new_functions) =
+                    optimisations::functions::inline_constant_functions(methods, functions);
                 methods = new_methods
                     .into_iter()
                     .map(|m| {
@@ -223,12 +258,11 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                     .collect();
                 functions = new_functions
                     .into_iter()
-                    .map(|f| {
-                        optimisations::folding::FoldingOptimiser::optimise(f)
-                    })
+                    .map(|f| optimisations::folding::FoldingOptimiser::optimise(f))
                     .collect();
             }
-            let mut viper_functions: Vec<_> = functions.into_iter().map(|f| f.to_viper(ast)).collect();
+            let mut viper_functions: Vec<_> =
+                functions.into_iter().map(|f| f.to_viper(ast)).collect();
             let mut viper_methods: Vec<_> = methods.into_iter().map(|m| m.to_viper(ast)).collect();
             viper_methods.extend(builtin_methods.into_iter().map(|m| m.to_viper(ast)));
             let mut predicates = self.encoder.get_used_viper_predicates().to_viper(ast);
@@ -264,12 +298,18 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                         name: "borrow".to_string(),
                         typ: vir::Type::Int,
                     }
-                        .to_viper_decl(ast)],
+                    .to_viper_decl(ast)],
                     None,
                 ),
             );
 
-            ast.program(&domains, &fields, &viper_functions, &predicates, &viper_methods)
+            ast.program(
+                &domains,
+                &fields,
+                &viper_functions,
+                &predicates,
+                &viper_methods,
+            )
         };
 
         if config::dump_viper_program() {
@@ -281,17 +321,19 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             if num_parents > 0 {
                 // Take `num_parents` parent folders and add them to `dump_path`
                 let mut components = vec![];
-                if let Some(abs_parent_path) = canonicalize(&source_path).ok().and_then(
-                    |full_path| full_path.parent().map(|parent| parent.to_path_buf())
-                ) {
+                if let Some(abs_parent_path) = canonicalize(&source_path)
+                    .ok()
+                    .and_then(|full_path| full_path.parent().map(|parent| parent.to_path_buf()))
+                {
                     components.extend(
-                        abs_parent_path.ancestors()
+                        abs_parent_path
+                            .ancestors()
                             .flat_map(|path| path.file_name())
                             .take(num_parents as usize)
                             .map(|x| x.to_os_string())
                             .collect::<Vec<_>>()
                             .into_iter()
-                            .rev()
+                            .rev(),
                     );
                 } else {
                     components.push(OsString::from("io_error"))
@@ -300,7 +342,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                     dump_path.push(component);
                 }
             }
-            info!("Dumping Viper program to '{:?}'", dump_path);
+            info!("Dumping Viper program to the {:?} folder", dump_path);
             log::report(
                 dump_path.to_str().unwrap(),
                 format!("{}.vpr", source_filename),
@@ -330,27 +372,18 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             _ => vec![],
         };
 
-        if verification_errors.is_empty() {
+        if encoding_errors_count == 0 && verification_errors.is_empty() {
             VerificationResult::Success
         } else {
             let error_manager = self.encoder.error_manager();
 
             for verification_error in verification_errors {
                 debug!("Verification error: {:?}", verification_error);
-                let compilation_error = error_manager.translate_verification_error(&verification_error);
-                debug!("Compilation error: {:?}", compilation_error);
-                self.env.span_err_with_help_and_note(
-                    compilation_error.span,
-                    &format!("[Prusti] {}", compilation_error.message),
-                    &compilation_error.help,
-                    &compilation_error.note,
-                );
+                let prusti_error = error_manager.translate_verification_error(&verification_error);
+                debug!("Prusti error: {:?}", prusti_error);
+                prusti_error.emit(self.env);
             }
             VerificationResult::Failure
         }
-    }
-
-    pub fn invalidate_all(&mut self) {
-        unimplemented!()
     }
 }

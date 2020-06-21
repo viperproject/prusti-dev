@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![deny(unused_imports)]
-
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
@@ -24,25 +23,26 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
+extern crate prusti_common;
 extern crate prusti_interface;
 
 mod crate_visitor;
 mod validators;
 
 use self::crate_visitor::{CrateStatus, CrateVisitor};
-use prusti_interface::config;
+use prusti_common::config;
+use prusti_interface::cargo::is_rustc_compiling_a_dependency_crate;
+use prusti_interface::environment::Environment;
 use prusti_interface::sysroot::current_sysroot;
+use prusti_interface::trait_register::TraitRegister;
 use rustc::hir::intravisit::Visitor;
 use rustc_driver::driver::{CompileController, CompileState};
 use rustc_driver::RustcDefaultCalls;
 use std::env;
 use std::fs;
-use std::sync::{Arc,Mutex};
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 use validators::Validator;
-use prusti_interface::environment::Environment;
-use prusti_interface::cargo::is_rustc_compiling_a_dependency_crate;
-use prusti_interface::trait_register::TraitRegister;
 
 fn main() {
     env_logger::init();
@@ -148,7 +148,7 @@ fn main() {
                         &function.procedure
                     };
 
-                    support_status.report_support_status(&env, is_pure_function, true);
+                    support_status.report_support_status(&env, is_pure_function, true, true);
                 }
             } else {
                 // Write result

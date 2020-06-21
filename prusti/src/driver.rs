@@ -33,7 +33,7 @@ pub fn main() {
         }
 
         // Disable Prusti if...
-        let prusti_filter_disabled = true
+        let prusti_be_rustc = true
             // we have been called by Cargo with RUSTC_WRAPPER, and
             && (args.len() > 1 && Path::new(&args[1]).file_stem() == Some("rustc".as_ref()))
             // this is not a test, and
@@ -41,7 +41,13 @@ pub fn main() {
             // this is not the final rustc invocation, thus we are compiling a dependency
             // See: https://github.com/rust-lang-nursery/rust-clippy/issues/1066#issuecomment-440393949
             //&& !args.iter().any(|s| s.starts_with("--emit=dep-info,metadata"));
-            && is_rustc_compiling_a_dependency_crate(&args);
+            //
+            && (
+                // Cargo is probably compiling a dependency
+                is_rustc_compiling_a_dependency_crate(&args)
+                    // Cargo is just querying for crate information
+                    || args.iter().any(|arg| arg.starts_with("--print"))
+            );
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this
@@ -61,7 +67,7 @@ pub fn main() {
         };
 
         // Early exit
-        if prusti_filter_disabled {
+        if prusti_be_rustc {
             let default_compiler_calls = Box::new(RustcDefaultCalls);
             debug!("rustc command: '{}'", args.join(" "));
             return rustc_driver::run_compiler(&args, default_compiler_calls, None, None);

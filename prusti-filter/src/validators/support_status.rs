@@ -142,7 +142,13 @@ impl SupportStatus {
             .collect()
     }
 
-    pub fn report_support_status(&self, env: &Environment, is_pure_function: bool, error_on_partially_supported: bool) {
+    pub fn report_support_status(
+        &self,
+        env: &Environment,
+        is_pure_function: bool,
+        error_on_partially_supported: bool,
+        error_on_unsupported: bool,
+    ) {
         let extra_msg = if is_pure_function {
             " in pure functions"
         } else {
@@ -152,7 +158,7 @@ impl SupportStatus {
         for reason in &partially_supported_reasons {
             debug!("Partially supported reason: {:?}", reason);
             let message = format!(
-                "[Prusti] this is partially supported{}, because it {}",
+                "[Prusti: unsupported feature] this is partially supported{}, because it {}",
                 extra_msg, reason.reason
             );
             if error_on_partially_supported {
@@ -165,10 +171,14 @@ impl SupportStatus {
         for reason in &unsupported_reasons {
             debug!("Unsupported reason: {:?}", reason);
             let message = format!(
-                "[Prusti] this is unsupported{}, because it {}",
+                "[Prusti: unsupported feature] this is unsupported{}, because it {}",
                 extra_msg, reason.reason
             );
-            env.span_err(reason.position, &message);
+            if error_on_unsupported {
+                env.span_err(reason.position, &message);
+            } else {
+                env.span_warn(reason.position, &message);
+            }
         }
     }
 }

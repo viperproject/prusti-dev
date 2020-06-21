@@ -137,7 +137,7 @@ impl<'a, 'tcx: 'a> PureFunctionValidator<'a, 'tcx> {
                     self.check_mir_stmt(mir, stmt);
                 }
             }
-            self.check_mir_terminator(mir, basic_block_data.terminator.as_ref().unwrap());
+            self.check_mir_terminator(mir, basic_block_data.terminator());
         }
     }
 

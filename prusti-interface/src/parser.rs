@@ -154,8 +154,8 @@
 
 use ast_builder::MinimalAstBuilder;
 use constants::PRUSTI_SPEC_ATTR;
+use prusti_common::report::log;
 use regex::{self, Regex};
-use report::log;
 use rustc::session::Session;
 use rustc_driver::driver;
 use specifications::{
@@ -163,34 +163,43 @@ use specifications::{
     SpecificationSet, Trigger, TriggerSet, UntypedAssertion, UntypedExpression,
     UntypedSpecification, UntypedSpecificationMap, UntypedSpecificationSet, UntypedTriggerSet,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 use std::io::Write;
 use std::mem;
-use std::sync::{Arc,Mutex};
+use std::sync::{Arc, Mutex};
 use syntax::codemap::respan;
 use syntax::codemap::Span;
 use syntax::ext::build::AstBuilder;
 use syntax::feature_gate::AttributeType;
 use syntax::fold::{self, Folder};
+use syntax::symbol::Symbol;
 use syntax::util::small_vector::SmallVector;
 use syntax::{self, ast, parse, ptr};
 use syntax_pos::DUMMY_SP;
 use syntax_pos::{BytePos, FileName, SyntaxContext};
 
-use trait_register::TraitRegister;
+use trait_register::{FunctionRef, TraitRegister};
 
 pub fn register_traits(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) {
     trace!("[register_traits] enter");
     let krate = state.krate.take().unwrap();
-    let mut parser = TraitParser::new(register);
+    let source_path = match driver::source_name(state.input) {
+        FileName::Real(path) => path,
+        _ => unreachable!(),
+    };
+    let source_filename = source_path.file_name().unwrap().to_str().unwrap();
+    let mut parser = TraitParser::new(state.session, &source_filename, register);
     let _krate = parser.fold_crate(krate);
     trace!("[register_traits] exit");
 }
 
 /// Rewrite specifications in the expanded AST to get them type-checked
 /// by rustc. For more information see the module documentation.
-pub fn rewrite_crate(state: &mut driver::CompileState, register: Arc<Mutex<TraitRegister>>) -> UntypedSpecificationMap {
+pub fn rewrite_crate(
+    state: &mut driver::CompileState,
+    register: Arc<Mutex<TraitRegister>>,
+) -> UntypedSpecificationMap {
     trace!("[rewrite_crate] enter");
     let krate = state.krate.take().unwrap();
     let source_path = match driver::source_name(state.input) {
@@ -215,6 +224,8 @@ pub fn register_attributes(state: &mut driver::CompileState) {
     registry.register_attribute(String::from("invariant"), AttributeType::Whitelisted);
     registry.register_attribute(String::from("requires"), AttributeType::Whitelisted);
     registry.register_attribute(String::from("ensures"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("refine_ensures"), AttributeType::Whitelisted);
+    registry.register_attribute(String::from("refine_requires"), AttributeType::Whitelisted);
     registry.register_attribute(PRUSTI_SPEC_ATTR.to_string(), AttributeType::Whitelisted);
     registry.register_attribute(
         String::from("__PRUSTI_SPEC_ONLY"),
@@ -245,17 +256,25 @@ fn log_crate(krate: &ast::Crate, source_filename: &str) {
     writer.flush().ok().unwrap();
 }
 
-pub struct TraitParser {
+pub struct TraitParser<'tcx> {
     register: Arc<Mutex<TraitRegister>>,
+    spec_parser: SpecParser<'tcx>,
 }
 
-impl TraitParser {
-    pub fn new(register: Arc<Mutex<TraitRegister>>) -> Self {
-        Self { register: register }
+impl<'tcx> TraitParser<'tcx> {
+    pub fn new(
+        session: &'tcx Session,
+        source_filename: &str,
+        register: Arc<Mutex<TraitRegister>>,
+    ) -> Self {
+        Self {
+            register: register.clone(),
+            spec_parser: SpecParser::new(session, source_filename, register),
+        }
     }
 }
 
-impl Folder for TraitParser {
+impl<'tcx> Folder for TraitParser<'tcx> {
     fn fold_item(&mut self, item: ptr::P<ast::Item>) -> SmallVector<ptr::P<ast::Item>> {
         trace!("[fold_item] enter");
         let result = fold::noop_fold_item(item, self)
@@ -272,17 +291,46 @@ impl Folder for TraitParser {
                     ast::ItemKind::Impl(..) => {
                         let mut reg = self.register.lock().unwrap();
                         reg.register_impl(&item);
-                    },
+                    }
                     // Methods in trait definition
-                    ast::ItemKind::Trait(..) => {
+                    ast::ItemKind::Trait(_, _, _, bounds, _) => {
+                        let bounds_symbols: HashSet<Symbol> = bounds
+                            .iter()
+                            .map(|bound| match bound.clone() {
+                                ast::GenericBound::Trait(mut t_ref, _) => {
+                                    t_ref.trait_ref.path.segments.pop()
+                                }
+                                _ => None,
+                            })
+                            .filter(|s| s.is_some())
+                            .map(|s_opt| s_opt.unwrap().ident.name)
+                            .collect();
+
                         let mut reg = self.register.lock().unwrap();
-                        reg.register_trait_decl(&item);
-                    },
+                        let specs = self.spec_parser.parse_specs(item.attrs.clone());
+
+                        // check if specs refer to existing super trait
+                        specs
+                            .iter()
+                            .zip(item.attrs.iter())
+                            .map(|(s, a)| (s.typ.get_function_ref(), a))
+                            .filter(|(r, _)| r.is_some())
+                            .map(|(r, a)| (r.unwrap().0, a.span))
+                            .for_each(|(r, s)| {
+                                if !bounds_symbols.contains(&r) {
+                                    self.spec_parser
+                                        .report_error(s, "does not refer to super trait");
+                                }
+                            });
+
+                        reg.register_trait_decl(&item, &specs);
+                    }
                     // Any other item
                     _ => (),
                 };
                 ptr::P(item)
-            }).collect();
+            })
+            .collect();
         trace!("[fold_item] exit");
         result
     }
@@ -309,7 +357,11 @@ pub struct SpecParser<'tcx> {
 
 impl<'tcx> SpecParser<'tcx> {
     /// Create new spec parser.
-    pub fn new(session: &'tcx Session, source_filename: &str, register: Arc<Mutex<TraitRegister>>) -> SpecParser<'tcx> {
+    pub fn new(
+        session: &'tcx Session,
+        source_filename: &str,
+        register: Arc<Mutex<TraitRegister>>,
+    ) -> SpecParser<'tcx> {
         SpecParser {
             session: session,
             register: register,
@@ -364,7 +416,6 @@ impl<'tcx> SpecParser<'tcx> {
         } else {
             warn!("replaced non-existant specification");
         }
-
     }
 
     fn report_error(&self, span: Span, message: &str) {
@@ -562,16 +613,11 @@ impl<'tcx> SpecParser<'tcx> {
         builder.stmt_item(span, ptr::P(item))
     }
 
-    fn check_for_result_in_params(
-        &mut self,
-        params: &Vec<ast::Arg>,
-    ) -> bool {
-        params
-            .iter()
-            .any(|p| match (*p.pat).node {
-                ast::PatKind::Ident(_, id, _) => id.name.as_str() == "result",
-                _ => false,
-            })
+    fn check_for_result_in_params(&mut self, params: &Vec<ast::Arg>) -> bool {
+        params.iter().any(|p| match (*p.pat).node {
+            ast::PatKind::Ident(_, id, _) => id.name.as_str() == "result",
+            _ => false,
+        })
     }
 
     /// Generate a function that contains only the precondition and postcondition
@@ -597,9 +643,10 @@ impl<'tcx> SpecParser<'tcx> {
             ast::ItemKind::Fn(ref decl, ref _header, ref generics, ref _body) => {
                 let result_as_param = self.check_for_result_in_params(&decl.inputs);
                 if result_as_param {
-                    self.report_warn(item.span,
-                                     "parameter `result` found",
-                                     "Using parameter `result` in specifications instead of the return value."
+                    self.report_warn(
+                        item.span,
+                        "parameter `result` found",
+                        "Using parameter `result` in specifications instead of the return value.",
                     );
                 }
 
@@ -611,7 +658,9 @@ impl<'tcx> SpecParser<'tcx> {
                     }
                     let mut name = name.to_owned();
                     name.push_str("__pre");
-                    self.ast_builder.stmt_item(item.span, self.ast_builder.item_fn_attributes(
+                    self.ast_builder.stmt_item(
+                        item.span,
+                        self.ast_builder.item_fn_attributes(
                             item.span,
                             ast::Ident::from_str(&name),
                             decl.inputs.clone(),
@@ -619,7 +668,8 @@ impl<'tcx> SpecParser<'tcx> {
                             generics.clone(),
                             vec![spec_only_attr.clone()],
                             self.ast_builder.block(item.span, statements),
-                        ))
+                        ),
+                    )
                 };
 
                 let fn_post = {
@@ -646,40 +696,46 @@ impl<'tcx> SpecParser<'tcx> {
                             return_type.clone(),
                         ));
                     }
-                    self.ast_builder.stmt_item(item.span, self.ast_builder.item_fn_attributes(
+                    self.ast_builder.stmt_item(
                         item.span,
-                        ast::Ident::from_str(&name),
-                        inputs_with_result,
-                        unit_type.clone(),
-                        generics.clone(),
-                        vec![spec_only_attr.clone()],
-                        self.ast_builder.block(item.span, statements),
-                    ))
+                        self.ast_builder.item_fn_attributes(
+                            item.span,
+                            ast::Ident::from_str(&name),
+                            inputs_with_result,
+                            unit_type.clone(),
+                            generics.clone(),
+                            vec![spec_only_attr.clone()],
+                            self.ast_builder.block(item.span, statements),
+                        ),
+                    )
                 };
                 let statements = vec![fn_pre, fn_post];
 
                 // Attributes for the spec method
-                let spec_attr =
-                    vec![
-                        spec_only_attr,
-                        self.ast_builder.attribute_allow(item.span, "unused_mut"),
-                        self.ast_builder.attribute_allow(item.span, "dead_code"),
-                        self.ast_builder.attribute_allow(item.span, "non_snake_case"),
-                        self.ast_builder.attribute_allow(item.span, "unused_imports"),
-                        self.ast_builder.attribute_allow(item.span, "unused_variables"),
-                    ];
+                let spec_attr = vec![
+                    spec_only_attr,
+                    self.ast_builder.attribute_allow(item.span, "unused_mut"),
+                    self.ast_builder.attribute_allow(item.span, "dead_code"),
+                    self.ast_builder
+                        .attribute_allow(item.span, "non_snake_case"),
+                    self.ast_builder
+                        .attribute_allow(item.span, "unused_imports"),
+                    self.ast_builder
+                        .attribute_allow(item.span, "unused_variables"),
+                ];
 
                 // Glue everything
-                self.ast_builder.item_fn_attributes(
-                    item.span,
-                    ast::Ident::from_str(&name),
-                    vec![],
-                    unit_type,
-                    generics.clone(),
-                    spec_attr,
-                    self.ast_builder.block(item.span, statements),
-                )
-                .into_inner()
+                self.ast_builder
+                    .item_fn_attributes(
+                        item.span,
+                        ast::Ident::from_str(&name),
+                        vec![],
+                        unit_type,
+                        generics.clone(),
+                        spec_attr,
+                        self.ast_builder.block(item.span, statements),
+                    )
+                    .into_inner()
             }
             _ => {
                 unreachable!();
@@ -768,17 +824,16 @@ impl<'tcx> SpecParser<'tcx> {
                     .map(|x| ast::GenericArg::Type(self.ast_builder.ty_ident(DUMMY_SP, x.ident)))
                     .collect();
 
-
                 // TODO(@jakob): merge generic requirements
                 let mut gen = generics.clone();
                 // TODO not dummy ?! (or should it?)
                 //self.ast_builder.ty_ident(DUMMY_SP, item.ident), // `item` is the struct
                 let mut ty = self.ast_builder.ty_path(self.ast_builder.path_all(
-                        DUMMY_SP,
-                        false, // global
-                        vec![item.ident],
-                        args,   // (type parameters)
-                        vec![], // bindings
+                    DUMMY_SP,
+                    false, // global
+                    vec![item.ident],
+                    args,   // (type parameters)
+                    vec![], // bindings
                 ));
                 if let Some(base) = base_opt {
                     if let ast::ItemKind::Impl(_, _, _, g, _, t, _) = base.node.clone() {
@@ -786,7 +841,6 @@ impl<'tcx> SpecParser<'tcx> {
                         ty = t;
                     }
                 }
-
 
                 let spec_item_envelope = ast::Item {
                     ident: ast::Ident::from_str(""), // FIXME?
@@ -1030,6 +1084,7 @@ impl<'tcx> SpecParser<'tcx> {
         expr.node = match expr.node {
             ast::ExprKind::While(condition, block, ident) => {
                 let block = self.rewrite_loop_block(block, id, &invariants);
+                let condition = self.fold_expr(condition);
                 ast::ExprKind::While(condition, block, ident)
             }
             ast::ExprKind::WhileLet(pattern, expr, block, label) => {
@@ -1221,7 +1276,10 @@ impl<'tcx> SpecParser<'tcx> {
 
         // Parse specification for struct
         let struct_specs = self.parse_specs(item.attrs.clone());
-        if struct_specs.iter().any(|spec| spec.typ != SpecType::Invariant) {
+        if struct_specs
+            .iter()
+            .any(|spec| spec.typ != SpecType::Invariant)
+        {
             self.report_error(item.span, "only invariant allowed for struct");
         } else {
             let struct_invariants: Vec<_> = struct_specs
@@ -1241,8 +1299,13 @@ impl<'tcx> SpecParser<'tcx> {
                 self.log_modified_program(new_item_str);
 
                 // Create spec item
-                let mut struct_spec_item = self.generate_spec_item_inv(&item, struct_spec_id,
-                    &struct_invariants, None, None);
+                let mut struct_spec_item = self.generate_spec_item_inv(
+                    &item,
+                    struct_spec_id,
+                    &struct_invariants,
+                    None,
+                    None,
+                );
 
                 struct_spec_item
                     .attrs
@@ -1260,23 +1323,28 @@ impl<'tcx> SpecParser<'tcx> {
                 debug!("spec_item:\n{}", spec_item_str);
                 self.log_modified_program(spec_item_str);
                 item.attrs.push(self.ast_builder.attribute_name_value(
-                        item.span,
-                        PRUSTI_SPEC_ATTR,
-                        &struct_spec_id.to_string(),
+                    item.span,
+                    PRUSTI_SPEC_ATTR,
+                    &struct_spec_id.to_string(),
                 ));
                 result.push(ptr::P(struct_spec_item));
             }
         }
-
 
         let register = self.register.clone();
         {
             let mut reg = register.lock().unwrap();
             for (reg_id, id_opt, impl_item, tr_attrs) in reg.get_relevant_traits(&item).clone() {
                 let specs = self.parse_specs(tr_attrs);
-                if specs.iter().any(|spec| spec.typ != SpecType::Invariant) {
+                if specs
+                    .iter()
+                    .any(|spec| spec.typ != SpecType::Invariant && !spec.typ.is_refines())
+                {
                     let span = reg.get_trait_span(&reg_id).unwrap_or(item.span.clone());
-                    self.report_error(span, "only invariant allowed for traits");
+                    self.report_error(
+                        span,
+                        "only invariants or contract refinement allowed for traits",
+                    );
                     continue;
                 }
                 let invariants: Vec<_> = specs
@@ -1296,8 +1364,13 @@ impl<'tcx> SpecParser<'tcx> {
                 };
 
                 let trait_name = reg_id.to_string();
-                let trait_spec_item = self.generate_spec_item_inv(&item, id, &invariants, Some(&trait_name),
-                                                                  Some(impl_item));
+                let trait_spec_item = self.generate_spec_item_inv(
+                    &item,
+                    id,
+                    &invariants,
+                    Some(&trait_name),
+                    Some(impl_item),
+                );
 
                 result.push(ptr::P(trait_spec_item));
             }
@@ -1311,23 +1384,27 @@ impl<'tcx> SpecParser<'tcx> {
     fn rewrite_trait_item_method(
         &mut self,
         mut trait_item: ast::TraitItem,
+        mut inherited_specs: Vec<UntypedSpecification>,
     ) -> SmallVector<ast::TraitItem> {
         trace!("[rewrite_trait_item_method] enter");
 
         // Parse specification
-        let specs = self.parse_specs(trait_item.attrs.clone());
+        let mut specs = self.parse_specs(trait_item.attrs.clone());
+        specs.append(&mut inherited_specs);
+
         if specs.iter().any(|spec| spec.typ == SpecType::Invariant) {
             self.report_error(trait_item.span, "invariant not allowed for procedure");
             return SmallVector::one(trait_item);
         }
+        // TODO(@jakob): register all specs
         let preconditions: Vec<_> = specs
             .clone()
             .into_iter()
-            .filter(|spec| spec.typ == SpecType::Precondition)
+            .filter(|spec| spec.typ.is_precondition())
             .collect();
         let postconditions: Vec<_> = specs
             .into_iter()
-            .filter(|spec| spec.typ == SpecType::Postcondition)
+            .filter(|spec| spec.typ.is_postcondition())
             .collect();
         let spec_set = SpecificationSet::Procedure(preconditions.clone(), postconditions.clone());
 
@@ -1398,9 +1475,12 @@ impl<'tcx> SpecParser<'tcx> {
 
     /// Extracts specification string from the attribute with the
     /// correct base span.
-    fn extract_spec_string(&self, attribute: &ast::Attribute) -> Option<(String, Span)> {
+    fn extract_spec_string(
+        &self,
+        attribute: &ast::Attribute,
+    ) -> Option<(String, Span, Option<FunctionRef>)> {
         use syntax::parse::token;
-        use syntax::tokenstream::{TokenTree,Delimited,TokenStream};
+        use syntax::tokenstream::{Delimited, TokenStream, TokenTree};
 
         let trees: Vec<TokenTree> = attribute.tokens.trees().collect();
         let tree_len = trees.len();
@@ -1413,6 +1493,7 @@ impl<'tcx> SpecParser<'tcx> {
             return None;
         }
 
+        let mut function_ref = None;
         let spec_tree = match trees[0] {
             TokenTree::Token(_, ref token) => {
                 if *token != token::Token::Eq {
@@ -1424,17 +1505,70 @@ impl<'tcx> SpecParser<'tcx> {
                 }
                 trees[1].clone()
             }
-            TokenTree::Delimited(_, Delimited { delim: token::DelimToken::Paren, ref tts } ) => {
+            TokenTree::Delimited(
+                _,
+                Delimited {
+                    delim: token::DelimToken::Paren,
+                    ref tts,
+                },
+            ) => {
                 let token_stream: TokenStream = tts.clone().into();
                 let spec_trees: Vec<TokenTree> = token_stream.trees().collect();
-                if spec_trees.len() != 1 {
+                if spec_trees.len() == 1 {
+                    spec_trees[0].clone()
+                } else if spec_trees.len() == 5 && attribute.path.to_string().starts_with("refine_")
+                {
+                    // len 5 because 5 inner tokens in #[refine_...(Trait::method="contract")]
+                    //                                              111112233333345555555555
+                    let trait_symbol =
+                        if let TokenTree::Token(_, token::Token::Ident(ref ident, _)) =
+                            spec_trees[0]
+                        {
+                            ident.name.clone()
+                        } else {
+                            self.report_error(
+                                attribute.span,
+                                "malformed specification (expected trait identifier)",
+                            );
+                            return None;
+                        };
+                    if let TokenTree::Token(_, token::Token::ModSep) = spec_trees[1] {
+                    } else {
+                        self.report_error(
+                            attribute.span,
+                            "malformed specification (expected separator)",
+                        );
+                        return None;
+                    }
+                    let func_symbol =
+                        if let TokenTree::Token(_, token::Token::Ident(ref ident, _)) =
+                            spec_trees[2]
+                        {
+                            ident.name.clone()
+                        } else {
+                            self.report_error(
+                                attribute.span,
+                                "malformed specification (expected function identifier)",
+                            );
+                            return None;
+                        };
+                    if let TokenTree::Token(_, token::Token::Eq) = spec_trees[3] {
+                    } else {
+                        self.report_error(
+                            attribute.span,
+                            "malformed specification (expected equality)",
+                        );
+                        return None;
+                    }
+                    function_ref = Some((trait_symbol, func_symbol));
+                    spec_trees[4].clone()
+                } else {
                     self.report_error(
                         attribute.span,
-                        "malformed specification (expected single argument)"
+                        "malformed specification (expected single argument)",
                     );
                     return None;
                 }
-                spec_trees[0].clone()
             }
             _ => {
                 self.report_error(attribute.span, "malformed specification (expected token)");
@@ -1447,12 +1581,16 @@ impl<'tcx> SpecParser<'tcx> {
                     token::Lit::Str_(ref name) => {
                         let name: &str = &name.as_str();
                         let spec = String::from(name);
-                        Some((spec, span))
+                        Some((spec, span, function_ref))
                     }
                     token::Lit::StrRaw(ref name, delimiter_size) => {
                         let name: &str = &name.as_str();
                         let spec = String::from(name);
-                        Some((spec, shift_span(span, (delimiter_size + 1) as u32)))
+                        Some((
+                            spec,
+                            shift_span(span, (delimiter_size + 1) as u32),
+                            function_ref,
+                        ))
                     }
                     _ => None,
                 },
@@ -1523,8 +1661,9 @@ impl<'tcx> SpecParser<'tcx> {
             .into_iter()
             .map(|attribute| {
                 if let Ok(spec_type) = SpecType::try_from(&attribute.path.to_string() as &str) {
-                    if let Some((spec_string, mut span)) = self.extract_spec_string(&attribute) {
-                        debug!("spec={:?} spec_type={:?}", spec_string, spec_type);
+                    if let Some((spec_string, mut span, function_ref)) =
+                        self.extract_spec_string(&attribute)
+                    {
                         // FIXME ugly code
                         let mut spec_string: &str = &spec_string;
                         let foo = self.parse_typaram_condition(&mut span, &mut spec_string);
@@ -1536,8 +1675,26 @@ impl<'tcx> SpecParser<'tcx> {
                                 None => assertion,
                             };
                             debug!("assertion={:?}", assertion);
+                            let mut new_spec_type = spec_type;
+                            if function_ref.is_some() {
+                                new_spec_type = match spec_type {
+                                    SpecType::RefinePrecondition(_) => {
+                                        SpecType::RefinePrecondition(function_ref)
+                                    }
+                                    SpecType::RefinePostcondition(_) => {
+                                        SpecType::RefinePostcondition(function_ref)
+                                    }
+                                    _ => {
+                                        self.report_error(
+                                            attribute.span,
+                                            "malformed specification",
+                                        );
+                                        return None;
+                                    }
+                                }
+                            }
                             Some(UntypedSpecification {
-                                typ: spec_type,
+                                typ: new_spec_type,
                                 assertion: assertion,
                             })
                         } else {
@@ -1878,7 +2035,7 @@ impl<'tcx> SpecParser<'tcx> {
                                 kind: box AssertionKind::Expr(Expression {
                                     id: self.get_new_expression_id(),
                                     expr: filter,
-                                })
+                                }),
                             },
                             UntypedAssertion {
                                 kind: box AssertionKind::Expr(Expression {
@@ -1970,8 +2127,10 @@ impl<'tcx> SpecParser<'tcx> {
                     //let kind = UntypedAssertionKind::Implies(precondition, assertion);
                     return Ok(UntypedAssertion {
                         kind: box AssertionKind::Implies(
-                            Assertion { kind: box AssertionKind::Expr(precondition) },
-                            assertion
+                            Assertion {
+                                kind: box AssertionKind::Expr(precondition),
+                            },
+                            assertion,
                         ),
                     });
                 }
@@ -2147,29 +2306,57 @@ impl<'tcx> Folder for SpecParser<'tcx> {
                 ast::ItemKind::Trait(is_auto, unsafety, generics, bounds, trait_items) => {
                     let mut item = item.into_inner();
 
-                    let mut reg = self.register.lock().unwrap();
-                    let trait_id = reg.register_trait_decl(&item);
-                    let is_registered = reg.is_trait_specid_registered(&item);
-                    drop(reg);
+                    let trait_symbol = item.ident.name.clone();
+                    let (trait_id, is_registered, funcs_symbols) = {
+                        let reg = self.register.lock().unwrap();
+                        (
+                            reg.get_id(&item),
+                            reg.is_trait_specid_registered(&item),
+                            reg.get_funcs_for_trait(&trait_symbol),
+                        )
+                    };
                     if !is_registered {
                         let empty_spec = SpecificationSet::Struct(Vec::new());
                         let specid = self.register_specification(empty_spec);
-                        let mut reg = self.register.lock().unwrap();
-                        reg.register_specid(trait_id, specid.clone());
-                        drop(reg);
+                        {
+                            let mut reg = self.register.lock().unwrap();
+                            reg.register_specid(trait_id, specid.clone());
+                        }
                         item.attrs.push(self.ast_builder.attribute_name_value(
+                            item.span,
+                            PRUSTI_SPEC_ATTR,
+                            &specid.to_string(),
+                        ));
+                    }
+
+                    let trait_symbols: HashSet<Symbol> = trait_items
+                        .clone()
+                        .into_iter()
+                        .map(|item| item.ident.name)
+                        .collect();
+
+                    for symbol in funcs_symbols {
+                        if !trait_symbols.contains(&symbol) {
+                            self.report_error(
                                 item.span,
-                                PRUSTI_SPEC_ATTR,
-                                &specid.to_string(),
-                ));
+                                &format!("no method '{}' in super trait", symbol),
+                            );
+                        }
                     }
 
                     let mut new_trait_items = vec![];
-
                     for trait_item in trait_items.into_iter() {
                         match trait_item.node {
                             ast::TraitItemKind::Method(..) => {
-                                new_trait_items.extend(self.rewrite_trait_item_method(trait_item));
+                                let method_symbol = trait_item.ident.name.clone();
+                                let func_ref = (trait_symbol.clone(), method_symbol);
+                                let func_attrs = {
+                                    let reg = self.register.lock().unwrap();
+                                    reg.get_attrs_refine(&func_ref)
+                                };
+                                let func_specs = self.parse_specs(func_attrs);
+                                new_trait_items
+                                    .extend(self.rewrite_trait_item_method(trait_item, func_specs));
                             }
                             _ => new_trait_items.push(trait_item),
                         }

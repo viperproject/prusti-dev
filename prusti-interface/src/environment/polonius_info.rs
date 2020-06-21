@@ -327,12 +327,18 @@ impl ReborrowingDAG {
     }
 }
 
+#[derive(Clone, Debug)]
 pub enum PoloniusInfoError {
     /// Loans depending on branches inside loops are not implemented yet
     UnsupportedLoanInLoop {
         loop_head: mir::BasicBlock,
         variable: mir::Local,
-    }
+    },
+    LoansInNestedLoops(mir::Location, mir::BasicBlock, mir::Location, mir::BasicBlock),
+    ReborrowingDagHasEmptyMagicWand(mir::Location),
+    /// We currently support only one reborrowing chain per loop
+    ReborrowingDagHasWrongReborrowingChain(mir::Location),
+    ReborrowingDagHasNoRepresentativeLoan(mir::Location),
 }
 
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
@@ -1020,7 +1026,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         self.call_loan_at_position.get(&location).cloned()
     }
 
-    pub fn loan_locations(&self) -> Vec<(facts::Loan, mir::Location)> {
+    pub fn loan_locations(&self) -> HashMap<facts::Loan, mir::Location> {
         self.loan_position
             .iter()
             .map(|(loan, location)| (*loan, *location))
@@ -1103,7 +1109,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         loans: &[facts::Loan],
         zombie_loans: &[facts::Loan],
         location: mir::Location,
-    ) -> ReborrowingDAG {
+    ) -> Result<ReborrowingDAG, PoloniusInfoError> {
         self.construct_reborrowing_dag_custom_reborrows(
             loans,
             zombie_loans,
@@ -1117,7 +1123,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         loans: &[facts::Loan],
         zombie_loans: &[facts::Loan],
         location: mir::Location,
-    ) -> ReborrowingDAG {
+    ) -> Result<ReborrowingDAG, PoloniusInfoError> {
         self.construct_reborrowing_dag_custom_reborrows(
             loans,
             zombie_loans,
@@ -1127,7 +1133,10 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
     }
 
     /// Get loops in which loans are defined (if any).
-    pub fn get_loan_loops(&self, loans: &[facts::Loan]) -> Vec<(facts::Loan, mir::BasicBlock)> {
+    pub fn get_loan_loops(
+        &self,
+        loans: &[facts::Loan]
+    ) -> Result<Vec<(facts::Loan, mir::BasicBlock)>, PoloniusInfoError> {
         let pairs: Vec<_> = loans
             .iter()
             .flat_map(|loan| {
@@ -1137,14 +1146,21 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                     .map(|loop_head| (*loan, loop_head))
             })
             .collect();
-        for (_, loop1) in pairs.iter() {
-            for (_, loop2) in pairs.iter() {
+        for (loan1, loop1) in pairs.iter() {
+            let location1 = self.loan_position[loan1];
+            for (loan2, loop2) in pairs.iter() {
+                let location2 = self.loan_position[loan2];
                 if loop1 != loop2 {
-                    unimplemented!("Nested loops are not supported yet.");
+                    return Err(PoloniusInfoError::LoansInNestedLoops(
+                        location1,
+                        *loop1,
+                        location2,
+                        *loop2
+                    ));
                 }
             }
         }
-        pairs
+        Ok(pairs)
     }
 
     /// ``loans`` – all loans, including the zombie loans.
@@ -1154,7 +1170,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         zombie_loans: &[facts::Loan],
         location: mir::Location,
         reborrows_direct: &Vec<(facts::Loan, facts::Loan)>,
-    ) -> ReborrowingDAG {
+    ) -> Result<ReborrowingDAG, PoloniusInfoError> {
         trace!(
             "[enter] construct_reborrowing_dag_custom_reborrows\
              (loans={:?}, zombie_loans={:?}, location={:?})",
@@ -1173,25 +1189,28 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         if let Some(loop_head) = self.loops.get_loop_head(location.block) {
             let depth = self.loops.get_loop_head_depth(loop_head);
             debug!("loop_head: {:?} depth: {:?}", loop_head, depth);
-            let loan_loops = self.get_loan_loops(&loans);
-            assert!(loan_loops.iter().all(|(_, head)| { *head == loop_head }));
+            // It is fine to have loans defined in an outer loop that is not `loop_head`, because
+            // `return` or panic statements might need to jump out of many loops at once.
         } else {
-            let loan_loops = self.get_loan_loops(&loans);
+            let loan_loops = self.get_loan_loops(&loans)?;
             if !loan_loops.is_empty() {
                 for (loan, loop_head) in loan_loops.iter() {
                     debug!("loan={:?} loop_head={:?}", loan, loop_head);
                 }
                 let (_, loop_head) = loan_loops[0];
                 debug!("loop_head = {:?}", loop_head);
-                assert!(!self.loop_magic_wands.is_empty());
+                if self.loop_magic_wands.is_empty() {
+                    return Err(PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location));
+                }
                 let loop_magic_wands = &self.loop_magic_wands[&loop_head];
-                assert!(
-                    loop_magic_wands.len() == 1,
-                    "We currently support only one reborrowing chain per loop."
-                );
+                if loop_magic_wands.len() != 1 {
+                    return Err(PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location));
+                }
                 let magic_wand = &loop_magic_wands[0];
                 representative_loan = Some(magic_wand.root_loan);
-                assert!(representative_loan.is_some());
+                if representative_loan.is_none() {
+                    return Err(PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location));
+                }
                 loans = loans
                     .into_iter()
                     .filter(|loan| {
@@ -1313,82 +1332,25 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             );
         }
         sorted_loans.reverse();
-        let nodes: Vec<_> = sorted_loans
-            .iter()
-            .enumerate()
-            .map(|(n, &loan)| {
-                let mut i = 0;
-                let mut reborrowing_loans = Vec::new();
-                while i < n {
-                    let loan_i = sorted_loans[i];
-                    if self.additional_facts.reborrows.contains(&(loan_i, loan)) {
-                        // If the i'th loan reborrows the loan.
-                        let mut j = i + 1;
-                        while j < n {
-                            let loan_j = sorted_loans[j];
-                            if self.additional_facts.reborrows.contains(&(loan_j, loan))
-                                && self.additional_facts.reborrows.contains(&(loan_i, loan_j))
-                            {
-                                break;
-                            }
-                            j += 1;
-                        }
-                        if j == n {
-                            // And there is no other loan that would
-                            // reborrow the loan, then this means that i'th
-                            // loan is directly reborrowing the loan.
-                            reborrowing_loans.push(loan_i);
-                        }
-                    }
-                    i += 1;
-                }
-                let mut reborrowed_loans = Vec::new();
-                let mut i = sorted_loans.len() - 1;
-                while i > n {
-                    let loan_i = sorted_loans[i];
-                    if self.additional_facts.reborrows.contains(&(loan, loan_i)) {
-                        // If the i'th loan is reborrowed by the loan.
-                        let mut j = i - 1;
-                        while j > n {
-                            let loan_j = sorted_loans[j];
-                            if self.additional_facts.reborrows.contains(&(loan, loan_j))
-                                && self.additional_facts.reborrows.contains(&(loan_j, loan_i))
-                            {
-                                break;
-                            }
-                            j -= 1;
-                        }
-                        if j == n {
-                            // And there is no other loan that would
-                            // reborrow the loan, then this means that i'th
-                            // loan is directly reborrowed by the loan.
-                            reborrowed_loans.push(loan_i);
-                        }
-                    }
-                    i -= 1;
-                }
+        let nodes: Vec<_> = sorted_loans.iter()
+            .map(|&loan| {
+                let reborrowing_loans = sorted_loans.iter().cloned()
+                    .filter(|&l| self.additional_facts.reborrows_direct.contains(&(l, loan)))
+                    .collect::<Vec<_>>();
+                let reborrowed_loans = sorted_loans.iter().cloned()
+                    .filter(|&l| self.additional_facts.reborrows_direct.contains(&(loan, l)))
+                    .collect::<Vec<_>>();
                 let kind = self.construct_reborrowing_kind(loan, representative_loan);
+                let zombity = self.construct_reborrowing_zombity(
+                    loan, &loans, zombie_loans, location);
+                let incoming_zombies = self.check_incoming_zombies(
+                    loan, &loans, zombie_loans, location);
                 ReborrowingDAGNode {
-                    loan: loan,
-                    kind: kind,
-                    zombity: self.construct_reborrowing_zombity(
-                        loan,
-                        &loans,
-                        zombie_loans,
-                        location,
-                    ),
-                    incoming_zombies: self.check_incoming_zombies(
-                        loan,
-                        &loans,
-                        zombie_loans,
-                        location,
-                    ),
-                    reborrowing_loans: reborrowing_loans,
-                    reborrowed_loans: reborrowed_loans,
+                    loan, kind, zombity, incoming_zombies, reborrowing_loans, reborrowed_loans
                 }
             })
             .collect();
-        ReborrowingDAG { nodes: nodes }
+        Ok(ReborrowingDAG { nodes: nodes })
     }
 
     fn construct_reborrowing_kind(
@@ -1674,7 +1636,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             debug_assert_eq!(location.statement_index, 0);
             let mut predecessors = HashSet::new();
             for (bbi, bb_data) in self.mir.basic_blocks().iter_enumerated() {
-                for &bb_successor in bb_data.terminator.as_ref().unwrap().successors() {
+                for &bb_successor in bb_data.terminator().successors() {
                     if bb_successor == location.block {
                         predecessors.insert(mir::Location {
                             block: bbi,

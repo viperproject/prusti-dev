@@ -10,10 +10,12 @@
 //! specifications.
 
 use rustc;
+use std::fmt::Debug;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::string::ToString;
 use syntax::codemap::Span;
+use syntax::symbol::Symbol;
 use syntax::{ast, ptr};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -21,10 +23,60 @@ use syntax::{ast, ptr};
 pub enum SpecType {
     /// Precondition of a procedure.
     Precondition,
+    /// Refine a precondition of a procedure.
+    RefinePrecondition(Option<(Symbol,Symbol)>),
     /// Postcondition of a procedure.
     Postcondition,
+    /// Refine a postcondition of a procedure.
+    RefinePostcondition(Option<(Symbol,Symbol)>),
     /// Loop invariant or struct invariant
     Invariant,
+}
+
+impl SpecType {
+    pub fn is_refines(&self) -> bool {
+        match self {
+            SpecType::RefinePostcondition(_) | SpecType::RefinePrecondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_postcondition(&self) -> bool {
+        match self {
+            SpecType::Postcondition | SpecType::RefinePostcondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_precondition(&self) -> bool {
+        match self {
+            SpecType::Precondition | SpecType::RefinePrecondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_refine_ensures(&self) -> bool {
+        match self {
+            SpecType::RefinePostcondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_refine_requires(&self) -> bool {
+        match self {
+            SpecType::RefinePrecondition(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_function_ref(&self) -> Option<(Symbol, Symbol)> {
+        match self {
+            SpecType::RefinePrecondition(ref_opt) | SpecType::RefinePostcondition(ref_opt) => {
+                ref_opt.clone()
+            },
+            _ => None
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -43,6 +95,8 @@ impl<'a> TryFrom<&'a str> for SpecType {
             "requires" => Ok(SpecType::Precondition),
             "ensures" => Ok(SpecType::Postcondition),
             "invariant" => Ok(SpecType::Invariant),
+            "refine_requires" => Ok(SpecType::RefinePrecondition(None)),
+            "refine_ensures" => Ok(SpecType::RefinePostcondition(None)),
             _ => Err(TryFromStringError::UnknownSpecificationType),
         }
     }
@@ -245,6 +299,46 @@ impl<ET, AT> SpecificationSet<ET, AT> {
             SpecificationSet::Struct(ref invs) => invs.is_empty(),
         }
     }
+}
+
+impl<ET: Clone + Debug, AT: Clone + Debug> SpecificationSet<ET, AT> {
+    /// Trait implementation method refinement
+    /// Choosing alternative C as discussed in
+    /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+    /// pp 19-23
+    ///
+    /// In other words, any pre-/post-condition provided by `other` will overwrite any provided by
+    /// `self`.
+    pub fn refine(&self, other: &Self) -> Self {
+        let mut pres = vec![];
+        let mut post = vec![];
+        let (ref_pre, ref_post) = {
+            if let SpecificationSet::Procedure(ref pre, ref post) = other {
+                (pre, post)
+            } else {
+                unreachable!("Unexpected: {:?}", other)
+            }
+        };
+        let (base_pre, base_post) = {
+            if let SpecificationSet::Procedure(ref pre, ref post) = self {
+                (pre, post)
+            } else {
+                unreachable!("Unexpected: {:?}", self)
+            }
+        };
+        if ref_pre.is_empty() {
+            pres.append(&mut base_pre.clone());
+        } else {
+            pres.append(&mut ref_pre.clone());
+        }
+        if ref_post.is_empty() {
+            post.append(&mut base_post.clone());
+        } else {
+            post.append(&mut ref_post.clone());
+        }
+        SpecificationSet::Procedure(pres, post)
+    }
+
 }
 
 /// A specification that has no types associated with it.

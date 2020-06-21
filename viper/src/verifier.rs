@@ -134,7 +134,7 @@ impl<'a> Verifier<'a, state::Started> {
         let consistency_errors = ast_utils.check_consistency(program);
         let duration = start_consistency_checks.elapsed();
         debug!(
-            "Viper consistency checs took {}.{} seconds",
+            "Viper consistency checks took {}.{} seconds",
             duration.as_secs(),
             duration.subsec_millis() / 10
         );

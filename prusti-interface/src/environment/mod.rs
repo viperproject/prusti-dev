@@ -11,9 +11,10 @@ use rustc::hir::def_id::DefId;
 use rustc::ty;
 use rustc::ty::TyCtxt;
 use rustc_driver::driver;
-use std::path::PathBuf;
 use std::collections::HashSet;
+use std::path::PathBuf;
 use syntax::attr;
+use syntax_pos::symbol::Symbol;
 use syntax_pos::FileName;
 use syntax_pos::MultiSpan;
 
@@ -31,8 +32,8 @@ use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
 pub use self::procedure::{BasicBlockIndex, Procedure};
-use config;
 use data::ProcedureDefId;
+use prusti_common::config;
 use syntax::codemap::CodeMap;
 use syntax::codemap::Span;
 use utils::get_attr_value;
@@ -90,6 +91,25 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
     }
 
     /// Emits an error message.
+    pub fn span_warn_with_help_and_note<S: Into<MultiSpan> + Clone>(
+        &self,
+        sp: S,
+        msg: &str,
+        help: &Option<String>,
+        note: &Option<(String, S)>,
+    ) {
+        let mut diagnostic = self.state.session.struct_warn(msg);
+        diagnostic.set_span(sp);
+        if let Some(help_msg) = help {
+            diagnostic.help(help_msg);
+        }
+        if let Some((note_msg, note_sp)) = note {
+            diagnostic.span_note(note_sp.clone(), note_msg);
+        }
+        diagnostic.emit();
+    }
+
+    /// Emits an error message.
     pub fn err(&self, msg: &str) {
         self.state.session.err(msg);
     }
@@ -105,7 +125,7 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
         sp: S,
         msg: &str,
         help: &Option<String>,
-        note: &Option<(String, S)>
+        note: &Option<(String, S)>,
     ) {
         let mut diagnostic = self.state.session.struct_err(msg);
         diagnostic.set_span(sp);
@@ -215,5 +235,29 @@ impl<'r, 'a, 'tcx> Environment<'r, 'a, 'tcx> {
             });
         }
         res
+    }
+
+    /// Get an associated item by name.
+    pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssociatedItem> {
+        self.tcx()
+            .associated_items(id)
+            .find(|assoc_item| assoc_item.name == name)
+    }
+
+    /// Get a trait method declaration by name for type.
+    pub fn get_trait_method_decl_for_type(
+        &self,
+        typ: ty::Ty<'tcx>,
+        trait_id: DefId,
+        name: Symbol,
+    ) -> Vec<ty::AssociatedItem> {
+        let mut result = Vec::new();
+        self.tcx().for_each_relevant_impl(trait_id, typ, |impl_id| {
+            let item = self.get_assoc_item(impl_id, name);
+            if let Some(inner) = item {
+                result.push(inner.clone());
+            }
+        });
+        result
     }
 }
