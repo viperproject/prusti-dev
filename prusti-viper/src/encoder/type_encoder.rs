@@ -89,7 +89,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 self.is_eq_supported_field_type(field_ty)
             })
         });
-        supported_fields && self.is_eq_supported_subst(subst)
+        // TODO CMFIXME the last conjunct ensures that only structs are supported
+        supported_fields && self.is_eq_supported_subst(subst) && adt_def.variants.len() == 1
     }
 
     /// Is this type supported?

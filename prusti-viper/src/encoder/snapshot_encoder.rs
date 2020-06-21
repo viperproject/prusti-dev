@@ -97,31 +97,37 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode(&self) -> Snapshot {
-        match self.ty.sty {
+        match &self.ty.sty {
             ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
-                self.encode_snap_int()
+                self.encode_snap_primitive(
+                    vir::Field::new("val_int", vir::Type::Int)
+                )
+            }
+            ty::TypeVariants::TyBool => {
+                self.encode_snap_primitive(
+                    vir::Field::new("val_bool", vir::Type::Bool)
+                )
             }
             ty::TypeVariants::TyAdt(adt_def, _) if !adt_def.is_box() => {
-                if adt_def.variants.len() == 1 {
-                    self.encode_snap_struct()
-                } else {
-                    unimplemented!()
+                // TODO CMFIXME
+                if adt_def.variants.len() != 1 {
+                    warn!("Generating equality tests for enums is not supported yet");
                 }
-
+                self.encode_snap_struct()
             }
-            _ => unimplemented!()
+            x => unimplemented!("{:?}", x),
         }
     }
 
-    fn encode_snap_int(&self) -> Snapshot {
+    fn encode_snap_primitive(&self, field: vir::Field) -> Snapshot {
         Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: self.encode_snap_func_int(),
+            snap_func: self.encode_snap_func_primitive(field),
             snap_domain: None,
         }
     }
 
-    fn encode_snap_func_int(&self) -> vir:: Function {
+    fn encode_snap_func_primitive(&self, field: vir::Field) -> vir:: Function {
         let return_type = self.encoder.encode_value_type(self.ty);
         let body = vir::Expr::Field(
             Box::new(
@@ -130,7 +136,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     vir::Position::default()
                 )
             ),
-            vir::Field::new("val_int", vir::Type::Int),
+            field,
             vir::Position::default()
         );
         self.encode_snap_func(return_type, body)
@@ -263,9 +269,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let mut formal_args = vec![];
         match self.ty.sty {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                assert!(adt_def.variants.len() == 1); // this is for structs only
+                // TODO fo far this is for structs only
                 let tcx = self.encoder.env().tcx();
                 for field in &adt_def.variants[0].fields {
+                    self.encoder.encode_snapshot(field.ty(tcx, subst)); // CMFIXME
                     let field_type = &self.encoder.encode_value_type(field.ty(tcx, subst));
                     formal_args.push(
                         self.encode_local_var(counter, field_type)
@@ -295,7 +302,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     fn encode_snap_func_struct_args(&self) -> Vec<vir::Expr> {
         match self.ty.sty {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                assert!(adt_def.variants.len() == 1);
+                // TODO CMFIXME so far this works only for structs
                 let tcx = self.encoder.env().tcx();
                 adt_def.variants[0]
                     .fields
