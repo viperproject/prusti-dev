@@ -1416,7 +1416,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 .collect();
 
             let mirror_function = DomainFunc {
-                name: format!("mirror${}", self.env.get_item_name(def_id)),
+                name: format!("mirror${}", // nasty hack as Viper does not like :: in functions
+                              self.env.get_item_name(def_id)).replace("::", "_"),
                 formal_args,
                 return_type: pure_function.return_type.clone(),
                 unique: false,
