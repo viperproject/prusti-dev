@@ -960,6 +960,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             self.snap_equals_func_names
                 .borrow_mut()
                 .insert(predicate_name.clone(), equals_function);
+            let ref_equals_function = domain_encoder.encode_ref_equals_def();
+            let ref_predicate_name = format!("ref${}", predicate_name);
+            self.snap_equals_func_names
+                .borrow_mut()
+                .insert(ref_predicate_name, ref_equals_function);
         }
         self.domains.borrow()[&domain_name].clone()
     }
@@ -1044,7 +1049,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     // TODO CMFIXME
     pub fn encode_snapshot_equals_use(&self, predicate_name: String) -> String {
         if !self.snap_equals_func_names.borrow().contains_key(&predicate_name) {
-            unreachable!()
+            error!("There is no equality function for '{}'", predicate_name);
+            panic!();
         }
         self.snap_equals_func_names.borrow()[&predicate_name].name.clone()
     }

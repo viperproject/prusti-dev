@@ -243,12 +243,92 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> DomainEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    // TODO CMFIXME unify with encode_equals_def
+    pub fn encode_ref_equals_def(&self) -> vir::Function {
+
+        let ref_predicate_name = format!("ref${}", self.predicate_name.clone());
+        let arg_type = vir::Type::TypedRef(ref_predicate_name.clone());
+
+        let formal_arg_left = vir::LocalVar::new("_left".to_string(), arg_type.clone());
+        let formal_arg_right = vir::LocalVar::new("_right".to_string(), arg_type.clone());
+
+        let arg_left = vir::Expr::Field(
+            Box::new(vir::Expr::Local(formal_arg_left.clone(), vir::Position::default())),
+            vir::Field::new("val_ref", self.encode_pred_ref_type()),
+            vir::Position::default()
+        );
+
+        let arg_right = vir::Expr::Field(
+            Box::new(vir::Expr::Local(formal_arg_right.clone(), vir::Position::default())),
+            vir::Field::new("val_ref", self.encode_pred_ref_type()),
+            vir::Position::default()
+        );
+
+        let call_arg_left = vir::LocalVar::new("_left".to_string(), self.encode_pred_ref_type());
+        let call_arg_right = vir::LocalVar::new("_right".to_string(), self.encode_pred_ref_type());
+
+        vir::Function {
+            name: self.encode_equals_get_name(),
+            formal_args: vec![formal_arg_left.clone(), formal_arg_right.clone()],
+            return_type: vir::Type::Bool,
+            pres: vec![
+                vir::Expr::FieldAccessPredicate(
+                    Box::new(arg_left.clone()),
+                    PermAmount::Read,
+                    vir::Position::default()
+                ),
+                vir::Expr::PredicateAccessPredicate(
+                    self.predicate_name.clone(),
+                    Box::new(arg_left.clone()),
+                    PermAmount::Read,
+                    vir::Position::default()
+                ),
+                vir::Expr::FieldAccessPredicate(
+                    Box::new(arg_right.clone()),
+                    PermAmount::Read,
+                    vir::Position::default()
+                ),
+                vir::Expr::PredicateAccessPredicate(
+                    self.predicate_name.clone(),
+                    Box::new(arg_right.clone()),
+                    PermAmount::Read,
+                    vir::Position::default()
+                ),
+            ],
+            posts: vec![],
+            body: Some(vir::Expr::BinOp(
+                vir::BinOpKind::EqCmp,
+                Box::new(self.encode_ref_snapshot_call(call_arg_left)),
+                Box::new(self.encode_ref_snapshot_call(call_arg_right)),
+                vir::Position::default(),
+            )),
+        }
+    }
+
     fn encode_equals_get_name(&self) -> String {
         SNAPSHOT_EQUALS.to_string()
         //format!("{}${}", SNAPSHOT_EQUALS.to_string(), self.predicate_name)
     }
 
     // TODO CMFIXME: cleanup
+    fn encode_ref_snapshot_call(&self, formal_arg: vir::LocalVar) -> vir::Expr {
+        let snapshot_func_name = self.encoder.encode_get_snapshot_func_name(self.predicate_name.clone());
+        let return_type = self.encoder.encode_get_domain_type(self.predicate_name.clone());
+        let arg = vir::Expr::Field(
+            Box::new(vir::Expr::Local(formal_arg.clone(), vir::Position::default())),
+            vir::Field::new("val_ref", self.encode_pred_ref_type()),
+            vir::Position::default()
+        );
+        vir::Expr::FuncApp(
+            snapshot_func_name,
+            vec![arg],
+            vec![formal_arg],
+            return_type,
+            vir::Position::default(),
+        )
+    }
+
+    // TODO CMFIXME: cleanup and unify with the above
     fn encode_snapshot_call(&self, formal_arg: vir::LocalVar) -> vir::Expr {
         let snapshot_func_name = self.encoder.encode_get_snapshot_func_name(self.predicate_name.clone());
         let return_type = self.encoder.encode_get_domain_type(self.predicate_name.clone());
