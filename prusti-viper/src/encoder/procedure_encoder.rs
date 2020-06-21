@@ -2038,8 +2038,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let function_name = self.encoder.
                             encode_snapshot_equals_use(arg_type.name().clone());
 
-                        // TODO CMFIXME deal with the possibility that equals is unsupported
-
+                        // TODO CMFIXME we essentially have to do the same things as for pure funs
+                        assert!(destination.is_some());
                         let formal_args: Vec<vir::LocalVar> = args
                             .iter()
                             .enumerate()
@@ -2051,8 +2051,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             })
                             .collect();
 
-                        // TODO CMFIXME we essentially have to do the same things as for pure funs
-                        assert!(destination.is_some());
                         let pos = self
                             .encoder
                             .error_manager()

@@ -16,10 +16,9 @@ const SNAPSHOT_GET: &str = "snap$";
 pub const SNAPSHOT_EQUALS: &str = "equals$";
 const SNAPSHOT_ARG: &str = "_arg";
 
-// TODO CMFIXME
 pub struct SnapshotEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    ty: ty::Ty<'tcx>, // TODO this is the type we are talking about
+    ty: ty::Ty<'tcx>,
     predicate_name: String,
 
 }
@@ -259,7 +258,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         )
     }
 
-    // TODO CMFIXME
     fn encode_domain_struct_cons_formal_args(&self) -> Vec<vir::LocalVar> {
         let mut counter = 0;
         let mut formal_args = vec![];
@@ -283,11 +281,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         formal_args
     }
 
-    // TODO CMFIXME
     fn encode_local_var(&self, counter: i32, field_type: &vir::Type) -> vir::LocalVar {
         let typ = match field_type.clone() {
             vir::Type::TypedRef(ref name) => {
-                println!("{}", name);
                 vir::Type::Domain(name.clone())
             },
             t => t,
@@ -296,8 +292,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::LocalVar { name, typ }
     }
 
-
-    // TODO CMFIXME
     fn encode_snap_func_struct_args(&self) -> Vec<vir::Expr> {
         match self.ty.sty {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
@@ -315,13 +309,15 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ).collect()
             },
             ty::TypeVariants::TyInt(_) => {
-                vec![vir::Expr::Local(self.encode_snap_arg_var(SNAPSHOT_ARG), vir::Position::default())]
+                vec![vir::Expr::Local(
+                    self.encode_snap_arg_var(SNAPSHOT_ARG),
+                    vir::Position::default()
+                )]
             },
             _ => unreachable!(),
         }
     }
 
-    // TODO CMFIXME
     fn encode_snap_arg(&self, field: vir::Field) -> vir::Expr {
         let field_type = field.typ.clone();
         match field.typ.clone() {
@@ -339,9 +335,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 self.encode_type_name(name.clone()),
                 vir::Position::default(),
             ),
-            Type::Int => { unimplemented!() } // TODO
-            Type::Bool => { unimplemented!() }
-            Type::Domain(_) => unreachable!(),
+            Type::Int | Type::Bool | Type::Domain(_) => { unimplemented!() }
         }
     }
 
@@ -353,10 +347,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             self.encoder.encode_get_domain_type(name)
         }
     }
-
-
-
-
 
     // TODO CMFIXME unify with encode_equals_def
     pub fn encode_equals_func_struct_ref(&self) -> vir::Function {
@@ -420,7 +410,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    // TODO CMFIXME: cleanup
+    // TODO CMFIXME
     fn encode_ref_snapshot_call(&self, formal_arg: vir::LocalVar) -> vir::Expr {
         let arg = vir::Expr::Field(
             Box::new(vir::Expr::Local(formal_arg.clone(), vir::Position::default())),
