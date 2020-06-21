@@ -213,7 +213,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 } else {
                     false
                 };
-                self.encoder.encode_snapshot_primitive(self.ty);
+                self.encoder.encode_snapshot(self.ty);
                 vec![vir::Predicate::new_primitive_value(
                     typ,
                     self.encoder.encode_value_field(self.ty),
@@ -260,7 +260,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                 self.encoder.encode_struct_field(&field_name, field_ty)
                             })
                             .collect();
-                        self.encoder.encode_snapshot_domain(self.ty);
+                        self.encoder.encode_snapshot(self.ty);
                         vec![vir::Predicate::new_struct(typ, fields)]
                     } else {
                         debug!("ADT {:?} has {} variants", adt_def, num_variants);
