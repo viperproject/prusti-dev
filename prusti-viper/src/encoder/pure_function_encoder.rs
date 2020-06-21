@@ -642,13 +642,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             let is_pure_function =
                                 self.encoder.env().has_attribute_name(def_id, "pure");
 
-                            let (function_name, return_type) = if is_pure_function {
+                            let (function_name, return_type, override_purity) = if is_pure_function {
                                 self.encoder.encode_pure_function_use(def_id)
                             } else {
                                 self.encoder.encode_stub_pure_function_use(def_id)
                             };
-                            // TODO CMFIXME
-                            if is_pure_function || function_name.eq("equals$") {
+                            if is_pure_function || override_purity {
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
