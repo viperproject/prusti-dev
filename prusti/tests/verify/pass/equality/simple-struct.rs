@@ -46,3 +46,6 @@ fn test_eq_propagation(x: &A, y: &A) -> i32 {
     get_value(x) + get_value(y)
 }
 
+fn main() {
+}
+
