@@ -47,7 +47,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyAdt(_, _) |
             ty::TypeVariants::TyTuple(_) |
             ty::TypeVariants::TyNever => {
-                // TODO CMFIXME notice that we exclude generics here
                 true
             }
             _ => {
@@ -73,6 +72,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyAdt(_, subst) => {
                 self.is_eq_supported_subst(subst)
             }
+
             _ => {
                 self.is_eq_supported_type(ty)
             }
@@ -90,7 +90,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             })
         });
         // TODO CMFIXME the last conjunct ensures that only structs are supported
-        supported_fields && self.is_eq_supported_subst(subst) && adt_def.variants.len() == 1
+        supported_fields && self.is_eq_supported_subst(subst) && adt_def.variants.len() == 1 && !adt_def.is_box()
     }
 
     /// Is this type supported?
