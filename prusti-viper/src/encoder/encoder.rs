@@ -1375,11 +1375,16 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        -> Option<vir::DomainFunc> {
         let mut mirrors = self.snap_mirror_funcs.borrow_mut();
         if !mirrors.contains_key(&def_id) {
-            // TODO CMFIXME do not generate a mirror as some unsupported type is involved
+            // TODO CMFIXME do not generate a mirror if some unsupported type is involved
             for a in &pure_function.formal_args {
-                if self.encode_get_domain_type(a.name.clone()).is_none() {
-                    mirrors.insert(def_id, None);
-                    return None;
+                match a.typ.clone() {
+                    Type::TypedRef(name) => {
+                        if self.encode_get_domain_type(name.clone()).is_none() {
+                            mirrors.insert(def_id, None);
+                            return None;
+                        }
+                    },
+                    _ => {}
                 }
             }
             let formal_args = pure_function
