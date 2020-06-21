@@ -31,7 +31,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             &Type::Bool => ast.bool_type(),
             //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
-            &Type::Domain(ref name) => ast.domain_type(&name),
+            &Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
         }
     }
 }

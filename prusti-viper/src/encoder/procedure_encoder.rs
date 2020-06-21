@@ -1905,7 +1905,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                     tymap_stack.push(tymap);
                 }
 
-                // TODO CMFIXME: look for calls to std::cmp::PartialEq::eq here?
                 match full_func_proc_name {
                     "std::rt::begin_panic" | "std::panicking::begin_panic" => {
                         // This is called when a Rust assertion fails
