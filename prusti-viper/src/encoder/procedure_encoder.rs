@@ -2035,6 +2035,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let return_type = vir::Type::Bool;
                         let arg_type = self.mir_encoder.
                             encode_operand_expr_type(&args[0]);
+
                         let function_name = self.encoder.
                             encode_snapshot_equals_use(arg_type.name().clone());
 
