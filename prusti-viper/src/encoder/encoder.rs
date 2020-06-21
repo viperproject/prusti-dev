@@ -552,7 +552,23 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let mut conjuncts = Vec::new();
         if num_variants == 1 {
             // A struct.
-            conjuncts.push(self.encode_adt_snap_eq_call(first, second));
+            // TODO CMFIXME: this should be replaced by
+            // conjuncts.push(self.encode_adt_snap_eq_call(first, second));
+            let variant_def = &adt_def.variants[0];
+            for field in &variant_def.fields {
+                let field_name = &field.ident.as_str();
+                let field_ty = field.ty(tcx, subst);
+                let elem_field = self.encode_struct_field(field_name, field_ty);
+                let first_field = first.clone().field(elem_field.clone());
+                let second_field = second.clone().field(elem_field);
+                let eq = self.encode_memory_eq_func_app(
+                    first_field,
+                    second_field,
+                    field_ty,
+                    vir::Position::default(),
+                );
+                conjuncts.push(eq);
+            }
         } else {
             // An enum.
             let discr_field = self.encode_discriminant_field();
