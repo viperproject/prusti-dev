@@ -800,10 +800,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
         trace!("encode_builtin_method_use({:?})", method_kind);
-        if !self.builtin_methods.borrow().contains_key(&method_kind) {
-            // Trigger encoding of definition
-            self.encode_builtin_method_def(method_kind);
-        }
+        // Trigger encoding of definition
+        self.encode_builtin_method_def(method_kind);
         let builtin_encoder = BuiltinEncoder::new();
         builtin_encoder.encode_builtin_method_name(method_kind)
     }
