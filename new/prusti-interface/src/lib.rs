@@ -60,6 +60,6 @@ pub mod report;
 // pub mod specifications; TODO: Delete.
 pub mod specs;
 // pub mod sysroot;
-// pub mod utils;
+pub mod utils;
 // pub mod cargo;
 // pub mod trait_register;

@@ -6,11 +6,12 @@
 
 //! Various helper functions for working with `mir::Place`.
 
-use rustc::mir;
-use rustc::ty::{self, TyCtxt};
-use rustc_data_structures::indexed_vec::Idx;
+use rustc_middle::mir;
+use rustc_middle::ty::{self, TyCtxt};
+use rustc_index::vec::Idx;
 use std::collections::HashSet;
-use syntax::ast;
+use rustc_ast::ast;
+use log::trace;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
@@ -18,15 +19,10 @@ use syntax::ast;
 /// +   `is_prefix(x.f.g, x.f) == true`
 /// +   `is_prefix(x.f, x.f.g) == false`
 pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
-    if place == potential_prefix {
-        true
+    if place.local != potential_prefix.local || place.projection.len() > potential_prefix.projection.len() {
+        false
     } else {
-        match place {
-            mir::Place::Local(_) | mir::Place::Static(_) => false,
-            mir::Place::Projection(box mir::Projection { base, .. }) => {
-                is_prefix(base, potential_prefix)
-            }
-        }
+        place.projection.iter().zip(potential_prefix.projection.iter()).all(|(e1, e2)| e1 == e2)
     }
 }
 
@@ -36,51 +32,52 @@ pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
 /// vector.
 pub fn expand_struct_place<'a, 'tcx: 'a>(
     place: &mir::Place<'tcx>,
-    mir: &mir::Mir<'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    mir: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
     without_element: Option<usize>,
 ) -> Vec<mir::Place<'tcx>> {
     let mut places = Vec::new();
-    match place.ty(mir, tcx) {
-        mir::tcx::PlaceTy::Ty { ty: base_ty } => match base_ty.sty {
-            ty::TyAdt(def, substs) => {
-                assert!(
-                    def.variants.len() == 1,
-                    "Only structs can be expanded. Got def={:?}.",
-                    def
-                );
-                for (index, field_def) in def.variants[0].fields.iter().enumerate() {
-                    if Some(index) != without_element {
-                        let field = mir::Field::new(index);
-                        places.push(place.clone().field(field, field_def.ty(tcx, substs)));
-                    }
-                }
-            }
-            ty::TyTuple(slice) => {
-                for (index, ty) in slice.iter().enumerate() {
-                    if Some(index) != without_element {
-                        let field = mir::Field::new(index);
-                        places.push(place.clone().field(field, ty));
-                    }
-                }
-            }
-            ty::TyRef(_region, _ty, _) => match without_element {
-                Some(without_element) => {
-                    assert_eq!(
-                        without_element, 0,
-                        "References have only a single “field”."
-                    );
-                }
-                None => {
-                    places.push(place.clone().deref());
-                }
-            },
-            ref ty => {
-                unimplemented!("ty={:?}", ty);
-            }
-        },
-        mir::tcx::PlaceTy::Downcast { .. } => {}
-    }
+    // match place.ty(mir, tcx) {
+    //     mir::tcx::PlaceTy::Ty { ty: base_ty } => match base_ty.sty {
+    //         ty::TyAdt(def, substs) => {
+    //             assert!(
+    //                 def.variants.len() == 1,
+    //                 "Only structs can be expanded. Got def={:?}.",
+    //                 def
+    //             );
+    //             for (index, field_def) in def.variants[0].fields.iter().enumerate() {
+    //                 if Some(index) != without_element {
+    //                     let field = mir::Field::new(index);
+    //                     places.push(place.clone().field(field, field_def.ty(tcx, substs)));
+    //                 }
+    //             }
+    //         }
+    //         ty::TyTuple(slice) => {
+    //             for (index, ty) in slice.iter().enumerate() {
+    //                 if Some(index) != without_element {
+    //                     let field = mir::Field::new(index);
+    //                     places.push(place.clone().field(field, ty));
+    //                 }
+    //             }
+    //         }
+    //         ty::TyRef(_region, _ty, _) => match without_element {
+    //             Some(without_element) => {
+    //                 assert_eq!(
+    //                     without_element, 0,
+    //                     "References have only a single “field”."
+    //                 );
+    //             }
+    //             None => {
+    //                 places.push(place.clone().deref());
+    //             }
+    //         },
+    //         ref ty => {
+    //             unimplemented!("ty={:?}", ty);
+    //         }
+    //     },
+    //     mir::tcx::PlaceTy::Downcast { .. } => {}
+    // }
+    unimplemented!();
     places
 }
 
@@ -93,8 +90,8 @@ pub fn expand_struct_place<'a, 'tcx: 'a>(
 /// subtracting `{x.f.g.h}` from it, which results into `{x.g, x.h,
 /// x.f.f, x.f.h, x.f.g.f, x.f.g.g}`.
 pub fn expand<'a, 'tcx: 'a>(
-    mir: &mir::Mir<'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    mir: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
     minuend: &mir::Place<'tcx>,
     subtrahend: &mir::Place<'tcx>,
 ) -> Vec<mir::Place<'tcx>> {
@@ -107,73 +104,75 @@ pub fn expand<'a, 'tcx: 'a>(
         minuend,
         subtrahend
     );
-    let mut place_set = Vec::new();
-    fn expand_recursively<'a, 'tcx: 'a>(
-        place_set: &mut Vec<mir::Place<'tcx>>,
-        mir: &mir::Mir<'tcx>,
-        tcx: TyCtxt<'a, 'tcx, 'tcx>,
-        minuend: &mir::Place<'tcx>,
-        subtrahend: &mir::Place<'tcx>,
-    ) {
-        trace!(
-            "[enter] expand_recursively minuend={:?} subtrahend={:?}",
-            minuend,
-            subtrahend
-        );
-        if minuend != subtrahend {
-            match subtrahend {
-                mir::Place::Projection(box mir::Projection { base, elem }) => {
-                    // We just recurse until both paths become equal.
-                    expand_recursively(place_set, mir, tcx, minuend, base);
-                    match elem {
-                        mir::ProjectionElem::Field(projected_field, _field_ty) => {
-                            let places =
-                                expand_struct_place(base, mir, tcx, Some(projected_field.index()));
-                            place_set.extend(places);
-                        }
-                        mir::ProjectionElem::Downcast(_def, _variant) => {}
-                        mir::ProjectionElem::Deref => {}
-                        elem => {
-                            unimplemented!("elem = {:?}", elem);
-                        }
-                    }
-                }
-                _ => unreachable!(),
-            }
-        }
-    };
-    expand_recursively(&mut place_set, mir, tcx, minuend, subtrahend);
-    trace!(
-        "[exit] expand minuend={:?} subtrahend={:?} place_set={:?}",
-        minuend,
-        subtrahend,
-        place_set
-    );
-    place_set
+    // let mut place_set = Vec::new();
+    // fn expand_recursively<'a, 'tcx: 'a>(
+    //     place_set: &mut Vec<mir::Place<'tcx>>,
+    //     mir: &mir::Body<'tcx>,
+    //     tcx: TyCtxt<'tcx>,
+    //     minuend: &mir::Place<'tcx>,
+    //     subtrahend: &mir::Place<'tcx>,
+    // ) {
+    //     trace!(
+    //         "[enter] expand_recursively minuend={:?} subtrahend={:?}",
+    //         minuend,
+    //         subtrahend
+    //     );
+    //     if minuend != subtrahend {
+    //         match subtrahend {
+    //             mir::Place::Projection(box mir::Projection { base, elem }) => {
+    //                 // We just recurse until both paths become equal.
+    //                 expand_recursively(place_set, mir, tcx, minuend, base);
+    //                 match elem {
+    //                     mir::ProjectionElem::Field(projected_field, _field_ty) => {
+    //                         let places =
+    //                             expand_struct_place(base, mir, tcx, Some(projected_field.index()));
+    //                         place_set.extend(places);
+    //                     }
+    //                     mir::ProjectionElem::Downcast(_def, _variant) => {}
+    //                     mir::ProjectionElem::Deref => {}
+    //                     elem => {
+    //                         unimplemented!("elem = {:?}", elem);
+    //                     }
+    //                 }
+    //             }
+    //             _ => unreachable!(),
+    //         }
+    //     }
+    // };
+    // expand_recursively(&mut place_set, mir, tcx, minuend, subtrahend);
+    // trace!(
+    //     "[exit] expand minuend={:?} subtrahend={:?} place_set={:?}",
+    //     minuend,
+    //     subtrahend,
+    //     place_set
+    // );
+    // place_set
+    unimplemented!();
 }
 
 /// Try to collapse all places in `places` by following the
 /// `guide_place`. This function is basically the reverse of
 /// `expand_struct_place`.
 pub fn collapse<'a, 'tcx: 'a>(
-    mir: &mir::Mir<'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    mir: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
     places: &mut HashSet<mir::Place<'tcx>>,
     guide_place: &mir::Place<'tcx>,
 ) {
-    let mut guide_place = guide_place.clone();
-    while let mir::Place::Projection(box mir::Projection { base, elem: _ }) = guide_place {
-        let expansion = expand_struct_place(&base, mir, tcx, None);
-        if expansion.iter().all(|place| places.contains(place)) {
-            for place in expansion {
-                places.remove(&place);
-            }
-            places.insert(base.clone());
-        } else {
-            return;
-        }
-        guide_place = base;
-    }
+    // let mut guide_place = guide_place.clone();
+    // while let mir::Place::Projection(box mir::Projection { base, elem: _ }) = guide_place {
+    //     let expansion = expand_struct_place(&base, mir, tcx, None);
+    //     if expansion.iter().all(|place| places.contains(place)) {
+    //         for place in expansion {
+    //             places.remove(&place);
+    //         }
+    //         places.insert(base.clone());
+    //     } else {
+    //         return;
+    //     }
+    //     guide_place = base;
+    // }
+    unimplemented!();
 }
 
 #[derive(Debug)]
@@ -199,20 +198,21 @@ impl<'tcx> VecPlace<'tcx> {
         let mut vec_place = Self {
             components: Vec::new(),
         };
-        fn unroll_place<'tcx>(vec_place: &mut VecPlace<'tcx>, current: &mir::Place<'tcx>) {
-            match current {
-                mir::Place::Local(_) => {}
-                mir::Place::Projection(box mir::Projection { base, .. }) => {
-                    unroll_place(vec_place, base);
-                }
-                _ => unimplemented!(),
-            }
-            vec_place.components.push(VecPlaceComponent {
-                place: current.clone(),
-            });
-        }
-        unroll_place(&mut vec_place, place);
-        vec_place
+        // fn unroll_place<'tcx>(vec_place: &mut VecPlace<'tcx>, current: &mir::Place<'tcx>) {
+        //     match current {
+        //         mir::Place::Local(_) => {}
+        //         mir::Place::Projection(box mir::Projection { base, .. }) => {
+        //             unroll_place(vec_place, base);
+        //         }
+        //         _ => unimplemented!(),
+        //     }
+        //     vec_place.components.push(VecPlaceComponent {
+        //         place: current.clone(),
+        //     });
+        // }
+        // unroll_place(&mut vec_place, place);
+        // vec_place
+        unimplemented!();
     }
     pub fn iter<'a>(&'a self) -> impl DoubleEndedIterator<Item = &'a VecPlaceComponent<'tcx>> {
         self.components.iter()
@@ -222,28 +222,28 @@ impl<'tcx> VecPlace<'tcx> {
     }
 }
 
-pub fn get_attr_value(attr: &ast::Attribute) -> String {
-    use syntax::parse::token;
-    use syntax::tokenstream::TokenTree;
+// pub fn get_attr_value(attr: &ast::Attribute) -> String {
+//     use syntax::parse::token;
+//     use syntax::tokenstream::TokenTree;
 
-    let trees: Vec<_> = attr.tokens.trees().collect();
-    assert_eq!(trees.len(), 2);
+//     let trees: Vec<_> = attr.tokens.trees().collect();
+//     assert_eq!(trees.len(), 2);
 
-    match trees[0] {
-        TokenTree::Token(_, ref token) => assert_eq!(*token, token::Token::Eq),
-        _ => unreachable!(),
-    };
+//     match trees[0] {
+//         TokenTree::Token(_, ref token) => assert_eq!(*token, token::Token::Eq),
+//         _ => unreachable!(),
+//     };
 
-    match trees[1] {
-        TokenTree::Token(_, ref token) => match *token {
-            token::Token::Literal(ref lit, None) => match *lit {
-                token::Lit::Str_(ref name) | token::Lit::StrRaw(ref name, _) => {
-                    name.as_str().to_string()
-                }
-                _ => unreachable!(),
-            },
-            _ => unreachable!(),
-        },
-        _ => unreachable!(),
-    }
-}
+//     match trees[1] {
+//         TokenTree::Token(_, ref token) => match *token {
+//             token::Token::Literal(ref lit, None) => match *lit {
+//                 token::Lit::Str_(ref name) | token::Lit::StrRaw(ref name, _) => {
+//                     name.as_str().to_string()
+//                 }
+//                 _ => unreachable!(),
+//             },
+//             _ => unreachable!(),
+//         },
+//         _ => unreachable!(),
+//     }
+// }

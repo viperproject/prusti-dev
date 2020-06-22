@@ -11,7 +11,7 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::ty::{self, TyCtxt};
 use std::path::PathBuf;
 
-use rustc_span::Span;
+use rustc_span::{Span, MultiSpan};
 // use rustc::hir;
 // use rustc::hir::def_id::DefId;
 // use rustc::ty;
@@ -26,17 +26,17 @@ use rustc_span::Span;
 pub mod borrowck;
 mod collect_prusti_spec_visitor;
 // mod dump_borrowck_info;
-// mod loops;
+mod loops;
 // mod loops_utils;
 // pub mod mir_analyses;
-// pub mod place_set;
+pub mod place_set;
 // pub mod polonius_info;
-// mod procedure;
+mod procedure;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 // pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 // pub use self::loops_utils::*;
-// pub use self::procedure::{BasicBlockIndex, Procedure};
+pub use self::procedure::{BasicBlockIndex, Procedure};
 // use config;
 use crate::data::ProcedureDefId;
 // use syntax::codemap::CodeMap;
@@ -103,24 +103,24 @@ impl<'tcx> Environment<'tcx> {
     //     self.state.session.span_err(sp, msg);
     // }
 
-    // /// Emits an error message.
-    // pub fn span_err_with_help_and_note<S: Into<MultiSpan> + Clone>(
-    //     &self,
-    //     sp: S,
-    //     msg: &str,
-    //     help: &Option<String>,
-    //     note: &Option<(String, S)>
-    // ) {
-    //     let mut diagnostic = self.state.session.struct_err(msg);
-    //     diagnostic.set_span(sp);
-    //     if let Some(help_msg) = help {
-    //         diagnostic.help(help_msg);
-    //     }
-    //     if let Some((note_msg, note_sp)) = note {
-    //         diagnostic.span_note(note_sp.clone(), note_msg);
-    //     }
-    //     diagnostic.emit();
-    // }
+    /// Emits an error message.
+    pub fn span_err_with_help_and_note<S: Into<MultiSpan> + Clone>(
+        &self,
+        sp: S,
+        msg: &str,
+        help: &Option<String>,
+        note: &Option<(String, S)>
+    ) {
+        let mut diagnostic = self.tcx.sess.struct_err(msg);
+        diagnostic.set_span(sp);
+        if let Some(help_msg) = help {
+            diagnostic.help(help_msg);
+        }
+        if let Some((note_msg, note_sp)) = note {
+            diagnostic.span_note(note_sp.clone(), note_msg);
+        }
+        diagnostic.emit();
+    }
 
     /// Returns true if an error has been emitted
     pub fn has_errors(&self) -> bool {
@@ -191,10 +191,10 @@ impl<'tcx> Environment<'tcx> {
     //     self.tcx().item_path_str(def_id)
     // }
 
-    // /// Get a Procedure.
-    // pub fn get_procedure(&self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
-    //     Procedure::new(self.tcx(), proc_def_id)
-    // }
+    /// Get a Procedure.
+    pub fn get_procedure<'a>(&'a self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
+        Procedure::new(self.tcx(), proc_def_id)
+    }
 
     // /// Get all relevant trait declarations for some type.
     // pub fn get_traits_decls_for_type(&self, ty: &ty::Ty<'tcx>) -> HashSet<DefId> {

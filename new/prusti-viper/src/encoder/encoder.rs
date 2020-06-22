@@ -6,13 +6,13 @@
 
 use ::log::{debug, trace};
 // use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
-// use crate::encoder::builtin_encoder::BuiltinEncoder;
-// use crate::encoder::builtin_encoder::BuiltinFunctionKind;
+use crate::encoder::builtin_encoder::BuiltinEncoder;
+use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
-// use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
+use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
 // use crate::encoder::foldunfold;
 // use crate::encoder::places;
-// use crate::encoder::procedure_encoder::ProcedureEncoder;
+use crate::encoder::procedure_encoder::ProcedureEncoder;
 // use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 // use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 // use crate::encoder::spec_encoder::SpecEncoder;
@@ -38,21 +38,22 @@ use rustc_middle::mir;
 use rustc_middle::ty;
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
-// use std::io::Write;
+use std::io::Write;
 // use std::mem;
 // use syntax::ast;
 // use viper;
-// use encoder::stub_procedure_encoder::StubProcedureEncoder;
-// use std::ops::AddAssign;
+use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
+use std::ops::AddAssign;
+use ::log::info;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     spec: &'v typed::SpecificationMap,
     // error_manager: RefCell<ErrorManager<'tcx>>,
     // procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
-    // builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
+    builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     // builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
-    // procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
+    procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
     // pure_function_bodies: RefCell<HashMap<(ProcedureDefId, String), vir::Expr>>,
     // pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
     // /// Stub pure functions. Generated when an impure Rust function is invoked
@@ -80,9 +81,9 @@ pub struct Encoder<'v, 'tcx: 'v> {
     >,
     encoding_queue: RefCell<Vec<(ProcedureDefId, Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>)>>,
     // vir_program_before_foldunfold_writer: RefCell<Box<Write>>,
-    // vir_program_before_viper_writer: RefCell<Box<Write>>,
-    // pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
-    // encoding_errors_counter: RefCell<usize>,
+    vir_program_before_viper_writer: RefCell<Box<Write>>,
+    pub typaram_repl: RefCell<Vec<HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>>>>,
+    encoding_errors_counter: RefCell<usize>,
 }
 
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
@@ -111,9 +112,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             spec,
             // error_manager: RefCell::new(ErrorManager::new(env.codemap())),
             // procedure_contracts: RefCell::new(HashMap::new()),
-            // builtin_methods: RefCell::new(HashMap::new()),
+            builtin_methods: RefCell::new(HashMap::new()),
             // builtin_functions: RefCell::new(HashMap::new()),
-            // procedures: RefCell::new(HashMap::new()),
+            procedures: RefCell::new(HashMap::new()),
             // pure_function_bodies: RefCell::new(HashMap::new()),
             // pure_functions: RefCell::new(HashMap::new()),
             // stub_pure_functions: RefCell::new(HashMap::new()),
@@ -130,9 +131,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
             // vir_program_before_foldunfold_writer,
-            // vir_program_before_viper_writer,
-            // typaram_repl: RefCell::new(Vec::new()),
-            // encoding_errors_counter: RefCell::new(0),
+            vir_program_before_viper_writer,
+            typaram_repl: RefCell::new(Vec::new()),
+            encoding_errors_counter: RefCell::new(0),
         }
     }
 
@@ -149,26 +150,25 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     writer.flush().ok().unwrap();
     // }
 
-    // pub fn log_vir_program_before_viper<S: ToString>(&self, program: S) {
-    //     let mut writer = self.vir_program_before_viper_writer.borrow_mut();
-    //     writer
-    //         .write_all(program.to_string().as_bytes())
-    //         .ok()
-    //         .unwrap();
-    //     writer
-    //         .write_all("\n\n".to_string().as_bytes())
-    //         .ok()
-    //         .unwrap();
-    //     writer.flush().ok().unwrap();
-    // }
+    pub fn log_vir_program_before_viper<S: ToString>(&self, program: S) {
+        let mut writer = self.vir_program_before_viper_writer.borrow_mut();
+        writer
+            .write_all(program.to_string().as_bytes())
+            .ok()
+            .unwrap();
+        writer
+            .write_all("\n\n".to_string().as_bytes())
+            .ok()
+            .unwrap();
+        writer.flush().ok().unwrap();
+    }
 
     fn initialize(&mut self) {
         self.collect_closure_instantiations();
         // These are used in optimization passes
         self.encode_builtin_method_def(BuiltinMethodKind::HavocBool);
-        // self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
-        // self.encode_builtin_method_def(BuiltinMethodKind::HavocRef);
-        unimplemented!();
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocInt);
+        self.encode_builtin_method_def(BuiltinMethodKind::HavocRef);
     }
 
     pub fn env(&self) -> &'v Environment<'tcx> {
@@ -183,13 +183,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     self.error_manager.borrow_mut()
     // }
 
-    // pub(in encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
-    //     debug!("Encoding error: {:?}", encoding_error);
-    //     let prusti_error: PrustiError = encoding_error.into();
-    //     debug!("Prusti error: {:?}", prusti_error);
-    //     prusti_error.emit(self.env);
-    //     self.encoding_errors_counter.borrow_mut().add_assign(1);
-    // }
+    pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
+        debug!("Encoding error: {:?}", encoding_error);
+        let prusti_error: PrustiError = encoding_error.into();
+        debug!("Prusti error: {:?}", prusti_error);
+        prusti_error.emit(self.env);
+        self.encoding_errors_counter.borrow_mut().add_assign(1);
+    }
 
     // pub fn count_encoding_errors(&self) -> usize {
     //     *self.encoding_errors_counter.borrow()
@@ -760,16 +760,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_builtin_method_def(&self, method_kind: BuiltinMethodKind) -> vir::BodylessMethod {
         trace!("encode_builtin_method_def({:?})", method_kind);
-        // if !self.builtin_methods.borrow().contains_key(&method_kind) {
-        //     let builtin_encoder = BuiltinEncoder::new();
-        //     let method = builtin_encoder.encode_builtin_method_def(method_kind);
-        //     self.log_vir_program_before_viper(method.to_string());
-        //     self.builtin_methods
-        //         .borrow_mut()
-        //         .insert(method_kind.clone(), method);
-        // }
-        // self.builtin_methods.borrow()[&method_kind].clone()
-        unimplemented!();
+        if !self.builtin_methods.borrow().contains_key(&method_kind) {
+            let builtin_encoder = BuiltinEncoder::new();
+            let method = builtin_encoder.encode_builtin_method_def(method_kind);
+            self.log_vir_program_before_viper(method.to_string());
+            self.builtin_methods
+                .borrow_mut()
+                .insert(method_kind.clone(), method);
+        }
+        self.builtin_methods.borrow()[&method_kind].clone()
     }
 
     // pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
@@ -805,32 +804,34 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     builtin_encoder.encode_builtin_function_name(&function_kind)
     // }
 
-    // pub fn encode_procedure(&self, def_id: ProcedureDefId) -> vir::CfgMethod {
-    //     debug!("encode_procedure({:?})", def_id);
-    //     assert!(
-    //         !self.env.has_attribute_name(def_id, "pure"),
-    //         "procedure is marked as pure: {:?}",
-    //         def_id
-    //     );
-    //     assert!(
-    //         !self.env.has_attribute_name(def_id, "trusted"),
-    //         "procedure is marked as trusted: {:?}",
-    //         def_id
-    //     );
-    //     if !self.procedures.borrow().contains_key(&def_id) {
-    //         let procedure = self.env.get_procedure(def_id);
-    //         let method = match ProcedureEncoder::new(self, &procedure).encode() {
-    //             Ok(result) => result,
-    //             Err(error) => {
-    //                 self.register_encoding_error(error);
-    //                 StubProcedureEncoder::new(self, &procedure).encode()
-    //             },
-    //         };
-    //         self.log_vir_program_before_viper(method.to_string());
-    //         self.procedures.borrow_mut().insert(def_id, method);
-    //     }
-    //     self.procedures.borrow()[&def_id].clone()
-    // }
+    pub fn encode_procedure(&self, def_id: ProcedureDefId) -> vir::CfgMethod {
+        debug!("encode_procedure({:?})", def_id);
+        assert!(
+            !self.env.has_attribute_name(def_id, "pure"),
+            "procedure is marked as pure: {:?}",
+            def_id
+        );
+        assert!(
+            !self.env.has_attribute_name(def_id, "trusted"),
+            "procedure is marked as trusted: {:?}",
+            def_id
+        );
+        if !self.procedures.borrow().contains_key(&def_id) {
+            let procedure = self.env.get_procedure(def_id);
+            let method = match ProcedureEncoder::new(self, &procedure).encode() {
+                Ok(result) => result,
+                Err(error) => {
+                    self.register_encoding_error(error);
+                    unimplemented!();
+                    // StubProcedureEncoder::new(self, &procedure).encode()
+                },
+            };
+            // self.log_vir_program_before_viper(method.to_string());
+            // self.procedures.borrow_mut().insert(def_id, method);
+        }
+        unimplemented!();
+        self.procedures.borrow()[&def_id].clone()
+    }
 
     // pub fn encode_value_type(&self, ty: ty::Ty<'tcx>) -> vir::Type {
     //     let type_encoder = TypeEncoder::new(self, ty);
@@ -1182,32 +1183,32 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     self.pure_function_bodies.borrow()[&key].clone()
     // }
 
-    // pub fn encode_pure_function_def(
-    //     &self,
-    //     proc_def_id: ProcedureDefId,
-    //     substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
-    // ) {
-    //     trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
-    //     assert!(
-    //         self.env.has_attribute_name(proc_def_id, "pure"),
-    //         "procedure is not marked as pure: {:?}",
-    //         proc_def_id
-    //     );
+    pub fn encode_pure_function_def(
+        &self,
+        proc_def_id: ProcedureDefId,
+        substs: Vec<(ty::Ty<'tcx>, ty::Ty<'tcx>)>,
+    ) {
+        trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
+        assert!(
+            self.env.has_attribute_name(proc_def_id, "pure"),
+            "procedure is not marked as pure: {:?}",
+            proc_def_id
+        );
 
-    //     {
-    //         // FIXME; hideous monstrosity...
-    //         let mut tymap_stack = self.typaram_repl.borrow_mut();
-    //         assert!(tymap_stack.is_empty());
-    //         let mut tymap = HashMap::new();
-    //         for (typ, subst) in substs {
-    //             tymap.insert(typ, subst);
-    //         }
-    //         tymap_stack.push(tymap);
-    //     }
+        {
+            // FIXME; hideous monstrosity...
+            let mut tymap_stack = self.typaram_repl.borrow_mut();
+            assert!(tymap_stack.is_empty());
+            let mut tymap = HashMap::new();
+            for (typ, subst) in substs {
+                tymap.insert(typ, subst);
+            }
+            tymap_stack.push(tymap);
+        }
 
-    //     // FIXME: Using substitutions as a key is most likely wrong.
-    //     let substs_key = self.type_substitution_key();
-    //     let key = (proc_def_id, substs_key);
+        // FIXME: Using substitutions as a key is most likely wrong.
+        let substs_key = self.type_substitution_key();
+        let key = (proc_def_id, substs_key);
 
     //     if !self.pure_functions.borrow().contains_key(&key) {
     //         trace!("not encoded: {:?}", key);
@@ -1228,8 +1229,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //         let mut tymap_stack = self.typaram_repl.borrow_mut();
     //         tymap_stack.pop();
     //     }
-    //     trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
-    // }
+    unimplemented!();
+        trace!("[exit] encode_pure_function_def({:?})", proc_def_id);
+    }
 
     // /// Encode the use (call) of a pure function, returning the name of the
     // /// function and its type.
@@ -1300,39 +1302,38 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();
-        // while !self.encoding_queue.borrow().is_empty() {
-        //     let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
-        //     let proc_name = self.env.get_absolute_item_name(proc_def_id);
-        //     let proc_def_path = self.env.get_item_def_path(proc_def_id);
-        //     let proc_span = self.env.get_item_span(proc_def_id);
-        //     info!(
-        //         "Encoding: {} from {:?} ({})",
-        //         proc_name, proc_span, proc_def_path
-        //     );
-        //     let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
-        //     if is_pure_function {
-        //         self.encode_pure_function_def(proc_def_id, substs);
-        //     } else {
-        //         assert!(substs.is_empty());
-        //         if self.is_trusted(proc_def_id) {
-        //             debug!(
-        //                 "Trusted procedure will not be encoded or verified: {:?}",
-        //                 proc_def_id
-        //             );
-        //         } else {
-        //             self.encode_procedure(proc_def_id);
-        //         }
-        //     }
-        // }
-        unimplemented!();
+        while !self.encoding_queue.borrow().is_empty() {
+            let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
+            let proc_name = self.env.get_absolute_item_name(proc_def_id);
+            let proc_def_path = self.env.get_item_def_path(proc_def_id);
+            let proc_span = self.env.get_item_span(proc_def_id);
+            info!(
+                "Encoding: {} from {:?} ({})",
+                proc_name, proc_span, proc_def_path
+            );
+            let is_pure_function = self.env.has_attribute_name(proc_def_id, "pure");
+            if is_pure_function {
+                self.encode_pure_function_def(proc_def_id, substs);
+            } else {
+                assert!(substs.is_empty());
+                if self.is_trusted(proc_def_id) {
+                    debug!(
+                        "Trusted procedure will not be encoded or verified: {:?}",
+                        proc_def_id
+                    );
+                } else {
+                    self.encode_procedure(proc_def_id);
+                }
+            }
+        }
     }
 
-    // pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
-    //     trace!("is_trusted {:?}", def_id);
-    //     let result = self.env().has_attribute_name(def_id, "trusted");
-    //     trace!("is_trusted {:?} = {}", def_id, result);
-    //     result
-    // }
+    pub fn is_trusted(&self, def_id: ProcedureDefId) -> bool {
+        trace!("is_trusted {:?}", def_id);
+        let result = self.env().has_attribute_name(def_id, "trusted");
+        trace!("is_trusted {:?} = {}", def_id, result);
+        result
+    }
 
     // /// Convert a potential type parameter to a concrete type.
     // pub fn resolve_typaram(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
@@ -1344,54 +1345,56 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     ty
     // }
 
-    // /// Merges the stack of type maps into a single map.
-    // pub fn current_tymap(&self) -> HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {
-    //     let mut map = HashMap::new();
-    //     for map_frame in self.typaram_repl.borrow().iter().rev() {
-    //         for (typ, subst) in map_frame {
-    //             map.insert(typ.clone(), subst.clone());
-    //             let additional_substs: Vec<_> = map
-    //                 .iter()
-    //                 .filter(|(_typ1, typ2)| typ2 == &typ)
-    //                 .map(|(typ1, typ2)| (typ1.clone(), typ2.clone()))
-    //                 .collect();
-    //             for (typ, subst) in additional_substs {
-    //                 map.insert(typ, subst);
-    //             }
-    //         }
-    //     }
-    //     map
-    // }
+    /// Merges the stack of type maps into a single map.
+    pub fn current_tymap(&self) -> HashMap<ty::Ty<'tcx>, ty::Ty<'tcx>> {
+        let mut map = HashMap::new();
+        for map_frame in self.typaram_repl.borrow().iter().rev() {
+            for (typ, subst) in map_frame {
+                map.insert(typ.clone(), subst.clone());
+                let additional_substs: Vec<_> = map
+                    .iter()
+                    .filter(|(_typ1, typ2)| typ2 == &typ)
+                    .map(|(typ1, typ2)| (typ1.clone(), typ2.clone()))
+                    .collect();
+                for (typ, subst) in additional_substs {
+                    map.insert(typ, subst);
+                }
+            }
+        }
+        map
+    }
 
-    // /// TODO: This is a hack, it generates strings that can be used to instantiate generic pure
-    // /// functions.
-    // pub fn type_substitution_strings(&self) -> HashMap<String, String> {
-    //     self.current_tymap()
-    //         .iter()
-    //         .map(|(typ, subst)| {
-    //             let encoded_typ = match self.encode_type(typ) {
-    //                 vir::Type::TypedRef(s) => s.clone(),
-    //                 x => unreachable!("{:?}", x),
-    //             };
-    //             let encoded_subst = match self.encode_type(subst) {
-    //                 vir::Type::TypedRef(s) => s.clone(),
-    //                 x => unreachable!("{:?}", x),
-    //             };
-    //             (encoded_typ, encoded_subst)
-    //         })
-    //         .collect()
-    // }
+    /// TODO: This is a hack, it generates strings that can be used to instantiate generic pure
+    /// functions.
+    pub fn type_substitution_strings(&self) -> HashMap<String, String> {
+        self.current_tymap()
+            // .iter()
+            // .map(|(typ, subst)| {
+            //     let encoded_typ = match self.encode_type(typ) {
+            //         vir::Type::TypedRef(s) => s.clone(),
+            //         x => unreachable!("{:?}", x),
+            //     };
+            //     let encoded_subst = match self.encode_type(subst) {
+            //         vir::Type::TypedRef(s) => s.clone(),
+            //         x => unreachable!("{:?}", x),
+            //     };
+            //     (encoded_typ, encoded_subst)
+            // })
+            // .collect()
+            ;
+            unimplemented!()
+    }
 
-    // /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
-    // /// type substitution.
-    // pub fn type_substitution_key(&self) -> String {
-    //     let mut substs: Vec<_> = self
-    //         .type_substitution_strings()
-    //         .into_iter()
-    //         .filter(|(typ, subst)| typ != subst)
-    //         .map(|(typ, subst)| format!("({},{})", typ, subst))
-    //         .collect();
-    //     substs.sort();
-    //     substs.join(";")
-    // }
+    /// TODO: This is a hack, it generates a String that can be used for uniquely identifying this
+    /// type substitution.
+    pub fn type_substitution_key(&self) -> String {
+        let mut substs: Vec<_> = self
+            .type_substitution_strings()
+            .into_iter()
+            .filter(|(typ, subst)| typ != subst)
+            .map(|(typ, subst)| format!("({},{})", typ, subst))
+            .collect();
+        substs.sort();
+        substs.join(";")
+    }
 }
