@@ -6,7 +6,7 @@
 
 pub use self::encoder::Encoder;
 
-// mod borrows;
+mod borrows;
 mod builtin_encoder;
 mod encoder;
 mod errors;
@@ -17,7 +17,7 @@ mod errors;
 // mod mir_successor;
 // mod mir_interpreter;
 // mod optimiser;
-// mod places;
+mod places;
 mod procedure_encoder;
 // mod pure_function_encoder;
 // mod spec_encoder;

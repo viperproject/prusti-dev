@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// use crate::encoder::borrows::ProcedureContract;
+use crate::encoder::borrows::ProcedureContract;
 // use crate::encoder::builtin_encoder::BuiltinMethodKind;
 // use crate::encoder::errors::PanicCause;
 use crate::encoder::errors::{EncodingError, ErrorCtxt};
@@ -26,7 +26,7 @@ use prusti_common::vir::optimisations::methods::{
 use prusti_common::vir::{self, CfgBlockIndex, Successor};
 use prusti_common::vir::{ExprIterator, FoldingBehaviour};
 // use prusti_common::config;
-// use prusti_interface::data::ProcedureDefId;
+use prusti_interface::data::ProcedureDefId;
 // use prusti_interface::environment::borrowck::facts;
 // use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo, PoloniusInfoError};
 // use prusti_interface::environment::polonius_info::{
@@ -38,7 +38,7 @@ use prusti_interface::environment::Procedure;
 // use prusti_common::report::log;
 // use prusti_interface::specifications::*;
 // use rustc::hir::Mutability;
-// use rustc::mir;
+use rustc_middle::mir;
 // use rustc::mir::TerminatorKind;
 // use rustc::ty;
 // use rustc::ty::layout;
@@ -49,15 +49,16 @@ use prusti_interface::environment::Procedure;
 // use std::collections::HashSet;
 // use syntax::attr::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
+use ::log::trace;
 
 type Result<T> = std::result::Result<T, EncodingError>;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
-    // proc_def_id: ProcedureDefId,
+    proc_def_id: ProcedureDefId,
     // procedure: &'p Procedure<'a, 'tcx>,
-    // mir: &'p mir::Mir<'tcx>,
-    // cfg_method: vir::CfgMethod,
+    mir: &'p mir::Body<'tcx>,
+    cfg_method: vir::CfgMethod,
     // locals: LocalVariableManager<'tcx>,
     // loop_encoder: LoopEncoder<'p, 'a, 'tcx>,
     // auxiliary_local_vars: HashMap<String, vir::Type>,
@@ -65,7 +66,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     // check_panics: bool,
     // check_fold_unfold_state: bool,
     // polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
-    // procedure_contract: Option<ProcedureContract<'tcx>>,
+    procedure_contract: Option<ProcedureContract<'tcx>>,
     // label_after_location: HashMap<mir::Location, String>,
     // /// Store the CFG blocks that encode a MIR block each.
     // cfg_blocks_map: HashMap<mir::BasicBlock, HashSet<CfgBlockIndex>>,
@@ -93,31 +94,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     pub fn new(encoder: &'p Encoder<'v, 'tcx>, procedure: &'p Procedure<'p, 'tcx>) -> Self {
         // debug!("ProcedureEncoder constructor");
 
-        // let mir = procedure.get_mir();
-        // let def_id = procedure.get_id();
-        // let tcx = encoder.env().tcx();
+        let mir = procedure.get_mir();
+        let def_id = procedure.get_id();
+        let tcx = encoder.env().tcx();
         // let mir_encoder = MirEncoder::new(encoder, mir, def_id);
         // let init_info = InitInfo::new(mir, tcx, def_id, &mir_encoder);
 
-        // let cfg_method = vir::CfgMethod::new(
-        //     // method name
-        //     encoder.encode_item_name(def_id),
-        //     // formal args
-        //     mir.arg_count,
-        //     // formal returns
-        //     vec![],
-        //     // local vars
-        //     vec![],
-        //     // reserved labels
-        //     vec![],
-        // );
+        let cfg_method = vir::CfgMethod::new(
+            // method name
+            encoder.encode_item_name(def_id),
+            // formal args
+            mir.arg_count,
+            // formal returns
+            vec![],
+            // local vars
+            vec![],
+            // reserved labels
+            vec![],
+        );
 
         ProcedureEncoder {
             encoder,
-            // proc_def_id: def_id,
+            proc_def_id: def_id,
             // procedure,
-            // mir,
-            // cfg_method,
+            mir,
+            cfg_method,
             // locals: LocalVariableManager::new(&mir.local_decls),
             // loop_encoder: LoopEncoder::new(procedure, tcx),
             // auxiliary_local_vars: HashMap::new(),
@@ -125,7 +126,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // check_panics: config::check_panics(),
             // check_fold_unfold_state: config::check_foldunfold_state(),
             // polonius_info: None,
-            // procedure_contract: None,
+            procedure_contract: None,
             // label_after_location: HashMap::new(),
             // cfg_block_has_been_executed: HashMap::new(),
             // cfg_blocks_map: HashMap::new(),
@@ -196,14 +197,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     // }
 
     pub fn encode(mut self) -> Result<vir::CfgMethod> {
-    //     trace!("Encode procedure {}", self.cfg_method.name());
-    //     let mir_span = self.mir.span;
+        trace!("Encode procedure {}", self.cfg_method.name());
+        let mir_span = self.mir.span;
 
-    //     // Retrieve the contract
-    //     self.procedure_contract = Some(
-    //         self.encoder
-    //             .get_procedure_contract_for_def(self.proc_def_id),
-    //     );
+        // Retrieve the contract
+        self.procedure_contract = Some(
+            self.encoder
+                .get_procedure_contract_for_def(self.proc_def_id),
+        );
 
     //     // Prepare assertions to check specification refinement
     //     let mut precondition_weakening: Option<TypedAssertion> = None;

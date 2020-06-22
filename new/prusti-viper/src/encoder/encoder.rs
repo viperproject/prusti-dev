@@ -5,13 +5,13 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use ::log::{debug, trace};
-// use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
+use crate::encoder::borrows::{compute_procedure_contract, ProcedureContract, ProcedureContractMirDef};
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorCtxt, ErrorManager, EncodingError, PrustiError};
 // use crate::encoder::foldunfold;
-// use crate::encoder::places;
+use crate::encoder::places;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 // use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 // use crate::encoder::stub_function_encoder::StubFunctionEncoder;
@@ -20,7 +20,7 @@ use crate::encoder::procedure_encoder::ProcedureEncoder;
 //     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use prusti_common::vir;
 // use crate::encoder::vir::WithIdentifier;
-// use prusti_interface::config;
+use prusti_interface::config;
 // use prusti_interface::constants::PRUSTI_SPEC_ATTR;
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
@@ -50,7 +50,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     spec: &'v typed::SpecificationMap,
     // error_manager: RefCell<ErrorManager<'tcx>>,
-    // procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
+    procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     // builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
     procedures: RefCell<HashMap<ProcedureDefId, vir::CfgMethod>>,
@@ -111,7 +111,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             env,
             spec,
             // error_manager: RefCell::new(ErrorManager::new(env.codemap())),
-            // procedure_contracts: RefCell::new(HashMap::new()),
+            procedure_contracts: RefCell::new(HashMap::new()),
             builtin_methods: RefCell::new(HashMap::new()),
             // builtin_functions: RefCell::new(HashMap::new()),
             procedures: RefCell::new(HashMap::new()),
@@ -330,35 +330,36 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //         .and_then(|spec_id| self.spec().get(&spec_id))
     // }
 
-    // fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) -> ProcedureContractMirDef<'tcx> {
-    //     let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
-    //     let fun_spec = match opt_fun_spec {
-    //         Some(fun_spec) => fun_spec.clone(),
-    //         None => {
-    //             debug!("Procedure {:?} has no specification", proc_def_id);
-    //             SpecificationSet::Procedure(vec![], vec![])
-    //         }
-    //     };
-    //     compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, None)
-    // }
+    fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) -> ProcedureContractMirDef<'tcx> {
+        // let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
+        // let fun_spec = match opt_fun_spec {
+        //     Some(fun_spec) => fun_spec.clone(),
+        //     None => {
+        //         debug!("Procedure {:?} has no specification", proc_def_id);
+        //         SpecificationSet::Procedure(vec![], vec![])
+        //     }
+        // };
+        // compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, None)
+        unimplemented!();
+    }
 
-    // pub fn get_procedure_contract_for_def(
-    //     &self,
-    //     proc_def_id: ProcedureDefId,
-    // ) -> ProcedureContract<'tcx> {
-    //     self.procedure_contracts
-    //         .borrow_mut()
-    //         .entry(proc_def_id)
-    //         .or_insert_with(|| self.get_procedure_contract(proc_def_id))
-    //         .to_def_site_contract()
-    // }
+    pub fn get_procedure_contract_for_def(
+        &self,
+        proc_def_id: ProcedureDefId,
+    ) -> ProcedureContract<'tcx> {
+        self.procedure_contracts
+            .borrow_mut()
+            .entry(proc_def_id)
+            .or_insert_with(|| self.get_procedure_contract(proc_def_id))
+            .to_def_site_contract()
+    }
 
-    // pub fn get_procedure_contract_for_call(
-    //     &self,
-    //     proc_def_id: ProcedureDefId,
-    //     args: &Vec<places::Local>,
-    //     target: places::Local,
-    // ) -> ProcedureContract<'tcx> {
+    pub fn get_procedure_contract_for_call(
+        &self,
+        proc_def_id: ProcedureDefId,
+        args: &Vec<places::Local>,
+        target: places::Local,
+    ) -> ProcedureContract<'tcx> {
     //     // get specification on trait declaration method or inherent impl
     //     let fun_spec = if let Some(spec) = self.get_spec_by_def_id(proc_def_id) {
     //         spec.clone()
@@ -405,7 +406,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     let contract =
     //         compute_procedure_contract(proc_def_id, self.env().tcx(), final_spec, Some(&tymap[0]));
     //     contract.to_call_site_contract(args, target)
-    // }
+        unimplemented!();
+    }
 
     // pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
     //     let type_encoder = TypeEncoder::new(self, ty);
@@ -1107,31 +1109,31 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     expr
     // }
 
-    // pub fn encode_item_name(&self, def_id: DefId) -> String {
-    //     // Rule: the rhs must always have an even number of "$"
-    //     let mut final_name = "m_".to_string();
-    //     let name = if config::disable_name_mangling() {
-    //         self.env.get_item_name(def_id)
-    //     } else {
-    //         self.env.get_item_def_path(def_id)
-    //     };
-    //     final_name.push_str(
-    //         &name
-    //             .replace("::", "$$")
-    //             .replace("<", "$openang$")
-    //             .replace(">", "$closeang$")
-    //             .replace("(", "$openrou$")
-    //             .replace(")", "$closerou$")
-    //             .replace("[", "$opensqu$")
-    //             .replace("]", "$closesqu$")
-    //             .replace("{", "$opencur$")
-    //             .replace("}", "$closecur$")
-    //             .replace(",", "$comma$")
-    //             .replace(";", "$semic$")
-    //             .replace(" ", "$space$"),
-    //     );
-    //     final_name
-    // }
+    pub fn encode_item_name(&self, def_id: DefId) -> String {
+        // Rule: the rhs must always have an even number of "$"
+        let mut final_name = "m_".to_string();
+        let name = if config::disable_name_mangling() {
+            self.env.get_item_name(def_id)
+        } else {
+            self.env.get_item_def_path(def_id)
+        };
+        final_name.push_str(
+            &name
+                .replace("::", "$$")
+                .replace("<", "$openang$")
+                .replace(">", "$closeang$")
+                .replace("(", "$openrou$")
+                .replace(")", "$closerou$")
+                .replace("[", "$opensqu$")
+                .replace("]", "$closesqu$")
+                .replace("{", "$opencur$")
+                .replace("}", "$closecur$")
+                .replace(",", "$comma$")
+                .replace(";", "$semic$")
+                .replace(" ", "$space$"),
+        );
+        final_name
+    }
 
     // pub fn encode_invariant_func_app(&self, ty: ty::Ty<'tcx>, encoded_arg: vir::Expr) -> vir::Expr {
     //     let type_pred = self.encode_type_predicate_use(ty);

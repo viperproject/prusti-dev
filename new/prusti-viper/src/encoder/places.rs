@@ -4,14 +4,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc::mir;
-use rustc::ty::Ty;
-use rustc_data_structures::indexed_vec::{Idx, IndexVec, IntoIdx};
+use rustc_middle::mir;
+use rustc_middle::ty::Ty;
+use rustc_index::vec::{Idx, IndexVec, IntoIdx};
 use std::{iter, ops};
 
 /// A local variable used as an abstraction over both real Rust MIR local
 /// variables and temporary variables used in encoder.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Local(u32);
 
 impl Idx for Local {
@@ -120,20 +120,21 @@ impl<'a, 'tcx: 'a> From<&'a mir::Place<'tcx>> for Place<'tcx> {
 
 impl<'tcx> Place<'tcx> {
     pub fn is_root(&self, local: Local) -> bool {
-        fn check_if_root(place: &mir::Place, local: Local) -> bool {
-            match place {
-                mir::Place::Local(root) => local.index() == root.index(),
-                mir::Place::Projection(box mir::Projection { ref base, .. }) => {
-                    check_if_root(base, local)
-                }
-                _ => unimplemented!(),
-            }
-        }
-        match self {
-            Place::NormalPlace(ref place) => check_if_root(place, local),
-            Place::SubstitutedPlace {
-                substituted_root, ..
-            } => *substituted_root == local,
-        }
+        // fn check_if_root(place: &mir::Place, local: Local) -> bool {
+        //     match place {
+        //         mir::Place::Local(root) => local.index() == root.index(),
+        //         mir::Place::Projection(box mir::Projection { ref base, .. }) => {
+        //             check_if_root(base, local)
+        //         }
+        //         _ => unimplemented!(),
+        //     }
+        // }
+        // match self {
+        //     Place::NormalPlace(ref place) => check_if_root(place, local),
+        //     Place::SubstitutedPlace {
+        //         substituted_root, ..
+        //     } => *substituted_root == local,
+        // }
+        unimplemented!();
     }
 }

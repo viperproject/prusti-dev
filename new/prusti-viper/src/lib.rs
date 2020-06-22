@@ -20,6 +20,7 @@
 extern crate rustc_middle;
 extern crate rustc_hir;
 extern crate rustc_span;
+extern crate rustc_index;
 // #[macro_use]
 // extern crate log;
 // extern crate num_rational;

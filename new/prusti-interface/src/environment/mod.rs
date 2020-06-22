@@ -187,9 +187,10 @@ impl<'tcx> Environment<'tcx> {
         self.tcx.def_path_str(def_id)
     }
 
-    // pub fn get_item_name(&self, def_id: DefId) -> String {
-    //     self.tcx().item_path_str(def_id)
-    // }
+    pub fn get_item_name(&self, def_id: DefId) -> String {
+        unimplemented!();
+        // self.tcx().item_path_str(def_id)
+    }
 
     /// Get a Procedure.
     pub fn get_procedure<'a>(&'a self, proc_def_id: ProcedureDefId) -> Procedure<'a, 'tcx> {
