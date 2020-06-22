@@ -6,6 +6,7 @@
 
 use syntax_pos::MultiSpan;
 use prusti_interface::environment::Environment;
+use prusti_common::config;
 
 /// The Prusti error that will be reported to the user.
 ///
@@ -14,6 +15,7 @@ use prusti_interface::environment::Environment;
 /// * a Viper verification error
 #[derive(Clone, Debug)]
 pub struct PrustiError {
+    is_error: bool,
     message: String,
     span: MultiSpan,
     help: Option<String>,
@@ -24,6 +26,7 @@ impl PrustiError {
     /// Private constructor. Use one of the following methods.
     fn new(message: String, span: MultiSpan) -> Self {
         PrustiError {
+            is_error: true,
             message,
             span,
             help: None,
@@ -34,25 +37,46 @@ impl PrustiError {
     /// Report a verification error of the verified Rust code
     pub fn verification<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        PrustiError::new(format!("[Prusti: verification error] {}", message.to_string()), span)
+        PrustiError::new(
+            format!("[Prusti: verification error] {}", message.to_string()),
+            span
+        )
     }
 
     /// Report an unsupported feature of the verified Rust code (e.g. dereferencing raw pointers)
     pub fn unsupported<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        PrustiError::new(format!("[Prusti: unsupported feature] {}", message.to_string()), span)
+        let mut error = PrustiError::new(
+            format!("[Prusti: unsupported feature] {}", message.to_string()),
+            span
+        );
+        if !config::error_on_partially_supported() && config::skip_unsupported_functions() {
+            error.set_warning();
+        }
+        error
     }
 
     /// Report an incorrect usage of Prusti (e.g. call an impure function in a contract)
     pub fn incorrect<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        PrustiError::new(format!("[Prusti: invalid specification] {}", message.to_string()), span)
+        PrustiError::new(
+            format!("[Prusti: invalid specification] {}", message.to_string()),
+            span
+        )
     }
 
     /// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        PrustiError::new(format!("[Prusti internal error] {}", message.to_string()), span)
+        PrustiError::new(
+            format!("[Prusti internal error] {}", message.to_string()),
+            span
+        )
+    }
+
+    /// Set that this Prusti error should be reported as a warning to the user
+    pub fn set_warning(&mut self) {
+        self.is_error = false;
     }
 
     pub fn set_help<S: ToString>(mut self, message: S) -> Self {
@@ -60,14 +84,23 @@ impl PrustiError {
         self
     }
 
-    /// Report the error using the compiler's interface
+    /// Report the encoding error using the compiler's interface
     pub fn emit(self, env: &Environment) {
-        env.span_err_with_help_and_note(
-            self.span,
-            &self.message,
-            &self.help,
-            &self.note,
-        );
+        if self.is_error {
+            env.span_err_with_help_and_note(
+                self.span,
+                &self.message,
+                &self.help,
+                &self.note,
+            );
+        } else {
+            env.span_warn_with_help_and_note(
+                self.span,
+                &self.message,
+                &self.help,
+                &self.note,
+            );
+        }
     }
 
     /// Set the span of the failing assertion expression.
