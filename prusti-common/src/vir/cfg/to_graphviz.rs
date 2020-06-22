@@ -107,8 +107,7 @@ impl CfgMethod {
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
             let block_label = self.index_to_label(index);
-            let targets = block.successor.get_following();
-            for target in targets {
+            for target in block.successor.get_following() {
                 let target_label = self.index_to_label(target.block_index);
                 writeln!(
                     graph,
