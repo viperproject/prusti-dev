@@ -227,7 +227,8 @@ pub fn skip_unsupported_functions() -> bool {
     read_setting("SKIP_UNSUPPORTED_FUNCTIONS")
 }
 
-/// Raise error messages even for partially supported language features
+/// Raise error messages even for partially supported language features.
+/// Note: this overrides SKIP_UNSUPPORTED_FUNCTIONS
 pub fn error_on_partially_supported() -> bool {
     read_setting("ERROR_ON_PARTIALLY_SUPPORTED")
 }
