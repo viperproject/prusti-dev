@@ -4,10 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::env;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use walkdir;
+extern crate walkdir;
+
+use std::{
+    env,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {

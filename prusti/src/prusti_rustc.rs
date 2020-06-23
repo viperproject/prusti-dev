@@ -1,6 +1,6 @@
 #![feature(nll)]
 
-extern crate utils;
+extern crate prusti_launch;
 
 use std::{
     env,
@@ -8,7 +8,6 @@ use std::{
     path::PathBuf,
     process::{Command, Stdio},
 };
-use utils::driver_utils;
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
@@ -26,15 +25,15 @@ fn process(args: Vec<String>) -> Result<(), i32> {
 
     let java_home = match env::var("JAVA_HOME") {
         Ok(java_home) => PathBuf::from(java_home),
-        Err(_) => driver_utils::find_java_home()
+        Err(_) => prusti_launch::find_java_home()
             .expect("Failed to find Java home directory. Try setting JAVA_HOME"),
     };
 
-    let libjvm_path =
-        driver_utils::find_libjvm(&java_home).expect("Failed to find JVM library. Check JAVA_HOME");
+    let libjvm_path = prusti_launch::find_libjvm(&java_home)
+        .expect("Failed to find JVM library. Check JAVA_HOME");
 
-    let prusti_sysroot =
-        driver_utils::prusti_sysroot().expect(&format!("Failed to find Rust's sysroot for Prusti"));
+    let prusti_sysroot = prusti_launch::prusti_sysroot()
+        .expect(&format!("Failed to find Rust's sysroot for Prusti"));
 
     let compiler_lib = prusti_sysroot.join("lib");
 
@@ -42,7 +41,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         .parent()
         .expect("Failed to find Prusti's home");
 
-    let prusti_contracts_lib = driver_utils::find_prusti_contracts(&prusti_home)
+    let prusti_contracts_lib = prusti_launch::find_prusti_contracts(&prusti_home)
         .expect("Failed to find prusti_contracts library in Prusti's home");
 
     let mut cmd = Command::new(&prusti_driver_path);
@@ -66,7 +65,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
             .join("lib");
         libs.push(rustlib_path);
     }
-    driver_utils::add_to_loader_path(libs, &mut cmd);
+    prusti_launch::add_to_loader_path(libs, &mut cmd);
 
     let mut child = cmd
         .stdout(Stdio::piped()) // filter stdout
