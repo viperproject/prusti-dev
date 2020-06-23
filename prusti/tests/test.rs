@@ -200,6 +200,12 @@ fn run_verification_core_proof(group_name: &str) {
     remove_var("PRUSTI_CHECK_PANICS");
 }
 
+fn run_supported_verification(group_name: &str) {
+    set_var("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS", "true");
+    run_verification(group_name);
+    remove_var("PRUSTI_SKIP_UNSUPPORTED_FUNCTIONS");
+}
+
 #[test]
 fn test_runner() {
     // Test the parsing of specifications. Doesn't run the verifier.
@@ -225,4 +231,8 @@ fn test_runner() {
     // Test the verifier with panic checks disabled (i.e. verify only the core proof).
     println!("[core_proof]");
     run_verification_core_proof("core_proof");
+
+    // Test the verifier, skipping unsupported functions.
+    println!("[verify_supported]");
+    run_supported_verification("verify_supported");
 }
