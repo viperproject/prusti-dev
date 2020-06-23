@@ -1353,26 +1353,27 @@ impl<'tcx> SpecParser<'tcx> {
                     .filter(|spec| spec.typ == SpecType::Invariant)
                     .collect();
                 let spec_set = SpecificationSet::Struct(invariants.clone());
+                if !spec_set.is_empty() {
+                    let id = if let Some(id) = id_opt {
+                        self.replace_specification(id, spec_set.clone());
+                        id
+                    } else {
+                        let id = self.register_specification(spec_set.clone());
+                        reg.register_specid(reg_id.clone(), id.clone());
+                        id
+                    };
 
-                let id = if let Some(id) = id_opt {
-                    self.replace_specification(id, spec_set.clone());
-                    id
-                } else {
-                    let id = self.register_specification(spec_set.clone());
-                    reg.register_specid(reg_id.clone(), id.clone());
-                    id
-                };
+                    let trait_name = reg_id.to_string();
+                    let trait_spec_item = self.generate_spec_item_inv(
+                        &item,
+                        id,
+                        &invariants,
+                        Some(&trait_name),
+                        Some(impl_item),
+                    );
 
-                let trait_name = reg_id.to_string();
-                let trait_spec_item = self.generate_spec_item_inv(
-                    &item,
-                    id,
-                    &invariants,
-                    Some(&trait_name),
-                    Some(impl_item),
-                );
-
-                result.push(ptr::P(trait_spec_item));
+                    result.push(ptr::P(trait_spec_item));
+                }
             }
         }
 

@@ -24,6 +24,7 @@ use prusti_common::{
     vir::{
         self,
         borrows::Borrow,
+        collect_assigned_vars,
         fixes::fix_ghost_vars,
         optimizations::methods::{remove_empty_if, remove_trivial_assertions, remove_unused_vars},
         CfgBlockIndex, ExprIterator, FoldingBehaviour, Successor,
@@ -168,23 +169,19 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             }
 
-            PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
-                EncodingError::internal(
-                    "error in processing expiring borrows (ReborrowingDagHasEmptyMagicWand)",
-                    self.mir.source_info(location).span,
-                )
-            }
+            PoloniusInfoError::ReborrowingDagHasNoMagicWands(location) => EncodingError::internal(
+                "error in processing expiring borrows (ReborrowingDagHasNoMagicWands)",
+                self.mir.source_info(location).span,
+            ),
 
-            PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
-                EncodingError::internal(
-                    "error in processing expiring borrows (ReborrowingDagHasWrongReborrowingChain)",
-                    self.mir.source_info(location).span,
-                )
-            }
+            PoloniusInfoError::MultipleMagicWandsPerLoop(location) => EncodingError::internal(
+                "error in processing expiring borrows (MultipleMagicWandsPerLoop)",
+                self.mir.source_info(location).span,
+            ),
 
-            PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
+            PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location) => {
                 EncodingError::internal(
-                    "error in processing expiring borrows (ReborrowingDagHasNoRepresentativeLoan)",
+                    "error in processing expiring borrows (MagicWandHasNoRepresentativeLoan)",
                     self.mir.source_info(location).span,
                 )
             }
@@ -669,11 +666,11 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         let loop_body_before_inv = &loop_body[after_guard_block_pos..after_inv_block_pos];
         let loop_body_after_inv = &loop_body[after_inv_block_pos..];
 
-        // The main path in the encoding is: start -> G -> B1 -> havoc -> B2 -> G -> B1 -> end
+        // The main path in the encoding is: start -> G -> B1 -> invariant -> B2 -> G -> B1 -> end
         // We are going to build the encoding left to right.
         let mut heads = vec![];
 
-        // Build the "start" CFG block (*start* - G - B1 - havoc - B2 - G - B1 - end)
+        // Build the "start" CFG block (*start* - G - B1 - invariant - B2 - G - B1 - end)
         let start_block = self.cfg_method.add_block(
             &format!("{}_start", loop_label_prefix),
             vec![],
@@ -684,7 +681,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         );
         heads.push(Some(start_block));
 
-        // Encode the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
+        // Encode the first G group (start - *G* - B1 - invariant - B2 - G - B1 - end)
         let (first_g_head, first_g_edges) = self.encode_blocks_group(
             &format!("{}_group1_", loop_label_prefix),
             loop_guard_evaluation,
@@ -693,7 +690,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )?;
         heads.push(first_g_head);
 
-        // Encode the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
+        // Encode the first B1 group (start - G - *B1* - invariant - B2 - G - B1 - end)
         let (first_b1_head, first_b1_edges) = self.encode_blocks_group(
             &format!("{}_group2_", loop_label_prefix),
             loop_body_before_inv,
@@ -702,31 +699,41 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )?;
         heads.push(first_b1_head);
 
-        // Build the "havock" CFG block (start - G - B1 - *havock* - B2 - G - B1 - end)
+        // Build the "invariant" CFG block (start - G - B1 - *invariant* - B2 - G - B1 - end)
         // (1) checks the loop invariant on entry
-        // (2) havocks the invariant and the local variables.
-        let havock_block = self.cfg_method.add_block(
-            &format!("{}_havock", loop_label_prefix),
+        // (2) havocs the invariant and the local variables.
+        let inv_pre_block = self.cfg_method.add_block(
+            &format!("{}_inv_pre", loop_label_prefix),
             vec![],
             vec![vir::Stmt::comment(format!(
-                "========== {}_havoc ==========",
+                "========== {}_inv_pre ==========",
                 loop_label_prefix
             ))],
         );
+        let inv_post_block = self.cfg_method.add_block(
+            &format!("{}_inv_post", loop_label_prefix),
+            vec![],
+            vec![vir::Stmt::comment(format!(
+                "========== {}_inv_post ==========",
+                loop_label_prefix
+            ))],
+        );
+        heads.push(Some(inv_pre_block));
+        self.cfg_method
+            .set_successor(inv_pre_block, vir::Successor::Goto(inv_post_block));
         {
             let stmts =
                 self.encode_loop_invariant_exhale_stmts(loop_head, before_invariant_block, false);
-            self.cfg_method.add_stmts(havock_block, stmts);
+            self.cfg_method.add_stmts(inv_pre_block, stmts);
         }
-        // TODO: havoc local variables
+        // We'll add later more statements at the end of inv_pre_block, to havoc local variables
         {
             let stmts =
                 self.encode_loop_invariant_inhale_stmts(loop_head, before_invariant_block, false);
-            self.cfg_method.add_stmts(havock_block, stmts);
+            self.cfg_method.add_stmts(inv_post_block, stmts);
         }
-        heads.push(Some(havock_block));
 
-        // Encode the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
+        // Encode the last B2 group (start - G - B1 - invariant - *B2* - G - B1 - end)
         let (last_b2_head, last_b2_edges) = self.encode_blocks_group(
             &format!("{}_group3_", loop_label_prefix),
             loop_body_after_inv,
@@ -735,7 +742,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )?;
         heads.push(last_b2_head);
 
-        // Encode the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
+        // Encode the last G group (start - G - B1 - invariant - B2 - *G* - B1 - end)
         let (last_g_head, last_g_edges) = self.encode_blocks_group(
             &format!("{}_group4_", loop_label_prefix),
             loop_guard_evaluation,
@@ -744,7 +751,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )?;
         heads.push(last_g_head);
 
-        // Encode the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
+        // Encode the last B1 group (start - G - B1 - invariant - B2 - G - *B1* - end)
         let (last_b1_head, last_b1_edges) = self.encode_blocks_group(
             &format!("{}_group5_", loop_label_prefix),
             loop_body_before_inv,
@@ -753,7 +760,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         )?;
         heads.push(last_b1_head);
 
-        // Build the "end" CFG block (start - G - B1 - havoc - B2 - G - B1 - *end*)
+        // Build the "end" CFG block (start - G - B1 - invariant - B2 - G - B1 - *end*)
         // (1) checks the invariant after one loop iteration
         // (2) kills the program path with an `assume false`
         let end_body_block = self.cfg_method.add_block(
@@ -778,12 +785,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         // We are going to link the unresolved edges.
         let mut still_unresolved_edges = vec![];
 
-        // Link edges of "start" (*start* - G - B1 - havoc - B2 - G - B1 - end)
+        // Link edges of "start" (*start* - G - B1 - invariant - B2 - G - B1 - end)
         let following_block = heads[1..].iter().find(|x| x.is_some()).unwrap().unwrap();
         self.cfg_method
             .set_successor(start_block, vir::Successor::Goto(following_block));
 
-        // Link edges from the first G group (start - *G* - B1 - havoc - B2 - G - B1 - end)
+        // Link edges from the first G group (start - *G* - B1 - invariant - B2 - G - B1 - end)
         let following_block = heads[2..].iter().find(|x| x.is_some()).unwrap().unwrap();
         still_unresolved_edges.extend(self.encode_unresolved_edges(first_g_edges, |bb| {
             if bb == after_guard_block {
@@ -793,7 +800,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         })?);
 
-        // Link edges from the first B1 group (start - G - *B1* - havoc - B2 - G - B1 - end)
+        // Link edges from the first B1 group (start - G - *B1* - invariant - B2 - G - B1 - end)
         let following_block = heads[3..].iter().find(|x| x.is_some()).unwrap().unwrap();
         still_unresolved_edges.extend(self.encode_unresolved_edges(first_b1_edges, |bb| {
             if bb == after_inv_block {
@@ -803,12 +810,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         })?);
 
-        // Link edges of "havock" (start - G - B1 - *havock* - B2 - G - B1 - end)
+        // Link edges of "invariant" (start - G - B1 - *invariant* - B2 - G - B1 - end)
         let following_block = heads[4..].iter().find(|x| x.is_some()).unwrap().unwrap();
         self.cfg_method
-            .set_successor(havock_block, vir::Successor::Goto(following_block));
+            .set_successor(inv_post_block, vir::Successor::Goto(following_block));
 
-        // Link edges from the last B2 group (start - G - B1 - havoc - *B2* - G - B1 - end)
+        // Link edges from the last B2 group (start - G - B1 - invariant - *B2* - G - B1 - end)
         let following_block = heads[5..].iter().find(|x| x.is_some()).unwrap().unwrap();
         still_unresolved_edges.extend(self.encode_unresolved_edges(last_b2_edges, |bb| {
             if bb == loop_head {
@@ -818,7 +825,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         })?);
 
-        // Link edges from the last G group (start - G - B1 - havoc - B2 - *G* - B1 - end)
+        // Link edges from the last G group (start - G - B1 - invariant - B2 - *G* - B1 - end)
         let following_block = heads[6..].iter().find(|x| x.is_some()).unwrap().unwrap();
         still_unresolved_edges.extend(self.encode_unresolved_edges(last_g_edges, |bb| {
             if bb == after_guard_block {
@@ -828,7 +835,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         })?);
 
-        // Link edges from the last B1 group (start - G - B1 - havoc - B2 - G - *B1* - end)
+        // Link edges from the last B1 group (start - G - B1 - invariant - B2 - G - *B1* - end)
         let following_block = heads[7..].iter().find(|x| x.is_some()).unwrap().unwrap();
         still_unresolved_edges.extend(self.encode_unresolved_edges(last_b1_edges, |bb| {
             if bb == after_inv_block {
@@ -838,9 +845,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
         })?);
 
-        // Link edges of "end" (start - G - B1 - havoc - B2 - G - B1 - *end*)
+        // Link edges of "end" (start - G - B1 - invariant - B2 - G - B1 - *end*)
         self.cfg_method
             .set_successor(end_body_block, vir::Successor::Return);
+
+        // Final step: havoc Viper local variables assigned in the encoding of the loop body
+        let vars = collect_assigned_vars(&self.cfg_method, end_body_block, inv_pre_block);
+        for var in vars {
+            let builtin_method = match var.typ {
+                vir::Type::Int => BuiltinMethodKind::HavocInt,
+                vir::Type::Bool => BuiltinMethodKind::HavocBool,
+                vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
+            };
+            let stmt = vir::Stmt::MethodCall(
+                self.encoder.encode_builtin_method_use(builtin_method),
+                vec![],
+                vec![var],
+            );
+            self.cfg_method.add_stmt(inv_pre_block, stmt);
+        }
 
         // Done. Phew!
         Ok((start_block, still_unresolved_edges))

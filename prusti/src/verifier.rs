@@ -63,7 +63,7 @@ pub fn verify<'r, 'a: 'r, 'tcx: 'a>(
             }
             VerificationResult::Failure => {
                 user::message("Verification failed");
-                assert!(env.has_errors());
+                debug_assert!(env.has_errors());
             }
         };
     }

@@ -35,6 +35,7 @@ lazy_static! {
         settings.set_default("USE_MORE_COMPLETE_EXHALE", true).unwrap();
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
         settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
+        settings.set_default("ERROR_ON_PARTIALLY_SUPPORTED", false).unwrap();
         settings.set_default("SERVER_MAX_STORED_VERIFIERS", 8).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
@@ -232,4 +233,10 @@ pub fn delete_basic_blocks() -> Vec<String> {
 /// Skip functions that are unsupported or partially supported
 pub fn skip_unsupported_functions() -> bool {
     read_setting("SKIP_UNSUPPORTED_FUNCTIONS")
+}
+
+/// Raise error messages even for partially supported language features.
+/// Note: this overrides SKIP_UNSUPPORTED_FUNCTIONS
+pub fn error_on_partially_supported() -> bool {
+    read_setting("ERROR_ON_PARTIALLY_SUPPORTED")
 }
