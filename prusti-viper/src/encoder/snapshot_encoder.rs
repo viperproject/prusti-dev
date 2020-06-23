@@ -43,7 +43,7 @@ impl SnapshotDomain {
 pub struct Snapshot {
     pub predicate_name: String,
     pub snap_func: vir::Function,
-    pub snap_domain: Option<SnapshotDomain>, // for non-primitive types we need a new snapshot domain
+    pub snap_domain: Option<SnapshotDomain>, // for types with fields
 }
 
 impl Snapshot {
@@ -108,6 +108,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     vir::Field::new("val_bool", vir::Type::Bool)
                 )
             }
+            ty::TypeVariants::TyParam(_) => {
+                self.encode_snap_generic()
+            }
             ty::TypeVariants::TyAdt(adt_def, _) if !adt_def.is_box() => {
                 if adt_def.variants.len() != 1 {
                     warn!("Generating equality tests for enums is not supported yet");
@@ -127,7 +130,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_snap_func_primitive(&self, field: vir::Field) -> vir:: Function {
+    fn encode_snap_func_primitive(&self, field: vir::Field) -> vir::Function {
         let return_type = self.encoder.encode_value_type(self.ty);
         let body = vir::Expr::Field(
             Box::new(
@@ -141,10 +144,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         );
         self.encode_snap_func(return_type, body)
     }
-
     fn encode_snap_func(&self, return_type: vir::Type, body: vir::Expr) -> vir::Function {
         vir::Function {
-            name: SNAPSHOT_GET.to_string(), //format!("{}${}", SNAPSHOT_GET, self.predicate_name),
+            name: SNAPSHOT_GET.to_string(),
             formal_args: vec![self.encode_snap_arg_var(SNAPSHOT_ARG)],
             return_type: return_type.clone(),
             pres: vec![self.encode_snap_predicate_access(SNAPSHOT_ARG.clone())],
@@ -182,13 +184,36 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vir::Type::TypedRef(self.predicate_name.clone())
     }
 
-    fn encode_snap_struct(&self) -> Snapshot {
-        let snap_domain = SnapshotDomain{
+    fn encode_snap_generic(&self) -> Snapshot {
+        let snap_domain = self.encode_snap_domain();
+        Snapshot {
+            predicate_name: self.predicate_name.clone(),
+            snap_func: self.encode_snap_func_generic(snap_domain.get_type()),
+            snap_domain: Some(snap_domain),
+        }
+    }
+
+    fn encode_snap_domain(&self) -> SnapshotDomain {
+        SnapshotDomain{
             domain: self.encode_domain_struct(),
             equals_func: self.encode_equals_func_struct(),
             equals_func_ref: self.encode_equals_func_struct_ref(),
-        };
+        }
+    }
 
+    fn encode_snap_func_generic(&self, return_type: vir::Type) -> vir::Function {
+        vir::Function {
+            name: SNAPSHOT_GET.to_string(),
+            formal_args: vec![self.encode_snap_arg_var(SNAPSHOT_ARG)],
+            return_type,
+            pres: vec![],
+            posts: vec![],
+            body: None,
+        }
+    }
+
+    fn encode_snap_struct(&self) -> Snapshot {
+        let snap_domain = self.encode_snap_domain();
         Snapshot {
             predicate_name: self.predicate_name.clone(),
             snap_func: self.encode_snap_func(
@@ -285,7 +310,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyInt(_)
             | ty::TypeVariants::TyUint(_)
             | ty::TypeVariants::TyChar
-            | ty::TypeVariants::TyBool => {
+            | ty::TypeVariants::TyBool
+            | ty::TypeVariants::TyParam(_) => {
                 formal_args.push(self.encode_snap_arg_var(SNAPSHOT_ARG))
             },
 
