@@ -379,7 +379,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    // TODO CMFIXME unify with encode_equals_def
+    // TODO unify with encode_equals_def
     pub fn encode_equals_func_struct_ref(&self) -> vir::Function {
 
         let ref_predicate_name = format!("ref${}", self.predicate_name.clone());
@@ -441,7 +441,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    // TODO CMFIXME
+    // TODO cleanup
     fn encode_ref_snapshot_call(&self, formal_arg: vir::LocalVar) -> vir::Expr {
         let arg = vir::Expr::Field(
             Box::new(vir::Expr::Local(formal_arg.clone(), vir::Position::default())),

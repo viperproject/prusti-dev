@@ -226,7 +226,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn get_used_viper_fields(&self) -> Vec<vir::Field> {
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
-
         fields.sort_by_key(|f| f.get_identifier());
         fields
     }
