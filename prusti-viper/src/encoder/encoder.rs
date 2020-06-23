@@ -39,7 +39,7 @@ use std::io::Write;
 use std::mem;
 use std::ops::AddAssign;
 use syntax::ast;
-use encoder::snapshot_encoder::{SnapshotEncoder, Snapshot};
+use encoder::snapshot_encoder::{SnapshotEncoder, Snapshot, SNAPSHOT_EQUALS};
 
 const SNAPSHOT_MIRROR_DOMAIN: &str = "$SnapshotMirrors$";
 
@@ -1510,7 +1510,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
         // function
         if self.env.get_item_name(proc_def_id).eq("std::cmp::PartialEq::eq") {
-            return ("equals$".to_string(), vir::Type::Bool, true);
+            return (SNAPSHOT_EQUALS.to_string(), vir::Type::Bool, true);
         }
 
         let procedure = self.env.get_procedure(proc_def_id);

@@ -23,7 +23,7 @@ use prusti_common::vir::fixes::fix_ghost_vars;
 use prusti_common::vir::optimisations::methods::{
     remove_empty_if, remove_trivial_assertions, remove_unused_vars,
 };
-use prusti_common::vir::{self, CfgBlockIndex, Successor, collect_assigned_vars};
+use prusti_common::vir::{self, CfgBlockIndex, Successor, collect_assigned_vars, Expr, Type};
 use prusti_common::vir::{ExprIterator, FoldingBehaviour};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
@@ -1877,6 +1877,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                     "core::cmp::PartialEq::eq" => {
                         assert!(args.len() == 2);
+                        debug!("Encoding call of PartialEq::eq");
 
                         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
                         self.encoder.encode_snapshot(arg_ty);
@@ -1892,105 +1893,15 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let function_name = self.encoder.
                             encode_snapshot_equals_use(arg_type.name().clone());
 
-                        // TODO we essentially have to do the same things as for pure funs
-                        assert!(destination.is_some());
-                        let formal_args: Vec<vir::LocalVar> = args
-                            .iter()
-                            .enumerate()
-                            .map(|(i, _arg)| {
-                                vir::LocalVar::new(
-                                    format!("x{}", i),
-                                    arg_type.clone(),
-                                )
-                            })
-                            .collect();
-
-                        let pos = self
-                            .encoder
-                            .error_manager()
-                            .register(term.source_info.span, ErrorCtxt::PureFunctionCall);
-                        let func_call = vir::Expr::func_app(
+                        stmts.extend(self.encode_specified_pure_function_call(
+                            location,
+                            term.source_info.span,
+                            args,
+                            destination,
                             function_name,
                             arg_exprs,
-                            formal_args,
-                            return_type,
-                            pos,
-                        );
-
-                        let label = self.cfg_method.get_fresh_label_name();
-                        stmts.push(vir::Stmt::Label(label.clone()));
-
-                        // Havoc the content of the lhs
-                        let (target_place, _target_ty, _) = match destination.as_ref() {
-                            Some((ref dst, _)) => self.mir_encoder.encode_place(dst),
-                            None => unreachable!(),
-                        };
-                        stmts.extend(self.encode_havoc(&target_place));
-                        let type_predicate = self
-                            .mir_encoder
-                            .encode_place_predicate_permission(
-                                target_place.clone(),
-                                vir::PermAmount::Write,
-                            )
-                            .unwrap();
-                        stmts.push(
-                            vir::Stmt::Inhale(
-                                type_predicate,
-                                vir::FoldingBehaviour::Stmt
-                            )
-                        );
-
-                        // Initialize the lhs
-                        let target_value = match destination.as_ref() {
-                            Some((ref dst, _)) => self.mir_encoder.eval_place(dst),
-                            None => unreachable!(),
-                        };
-                        stmts.push(
-                            vir::Stmt::Inhale(
-                                vir::Expr::eq_cmp(
-                                    target_value.into(),
-                                    func_call,
-                                ),
-                                vir::FoldingBehaviour::Stmt,
-                            )
-                        );
-
-                        // Store a label for permissions got back from the call
-                        debug!(
-                            "Pure function call location {:?} has label {}",
-                            location, label
-                        );
-                        self.label_after_location.insert(location, label.clone());
-
-                        // Transfer the permissions for the arguments used in the call
-                        for operand in args.iter() {
-                            let operand_ty = self.mir_encoder.get_operand_ty(operand);
-                            let operand_place = self.mir_encoder.encode_operand_place(operand);
-                            match (operand_place, &operand_ty.sty) {
-                                (
-                                    Some(ref place),
-                                    ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                                                                   ty: ref inner_ty,
-                                                                   ..
-                                                               }),
-                                )
-                                | (
-                                    Some(ref place),
-                                    ty::TypeVariants::TyRef(_, ref inner_ty, _),
-                                ) => {
-                                    let ref_field =
-                                        self.encoder.encode_dereference_field(inner_ty);
-                                    let ref_place = place.clone().field(ref_field);
-                                    stmts.extend(self.encode_transfer_permissions(
-                                        ref_place.clone(),
-                                        ref_place.clone().old(&label),
-                                        location,
-                                    ));
-                                }
-                                _ => {} // Nothing
-                            }
-                        }
-                        // TODO END of duplication
+                            return_type
+                        ));
                     }
 
                     _ => {
@@ -2423,12 +2334,36 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-        let mut stmts = vec![];
+
         let mut arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand);
             arg_exprs.push(arg_expr);
         }
+
+        self.encode_specified_pure_function_call(
+            location,
+            call_site_span,
+            args,
+            destination,
+            function_name,
+            arg_exprs,
+            return_type
+        )
+    }
+
+    fn encode_specified_pure_function_call(
+        &mut self,
+        location: mir::Location,
+        call_site_span: Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        function_name: String,
+        arg_exprs: Vec<Expr>,
+        return_type: Type,
+    )-> Vec<vir::Stmt> {
+
+        let mut stmts = vec![];
 
         let formal_args: Vec<vir::LocalVar> = args
             .iter()
@@ -2491,8 +2426,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (
                     Some(ref place),
                     ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                        ty: ref inner_ty, ..
-                    }),
+                                                   ty: ref inner_ty, ..
+                                               }),
                 )
                 | (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
                     let ref_field = self.encoder.encode_dereference_field(inner_ty);

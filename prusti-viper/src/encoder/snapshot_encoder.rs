@@ -441,7 +441,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    // TODO cleanup
     fn encode_ref_snapshot_call(&self, formal_arg: vir::LocalVar) -> vir::Expr {
         let arg = vir::Expr::Field(
             Box::new(vir::Expr::Local(formal_arg.clone(), vir::Position::default())),
