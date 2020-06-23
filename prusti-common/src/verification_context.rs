@@ -59,31 +59,17 @@ impl<'v> VerificationContext<'v> {
         &self,
         backend_config: &ViperBackendConfig,
     ) -> viper::Verifier<viper::state::Started> {
-        // TODO: handle the following flags on client when creating the args:
-        // use more complete exhale
-        // assert timeout
-
-        // FIXME: might break stuff
         let mut verifier_args: Vec<String> = backend_config.verifier_args.clone();
         let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
         create_dir_all(&log_path).unwrap();
         let report_path: PathBuf = log_path.join("report.csv");
         let log_dir_str = log_path.to_str().unwrap();
-        // TODO: consider using if let instead
         match backend_config.backend {
-            VerificationBackend::Silicon => {
-                if config::use_more_complete_exhale() {
-                    verifier_args.push("--enableMoreCompleteExhale".to_string());
-                    // Buggy :(
-                }
-                verifier_args.extend(vec![
-                    "--assertTimeout".to_string(),
-                    config::assert_timeout().to_string(),
-                    "--tempDirectory".to_string(),
-                    log_dir_str.to_string(),
-                    //"--logLevel".to_string(), "WARN".to_string(),
-                ]);
-            }
+            VerificationBackend::Silicon => verifier_args.extend(vec![
+                "--tempDirectory".to_string(),
+                log_dir_str.to_string(),
+                //"--logLevel".to_string(), "WARN".to_string(),
+            ]),
             VerificationBackend::Carbon => verifier_args.extend(vec![
                 "--disableAllocEncoding".to_string(),
                 "--boogieOpt".to_string(),
@@ -103,7 +89,6 @@ impl<'v> VerificationContext<'v> {
                 ]),
             }
         }
-        //verifier_args.extend(backend_config.verifier_args.clone()); // TODO: is ordering important? would be nice to initialize verifier_args to this
 
         self.verification_ctx.new_verifier_with_args(
             backend_config.backend,
