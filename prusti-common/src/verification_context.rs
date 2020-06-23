@@ -50,12 +50,7 @@ pub struct VerificationContext<'v> {
     verification_ctx: viper::VerificationContext<'v>,
 }
 
-impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
-where
-    'r: 'v,
-    'a: 'r,
-    'tcx: 'a,
-{
+impl<'v> VerificationContext<'v> {
     fn new(verification_ctx: viper::VerificationContext<'v>) -> Self {
         VerificationContext { verification_ctx }
     }
@@ -64,9 +59,12 @@ where
         &self,
         backend_config: &ViperBackendConfig,
     ) -> viper::Verifier<viper::state::Started> {
-        // TODO: figure out how much of this should instead be determined on the client and thus done when creating the ViperBackendConfig
+        // TODO: handle the following flags on client when creating the args:
+        // use more complete exhale
+        // assert timeout
 
-        let mut verifier_args: Vec<String> = vec![];
+        // FIXME: might break stuff
+        let mut verifier_args: Vec<String> = backend_config.verifier_args.clone();
         let log_path: PathBuf = PathBuf::from(config::log_dir()).join("viper_tmp");
         create_dir_all(&log_path).unwrap();
         let report_path: PathBuf = log_path.join("report.csv");
@@ -105,7 +103,7 @@ where
                 ]),
             }
         }
-        verifier_args.extend(backend_config.verifier_args.clone()); // TODO: is ordering important? would be nice to initialize verifier_args to this
+        //verifier_args.extend(backend_config.verifier_args.clone()); // TODO: is ordering important? would be nice to initialize verifier_args to this
 
         self.verification_ctx.new_verifier_with_args(
             backend_config.backend,

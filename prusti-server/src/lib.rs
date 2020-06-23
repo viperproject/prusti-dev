@@ -25,7 +25,9 @@ mod verifier_runner;
 mod verifier_thread;
 
 use lru::LruCache;
-use prusti_common::{config, verification_service::*, verifier::VerifierBuilder, Stopwatch};
+use prusti_common::{
+    config, verification_context::VerifierBuilder, verification_service::*, Stopwatch,
+};
 pub use service::*;
 use std::sync::{Arc, RwLock};
 pub use verifier_runner::*;

@@ -23,6 +23,7 @@ extern crate num_traits;
 extern crate prusti_common;
 extern crate prusti_filter;
 extern crate prusti_interface;
+extern crate prusti_server;
 extern crate regex;
 extern crate rustc;
 extern crate rustc_data_structures;

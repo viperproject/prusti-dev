@@ -4,14 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use encoder::Encoder;
-use prusti_common::{config, report::log, vir::Program, Stopwatch};
+use encoder::{Encoder, PrustiError};
+use prusti_common::{
+    config, report::log, verification_context::VerifierBuilder, verification_service::*, Stopwatch,
+};
 use prusti_filter::validators::Validator;
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
     specifications::TypedSpecificationMap,
 };
+use prusti_server::{PrustiServerConnection, ServerSideService, VerifierRunner};
+use syntax_pos::DUMMY_SP;
 use viper;
 
 /// A verifier is an object for verifying a single crate, potentially
@@ -34,16 +38,13 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         }
     }
 
-    pub fn verify<F>(&mut self, task: &VerificationTask, verify: F) -> VerificationResult
-    where
-        F: FnOnce(Program) -> viper::VerificationResult,
-    {
+    pub fn verify(&mut self, task: &VerificationTask) -> VerificationResult {
         info!(
             "Received {} functions to be verified:",
             task.procedures.len()
         );
 
-        let stopwatch = Stopwatch::start("encoding to Viper");
+        let mut stopwatch = Stopwatch::start("encoding to Viper");
 
         // Dump the configuration
         log::report("config", "prusti", config::dump());
@@ -120,21 +121,60 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         }
         self.encoder.process_encoding_queue();
 
-        stopwatch.finish();
-
         let encoding_errors_count = self.encoder.count_encoding_errors();
-
         let mut program = self.encoder.get_viper_program();
+
         if config::simplify_encoding() {
+            stopwatch.start_next_section("optimizing Viper program");
             program = program.optimized();
         }
-        let verification_result = verify(program);
+
+        stopwatch.start_next_section("verifying Viper program");
+        let source_path = self.env.source_path();
+        let program_name = source_path
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned();
+        let verification_result: viper::VerificationResult =
+            if let Some(server_address) = config::server_address() {
+                let server_address = if server_address == "MOCK" {
+                    ServerSideService::spawn_off_thread()
+                } else {
+                    server_address.parse().unwrap_or_else(|e| {
+                        panic!("Invalid server address: {} (error: {})", server_address, e)
+                    })
+                };
+                info!("Connecting to Prusti server at {}", server_address);
+                let service = PrustiServerConnection::new(server_address);
+
+                let request = VerificationRequest {
+                    program,
+                    program_name,
+                    backend_config: Default::default(),
+                };
+                service.verify(request)
+            } else {
+                let mut stopwatch = Stopwatch::start("JVM startup");
+                let verifier_builder = VerifierBuilder::new();
+                stopwatch.start_next_section("running verifier");
+                VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
+                    runner.verify(program, program_name.as_str())
+                })
+            };
+
+        stopwatch.finish();
 
         let verification_errors = match verification_result {
             viper::VerificationResult::Failure(errors) => errors,
             viper::VerificationResult::ConsistencyErrors(errors) => {
-                errors.iter().for_each(|e| error!("{}", e));
-                panic!("Consistency errors. The encoded Viper program is incorrect.");
+                debug_assert!(!errors.is_empty());
+                errors.iter().for_each(|e| {
+                    PrustiError::internal(format!("consistency error: {}", e), DUMMY_SP.into())
+                        .emit(self.env)
+                });
+                return VerificationResult::Failure;
             }
             viper::VerificationResult::Success() => vec![],
         };

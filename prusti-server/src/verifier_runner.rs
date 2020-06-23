@@ -7,8 +7,8 @@
 use prusti_common::{
     config,
     report::log,
+    verification_context::*,
     verification_service::ViperBackendConfig,
-    verifier::*,
     vir::{Program, ToViper},
     Stopwatch,
 };
@@ -56,6 +56,7 @@ impl<'v> VerifierRunner<'v> {
         let mut stopwatch = Stopwatch::start("construction of JVM objects");
         let viper_program = program.to_viper(&self.ast_factory);
         if config::dump_viper_program() {
+            stopwatch.start_next_section("dumping viper program");
             self.dump(viper_program, program_name);
         }
 

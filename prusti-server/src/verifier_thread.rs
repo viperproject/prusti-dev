@@ -7,7 +7,7 @@
 use super::VerifierRunner;
 use futures::{sync::oneshot, Canceled, Future};
 use prusti_common::{
-    verification_service::ViperBackendConfig, verifier::VerifierBuilder, vir::Program,
+    verification_context::VerifierBuilder, verification_service::ViperBackendConfig, vir::Program,
 };
 use std::{
     sync::{mpsc, Arc, Mutex},

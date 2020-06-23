@@ -50,7 +50,6 @@ extern crate getopts;
 extern crate log;
 extern crate prusti_common;
 extern crate prusti_interface;
-extern crate prusti_server;
 extern crate prusti_viper;
 extern crate rustc;
 extern crate rustc_codegen_utils;
