@@ -637,12 +637,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             let is_pure_function =
                                 self.encoder.env().has_attribute_name(def_id, "pure");
 
-                            let (function_name, return_type, override_purity) = if is_pure_function {
+                            let (function_name, return_type, is_cmp_call) = if is_pure_function {
                                 self.encoder.encode_pure_function_use(def_id)
                             } else {
                                 self.encoder.encode_stub_pure_function_use(def_id)
                             };
-                            if is_pure_function || override_purity {
+                            if is_pure_function || is_cmp_call { 
                                 trace!("Encoding pure function call '{}'", function_name);
                             } else {
                                 trace!("Encoding stub pure function call '{}'", function_name);
@@ -657,8 +657,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                             }
 
                             // this is a hack to generate snapshots if we
-                            // detect some call of an equals function in a specification
-                            if override_purity {
+                            // detect some call of a comparison function, e.g. eq
+                            if is_cmp_call {
                                 let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
                                 self.encoder.encode_snapshot(arg_ty);
                             }
