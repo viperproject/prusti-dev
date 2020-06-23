@@ -26,7 +26,8 @@ use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::log;
 use prusti_interface::specs::typed;
-// use prusti_interface::specifications::{
+use prusti_interface::specs::typed::SpecificationId;
+// use prusti_interface::specs::{
 //     SpecID, SpecificationSet, TypedAssertion,
 //     TypedSpecificationMap, TypedSpecificationSet,
 // };
@@ -45,6 +46,7 @@ use std::io::Write;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
 use ::log::info;
+use std::convert::TryInto;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -304,43 +306,61 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     }
     // }
 
-    // pub fn get_opt_spec_id(&self, def_id: DefId) -> Option<SpecID> {
-    //     let opt_spec_id = self
-    //         .env()
-    //         .tcx()
-    //         .get_attrs(def_id)
-    //         .iter()
-    //         .find(|attr| attr.check_name(PRUSTI_SPEC_ATTR))
-    //         .and_then(|x| {
-    //             x.value_str()
-    //                 .and_then(|y| y.as_str().parse::<u64>().ok().map(|z| z.into()))
-    //         });
-    //     debug!("Function {:?} has spec_id {:?}", def_id, opt_spec_id);
-    //     opt_spec_id
-    // }
+    pub fn get_opt_spec_id(&self, def_id: DefId) -> Option<SpecificationId> {
+        use rustc_ast::ast;
+        let opt_spec_id = self
+            .env()
+            .tcx()
+            .get_attrs(def_id)
+            .iter()
+            .find(|attr|
+                match &attr.kind {
+                    ast::AttrKind::Normal(ast::AttrItem {
+                        path: ast::Path { span: _, segments },
+                        args: ast::MacArgs::Empty,
+                    }) => {
+                        segments.len() == 2
+                        && segments[0]
+                            .ident
+                            .name
+                            .with(|attr_name| attr_name == "prusti")
+                        && segments[1]
+                            .ident
+                            .name
+                            .with(|attr_name| attr_name == "spec_id")
+                    },
+                    _ => false,
+                }
+            )
+            .and_then(|x| {
+                x.value_str()
+                    .map(|y: rustc_span::Symbol| -> SpecificationId {y.as_str().to_string().try_into().unwrap()})
+            });
+        debug!("Function {:?} has spec_id {:?}", def_id, opt_spec_id);
+        opt_spec_id
+    }
 
-    // pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<&TypedSpecificationSet> {
-    //     // Currently, we don't support specifications for external functions.
-    //     // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
-    //     // that the def_id does not point to an external crate.
-    //     if !def_id.is_local() {
-    //         return None;
-    //     }
-    //     self.get_opt_spec_id(def_id)
-    //         .and_then(|spec_id| self.spec().get(&spec_id))
-    // }
+    pub fn get_spec_by_def_id(&self, def_id: DefId) -> Option<&typed::SpecificationSet> {
+        // Currently, we don't support specifications for external functions.
+        // Since we have a collision of PRUSTI_SPEC_ATTR between different crates, we manually check
+        // that the def_id does not point to an external crate.
+        if !def_id.is_local() {
+            return None;
+        }
+        self.get_opt_spec_id(def_id)
+            .and_then(|spec_id| self.spec().get(&spec_id))
+    }
 
     fn get_procedure_contract(&self, proc_def_id: ProcedureDefId) -> ProcedureContractMirDef<'tcx> {
-        // let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
-        // let fun_spec = match opt_fun_spec {
-        //     Some(fun_spec) => fun_spec.clone(),
-        //     None => {
-        //         debug!("Procedure {:?} has no specification", proc_def_id);
-        //         SpecificationSet::Procedure(vec![], vec![])
-        //     }
-        // };
-        // compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, None)
-        unimplemented!();
+        let opt_fun_spec = self.get_spec_by_def_id(proc_def_id);
+        let fun_spec = match opt_fun_spec {
+            Some(fun_spec) => fun_spec.clone(),
+            None => {
+                debug!("Procedure {:?} has no specification", proc_def_id);
+                typed::SpecificationSet::Procedure(typed::ProcedureSpecification::empty())
+            }
+        };
+        compute_procedure_contract(proc_def_id, self.env().tcx(), fun_spec, None)
     }
 
     pub fn get_procedure_contract_for_def(
