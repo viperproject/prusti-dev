@@ -851,6 +851,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::Type::Int => BuiltinMethodKind::HavocInt,
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),
