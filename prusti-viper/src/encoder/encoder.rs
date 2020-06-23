@@ -189,9 +189,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub(in encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
         debug!("Encoding error: {:?}", encoding_error);
         let prusti_error: PrustiError = encoding_error.into();
-        debug!("Prusti error: {:?}", prusti_error);
+        if prusti_error.is_error() {
+            self.encoding_errors_counter.borrow_mut().add_assign(1);
+        }
         prusti_error.emit(self.env);
-        self.encoding_errors_counter.borrow_mut().add_assign(1);
     }
 
     pub fn count_encoding_errors(&self) -> usize {
@@ -866,10 +867,8 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     pub fn encode_builtin_method_use(&self, method_kind: BuiltinMethodKind) -> String {
         trace!("encode_builtin_method_use({:?})", method_kind);
-        if !self.builtin_methods.borrow().contains_key(&method_kind) {
-            // Trigger encoding of definition
-            self.encode_builtin_method_def(method_kind);
-        }
+        // Trigger encoding of definition
+        self.encode_builtin_method_def(method_kind);
         let builtin_encoder = BuiltinEncoder::new();
         builtin_encoder.encode_builtin_method_name(method_kind)
     }

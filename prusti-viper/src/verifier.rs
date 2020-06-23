@@ -169,6 +169,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         let validator = Validator::new(self.env.tcx());
         let report_support_status = config::report_support_status();
         let skip_unsupported_functions = config::skip_unsupported_functions();
+        let error_on_partially_supported = config::error_on_partially_supported();
         let mut skipped_functions_count = 0;
 
         for &proc_id in &task.procedures {
@@ -186,10 +187,10 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 support_status.report_support_status(
                     &self.env,
                     is_pure_function,
-                    // Avoid raising compiler errors for partially supported functions
-                    false,
-                    // Avoid raising compiler errors if we are going to skip unsupported functions
-                    !skip_unsupported_functions,
+                    // true ==> raise compiler errors for partially supported functions
+                    error_on_partially_supported,
+                    // true ==> raise compiler errors for unsupported functions
+                    error_on_partially_supported || !skip_unsupported_functions,
                 );
             }
 

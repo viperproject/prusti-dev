@@ -1,4 +1,4 @@
 Prusti-interface
 ================
 
-Common interface for `prusti-viper` and `prusti` crates.
+Common utilities to interact with the Rust compiler.
