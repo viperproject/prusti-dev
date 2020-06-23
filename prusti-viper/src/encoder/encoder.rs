@@ -183,8 +183,10 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub(in encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
         debug!("Encoding error: {:?}", encoding_error);
         let prusti_error: PrustiError = encoding_error.into();
+        if prusti_error.is_error() {
+            self.encoding_errors_counter.borrow_mut().add_assign(1);
+        }
         prusti_error.emit(self.env);
-        self.encoding_errors_counter.borrow_mut().add_assign(1);
     }
 
     pub fn count_encoding_errors(&self) -> usize {

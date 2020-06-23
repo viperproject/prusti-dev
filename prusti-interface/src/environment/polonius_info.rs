@@ -335,10 +335,10 @@ pub enum PoloniusInfoError {
         variable: mir::Local,
     },
     LoansInNestedLoops(mir::Location, mir::BasicBlock, mir::Location, mir::BasicBlock),
-    ReborrowingDagHasEmptyMagicWand(mir::Location),
+    ReborrowingDagHasNoMagicWands(mir::Location),
     /// We currently support only one reborrowing chain per loop
-    ReborrowingDagHasWrongReborrowingChain(mir::Location),
-    ReborrowingDagHasNoRepresentativeLoan(mir::Location),
+    MultipleMagicWandsPerLoop(mir::Location),
+    MagicWandHasNoRepresentativeLoan(mir::Location),
 }
 
 pub struct PoloniusInfo<'a, 'tcx: 'a> {
@@ -1200,16 +1200,16 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 let (_, loop_head) = loan_loops[0];
                 debug!("loop_head = {:?}", loop_head);
                 if self.loop_magic_wands.is_empty() {
-                    return Err(PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location));
+                    return Err(PoloniusInfoError::ReborrowingDagHasNoMagicWands(location));
                 }
                 let loop_magic_wands = &self.loop_magic_wands[&loop_head];
                 if loop_magic_wands.len() != 1 {
-                    return Err(PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location));
+                    return Err(PoloniusInfoError::MultipleMagicWandsPerLoop(location));
                 }
                 let magic_wand = &loop_magic_wands[0];
                 representative_loan = Some(magic_wand.root_loan);
                 if representative_loan.is_none() {
-                    return Err(PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location));
+                    return Err(PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location));
                 }
                 loans = loans
                     .into_iter()

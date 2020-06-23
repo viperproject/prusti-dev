@@ -8,11 +8,14 @@ use syntax_pos::MultiSpan;
 use prusti_interface::environment::Environment;
 use prusti_common::config;
 
-/// The Prusti error that will be reported to the user.
+/// The Prusti message that will be reported to the user.
 ///
-/// A Prusti error can originate from:
+/// A Prusti message can originate from:
 /// * an encoding error (see the `EncodingError` type)
 /// * a Viper verification error
+///
+/// A `PrustiError` can be displayed as a *warning* to the user. (We should rename `PrustiError`,
+/// `EncodingError` and similar types to something less confusing.)
 #[derive(Clone, Debug)]
 pub struct PrustiError {
     is_error: bool,
@@ -77,6 +80,10 @@ impl PrustiError {
     /// Set that this Prusti error should be reported as a warning to the user
     pub fn set_warning(&mut self) {
         self.is_error = false;
+    }
+
+    pub fn is_error(&self) -> bool {
+        self.is_error
     }
 
     pub fn set_help<S: ToString>(mut self, message: S) -> Self {

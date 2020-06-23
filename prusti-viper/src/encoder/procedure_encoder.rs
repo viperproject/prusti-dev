@@ -160,23 +160,23 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 )
             }
 
-            PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
+            PoloniusInfoError::ReborrowingDagHasNoMagicWands(location) => {
                 EncodingError::internal(
-                    "error in processing expiring borrows (ReborrowingDagHasEmptyMagicWand)",
+                    "error in processing expiring borrows (ReborrowingDagHasNoMagicWands)",
                     self.mir.source_info(location).span,
                 )
             }
 
-            PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
+            PoloniusInfoError::MultipleMagicWandsPerLoop(location) => {
                 EncodingError::internal(
-                    "error in processing expiring borrows (ReborrowingDagHasWrongReborrowingChain)",
+                    "error in processing expiring borrows (MultipleMagicWandsPerLoop)",
                     self.mir.source_info(location).span,
                 )
             }
 
-            PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
+            PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location) => {
                 EncodingError::internal(
-                    "error in processing expiring borrows (ReborrowingDagHasNoRepresentativeLoan)",
+                    "error in processing expiring borrows (MagicWandHasNoRepresentativeLoan)",
                     self.mir.source_info(location).span,
                 )
             }
