@@ -385,8 +385,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let ref_predicate_name = format!("ref${}", self.predicate_name.clone());
         let arg_type = vir::Type::TypedRef(ref_predicate_name.clone());
 
-        let formal_arg_left = vir::LocalVar::new("_left".to_string(), arg_type.clone());
-        let formal_arg_right = vir::LocalVar::new("_right".to_string(), arg_type.clone());
+        let formal_arg_left = vir::LocalVar::new("_left", arg_type.clone());
+        let formal_arg_right = vir::LocalVar::new("_right", arg_type.clone());
 
         let arg_left = vir::Expr::Field(
             Box::new(vir::Expr::Local(formal_arg_left.clone(), vir::Position::default())),
@@ -400,8 +400,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             vir::Position::default()
         );
 
-        let call_arg_left = vir::LocalVar::new("_left".to_string(), self.get_predicate_type());
-        let call_arg_right = vir::LocalVar::new("_right".to_string(), self.get_predicate_type());
+        let call_arg_left = vir::LocalVar::new("_left", self.get_predicate_type());
+        let call_arg_right = vir::LocalVar::new("_right", self.get_predicate_type());
 
         vir::Function {
             name: SNAPSHOT_EQUALS.to_string(),
