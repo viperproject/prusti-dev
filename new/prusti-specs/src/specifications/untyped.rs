@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
-pub use common::{ExpressionId, SpecType, SpecificationId, Arg};
-pub use super::preparser::Parser;
+pub use common::{ExpressionId, SpecType, SpecificationId};
+pub use super::preparser::{Parser, Arg};
 use crate::specifications::common::ForAllVars;
 
 /// A specification that has no types associated with it.

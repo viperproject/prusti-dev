@@ -1,4 +1,7 @@
-use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree, Ident, };
+/// The preparser splits a composite Prusti assertion into atomic assertions, parses the resulting
+/// Rust expressions, and then assembles the composite Prusti assertion.
+
+use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree, Ident};
 use std::collections::VecDeque;
 use std::mem;
 use syn::parse::{ParseBuffer, ParseStream, Parse};
@@ -10,8 +13,14 @@ use crate::specifications::common::AssertionKind::ForAll;
 use crate::specifications::common::{ForAllVars, TriggerSet, Trigger};
 use syn::spanned::Spanned;
 
-pub type AssertionWithoutId = common::Assertion<(), syn::Expr, common::Arg>;
+pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
+
+#[derive(Debug, Clone)]
+pub struct Arg {
+    pub name: syn::Ident,
+    pub typ: syn::Type,
+}
 
 #[derive(Debug)]
 struct ParserStream {
@@ -33,8 +42,8 @@ impl ParserStream {
             last_span: Span::call_site(),
         }
     }
-
-    /// Check if there is a subexpression that contains both and and or
+    /// Check if there is a subexpression that contains both `&&` and `||`. This detects potentially
+    /// ambiguous subexpressions.
     fn contains_both_and_or(&mut self) -> bool {
         let tokens = self.tokens.clone();
         let mut contains_and = false;
@@ -180,13 +189,13 @@ impl ParserStream {
 }
 
 #[derive(Debug)]
-struct OneArg {
+struct ForAllArg {
     name: syn::Ident,
     colon: Token![:],
     typ: syn::Type
 }
 
-impl Parse for OneArg {
+impl Parse for ForAllArg {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self{
             name: input.parse()?,
@@ -197,13 +206,13 @@ impl Parse for OneArg {
 }
 
 #[derive(Debug)]
-struct AllArgs {
-    args: syn::punctuated::Punctuated<OneArg, Token![,]>
+struct ForAllArgs {
+    args: syn::punctuated::Punctuated<ForAllArg, Token![,]>
 }
 
-impl Parse for AllArgs {
+impl Parse for ForAllArgs {
     fn parse(input: ParseStream) -> syn::Result<Self>{
-        let parsed: syn::punctuated::Punctuated<OneArg, Token![,]> = input.parse_terminated(OneArg::parse)?;
+        let parsed: syn::punctuated::Punctuated<ForAllArg, Token![,]> = input.parse_terminated(ForAllArg::parse)?;
         Ok(Self{
             args: parsed
         })
@@ -228,7 +237,7 @@ impl Parse for AllArgs {
 /// is not allowed, since `(E ==> E)` is a Prusti assertion:
 /// `(E ==> E) || E`
 /// However, this is fine, as `&&` is also a Rust operator:
-/// `(E && E) && E`
+/// `(E && E) || E`
 ///
 /// Having `&&` and `||` in the same subexpression is not allowed to preven ambiguities:
 /// `E && E || E`
@@ -261,7 +270,7 @@ impl Parser {
     pub fn from_token_stream(tokens: TokenStream) -> Self {
         let mut input = ParserStream::from_token_stream(tokens);
         Self {
-            input: input,
+            input,
             conjuncts: Vec::new(),
             expr: Vec::new(),
             previous_expression_resolved: false,
@@ -269,10 +278,9 @@ impl Parser {
             expected_only_operator: false
         }
     }
-
-    fn from_parser_stream(input: &mut ParserStream) -> Self {
+    fn from_parser_stream(input: ParserStream) -> Self {
         Self {
-            input: mem::replace(input, ParserStream::empty()),
+            input,
             conjuncts: Vec::new(),
             expr: Vec::new(),
             previous_expression_resolved: false,
@@ -280,223 +288,246 @@ impl Parser {
             expected_only_operator: false
         }
     }
+    fn resolve_and(&mut self) -> syn::Result<()>{
+        // handles the case when there is no lhs of the && operator
+        if !self.expected_operator {
+            return Err(self.error_expected_assertion());
+        }
 
+        // convert the currently being parsed expression into a conjunct if not already
+        // done so
+        if self.previous_expression_resolved {
+            self.previous_expression_resolved = false;
+        }
+        else {
+            if self.expr.is_empty() {
+                return Err(self.error_expected_assertion());
+            }
+            if let Err(err) = self.convert_expr_into_conjunct() {
+                return Err(err);
+            }
+        }
+
+        // handles the case when there is no rhs of the && operator
+        if self.input.is_empty() {
+            return Err(self.error_expected_assertion());
+        }
+
+        self.expected_operator = false;
+        self.expected_only_operator = false;
+        Ok(())
+    }
+    fn resolve_implies(&mut self) -> syn::Result<AssertionWithoutId>{
+        // handles the case when there is no lhs of the ==> operator
+        if !self.expected_operator {
+            return Err(self.error_expected_assertion());
+        }
+
+        // convert the currently being parsed expression into a conjunct if not already
+        // done so
+        if !self.previous_expression_resolved {
+            if self.expr.is_empty() {
+                return Err(self.error_expected_assertion());
+            }
+            if let Err(err) = self.convert_expr_into_conjunct() {
+                return Err(err);
+            }
+        }
+
+        // handles the case when there is no rhs of the ==> operator
+        if self.input.is_empty() {
+            return Err(self.error_expected_assertion());
+        }
+
+        // recursively parse the rhs assertion; note that this automatically handles the
+        // operator precedence: implication will be then weaker than conjunction
+        let mut parser = Parser::from_parser_stream(
+            mem::replace(&mut self.input, ParserStream::empty())
+        );
+
+        let lhs = self.conjuncts_to_assertion();
+        if let Err(err) = lhs {
+            return Err(err);
+        }
+
+        let rhs = parser.extract_assertion();
+        if let Err(err) = rhs {
+            return Err(err);
+        }
+
+        return Ok(AssertionWithoutId{
+            kind: Box::new(common::AssertionKind::Implies(lhs.unwrap(), rhs.unwrap()))
+        });
+    }
+    fn resolve_forall(&mut self) -> syn::Result<()> {
+        if self.expected_operator {
+            return Err(self.error_expected_operator());
+        }
+
+        // check whether there is a parenthesized block after forall
+        if let Some(group) = self.input.check_and_consume_parenthesized_block() {
+
+            // construct a ParserStream off of the parenthesized block for further parsing
+            let mut stream = ParserStream::from_token_stream(group.stream());
+
+            // parse vars
+            if !stream.check_and_consume_operator("|") {
+                return Err(self.error_expected_or());
+            }
+            let token_stream = stream.create_stream_until("|");
+            let all_args: ForAllArgs = syn::parse2(token_stream)?;
+            if !stream.check_and_consume_operator("|") {
+                return Err(self.error_expected_or());
+            }
+            let mut vars = vec![];
+            for var in all_args.args {
+                vars.push(Arg {
+                    typ: var.typ,
+                    name: var.name
+                })
+            }
+
+            // parse body
+            let token_stream = stream.create_stream_until(",");
+            let mut parser = Parser::from_token_stream(token_stream);
+            let body = parser.extract_assertion()?;
+
+            // create triggers in case they are not present
+            let mut trigger_set = TriggerSet(vec![]);
+
+            // parse triggers (check if they are present at all)
+            if stream.peek_operator(",") {
+                stream.check_and_consume_operator(",");
+                if !stream.check_and_consume_keyword("triggers") {
+                    return Err(self.error_expected_triggers());
+                }
+                if !stream.check_and_consume_operator("=") {
+                    return Err(self.error_expected_equals());
+                }
+                let token_stream = stream.create_stream();
+                let arr: syn::ExprArray = syn::parse2(token_stream)?;
+
+                let mut vec_of_triggers = vec![];
+                for item in arr.elems {
+                    if let syn::Expr::Tuple(tuple) = item {
+                        vec_of_triggers.push(
+                            Trigger(tuple.elems
+                                .into_iter()
+                                .map(|x| ExpressionWithoutId {
+                                    id: (),
+                                    spec_id: common::SpecificationId::dummy(),
+                                    expr: x })
+                                .collect()
+                            )
+                        );
+                    }
+                    else {
+                        return Err(self.error_expected_tuple());
+                    }
+                }
+
+                trigger_set = TriggerSet(vec_of_triggers);
+            }
+
+            let conjunct = AssertionWithoutId {
+                kind: Box::new(common::AssertionKind::ForAll(
+                    ForAllVars {
+                        id: (),
+                        vars
+                    },
+                    trigger_set,
+                    body,
+                ))
+            };
+
+            self.conjuncts.push(conjunct);
+            self.previous_expression_resolved = true;
+            self.expected_only_operator = true;
+            self.expected_operator = true;
+            return Ok(());
+        }
+        else {
+            return Err(self.error_expected_parenthesis());
+        }
+    }
+    fn resolve_parenthesized_block(&mut self, group: Group) -> syn::Result<()>{
+        // handling a parenthesized block
+        if self.expected_only_operator {
+            return Err(self.error_expected_operator());
+        }
+
+        if self.expr.is_empty() && (self.input.peek_any_operator() || self.input.is_empty()) {
+            // if there is no expression currently being parsed (in which case the
+            // parenthesized block would be a part of it) and there is a Prusti operator
+            // or nothing at all after the parenthesized block, then we might parser
+            // this as a Prusti assertion
+
+            if self.expected_operator {
+                return Err(self.error_expected_operator());
+            }
+
+            let mut parser = Parser::from_token_stream(group.stream());
+            let conjunct = parser.extract_assertion();
+
+            if let Err(err) = conjunct {
+                return Err(err);
+            }
+
+            let conjunct = conjunct.unwrap();
+            self.conjuncts.push(conjunct);
+            self.previous_expression_resolved = true;
+            self.expected_operator = true;
+        }
+        else{
+            // if this was not the case, we just parse as a Rust expression and stick
+            // it to any possible already being-parsed expression
+            self.expr.push(TokenTree::Group(group));
+        }
+        Ok(())
+    }
+    fn resolve_rust_expr(&mut self) -> syn::Result<()> {
+        // if nothing of the above happened, we just continue parsing as a Rust expression
+        if self.expected_only_operator {
+            self.input.pop();
+            return Err(self.error_expected_operator());
+        }
+
+        let token = self.input.pop().unwrap();
+        self.expr.push(token);
+        self.expected_operator = true;
+        Ok(())
+    }
     /// Creates a single Prusti assertion from the input and returns it.
     pub fn extract_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
+        // detect possibly ambiguous input
         if self.input.contains_both_and_or() {
             return Err(self.error_ambiguous_expression());
         }
 
+        // preparse the input into atomic Prusti assertions
         while !self.input.is_empty() {
             if self.input.check_and_consume_operator("&&") {
-
-                // handles the case when there is no lhs of the && operator
-                if !self.expected_operator {
-                    return Err(self.error_expected_assertion());
+                if let Err(err) = self.resolve_and() {
+                    return Err(err);
                 }
-
-                // convert the currently being parsed expression into a conjunct if not already
-                // done so
-                if self.previous_expression_resolved {
-                    self.previous_expression_resolved = false;
-                }
-                else {
-                    if self.expr.is_empty() {
-                        return Err(self.error_expected_assertion());
-                    }
-                    if let Err(err) = self.convert_expr_into_conjunct() {
-                        return Err(err);
-                    }
-                }
-
-                // handles the case when there is no rhs of the && operator
-                if self.input.is_empty() {
-                    return Err(self.error_expected_assertion());
-                }
-
-                self.expected_operator = false;
-                self.expected_only_operator = false;
             }
-
             else if self.input.check_and_consume_operator("==>") {
-
-                // handles the case when there is no lhs of the ==> operator
-                if !self.expected_operator {
-                    return Err(self.error_expected_assertion());
-                }
-
-                // convert the currently being parsed expression into a conjunct if not already
-                // done so
-                if !self.previous_expression_resolved {
-                    if self.expr.is_empty() {
-                        return Err(self.error_expected_assertion());
-                    }
-                    if let Err(err) = self.convert_expr_into_conjunct() {
-                        return Err(err);
-                    }
-                }
-
-                // handles the case when there is no rhs of the ==> operator
-                if self.input.is_empty() {
-                    return Err(self.error_expected_assertion());
-                }
-
-                // recursively parse the rhs assertion; note that this automatically handles the
-                // operator precedence: implication will be then weaker than conjunction
-                let mut parser = Parser::from_parser_stream(&mut self.input);
-
-                let lhs = self.conjuncts_to_assertion();
-                if let Err(err) = lhs {
-                    return Err(err);
-                }
-
-                let rhs = parser.extract_assertion();
-                if let Err(err) = rhs {
-                    return Err(err);
-                }
-
-                return Ok(AssertionWithoutId{
-                    kind: Box::new(common::AssertionKind::Implies(lhs.unwrap(), rhs.unwrap()))
-                });
+                return self.resolve_implies();
             }
-
             else if self.input.check_and_consume_keyword("forall") {
-                if self.expected_operator {
-                    return Err(self.error_expected_operator());
-                }
-
-                // check whether there is a parenthesized block after forall
-                if let Some(group) = self.input.check_and_consume_parenthesized_block() {
-
-                    // construct a ParserStream off of the parenthesized block for further parsing
-                    let mut stream = ParserStream::from_token_stream(group.stream());
-
-                    // parse vars
-                    if !stream.check_and_consume_operator("|") {
-                        return Err(self.error_expected_or());
-                    }
-                    let token_stream = stream.create_stream_until("|");
-                    let all_args: AllArgs = syn::parse2(token_stream)?;
-                    if !stream.check_and_consume_operator("|") {
-                        return Err(self.error_expected_or());
-                    }
-                    let mut vars = vec![];
-                    for var in all_args.args {
-                        vars.push(common::Arg {
-                            typ: var.typ,
-                            name: var.name
-                        })
-                    }
-
-                    // parse body
-                    let token_stream = stream.create_stream_until(",");
-                    let mut parser = Parser::from_token_stream(token_stream);
-                    let body = parser.extract_assertion()?;
-
-                    // create triggers in case they are not present
-                    let mut trigger_set = TriggerSet(vec![]);
-
-                    // parse triggers (check if they are present at all)
-                    if stream.peek_operator(",") {
-                        stream.check_and_consume_operator(",");
-                        if !stream.check_and_consume_keyword("triggers") {
-                            return Err(self.error_expected_triggers());
-                        }
-                        if !stream.check_and_consume_operator("=") {
-                            return Err(self.error_expected_equals());
-                        }
-                        let token_stream = stream.create_stream();
-                        let arr: syn::ExprArray = syn::parse2(token_stream)?;
-
-                        let mut vec_of_triggers = vec![];
-                        for item in arr.elems {
-                            if let syn::Expr::Tuple(tuple) = item {
-                                vec_of_triggers.push(
-                                    Trigger(tuple.elems
-                                        .into_iter()
-                                        .map(|x| ExpressionWithoutId {
-                                            id: (),
-                                            spec_id: common::SpecificationId::dummy(),
-                                            expr: x })
-                                        .collect()
-                                    )
-                                );
-                            }
-                            else {
-                                return Err(self.error_expected_tuple());
-                            }
-                        }
-
-                        trigger_set = TriggerSet(vec_of_triggers);
-                    }
-
-                    let conjunct = AssertionWithoutId {
-                        kind: Box::new(common::AssertionKind::ForAll(
-                            ForAllVars {
-                                id: (),
-                                vars
-                            },
-                            trigger_set,
-                            body,
-                        ))
-                    };
-
-                    self.conjuncts.push(conjunct);
-                    self.previous_expression_resolved = true;
-                    self.expected_only_operator = true;
-                    self.expected_operator = true;
-
-                }
-                else {
-                    return Err(self.error_expected_parenthesis());
+                if let Err(err) = self.resolve_forall() {
+                    return Err(err);
                 }
             }
-
             else if let Some(group) = self.input.check_and_consume_parenthesized_block() {
-                // handling a parenthesized block
-                if self.expected_only_operator {
-                    return Err(self.error_expected_operator());
-                }
-
-                if self.expr.is_empty() && (self.input.peek_any_operator() || self.input.is_empty()) {
-                    // if there is no expression currently being parsed (in which case the
-                    // parenthesized block would be a part of it) and there is a Prusti operator
-                    // or nothing at all after the parenthesized block, then we might parser
-                    // this as a Prusti assertion
-
-                    if self.expected_operator {
-                        return Err(self.error_expected_operator());
-                    }
-
-                    let mut parser = Parser::from_token_stream(group.stream());
-                    let conjunct = parser.extract_assertion();
-
-                    if let Err(err) = conjunct {
-                        return Err(err);
-                    }
-
-                    let conjunct = conjunct.unwrap();
-                    self.conjuncts.push(conjunct);
-                    self.previous_expression_resolved = true;
-                    self.expected_operator = true;
-                }
-                else{
-                    // if this was not the case, we just parse as a Rust expression and stick
-                    // it to any possible already being-parsed expression
-                    self.expr.push(TokenTree::Group(group));
+                if let Err(err) = self.resolve_parenthesized_block(group) {
+                    return Err(err);
                 }
             }
-
             else{
-                // if nothing of the above happened, we just continue parsing as a Rust expression
-                if self.expected_only_operator {
-                    self.input.pop();
-                    return Err(self.error_expected_operator());
+                if let Err(err) = self.resolve_rust_expr() {
+                    return Err(err);
                 }
-
-                let token = self.input.pop().unwrap();
-                self.expr.push(token);
-                self.expected_operator = true;
             }
         }
 
@@ -510,7 +541,6 @@ impl Parser {
         // build a conjunction off of the assertions parsed
         self.conjuncts_to_assertion()
     }
-
     /// Convert all conjuncts into And assertion.
     fn conjuncts_to_assertion(&mut self) -> syn::Result<AssertionWithoutId> {
         let mut conjuncts = mem::replace(&mut self.conjuncts, Vec::new());
@@ -526,7 +556,6 @@ impl Parser {
             })
         }
     }
-
     /// Convert parsed Rust expression into a Prusti conjunct.
     fn convert_expr_into_conjunct(&mut self) -> syn::Result<()> {
         let expr = self.expr.clone();
@@ -549,35 +578,27 @@ impl Parser {
         });
         Ok(())
     }
-
     fn error_expected_assertion(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected Prusti assertion")
     }
-
     fn error_expected_operator(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected Prusti operator")
     }
-
     fn error_expected_parenthesis(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected `(`")
     }
-
     fn error_expected_or(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected `|`")
     }
-
     fn error_expected_triggers(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected `triggers`")
     }
-
     fn error_expected_equals(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected `=`")
     }
-
     fn error_expected_tuple(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected tuple")
     }
-
     fn error_ambiguous_expression(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "found || and && in the same subexpression")
     }

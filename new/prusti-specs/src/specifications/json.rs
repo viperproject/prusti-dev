@@ -1,6 +1,6 @@
 use super::untyped;
 use serde::{Deserialize, Serialize};
-use crate::specifications::common::Arg;
+use super::preparser::Arg;
 
 #[derive(Serialize, Deserialize)]
 pub struct Expression {
