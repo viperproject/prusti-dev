@@ -17,7 +17,7 @@ fn main() {
     }
 }
 
-fn process(_args: Vec<String>) -> Result<(), i32> {
+fn process(args: Vec<String>) -> Result<(), i32> {
     let java_home = match std::env::var("JAVA_HOME") {
         Ok(java_home) => PathBuf::from(java_home),
         Err(_) => driver_utils::find_java_home()
@@ -32,14 +32,7 @@ fn process(_args: Vec<String>) -> Result<(), i32> {
     }
 
     let mut cmd = Command::new(&prusti_driver_path);
-
-    /* TODO: make sure colors are used. if not, this may help.
-    let has_no_color_arg = args.iter().find(|&x| x == "--color" || x.starts_with("--color=")).is_none();
     cmd.args(args);
-    if has_no_color_arg {
-        cmd.args(&["--color", "always"]);
-    }
-    */
 
     let libjvm_path =
         driver_utils::find_libjvm(&java_home).expect("Failed to find JVM library. Check JAVA_HOME");

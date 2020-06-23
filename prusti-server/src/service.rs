@@ -54,6 +54,7 @@ impl ServerSideService {
             server::Options::default(),
         )?;
         assert_eq!(handle.addr().port(), port);
+        info!("Prusti Server now listening on port {}", port);
         handle.run();
         Ok(())
     }
@@ -61,6 +62,7 @@ impl ServerSideService {
 
 impl SyncService for ServerSideService {
     fn verify(&self, request: VerificationRequest) -> Result<VerificationResult, Never> {
+        info!("Handling verification request for {}", request.program_name);
         Ok(self
             .server
             .run_verifier_async(request)
