@@ -39,7 +39,6 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
             viper_methods.len()
         );
 
-        // TODO: move like predicate
         // Add a function that represents the symbolic read permission amount.
         viper_functions.push(ast.function(
             "read$",

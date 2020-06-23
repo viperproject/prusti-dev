@@ -187,6 +187,7 @@ pub fn server_max_stored_verifiers() -> usize {
 
 /// When set, Prusti will connect to this server and use it for its verification backend (i.e. the things using the JVM/Viper).
 /// Set to "MOCK" to run the server off-thread, effectively mocking connecting to a server without having to start it up separately.
+/// e.g. "127.0.0.1:2468"
 pub fn server_address() -> Option<String> {
     SETTINGS.read().unwrap().get("SERVER_ADDRESS").ok()
 }
