@@ -327,7 +327,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             },
             t => t,
         };
-        let name = format!("arg${}", counter);
+        let name = format!("{}_{}", SNAPSHOT_ARG, counter);
         vir::LocalVar { name, typ }
     }
 

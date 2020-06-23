@@ -115,7 +115,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Type::TypedRef(type_name)
             }
 
-            // TODO CMFIXME
             ty::TypeVariants::TyAdt(_, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty);
                 match &self.encoder.encode_get_domain_type(type_name) {

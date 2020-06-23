@@ -224,6 +224,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn get_used_viper_fields(&self) -> Vec<vir::Field> {
+        /*
         // TODO CMFIXME ugly hack because some snapshot functionality is not generated lazily yet
         if !self.fields.borrow().contains_key("val_ref") {
             self.fields
@@ -235,6 +236,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 );
         }
         // TODO CMFIXME ugly hack because some snapshot functionality is not generated lazily yet
+        */
 
         let mut fields: Vec<_> = self.fields.borrow().values().cloned().collect();
 
