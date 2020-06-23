@@ -3,8 +3,10 @@ extern crate prusti_server;
 
 use compiletest_rs::{common, run_tests, Config};
 use prusti_server::ServerSideService;
-use std::env::{remove_var, set_var, var};
-use std::path::PathBuf;
+use std::{
+    env::{remove_var, set_var, var},
+    path::PathBuf,
+};
 
 fn get_prusti_rustc_path() -> PathBuf {
     let local_prusti_rustc_path: PathBuf = if cfg!(windows) {
@@ -143,7 +145,7 @@ fn run_verification(group_name: &str) {
 
 #[test]
 fn test_runner() {
-    // TODO: spawn server process as child (so it stays around until main function terminates)
+    // spawn server process as child (so it stays around until main function terminates)
     let server_address = ServerSideService::spawn_off_thread();
     set_var("PRUSTI_SERVER_ADDRESS", server_address.to_string());
     run_no_verification("parse");
