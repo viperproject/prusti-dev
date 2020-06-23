@@ -575,6 +575,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
     }
 
+    /* 
     fn encode_adt_snap_eq_call(&self, first: vir::Expr, second: vir::Expr) -> vir::Expr {
         let arg_type = first.get_type().clone();
         let predicate_name = arg_type.name().clone();
@@ -590,6 +591,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
             vir::Position::default(),
         )
     }
+    */
 
     fn encode_memory_eq_adt(
         &self,

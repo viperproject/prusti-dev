@@ -15,6 +15,8 @@ const SNAPSHOT_CONS: &str = "cons$";
 const SNAPSHOT_GET: &str = "snap$";
 pub const SNAPSHOT_EQUALS: &str = "equals$";
 const SNAPSHOT_ARG: &str = "_arg";
+const SNAPSHOT_LEFT: &str = "_left";
+const SNAPSHOT_RIGHT: &str = "_right";
 
 pub struct SnapshotEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
@@ -85,10 +87,16 @@ impl Snapshot {
 
     pub fn get_equals_func_ref(&self) -> (String, vir::Function) {
         match &self.snap_domain {
-            Some(s) => (format!("ref${}", self.predicate_name.clone()), s.equals_func_ref.clone()),
+            Some(s) => {
+                (get_ref_predicate_name(&self.predicate_name), s.equals_func_ref.clone())
+            },
             None => unreachable!()
         }
     }
+}
+
+fn get_ref_predicate_name(predicate_name: &String) -> String {
+    format!("ref${}", predicate_name.clone())
 }
 
 impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -133,12 +141,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     fn encode_snap_func_primitive(&self, field: vir::Field) -> vir::Function {
         let return_type = self.encoder.encode_value_type(self.ty);
         let body = vir::Expr::Field(
-            Box::new(
-                vir::Expr::Local(
-                    self.encode_snap_arg_var(SNAPSHOT_ARG),
-                    vir::Position::default()
-                )
-            ),
+            Box::new(self.encode_snap_arg_local(SNAPSHOT_ARG)),
             field,
             vir::Position::default()
         );
@@ -149,14 +152,13 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             name: SNAPSHOT_GET.to_string(),
             formal_args: vec![self.encode_snap_arg_var(SNAPSHOT_ARG)],
             return_type: return_type.clone(),
-            pres: vec![self.encode_snap_predicate_access(SNAPSHOT_ARG.clone())],
+            pres: vec![self.encode_snap_predicate_access(
+                self.encode_snap_arg_local(SNAPSHOT_ARG)
+            )],
             posts: vec![],
             body: Some(vir::Expr::Unfolding(
                 self.predicate_name.clone(),
-                vec![vir::Expr::Local(
-                    self.encode_snap_arg_var(SNAPSHOT_ARG),
-                    vir::Position::default()
-                )],
+                vec![self.encode_snap_arg_local(SNAPSHOT_ARG)],
                 Box::new(body),
                 vir::PermAmount::Read,
                 None,
@@ -165,15 +167,19 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_snap_predicate_access<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
+    fn encode_snap_predicate_access(&self, expr: vir::Expr) -> vir::Expr {
         vir::Expr::PredicateAccessPredicate(
             self.predicate_name.clone(),
-            Box::new(vir::Expr::Local(
-                self.encode_snap_arg_var(arg_name),
-                vir::Position::default()
-            )),
+            Box::new(expr),
             PermAmount::Read,
             vir::Position::default())
+    }
+
+    fn encode_snap_arg_local<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
+        vir::Expr::Local(
+            self.encode_snap_arg_var(arg_name),
+            vir::Position::default()
+        )
     }
 
     fn encode_snap_arg_var<S: Into<String>>(&self, arg_name: S) -> vir::LocalVar {
@@ -255,34 +261,44 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         vec![cons_fun]
     }
     pub fn encode_equals_func_struct(&self) -> vir::Function {
-        let left = "_left";
-        let right = "_right";
         vir::Function {
             name: SNAPSHOT_EQUALS.to_string(),
             formal_args: vec![
-                self.encode_snap_arg_var(left),
-                self.encode_snap_arg_var(right),
+                self.encode_snap_arg_var(SNAPSHOT_LEFT),
+                self.encode_snap_arg_var(SNAPSHOT_RIGHT),
             ],
             return_type: vir::Type::Bool,
             pres: vec![
-                self.encode_snap_predicate_access(left),
-                self.encode_snap_predicate_access(right),
+                self.encode_snap_predicate_access(
+                    self.encode_snap_arg_local(SNAPSHOT_LEFT)
+                ),
+                self.encode_snap_predicate_access(
+                    self.encode_snap_arg_local(SNAPSHOT_RIGHT)
+                ),
             ],
             posts: vec![],
             body: Some(vir::Expr::BinOp(
                 vir::BinOpKind::EqCmp,
-                Box::new(self.encode_snapshot_call(left)),
-                Box::new(self.encode_snapshot_call(right)),
+                Box::new(self.encode_value_snapshot_call(SNAPSHOT_LEFT)),
+                Box::new(self.encode_value_snapshot_call(SNAPSHOT_RIGHT)),
                 vir::Position::default(),
             )),
         }
     }
 
-    fn encode_snapshot_call<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
+    fn encode_value_snapshot_call<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
         let name = arg_name.into();
+        self.encode_snapshot_call(
+            name.clone(),
+            self.encode_snap_arg_local(name.clone())
+        )
+    }
+
+    fn encode_snapshot_call<S: Into<String>>(&self, formal_arg_name: S, arg: vir::Expr) -> vir::Expr {
+        let name = formal_arg_name.into();
         vir::Expr::FuncApp(
             SNAPSHOT_GET.to_string(),
-            vec![vir::Expr::Local(self.encode_snap_arg_var(name.clone()), vir::Position::default())],
+            vec![arg],
             vec![self.encode_snap_arg_var(name)],
             vir::Type::Domain(self.encode_domain_name()),
             vir::Position::default(),
@@ -294,7 +310,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let mut formal_args = vec![];
         match self.ty.sty {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                // TODO fo far this is for structs only
+                // TODO so far this is for structs only
                 let tcx = self.encoder.env().tcx();
                 for field in &adt_def.variants[0].fields {
                     let field_ty = field.ty(tcx, subst);
@@ -328,7 +344,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             t => t,
         };
         let name = format!("{}_{}", SNAPSHOT_ARG, counter);
-        vir::LocalVar { name, typ }
+        vir::LocalVar::new(name, typ)
     }
 
     fn encode_snap_func_struct_args(&self) -> Vec<vir::Expr> {
@@ -349,10 +365,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ).collect()
             },
             ty::TypeVariants::TyInt(_) => {
-                vec![vir::Expr::Local(
-                    self.encode_snap_arg_var(SNAPSHOT_ARG),
-                    vir::Position::default()
-                )]
+                vec![self.encode_snap_arg_local(SNAPSHOT_ARG)]
             },
             _ => unreachable!(),
         }
@@ -364,12 +377,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
             vir::Type::TypedRef(name) => vir::Expr::FuncApp(
                 self.encoder.encode_get_snapshot_func_name(name.clone()),
                 vec![vir::Expr::Field(
-                    Box::new(
-                        vir::Expr::Local(
-                            self.encode_snap_arg_var(SNAPSHOT_ARG),
-                            vir::Position::default()
-                        )
-                    ), field, vir::Position::default()
+                    Box::new(self.encode_snap_arg_local(SNAPSHOT_ARG)),
+                    field,
+                    vir::Position::default()
                 )],
                 vec![vir::LocalVar::new("self", field_type)],
                 snap_type,
@@ -379,82 +389,52 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    // TODO unify with encode_equals_def
     pub fn encode_equals_func_struct_ref(&self) -> vir::Function {
-
-        let ref_predicate_name = format!("ref${}", self.predicate_name.clone());
-        let arg_type = vir::Type::TypedRef(ref_predicate_name.clone());
-
-        let formal_arg_left = vir::LocalVar::new("_left", arg_type.clone());
-        let formal_arg_right = vir::LocalVar::new("_right", arg_type.clone());
-
-        let arg_left = vir::Expr::Field(
-            Box::new(vir::Expr::Local(formal_arg_left.clone(), vir::Position::default())),
-            vir::Field::new("val_ref", self.get_predicate_type()),
-            vir::Position::default()
-        );
-
-        let arg_right = vir::Expr::Field(
-            Box::new(vir::Expr::Local(formal_arg_right.clone(), vir::Position::default())),
-            vir::Field::new("val_ref", self.get_predicate_type()),
-            vir::Position::default()
-        );
-
-        let call_arg_left = vir::LocalVar::new("_left", self.get_predicate_type());
-        let call_arg_right = vir::LocalVar::new("_right", self.get_predicate_type());
+        let arg_type = vir::Type::TypedRef(get_ref_predicate_name(&self.predicate_name));
+        let formal_left = vir::LocalVar::new(SNAPSHOT_LEFT, arg_type.clone());
+        let formal_right = vir::LocalVar::new(SNAPSHOT_RIGHT, arg_type.clone());
+        let arg_left = self.get_ref_field(formal_left.clone());
+        let arg_right = self.get_ref_field(formal_right.clone());
 
         vir::Function {
             name: SNAPSHOT_EQUALS.to_string(),
-            formal_args: vec![formal_arg_left.clone(), formal_arg_right.clone()],
+            formal_args: vec![formal_left.clone(), formal_right.clone()],
             return_type: vir::Type::Bool,
             pres: vec![
-                vir::Expr::FieldAccessPredicate(
-                    Box::new(arg_left.clone()),
-                    PermAmount::Read,
-                    vir::Position::default()
-                ),
-                vir::Expr::PredicateAccessPredicate(
-                    self.predicate_name.clone(),
-                    Box::new(arg_left.clone()),
-                    PermAmount::Read,
-                    vir::Position::default()
-                ),
-                vir::Expr::FieldAccessPredicate(
-                    Box::new(arg_right.clone()),
-                    PermAmount::Read,
-                    vir::Position::default()
-                ),
-                vir::Expr::PredicateAccessPredicate(
-                    self.predicate_name.clone(),
-                    Box::new(arg_right.clone()),
-                    PermAmount::Read,
-                    vir::Position::default()
-                ),
+                self.get_ref_field_perm(arg_left.clone()),
+                self.encode_snap_predicate_access(arg_left),
+                self.get_ref_field_perm(arg_right.clone()),
+                self.encode_snap_predicate_access(arg_right),
             ],
             posts: vec![],
             body: Some(vir::Expr::BinOp(
                 vir::BinOpKind::EqCmp,
-                Box::new(self.encode_ref_snapshot_call(call_arg_left)),
-                Box::new(self.encode_ref_snapshot_call(call_arg_right)),
+                Box::new(self.encode_ref_snapshot_call(SNAPSHOT_LEFT)),
+                Box::new(self.encode_ref_snapshot_call(SNAPSHOT_RIGHT)),
                 vir::Position::default(),
             )),
         }
     }
 
-    fn encode_ref_snapshot_call(&self, formal_arg: vir::LocalVar) -> vir::Expr {
-        let arg = vir::Expr::Field(
-            Box::new(vir::Expr::Local(formal_arg.clone(), vir::Position::default())),
+    fn get_ref_field(&self, var: vir::LocalVar) -> vir::Expr {
+        vir::Expr::Field(
+            Box::new(vir::Expr::Local(var, vir::Position::default())),
             vir::Field::new("val_ref", self.get_predicate_type()),
             vir::Position::default()
-        );
-        vir::Expr::FuncApp(
-            SNAPSHOT_GET.to_string(),
-            vec![arg],
-            vec![formal_arg],
-            vir::Type::Domain(self.encode_domain_name()),
-            vir::Position::default(),
         )
     }
 
+    fn get_ref_field_perm(&self, expr: vir::Expr) -> vir::Expr {
+        vir::Expr::FieldAccessPredicate(
+            Box::new(expr),
+            PermAmount::Read,
+            vir::Position::default()
+        )
+    }
 
+    fn encode_ref_snapshot_call<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
+        let name = arg_name.into();
+        let arg = self.get_ref_field(self.encode_snap_arg_var(name.clone()));
+        self.encode_snapshot_call(name, arg)
+    }
 }
