@@ -615,7 +615,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let mut conjuncts = Vec::new();
         if num_variants == 1 {
             // A struct.
-            // TODO CMFIXME: this should be replaced by
+            // TODO this should eventually be replaced by using snapshots?
             // conjuncts.push(self.encode_adt_snap_eq_call(first, second));
             let variant_def = &adt_def.variants[0];
             for field in &variant_def.fields {
@@ -997,6 +997,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>) {
+        let ty = self.dereference_ty(ty);
         let predicate_name = self.encode_type_predicate_use(ty).clone();
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             let encoder = SnapshotEncoder::new(
@@ -1012,6 +1013,15 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 self.snap_eq_funcs.borrow_mut().insert(eq_ref_name, eq_ref_func);
             }
             self.snapshots.borrow_mut().insert(predicate_name, snapshot);
+        }
+    }
+
+    fn dereference_ty(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+        match ty.sty {
+            ty::TypeVariants::TyRef(_, ref val_ty, _) => {
+                self.dereference_ty(val_ty)
+            }
+            _ => ty,
         }
     }
 
@@ -1432,7 +1442,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        -> Option<vir::DomainFunc> {
         let mut mirrors = self.snap_mirror_funcs.borrow_mut();
         if !mirrors.contains_key(&def_id) {
-            // TODO CMFIXME do not generate a mirror if some unsupported type is involved
+            // do not generate a mirror function if some unsupported type is involved
             for a in &pure_function.formal_args {
                 match a.typ.clone() {
                     vir::Type::TypedRef(name) => {

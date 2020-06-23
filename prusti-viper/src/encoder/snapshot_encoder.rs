@@ -109,12 +109,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 )
             }
             ty::TypeVariants::TyAdt(adt_def, _) if !adt_def.is_box() => {
-                // TODO CMFIXME
                 if adt_def.variants.len() != 1 {
                     warn!("Generating equality tests for enums is not supported yet");
                 }
                 self.encode_snap_struct()
             }
+
             x => unimplemented!("{:?}", x),
         }
     }
@@ -272,7 +272,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 // TODO fo far this is for structs only
                 let tcx = self.encoder.env().tcx();
                 for field in &adt_def.variants[0].fields {
-                    self.encoder.encode_snapshot(field.ty(tcx, subst)); // CMFIXME
+                    let field_ty = field.ty(tcx, subst);
+                    self.encoder.encode_snapshot(field_ty);
                     let field_type = &self.encoder.encode_value_type(field.ty(tcx, subst));
                     formal_args.push(
                         self.encode_local_var(counter, field_type)
@@ -280,9 +281,14 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     counter += 1
                 }
             },
-            ty::TypeVariants::TyInt(_) => {
+
+            ty::TypeVariants::TyInt(_)
+            | ty::TypeVariants::TyUint(_)
+            | ty::TypeVariants::TyChar
+            | ty::TypeVariants::TyBool => {
                 formal_args.push(self.encode_snap_arg_var(SNAPSHOT_ARG))
             },
+
             _ => unreachable!(),
         }
         formal_args
@@ -302,7 +308,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     fn encode_snap_func_struct_args(&self) -> Vec<vir::Expr> {
         match self.ty.sty {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                // TODO CMFIXME so far this works only for structs
+                // TODO so far this works only for structs
                 let tcx = self.encoder.env().tcx();
                 adt_def.variants[0]
                     .fields
@@ -311,7 +317,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                         self.encoder.encode_struct_field(
                             &f.ident.to_string(),
                             f.ty(tcx, subst)
-                            )
+                            ),
+                        self.encoder.encode_value_type(f.ty(tcx, subst)), // TODO
                         )
                     ).collect()
             },
@@ -325,7 +332,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_snap_arg(&self, field: vir::Field) -> vir::Expr {
+    fn encode_snap_arg(&self, field: vir::Field, snap_type: vir::Type) -> vir::Expr {
         let field_type = field.typ.clone();
         match field.typ.clone() {
             vir::Type::TypedRef(name) => vir::Expr::FuncApp(
@@ -339,22 +346,10 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     ), field, vir::Position::default()
                 )],
                 vec![vir::LocalVar::new("self", field_type)],
-                self.encode_type_name(name.clone()),
+                snap_type,
                 vir::Position::default(),
             ),
             Type::Int | Type::Bool | Type::Domain(_) => { unimplemented!() }
-        }
-    }
-
-    // TODO CMFIXME
-    fn encode_type_name(&self, name: String) -> vir::Type {
-        if name == "i32" { // TODO
-            vir::Type::Int
-        } else {
-            match &self.encoder.encode_get_domain_type(name) {
-                Some(typ) => typ.clone(),
-                None => unreachable!(),
-            }
         }
     }
 

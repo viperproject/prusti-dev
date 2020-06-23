@@ -36,63 +36,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
         TypeEncoder { encoder, ty }
     }
 
-    /// Is this type supported for snapshot-based equality?
-    fn is_eq_supported_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.sty {
-            ty::TypeVariants::TyBool |
-            ty::TypeVariants::TyInt(_) |
-            ty::TypeVariants::TyUint(_) |
-            ty::TypeVariants::TyChar |
-            ty::TypeVariants::TyRef(_, _, _) |
-            ty::TypeVariants::TyAdt(_, _) |
-            ty::TypeVariants::TyTuple(_) |
-            ty::TypeVariants::TyNever => {
-                true
-            }
-            _ => {
-                false
-            }
-        }
-    }
-
-    fn is_eq_supported_subst(&self, subst: &ty::subst::Substs<'tcx>) -> bool {
-        subst.iter().all(|kind| {
-            if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
-                trace!("is_eq_supported_subst({:?}) = {}", ty, self.is_eq_supported_type(ty));
-                self.is_eq_supported_type(ty)
-            } else {
-                true
-            }
-        })
-    }
-
-    /// Is this type supported?
-    fn is_eq_supported_field_type(&self, ty: ty::Ty<'tcx>) -> bool {
-        match ty.sty {
-            ty::TypeVariants::TyAdt(_, subst) => {
-                self.is_eq_supported_subst(subst)
-            }
-
-            _ => {
-                self.is_eq_supported_type(ty)
-            }
-        }
-    }
-
-    /// Are all fields in the struct of a supported type?
-    fn is_eq_supported_struct_type(&self, adt_def: &ty::AdtDef, subst: &ty::subst::Substs<'tcx>) -> bool {
-        let tcx = self.encoder.env().tcx();
-        let supported_fields = adt_def.variants.iter().all(|variant| {
-            variant.fields.iter().all(|field| {
-                let field_ty = field.ty(tcx, subst);
-                trace!("is_eq_supported_type({:?}) = {}", field_ty, self.is_eq_supported_type(field_ty));
-                self.is_eq_supported_field_type(field_ty)
-            })
-        });
-        // TODO CMFIXME the last conjunct ensures that only structs are supported
-        supported_fields && self.is_eq_supported_subst(subst) && adt_def.variants.len() == 1 && !adt_def.is_box()
-    }
-
     /// Is this type supported?
     fn is_supported_type(&self, ty: ty::Ty<'tcx>) -> bool {
         match ty.sty {
@@ -284,7 +227,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 } else {
                     false
                 };
-                self.encoder.encode_snapshot(self.ty); // TODO CMFIXME be more lazy here
                 vec![vir::Predicate::new_primitive_value(
                     typ,
                     self.encoder.encode_value_field(self.ty),
@@ -331,11 +273,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                                 self.encoder.encode_struct_field(&field_name, field_ty)
                             })
                             .collect();
-                        // TODO CMFIXME notice that we only support a subset of types
-                        // TODO because get_value_type is uninmplemented for, e.g., generics
-                        if self.is_eq_supported_struct_type(adt_def, subst) {
-                            self.encoder.encode_snapshot(self.ty);
-                        }
                         vec![vir::Predicate::new_struct(typ, fields)]
                     } else {
                         debug!("ADT {:?} has {} variants", adt_def, num_variants);

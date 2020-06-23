@@ -1845,9 +1845,12 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
                     }
 
-                    // TODO CMFIXME
                     "core::cmp::PartialEq::eq" => {
                         assert!(args.len() == 2);
+
+                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                        self.encoder.encode_snapshot(arg_ty);
+
                         let arg_exprs = vec![
                             self.mir_encoder.encode_operand_expr(&args[0]),
                             self.mir_encoder.encode_operand_expr(&args[1]),
@@ -1859,7 +1862,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let function_name = self.encoder.
                             encode_snapshot_equals_use(arg_type.name().clone());
 
-                        // TODO CMFIXME we essentially have to do the same things as for pure funs
+                        // TODO we essentially have to do the same things as for pure funs
                         assert!(destination.is_some());
                         let formal_args: Vec<vir::LocalVar> = args
                             .iter()
@@ -1957,7 +1960,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                                 _ => {} // Nothing
                             }
                         }
-                        // TODO CMFIXME END of duplication
+                        // TODO END of duplication
                     }
 
                     _ => {

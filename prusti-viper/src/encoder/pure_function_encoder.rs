@@ -656,6 +656,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                     ));
                             }
 
+                            // this is a hack to generate snapshots if we
+                            // detect some call of an equals function in a specification
+                            if override_purity {
+                                let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                                self.encoder.encode_snapshot(arg_ty);
+                            }
+
                             let formal_args: Vec<vir::LocalVar> = args
                                 .iter()
                                 .enumerate()
