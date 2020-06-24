@@ -16,8 +16,8 @@ use crate::encoder::procedure_encoder::ProcedureEncoder;
 // use crate::encoder::pure_function_encoder::PureFunctionEncoder;
 // use crate::encoder::stub_function_encoder::StubFunctionEncoder;
 // use crate::encoder::spec_encoder::SpecEncoder;
-// use crate::encoder::type_encoder::{
-//     compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
+use crate::encoder::type_encoder::{
+    compute_discriminant_values, compute_discriminant_bounds, TypeEncoder};
 use prusti_common::vir;
 // use crate::encoder::vir::WithIdentifier;
 use prusti_interface::config;
@@ -899,7 +899,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
         if !self.type_predicate_names.borrow().contains_key(&ty.kind) {
-            // let type_encoder = TypeEncoder::new(self, ty);
+            let type_encoder = TypeEncoder::new(self, ty);
             // let result = type_encoder.encode_predicate_use();
             // self.type_predicate_names
             //     .borrow_mut()
