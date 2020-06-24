@@ -14,7 +14,6 @@ use super::super::super::cfg;
 use config;
 use std::collections::{HashMap, HashSet};
 use std::{self, mem};
-use std::intrinsics::unreachable;
 
 /// Purify vars.
 pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
@@ -420,7 +419,7 @@ impl ast::StmtFolder for VarPurifier {
                 ast::Type::Int => "builtin$havoc_int",
                 ast::Type::Bool => "builtin$havoc_bool",
                 ast::Type::TypedRef(_) => "builtin$havoc_ref",
-                ast::Type::Domain(_) => unreachable()!(),
+                ast::Type::Domain(_) => unreachable!(),
             }.to_string();
             targets = vec![replacement];
         }
