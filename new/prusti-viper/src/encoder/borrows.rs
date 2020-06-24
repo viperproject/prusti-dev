@@ -16,30 +16,31 @@ use rustc_middle::ty::{self, Ty, TyCtxt};
 // use rustc_data_structures::indexed_vec::Idx;
 use std::collections::HashMap;
 use std::fmt;
-// use utils::type_visitor::{self, TypeVisitor};
+use crate::utils::type_visitor::{self, TypeVisitor};
 use prusti_interface::specs::typed;
+use log::trace;
 
-// #[derive(Clone, Debug)]
-// pub struct BorrowInfo<P>
-// where
-//     P: fmt::Debug,
-// {
-//     /// Region of this borrow. None means static.
-//     pub region: Option<ty::BoundRegion>,
-//     pub blocking_paths: Vec<(P, Mutability)>,
-//     pub blocked_paths: Vec<(P, Mutability)>,
-//     //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
-// }
+#[derive(Clone, Debug)]
+pub struct BorrowInfo<P>
+where
+    P: fmt::Debug,
+{
+    /// Region of this borrow. None means static.
+    pub region: Option<ty::BoundRegion>,
+    pub blocking_paths: Vec<(P, Mutability)>,
+    pub blocked_paths: Vec<(P, Mutability)>,
+    //blocked_lifetimes: Vec<String>, TODO: Get this info from the constraints graph.
+}
 
-// impl<P: fmt::Debug> BorrowInfo<P> {
-//     fn new(region: Option<ty::BoundRegion>) -> Self {
-//         BorrowInfo {
-//             region,
-//             blocking_paths: Vec::new(),
-//             blocked_paths: Vec::new(),
-//         }
-//     }
-// }
+impl<P: fmt::Debug> BorrowInfo<P> {
+    fn new(region: Option<ty::BoundRegion>) -> Self {
+        BorrowInfo {
+            region,
+            blocking_paths: Vec::new(),
+            blocked_paths: Vec::new(),
+        }
+    }
+}
 
 // impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
 //     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -245,36 +246,36 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
 //     }
 }
 
-// pub struct BorrowInfoCollectingVisitor<'a, 'tcx: 'a> {
-//     borrow_infos: Vec<BorrowInfo<mir::Place<'tcx>>>,
-//     /// References that were passed as arguments. We are interested only in
-//     /// references that can be blocked.
-//     references_in: Vec<(mir::Place<'tcx>, Mutability)>,
-//     tcx: TyCtxt<'a, 'tcx, 'tcx>,
-//     /// Can the currently analysed path block other paths? For return
-//     /// type this is initially true, and for parameters it is true below
-//     /// the first reference.
-//     is_path_blocking: bool,
-//     current_path: Option<mir::Place<'tcx>>,
-// }
+pub struct BorrowInfoCollectingVisitor<'tcx> {
+    borrow_infos: Vec<BorrowInfo<mir::Place<'tcx>>>,
+    /// References that were passed as arguments. We are interested only in
+    /// references that can be blocked.
+    references_in: Vec<(mir::Place<'tcx>, Mutability)>,
+    tcx: TyCtxt<'tcx>,
+    /// Can the currently analysed path block other paths? For return
+    /// type this is initially true, and for parameters it is true below
+    /// the first reference.
+    is_path_blocking: bool,
+    current_path: Option<mir::Place<'tcx>>,
+}
 
-// impl<'a, 'tcx> BorrowInfoCollectingVisitor<'a, 'tcx> {
-//     fn new(tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Self {
-//         BorrowInfoCollectingVisitor {
-//             borrow_infos: Vec::new(),
-//             references_in: Vec::new(),
-//             tcx,
-//             is_path_blocking: false,
-//             current_path: None,
-//         }
-//     }
+impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
+    fn new(tcx: TyCtxt<'tcx>) -> Self {
+        BorrowInfoCollectingVisitor {
+            borrow_infos: Vec::new(),
+            references_in: Vec::new(),
+            tcx,
+            is_path_blocking: false,
+            current_path: None,
+        }
+    }
 
-//     fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
-//         self.is_path_blocking = true;
-//         self.current_path = Some(mir::Place::Local(mir::RETURN_PLACE));
-//         self.visit_ty(ty);
-//         self.current_path = None;
-//     }
+    // fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
+    //     self.is_path_blocking = true;
+    //     self.current_path = Some(mir::Place::Local(mir::RETURN_PLACE));
+    //     self.visit_ty(ty);
+    //     self.current_path = None;
+    // }
 
 //     fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
 //         self.is_path_blocking = false;
@@ -311,12 +312,12 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
 //             self.borrow_infos.last_mut().unwrap()
 //         }
 //     }
-// }
+}
 
-// impl<'a, 'tcx> TypeVisitor<'a, 'tcx> for BorrowInfoCollectingVisitor<'a, 'tcx> {
-//     fn tcx(&self) -> TyCtxt<'a, 'tcx, 'tcx> {
-//         self.tcx
-//     }
+impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
+    fn tcx(&self) -> TyCtxt<'tcx> {
+        self.tcx
+    }
 
 //     fn visit_field(
 //         &mut self,
@@ -376,7 +377,7 @@ impl<'tcx> ProcedureContractMirDef<'tcx> {
 //         // TODO
 //         debug!("BorrowInfoCollectingVisitor::visit_raw_ptr is unimplemented");
 //     }
-// }
+}
 
 pub fn compute_procedure_contract<'p, 'a, 'tcx>(
     proc_def_id: ProcedureDefId,
@@ -388,32 +389,32 @@ where
     'a: 'p,
     'tcx: 'a,
 {
-//     trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
+    trace!("[compute_borrow_infos] enter name={:?}", proc_def_id);
 
-//     let fn_sig = tcx.fn_sig(proc_def_id);
-//     trace!("fn_sig: {:?}", fn_sig);
+    let fn_sig = tcx.fn_sig(proc_def_id);
+    trace!("fn_sig: {:?}", fn_sig);
 
-//     let mut fake_mir_args = Vec::new();
-//     let mut fake_mir_args_ty = Vec::new();
+    let mut fake_mir_args = Vec::new();
+    let mut fake_mir_args_ty = Vec::new();
 
-//     // FIXME; "skip_binder" is most likely wrong
-//     for i in 0usize..fn_sig.inputs().skip_binder().len() {
-//         fake_mir_args.push(mir::Local::new(i + 1));
-//         let arg_ty = fn_sig.input(i);
-//         let arg_ty = arg_ty.skip_binder();
-//         let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
-//             replaced_arg_ty.clone()
-//         } else {
-//             arg_ty.clone()
-//         };
-//         fake_mir_args_ty.push(ty);
-//     }
-//     let return_ty = fn_sig.output().skip_binder().clone();
+    // FIXME; "skip_binder" is most likely wrong
+    for i in 0usize..fn_sig.inputs().skip_binder().len() {
+        fake_mir_args.push(mir::Local::from_usize(i + 1));
+        let arg_ty = fn_sig.input(i);
+        let arg_ty = arg_ty.skip_binder();
+        let ty = if let Some(replaced_arg_ty) = maybe_tymap.and_then(|tymap| tymap.get(arg_ty)) {
+            replaced_arg_ty.clone()
+        } else {
+            arg_ty.clone()
+        };
+        fake_mir_args_ty.push(ty);
+    }
+    let return_ty = fn_sig.output().skip_binder().clone();
 
-//     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
-//     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
-//         visitor.analyse_arg(*arg, arg_ty);
-//     }
+    let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
+    // for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
+    //     visitor.analyse_arg(*arg, arg_ty);
+    // }
 //     visitor.analyse_return_ty(return_ty);
 //     let borrow_infos: Vec<_> = visitor
 //         .borrow_infos
