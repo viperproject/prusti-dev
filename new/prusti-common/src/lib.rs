@@ -7,7 +7,8 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(nll)]
-#![feature(slice_sort_by_cached_key)]
+
+#![allow(warnings)]
 
 #[macro_use]
 extern crate log;

@@ -11,6 +11,8 @@
 // #![feature(slice_sort_by_cached_key)]
 // #![feature(iterator_flatten)]
 
+#![allow(warnings)]
+
 // #![deny(unreachable_patterns)]
 // #![deny(unused_mut)]
 // #![deny(unused_variables)]

@@ -11,8 +11,8 @@ use crate::encoder::errors::{EncodingError, ErrorCtxt};
 // use crate::encoder::foldunfold;
 // use crate::encoder::initialisation::InitInfo;
 // use crate::encoder::loop_encoder::LoopEncoder;
-// use crate::encoder::mir_encoder::MirEncoder;
-// use crate::encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
+use crate::encoder::mir_encoder::MirEncoder;
+use crate::encoder::mir_encoder::{POSTCONDITION_LABEL, PRECONDITION_LABEL};
 // use crate::encoder::mir_successor::MirSuccessor;
 // use crate::encoder::optimiser;
 // use crate::encoder::places::{Local, LocalVariableManager, Place};
@@ -63,7 +63,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     // locals: LocalVariableManager<'tcx>,
     // loop_encoder: LoopEncoder<'p, 'a, 'tcx>,
     // auxiliary_local_vars: HashMap<String, vir::Type>,
-    // mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
+    mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     // check_panics: bool,
     // check_fold_unfold_state: bool,
     // polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
@@ -98,7 +98,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mir = procedure.get_mir();
         let def_id = procedure.get_id();
         let tcx = encoder.env().tcx();
-        // let mir_encoder = MirEncoder::new(encoder, mir, def_id);
+        let mir_encoder = MirEncoder::new(encoder, mir, def_id);
         // let init_info = InitInfo::new(mir, tcx, def_id, &mir_encoder);
 
         let cfg_method = vir::CfgMethod::new(
@@ -123,7 +123,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // locals: LocalVariableManager::new(&mir.local_decls),
             // loop_encoder: LoopEncoder::new(procedure, tcx),
             // auxiliary_local_vars: HashMap::new(),
-            // mir_encoder: mir_encoder,
+            mir_encoder: mir_encoder,
             // check_panics: config::check_panics(),
             // check_fold_unfold_state: config::check_foldunfold_state(),
             // polonius_info: None,
@@ -233,81 +233,74 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let procedure_trait_contract = self
                         .encoder
                         .get_procedure_contract_for_def(assoc_item.def_id);
-    //                 let (proc_pre_specs, proc_post_specs) = {
-    //                     if let SpecificationSet::Procedure(ref mut pre, ref mut post) =
-    //                         self.mut_contract().specification
-    //                     {
-    //                         (pre, post)
-    //                     } else {
-    //                         unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
-    //                     }
-    //                 };
+                    let (proc_pre_specs, proc_post_specs) = {
+                        if let typed::SpecificationSet::Procedure(spec) =
+                            &mut self.mut_contract().specification
+                        {
+                            (&mut spec.pres, &mut spec.posts)
+                        } else {
+                            unreachable!("Unexpected: {:?}", procedure_trait_contract.specification)
+                        }
+                    };
 
-    //                 if proc_pre_specs.is_empty() {
-    //                     proc_pre_specs
-    //                         .extend_from_slice(procedure_trait_contract.functional_precondition())
-    //                 } else {
-    //                     let proc_pre = Assertion {
-    //                         kind: Box::new(AssertionKind::And(
-    //                             proc_pre_specs
-    //                                 .iter()
-    //                                 .map(|spe| spe.assertion.clone())
-    //                                 .collect(),
-    //                         )),
-    //                     };
-    //                     let proc_trait_pre = Assertion {
-    //                         kind: Box::new(AssertionKind::And(
-    //                             procedure_trait_contract
-    //                                 .functional_precondition()
-    //                                 .iter()
-    //                                 .map(|spe| spe.assertion.clone())
-    //                                 .collect(),
-    //                         )),
-    //                     };
-    //                     precondition_weakening = Some(Assertion {
-    //                         kind: Box::new(AssertionKind::Implies(proc_trait_pre, proc_pre)),
-    //                     });
-    //                 }
+                    if proc_pre_specs.is_empty() {
+                        proc_pre_specs
+                            .extend_from_slice(procedure_trait_contract.functional_precondition())
+                    } else {
+                        let proc_pre = typed::Assertion {
+                            kind: Box::new(typed::AssertionKind::And(
+                                proc_pre_specs.clone()
+                            )),
+                        };
+                        let proc_trait_pre = typed::Assertion {
+                            kind: Box::new(typed::AssertionKind::And(
+                                procedure_trait_contract
+                                    .functional_precondition()
+                                    .iter()
+                                    .cloned()
+                                    .collect(),
+                            )),
+                        };
+                        precondition_weakening = Some(typed::Assertion {
+                            kind: Box::new(typed::AssertionKind::Implies(proc_trait_pre, proc_pre)),
+                        });
+                    }
 
-    //                 if proc_post_specs.is_empty() {
-    //                     proc_post_specs
-    //                         .extend_from_slice(procedure_trait_contract.functional_postcondition())
-    //                 } else {
-    //                     let proc_post = Assertion {
-    //                         kind: Box::new(AssertionKind::And(
-    //                             proc_post_specs
-    //                                 .iter()
-    //                                 .map(|spe| spe.assertion.clone())
-    //                                 .collect(),
-    //                         )),
-    //                     };
-    //                     let proc_trait_post = Assertion {
-    //                         kind: Box::new(AssertionKind::And(
-    //                             procedure_trait_contract
-    //                                 .functional_postcondition()
-    //                                 .iter()
-    //                                 .map(|spe| spe.assertion.clone())
-    //                                 .collect(),
-    //                         )),
-    //                     };
-    //                     postcondition_strengthening = Some(Assertion {
-    //                         kind: Box::new(AssertionKind::Implies(proc_post, proc_trait_post)),
-    //                     });
+                    if proc_post_specs.is_empty() {
+                        proc_post_specs
+                            .extend_from_slice(procedure_trait_contract.functional_postcondition())
+                    } else {
+                        let proc_post = typed::Assertion {
+                            kind: Box::new(typed::AssertionKind::And(
+                                proc_post_specs.clone()
+                            )),
+                        };
+                        let proc_trait_post = typed::Assertion {
+                            kind: Box::new(typed::AssertionKind::And(
+                                procedure_trait_contract
+                                    .functional_postcondition()
+                                    .iter()
+                                    .cloned()
+                                    .collect(),
+                            )),
+                        };
+                        postcondition_strengthening = Some(typed::Assertion {
+                            kind: Box::new(typed::AssertionKind::Implies(proc_post, proc_trait_post)),
+                        });
                     }
                 }
             }
-    unimplemented!();
         }
 
-    //     // Declare the formal return
-    //     for local in self.mir.local_decls.indices().take(1) {
-    //         let name = self.mir_encoder.encode_local_var_name(local);
-    //         let type_name = self
-    //             .encoder
-    //             .encode_type_predicate_use(self.mir_encoder.get_local_ty(local));
-    //         self.cfg_method
-    //             .add_formal_return(&name, vir::Type::TypedRef(type_name))
-    //     }
+        // Declare the formal return
+        for local in self.mir.local_decls.indices().take(1) {
+            let name = self.mir_encoder.encode_local_var_name(local);
+            let type_name = self
+                .encoder
+                .encode_type_predicate_use(self.mir_encoder.get_local_ty(local));
+            self.cfg_method
+                .add_formal_return(&name, vir::Type::TypedRef(type_name))
+        }
 
     //     // Load Polonius info
     //     self.polonius_info = Some(
@@ -468,7 +461,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //     }
 
     //     Ok(final_method)
-    // }
+    unimplemented!();
+    }
 
     // /// Encodes a topologically ordered group of blocks.
     // ///

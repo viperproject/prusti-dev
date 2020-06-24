@@ -93,22 +93,22 @@ where
     pub specification: typed::SpecificationSet,
 }
 
-// impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
-//     pub fn functional_precondition(&self) -> &[TypedSpecification] {
-//         if let SpecificationSet::Procedure(ref pre, _) = self.specification {
-//             pre
-//         } else {
-//             unreachable!("Unexpected: {:?}", self.specification)
-//         }
-//     }
+impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
+    pub fn functional_precondition(&self) -> &[typed::Assertion] {
+        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+            &spec.pres
+        } else {
+            unreachable!("Unexpected: {:?}", self.specification)
+        }
+    }
 
-//     pub fn functional_postcondition(&self) -> &[TypedSpecification] {
-//         if let SpecificationSet::Procedure(_, ref post) = self.specification {
-//             post
-//         } else {
-//             unreachable!("Unexpected: {:?}", self.specification)
-//         }
-//     }
+    pub fn functional_postcondition(&self) -> &[typed::Assertion] {
+        if let typed::SpecificationSet::Procedure(spec) = &self.specification {
+            &spec.posts
+        } else {
+            unreachable!("Unexpected: {:?}", self.specification)
+        }
+    }
 
 //     pub fn pledges(&self) -> Vec<(Option<TypedExpression>, TypedAssertion, TypedAssertion)> {
 //         let mut pledges = Vec::new();
@@ -136,7 +136,7 @@ where
 //         }
 //         pledges
 //     }
-// }
+}
 
 /// Procedure contract as it is defined in MIR.
 pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<mir::Local, mir::Place<'tcx>>;

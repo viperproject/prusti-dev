@@ -7,9 +7,7 @@ use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 use prusti_interface::report::user;
 use prusti_viper::verifier::VerifierBuilder;
-use rustc_hir::def_id::DefId;
 use rustc_middle::ty::TyCtxt;
-use std::collections::HashMap;
 use std::time::Instant;
 use prusti_interface::config::ConfigFlags;
 

@@ -61,7 +61,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     // /// Stub pure functions. Generated when an impure Rust function is invoked
     // /// where a pure function is required.
     // stub_pure_functions: RefCell<HashMap<(ProcedureDefId, String), vir::Function>>,
-    // type_predicate_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
+    type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     // type_invariant_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     // type_tag_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     // predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
@@ -120,7 +120,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             // pure_function_bodies: RefCell::new(HashMap::new()),
             // pure_functions: RefCell::new(HashMap::new()),
             // stub_pure_functions: RefCell::new(HashMap::new()),
-            // type_predicate_names: RefCell::new(HashMap::new()),
+            type_predicate_names: RefCell::new(HashMap::new()),
             // type_invariant_names: RefCell::new(HashMap::new()),
             // type_tag_names: RefCell::new(HashMap::new()),
             // predicate_types: RefCell::new(HashMap::new()),
@@ -897,22 +897,23 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     )
     // }
 
-    // pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
-    //     if !self.type_predicate_names.borrow().contains_key(&ty.sty) {
-    //         let type_encoder = TypeEncoder::new(self, ty);
-    //         let result = type_encoder.encode_predicate_use();
-    //         self.type_predicate_names
-    //             .borrow_mut()
-    //             .insert(ty.sty.clone(), result);
-    //         // Trigger encoding of definition
-    //         self.encode_type_predicate_def(ty);
-    //     }
-    //     let predicate_name = self.type_predicate_names.borrow()[&ty.sty].clone();
-    //     self.predicate_types
-    //         .borrow_mut()
-    //         .insert(predicate_name.clone(), ty);
-    //     predicate_name
-    // }
+    pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
+        if !self.type_predicate_names.borrow().contains_key(&ty.kind) {
+            // let type_encoder = TypeEncoder::new(self, ty);
+            // let result = type_encoder.encode_predicate_use();
+            // self.type_predicate_names
+            //     .borrow_mut()
+            //     .insert(ty.sty.clone(), result);
+            // // Trigger encoding of definition
+            // self.encode_type_predicate_def(ty);
+        }
+        // let predicate_name = self.type_predicate_names.borrow()[&ty.sty].clone();
+        // self.predicate_types
+        //     .borrow_mut()
+        //     .insert(predicate_name.clone(), ty);
+        // predicate_name
+        unimplemented!();
+    }
 
     // pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
     //     let predicate_name = self.encode_type_predicate_use(ty);

@@ -18,11 +18,11 @@ fn escape_html<S: ToString>(s: S) -> String {
 }
 
 impl CfgMethod {
-    pub fn to_graphviz(&self, graph: &mut Write) {
+    pub fn to_graphviz(&self, graph: &mut dyn Write) {
         self.to_graphviz_with_extra(graph, |_| vec![])
     }
 
-    pub fn to_graphviz_with_extra<F: Fn(usize) -> Vec<String>>(&self, graph: &mut Write, extra: F) {
+    pub fn to_graphviz_with_extra<F: Fn(usize) -> Vec<String>>(&self, graph: &mut dyn Write, extra: F) {
         writeln!(graph, "digraph CFG {{").unwrap();
         writeln!(graph, "graph [fontname=monospace];").unwrap();
         writeln!(graph, "node [fontname=monospace];").unwrap();
