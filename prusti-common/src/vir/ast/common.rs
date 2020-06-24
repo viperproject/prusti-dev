@@ -143,6 +143,7 @@ pub enum Type {
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
+    Domain(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -150,6 +151,7 @@ pub enum TypeId {
     Int,
     Bool,
     Ref,
+    Domain,
 }
 
 impl fmt::Display for Type {
@@ -159,6 +161,7 @@ impl fmt::Display for Type {
             &Type::Bool => write!(f, "Bool"),
             //&Type::Ref => write!(f, "Ref"),
             &Type::TypedRef(ref name) => write!(f, "Ref({})", name),
+            &Type::Domain(ref name) => write!(f, "Domain({})", name),
         }
     }
 }
@@ -177,6 +180,7 @@ impl Type {
             &Type::Bool => "bool".to_string(),
             &Type::Int => "int".to_string(),
             &Type::TypedRef(ref pred_name) => format!("{}", pred_name),
+            &Type::Domain(ref pred_name) => format!("{}", pred_name),
         }
     }
 
@@ -195,14 +199,13 @@ impl Type {
     /// substitution.
     pub fn patch(self, substs: &HashMap<String, String>) -> Self {
         match self {
-            Type::Bool => Type::Bool,
-            Type::Int => Type::Int,
             Type::TypedRef(mut predicate_name) => {
                 for (typ, subst) in substs {
                     predicate_name = predicate_name.replace(typ, subst);
                 }
                 Type::TypedRef(predicate_name)
-            }
+            },
+            typ => typ,
         }
     }
 
@@ -211,6 +214,7 @@ impl Type {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
             Type::TypedRef(_) => TypeId::Ref,
+            Type::Domain(_) => TypeId::Domain,
         }
     }
 }

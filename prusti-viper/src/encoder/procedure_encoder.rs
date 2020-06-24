@@ -23,7 +23,7 @@ use prusti_common::vir::fixes::fix_ghost_vars;
 use prusti_common::vir::optimisations::methods::{
     remove_empty_if, remove_trivial_assertions, remove_unused_vars,
 };
-use prusti_common::vir::{self, CfgBlockIndex, Successor, collect_assigned_vars};
+use prusti_common::vir::{self, CfgBlockIndex, Successor, collect_assigned_vars, Expr, Type};
 use prusti_common::vir::{ExprIterator, FoldingBehaviour};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
@@ -851,6 +851,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 vir::Type::Int => BuiltinMethodKind::HavocInt,
                 vir::Type::Bool => BuiltinMethodKind::HavocBool,
                 vir::Type::TypedRef(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Domain(_) => BuiltinMethodKind::HavocRef,
             };
             let stmt = vir::Stmt::MethodCall(
                 self.encoder.encode_builtin_method_use(builtin_method),
@@ -1874,10 +1875,51 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         stmts.extend(self.encode_assign_operand(&box_content, &args[0], location));
                     }
 
+                    "core::cmp::PartialEq::eq" => {
+                        assert!(args.len() == 2);
+                        debug!("Encoding call of PartialEq::eq");
+
+                        let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
+                        self.encoder.encode_snapshot(arg_ty);
+
+                        let arg_exprs = vec![
+                            self.mir_encoder.encode_operand_expr(&args[0]),
+                            self.mir_encoder.encode_operand_expr(&args[1]),
+                        ];
+                        let return_type = vir::Type::Bool;
+                        let arg_type = self.mir_encoder.
+                            encode_operand_expr_type(&args[0]);
+
+                        let function_name = self.encoder.
+                            encode_snapshot_equals_use(arg_type.name().clone());
+
+                        stmts.extend(self.encode_specified_pure_function_call(
+                            location,
+                            term.source_info.span,
+                            args,
+                            destination,
+                            function_name,
+                            arg_exprs,
+                            return_type
+                        ));
+                    }
+
                     _ => {
                         let is_pure_function =
                             self.encoder.env().has_attribute_name(def_id, "pure");
                         if is_pure_function {
+
+                            let (function_name, _, _) =
+                                self.encoder.encode_pure_function_use(def_id);
+                            debug!("Encoding pure function call '{}'", function_name);
+                            assert!(destination.is_some());
+
+                            let mut arg_exprs = vec![];
+                            for operand in args.iter() {
+                                let arg_expr = self.mir_encoder.encode_operand_expr(operand);
+                                arg_exprs.push(arg_expr);
+                            }
+
                             stmts.extend(self.encode_pure_function_call(
                                 location,
                                 term.source_info.span,
@@ -2288,16 +2330,40 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
     ) -> Vec<vir::Stmt> {
-        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
+        let (function_name, return_type,_) = self.encoder.encode_pure_function_use(called_def_id);
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
-        let mut stmts = vec![];
+
         let mut arg_exprs = vec![];
         for operand in args.iter() {
             let arg_expr = self.mir_encoder.encode_operand_expr(operand);
             arg_exprs.push(arg_expr);
         }
+
+        self.encode_specified_pure_function_call(
+            location,
+            call_site_span,
+            args,
+            destination,
+            function_name,
+            arg_exprs,
+            return_type
+        )
+    }
+
+    fn encode_specified_pure_function_call(
+        &mut self,
+        location: mir::Location,
+        call_site_span: Span,
+        args: &[mir::Operand<'tcx>],
+        destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
+        function_name: String,
+        arg_exprs: Vec<Expr>,
+        return_type: Type,
+    )-> Vec<vir::Stmt> {
+
+        let mut stmts = vec![];
 
         let formal_args: Vec<vir::LocalVar> = args
             .iter()
@@ -2360,8 +2426,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 (
                     Some(ref place),
                     ty::TypeVariants::TyRawPtr(ty::TypeAndMut {
-                        ty: ref inner_ty, ..
-                    }),
+                                                   ty: ref inner_ty, ..
+                                               }),
                 )
                 | (Some(ref place), ty::TypeVariants::TyRef(_, ref inner_ty, _)) => {
                     let ref_field = self.encoder.encode_dereference_field(inner_ty);

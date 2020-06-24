@@ -31,6 +31,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             &Type::Bool => ast.bool_type(),
             //&Type::Ref |
             &Type::TypedRef(_) => ast.ref_type(),
+            &Type::Domain(ref name) => ast.domain_type(&name, &[], &[]),
         }
     }
 }
@@ -382,7 +383,24 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     return_type.to_viper(ast),
                     pos.to_viper(ast),
                 )
-            }
+            },
+            &Expr::DomainFuncApp(
+                ref function,
+                ref args,
+                ref _pos,
+            ) => {
+                ast.domain_func_app(
+                    function.to_viper(ast),
+                    &args.to_viper(ast),
+                    &[], // TODO not necessary so far
+                )
+            },
+            &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
+                ast.inhale_exhale_pred(
+                    inhale_expr.to_viper(ast),
+                    exhale_expr.to_viper(ast)
+                )
+            },
         };
         if config::simplify_encoding() {
             ast.simplified_expression(expr)
@@ -477,6 +495,40 @@ impl<'a, 'v> ToViper<'v, viper::Function<'v>> for &'a Function {
     }
 }
 
+impl<'a, 'v> ToViper<'v, viper::Domain<'v>> for &'a Domain {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::Domain<'v> {
+        ast.domain(
+            &self.name,
+            &self.functions.to_viper(ast),
+            &self.axioms.to_viper(ast),
+            &self.type_vars.to_viper(ast),
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
+        ast.domain_func(
+            &self.get_identifier(),
+            &self.formal_args.to_viper_decl(ast),
+            self.return_type.to_viper(ast),
+            self.unique,
+            &self.domain_name,
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
+        ast.named_domain_axiom(
+            &self.name,
+            self.expr.to_viper(ast),
+            &self.domain_name,
+        )
+    }
+}
+
+
 // Vectors
 
 impl<'v> ToViper<'v, Vec<viper::Field<'v>>> for Vec<Field> {
@@ -500,6 +552,30 @@ impl<'v, 'a, 'b> ToViper<'v, Vec<viper::Trigger<'v>>> for (&'a Vec<Trigger>, &'b
 impl<'v> ToViperDecl<'v, Vec<viper::LocalVarDecl<'v>>> for Vec<LocalVar> {
     fn to_viper_decl(&self, ast: &AstFactory<'v>) -> Vec<viper::LocalVarDecl<'v>> {
         self.iter().map(|x| x.to_viper_decl(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Domain<'v>>> for Vec<Domain> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Domain<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<DomainFunc> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::DomainFunc<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::NamedDomainAxiom<'v>>> for Vec<DomainAxiom> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::NamedDomainAxiom<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Type<'v>>> for Vec<Type> {
+    fn to_viper(&self, ast: &AstFactory<'v>) -> Vec<viper::Type<'v>> {
+        self.iter().map(|x| x.to_viper(ast)).collect()
     }
 }
 
