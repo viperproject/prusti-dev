@@ -118,17 +118,11 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
             ty::TypeVariants::TyAdt(_, _) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty);
                 match &self.encoder.encode_get_domain_type(type_name) {
-                    None => unimplemented!(),
+                    None => unreachable!(),
                     Some(domain_type) => domain_type.clone()
                 }
 
             },
-
-            ty::TypeVariants::TyTuple(_) => unimplemented!(),
-
-            ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
-                unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
-            }
 
             ref x => unimplemented!("{:?}", x),
         }

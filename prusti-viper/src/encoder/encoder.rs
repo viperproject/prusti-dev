@@ -575,24 +575,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         vir::ExprIterator::conjoin(&mut conjuncts.into_iter())
     }
 
-    /* 
-    fn encode_adt_snap_eq_call(&self, first: vir::Expr, second: vir::Expr) -> vir::Expr {
-        let arg_type = first.get_type().clone();
-        let predicate_name = arg_type.name().clone();
-        let equals_func = self.encode_snapshot_equals_use(predicate_name.clone());
-        vir::Expr::FuncApp(
-            equals_func,
-            vec![first, second],
-            vec![
-                vir::LocalVar::new("_left", arg_type.clone()),
-                vir::LocalVar::new("_right", arg_type.clone()),
-            ],
-            vir::Type::Bool,
-            vir::Position::default(),
-        )
-    }
-    */
-
     fn encode_memory_eq_adt(
         &self,
         first: vir::Expr,
