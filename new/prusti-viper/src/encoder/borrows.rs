@@ -42,25 +42,25 @@ impl<P: fmt::Debug> BorrowInfo<P> {
     }
 }
 
-// impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         let lifetime = match self.region {
-//             None => format!("static"),
-//             Some(ty::BoundRegion::BrAnon(id)) => format!("#{}", id),
-//             Some(ty::BoundRegion::BrNamed(_, name)) => name.to_string(),
-//             _ => unimplemented!(),
-//         };
-//         writeln!(f, "BorrowInfo<{}> {{", lifetime)?;
-//         for path in self.blocking_paths.iter() {
-//             writeln!(f, "  {:?}", path)?;
-//         }
-//         writeln!(f, "  --*")?;
-//         for path in self.blocked_paths.iter() {
-//             writeln!(f, "  {:?}", path)?;
-//         }
-//         writeln!(f, "}}")
-//     }
-// }
+impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let lifetime = match self.region {
+            None => format!("static"),
+            Some(ty::BoundRegion::BrAnon(id)) => format!("#{}", id),
+            Some(ty::BoundRegion::BrNamed(_, name)) => name.to_string(),
+            _ => unimplemented!(),
+        };
+        writeln!(f, "BorrowInfo<{}> {{", lifetime)?;
+        for path in self.blocking_paths.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "  --*")?;
+        for path in self.blocked_paths.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "}}")
+    }
+}
 
 /// Contract of a specific procedure. It is a separate struct from a
 /// general procedure info because we want to be able to translate
@@ -86,11 +86,11 @@ where
     /// The returned value for which we should have permission in
     /// the postcondition.
     pub returned_value: L,
-    // /// Magic wands passed out of the procedure.
-    // /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
-    // pub borrow_infos: Vec<BorrowInfo<P>>,
-    // /// The functional specification: precondition and postcondition
-    // pub specification: TypedSpecificationSet,
+    /// Magic wands passed out of the procedure.
+    /// TODO: Implement support for `blocked_lifetimes` via nested magic wands.
+    pub borrow_infos: Vec<BorrowInfo<P>>,
+    /// The functional specification: precondition and postcondition
+    pub specification: typed::SpecificationSet,
 }
 
 // impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
@@ -144,24 +144,24 @@ pub type ProcedureContractMirDef<'tcx> = ProcedureContractGeneric<mir::Local, mi
 /// Specialized procedure contract for use in translation.
 pub type ProcedureContract<'tcx> = ProcedureContractGeneric<places::Local, places::Place<'tcx>>;
 
-// impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, P> {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         writeln!(f, "ProcedureContract {{")?;
-//         writeln!(f, "IN:")?;
-//         for path in self.args.iter() {
-//             writeln!(f, "  {:?}", path)?;
-//         }
-//         writeln!(f, "OUT:")?;
-//         for path in self.returned_refs.iter() {
-//             writeln!(f, "  {:?}", path)?;
-//         }
-//         writeln!(f, "MAGIC:")?;
-//         for borrow_info in self.borrow_infos.iter() {
-//             writeln!(f, "{}", borrow_info)?;
-//         }
-//         writeln!(f, "}}")
-//     }
-// }
+impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, P> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "ProcedureContract {{")?;
+        writeln!(f, "IN:")?;
+        for path in self.args.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "OUT:")?;
+        for path in self.returned_refs.iter() {
+            writeln!(f, "  {:?}", path)?;
+        }
+        writeln!(f, "MAGIC:")?;
+        for borrow_info in self.borrow_infos.iter() {
+            writeln!(f, "{}", borrow_info)?;
+        }
+        writeln!(f, "}}")
+    }
+}
 
 // fn get_place_root<'tcx>(place: &mir::Place<'tcx>) -> mir::Local {
 //     match place {
@@ -174,35 +174,34 @@ pub type ProcedureContract<'tcx> = ProcedureContractGeneric<places::Local, place
 impl<'tcx> ProcedureContractMirDef<'tcx> {
     /// Specialize to the definition site contract.
     pub fn to_def_site_contract(&self) -> ProcedureContract<'tcx> {
-//         let borrow_infos = self
-//             .borrow_infos
-//             .iter()
-//             .map(|info| BorrowInfo {
-//                 region: info.region,
-//                 blocking_paths: info
-//                     .blocking_paths
-//                     .iter()
-//                     .map(|(p, m)| (p.into(), *m))
-//                     .collect(),
-//                 blocked_paths: info
-//                     .blocked_paths
-//                     .iter()
-//                     .map(|(p, m)| (p.into(), *m))
-//                     .collect(),
-//             })
-//             .collect();
-//         ProcedureContract {
-//             args: self.args.iter().map(|&a| a.into()).collect(),
-//             returned_refs: self
-//                 .returned_refs
-//                 .iter()
-//                 .map(|(r, m)| (r.into(), *m))
-//                 .collect(),
-//             returned_value: self.returned_value.into(),
-//             borrow_infos,
-//             specification: self.specification.clone(),
-//         }
-    unimplemented!();
+        let borrow_infos = self
+            .borrow_infos
+            .iter()
+            .map(|info| BorrowInfo {
+                region: info.region,
+                blocking_paths: info
+                    .blocking_paths
+                    .iter()
+                    .map(|(p, m)| (p.into(), *m))
+                    .collect(),
+                blocked_paths: info
+                    .blocked_paths
+                    .iter()
+                    .map(|(p, m)| (p.into(), *m))
+                    .collect(),
+            })
+            .collect();
+        ProcedureContract {
+            args: self.args.iter().map(|&a| a.into()).collect(),
+            returned_refs: self
+                .returned_refs
+                .iter()
+                .map(|(r, m)| (r.into(), *m))
+                .collect(),
+            returned_value: self.returned_value.into(),
+            borrow_infos,
+            specification: self.specification.clone(),
+        }
     }
 
 //     /// Specialize to the call site contract.
@@ -270,19 +269,19 @@ impl<'tcx> BorrowInfoCollectingVisitor<'tcx> {
         }
     }
 
-    // fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
-    //     self.is_path_blocking = true;
-    //     self.current_path = Some(mir::Place::Local(mir::RETURN_PLACE));
-    //     self.visit_ty(ty);
-    //     self.current_path = None;
-    // }
+    fn analyse_return_ty(&mut self, ty: Ty<'tcx>) {
+        self.is_path_blocking = true;
+        self.current_path = Some(mir::RETURN_PLACE.into());
+        self.visit_ty(ty);
+        self.current_path = None;
+    }
 
-//     fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
-//         self.is_path_blocking = false;
-//         self.current_path = Some(mir::Place::Local(arg));
-//         self.visit_ty(ty);
-//         self.current_path = None;
-//     }
+    fn analyse_arg(&mut self, arg: mir::Local, ty: Ty<'tcx>) {
+        self.is_path_blocking = false;
+        self.current_path = Some(arg.into());
+        self.visit_ty(ty);
+        self.current_path = None;
+    }
 
 //     fn extract_bound_region(&self, region: ty::Region<'tcx>) -> Option<ty::BoundRegion> {
 //         match region {
@@ -412,36 +411,35 @@ where
     let return_ty = fn_sig.output().skip_binder().clone();
 
     let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
-    // for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
-    //     visitor.analyse_arg(*arg, arg_ty);
-    // }
-//     visitor.analyse_return_ty(return_ty);
-//     let borrow_infos: Vec<_> = visitor
-//         .borrow_infos
-//         .into_iter()
-//         .filter(|info| !info.blocked_paths.is_empty() && !info.blocking_paths.is_empty())
-//         .collect();
-//     let is_not_blocked = |place: &mir::Place<'tcx>| {
-//         !borrow_infos.iter().any(|info| {
-//             info.blocked_paths
-//                 .iter()
-//                 .any(|(blocked_place, _)| blocked_place == place)
-//         })
-//     };
-//     let returned_refs: Vec<_> = visitor
-//         .references_in
-//         .into_iter()
-//         .filter(|(place, _)| is_not_blocked(place))
-//         .collect();
-//     let contract = ProcedureContractGeneric {
-//         args: fake_mir_args,
-//         returned_refs,
-//         returned_value: mir::RETURN_PLACE,
-//         borrow_infos,
-//         specification,
-//     };
+    for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
+        visitor.analyse_arg(*arg, arg_ty);
+    }
+    visitor.analyse_return_ty(return_ty);
+    let borrow_infos: Vec<_> = visitor
+        .borrow_infos
+        .into_iter()
+        .filter(|info| !info.blocked_paths.is_empty() && !info.blocking_paths.is_empty())
+        .collect();
+    let is_not_blocked = |place: &mir::Place<'tcx>| {
+        !borrow_infos.iter().any(|info| {
+            info.blocked_paths
+                .iter()
+                .any(|(blocked_place, _)| blocked_place == place)
+        })
+    };
+    let returned_refs: Vec<_> = visitor
+        .references_in
+        .into_iter()
+        .filter(|(place, _)| is_not_blocked(place))
+        .collect();
+    let contract = ProcedureContractGeneric {
+        args: fake_mir_args,
+        returned_refs,
+        returned_value: mir::RETURN_PLACE,
+        borrow_infos,
+        specification,
+    };
 
-//     trace!("[compute_borrow_infos] exit result={}", contract);
-//     contract
-    unimplemented!();
+    trace!("[compute_borrow_infos] exit result={}", contract);
+    contract
 }
