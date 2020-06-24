@@ -18,11 +18,12 @@ use rustc_middle::ty;
 // use rustc::ty::layout::IntegerExt;
 // use rustc_data_structures::indexed_vec::Idx;
 // use std;
-// use std::collections::hash_map::DefaultHasher;
+use std::collections::hash_map::DefaultHasher;
 // use std::collections::HashMap;
-// use std::hash::{Hash, Hasher};
-// use syntax::ast;
+use std::hash::{Hash, Hasher};
+use rustc_ast::ast;
 // use syntax::attr::SignedInt;
+use log::debug;
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
@@ -37,15 +38,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     // /// Is this type supported?
     // fn is_supported_type(&self, ty: ty::Ty<'tcx>) -> bool {
     //     match ty.sty {
-    //         ty::TypeVariants::TyBool
-    //         | ty::TypeVariants::TyInt(_)
-    //         | ty::TypeVariants::TyUint(_)
-    //         | ty::TypeVariants::TyChar
-    //         | ty::TypeVariants::TyRef(_, _, _)
-    //         | ty::TypeVariants::TyAdt(_, _)
-    //         | ty::TypeVariants::TyTuple(_)
-    //         | ty::TypeVariants::TyNever
-    //         | ty::TypeVariants::TyParam(_) => true,
+    //         ty::TyKind::Bool
+    //         | ty::TyKind::Int(_)
+    //         | ty::TyKind::Uint(_)
+    //         | ty::TyKind::Char
+    //         | ty::TyKind::Ref(_, _, _)
+    //         | ty::TyKind::Adt(_, _)
+    //         | ty::TyKind::Tuple(_)
+    //         | ty::TyKind::Never
+    //         | ty::TyKind::Param(_) => true,
     //         _ => false,
     //     }
     // }
@@ -68,7 +69,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     // /// Is this type supported?
     // fn is_supported_field_type(&self, ty: ty::Ty<'tcx>) -> bool {
     //     match ty.sty {
-    //         ty::TypeVariants::TyAdt(_, subst) => self.is_supported_subst(subst),
+    //         ty::TyKind::Adt(_, subst) => self.is_supported_subst(subst),
     //         _ => self.is_supported_type(ty),
     //     }
     // }
@@ -102,20 +103,20 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     // pub fn encode_value_type(self) -> vir::Type {
     //     debug!("Encode value type '{:?}'", self.ty);
     //     match self.ty.sty {
-    //         ty::TypeVariants::TyBool => vir::Type::Bool,
+    //         ty::TyKind::Bool => vir::Type::Bool,
 
-    //         ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
+    //         ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
     //             vir::Type::Int
     //         }
 
-    //         ty::TypeVariants::TyRef(_, ref ty, _) => {
+    //         ty::TyKind::Ref(_, ref ty, _) => {
     //             let type_name = self.encoder.encode_type_predicate_use(ty);
     //             vir::Type::TypedRef(type_name)
     //         }
 
-    //         ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
+    //         ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => unreachable!(),
 
-    //         ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
+    //         ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
     //             unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
     //         }
 
@@ -126,20 +127,20 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     // pub fn encode_value_field(self) -> vir::Field {
     //     trace!("Encode value field for type '{:?}'", self.ty);
     //     match self.ty.sty {
-    //         ty::TypeVariants::TyBool => vir::Field::new("val_bool", vir::Type::Bool),
+    //         ty::TyKind::Bool => vir::Field::new("val_bool", vir::Type::Bool),
 
-    //         ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
+    //         ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
     //             vir::Field::new("val_int", vir::Type::Int)
     //         }
 
-    //         ty::TypeVariants::TyRef(_, ref ty, _) => {
+    //         ty::TyKind::Ref(_, ref ty, _) => {
     //             let type_name = self.encoder.encode_type_predicate_use(ty);
     //             vir::Field::new("val_ref", vir::Type::TypedRef(type_name))
     //         }
 
-    //         ty::TypeVariants::TyAdt(_, _) | ty::TypeVariants::TyTuple(_) => unreachable!(),
+    //         ty::TyKind::Adt(_, _) | ty::TyKind::Tuple(_) => unreachable!(),
 
-    //         ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
+    //         ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
     //             unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
     //         }
 
@@ -149,7 +150,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
     // fn get_integer_bounds(&self) -> Option<(vir::Expr, vir::Expr)> {
     //     match self.ty.sty {
-    //         ty::TypeVariants::TyInt(int_ty) => {
+    //         ty::TyKind::Int(int_ty) => {
     //             let bounds = match int_ty {
     //                 ast::IntTy::I8 => (std::i8::MIN.into(), std::i8::MAX.into()),
     //                 ast::IntTy::I16 => (std::i16::MIN.into(), std::i16::MAX.into()),
@@ -160,7 +161,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //             };
     //             Some(bounds)
     //         }
-    //         ty::TypeVariants::TyUint(uint_ty) => {
+    //         ty::TyKind::Uint(uint_ty) => {
     //             let bounds = match uint_ty {
     //                 ast::UintTy::U8 => (0.into(), std::u8::MAX.into()),
     //                 ast::UintTy::U16 => (0.into(), std::u16::MAX.into()),
@@ -171,11 +172,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //             };
     //             Some(bounds)
     //         }
-    //         ty::TypeVariants::TyChar => {
+    //         ty::TyKind::Char => {
     //             // char is always four bytes in size
     //             Some((0.into(), 0xFFFFFFFFu32.into()))
     //         }
-    //         ty::TypeVariants::TyBool | ty::TypeVariants::TyRef(_, _, _) => None,
+    //         ty::TyKind::Bool | ty::TyKind::Ref(_, _, _) => None,
     //         ref x => unreachable!("{:?}", x),
     //     }
     // }
@@ -197,20 +198,20 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //     let typ = vir::Type::TypedRef(predicate_name.clone());
 
     //     match self.ty.sty {
-    //         ty::TypeVariants::TyBool => vec![vir::Predicate::new_primitive_value(
+    //         ty::TyKind::Bool => vec![vir::Predicate::new_primitive_value(
     //             typ,
     //             self.encoder.encode_value_field(self.ty),
     //             None,
     //             false,
     //         )],
 
-    //         ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
+    //         ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
     //             let bounds = if config::check_binary_operations() {
     //                 self.get_integer_bounds()
     //             } else {
     //                 None
     //             };
-    //             let unsigned = if let ty::TypeVariants::TyUint(_) = self.ty.sty {
+    //             let unsigned = if let ty::TyKind::Uint(_) = self.ty.sty {
     //                 config::encode_unsigned_num_constraint()
     //             } else {
     //                 false
@@ -223,16 +224,16 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //             )]
     //         }
 
-    //         ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. }) => {
+    //         ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. }) => {
     //             unimplemented!("Raw pointers are unsupported. (ty={:?})", ty);
     //         }
 
-    //         ty::TypeVariants::TyRef(_, ref ty, _) => vec![vir::Predicate::new_struct(
+    //         ty::TyKind::Ref(_, ref ty, _) => vec![vir::Predicate::new_struct(
     //             typ,
     //             vec![self.encoder.encode_dereference_field(ty)],
     //         )],
 
-    //         ty::TypeVariants::TyTuple(elems) => {
+    //         ty::TyKind::Tuple(elems) => {
     //             let fields = elems
     //                 .iter()
     //                 .enumerate()
@@ -244,7 +245,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //             vec![vir::Predicate::new_struct(typ, fields)]
     //         }
 
-    //         ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+    //         ty::TyKind::Adt(adt_def, subst) if !adt_def.is_box() => {
     //             if !self.is_supported_struct_type(adt_def, subst) {
     //                 vec![vir::Predicate::new_abstract(typ)]
     //             } else {
@@ -320,7 +321,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //             }
     //         }
 
-    //         ty::TypeVariants::TyAdt(ref adt_def, ref _subst) if adt_def.is_box() => {
+    //         ty::TyKind::Adt(ref adt_def, ref _subst) if adt_def.is_box() => {
     //             let num_variants = adt_def.variants.len();
     //             assert_eq!(num_variants, 1);
     //             let field_ty = self.ty.boxed_ty();
@@ -330,12 +331,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //             )]
     //         }
 
-    //         ty::TypeVariants::TyNever => {
+    //         ty::TyKind::Never => {
     //             // FIXME: This should be a predicate with the body `false`. See issue #38.
     //             vec![vir::Predicate::new_abstract(typ)]
     //         }
 
-    //         ty::TypeVariants::TyParam(_) => {
+    //         ty::TyKind::Param(_) => {
     //             // special case: type parameters shall be encoded as *abstract* predicates
     //             vec![vir::Predicate::new_abstract(typ)]
     //         }
@@ -347,107 +348,103 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //     }
     // }
 
-    // pub fn encode_predicate_use(self) -> String {
-    //     debug!("Encode type predicate name '{:?}'", self.ty);
+    pub fn encode_predicate_use(self) -> String {
+        debug!("Encode type predicate name '{:?}'", self.ty);
 
-    //     match self.ty.sty {
-    //         ty::TypeVariants::TyBool => "bool".to_string(),
+        match self.ty.kind {
+            ty::TyKind::Bool => "bool".to_string(),
 
-    //         ty::TypeVariants::TyInt(ast::IntTy::I8) => "i8".to_string(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I16) => "i16".to_string(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I32) => "i32".to_string(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I64) => "i64".to_string(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::I128) => "i128".to_string(),
-    //         ty::TypeVariants::TyInt(ast::IntTy::Isize) => "isize".to_string(),
+            ty::TyKind::Int(ast::IntTy::I8) => "i8".to_string(),
+            ty::TyKind::Int(ast::IntTy::I16) => "i16".to_string(),
+            ty::TyKind::Int(ast::IntTy::I32) => "i32".to_string(),
+            ty::TyKind::Int(ast::IntTy::I64) => "i64".to_string(),
+            ty::TyKind::Int(ast::IntTy::I128) => "i128".to_string(),
+            ty::TyKind::Int(ast::IntTy::Isize) => "isize".to_string(),
 
-    //         ty::TypeVariants::TyUint(ast::UintTy::U8) => "u8".to_string(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U16) => "u16".to_string(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U32) => "u32".to_string(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U64) => "u64".to_string(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::U128) => "u128".to_string(),
-    //         ty::TypeVariants::TyUint(ast::UintTy::Usize) => "usize".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U8) => "u8".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U16) => "u16".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U32) => "u32".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U64) => "u64".to_string(),
+            ty::TyKind::Uint(ast::UintTy::U128) => "u128".to_string(),
+            ty::TyKind::Uint(ast::UintTy::Usize) => "usize".to_string(),
 
-    //         ty::TypeVariants::TyChar => "char".to_string(),
+            ty::TyKind::Char => "char".to_string(),
 
-    //         ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
-    //         | ty::TypeVariants::TyRef(_, ref ty, _) => {
-    //             format!("ref${}", self.encoder.encode_type_predicate_use(ty))
-    //         }
+            ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
+            | ty::TyKind::Ref(_, ref ty, _) => {
+                format!("ref${}", self.encoder.encode_type_predicate_use(ty))
+            }
 
-    //         ty::TypeVariants::TyAdt(adt_def, subst) => {
-    //             let mut composed_name = vec![self.encoder.encode_item_name(adt_def.did)];
-    //             composed_name.push("_beg_".to_string()); // makes generics "less fragile"
-    //             let mut first = true;
-    //             for kind in subst.iter() {
-    //                 if first {
-    //                     first = false
-    //                 } else {
-    //                     // makes generics "less fragile"
-    //                     composed_name.push("_sep_".to_string());
-    //                 }
-    //                 if let ty::subst::UnpackedKind::Type(ty) = kind.unpack() {
-    //                     composed_name.push(self.encoder.encode_type_predicate_use(ty))
-    //                 }
-    //             }
-    //             composed_name.push("_end_".to_string()); // makes generics "less fragile"
-    //             composed_name.join("$")
-    //         }
+            ty::TyKind::Adt(adt_def, subst) => {
+                let mut composed_name = vec![self.encoder.encode_item_name(adt_def.did)];
+                composed_name.push("_beg_".to_string()); // makes generics "less fragile"
+                let mut first = true;
+                for kind in subst.iter() {
+                    if first {
+                        first = false
+                    } else {
+                        // makes generics "less fragile"
+                        composed_name.push("_sep_".to_string());
+                    }
+                    if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                        composed_name.push(self.encoder.encode_type_predicate_use(ty))
+                    }
+                }
+                composed_name.push("_end_".to_string()); // makes generics "less fragile"
+                composed_name.join("$")
+            }
 
-    //         ty::TypeVariants::TyTuple(elems) => {
-    //             let elem_predicate_names: Vec<String> = elems
-    //                 .iter()
-    //                 .map(|ty| self.encoder.encode_type_predicate_use(ty))
-    //                 .collect();
-    //             format!("tuple{}${}", elems.len(), elem_predicate_names.join("$"))
-    //         }
+            ty::TyKind::Tuple(elems) => {
+                let elem_predicate_names: Vec<String> = elems
+                    .iter()
+                    .map(|ty| self.encoder.encode_type_predicate_use(ty.expect_ty()))
+                    .collect();
+                format!("tuple{}${}", elems.len(), elem_predicate_names.join("$"))
+            }
 
-    //         ty::TypeVariants::TyNever => "never".to_string(),
+            ty::TyKind::Never => "never".to_string(),
 
-    //         ty::TypeVariants::TyStr => "str".to_string(),
+            ty::TyKind::Str => "str".to_string(),
 
-    //         ty::TypeVariants::TyArray(elem_ty, size) => {
-    //             let scalar_size = match size.val {
-    //                 ConstVal::Value(ref value) => value.to_scalar().unwrap(),
-    //                 x => unimplemented!("{:?}", x),
-    //             };
-    //             format!(
-    //                 "array${}${}",
-    //                 self.encoder.encode_type_predicate_use(elem_ty),
-    //                 scalar_size
-    //                     .to_bits(ty::layout::Size::from_bits(64))
-    //                     .ok()
-    //                     .unwrap()
-    //             )
-    //         }
+            ty::TyKind::Array(elem_ty, size) => {
+                let scalar_size = match size.val {
+                    ty::ConstKind::Value(ref value) => value.try_to_bits(rustc_target::abi::Size::from_bits(64)).unwrap(),
+                    x => unimplemented!("{:?}", x),
+                };
+                format!(
+                    "array${}${}",
+                    self.encoder.encode_type_predicate_use(elem_ty),
+                    scalar_size
+                )
+            }
 
-    //         ty::TypeVariants::TySlice(array_ty) => {
-    //             format!("slice${}", self.encoder.encode_type_predicate_use(array_ty))
-    //         }
+            ty::TyKind::Slice(array_ty) => {
+                format!("slice${}", self.encoder.encode_type_predicate_use(array_ty))
+            }
 
-    //         ty::TypeVariants::TyClosure(def_id, closure_subst) => {
-    //             let subst_hash = {
-    //                 let mut s = DefaultHasher::new();
-    //                 closure_subst.hash(&mut s);
-    //                 s.finish()
-    //             };
+            ty::TyKind::Closure(def_id, closure_subst) => {
+                let subst_hash = {
+                    let mut s = DefaultHasher::new();
+                    closure_subst.hash(&mut s);
+                    s.finish()
+                };
 
-    //             format!(
-    //                 "closure${:?}_{}_{}${}${}",
-    //                 def_id.krate.index(),
-    //                 def_id.index.address_space().index(),
-    //                 def_id.index.as_array_index(),
-    //                 closure_subst.substs.len(),
-    //                 subst_hash
-    //             )
-    //         }
+                format!(
+                    "closure${}_{}${}${}",
+                    def_id.krate.as_u32(),
+                    def_id.index.as_u32(),
+                    closure_subst.len(),
+                    subst_hash
+                )
+            }
 
-    //         ty::TypeVariants::TyParam(param_ty) => {
-    //             format!("__TYPARAM__${}$__", param_ty.name.as_str())
-    //         }
+            ty::TyKind::Param(param_ty) => {
+                format!("__TYPARAM__${}$__", param_ty.name.as_str())
+            }
 
-    //         ref x => unimplemented!("{:?}", x),
-    //     }
-    // }
+            ref x => unimplemented!("{:?}", x),
+        }
+    }
 
     // pub fn encode_invariant_def(self) -> vir::Function {
     //     debug!("[enter] encode_invariant_def({:?})", self.ty);
@@ -459,14 +456,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //     let invariant_name = self.encoder.encode_type_invariant_use(self.ty);
 
     //     let field_invariants = match self.ty.sty {
-    //         ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
-    //         | ty::TypeVariants::TyRef(_, ref ty, _) => {
+    //         ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
+    //         | ty::TyKind::Ref(_, ref ty, _) => {
     //             let elem_field = self.encoder.encode_dereference_field(ty);
     //             let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
     //             Some(vec![self.encoder.encode_invariant_func_app(ty, elem_loc)])
     //         }
 
-    //         ty::TypeVariants::TyAdt(ref adt_def, ref subst) if !adt_def.is_box() => {
+    //         ty::TyKind::Adt(ref adt_def, ref subst) if !adt_def.is_box() => {
     //             if self.is_supported_struct_type(adt_def, subst) {
     //                 let own_substs =
     //                     ty::subst::Substs::identity_for_item(self.encoder.env().tcx(), adt_def.did);
@@ -565,8 +562,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //     };
 
     //     let precondition = match self.ty.sty {
-    //         ty::TypeVariants::TyRawPtr(ty::TypeAndMut { ref ty, .. })
-    //         | ty::TypeVariants::TyRef(_, ref ty, _) => {
+    //         ty::TyKind::RawPtr(ty::TypeAndMut { ref ty, .. })
+    //         | ty::TyKind::Ref(_, ref ty, _) => {
     //             // This is a reference, so we need to have it already unfolded.
     //             let elem_field = self.encoder.encode_dereference_field(ty);
     //             let elem_loc = vir::Expr::from(self_local_var.clone()).field(elem_field);
@@ -619,7 +616,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //     let tag_name = self.encoder.encode_type_tag_use(self.ty);
 
     //     let body = match self.ty.sty {
-    //         ty::TypeVariants::TyParam(_param_ty) => None,
+    //         ty::TyKind::Param(_param_ty) => None,
     //         _ => Some((vir::Const::Int((self.ty as *const ty::TyS<'tcx>) as i64)).into()),
     //     };
 

@@ -900,7 +900,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_type_predicate_use(&self, ty: ty::Ty<'tcx>) -> String {
         if !self.type_predicate_names.borrow().contains_key(&ty.kind) {
             let type_encoder = TypeEncoder::new(self, ty);
-            // let result = type_encoder.encode_predicate_use();
+            let result = type_encoder.encode_predicate_use();
             // self.type_predicate_names
             //     .borrow_mut()
             //     .insert(ty.sty.clone(), result);
