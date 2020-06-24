@@ -49,7 +49,8 @@ use rustc_middle::mir;
 // use std::collections::HashSet;
 // use syntax::attr::SignedInt;
 // use syntax::codemap::{MultiSpan, Span};
-use ::log::trace;
+use prusti_interface::specs::typed;
+use ::log::{trace, debug};
 
 type Result<T> = std::result::Result<T, EncodingError>;
 
@@ -188,13 +189,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //     self.polonius_info.as_ref().unwrap()
     // }
 
-    // fn procedure_contract(&self) -> &ProcedureContract<'tcx> {
-    //     self.procedure_contract.as_ref().unwrap()
-    // }
+    fn procedure_contract(&self) -> &ProcedureContract<'tcx> {
+        self.procedure_contract.as_ref().unwrap()
+    }
 
-    // fn mut_contract(&mut self) -> &mut ProcedureContract<'tcx> {
-    //     self.procedure_contract.as_mut().unwrap()
-    // }
+    fn mut_contract(&mut self) -> &mut ProcedureContract<'tcx> {
+        self.procedure_contract.as_mut().unwrap()
+    }
 
     pub fn encode(mut self) -> Result<vir::CfgMethod> {
         trace!("Encode procedure {}", self.cfg_method.name());
@@ -206,32 +207,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .get_procedure_contract_for_def(self.proc_def_id),
         );
 
-    //     // Prepare assertions to check specification refinement
-    //     let mut precondition_weakening: Option<TypedAssertion> = None;
-    //     let mut postcondition_strengthening: Option<TypedAssertion> = None;
-    //     debug!("procedure_contract: {:?}", self.procedure_contract());
-    //     //trace!("def_id of proc: {:?}", &self.proc_def_id);
-    //     let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
+        // Prepare assertions to check specification refinement
+        let mut precondition_weakening: Option<typed::Assertion> = None;
+        let mut postcondition_strengthening: Option<typed::Assertion> = None;
+        debug!("procedure_contract: {:?}", self.procedure_contract());
+        //trace!("def_id of proc: {:?}", &self.proc_def_id);
+        let impl_def_id = self.encoder.env().tcx().impl_of_method(self.proc_def_id);
     //     //trace!("def_id of impl: {:?}", &impl_def_id);
-    //     if let Some(id) = impl_def_id {
-    //         let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
-    //         //trace!("def_id of trait: {:?}", &def_id_trait);
-    //         // Trait implementation method refinement
-    //         // Choosing alternative C as discussed in
-    //         // https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
-    //         // pp 19-23
-    //         if let Some(id) = def_id_trait {
-    //             let proc_name = self
-    //                 .encoder
-    //                 .env()
-    //                 .tcx()
-    //                 .item_name(self.proc_def_id)
-    //                 .as_symbol();
-    //             if let Some(assoc_item) = self.encoder.env().get_assoc_item(id, proc_name) {
-    //                 // TODO use the impl's specs if there are any (separately replace pre/post!)
-    //                 let procedure_trait_contract = self
-    //                     .encoder
-    //                     .get_procedure_contract_for_def(assoc_item.def_id);
+        if let Some(id) = impl_def_id {
+            let def_id_trait = self.encoder.env().tcx().trait_id_of_impl(id);
+            trace!("def_id of trait: {:?}", &def_id_trait);
+            // Trait implementation method refinement
+            // Choosing alternative C as discussed in
+            // https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
+            // pp 19-23
+            if let Some(id) = def_id_trait {
+                let proc_name = self
+                    .encoder
+                    .env()
+                    .tcx()
+                    .item_name(self.proc_def_id);
+                    // .as_symbol();
+                if let Some(assoc_item) = self.encoder.env().get_assoc_item(id, proc_name) {
+                    // TODO use the impl's specs if there are any (separately replace pre/post!)
+                    let procedure_trait_contract = self
+                        .encoder
+                        .get_procedure_contract_for_def(assoc_item.def_id);
     //                 let (proc_pre_specs, proc_post_specs) = {
     //                     if let SpecificationSet::Procedure(ref mut pre, ref mut post) =
     //                         self.mut_contract().specification
@@ -292,9 +293,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     //                     postcondition_strengthening = Some(Assertion {
     //                         kind: Box::new(AssertionKind::Implies(proc_post, proc_trait_post)),
     //                     });
-    //                 }
-    //             }
-    //         }
+                    }
+                }
+            }
     unimplemented!();
         }
 
@@ -2417,7 +2418,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     // fn encode_precondition_expr(
     //     &self,
     //     contract: &ProcedureContract<'tcx>,
-    //     precondition_weakening: Option<TypedAssertion>,
+    //     precondition_weakening: Option<typed::Assertion>,
     // ) -> (
     //     vir::Expr,
     //     Vec<vir::Expr>,
@@ -2534,7 +2535,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     // fn encode_preconditions(
     //     &mut self,
     //     start_cfg_block: CfgBlockIndex,
-    //     precondition_weakening: Option<TypedAssertion>,
+    //     precondition_weakening: Option<typed::Assertion>,
     // ) {
     //     self.cfg_method
     //         .add_stmt(start_cfg_block, vir::Stmt::comment("Preconditions:"));
@@ -2726,7 +2727,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     // fn encode_postcondition_expr(
     //     &mut self,
     //     contract: &ProcedureContract<'tcx>,
-    //     postcondition_strengthening: Option<TypedAssertion>,
+    //     postcondition_strengthening: Option<typed::Assertion>,
     //     pre_label: &str,
     //     post_label: &str,
     //     magic_wand_store_info: Option<(mir::Location, &HashMap<vir::Expr, vir::Expr>)>,
@@ -3047,7 +3048,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     // fn encode_postconditions(
     //     &mut self,
     //     return_cfg_block: CfgBlockIndex,
-    //     postcondition_strengthening: Option<TypedAssertion>,
+    //     postcondition_strengthening: Option<typed::Assertion>,
     // ) {
     //     // This clone is only due to borrow checker restrictions
     //     let contract = self.procedure_contract().clone();

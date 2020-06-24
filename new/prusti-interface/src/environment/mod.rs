@@ -11,7 +11,7 @@ use rustc_hir::def_id::DefId;
 use rustc_middle::ty::{self, TyCtxt};
 use std::path::PathBuf;
 
-use rustc_span::{Span, MultiSpan};
+use rustc_span::{Span, MultiSpan, symbol::Symbol};
 // use rustc::hir;
 // use rustc::hir::def_id::DefId;
 // use rustc::ty;
@@ -212,10 +212,12 @@ impl<'tcx> Environment<'tcx> {
     //     res
     // }
 
-    // /// Get an associated item by name.
-    // pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssociatedItem> {
-    //     self.tcx().associated_items(id).find(|assoc_item| assoc_item.name == name)
-    // }
+    /// Get an associated item by name.
+    pub fn get_assoc_item(&self, id: DefId, name: Symbol) -> Option<ty::AssocItem> {
+        // FIXME: Probably we should use https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.AssociatedItems.html#method.find_by_name_and_namespace
+        // instead.
+        self.tcx().associated_items(id).filter_by_name_unhygienic(name).next().cloned()
+    }
 
     // /// Get a trait method declaration by name for type.
     // pub fn get_trait_method_decl_for_type(&self, typ: ty::Ty<'tcx>, trait_id: DefId, name: Symbol) -> Vec<ty::AssociatedItem> {
