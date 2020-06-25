@@ -1,7 +1,5 @@
 extern crate prusti_contracts;
 
-// ignore-test: Not yet supported (entered unreachable code: Borrow restores rvalue const true)
-
 fn test_borrow_in_guard() {
     let mut x: &mut Box<i32>;
     let mut y = Box::new(123);

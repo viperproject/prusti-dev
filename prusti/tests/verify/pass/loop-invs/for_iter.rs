@@ -1,7 +1,5 @@
 extern crate prusti_contracts;
 
-// ignore-test TODO: the program has an empty magic wand
-
 fn test1() {
     let mut sum = 0;
     for i in 0..128 {
