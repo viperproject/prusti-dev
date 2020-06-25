@@ -1,3 +1,5 @@
+// ignore-test: Uses tuples with reference-typed elements
+
 fn rand<T>() -> T { loop {} }
 
 enum List {
