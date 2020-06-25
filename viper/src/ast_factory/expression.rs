@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::structs::DomainFunc;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Field;
 use ast_factory::structs::LocalVarDecl;
@@ -498,20 +497,23 @@ impl<'a> AstFactory<'a> {
 
     pub fn domain_func_app(
         &self,
-        domain_func: DomainFunc,
+        function_name: &str,
         args: &[Expr],
         type_var_map: &[(Type, Type)],
+        return_type: Type,
+        domain_name: &str,
+        pos: Position,
     ) -> Expr<'a> {
-        let domain_func_app_object_wrapper = ast::DomainFuncApp_object::with(self.env);
+        let domain_func_app_wrapper = ast::DomainFuncApp::with(self.env);
         let obj = self.jni.unwrap_result(
-            domain_func_app_object_wrapper.call_apply(
-                self.jni
-                    .unwrap_result(domain_func_app_object_wrapper.singleton()),
-                domain_func.to_jobject(),
+            domain_func_app_wrapper.new(
+                self.jni.new_string(function_name),
                 self.jni.new_seq(&map_to_jobjects!(args)),
                 self.jni.new_map(&map_to_jobject_pairs!(type_var_map)),
-                self.no_position().to_jobject(),
+                pos.to_jobject(),
                 self.no_info(),
+                return_type.to_jobject(),
+                self.jni.new_string(domain_name),
                 self.no_trafos(),
             ),
         );

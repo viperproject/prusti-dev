@@ -1386,8 +1386,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     ),
                     Box::new(
                         vir::Expr::DomainFuncApp(
-                            mirror_func.clone(),
+                            mirror_func.name,
                             mirror_args,
+                            mirror_func.formal_args,
+                            mirror_func.return_type,
+                            mirror_func.domain_name,
                             vir::Position::default(),
                         )
                     ), vir::Position::default(),

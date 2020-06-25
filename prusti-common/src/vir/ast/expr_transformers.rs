@@ -197,11 +197,21 @@ pub trait ExprFolder: Sized {
     }
     fn fold_domain_func_app(
         &mut self,
-        func: DomainFunc,
+        function_name: String,
         args: Vec<Expr>,
+        formal_args: Vec<LocalVar>,
+        return_type: Type,
+        domain_name: String,
         pos: Position,
     ) -> Expr {
-        Expr::DomainFuncApp(func, args, pos)
+        Expr::DomainFuncApp(
+            function_name,
+            args.into_iter().map(|e| self.fold(e)).collect(),
+            formal_args,
+            return_type,
+            domain_name,
+            pos
+        )
     }
     fn fold_inhale_exhale(
         &mut self,
@@ -239,7 +249,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::ForAll(x, y, z, p) => this.fold_forall(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fold_func_app(x, y, z, k, p),
-        Expr::DomainFuncApp(x, y, p) => this.fold_domain_func_app(x,y,p),
+        Expr::DomainFuncApp(u, v, w, x, y, p) => this.fold_domain_func_app(u,v,w,x,y,p),
         Expr::InhaleExhale(x, y, p) => this.fold_inhale_exhale(x, y, p),
     }
 }
@@ -352,11 +362,18 @@ pub trait ExprWalker: Sized {
             self.walk_local_var(arg);
         }
     }
-    fn walk_domain_func_app(&mut self, func: &DomainFunc, args: &Vec<Expr>, _pos: &Position) {
+    fn walk_domain_func_app(
+        &mut self,
+        _function_name: &String,
+        args: &Vec<Expr>,
+        formal_args: &Vec<LocalVar>,
+        _return_type: &Type,
+        _domain_name: &String,
+        _pos: &Position) {
         for arg in args {
             self.walk(arg)
         }
-        for arg in &func.formal_args {
+        for arg in formal_args {
             self.walk_local_var(arg)
         }
     }
@@ -388,7 +405,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::ForAll(ref x, ref y, ref z, ref p) => this.walk_forall(x, y, z, p),
         Expr::LetExpr(ref x, ref y, ref z, ref p) => this.walk_let_expr(x, y, z, p),
         Expr::FuncApp(ref x, ref y, ref z, ref k, ref p) => this.walk_func_app(x, y, z, k, p),
-        Expr::DomainFuncApp(ref x, ref y,ref p) => this.walk_domain_func_app(x,y,p),
+        Expr::DomainFuncApp(ref u, ref v, ref w, ref x, ref y,ref p) => this.walk_domain_func_app(u, v, w, x,y,p),
         Expr::InhaleExhale(ref x, ref y, ref p) => this.walk_inhale_exhale(x, y, p),
     }
 }
@@ -557,15 +574,21 @@ pub trait FallibleExprFolder: Sized {
     }
     fn fallible_fold_domain_func_app(
         &mut self,
-        func: DomainFunc,
+        function_name: String,
         args: Vec<Expr>,
+        formal_args: Vec<LocalVar>,
+        return_type: Type,
+        domain_name: String,
         pos: Position,
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::DomainFuncApp(
-            func,
+            function_name,
             args.into_iter()
                 .map(|e| self.fallible_fold(e))
                 .collect::<Result<Vec<_>, Self::Error>>()?,
+            formal_args,
+            return_type,
+            domain_name,
             pos
         ))
     }
@@ -609,7 +632,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error=U>>(
         Expr::ForAll(x, y, z, p) => this.fallible_fold_forall(x, y, z, p),
         Expr::LetExpr(x, y, z, p) => this.fallible_fold_let_expr(x, y, z, p),
         Expr::FuncApp(x, y, z, k, p) => this.fallible_fold_func_app(x, y, z, k, p),
-        Expr::DomainFuncApp(x, y, p) => this.fallible_fold_domain_func_app(x,y,p),
+        Expr::DomainFuncApp(u, v, w, x, y, p) => this.fallible_fold_domain_func_app(u,v,w,x,y,p),
         Expr::InhaleExhale(x, y, p) => this.fallible_inhale_exhale(x,y,p),
     }
 }

@@ -38,7 +38,14 @@ impl SnapshotDomain {
 
     pub fn call_snap_func(&self, args: Vec<vir::Expr>) -> vir::Expr {
         let cons_function = self.domain.functions[0].clone();
-        vir::Expr::DomainFuncApp(cons_function, args, vir::Position::default())
+        vir::Expr::DomainFuncApp(
+            cons_function.name,
+            args,
+            cons_function.formal_args,
+            cons_function.return_type,
+            cons_function.domain_name,
+            vir::Position::default()
+        )
     }
 }
 

@@ -41,8 +41,8 @@ pub enum Expr {
     LetExpr(LocalVar, Box<Expr>, Box<Expr>, Position),
     /// FuncApp: function_name, args, formal_args, return_type, Viper position
     FuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, Position),
-    /// Domain function application: domain function, args, Viper position (unused)
-    DomainFuncApp(DomainFunc, Vec<Expr>, Position),
+    /// Domain function application: function_name, args, formal_args, return_type, domain_name, Viper position (unused)
+    DomainFuncApp(String, Vec<Expr>, Vec<LocalVar>, Type, String, Position),
     /// Inhale Exhale: inhale expression, exhale expression, Viper position (unused)
     InhaleExhale(Box<Expr>, Box<Expr>, Position),
 }
@@ -164,14 +164,21 @@ impl fmt::Display for Expr {
                     .collect::<Vec<String>>()
                     .join(", "),
             ),
-            Expr::DomainFuncApp(ref function, ref args, ref _pos) => write!(
+            Expr::DomainFuncApp(ref name, ref args, ref params, ref typ, ref domain_name, ref _pos) => write!(
                 f,
-                "{}({})",
-                function,
+                "{}::{}<{},{}>({})",
+                domain_name,
+                name,
+                params
+                    .iter()
+                    .map(|p| p.typ.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                typ.to_string(),
                 args.iter()
-                   .map(|f| f.to_string())
-                   .collect::<Vec<String>>()
-                   .join(", "),
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", "),
             ),
 
             Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, _) =>
@@ -239,7 +246,7 @@ impl Expr {
             Expr::ForAll(_, _, _, ref p) => p,
             Expr::LetExpr(_, _, _, ref p) => p,
             Expr::FuncApp(_, _, _, _, ref p) => p,
-            Expr::DomainFuncApp(_, _, ref p) => p,
+            Expr::DomainFuncApp(_, _, _, _, _, ref p) => p,
             Expr::InhaleExhale(_, _, ref p) => p,
         }
     }
@@ -266,7 +273,7 @@ impl Expr {
             Expr::ForAll(x, y, z, _) => Expr::ForAll(x, y, z, pos),
             Expr::LetExpr(x, y, z, _) => Expr::LetExpr(x, y, z, pos),
             Expr::FuncApp(x, y, z, k, _) => Expr::FuncApp(x, y, z, k, pos),
-            Expr::DomainFuncApp(x,y,_) => Expr::DomainFuncApp(x,y,pos),
+            Expr::DomainFuncApp(u,v, w, x, y ,_) => Expr::DomainFuncApp(u,v,w,x,y,pos),
             Expr::InhaleExhale(x, y, _) => Expr::InhaleExhale(x, y, pos),
         }
     }
@@ -1248,7 +1255,7 @@ impl Hash for Expr {
             }
             Expr::LetExpr(ref var, box ref def, box ref expr, _) => (var, def, expr).hash(state),
             Expr::FuncApp(ref name, ref args, _, _, _) => (name, args).hash(state),
-            Expr::DomainFuncApp(ref function, ref args, _) => (&function.name, args).hash(state),
+            Expr::DomainFuncApp(ref name, ref args, _, _, ref domain_name ,_) => (name, args, domain_name).hash(state),
             Expr::Unfolding(ref name, ref args, box ref base, perm, ref variant, _) => {
                 (name, args, base, perm, variant).hash(state)
             }

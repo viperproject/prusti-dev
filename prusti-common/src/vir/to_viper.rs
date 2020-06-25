@@ -385,14 +385,21 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             },
             &Expr::DomainFuncApp(
-                ref function,
+                ref function_name,
                 ref args,
-                ref _pos,
+                ref formal_args,
+                ref return_type,
+                ref domain_name,
+                ref pos,
             ) => {
+                let identifier = compute_identifier(function_name, formal_args, return_type);
                 ast.domain_func_app(
-                    function.to_viper(ast),
+                    &identifier,
                     &args.to_viper(ast),
-                    &[], // TODO not necessary so far
+                    &[], // not necessary so far
+                    return_type.to_viper(ast),
+                    domain_name,
+                    pos.to_viper(ast),
                 )
             },
             &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
