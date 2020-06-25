@@ -115,7 +115,8 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 vir::Type::TypedRef(type_name)
             }
 
-            ty::TypeVariants::TyAdt(_, _) => {
+            ty::TypeVariants::TyAdt(_, _)
+            | ty::TypeVariants::TyTuple(_) => {
                 let type_name = self.encoder.encode_type_predicate_use(self.ty);
                 match &self.encoder.encode_get_domain_type(type_name) {
                     None => unreachable!(),

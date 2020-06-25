@@ -998,7 +998,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     pub fn encode_get_snapshot_func_name(&self, predicate_name: String) -> String {
         match self.snapshots.borrow().get(&predicate_name) {
             Some(snap) => snap.get_snap_name(),
-            None => unreachable!(),
+            None => unreachable!("{}", predicate_name),
         }
     }
 
