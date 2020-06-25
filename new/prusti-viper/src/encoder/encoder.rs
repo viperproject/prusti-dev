@@ -64,14 +64,14 @@ pub struct Encoder<'v, 'tcx: 'v> {
     type_predicate_names: RefCell<HashMap<ty::TyKind<'tcx>, String>>,
     // type_invariant_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
     // type_tag_names: RefCell<HashMap<ty::TypeVariants<'tcx>, String>>,
-    // predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
-    // type_predicates: RefCell<HashMap<String, vir::Predicate>>,
+    predicate_types: RefCell<HashMap<String, ty::Ty<'tcx>>>,
+    type_predicates: RefCell<HashMap<String, vir::Predicate>>,
     // type_invariants: RefCell<HashMap<String, vir::Function>>,
     // type_tags: RefCell<HashMap<String, vir::Function>>,
     // type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     // memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
-    // fields: RefCell<HashMap<String, vir::Field>>,
-    // /// For each instantiation of each closure: DefId, basic block index, statement index, operands
+    fields: RefCell<HashMap<String, vir::Field>>,
+    /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
         Vec<(
@@ -123,13 +123,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_predicate_names: RefCell::new(HashMap::new()),
             // type_invariant_names: RefCell::new(HashMap::new()),
             // type_tag_names: RefCell::new(HashMap::new()),
-            // predicate_types: RefCell::new(HashMap::new()),
-            // type_predicates: RefCell::new(HashMap::new()),
+            predicate_types: RefCell::new(HashMap::new()),
+            type_predicates: RefCell::new(HashMap::new()),
             // type_invariants: RefCell::new(HashMap::new()),
             // type_tags: RefCell::new(HashMap::new()),
             // type_discriminant_funcs: RefCell::new(HashMap::new()),
             // memory_eq_funcs: RefCell::new(HashMap::new()),
-            // fields: RefCell::new(HashMap::new()),
+            fields: RefCell::new(HashMap::new()),
             closure_instantiations: HashMap::new(),
             encoding_queue: RefCell::new(vec![]),
             // vir_program_before_foldunfold_writer,
@@ -429,59 +429,59 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         unimplemented!();
     }
 
-    // pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
-    //     let type_encoder = TypeEncoder::new(self, ty);
-    //     let field = type_encoder.encode_value_field();
-    //     self.fields
-    //         .borrow_mut()
-    //         .entry(field.name.clone())
-    //         .or_insert_with(|| field.clone());
-    //     field
-    // }
+    pub fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
+        let type_encoder = TypeEncoder::new(self, ty);
+        let field = type_encoder.encode_value_field();
+        self.fields
+            .borrow_mut()
+            .entry(field.name.clone())
+            .or_insert_with(|| field.clone());
+        field
+    }
 
-    // pub fn encode_raw_ref_field(&self, viper_field_name: String, ty: ty::Ty<'tcx>) -> vir::Field {
-    //     let type_name = self.encode_type_predicate_use(ty);
-    //     self.fields
-    //         .borrow_mut()
-    //         .entry(viper_field_name.clone())
-    //         .or_insert_with(|| {
-    //             // Do not store the name of the type in self.fields
-    //             vir::Field::new(
-    //                 viper_field_name.clone(),
-    //                 vir::Type::TypedRef("".to_string()),
-    //             )
-    //         });
-    //     vir::Field::new(viper_field_name, vir::Type::TypedRef(type_name))
-    // }
+    pub fn encode_raw_ref_field(&self, viper_field_name: String, ty: ty::Ty<'tcx>) -> vir::Field {
+        let type_name = self.encode_type_predicate_use(ty);
+        self.fields
+            .borrow_mut()
+            .entry(viper_field_name.clone())
+            .or_insert_with(|| {
+                // Do not store the name of the type in self.fields
+                vir::Field::new(
+                    viper_field_name.clone(),
+                    vir::Type::TypedRef("".to_string()),
+                )
+            });
+        vir::Field::new(viper_field_name, vir::Type::TypedRef(type_name))
+    }
 
-    // pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
-    //     self.encode_raw_ref_field("val_ref".to_string(), ty)
-    // }
+    pub fn encode_dereference_field(&self, ty: ty::Ty<'tcx>) -> vir::Field {
+        self.encode_raw_ref_field("val_ref".to_string(), ty)
+    }
 
-    // pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
-    //     let viper_field_name = format!("f${}", field_name);
-    //     self.encode_raw_ref_field(viper_field_name, ty)
-    // }
+    pub fn encode_struct_field(&self, field_name: &str, ty: ty::Ty<'tcx>) -> vir::Field {
+        let viper_field_name = format!("f${}", field_name);
+        self.encode_raw_ref_field(viper_field_name, ty)
+    }
 
-    // /// Creates a field that corresponds to the enum variant ``index``.
-    // pub fn encode_enum_variant_field(&self, index: &str) {
-    //     let name = format!("enum_{}", index);
-    //     let mut fields = self.fields.borrow_mut();
-    //     if !fields.contains_key(&name) {
-    //         let field = vir::Field::new(name.clone(), vir::Type::TypedRef("".to_string()));
-    //         fields.insert(name, field);
-    //     }
-    // }
+    /// Creates a field that corresponds to the enum variant ``index``.
+    pub fn encode_enum_variant_field(&self, index: &str) {
+        let name = format!("enum_{}", index);
+        let mut fields = self.fields.borrow_mut();
+        if !fields.contains_key(&name) {
+            let field = vir::Field::new(name.clone(), vir::Type::TypedRef("".to_string()));
+            fields.insert(name, field);
+        }
+    }
 
-    // pub fn encode_discriminant_field(&self) -> vir::Field {
-    //     let name = "discriminant";
-    //     let field = vir::Field::new(name, vir::Type::Int);
-    //     self.fields
-    //         .borrow_mut()
-    //         .entry(name.to_string())
-    //         .or_insert_with(|| field.clone());
-    //     field
-    // }
+    pub fn encode_discriminant_field(&self) -> vir::Field {
+        let name = "discriminant";
+        let field = vir::Field::new(name, vir::Type::Int);
+        self.fields
+            .borrow_mut()
+            .entry(name.to_string())
+            .or_insert_with(|| field.clone());
+        field
+    }
 
     // pub fn encode_discriminant_func_app(
     //     &self,
@@ -606,7 +606,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //     second: vir::Expr,
     //     self_ty: ty::Ty<'tcx>
     // ) -> Option<vir::Expr> {
-    //     let eq = match self_ty.sty {
+    //     let eq = match self_ty.kind {
     //         ty::TypeVariants::TyBool
     //         | ty::TypeVariants::TyInt(_)
     //         | ty::TypeVariants::TyUint(_)
@@ -901,48 +901,47 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if !self.type_predicate_names.borrow().contains_key(&ty.kind) {
             let type_encoder = TypeEncoder::new(self, ty);
             let result = type_encoder.encode_predicate_use();
-            // self.type_predicate_names
-            //     .borrow_mut()
-            //     .insert(ty.sty.clone(), result);
-            // // Trigger encoding of definition
-            // self.encode_type_predicate_def(ty);
+            self.type_predicate_names
+                .borrow_mut()
+                .insert(ty.kind.clone(), result);
+            // Trigger encoding of definition
+            self.encode_type_predicate_def(ty);
         }
-        // let predicate_name = self.type_predicate_names.borrow()[&ty.sty].clone();
-        // self.predicate_types
-        //     .borrow_mut()
-        //     .insert(predicate_name.clone(), ty);
-        // predicate_name
-        unimplemented!();
+        let predicate_name = self.type_predicate_names.borrow()[&ty.kind].clone();
+        self.predicate_types
+            .borrow_mut()
+            .insert(predicate_name.clone(), ty);
+        predicate_name
     }
 
-    // pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
-    //     let predicate_name = self.encode_type_predicate_use(ty);
-    //     if !self.type_predicates.borrow().contains_key(&predicate_name) {
-    //         let type_encoder = TypeEncoder::new(self, ty);
-    //         let predicates = type_encoder.encode_predicate_def();
-    //         for predicate in predicates {
-    //             self.log_vir_program_before_viper(predicate.to_string());
-    //             let predicate_name = predicate.name();
-    //             self.type_predicates
-    //                 .borrow_mut()
-    //                 .insert(predicate_name.to_string(), predicate);
-    //         }
-    //     }
-    //     self.type_predicates.borrow()[&predicate_name].clone()
-    // }
+    pub fn encode_type_predicate_def(&self, ty: ty::Ty<'tcx>) -> vir::Predicate {
+        let predicate_name = self.encode_type_predicate_use(ty);
+        if !self.type_predicates.borrow().contains_key(&predicate_name) {
+            let type_encoder = TypeEncoder::new(self, ty);
+            let predicates = type_encoder.encode_predicate_def();
+            for predicate in predicates {
+                self.log_vir_program_before_viper(predicate.to_string());
+                let predicate_name = predicate.name();
+                self.type_predicates
+                    .borrow_mut()
+                    .insert(predicate_name.to_string(), predicate);
+            }
+        }
+        self.type_predicates.borrow()[&predicate_name].clone()
+    }
 
     // pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
     //     // TODO we could use type_predicate_names instead (see TypeEncoder::encode_invariant_use)
-    //     if !self.type_invariant_names.borrow().contains_key(&ty.sty) {
+    //     if !self.type_invariant_names.borrow().contains_key(&ty.kind) {
     //         let type_encoder = TypeEncoder::new(self, ty);
     //         let result = type_encoder.encode_invariant_use();
     //         self.type_invariant_names
     //             .borrow_mut()
-    //             .insert(ty.sty.clone(), result);
+    //             .insert(ty.kind.clone(), result);
     //         // Trigger encoding of definition
     //         self.encode_type_invariant_def(ty);
     //     }
-    //     let invariant_name = self.type_invariant_names.borrow()[&ty.sty].clone();
+    //     let invariant_name = self.type_invariant_names.borrow()[&ty.kind].clone();
     //     invariant_name
     // }
 
@@ -959,16 +958,16 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     // }
 
     // pub fn encode_type_tag_use(&self, ty: ty::Ty<'tcx>) -> String {
-    //     if !self.type_tag_names.borrow().contains_key(&ty.sty) {
+    //     if !self.type_tag_names.borrow().contains_key(&ty.kind) {
     //         let type_encoder = TypeEncoder::new(self, ty);
     //         let result = type_encoder.encode_tag_use();
     //         self.type_tag_names
     //             .borrow_mut()
-    //             .insert(ty.sty.clone(), result);
+    //             .insert(ty.kind.clone(), result);
     //         // Trigger encoding of definition
     //         self.encode_type_tag_def(ty);
     //     }
-    //     let tag_name = self.type_tag_names.borrow()[&ty.sty].clone();
+    //     let tag_name = self.type_tag_names.borrow()[&ty.kind].clone();
     //     tag_name
     // }
 
@@ -1019,7 +1018,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     //         ((casted_val << shift) >> shift).into()
     //     }
 
-    //     let expr = match value.ty.sty {
+    //     let expr = match value.ty.kind {
     //         ty::TypeVariants::TyBool => scalar_value.to_bool().ok().unwrap().into(),
     //         ty::TypeVariants::TyInt(ast::IntTy::I8) => (with_sign(
     //             scalar_value
@@ -1109,7 +1108,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     // pub fn encode_int_cast(&self, value: u128, ty: ty::Ty<'tcx>) -> vir::Expr {
     //     trace!("encode_int_cast {:?} as {:?}", value, ty);
 
-    //     let expr = match ty.sty {
+    //     let expr = match ty.kind {
     //         ty::TypeVariants::TyBool => (value != 0).into(),
     //         ty::TypeVariants::TyInt(ast::IntTy::I8) => (value as i8).into(),
     //         ty::TypeVariants::TyInt(ast::IntTy::I16) => (value as i16).into(),
