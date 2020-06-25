@@ -22,7 +22,7 @@ pub struct Arg {
     pub typ: syn::Type,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct ParserStream {
     last_span: Span,
     tokens: VecDeque<TokenTree>,
@@ -155,13 +155,23 @@ impl ParserStream {
         None
     }
 
-    fn parse_identifier(&mut self) -> Option<Ident> {
-        if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
-            if let Some(TokenTree::Ident(ident)) = self.pop() {
-                return Some(ident);
+    fn contains_operator(&mut self, operator: &str) -> bool {
+        let mut stream = self.clone();
+        while !stream.is_empty() {
+            if stream.check_and_consume_operator(operator) {
+                self.last_span = stream.last_span;
+                return true;
             }
+            if let Some(TokenTree::Group(group)) = self.tokens.front() {
+                let mut nested_stream = ParserStream::from_token_stream(group.stream());
+                if nested_stream.contains_operator(operator) {
+                    self.last_span = nested_stream.last_span;
+                    return true;
+                }
+            }
+            stream.pop();
         }
-        None
+        false
     }
 
     /// Creates a TokenStream until a certain operator is met, or until the end of the stream.
@@ -405,7 +415,14 @@ impl Parser {
                     return Err(self.error_expected_equals());
                 }
                 let token_stream = stream.create_stream();
-                let arr: syn::ExprArray = syn::parse2(token_stream)?;
+
+                let maybe_arr: Result<syn::ExprArray, Error> = syn::parse2(token_stream);
+                if let Err(err) = maybe_arr {
+                    self.input.last_span = err.span();
+                    return Err(self.error_expected_tuple());
+                }
+                let arr = maybe_arr.unwrap();
+                self.input.last_span = arr.span();
 
                 let mut vec_of_triggers = vec![];
                 for item in arr.elems {
@@ -422,6 +439,7 @@ impl Parser {
                         );
                     }
                     else {
+                        self.input.last_span = item.span();
                         return Err(self.error_expected_tuple());
                     }
                 }
@@ -563,8 +581,12 @@ impl Parser {
         token_stream.extend(expr.into_iter());
         self.expr.clear();
 
-        let maybe_expr = syn::parse2(token_stream);
+        let maybe_expr = syn::parse2(token_stream.clone());
         if let Err(err) = maybe_expr {
+            let mut stream = ParserStream::from_token_stream(token_stream);
+            if stream.contains_operator("==>") {
+                return Err(self.error_expected_expr_without_implication(stream.last_span));
+            }
             return Err(err);
         }
 
@@ -578,11 +600,15 @@ impl Parser {
         });
         Ok(())
     }
+    fn error_expected_expr_without_implication(&self, span: Span) -> syn::Error {
+        syn::Error::new(span,
+                        "`==>` cannot be part of Rust expression")
+    }
     fn error_expected_assertion(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected Prusti assertion")
     }
     fn error_expected_operator(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected Prusti operator")
+        syn::Error::new(self.input.last_span(), "expected `&&` or `==>`")
     }
     fn error_expected_parenthesis(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "expected `(`")
@@ -597,7 +623,7 @@ impl Parser {
         syn::Error::new(self.input.last_span(), "expected `=`")
     }
     fn error_expected_tuple(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected tuple")
+        syn::Error::new(self.input.last_span(), "`triggers` must be an array of tuples containing Rust expressions")
     }
     fn error_ambiguous_expression(&self) -> syn::Error {
         syn::Error::new(self.input.last_span(), "found || and && in the same subexpression")

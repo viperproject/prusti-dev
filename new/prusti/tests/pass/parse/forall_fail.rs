@@ -31,4 +31,7 @@ fn test7() {}
 #[requires(forall(|| true, triggers=[(1,2), 1]))]
 fn test8() {}
 
+#[requires(forall(|| true, triggers=1))]
+fn test9() {}
+
 fn main() {}
