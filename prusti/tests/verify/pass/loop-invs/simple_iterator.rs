@@ -26,5 +26,5 @@ impl Iterator for Fibonacci {
 
 fn main(){
     let fib = Fibonacci::new();
-    for _ in fib { } //~ ERROR abrupt loop terminations
+    for _ in fib { }
 }

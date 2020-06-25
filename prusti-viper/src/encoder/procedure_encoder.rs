@@ -615,18 +615,8 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             .cloned()
             .collect();
         // Heuristic: pick the first exit block before the invariant.
-        // Note that this does not allow having break/return/continue statements in the loop guard.
-        if exit_blocks_before_inv.len() > 1 {
-            return Err(EncodingError::incorrect(
-                "'break', 'continue', 'return', and panic statements are not allowed before the \
-                loop invariant",
-                exit_blocks_before_inv
-                    .iter()
-                    .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
-                    .collect::<Vec<_>>(),
-            ));
-        }
-        let opt_loop_guard_switch = exit_blocks_before_inv.get(0).cloned();
+        // An infinite loop will have no exit blocks, so we have to use an Option here
+        let opt_loop_guard_switch = exit_blocks_before_inv.last().cloned();
         let after_guard_block_pos = opt_loop_guard_switch
             .and_then(|loop_guard_switch| {
                 loop_body
@@ -647,9 +637,14 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                 "{:?} is conditional branch in loop {:?}",
                 before_invariant_block, loop_head
             );
+            let loop_head_span = self.mir_encoder.get_span_of_basic_block(loop_head);
             return Err(EncodingError::incorrect(
                 "the loop invariant cannot be in a conditional branch of the loop",
-                self.mir_encoder.get_span_of_basic_block(loop_head),
+                loop_body
+                    .iter()
+                    .map(|&bb| self.mir_encoder.get_span_of_basic_block(bb))
+                    .filter(|&span| span.contains(loop_head_span))
+                    .min().unwrap(),
             ));
         }
 
