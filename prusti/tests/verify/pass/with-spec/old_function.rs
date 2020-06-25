@@ -9,8 +9,7 @@ fn get_x(t: &mut T) -> u32 {
     t.x
 }
 
-#[ensures="old(get_x(t)) == 5"]
-//#[ensures="old(get_x(t)) == get_x(t)"]    // Correct postcondition that also crashes.
+#[ensures="old(get_x(t)) == get_x(t)"]
 fn test(t: &mut T) {}
 
 fn main() {}
