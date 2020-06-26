@@ -684,7 +684,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
 
     fn compute_loop_magic_wands(
         &mut self,
-        loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+        _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
     ) -> Result<(), PoloniusInfoError> {
         trace!("[enter] compute_loop_magic_wands");
         let loop_heads = self.loops.loop_heads.clone();

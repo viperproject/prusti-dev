@@ -164,22 +164,25 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
             }
 
             PoloniusInfoError::ReborrowingDagHasNoMagicWands(location) => {
-                EncodingError::internal(
-                    "error in processing expiring borrows (ReborrowingDagHasNoMagicWands)",
+                EncodingError::unsupported(
+                    "the creation of loans in this loop is not yet supported \
+                    (ReborrowingDagHasNoMagicWands)",
                     self.mir.source_info(location).span,
                 )
             }
 
             PoloniusInfoError::MultipleMagicWandsPerLoop(location) => {
-                EncodingError::internal(
-                    "error in processing expiring borrows (MultipleMagicWandsPerLoop)",
+                EncodingError::unsupported(
+                    "the creation of loans in this loop is not yet supported \
+                    (MultipleMagicWandsPerLoop)",
                     self.mir.source_info(location).span,
                 )
             }
 
             PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location) => {
-                EncodingError::internal(
-                    "error in processing expiring borrows (MagicWandHasNoRepresentativeLoan)",
+                EncodingError::unsupported(
+                    "the creation of loans in this loop is not yet supported \
+                    (MagicWandHasNoRepresentativeLoan)",
                     self.mir.source_info(location).span,
                 )
             }
