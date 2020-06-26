@@ -1783,14 +1783,14 @@ pub struct AdditionalFacts {
     ///     requires(R, L, P),
     ///     killed(L, P),
     ///     cfg_edge(P, Q),
-    ///     region_live_at(R, Q).
+    ///     origin_live_on_entry(R, Q).
     /// zombie_requires(R2, L, P) :-
     ///     zombie_requires(R1, L, P),
     ///     subset(R1, R2, P).
     /// zombie_requires(R, L, Q) :-
     ///     zombie_requires(R, L, P),
     ///     cfg_edge(P, Q),
-    ///     region_live_at(R, Q).
+    ///     origin_live_on_entry(R, Q).
     /// ```
     pub zombie_requires:
         FxHashMap<facts::PointIndex, BTreeMap<facts::Region, BTreeSet<facts::Loan>>>,
@@ -1800,7 +1800,7 @@ pub struct AdditionalFacts {
     /// ```datalog
     /// zombie_borrow_live_at(L, P) :-
     ///     zombie_requires(R, L, P),
-    ///     region_live_at(R, P).
+    ///     origin_live_on_entry(R, P).
     /// ```
     pub zombie_borrow_live_at: FxHashMap<facts::PointIndex, Vec<facts::Loan>>,
     /// Which loans were killed (become zombies) at a given point.
@@ -1832,7 +1832,7 @@ impl AdditionalFacts {
         let requires_lp = iteration.variable::<((Loan, Point), Region)>("requires_lp");
         let killed = iteration.variable::<((Loan, Point), ())>("killed");
         let cfg_edge_p = iteration.variable::<(Point, Point)>("cfg_edge_p");
-        let region_live_at = iteration.variable::<((Region, Point), ())>("region_live_at");
+        let origin_live_on_entry = iteration.variable::<((Region, Point), ())>("origin_live_on_entry");
         let subset_r1p = iteration.variable::<((Region, Point), Region)>("subset_r1p");
 
         // Temporaries as we perform a multi-way join.
@@ -1843,52 +1843,55 @@ impl AdditionalFacts {
         let zombie_requires_3 = iteration.variable_indistinct("zombie_requires_3");
         let zombie_requires_4 = iteration.variable_indistinct("zombie_requires_4");
 
-        unimplemented!();
+        // Load initial facts.
+        requires_lp.insert(Relation::from_iter(output.restricts.iter().flat_map(
+            |(&point, region_map)| {
+                region_map.iter().flat_map(move |(&region, loans)| {
+                    loans.iter().map(move |&loan| ((loan, point), region))
+                })
+            },
+        )));
+        killed.insert(Relation::from_iter(
+            all_facts
+                .killed
+                .iter()
+                .map(|&(loan, point)| ((loan, point), ())),
+        ));
+        cfg_edge_p.insert(all_facts.cfg_edge.clone().into());
 
-        // // Load initial facts.
-        // requires_lp.insert(Relation::from(output.restricts.iter().flat_map(
-        //     |(&point, region_map)| {
-        //         region_map.iter().flat_map(move |(&region, loans)| {
-        //             loans.iter().map(move |&loan| ((loan, point), region))
-        //         })
-        //     },
-        // ).collect()));
-        // killed.insert(Relation::from(
-        //     all_facts
-        //         .killed
-        //         .iter()
-        //         .map(|&(loan, point)| ((loan, point), ())).collect(),
-        // ));
-        // cfg_edge_p.insert(all_facts.cfg_edge.clone().into());
+        let origin_live_on_entry_vec = {
+            output.origin_live_on_entry.iter().flat_map(|(point, origins)| {
+                let points: Vec<_> = origins.iter().cloned().map(|origin| (origin, *point)).collect();
+                points
+            })
+            // let mut origin_live_on_entry = output.origin_live_on_entry.clone();
+            // let all_points: BTreeSet<Point> = all_facts
+            //     .cfg_edge
+            //     .iter()
+            //     .map(|&(p, _)| p)
+            //     .chain(all_facts.cfg_edge.iter().map(|&(_, q)| q))
+            //     .collect();
 
-        // let region_live_at_vec = {
-        //     let mut region_live_at = all_facts.region_live_at.clone();
-        //     let all_points: BTreeSet<Point> = all_facts
-        //         .cfg_edge
-        //         .iter()
-        //         .map(|&(p, _)| p)
-        //         .chain(all_facts.cfg_edge.iter().map(|&(_, q)| q))
-        //         .collect();
-
-        //     for &r in &all_facts.universal_region {
-        //         for &p in &all_points {
-        //             region_live_at.push((r, p));
-        //         }
-        //     }
-        //     region_live_at
-        // };
-        // region_live_at.insert(Relation::from(
-        //     region_live_at_vec.iter().map(|&(r, p)| ((r, p), ())),
-        // ));
-        // subset_r1p.insert(Relation::from(output.subset.iter().flat_map(
-        //     |(&point, subset_map)| {
-        //         subset_map.iter().flat_map(move |(&region1, regions)| {
-        //             regions
-        //                 .iter()
-        //                 .map(move |&region2| ((region1, point), region2))
-        //         })
-        //     },
-        // )));
+            // for &r in &all_facts.universal_region {
+            //     for &p in &all_points {
+            //          FIXME: Check if already added.
+            //         origin_live_on_entry.push((r, p));
+            //     }
+            // }
+            // origin_live_on_entry
+        };
+        origin_live_on_entry.insert(Relation::from_iter(
+            origin_live_on_entry_vec.map(|(r, p)| ((r, p), ())),
+        ));
+        subset_r1p.insert(Relation::from_iter(output.subset.iter().flat_map(
+            |(&point, subset_map)| {
+                subset_map.iter().flat_map(move |(&region1, regions)| {
+                    regions
+                        .iter()
+                        .map(move |&region2| ((region1, point), region2))
+                })
+            },
+        )));
 
         while iteration.changed() {
             zombie_requires_rp.from_map(&zombie_requires, |&(r, l, p)| ((r, p), l));
@@ -1898,12 +1901,12 @@ impl AdditionalFacts {
             //     requires(R, L, P),
             //     killed(L, P),
             //     cfg_edge(P, Q),
-            //     region_live_at(R, Q).
+            //     origin_live_on_entry(R, Q).
             zombie_requires_1.from_join(&requires_lp, &killed, |&(l, p), &r, _| (p, (l, r)));
             zombie_requires_2.from_join(&zombie_requires_1, &cfg_edge_p, |&_p, &(l, r), &q| {
                 ((r, q), l)
             });
-            zombie_requires.from_join(&zombie_requires_2, &region_live_at, |&(r, q), &l, &()| {
+            zombie_requires.from_join(&zombie_requires_2, &origin_live_on_entry, |&(r, q), &l, &()| {
                 (r, l, q)
             });
             zombie_requires_4.from_join(&zombie_requires_1, &cfg_edge_p, |&p, &(l, r), &q| {
@@ -1911,7 +1914,7 @@ impl AdditionalFacts {
             });
             borrow_become_zombie_at.from_join(
                 &zombie_requires_4,
-                &region_live_at,
+                &origin_live_on_entry,
                 |_, &(p, l), &()| (l, p),
             );
 
@@ -1925,20 +1928,20 @@ impl AdditionalFacts {
             // zombie_requires(R, L, Q) :-
             //     zombie_requires(R, L, P),
             //     cfg_edge(P, Q),
-            //     region_live_at(R, Q).
+            //     origin_live_on_entry(R, Q).
             zombie_requires_3.from_join(&zombie_requires_p, &cfg_edge_p, |&_p, &(l, r), &q| {
                 ((r, q), l)
             });
-            zombie_requires.from_join(&zombie_requires_3, &region_live_at, |&(r, q), &l, &()| {
+            zombie_requires.from_join(&zombie_requires_3, &origin_live_on_entry, |&(r, q), &l, &()| {
                 (r, l, q)
             });
 
             // zombie_borrow_live_at(L, P) :-
             //     zombie_requires(R, L, P),
-            //     region_live_at(R, P).
+            //     origin_live_on_entry(R, P).
             zombie_borrow_live_at.from_join(
                 &zombie_requires_rp,
-                &region_live_at,
+                &origin_live_on_entry,
                 |&(_r, p), &l, &()| (l, p),
             );
         }
@@ -1999,25 +2002,24 @@ impl AdditionalFacts {
         let restricts = iteration.variable::<((Point, Region), Loan)>("restricts");
         let borrow_region = iteration.variable::<((Point, Region), Loan)>("borrow_region");
 
-        // // Load initial data.
-        // restricts.insert(Relation::from(output.restricts.iter().flat_map(
-        //     |(&point, region_map)| {
-        //         region_map.iter().flat_map(move |(&region, loans)| {
-        //             loans.iter().map(move |&loan| ((point, region), loan))
-        //         })
-        //     },
-        // ).collect()));
-        // restricts.insert(Relation::from(zombie_requires.iter().flat_map(
-        //     |(&point, region_map)| {
-        //         region_map.iter().flat_map(move |(&region, loans)| {
-        //             loans.iter().map(move |&loan| ((point, region), loan))
-        //         })
-        //     },
-        // ).collect()));
-        // borrow_region.insert(Relation::from(
-        //     all_facts.borrow_region.iter().map(|&(r, l, p)| ((p, r), l)).collect(),
-        // ));
-        unimplemented!();
+        // Load initial data.
+        restricts.insert(Relation::from_iter(output.restricts.iter().flat_map(
+            |(&point, region_map)| {
+                region_map.iter().flat_map(move |(&region, loans)| {
+                    loans.iter().map(move |&loan| ((point, region), loan))
+                })
+            },
+        )));
+        restricts.insert(Relation::from_iter(zombie_requires.iter().flat_map(
+            |(&point, region_map)| {
+                region_map.iter().flat_map(move |(&region, loans)| {
+                    loans.iter().map(move |&loan| ((point, region), loan))
+                })
+            },
+        )));
+        borrow_region.insert(Relation::from_iter(
+            all_facts.borrow_region.iter().map(|&(r, l, p)| ((p, r), l)),
+        ));
 
         // Temporaries for performing join.
         let reborrows_1 = iteration.variable_indistinct("reborrows_1");
