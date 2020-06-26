@@ -322,6 +322,39 @@ impl CfgMethod {
         &self.basic_blocks_labels[index.block_index]
     }
 
+    pub fn has_loops(&self) -> bool {
+        let mut in_degree = vec![0; self.basic_blocks.len()];
+
+        for index in 0..self.basic_blocks.len() {
+            for succ in self.basic_blocks[index].successor.get_following() {
+                in_degree[succ.index()] += 1;
+            }
+        }
+
+        let mut queue = VecDeque::new();
+        for index in 0..self.basic_blocks.len() {
+            if in_degree[index] == 0 {
+                queue.push_back(index);
+            }
+        }
+
+        let mut visited_count = 0;
+
+        while let Some(curr_index) = queue.pop_front() {
+            for succ in self.basic_blocks[curr_index].successor.get_following() {
+                in_degree[succ.index()] -= 1;
+
+                if in_degree[succ.index()] == 0 {
+                    queue.push_back(succ.index());
+                }
+            }
+            visited_count += 1;
+        }
+
+        debug_assert!(visited_count <= self.basic_blocks.len());
+        visited_count != self.basic_blocks.len()
+    }
+
     pub fn get_topological_sort(&self) -> Vec<CfgBlockIndex> {
         let mut visited: Vec<bool> = vec![false; self.basic_blocks.len()];
         let mut topo_sorted: Vec<CfgBlockIndex> = vec![];

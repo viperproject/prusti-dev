@@ -469,8 +469,7 @@ impl ProcedureLoops {
         self.dominators.is_dominated_by(block, loop_head)
     }
 
-    /// Compute what paths that come from the outside of the loop are accessed
-    /// inside the loop.
+    /// Compute what paths that are accessed inside the loop.
     fn compute_used_paths<'a, 'tcx: 'a>(
         &self,
         loop_head: BasicBlockIndex,
