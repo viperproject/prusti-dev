@@ -159,6 +159,24 @@ impl FromStr for Point {
     }
 }
 
+impl FromStr for Variable {
+    type Err = ();
+
+    fn from_str(variable: &str) -> Result<Self, Self::Err> {
+        Ok(Self(variable[1..].parse().unwrap()))
+    }
+}
+
+impl FromStr for Place {
+    type Err = ();
+
+    fn from_str(place: &str) -> Result<Self, Self::Err> {
+        assert_eq!(place.chars().nth(0).unwrap(), 'm');
+        assert_eq!(place.chars().nth(1).unwrap(), 'p');
+        Ok(Self(place[2..].parse().unwrap()))
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct PoloniusFactTypes;
 
@@ -250,13 +268,13 @@ impl InternTo<String, PointIndex> for Interner {
 
 impl InternTo<String, Variable> for Interner {
     fn intern(&mut self, element: String) -> Variable {
-        unimplemented!();
+        element.parse().unwrap()
     }
 }
 
 impl InternTo<String, Place> for Interner {
     fn intern(&mut self, element: String) -> Place {
-        unimplemented!();
+        element.parse().unwrap()
     }
 }
 
@@ -287,8 +305,8 @@ fn load_facts_from_file<T: DeserializeOwned>(facts_dir: &Path, facts_type: &str)
     let mut reader = ReaderBuilder::new()
         .delimiter(b'\t')
         .has_headers(false)
-        .from_path(facts_file)
-        .unwrap();
+        .from_path(&facts_file)
+        .unwrap_or_else(|err| panic!("failed to read file {:?} with err: {}", facts_file, err));
     reader.deserialize().map(|row| row.unwrap()).collect()
 }
 

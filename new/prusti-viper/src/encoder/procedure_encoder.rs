@@ -28,7 +28,7 @@ use prusti_common::vir::{ExprIterator, FoldingBehaviour};
 // use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 // use prusti_interface::environment::borrowck::facts;
-// use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo, PoloniusInfoError};
+use prusti_interface::environment::polonius_info::{LoanPlaces, PoloniusInfo, PoloniusInfoError};
 // use prusti_interface::environment::polonius_info::{
 //     ReborrowingDAG, ReborrowingDAGNode, ReborrowingKind, ReborrowingZombity,
 // };
@@ -57,7 +57,7 @@ type Result<T> = std::result::Result<T, EncodingError>;
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p Encoder<'v, 'tcx>,
     proc_def_id: ProcedureDefId,
-    // procedure: &'p Procedure<'a, 'tcx>,
+    procedure: &'p Procedure<'p, 'tcx>,
     mir: &'p mir::Body<'tcx>,
     cfg_method: vir::CfgMethod,
     // locals: LocalVariableManager<'tcx>,
@@ -66,7 +66,7 @@ pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
     // check_panics: bool,
     // check_fold_unfold_state: bool,
-    // polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
+    polonius_info: Option<PoloniusInfo<'p, 'tcx>>,
     procedure_contract: Option<ProcedureContract<'tcx>>,
     // label_after_location: HashMap<mir::Location, String>,
     // /// Store the CFG blocks that encode a MIR block each.
@@ -117,7 +117,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ProcedureEncoder {
             encoder,
             proc_def_id: def_id,
-            // procedure,
+            procedure,
             mir,
             cfg_method,
             // locals: LocalVariableManager::new(&mir.local_decls),
@@ -126,7 +126,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir_encoder: mir_encoder,
             // check_panics: config::check_panics(),
             // check_fold_unfold_state: config::check_foldunfold_state(),
-            // polonius_info: None,
+            polonius_info: None,
             procedure_contract: None,
             // label_after_location: HashMap::new(),
             // cfg_block_has_been_executed: HashMap::new(),
@@ -141,49 +141,49 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    // fn translate_polonius_error(&self, error: PoloniusInfoError) -> EncodingError {
-    //     match error {
-    //         PoloniusInfoError::UnsupportedLoanInLoop {
-    //             loop_head,
-    //             variable,
-    //         } => {
-    //             let msg = if let Some(name) = self.mir.local_decls[variable].name {
-    //                 format!("creation of loan '{}' in loop is unsupported", name)
-    //             } else {
-    //                 "creation of temporary loan in loop is unsupported".to_string()
-    //             };
-    //             EncodingError::unsupported(msg, self.mir_encoder.get_span_of_basic_block(loop_head))
-    //         }
+    fn translate_polonius_error(&self, error: PoloniusInfoError) -> EncodingError {
+        match error {
+            PoloniusInfoError::UnsupportedLoanInLoop {
+                loop_head,
+                variable,
+            } => {
+                let msg = if self.mir.local_decls[variable].is_user_variable() {
+                    format!("creation of loan 'FIXME: extract variable name' in loop is unsupported")
+                } else {
+                    "creation of temporary loan in loop is unsupported".to_string()
+                };
+                EncodingError::unsupported(msg, self.mir_encoder.get_span_of_basic_block(loop_head))
+            }
 
-    //         PoloniusInfoError::LoansInNestedLoops(location1, _loop1, _location2, _loop2) => {
-    //             EncodingError::unsupported(
-    //                 "creation of loans in nested loops is not supported".to_string(),
-    //                 self.mir.source_info(location1).span,
-    //             )
-    //         }
+            PoloniusInfoError::LoansInNestedLoops(location1, _loop1, _location2, _loop2) => {
+                EncodingError::unsupported(
+                    "creation of loans in nested loops is not supported".to_string(),
+                    self.mir.source_info(location1).span,
+                )
+            }
 
-    //         PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
-    //             EncodingError::internal(
-    //                 "error in processing expiring borrows (ReborrowingDagHasEmptyMagicWand)",
-    //                 self.mir.source_info(location).span,
-    //             )
-    //         }
+            PoloniusInfoError::ReborrowingDagHasEmptyMagicWand(location) => {
+                EncodingError::internal(
+                    "error in processing expiring borrows (ReborrowingDagHasEmptyMagicWand)",
+                    self.mir.source_info(location).span,
+                )
+            }
 
-    //         PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
-    //             EncodingError::internal(
-    //                 "error in processing expiring borrows (ReborrowingDagHasWrongReborrowingChain)",
-    //                 self.mir.source_info(location).span,
-    //             )
-    //         }
+            PoloniusInfoError::ReborrowingDagHasWrongReborrowingChain(location) => {
+                EncodingError::internal(
+                    "error in processing expiring borrows (ReborrowingDagHasWrongReborrowingChain)",
+                    self.mir.source_info(location).span,
+                )
+            }
 
-    //         PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
-    //             EncodingError::internal(
-    //                 "error in processing expiring borrows (ReborrowingDagHasNoRepresentativeLoan)",
-    //                 self.mir.source_info(location).span,
-    //             )
-    //         }
-    //     }
-    // }
+            PoloniusInfoError::ReborrowingDagHasNoRepresentativeLoan(location) => {
+                EncodingError::internal(
+                    "error in processing expiring borrows (ReborrowingDagHasNoRepresentativeLoan)",
+                    self.mir.source_info(location).span,
+                )
+            }
+        }
+    }
 
     // fn polonius_info(&self) -> &PoloniusInfo<'p, 'tcx> {
     //     self.polonius_info.as_ref().unwrap()
@@ -302,10 +302,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .add_formal_return(&name, vir::Type::TypedRef(type_name))
         }
 
-    //     // Load Polonius info
-    //     self.polonius_info = Some(
-    //         PoloniusInfo::new(&self.procedure).map_err(|err| self.translate_polonius_error(err))?,
-    //     );
+        // Load Polonius info
+        self.polonius_info = Some(
+            PoloniusInfo::new(&self.procedure).map_err(|err| self.translate_polonius_error(err))?,
+        );
 
     //     // Initialize CFG blocks
     //     let start_cfg_block = self.cfg_method.add_block(

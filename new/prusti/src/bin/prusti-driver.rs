@@ -47,6 +47,14 @@ fn main() {
             args.push(arg);
         }
     }
+    env::set_var("POLONIUS_ALGORITHM", "Naive");
+    args.push("-Zborrowck=mir".to_owned());
+    args.push("-Zpolonius".to_owned());
+    args.push("-Znll-facts".to_owned());
+    args.push("-Zidentify-regions".to_owned());
+    args.push("-Zdump-mir-dir=log/mir/".to_owned());
+    args.push("-Zdump-mir=renumber".to_owned());
+    args.push("-Zalways-encode-mir".to_owned());
 
     let mut callbacks = PrustiCompilerCalls::new(flags);
 

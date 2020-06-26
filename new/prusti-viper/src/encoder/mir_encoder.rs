@@ -16,6 +16,7 @@ use rustc_middle::{mir, ty};
 // use std::option::Option;
 // use syntax::ast;
 // use syntax::codemap::Span;
+use rustc_span::Span;
 use log::trace;
 
 pub static PRECONDITION_LABEL: &'static str = "pre";
@@ -623,10 +624,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 //         vir::Expr::labelled_old(label, expr)
 //     }
 
-//     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
-//         let bb_data = &self.mir.basic_blocks()[bbi];
-//         bb_data.terminator().source_info.span
-//     }
+    pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
+        let bb_data = &self.mir.basic_blocks()[bbi];
+        bb_data.terminator().source_info.span
+    }
 
 //     pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
 //         self.encoder

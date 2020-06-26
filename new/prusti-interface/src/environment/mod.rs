@@ -30,7 +30,7 @@ mod loops;
 // mod loops_utils;
 // pub mod mir_analyses;
 pub mod place_set;
-// pub mod polonius_info;
+pub mod polonius_info;
 mod procedure;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
