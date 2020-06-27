@@ -1,5 +1,6 @@
-/// The preparser splits a composite Prusti assertion into atomic assertions, parses the resulting
-/// Rust expressions, and then assembles the composite Prusti assertion.
+/// The preparser splits a composite Prusti assertion into atomic assertions,
+/// parses the resulting Rust expressions, and then assembles the composite
+/// Prusti assertion.
 
 use proc_macro2::{Delimiter, Group, Spacing, Span, TokenStream, TokenTree, Ident};
 use std::collections::VecDeque;
@@ -16,6 +17,7 @@ use syn::spanned::Spanned;
 pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
 
+/// A helper to operate the stream of tokens.
 #[derive(Debug, Clone)]
 struct ParserStream {
     /// Auxiliary field to store the span related to the just-made method call.
@@ -39,8 +41,9 @@ impl ParserStream {
         }
     }
     /// Check if there is a subexpression (parenthesized or separated by `==>`)
-    /// that contains both `&&` and `||`. If yes, set the span to include both of those
-    /// operators and everything in between them. This detects potentially ambiguous subexpressions.
+    /// that contains both `&&` and `||`. If yes, set the span to include both
+    /// of those operators and everything in between them. This detects
+    /// potentially ambiguous subexpressions.
     fn contains_both_and_or(&mut self) -> bool {
         let mut stream = self.clone();
         let mut contains_and = false;
@@ -99,7 +102,8 @@ impl ParserStream {
             None
         }
     }
-    /// Check if the input starts with the keyword and if yes, consume it and set the span to it.
+    /// Check if the input starts with the keyword and if yes, consume it
+    /// and set the span to it.
     fn check_and_consume_keyword(&mut self, keyword: &str) -> bool {
         if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
             if ident.to_string() == keyword {
@@ -129,7 +133,8 @@ impl ParserStream {
     fn peek_any_operator(&self) -> bool {
         self.peek_operator("==>") || self.peek_operator("&&")
     }
-    /// Check if the input starts with the operator and if yes, consume it and set the span to it.
+    /// Check if the input starts with the operator and if yes, consume it
+    /// and set the span to it.
     fn check_and_consume_operator(&mut self, operator: &str) -> bool {
         if !self.peek_operator(operator) {
             return false;
@@ -162,7 +167,8 @@ impl ParserStream {
         }
         None
     }
-    /// Check if the input starts with a parenthesized block and if yes, set the span to it.
+    /// Check if the input starts with a parenthesized block and if yes,
+    /// set the span to it.
     fn peek_parenthesized_block(&mut self) -> bool {
         if let Some(TokenTree::Group(group)) = self.tokens.front() {
             if group.delimiter() == Delimiter::Parenthesis {
@@ -176,7 +182,8 @@ impl ParserStream {
         }
         return false;
     }
-    /// Check if the input contains an operator (including parenthesized subexpressions) and if yes,
+    /// Check if the input contains an operator
+    /// (including parenthesized subexpressions) and if yes,
     /// set the span to the first occurrence of it.
     fn contains_operator(&mut self, operator: &str) -> bool {
         let mut stream = self.clone();
@@ -196,8 +203,9 @@ impl ParserStream {
         }
         false
     }
-    /// Creates a TokenStream until a certain operator is met, or until the end of the stream
-    /// (whichever comes first). The terminating operator is not consumed.
+    /// Creates a TokenStream until a certain operator is met, or until
+    /// the end of the stream (whichever comes first).
+    /// The terminating operator is not consumed.
     fn create_stream_until(&mut self, operator: &str) -> TokenStream {
         let mut stream = TokenStream::new();
         let mut t = vec![];
@@ -237,7 +245,8 @@ impl Parse for ForAllArg {
     }
 }
 
-/// The representation of all arguments to `forall` (for example `a: i32, b: i32, c: i32`)
+/// The representation of all arguments to `forall`
+/// (for example `a: i32, b: i32, c: i32`)
 #[derive(Debug)]
 struct ForAllArgs {
     args: syn::punctuated::Punctuated<ForAllArg, Token![,]>
@@ -263,9 +272,11 @@ pub struct Arg {
 ///
 /// Check common::AssertionKind to see all types of Prusti assertions.
 ///
-/// Since `syn` can only parse the input as a whole, a preparsing phase that recognizes the custom
-/// Prusti operators and keywords is needed. After the input is split according to those, it
-/// can be parsed using `syn`, and then is sticked back together to form Prusti assertions.
+/// Since `syn` can only parse the input as a whole, a preparsing phase
+/// that recognizes the custom Prusti operators and keywords is needed. After
+/// the input is split according to those, it can be parsed using `syn`,
+/// and then is sticked back together to form Prusti assertions.
+/// For a more high-level overview, please check `mod.rs`.
 pub struct Parser {
     /// The helper to manipulate input.
     input: ParserStream,
@@ -273,9 +284,11 @@ pub struct Parser {
     conjuncts: Vec<AssertionWithoutId>,
     /// Currently being parsed Rust expression.
     expr: Vec<TokenTree>,
-    /// A flag to denote whether the previous expression is already resolved (parsed into a conjunct).
+    /// A flag to denote whether the previous expression is already resolved
+    /// (parsed into a conjunct).
     previous_expression_resolved: bool,
-    /// A flag to denote that once the current expression finishes, an operator will be expected.
+    /// A flag to denote that once the current expression finishes, an operator
+    /// will be expected.
     expected_operator: bool,
     /// A flag to denote that the next token must be an operator.
     expected_only_operator: bool
