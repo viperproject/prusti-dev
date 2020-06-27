@@ -32,7 +32,7 @@
 /// `E && E ==> E || E`
 ///
 /// Basic parser usage (`tokens` is of type `proc_macro2::TokenStream`):
-/// ```rust
+/// ```ignore
 /// let mut parser = Parser::from_token_stream(tokens);
 /// let assertion = parser.extract_assertion()?;
 /// ```

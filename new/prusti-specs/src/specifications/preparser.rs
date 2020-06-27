@@ -229,18 +229,19 @@ impl ParserStream {
 
 /// The representation of an argument to `forall` (for example `a: i32`)
 #[derive(Debug, Clone)]
-struct ForAllArg {
+pub struct Arg {
     name: syn::Ident,
-    colon: Token![:],
     typ: syn::Type
 }
 
-impl Parse for ForAllArg {
+impl Parse for Arg {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let name = input.parse()?;
+        input.parse::<Token![:]>()?;
+        let typ = input.parse()?;
         Ok(Self{
-            name: input.parse()?,
-            colon: input.parse()?,
-            typ: input.parse()?
+            name,
+            typ
         })
     }
 }
@@ -249,23 +250,16 @@ impl Parse for ForAllArg {
 /// (for example `a: i32, b: i32, c: i32`)
 #[derive(Debug)]
 struct ForAllArgs {
-    args: syn::punctuated::Punctuated<ForAllArg, Token![,]>
+    args: syn::punctuated::Punctuated<Arg, Token![,]>
 }
 
 impl Parse for ForAllArgs {
     fn parse(input: ParseStream) -> syn::Result<Self>{
-        let parsed: syn::punctuated::Punctuated<ForAllArg, Token![,]> = input.parse_terminated(ForAllArg::parse)?;
+        let parsed: syn::punctuated::Punctuated<Arg, Token![,]> = input.parse_terminated(Arg::parse)?;
         Ok(Self{
             args: parsed
         })
     }
-}
-
-/// A higher level representation of a `ForAllArg`.
-#[derive(Debug, Clone)]
-pub struct Arg {
-    name: syn::Ident,
-    typ: syn::Type
 }
 
 /// The structure to parse Prusti assertions.
