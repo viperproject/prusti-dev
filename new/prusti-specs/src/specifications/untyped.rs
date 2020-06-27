@@ -6,12 +6,8 @@ use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
 pub use common::{ExpressionId, SpecType, SpecificationId};
-
-#[derive(Debug, Clone)]
-pub struct Arg {
-    name: syn::Ident,
-    typ: syn::Type,
-}
+pub use super::preparser::{Parser, Arg};
+use crate::specifications::common::ForAllVars;
 
 /// A specification that has no types associated with it.
 pub type Specification = common::Specification<ExpressionId, syn::Expr, Arg>;
@@ -38,7 +34,8 @@ impl Assertion {
         spec_id: SpecificationId,
         id_generator: &mut ExpressionIdGenerator,
     ) -> syn::Result<Self> {
-        let assertion: common::Assertion<(), syn::Expr, Arg> = syn::parse2(tokens)?;
+        let mut parser = Parser::from_token_stream(tokens);
+        let assertion = parser.extract_assertion()?;
         Ok(assertion.assign_id(spec_id, id_generator))
     }
 }
@@ -86,6 +83,39 @@ impl AssignExpressionId<Expression> for common::Expression<(), syn::Expr> {
     }
 }
 
+impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<(), Arg> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> ForAllVars<ExpressionId, Arg> {
+        ForAllVars {
+            id: id_generator.generate(),
+            vars: self.vars
+        }
+    }
+}
+
+impl AssignExpressionId<TriggerSet> for common::TriggerSet<(), syn::Expr> {
+    fn assign_id(
+        self,
+        spec_id: SpecificationId,
+        id_generator: &mut ExpressionIdGenerator,
+    ) -> TriggerSet {
+        TriggerSet {
+            0: self.0
+                .into_iter()
+                .map(|x| common::Trigger {
+                    0: x.0
+                        .into_iter()
+                        .map(|y| y.assign_id(spec_id, id_generator))
+                        .collect()
+                })
+                .collect()
+        }
+    }
+}
+
 impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, Arg> {
     fn assign_id(
         self,
@@ -95,6 +125,20 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
         use common::AssertionKind::*;
         match self {
             Expr(expr) => Expr(expr.assign_id(spec_id, id_generator)),
+            And(assertions) => And(
+                assertions.into_iter()
+                          .map(|assertion|
+                              Assertion { kind: assertion.kind.assign_id(spec_id, id_generator) })
+                          .collect()),
+            Implies(lhs, rhs) => Implies(
+                lhs.assign_id(spec_id, id_generator),
+                rhs.assign_id(spec_id, id_generator)
+            ),
+            // ForAll(vars, triggers, body) => ForAll(
+            //     vars.assign_id(spec_id, id_generator),
+            //     triggers.assign_id(spec_id, id_generator),
+            //     body.assign_id(spec_id, id_generator)
+            // ),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -141,12 +185,38 @@ impl EncodeTypeCheck for Specification {
     }
 }
 
+impl EncodeTypeCheck for TriggerSet {
+    fn encode_type_check(&self, tokens: &mut TokenStream) {
+        self.0
+            .iter()
+            .for_each(|x| x.0
+                .iter()
+                .for_each(|y| y.encode_type_check(tokens)
+                )
+            );
+    }
+}
+
 impl EncodeTypeCheck for Assertion {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
         match &*self.kind {
             AssertionKind::Expr(expression) => {
                 expression.encode_type_check(tokens);
             }
+            AssertionKind::And(assertions) => {
+                for assertion in assertions {
+                    assertion.encode_type_check(tokens);
+                }
+            }
+            AssertionKind::Implies(lhs, rhs) => {
+                lhs.encode_type_check(tokens);
+                rhs.encode_type_check(tokens);
+            }
+            // AssertionKind::ForAll(vars, triggers, body) => {
+            //     // vars.encode_type_check(tokens);
+            //     triggers.encode_type_check(tokens);
+            //     body.encode_type_check(tokens);
+            // }
             x => {
                 unimplemented!("{:?}", x);
             }
