@@ -17,14 +17,10 @@ pub type AssertionWithoutId = common::Assertion<(), syn::Expr, Arg>;
 pub type ExpressionWithoutId = common::Expression<(), syn::Expr>;
 
 #[derive(Debug, Clone)]
-pub struct Arg {
-    pub name: syn::Ident,
-    pub typ: syn::Type,
-}
-
-#[derive(Debug, Clone)]
 struct ParserStream {
-    last_span: Span,
+    /// Auxiliary field to store the span related to the just-made method call.
+    span: Span,
+    /// A queue of tokens the ParserStream operates on.
     tokens: VecDeque<TokenTree>,
 }
 
@@ -32,67 +28,78 @@ impl ParserStream {
     fn empty() -> Self {
         Self {
             tokens: VecDeque::new(),
-            last_span: Span::call_site(),
+            span: Span::call_site(),
         }
     }
     fn from_token_stream(tokens: TokenStream) -> Self {
         let token_queue: VecDeque<_> = tokens.into_iter().collect();
         Self {
             tokens: token_queue,
-            last_span: Span::call_site(),
+            span: Span::call_site(),
         }
     }
-    /// Check if there is a subexpression that contains both `&&` and `||`. This detects potentially
-    /// ambiguous subexpressions.
+    /// Check if there is a subexpression (parenthesized or separated by `==>`)
+    /// that contains both `&&` and `||`. If yes, set the span to include both of those
+    /// operators and everything in between them. This detects potentially ambiguous subexpressions.
     fn contains_both_and_or(&mut self) -> bool {
-        let tokens = self.tokens.clone();
+        let mut stream = self.clone();
         let mut contains_and = false;
         let mut contains_or = false;
         let mut and_span: Option<Span> = None;
         let mut or_span: Option<Span> = None;
 
-        while !self.tokens.is_empty() {
-            if self.peek_operator("&&") {
+        while !stream.is_empty() {
+            // subexpression contains and
+            if stream.peek_operator("&&") {
                 contains_and = true;
-                and_span = Some(self.tokens.front().span());
+                and_span = Some(stream.tokens.front().span());
             }
-            else if self.peek_operator("||") {
+            // subexpression contains or
+            else if stream.peek_operator("||") {
                 contains_or = true;
-                or_span = Some(self.tokens.front().span());
+                or_span = Some(stream.tokens.front().span());
             }
-            else if self.peek_operator("==>") {
+            // implies met - reset subexpression
+            else if stream.peek_operator("==>") {
                 contains_and = false;
                 contains_or = false;
             }
-
+            // nested expression met - resolve it recursively
+            else if stream.peek_parenthesized_block() {
+                let tokens = stream.check_and_consume_parenthesized_block().unwrap().stream();
+                let mut nested_stream = ParserStream::from_token_stream(tokens);
+                if nested_stream.contains_both_and_or() {
+                    self.span = nested_stream.span;
+                    return true;
+                }
+            }
+            // if a subexpression contains both `&&` and `||`, construct the span and return
             if contains_and && contains_or {
                 if let Some(a_s) = and_span {
                     if let Some(o_s) = or_span {
-                        self.last_span = a_s.join(o_s).unwrap();
+                        self.span = a_s.join(o_s).unwrap();
                     }
                 }
                 return true;
             }
-            self.pop();
+            stream.pop();
         }
-        self.tokens = tokens;
         return false;
     }
-    fn last_span(&self) -> Span {
-        self.last_span
-    }
+    /// Check if the token queue is empty.
     fn is_empty(&self) -> bool {
         self.tokens.is_empty()
     }
+    /// Remove the top token from the queue, return it, and set the span to it.
     fn pop(&mut self) -> Option<TokenTree> {
         if let Some(token) = self.tokens.pop_front() {
-            self.last_span = token.span();
+            self.span = token.span();
             Some(token)
         } else {
             None
         }
     }
-    /// Check if the input starts with the keyword and if yes consume it.
+    /// Check if the input starts with the keyword and if yes, consume it and set the span to it.
     fn check_and_consume_keyword(&mut self, keyword: &str) -> bool {
         if let Some(TokenTree::Ident(ident)) = self.tokens.front() {
             if ident.to_string() == keyword {
@@ -102,7 +109,7 @@ impl ParserStream {
         }
         false
     }
-    /// Check if the input starts with the operator.
+    /// Check if the input starts with the operator. Does not set the span.
     fn peek_operator(&self, operator: &str) -> bool {
         for (i, c) in operator.char_indices() {
             if let Some(TokenTree::Punct(punct)) = self.tokens.get(i) {
@@ -118,34 +125,35 @@ impl ParserStream {
         }
         true
     }
-    /// Check whether the input starts with an operator.
+    /// Check whether the input starts with an operator. Does not set the span.
     fn peek_any_operator(&self) -> bool {
         self.peek_operator("==>") || self.peek_operator("&&")
     }
-    /// Check if the input starts with the operator and if yes consume it.
+    /// Check if the input starts with the operator and if yes, consume it and set the span to it.
     fn check_and_consume_operator(&mut self, operator: &str) -> bool {
         if !self.peek_operator(operator) {
             return false;
         }
-
         let mut span: Option<Span> = None;
         for _ in operator.chars() {
             self.pop();
             if let Some(maybe_span) = span {
-                span = maybe_span.join(self.last_span);
+                span = maybe_span.join(self.span);
             }
             else {
-                span = Some(self.last_span);
+                span = Some(self.span);
             }
         }
-        self.last_span = span.unwrap();
+        self.span = span.unwrap();
         true
     }
-    /// Check if we have a nested assertion here.
+    /// Check if the input starts with a parenthesized block and if yes,
+    /// consume it and set the span to it.
     fn check_and_consume_parenthesized_block(&mut self) -> Option<Group> {
         if let Some(TokenTree::Group(group)) = self.tokens.front() {
             if group.delimiter() == Delimiter::Parenthesis {
                 if let Some(TokenTree::Group(group)) = self.pop() {
+                    self.span = group.span();
                     return Some(group);
                 } else {
                     unreachable!();
@@ -154,18 +162,33 @@ impl ParserStream {
         }
         None
     }
-
+    /// Check if the input starts with a parenthesized block and if yes, set the span to it.
+    fn peek_parenthesized_block(&mut self) -> bool {
+        if let Some(TokenTree::Group(group)) = self.tokens.front() {
+            if group.delimiter() == Delimiter::Parenthesis {
+                self.span = group.span();
+                return true;
+            }
+            else {
+                return false;
+                unreachable!();
+            }
+        }
+        return false;
+    }
+    /// Check if the input contains an operator (including parenthesized subexpressions) and if yes,
+    /// set the span to the first occurrence of it.
     fn contains_operator(&mut self, operator: &str) -> bool {
         let mut stream = self.clone();
         while !stream.is_empty() {
             if stream.check_and_consume_operator(operator) {
-                self.last_span = stream.last_span;
+                self.span = stream.span;
                 return true;
             }
             if let Some(TokenTree::Group(group)) = self.tokens.front() {
                 let mut nested_stream = ParserStream::from_token_stream(group.stream());
                 if nested_stream.contains_operator(operator) {
-                    self.last_span = nested_stream.last_span;
+                    self.span = nested_stream.span;
                     return true;
                 }
             }
@@ -173,9 +196,8 @@ impl ParserStream {
         }
         false
     }
-
-    /// Creates a TokenStream until a certain operator is met, or until the end of the stream.
-    /// The terminating operator is not consumed.
+    /// Creates a TokenStream until a certain operator is met, or until the end of the stream
+    /// (whichever comes first). The terminating operator is not consumed.
     fn create_stream_until(&mut self, operator: &str) -> TokenStream {
         let mut stream = TokenStream::new();
         let mut t = vec![];
@@ -185,7 +207,6 @@ impl ParserStream {
         stream.extend(t.into_iter());
         stream
     }
-
     /// Convert the content into TokenStream.
     fn create_stream(&mut self) -> TokenStream {
         let mut stream = TokenStream::new();
@@ -198,7 +219,8 @@ impl ParserStream {
     }
 }
 
-#[derive(Debug)]
+/// The representation of an argument to `forall` (for example `a: i32`)
+#[derive(Debug, Clone)]
 struct ForAllArg {
     name: syn::Ident,
     colon: Token![:],
@@ -215,6 +237,7 @@ impl Parse for ForAllArg {
     }
 }
 
+/// The representation of all arguments to `forall` (for example `a: i32, b: i32, c: i32`)
 #[derive(Debug)]
 struct ForAllArgs {
     args: syn::punctuated::Punctuated<ForAllArg, Token![,]>
@@ -229,38 +252,20 @@ impl Parse for ForAllArgs {
     }
 }
 
+/// A higher level representation of a `ForAllArg`.
+#[derive(Debug, Clone)]
+pub struct Arg {
+    name: syn::Ident,
+    typ: syn::Type
+}
+
 /// The structure to parse Prusti assertions.
 ///
 /// Check common::AssertionKind to see all types of Prusti assertions.
 ///
-/// Each Prusti assertion (`A`) is a Rust expression (`E`) or a `forall` expression.
-/// On Prusti assertions, the following operators can be used to create more Prusti assertions:
-/// - `A && A` (conjunction)
-/// - `A ==> A` (implication)
-/// Parentheses can be used as usual.
-///
-/// The following are also Prusti assertions:
-/// `forall(|NAME1: TYPE1, NAME2: TYPE2, ...| A)`
-/// `forall(|NAME1: TYPE1, NAME2: TYPE2, ...| A, triggers=[(E, ...), ...])`
-///
-/// Prusti assertions can only be joined together by `&&` and `==>`, for example the following
-/// is not allowed, since `(E ==> E)` is a Prusti assertion:
-/// `(E ==> E) || E`
-/// However, this is fine, as `&&` is also a Rust operator:
-/// `(E && E) || E`
-///
-/// Having `&&` and `||` in the same subexpression is not allowed to preven ambiguities:
-/// `E && E || E`
-///
-/// However, this is fine, since the implication resolves the ambiguity:
-/// (note that both the lhs and rhs of the implication form a Prusti assertion)
-/// `E && E ==> E || E`
-///
-/// Basic usage (`tokens` is of type `proc_macro2::TokenStream`):
-///
-/// let mut parser = Parser::from_token_stream(tokens);
-/// let assertion = parser.extract_assertion()?;
-///
+/// Since `syn` can only parse the input as a whole, a preparsing phase that recognizes the custom
+/// Prusti operators and keywords is needed. After the input is split according to those, it
+/// can be parsed using `syn`, and then is sticked back together to form Prusti assertions.
 pub struct Parser {
     /// The helper to manipulate input.
     input: ParserStream,
@@ -418,11 +423,11 @@ impl Parser {
 
                 let maybe_arr: Result<syn::ExprArray, Error> = syn::parse2(token_stream);
                 if let Err(err) = maybe_arr {
-                    self.input.last_span = err.span();
+                    self.input.span = err.span();
                     return Err(self.error_expected_tuple());
                 }
                 let arr = maybe_arr.unwrap();
-                self.input.last_span = arr.span();
+                self.input.span = arr.span();
 
                 let mut vec_of_triggers = vec![];
                 for item in arr.elems {
@@ -439,7 +444,7 @@ impl Parser {
                         );
                     }
                     else {
-                        self.input.last_span = item.span();
+                        self.input.span = item.span();
                         return Err(self.error_expected_tuple());
                     }
                 }
@@ -584,8 +589,9 @@ impl Parser {
         let maybe_expr = syn::parse2(token_stream.clone());
         if let Err(err) = maybe_expr {
             let mut stream = ParserStream::from_token_stream(token_stream);
+            // raise a better error when seeing implication as part of a Rust expression
             if stream.contains_operator("==>") {
-                return Err(self.error_expected_expr_without_implication(stream.last_span));
+                return Err(self.error_expected_expr_without_implication(stream.span));
             }
             return Err(err);
         }
@@ -605,27 +611,27 @@ impl Parser {
                         "`==>` cannot be part of Rust expression")
     }
     fn error_expected_assertion(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected Prusti assertion")
+        syn::Error::new(self.input.span, "expected Prusti assertion")
     }
     fn error_expected_operator(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected `&&` or `==>`")
+        syn::Error::new(self.input.span, "expected `&&` or `==>`")
     }
     fn error_expected_parenthesis(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected `(`")
+        syn::Error::new(self.input.span, "expected `(`")
     }
     fn error_expected_or(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected `|`")
+        syn::Error::new(self.input.span, "expected `|`")
     }
     fn error_expected_triggers(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected `triggers`")
+        syn::Error::new(self.input.span, "expected `triggers`")
     }
     fn error_expected_equals(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "expected `=`")
+        syn::Error::new(self.input.span, "expected `=`")
     }
     fn error_expected_tuple(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "`triggers` must be an array of tuples containing Rust expressions")
+        syn::Error::new(self.input.span, "`triggers` must be an array of tuples containing Rust expressions")
     }
     fn error_ambiguous_expression(&self) -> syn::Error {
-        syn::Error::new(self.input.last_span(), "found || and && in the same subexpression")
+        syn::Error::new(self.input.span, "found `||` and `&&` in the same subexpression")
     }
 }
