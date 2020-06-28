@@ -24,8 +24,10 @@ pub type Assertion = common::Assertion<ExpressionId, BodyId, Arg>;
 pub type AssertionKind = common::AssertionKind<ExpressionId, BodyId, Arg>;
 /// An expression that has no types associated with it.
 pub type Expression = common::Expression<ExpressionId, BodyId>;
-/// A trigger set that has not types associated with it.
+/// A trigger set that has no types associated with it.
 pub type TriggerSet = common::TriggerSet<ExpressionId, BodyId>;
+/// For all variables that have no types associated with it.
+pub type ForAllVars = common::ForAllVars<ExpressionId, ()>;
 
 pub trait StructuralToTyped<Target> {
     fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>) -> Target;
@@ -38,6 +40,23 @@ impl StructuralToTyped<Expression> for json::Expression {
             spec_id: self.spec_id,
             id: self.expr_id,
             expr: body_id,
+        }
+    }
+}
+
+impl StructuralToTyped<TriggerSet> for json::TriggerSet {
+    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>) -> TriggerSet {
+        TriggerSet {
+            0: vec![]
+        }
+    }
+}
+
+impl StructuralToTyped<ForAllVars> for json::ForAllVars {
+    fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>) -> ForAllVars {
+        ForAllVars {
+            id: self.expr_id,
+            vars: vec![]
         }
     }
 }
@@ -56,11 +75,11 @@ impl StructuralToTyped<AssertionKind> for json::AssertionKind {
                 lhs.to_typed(typed_expressions),
                 rhs.to_typed(typed_expressions)
             ),
-            // ForAll(vars, triggers, body) => AssertionKind::ForAll(
-            //     vars.to_typed(typed_expressions),
-            //     triggers.to_typed(typed_expressions),
-            //     body.to_typed(typed_expressions)
-            // )
+            ForAll(vars, body, triggers) => AssertionKind::ForAll(
+                vars.to_typed(typed_expressions),
+                triggers.to_typed(typed_expressions),
+                body.to_typed(typed_expressions),
+            )
         }
     }
 }

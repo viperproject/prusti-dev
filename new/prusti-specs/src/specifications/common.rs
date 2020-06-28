@@ -64,12 +64,6 @@ impl std::convert::TryFrom<String> for SpecificationId {
     }
 }
 
-// impl ToTokens for SpecificationId {
-//     fn to_tokens(&self, tokens: &mut TokenStream) {
-//         self.0.to_tokens(tokens)
-//     }
-// }
-
 impl SpecificationId {
     pub fn dummy() -> Self {
         Self(Uuid::nil())

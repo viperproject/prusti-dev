@@ -1,6 +1,6 @@
 use super::common::{self, ExpressionIdGenerator};
-use proc_macro2::TokenStream;
-use quote::quote_spanned;
+use proc_macro2::{TokenStream, Span, Spacing, Punct, Ident, TokenTree};
+use quote::{quote_spanned, ToTokens, TokenStreamExt};
 use std::collections::HashMap;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -134,11 +134,11 @@ impl AssignExpressionId<AssertionKind> for common::AssertionKind<(), syn::Expr, 
                 lhs.assign_id(spec_id, id_generator),
                 rhs.assign_id(spec_id, id_generator)
             ),
-            // ForAll(vars, triggers, body) => ForAll(
-            //     vars.assign_id(spec_id, id_generator),
-            //     triggers.assign_id(spec_id, id_generator),
-            //     body.assign_id(spec_id, id_generator)
-            // ),
+            ForAll(vars, triggers, body) => ForAll(
+                vars.assign_id(spec_id, id_generator),
+                triggers.assign_id(spec_id, id_generator),
+                body.assign_id(spec_id, id_generator)
+            ),
             x => unimplemented!("{:?}", x),
         }
     }
@@ -197,6 +197,14 @@ impl EncodeTypeCheck for TriggerSet {
     }
 }
 
+impl ToTokens for Arg {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.name.to_tokens(tokens);
+        tokens.append(Punct::new(':', Spacing::Alone));
+        self.typ.to_tokens(tokens);
+    }
+}
+
 impl EncodeTypeCheck for Assertion {
     fn encode_type_check(&self, tokens: &mut TokenStream) {
         match &*self.kind {
@@ -212,11 +220,25 @@ impl EncodeTypeCheck for Assertion {
                 lhs.encode_type_check(tokens);
                 rhs.encode_type_check(tokens);
             }
-            // AssertionKind::ForAll(vars, triggers, body) => {
-            //     // vars.encode_type_check(tokens);
-            //     triggers.encode_type_check(tokens);
-            //     body.encode_type_check(tokens);
-            // }
+            AssertionKind::ForAll(vars, triggers, body) => {
+                if !triggers.0.is_empty() {
+                    unimplemented!("triggers are not yet implemented")
+                }
+                let vec_of_vars = &vars.vars;
+                let span = Span::call_site();
+                let identifier = format!("{}_{}", 42, 69);
+
+                let mut nested_assertion = TokenStream::new();
+                body.encode_type_check(&mut nested_assertion);
+
+                let typeck_call = quote_spanned! { span =>
+                    #[prusti::expr_id = #identifier]
+                    |#(#vec_of_vars),*| -> bool {
+                        #nested_assertion
+                    };
+                };
+                tokens.extend(typeck_call);
+            }
             x => {
                 unimplemented!("{:?}", x);
             }
