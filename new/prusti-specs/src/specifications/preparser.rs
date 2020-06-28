@@ -230,8 +230,8 @@ impl ParserStream {
 /// The representation of an argument to `forall` (for example `a: i32`)
 #[derive(Debug, Clone)]
 pub struct Arg {
-    name: syn::Ident,
-    typ: syn::Type
+    pub name: syn::Ident,
+    pub typ: syn::Type
 }
 
 impl Parse for Arg {
