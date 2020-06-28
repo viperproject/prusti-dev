@@ -23,6 +23,7 @@ use typeck;
 use verifier;
 
 use prusti_interface::trait_register::TraitRegister;
+use prusti_common::config;
 
 pub struct RegisterCalls {
     default: Box<RustcDefaultCalls>,
@@ -217,13 +218,13 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             );
 
             // Call the verifier
-            if Ok(String::from("true")) != var("PRUSTI_NO_VERIFY") {
+            if !config::no_verify() {
                 verifier::verify(state, typed_specifications);
             } else {
-                warn!("Verification skipped due to PRUSTI_NO_VERIFY env variable");
+                warn!("Verification skipped due to the NO_VERIFY configuration flag.");
             }
 
-            if Ok(String::from("true")) == var("PRUSTI_FULL_COMPILATION") {
+            if config::full_compilation() {
                 info!("Continue with compilation");
             }
 
@@ -231,7 +232,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             old_after_analysis_callback(state);
         };
 
-        if Ok(String::from("true")) != var("PRUSTI_FULL_COMPILATION") {
+        if !config::full_compilation() {
             debug!("The program will not be compiled.");
             control.after_analysis.stop = Compilation::Stop;
         }
