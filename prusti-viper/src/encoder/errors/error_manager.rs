@@ -265,7 +265,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold on entry.", error_span)
+                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
@@ -277,20 +277,20 @@ impl<'tcx> ErrorManager<'tcx> {
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantOnEntry) => {
-                PrustiError::verification("loop invariant might not hold on entry.", error_span)
+                PrustiError::verification("loop invariant might not hold in the first loop iteration.", error_span)
                     .push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::ExhaleLoopInvariantAfterIteration) => {
                 PrustiError::verification(
-                    "loop invariant might not hold at the end of a loop iteration.",
+                    "loop invariant might not hold after a loop iteration.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertLoopInvariantAfterIteration) => {
                 PrustiError::verification(
-                    "loop invariant might not hold at the end of a loop iteration.",
+                    "loop invariant might not hold after a loop iteration.",
                     error_span
                 ).push_primary_span(opt_cause_span)
             }
