@@ -20,7 +20,7 @@ use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_hash::FxHashMap;
 use std::cell;
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet, HashMap};
 use std::env;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
@@ -80,6 +80,9 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
         let initialization = compute_definitely_initialized(&mir, self.tcx, def_path.clone());
         let liveness = compute_liveness(&mir);
 
+        // FIXME: this computes the wrong loop invariant permission
+        let loop_invariant_block = HashMap::new();
+
         let mir_info_printer = MirInfoPrinter {
             def_path: def_path,
             tcx: self.tcx,
@@ -88,7 +91,7 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
             loops: loop_info,
             initialization: initialization,
             liveness: liveness,
-            polonius_info: PoloniusInfo::new(&procedure).ok().unwrap(),
+            polonius_info: PoloniusInfo::new(&procedure, &loop_invariant_block).ok().unwrap(),
         };
         mir_info_printer.print_info().unwrap();
 
@@ -471,6 +474,7 @@ impl<'a, 'tcx> MirInfoPrinter<'a, 'tcx> {
             //                      bodies without unreachable elements instead of predicates.
 
             let definitely_initalised_paths = self.initialization.get_before_block(bb);
+            // FIXME: this computes the wrong loop invariant permission
             let (write_leaves, mut_borrow_leaves, read_leaves) = self
                 .loops
                 .compute_read_and_write_leaves(bb, self.mir, Some(&definitely_initalised_paths));

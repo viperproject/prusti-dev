@@ -1,6 +1,7 @@
 extern crate prusti_contracts;
 
-// ignore-test TODO: the program has an empty magic wand
+// ignore-test Unsupported loop. We don't yet generate magic wands in loop invariants, which are
+// required when a loan is created before, and expires after, the loop invariant.
 
 fn test1() {
     let mut sum = 0;
