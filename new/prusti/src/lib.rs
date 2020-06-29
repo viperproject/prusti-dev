@@ -18,12 +18,14 @@ extern crate rustc_resolve;
 extern crate rustc_session;
 extern crate rustc_span;
 extern crate smallvec;
+extern crate regex;
 
 use prusti_interface::{specs, config::ConfigFlags};
 use rustc_driver::Compilation;
 use rustc_hir::intravisit;
 use rustc_interface::interface::Compiler;
 use rustc_interface::Queries;
+use regex::Regex;
 
 mod verifier;
 
@@ -71,10 +73,21 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
             intravisit::walk_crate(&mut visitor, &krate);
             let type_map = visitor.determine_typed_procedure_specs();
             if self.flags.print_typeckd_specs {
+                let uuid = Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}").unwrap();
+                let num_uuid = Regex::new("[a-z0-9]{32}").unwrap();
                 let mut values: Vec<_> = type_map
                     .values()
                     .map(|spec| format!("{:?}", spec))
                     .collect();
+                if self.flags.hide_uuids {
+                    let mut replaced_values: Vec<String> = vec![];
+                    for item in values {
+                        let item = num_uuid.replace_all(&item, "$(NUM_UUID)");
+                        let item = uuid.replace_all(&item, "$(UUID)");
+                        replaced_values.push(String::from(item));
+                    }
+                    values = replaced_values;
+                }
                 // We sort in this strange way so that the output is
                 // determinstic enough to be used in tests.
                 values.sort_by_key(|v| (v.len(), v.to_string()));

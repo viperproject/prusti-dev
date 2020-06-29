@@ -43,6 +43,8 @@ fn main() {
             flags.print_collected_verfication_items = true;
         } else if arg == "-Zskip-verify" {
             flags.skip_verify = true;
+        } else if arg == "-Zhide-uuids" {
+            flags.hide_uuids = true;
         } else {
             args.push(arg);
         }
