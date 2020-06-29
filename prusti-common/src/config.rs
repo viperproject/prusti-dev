@@ -38,6 +38,8 @@ lazy_static! {
         settings.set_default("REPORT_SUPPORT_STATUS", true).unwrap();
         settings.set_default("SKIP_UNSUPPORTED_FUNCTIONS", false).unwrap();
         settings.set_default("ERROR_ON_PARTIALLY_SUPPORTED", false).unwrap();
+        settings.set_default("NO_VERIFY", false).unwrap();
+        settings.set_default("FULL_COMPILATION", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("DISABLE_NAME_MANGLING", false).unwrap();
@@ -231,4 +233,14 @@ pub fn skip_unsupported_functions() -> bool {
 /// Note: this overrides SKIP_UNSUPPORTED_FUNCTIONS
 pub fn error_on_partially_supported() -> bool {
     read_setting("ERROR_ON_PARTIALLY_SUPPORTED")
+}
+
+/// Skip the verification
+pub fn no_verify() -> bool {
+    read_setting("NO_VERIFY")
+}
+
+/// Continue the compilation and generate the binary after Prusti terminates
+pub fn full_compilation() -> bool {
+    read_setting("FULL_COMPILATION")
 }
