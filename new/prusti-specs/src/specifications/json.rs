@@ -26,6 +26,7 @@ pub struct Assertion {
 
 #[derive(Serialize, Deserialize)]
 pub struct ForAllVars {
+    pub spec_id: untyped::SpecificationId,
     pub expr_id: untyped::ExpressionId,
     pub count: usize,
 }
@@ -52,6 +53,7 @@ impl ToStructure<Expression> for untyped::Expression {
 impl ToStructure<ForAllVars> for common::ForAllVars<untyped::ExpressionId, untyped::Arg> {
     fn to_structure(&self) -> ForAllVars {
         ForAllVars {
+            spec_id: self.spec_id.clone(),
             count: self.vars.len(),
             expr_id: self.id.clone(),
         }
@@ -60,13 +62,22 @@ impl ToStructure<ForAllVars> for common::ForAllVars<untyped::ExpressionId, untyp
 
 impl ToStructure<TriggerSet> for untyped::TriggerSet {
     fn to_structure(&self) -> TriggerSet {
-        TriggerSet(vec![])
+        TriggerSet(self.0.clone()
+                         .into_iter()
+                         .map(|x| x.to_structure())
+                         .collect()
+        )
     }
 }
 
-impl ToStructure<Trigger> for common::Trigger<common::SpecificationId, common::ExpressionId> {
+impl ToStructure<Trigger> for common::Trigger<common::ExpressionId, syn::Expr> {
     fn to_structure(&self) -> Trigger {
-        Trigger(vec![])
+        Trigger(self.0
+                    .clone()
+                    .into_iter()
+                    .map(|x| x.to_structure())
+                    .collect()
+        )
     }
 }
 
