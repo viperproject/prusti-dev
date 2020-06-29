@@ -385,6 +385,18 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 )
             },
             &Expr::DomainFuncApp(
+                ref function,
+                ref args,
+                ref _pos,
+            ) => {
+                ast.domain_func_app(
+                    function.to_viper(ast),
+                    &args.to_viper(ast),
+                    &[], // TODO not necessary so far
+                )
+            },
+            /* TODO use once DomainFuncApp has been updated
+            &Expr::DomainFuncApp(
                 ref function_name,
                 ref args,
                 ref formal_args,
@@ -402,6 +414,8 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(ast),
                 )
             },
+            */
+
             &Expr::InhaleExhale(ref inhale_expr, ref exhale_expr, ref _pos) => {
                 ast.inhale_exhale_pred(
                     inhale_expr.to_viper(ast),

@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use ast_factory::structs::DomainFunc;
 use ast_factory::structs::Expr;
 use ast_factory::structs::Field;
 use ast_factory::structs::LocalVarDecl;
@@ -12,6 +13,7 @@ use ast_factory::structs::Type;
 use ast_factory::AstFactory;
 use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
+
 
 impl<'a> AstFactory<'a> {
     pub fn add_with_pos(&self, left: Expr, right: Expr, pos: Position) -> Expr<'a> {
@@ -495,6 +497,8 @@ impl<'a> AstFactory<'a> {
         Expr::new(obj)
     }
 
+    // TODO use this once silver accepts return types rather than a function
+    /*
     pub fn domain_func_app(
         &self,
         function_name: &str,
@@ -514,6 +518,28 @@ impl<'a> AstFactory<'a> {
                 self.no_info(),
                 return_type.to_jobject(),
                 self.jni.new_string(domain_name),
+                self.no_trafos(),
+            ),
+        );
+        Expr::new(obj)
+    }
+     */
+    pub fn domain_func_app(
+        &self,
+        domain_func: DomainFunc,
+        args: &[Expr],
+        type_var_map: &[(Type, Type)],
+    ) -> Expr<'a> {
+        let domain_func_app_object_wrapper = ast::DomainFuncApp_object::with(self.env);
+        let obj = self.jni.unwrap_result(
+            domain_func_app_object_wrapper.call_apply(
+                self.jni
+                    .unwrap_result(domain_func_app_object_wrapper.singleton()),
+                domain_func.to_jobject(),
+                self.jni.new_seq(&map_to_jobjects!(args)),
+                self.jni.new_map(&map_to_jobject_pairs!(type_var_map)),
+                self.no_position().to_jobject(),
+                self.no_info(),
                 self.no_trafos(),
             ),
         );
