@@ -13,7 +13,6 @@ use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
 use rustc_errors;
 use std;
 use std::cell::Cell;
-use std::env::var;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Arc,Mutex};
