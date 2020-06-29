@@ -76,7 +76,7 @@ impl AssignExpressionId<Expression> for common::Expression<(), syn::Expr> {
         id_generator: &mut ExpressionIdGenerator,
     ) -> Expression {
         Expression {
-            spec_id: spec_id,
+            spec_id,
             id: id_generator.generate(),
             expr: self.expr,
         }
@@ -90,6 +90,7 @@ impl AssignExpressionId<ForAllVars<ExpressionId, Arg>> for common::ForAllVars<()
         id_generator: &mut ExpressionIdGenerator,
     ) -> ForAllVars<ExpressionId, Arg> {
         ForAllVars {
+            spec_id,
             id: id_generator.generate(),
             vars: self.vars
         }
@@ -169,6 +170,9 @@ impl AssignExpressionId<Assertion> for common::Assertion<(), syn::Expr, Arg> {
 /// A trait for encoding the statements for type-checking the spec.
 pub trait EncodeTypeCheck {
     fn encode_type_check(&self, tokens: &mut TokenStream);
+    fn encode_type_check_any_type(&self, tokens: &mut TokenStream) {
+        unimplemented!();
+    }
 }
 
 impl EncodeTypeCheck for Vec<Specification> {
@@ -221,19 +225,22 @@ impl EncodeTypeCheck for Assertion {
                 rhs.encode_type_check(tokens);
             }
             AssertionKind::ForAll(vars, triggers, body) => {
-                if !triggers.0.is_empty() {
-                    unimplemented!("triggers are not yet implemented")
-                }
                 let vec_of_vars = &vars.vars;
                 let span = Span::call_site();
-                let identifier = format!("{}_{}", 42, 69);
+                let identifier = format!("{}_{}", vars.spec_id, vars.id);
 
                 let mut nested_assertion = TokenStream::new();
                 body.encode_type_check(&mut nested_assertion);
 
+                for trigger_tuple in &triggers.0 {
+                    for trigger in &trigger_tuple.0 {
+                        trigger.encode_type_check_any_type(&mut nested_assertion);
+                    }
+                }
+
                 let typeck_call = quote_spanned! { span =>
                     #[prusti::expr_id = #identifier]
-                    |#(#vec_of_vars),*| -> bool {
+                    |#(#vec_of_vars),*| {
                         #nested_assertion
                     };
                 };
@@ -255,6 +262,19 @@ impl EncodeTypeCheck for Expression {
             #[prusti::expr_id = #identifier]
             || -> bool {
                 #expr
+            };
+        };
+        tokens.extend(typeck_call);
+    }
+
+    fn encode_type_check_any_type(&self, tokens: &mut TokenStream) {
+        let span = self.expr.span();
+        let expr = &self.expr;
+        let identifier = format!("{}_{}", self.spec_id, self.id);
+        let typeck_call = quote_spanned! { span =>
+            #[prusti::expr_id = #identifier]
+            || {
+                #expr;
             };
         };
         tokens.extend(typeck_call);

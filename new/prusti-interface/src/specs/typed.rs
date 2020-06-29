@@ -55,6 +55,7 @@ impl StructuralToTyped<TriggerSet> for json::TriggerSet {
 impl StructuralToTyped<ForAllVars> for json::ForAllVars {
     fn to_typed(self, typed_expressions: &HashMap<String, rustc_hir::BodyId>) -> ForAllVars {
         ForAllVars {
+            spec_id: self.spec_id,
             id: self.expr_id,
             vars: vec![]
         }
