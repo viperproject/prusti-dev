@@ -69,8 +69,7 @@ fn done(i: u32) -> Result<bool, UnexpectedValue> {
     }
 }
 
-/// We don't yet support the "?" Rust operand, because it uses the following calls to convert
-/// between types:
+/// We don't yet support the "?" Rust operator, because it uses the following calls:
 /// * std::ops::Try::from_error(..)
 /// * std::ops::Try::into_result(..)
 /// So, here is an alternative:
