@@ -1,5 +1,8 @@
 extern crate prusti_contracts;
 
+// ignore-test Unsupported loop. We don't yet generate magic wands in loop invariants, which are
+// required when a loan is created before, and expires after, the loop invariant.
+
 struct Fibonacci {
     curr: u32,
     next: u32,
@@ -26,5 +29,5 @@ impl Iterator for Fibonacci {
 
 fn main(){
     let fib = Fibonacci::new();
-    for _ in fib { } //~ ERROR abrupt loop terminations
+    for _ in fib { }
 }

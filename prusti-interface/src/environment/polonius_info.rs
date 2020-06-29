@@ -579,7 +579,10 @@ fn compute_loan_conflict_sets(
 }
 
 impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
-    pub fn new(procedure: &'a Procedure<'a, 'tcx>) -> Result<Self, PoloniusInfoError> {
+    pub fn new(
+        procedure: &'a Procedure<'a, 'tcx>,
+        loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+    ) -> Result<Self, PoloniusInfoError> {
         let tcx = procedure.get_tcx();
         let def_id = procedure.get_id();
         let mir = procedure.get_mir();
@@ -675,17 +678,20 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
             liveness: liveness,
             loan_conflict_sets: loan_conflict_sets,
         };
-        info.compute_loop_magic_wands()?;
+        info.compute_loop_magic_wands(loop_invariant_block)?;
         Ok(info)
     }
 
-    fn compute_loop_magic_wands(&mut self) -> Result<(), PoloniusInfoError> {
+    fn compute_loop_magic_wands(
+        &mut self,
+        _loop_invariant_block: &HashMap<mir::BasicBlock, mir::BasicBlock>,
+    ) -> Result<(), PoloniusInfoError> {
         trace!("[enter] compute_loop_magic_wands");
         let loop_heads = self.loops.loop_heads.clone();
         for &loop_head in loop_heads.iter() {
             debug!("loop_head = {:?}", loop_head);
-            let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
             // TODO: Check whether we should use mut_borrow_leaves instead of write_leaves.
+            let definitely_initalised_paths = self.initialization.get_before_block(loop_head);
             let (write_leaves, _mut_borrow_leaves, _read_leaves) =
                 self.loops.compute_read_and_write_leaves(
                     loop_head,
