@@ -35,7 +35,7 @@ pub struct ForAllVars {
 pub struct Trigger(pub Vec<Expression>);
 
 #[derive(Serialize, Deserialize)]
-pub struct TriggerSet(Vec<Trigger>);
+pub struct TriggerSet(pub Vec<Trigger>);
 
 trait ToStructure<T> {
     fn to_structure(&self) -> T;

@@ -35,6 +35,7 @@ impl<'tcx> SpecCollector<'tcx> {
     }
     pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap {
         let typed_expressions = self.typed_expressions;
+        let tcx = self.tcx;
         self.spec_items
             .into_iter()
             .map(|spec_item| {
@@ -44,6 +45,7 @@ impl<'tcx> SpecCollector<'tcx> {
                             pres: vec![reconstruct_typed_assertion(
                                 spec_item.specification,
                                 &typed_expressions,
+                                tcx
                             )],
                             posts: Vec::new(),
                         })
@@ -54,6 +56,7 @@ impl<'tcx> SpecCollector<'tcx> {
                             posts: vec![reconstruct_typed_assertion(
                                 spec_item.specification,
                                 &typed_expressions,
+                                tcx
                             )],
                         })
                     }
@@ -62,6 +65,7 @@ impl<'tcx> SpecCollector<'tcx> {
                             invariant: vec![reconstruct_typed_assertion(
                                 spec_item.specification,
                                 &typed_expressions,
+                                tcx
                             )],
                         })
                     }
@@ -72,11 +76,12 @@ impl<'tcx> SpecCollector<'tcx> {
     }
 }
 
-fn reconstruct_typed_assertion<'tcx>(
+fn reconstruct_typed_assertion(
     assertion: JsonAssertion,
     typed_expressions: &HashMap<String, rustc_hir::BodyId>,
+    tcx: TyCtxt
 ) -> typed::Assertion {
-    assertion.to_typed(typed_expressions)
+    assertion.to_typed(typed_expressions, tcx)
 }
 
 /// Check if `prusti::spec_only` is among the attributes.
