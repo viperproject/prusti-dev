@@ -1399,7 +1399,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        pure_function: &vir::Function)
                                        -> Option<vir::DomainFunc> {
         if !self.snap_mirror_funcs.borrow().contains_key(&pure_func_name) {
-
             if !pure_function.formal_args.iter().all(
                 |a| match a.typ.clone() {
                     vir::Type::TypedRef(name) => {

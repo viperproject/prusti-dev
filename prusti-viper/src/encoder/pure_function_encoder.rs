@@ -647,8 +647,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                         let eq_func_name = snapshot.get_equals_func_name();
                                         ((eq_func_name, vir::Type::Bool), true)
                                     } else {
-                                        unimplemented!()
-                                        // TODO ((SNAPSHOT_EQUALS.to_string(), vir::Type::Bool), true)
+                                        (self.encoder.encode_stub_pure_function_use(def_id), false)
                                     }
                                 } else {
                                     (self.encoder.encode_stub_pure_function_use(def_id), false)
