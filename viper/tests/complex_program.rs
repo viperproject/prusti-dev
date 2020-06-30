@@ -53,6 +53,16 @@ fn success_with_complex_program() {
                 &[],
                 ast.eq_cmp(
                     ast.domain_func_app(
+                        unwrap_domain_function,
+                        &[ast.domain_func_app(
+                            wrap_domain_function,
+                            &[ast.local_var("x", ast.type_var("T"))],
+                            &[(ast.type_var("T"), ast.type_var("T"))],
+                        )],
+                        &[(ast.type_var("T"), ast.type_var("T"))],
+                    ),
+                    /* TODO
+                    ast.domain_func_app(
                         "unwrap",
                         &[ast.domain_func_app(
                             "wrap",
@@ -67,6 +77,7 @@ fn success_with_complex_program() {
                         "Wrapper",
                         vir::Position::default(),
                     ),
+                     */
                     ast.local_var("x", ast.type_var("T")),
                 ),
             ),

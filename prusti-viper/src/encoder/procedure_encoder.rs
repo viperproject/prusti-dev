@@ -1889,18 +1889,21 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         debug!("Encoding call of PartialEq::eq");
 
                         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                        self.encoder.encode_snapshot(arg_ty);
+
+                        let snapshot = self.encoder.encode_snapshot(arg_ty);
 
                         let arg_exprs = vec![
                             self.mir_encoder.encode_operand_expr(&args[0]),
                             self.mir_encoder.encode_operand_expr(&args[1]),
                         ];
                         let return_type = vir::Type::Bool;
-                        let arg_type = self.mir_encoder.
+                        /*let arg_type = self.mir_encoder.
                             encode_operand_expr_type(&args[0]);
-
                         let function_name = self.encoder.
                             encode_snapshot_equals_use(arg_type.name().clone());
+                         */
+
+                        let function_name = snapshot.get_equals_func_name();
 
                         stmts.extend(self.encode_specified_pure_function_call(
                             location,
@@ -1918,7 +1921,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                             self.encoder.env().has_attribute_name(def_id, "pure");
                         if is_pure_function {
 
-                            let (function_name, _, _) =
+                            let (function_name, _) =
                                 self.encoder.encode_pure_function_use(def_id);
                             debug!("Encoding pure function call '{}'", function_name);
                             assert!(destination.is_some());
@@ -2339,7 +2342,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
         destination: &Option<(mir::Place<'tcx>, BasicBlockIndex)>,
         called_def_id: ProcedureDefId,
     ) -> Vec<vir::Stmt> {
-        let (function_name, return_type,_) = self.encoder.encode_pure_function_use(called_def_id);
+        let (function_name, return_type) = self.encoder.encode_pure_function_use(called_def_id);
         debug!("Encoding pure function call '{}'", function_name);
         assert!(destination.is_some());
 
