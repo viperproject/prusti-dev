@@ -353,10 +353,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let mut field_num = 0;
                 for field in &adt_def.variants[0].fields {
                     let field_ty = field.ty(tcx, subst);
-                    self.encoder.encode_snapshot(field_ty); // TODO CMFIXME
-                    let field_type = &self.encoder.encode_value_type(field.ty(tcx, subst));
+                    let snapshot = self.encoder.encode_snapshot(field_ty);
                     formal_args.push(
-                        self.encode_local_var(field_num, &field_type)
+                        self.encode_local_var(field_num, &snapshot.get_type())
                     );
                     field_num += 1;
                 }

@@ -67,7 +67,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
     fields: RefCell<HashMap<String, vir::Field>>,
     snapshots: RefCell<HashMap<String, Snapshot>>,
-    snap_mirror_funcs: RefCell<HashMap<ProcedureDefId, vir::DomainFunc>>,
+    snap_mirror_funcs: RefCell<HashMap<String, vir::DomainFunc>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -1311,7 +1311,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 pure_function_encoder.encode_function()
             };
 
-            let function = self.patch_pure_post_with_mirror_call(proc_def_id, function);
+            let function = self.patch_pure_post_with_mirror_call(function);
 
             self.log_vir_program_before_viper(function.to_string());
             self.pure_functions.borrow_mut().insert(key, function);
@@ -1327,29 +1327,22 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
 
     fn patch_pure_post_with_mirror_call(
         &self,
-        proc_def_id: ProcedureDefId,
         function: vir::Function,
     ) -> vir::Function {
         let mirror = self.encode_pure_snapshot_mirror(
-            proc_def_id,
+            function.name.clone(),
             &function
         );
             let mut mirror_args = vec![];
-            for (func_arg, mirror_arg) in function.formal_args
-                .iter()
-                .zip(mirror.formal_args.iter()) {
+            for func_arg in &function.formal_args {
                 let arg = vir::Expr::Local(func_arg.clone(), vir::Position::default());
                 match &func_arg.typ {
                     vir::Type::TypedRef(name) => {
                         mirror_args.
                             push(
-                                vir::Expr::FuncApp(
-                                    self.encode_snapshot_use(name.clone()).get_snap_name(),
-                                    vec![arg],
-                                    vec![func_arg.clone()],
-                                    mirror_arg.typ.clone(),
-                                    vir::Position::default(),
-                                )
+                                self
+                                    .encode_snapshot_use(name.clone())
+                                    .get_snap_call(arg)
                             );
                     }
                     _ => mirror_args.push(arg)
@@ -1396,11 +1389,11 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_pure_snapshot_mirror(&self,
-                                       def_id: ProcedureDefId,
+                                       pure_func_name: String,
                                        pure_function: &vir::Function)
                                        -> vir::DomainFunc {
 
-        if !self.snap_mirror_funcs.borrow().contains_key(&def_id) {
+        if !self.snap_mirror_funcs.borrow().contains_key(&pure_func_name) {
             let formal_args = pure_function
                 .formal_args
                 .iter()
@@ -1416,15 +1409,15 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                 )).collect();
 
             let mirror_function = vir::DomainFunc {
-                name: format!("mirror${}", self.encode_item_name(def_id)),
+                name: format!("mirror${}", pure_func_name.clone()), // TODO CMFIXME self.encode_item_name(def_id)),
                 formal_args,
                 return_type: pure_function.return_type.clone(),
                 unique: false,
                 domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
             };
-            self.snap_mirror_funcs.borrow_mut().insert(def_id, mirror_function);
+            self.snap_mirror_funcs.borrow_mut().insert(pure_func_name.to_string(), mirror_function);
         }
-        self.snap_mirror_funcs.borrow().get(&def_id).unwrap().clone()
+        self.snap_mirror_funcs.borrow()[&pure_func_name].clone()
 
     }
 
