@@ -1890,7 +1890,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
 
                         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
-                        let snapshot = self.encoder.encode_snapshot(arg_ty);
+                        let snapshot = self.encoder.encode_snapshot(&arg_ty);
                         if snapshot.is_defined() {
                             let arg_exprs = vec![
                                 self.mir_encoder.encode_operand_expr(&args[0]),

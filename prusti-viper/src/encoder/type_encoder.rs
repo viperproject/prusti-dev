@@ -117,7 +117,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyAdt(_, _)
             | ty::TypeVariants::TyTuple(_) => {
-                let snapshot = self.encoder.encode_snapshot(self.ty);
+                let snapshot = self.encoder.encode_snapshot(&self.ty);
                 if snapshot.is_defined() {
                     snapshot.get_type()
                 } else {

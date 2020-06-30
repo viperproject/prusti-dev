@@ -66,7 +66,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     type_discriminant_funcs: RefCell<HashMap<String, vir::Function>>,
     memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
     fields: RefCell<HashMap<String, vir::Field>>,
-    snapshots: RefCell<HashMap<String, Snapshot>>,
+    snapshots: RefCell<HashMap<String, Box<Snapshot>>>,
     snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
@@ -964,39 +964,39 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         self.type_predicates.borrow()[&predicate_name].clone()
     }
 
-    pub fn encode_snapshot(&self, ty: ty::Ty<'tcx>) -> Snapshot {
+    pub fn encode_snapshot(&self, ty: &ty::Ty<'tcx>) -> Box<Snapshot> {
         let ty = self.dereference_ty(ty);
-        let predicate_name = self.encode_type_predicate_use(ty).clone();
+        let predicate_name = self.encode_type_predicate_use(ty);
         if !self.snapshots.borrow().contains_key(&predicate_name) {
             let encoder = SnapshotEncoder::new(
                 self,
                 ty,
-                predicate_name.clone()
+                predicate_name.to_string()
             );
             let snapshot = encoder.encode();
-            self.snapshots.borrow_mut().insert(predicate_name.to_string(), snapshot);
+            self.snapshots.borrow_mut().insert(predicate_name.to_string(), Box::new(snapshot));
         }
         self.snapshots.borrow()[&predicate_name].clone()
     }
 
-    pub fn encode_snapshot_use(&self, predicate_name: String) -> Snapshot {
-        if !self.snapshots.borrow().contains_key(&predicate_name) {
-            if !self.predicate_types.borrow().contains_key(&predicate_name) {
-                unreachable!(); // some type has not been encoded before.
-            }
-            let ty = self.predicate_types.borrow()[&predicate_name].clone();
-            return self.encode_snapshot(ty);
-        }
-        self.snapshots.borrow()[&predicate_name].clone()
-    }
-
-    fn dereference_ty(&self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+    fn dereference_ty<'b>(&self, ty: &'b ty::Ty<'tcx>) -> &'b ty::Ty<'tcx> {
         match ty.sty {
             ty::TypeVariants::TyRef(_, ref val_ty, _) => {
                 self.dereference_ty(val_ty)
             }
             _ => ty,
         }
+    }
+
+    pub fn encode_snapshot_use(&self, predicate_name: String) -> Box<Snapshot> {
+        if !self.snapshots.borrow().contains_key(&predicate_name) {
+            if !self.predicate_types.borrow().contains_key(&predicate_name) {
+                unreachable!(); // some type has not been encoded before.
+            }
+            let ty = self.predicate_types.borrow()[&predicate_name];
+            return self.encode_snapshot(&ty);
+        }
+        self.snapshots.borrow()[&predicate_name].clone()
     }
 
     pub fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> String {
@@ -1347,7 +1347,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     mirror_args.
                         push(
                             self
-                                .encode_snapshot_use(name.clone())
+                                .encode_snapshot_use(name.to_string())
                                 .get_snap_call(arg)
                         );
                 }
@@ -1400,9 +1400,9 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                                        -> Option<vir::DomainFunc> {
         if !self.snap_mirror_funcs.borrow().contains_key(&pure_func_name) {
             if !pure_function.formal_args.iter().all(
-                |a| match a.typ.clone() {
+                |a| match &a.typ {
                     vir::Type::TypedRef(name) => {
-                        self.encode_snapshot_use(name).is_defined()
+                        self.encode_snapshot_use(name.to_string()).is_defined()
                     }
                     _ => true
                 }
@@ -1413,12 +1413,12 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
                     .formal_args
                     .iter()
                     .map(|a| vir::LocalVar::new(
-                        a.name.clone(),
-                        match a.typ.clone() {
+                        a.name.to_string(),
+                        match &a.typ {
                             vir::Type::TypedRef(name) => {
-                                self.encode_snapshot_use(name).get_type()
+                                self.encode_snapshot_use(name.to_string()).get_type()
                             }
-                            t => t,
+                            t => t.clone(),
                         }
                     )).collect();
 

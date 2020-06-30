@@ -642,7 +642,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 // function
                                 if self.encoder.get_item_name(def_id).eq("std::cmp::PartialEq::eq") {
                                     let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                    let snapshot = self.encoder.encode_snapshot(arg_ty);
+                                    let snapshot = self.encoder.encode_snapshot(&arg_ty);
                                     if snapshot.is_defined() {
                                         let eq_func_name = snapshot.get_equals_func_name();
                                         ((eq_func_name, vir::Type::Bool), true)

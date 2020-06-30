@@ -89,36 +89,38 @@ impl Snapshot {
     }
 
     pub fn get_snap_name(&self) -> String {
-        assert!(self.is_defined());
-        self.snap_func.clone().unwrap().name
-    }
-
-    pub fn get_type(&self) -> vir::Type {
-        assert!(self.is_defined());
-        self.snap_func.clone().unwrap().return_type
-    }
-
-    pub fn get_equals_func_name(&self) -> String {
-        match &self.snap_domain {
-            Some(_) => SNAPSHOT_EQUALS.to_string(),
-            None => unreachable!()
+        match &self.snap_func {
+            Some(func) => func.name.to_string(),
+            None => unreachable!(),
         }
     }
 
-    pub fn get_snap_call(&self, arg: vir::Expr) -> vir::Expr {
-        assert!(self.is_defined());
-        vir::Expr::FuncApp(
-            self.get_snap_name(),
-            vec![arg],
-            self.snap_func.clone().unwrap().formal_args,
-            self.get_type(),
-            vir::Position::default(),
-        )
+    pub fn get_type(&self) -> vir::Type {
+        match &self.snap_func {
+            Some(func) => func.return_type.clone(),
+            None => unreachable!(),
+        }
     }
-}
 
-fn get_ref_predicate_name(predicate_name: &String) -> String {
-    format!("ref${}", predicate_name.clone())
+    pub fn get_equals_func_name(&self) -> String {
+        SNAPSHOT_EQUALS.to_string()
+    }
+
+    pub fn get_snap_call(&self, arg: vir::Expr) -> vir::Expr {
+        match &self.snap_func {
+            Some(func) => {
+                vir::Expr::FuncApp(
+                    self.get_snap_name(),
+                    vec![arg],
+                    func.formal_args.clone(),
+                    self.get_type(),
+                    vir::Position::default(),
+                )
+            }
+            None => unreachable!()
+        }
+
+    }
 }
 
 impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
@@ -392,7 +394,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                 let mut field_num = 0;
                 for field in &adt_def.variants[0].fields {
                     let field_ty = field.ty(tcx, subst);
-                    let snapshot = self.encoder.encode_snapshot(field_ty);
+                    let snapshot = self.encoder.encode_snapshot(&field_ty);
                     formal_args.push(
                         self.encode_local_var(field_num, &snapshot.get_type())
                     );
@@ -445,9 +447,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
                     .map(|f| self.encode_snap_arg(
                         self.encoder.encode_struct_field(
                             &f.ident.to_string(),
-                            f.ty(tcx, subst)
+                            &f.ty(tcx, subst)
                             ),
-                        f.ty(tcx, subst), // TODO
+                        &f.ty(tcx, subst),
                         )
                     ).collect()
             },
@@ -474,7 +476,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
-    fn encode_snap_arg(&self, field: vir::Field, field_ty: ty::Ty<'tcx>) -> vir::Expr {
+    fn encode_snap_arg(&self, field: vir::Field, field_ty: &ty::Ty<'tcx>) -> vir::Expr {
         let snapshot = self.encoder.encode_snapshot(field_ty);
         snapshot.get_snap_call(
             self.encode_snap_arg_field(field)
@@ -482,7 +484,9 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode_equals_func_ref(&self) -> vir::Function {
-        let arg_type = vir::Type::TypedRef(get_ref_predicate_name(&self.predicate_name));
+        let arg_type = vir::Type::TypedRef(
+            format!("ref${}", self.predicate_name)
+        );
         let formal_left = vir::LocalVar::new(SNAPSHOT_LEFT, arg_type.clone());
         let formal_right = vir::LocalVar::new(SNAPSHOT_RIGHT, arg_type.clone());
         let arg_left = self.get_ref_field(formal_left.clone());
@@ -526,7 +530,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
     fn encode_ref_snapshot_call<S: Into<String>>(&self, arg_name: S) -> vir::Expr {
         let name = arg_name.into();
-        let arg = self.get_ref_field(self.encode_snap_arg_var(name.clone()));
+        let arg = self.get_ref_field(self.encode_snap_arg_var(name.to_string()));
         self.encode_snapshot_call(name, arg)
     }
 }
