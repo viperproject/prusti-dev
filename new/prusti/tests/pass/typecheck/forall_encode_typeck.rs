@@ -7,7 +7,7 @@
 
 use prusti_contracts::*;
 
-#[requires(forall(|a: i32, b: i32| 1+a == 1+b, triggers=[(a==a, b==b), (true,)]))]
+#[requires(forall(|a: i32, b: u32| a == a, triggers=[(a==a, a==a), (true,)]))]
 fn test1() {}
 
 fn main() {}
