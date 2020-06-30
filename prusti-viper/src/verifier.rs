@@ -117,11 +117,6 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         // Do the encoding
         self.encoder.process_encoding_queue();
 
-        for &proc_id in task.procedures.iter().rev() {
-            self.encoder.queue_procedure_encoding(proc_id);
-        }
-        self.encoder.process_encoding_queue();
-
         let encoding_errors_count = self.encoder.count_encoding_errors();
         let mut program = self.encoder.get_viper_program();
 
