@@ -41,7 +41,7 @@ impl<Level: LogLevel> Stopwatch<Level> {
         }
     }
 
-    pub fn start_next_section<S: ToString>(&mut self, section_name: S) {
+    pub fn start_next<S: ToString>(&mut self, section_name: S) {
         let now = Instant::now();
         Level::log_finish(&self.section_name, now.duration_since(self.start_time));
         self.section_name = section_name.to_string();

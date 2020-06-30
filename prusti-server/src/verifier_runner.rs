@@ -56,11 +56,11 @@ impl<'v> VerifierRunner<'v> {
         let mut stopwatch = Stopwatch::start("construction of JVM objects");
         let viper_program = program.to_viper(&self.ast_factory);
         if config::dump_viper_program() {
-            stopwatch.start_next_section("dumping viper program");
+            stopwatch.start_next("dumping viper program");
             self.dump(viper_program, program_name);
         }
 
-        stopwatch.start_next_section("verification");
+        stopwatch.start_next("verification");
         self.verifier.verify(viper_program)
     }
 

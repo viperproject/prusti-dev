@@ -121,11 +121,11 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
         let mut program = self.encoder.get_viper_program();
 
         if config::simplify_encoding() {
-            stopwatch.start_next_section("optimizing Viper program");
+            stopwatch.start_next("optimizing Viper program");
             program = program.optimized();
         }
 
-        stopwatch.start_next_section("verifying Viper program");
+        stopwatch.start_next("verifying Viper program");
         let source_path = self.env.source_path();
         let program_name = source_path
             .file_name()
@@ -154,7 +154,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             } else {
                 let mut stopwatch = Stopwatch::start("JVM startup");
                 let verifier_builder = VerifierBuilder::new();
-                stopwatch.start_next_section("running verifier");
+                stopwatch.start_next("running verifier");
                 VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {
                     runner.verify(program, program_name.as_str())
                 })
