@@ -1,5 +1,6 @@
 use super::untyped;
 use serde::{Deserialize, Serialize};
+use super::preparser::Arg;
 
 #[derive(Serialize, Deserialize)]
 pub struct Expression {
@@ -12,11 +13,24 @@ pub struct Expression {
 #[derive(Serialize, Deserialize)]
 pub enum AssertionKind {
     Expr(Expression),
+    And(Vec<Assertion>),
+    Implies(Assertion, Assertion),
+    // ForAll(ForAllVars, TriggerSet, Assertion),
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Assertion {
     pub kind: Box<AssertionKind>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ForAllVars {
+
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TriggerSet {
+
 }
 
 trait ToStructure<T> {
@@ -37,6 +51,22 @@ impl ToStructure<AssertionKind> for untyped::AssertionKind {
         use super::common::AssertionKind::*;
         match self {
             Expr(expr) => AssertionKind::Expr(expr.to_structure()),
+            And(assertions) => {
+                AssertionKind::And(
+                    assertions.into_iter()
+                              .map(|assertion| Assertion { kind: Box::new(assertion.kind.to_structure()) })
+                              .collect()
+                )
+            }
+            Implies(lhs, rhs) => AssertionKind::Implies(
+                lhs.to_structure(),
+                rhs.to_structure()
+            ),
+            // ForAll(vars, triggers, body) => AssertionKind::ForAll(
+            //     vars.to_structure(),
+            //     triggers.to_structure(),
+            //     body.to_structure()
+            // ),
             x => {
                 unimplemented!("{:?}", x);
             }
