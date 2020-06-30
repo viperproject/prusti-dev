@@ -33,7 +33,7 @@ impl<'tcx> SpecCollector<'tcx> {
             typed_expressions: HashMap::new(),
         }
     }
-    pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap {
+    pub fn determine_typed_procedure_specs(self) -> typed::SpecificationMap<'tcx> {
         let typed_expressions = self.typed_expressions;
         let tcx = self.tcx;
         self.spec_items
@@ -76,11 +76,11 @@ impl<'tcx> SpecCollector<'tcx> {
     }
 }
 
-fn reconstruct_typed_assertion(
+fn reconstruct_typed_assertion<'tcx>(
     assertion: JsonAssertion,
     typed_expressions: &HashMap<String, rustc_hir::BodyId>,
-    tcx: TyCtxt
-) -> typed::Assertion {
+    tcx: TyCtxt<'tcx>
+) -> typed::Assertion<'tcx> {
     assertion.to_typed(typed_expressions, tcx)
 }
 
