@@ -98,26 +98,6 @@ impl Snapshot {
         self.snap_func.clone().unwrap().return_type
     }
 
-    pub fn is_adt(&self) -> bool {
-        self.snap_domain.is_some()
-    }
-
-    pub fn get_equals_func(&self) -> (String, vir::Function) {
-        match &self.snap_domain {
-            Some(s) => (self.predicate_name.clone(), s.equals_func.clone()),
-            None => unreachable!()
-        }
-    }
-
-    pub fn get_equals_func_ref(&self) -> (String, vir::Function) {
-        match &self.snap_domain {
-            Some(s) => {
-                (get_ref_predicate_name(&self.predicate_name), s.equals_func_ref.clone())
-            },
-            None => unreachable!()
-        }
-    }
-
     pub fn get_equals_func_name(&self) -> String {
         match &self.snap_domain {
             Some(_) => SNAPSHOT_EQUALS.to_string(),
