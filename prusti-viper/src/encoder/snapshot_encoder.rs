@@ -59,11 +59,15 @@ impl SnapshotDomain {
 #[derive(Clone)]
 pub struct Snapshot {
     pub predicate_name: String,
-    pub snap_func: vir::Function,
+    pub snap_func: Option<vir::Function>,
     pub snap_domain: Option<SnapshotDomain>, // for types with fields
 }
 
 impl Snapshot {
+
+    pub fn is_defined(&self) -> bool {
+        self.snap_func.is_some()
+    }
 
     pub fn get_domain(&self) -> Option<vir::Domain> {
         match &self.snap_domain {
@@ -73,7 +77,10 @@ impl Snapshot {
     }
 
     pub fn get_functions(&self) -> Vec<vir::Function> {
-        let mut res = vec![self.snap_func.clone()];
+        let mut res = vec![];
+        if self.is_defined() {
+            res.push(self.snap_func.clone().unwrap())
+        }
         if let Some(s) = &self.snap_domain {
             res.push(s.equals_func.clone());
             res.push(s.equals_func_ref.clone());
@@ -82,11 +89,13 @@ impl Snapshot {
     }
 
     pub fn get_snap_name(&self) -> String {
-        self.snap_func.name.clone()
+        assert!(self.is_defined());
+        self.snap_func.clone().unwrap().name
     }
 
     pub fn get_type(&self) -> vir::Type {
-        self.snap_func.return_type.clone()
+        assert!(self.is_defined());
+        self.snap_func.clone().unwrap().return_type
     }
 
     pub fn is_adt(&self) -> bool {
@@ -117,10 +126,11 @@ impl Snapshot {
     }
 
     pub fn get_snap_call(&self, arg: vir::Expr) -> vir::Expr {
+        assert!(self.is_defined());
         vir::Expr::FuncApp(
             self.get_snap_name(),
             vec![arg],
-            self.snap_func.formal_args.clone(),
+            self.snap_func.clone().unwrap().formal_args,
             self.get_type(),
             vir::Position::default(),
         )
@@ -137,15 +147,21 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     }
 
     pub fn encode(&self) -> Snapshot {
-        match &self.ty.sty {
-            ty::TypeVariants::TyInt(_) | ty::TypeVariants::TyUint(_) | ty::TypeVariants::TyChar => {
-                self.encode_snap_primitive(
-                    vir::Field::new("val_int", vir::Type::Int)
-                )
+        if !self.is_supported() {
+            return Snapshot {
+                predicate_name: self.predicate_name.clone(),
+                snap_func: None,
+                snap_domain: None,
             }
-            ty::TypeVariants::TyBool => {
+        }
+
+        match &self.ty.sty {
+            ty::TypeVariants::TyInt(_)
+            | ty::TypeVariants::TyUint(_)
+            | ty::TypeVariants::TyChar
+            | ty::TypeVariants::TyBool => {
                 self.encode_snap_primitive(
-                    vir::Field::new("val_bool", vir::Type::Bool)
+                    self.encoder.encode_value_field(self.ty)
                 )
             }
             ty::TypeVariants::TyParam(_) => {
@@ -165,10 +181,53 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         }
     }
 
+    fn is_supported(&self) -> bool {
+        self.is_ty_supported(self.ty)
+    }
+
+    fn is_ty_supported(&self, ty: ty::Ty<'tcx>) -> bool {
+        match ty.sty {
+            ty::TypeVariants::TyInt(_)
+            | ty::TypeVariants::TyUint(_)
+            | ty::TypeVariants::TyChar
+            | ty::TypeVariants::TyBool
+            | ty::TypeVariants::TyParam(_) => {
+                true
+            }
+
+            ty::TypeVariants::TyRef(_, ref ty, _) => {
+                self.is_ty_supported(ty)
+            }
+
+            ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
+                if adt_def.variants.len() > 1 {
+                    return false
+                }
+                let tcx = self.encoder.env().tcx();
+                for field in &adt_def.variants[0].fields {
+                    let field_ty = field.ty(tcx, subst);
+                    if !self.is_ty_supported(field_ty) {
+                        return false
+                    }
+                }
+                true
+            }
+            ty::TypeVariants::TyTuple(elems) => {
+                for field_ty in elems {
+                    if !self.is_ty_supported(field_ty) {
+                        return false
+                    }
+                }
+                true
+            }
+            _ => false
+        }
+    }
+
     fn encode_snap_primitive(&self, field: vir::Field) -> Snapshot {
         Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: self.encode_snap_func_primitive(field),
+            snap_func: Some(self.encode_snap_func_primitive(field)),
             snap_domain: None,
         }
     }
@@ -233,7 +292,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let snap_domain = self.encode_snap_domain();
         Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: self.encode_snap_func_generic(snap_domain.get_type()),
+            snap_func: Some(self.encode_snap_func_generic(snap_domain.get_type())),
             snap_domain: Some(snap_domain),
         }
     }
@@ -261,12 +320,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let snap_domain = self.encode_snap_domain();
         Snapshot {
             predicate_name: self.predicate_name.clone(),
-            snap_func: self.encode_snap_func(
+            snap_func: Some(self.encode_snap_func(
                 snap_domain.get_type(),
                 snap_domain.call_snap_func(
                     self.encode_snap_func_args()
                 )
-            ),
+            )),
             snap_domain: Some(snap_domain),
         }
     }
@@ -371,7 +430,7 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyTuple(elems) => {
                 for (field_num, field_ty) in elems.iter().enumerate() {
-                    self.encoder.encode_snapshot(field_ty); // TODO CMFIXME
+                    self.encoder.encode_snapshot(field_ty); // ensure there is a snapshot
                     let field_type = self.encoder.encode_value_type(field_ty);
                     formal_args.push(
                         self.encode_local_var(field_num, &field_type)

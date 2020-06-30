@@ -67,7 +67,7 @@ pub struct Encoder<'v, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     memory_eq_funcs: RefCell<HashMap<String, Option<vir::Function>>>,
     fields: RefCell<HashMap<String, vir::Field>>,
     snapshots: RefCell<HashMap<String, Snapshot>>,
-    snap_mirror_funcs: RefCell<HashMap<String, vir::DomainFunc>>,
+    snap_mirror_funcs: RefCell<HashMap<String, Option<vir::DomainFunc>>>,
     /// For each instantiation of each closure: DefId, basic block index, statement index, operands
     closure_instantiations: HashMap<
         DefId,
@@ -202,7 +202,7 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         let mirrors = self.snap_mirror_funcs
             .borrow()
             .values()
-            .map(|f| f.clone())
+            .filter_map(|f| f.clone())
             .collect();
 
         let mut domains : Vec<vir::Domain> = self.snapshots.borrow()
@@ -1329,96 +1329,111 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         &self,
         function: vir::Function,
     ) -> vir::Function {
+        // use function identifier to be more robust in the presence of generics
         let mirror = self.encode_pure_snapshot_mirror(
-            function.name.clone(),
+            function.get_identifier().clone(),
             &function
         );
-            let mut mirror_args = vec![];
-            for func_arg in &function.formal_args {
-                let arg = vir::Expr::Local(func_arg.clone(), vir::Position::default());
-                match &func_arg.typ {
-                    vir::Type::TypedRef(name) => {
-                        mirror_args.
-                            push(
-                                self
-                                    .encode_snapshot_use(name.clone())
-                                    .get_snap_call(arg)
-                            );
-                    }
-                    _ => mirror_args.push(arg)
-                }
-            }
+        if mirror.is_none() {
+            return function
+        }
+        let mirror = mirror.unwrap();
 
-            let mut posts = function.posts.clone();
-            posts.push(vir::Expr::InhaleExhale(
-                Box::new(vir::Expr::BinOp(
-                    vir::BinOpKind::EqCmp,
-                    Box::new(
-                        vir::Expr::Local(
-                            vir::LocalVar::new("__result", function.return_type.clone()),
-                            vir::Position::default(),
-                        )
-                    ),
-                    Box::new(
-                        vir::Expr::DomainFuncApp(
-                            mirror.clone(),
-                            mirror_args,
-                            vir::Position::default(),
-                        )
-                        /* TODO
-                        vir::Expr::DomainFuncApp(
-                            mirror.name,
-                            mirror_args,
-                            mirror.formal_args,
-                            mirror.return_type,
-                            mirror.domain_name,
-                            vir::Position::default(),
-                        )
-                         */
-                    ), vir::Position::default(),
-                )),
-                Box::new(
-                    vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
-                ),
-                vir::Position::default()
-            ));
-            vir::Function {
-                posts,
-                ..function
+        let mut mirror_args = vec![];
+        for func_arg in &function.formal_args {
+            let arg = vir::Expr::Local(func_arg.clone(), vir::Position::default());
+            match &func_arg.typ {
+                vir::Type::TypedRef(name) => {
+                    mirror_args.
+                        push(
+                            self
+                                .encode_snapshot_use(name.clone())
+                                .get_snap_call(arg)
+                        );
+                }
+                _ => mirror_args.push(arg)
             }
+        }
+
+        let mut posts = function.posts.clone();
+        posts.push(vir::Expr::InhaleExhale(
+            Box::new(vir::Expr::BinOp(
+                vir::BinOpKind::EqCmp,
+                Box::new(
+                    vir::Expr::Local(
+                        vir::LocalVar::new("__result", function.return_type.clone()),
+                        vir::Position::default(),
+                    )
+                ),
+                Box::new(
+                    vir::Expr::DomainFuncApp(
+                        mirror.clone(),
+                        mirror_args,
+                        vir::Position::default(),
+                    )
+                    /* TODO
+                    vir::Expr::DomainFuncApp(
+                        mirror.name,
+                        mirror_args,
+                        mirror.formal_args,
+                        mirror.return_type,
+                        mirror.domain_name,
+                        vir::Position::default(),
+                    )
+                     */
+                ), vir::Position::default(),
+            )),
+            Box::new(
+                vir::Expr::Const(vir::Const::Bool(true), vir::Position::default())
+            ),
+            vir::Position::default()
+        ));
+        vir::Function {
+            posts,
+            ..function
+        }
     }
 
     pub fn encode_pure_snapshot_mirror(&self,
                                        pure_func_name: String,
                                        pure_function: &vir::Function)
-                                       -> vir::DomainFunc {
-
+                                       -> Option<vir::DomainFunc> {
         if !self.snap_mirror_funcs.borrow().contains_key(&pure_func_name) {
-            let formal_args = pure_function
-                .formal_args
-                .iter()
-                .map(|a| vir::LocalVar::new(
-                    a.name.clone(),
-                    match a.typ.clone() {
+
+            if !pure_function.formal_args.iter().all(
+                |a| match a.typ.clone() {
+                    vir::Type::TypedRef(name) => {
+                        self.encode_snapshot_use(name).is_defined()
+                    }
+                    _ => true
+                }
+            ) {
+                self.snap_mirror_funcs.borrow_mut().insert(pure_func_name.to_string(), None);
+            } else {
+                let formal_args = pure_function
+                    .formal_args
+                    .iter()
+                    .map(|a| vir::LocalVar::new(
+                        a.name.clone(),
+                        match a.typ.clone() {
                             vir::Type::TypedRef(name) => {
                                 self.encode_snapshot_use(name).get_type()
                             }
-                            vir::Type::Domain(_) => unreachable!(),
                             t => t,
                         }
-                )).collect();
+                    )).collect();
 
-            let mirror_function = vir::DomainFunc {
-                name: format!("mirror${}", pure_func_name.clone()), // TODO CMFIXME self.encode_item_name(def_id)),
-                formal_args,
-                return_type: pure_function.return_type.clone(),
-                unique: false,
-                domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
-            };
-            self.snap_mirror_funcs.borrow_mut().insert(pure_func_name.to_string(), mirror_function);
+                let mirror_function = vir::DomainFunc {
+                    name: format!("mirror${}", pure_function.name.clone()),
+                    formal_args,
+                    return_type: pure_function.return_type.clone(),
+                    unique: false,
+                    domain_name: SNAPSHOT_MIRROR_DOMAIN.to_string(),
+                };
+                self.snap_mirror_funcs.borrow_mut().insert(pure_func_name.to_string(), Some(mirror_function));
+            }
         }
         self.snap_mirror_funcs.borrow()[&pure_func_name].clone()
-
     }
 
     pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
@@ -1462,14 +1477,6 @@ impl<'v, 'r, 'a, 'tcx> Encoder<'v, 'r, 'a, 'tcx> {
         &self,
         proc_def_id: ProcedureDefId,
     ) -> (String, vir::Type) {
-
-        // TODO CMFIXME REMOVE
-        // this is an ugly hack as self.env.get_procedure crashes in a compiler-internal
-        // function
-        //if self.env.get_item_name(proc_def_id).eq("std::cmp::PartialEq::eq") {
-        //    return (SNAPSHOT_EQUALS.to_string(), vir::Type::Bool, true);
-        //}
-
         let procedure = self.env.get_procedure(proc_def_id);
         let encoder = StubFunctionEncoder::new(self, proc_def_id, procedure.get_mir());
 

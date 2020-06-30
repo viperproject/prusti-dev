@@ -635,9 +635,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                         _ => {
                             let is_pure_function =
                                 self.encoder.env().has_attribute_name(def_id, "pure");
-
-
-
                             let ((function_name, return_type), is_cmp_call) = if is_pure_function {
                                 (self.encoder.encode_pure_function_use(def_id), false)
                             } else {
@@ -646,8 +643,13 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                 if self.encoder.get_item_name(def_id).eq("std::cmp::PartialEq::eq") {
                                     let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
                                     let snapshot = self.encoder.encode_snapshot(arg_ty);
-                                    let eq_func_name = snapshot.get_equals_func_name();
-                                    ((eq_func_name, vir::Type::Bool), true)
+                                    if snapshot.is_defined() {
+                                        let eq_func_name = snapshot.get_equals_func_name();
+                                        ((eq_func_name, vir::Type::Bool), true)
+                                    } else {
+                                        unimplemented!()
+                                        // TODO ((SNAPSHOT_EQUALS.to_string(), vir::Type::Bool), true)
+                                    }
                                 } else {
                                     (self.encoder.encode_stub_pure_function_use(def_id), false)
                                 }
@@ -668,15 +670,6 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> BackwardMirInterpreter<'tcx>
                                         ));
                                 }
                             }
-
-                            // TODO CMFIXME
-                            // this is a hack to generate snapshots if we
-                            // detect some call of a comparison function, e.g. eq
-                            /*if is_cmp_call {
-                                let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
-                                self.encoder.encode_snapshot(arg_ty);
-                            }
-                             */
 
                             let formal_args: Vec<vir::LocalVar> = args
                                 .iter()

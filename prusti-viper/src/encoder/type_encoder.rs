@@ -117,14 +117,12 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> TypeEncoder<'p, 'v, 'r, 'a, 'tcx> {
 
             ty::TypeVariants::TyAdt(_, _)
             | ty::TypeVariants::TyTuple(_) => {
-                self.encoder.encode_snapshot(self.ty).get_type()
-                /* TODO CMFIXME
-                let type_name = self.encoder.encode_type_predicate_use(self.ty);
-                match &self.encoder.encode_get_domain_type(type_name) {
-                    None => unreachable!(),
-                    Some(domain_type) => domain_type.clone()
+                let snapshot = self.encoder.encode_snapshot(self.ty);
+                if snapshot.is_defined() {
+                    snapshot.get_type()
+                } else {
+                    unreachable!()
                 }
-                 */
             },
 
             ty::TypeVariants::TyParam(_) => {

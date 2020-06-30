@@ -1891,29 +1891,30 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> ProcedureEncoder<'p, 'v, 'r, 'a, 'tcx
                         let arg_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
                         let snapshot = self.encoder.encode_snapshot(arg_ty);
+                        if snapshot.is_defined() {
+                            let arg_exprs = vec![
+                                self.mir_encoder.encode_operand_expr(&args[0]),
+                                self.mir_encoder.encode_operand_expr(&args[1]),
+                            ];
+                            let return_type = vir::Type::Bool;
+                            /*let arg_type = self.mir_encoder.
+                                encode_operand_expr_type(&args[0]);
+                            let function_name = self.encoder.
+                                encode_snapshot_equals_use(arg_type.name().clone());
+                             */
 
-                        let arg_exprs = vec![
-                            self.mir_encoder.encode_operand_expr(&args[0]),
-                            self.mir_encoder.encode_operand_expr(&args[1]),
-                        ];
-                        let return_type = vir::Type::Bool;
-                        /*let arg_type = self.mir_encoder.
-                            encode_operand_expr_type(&args[0]);
-                        let function_name = self.encoder.
-                            encode_snapshot_equals_use(arg_type.name().clone());
-                         */
+                            let function_name = snapshot.get_equals_func_name();
 
-                        let function_name = snapshot.get_equals_func_name();
-
-                        stmts.extend(self.encode_specified_pure_function_call(
-                            location,
-                            term.source_info.span,
-                            args,
-                            destination,
-                            function_name,
-                            arg_exprs,
-                            return_type
-                        ));
+                            stmts.extend(self.encode_specified_pure_function_call(
+                                location,
+                                term.source_info.span,
+                                args,
+                                destination,
+                                function_name,
+                                arg_exprs,
+                                return_type
+                            ));
+                        }
                     }
 
                     _ => {
