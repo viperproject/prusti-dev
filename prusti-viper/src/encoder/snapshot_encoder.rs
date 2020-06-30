@@ -41,7 +41,7 @@ impl SnapshotDomain {
         let cons_function = self.domain.functions[0].clone();
         vir::Expr::DomainFuncApp(cons_function, args, vir::Position::default())
     }
-    /* TODO
+    /* TODO use this once the signature of DomainFuncApp has been corrected
     pub fn call_snap_func(&self, args: Vec<vir::Expr>) -> vir::Expr {
         let cons_function = self.domain.functions[0].clone();
         vir::Expr::DomainFuncApp(
@@ -389,7 +389,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
         let mut formal_args = vec![];
         match self.ty.sty {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                // TODO so far this is for structs only
                 let tcx = self.encoder.env().tcx();
                 let mut field_num = 0;
                 for field in &adt_def.variants[0].fields {
@@ -439,7 +438,6 @@ impl<'p, 'v, 'r: 'v, 'a: 'r, 'tcx: 'a> SnapshotEncoder<'p, 'v, 'r, 'a, 'tcx> {
     fn encode_snap_func_args(&self) -> Vec<vir::Expr> {
         match self.ty.sty {
             ty::TypeVariants::TyAdt(adt_def, subst) if !adt_def.is_box() => {
-                // TODO so far this works only for structs
                 let tcx = self.encoder.env().tcx();
                 adt_def.variants[0]
                     .fields
