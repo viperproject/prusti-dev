@@ -74,7 +74,7 @@ impl<'v, 'r, 'a, 'tcx> VerificationContext<'v>
     pub fn new_verifier(
         &'v self,
         env: &'v Environment<'tcx>,
-        spec: &'v typed::SpecificationMap,
+        spec: &'v typed::SpecificationMap<'tcx>,
     ) -> Verifier<'v, 'tcx> {
         let backend = VerificationBackend::from_str(&config::viper_backend());
 
@@ -146,7 +146,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         ast_factory: viper::AstFactory<'v>,
         verifier: viper::Verifier<'v, viper::state::Started>,
         env: &'v Environment<'tcx>,
-        spec: &'v typed::SpecificationMap,
+        spec: &'v typed::SpecificationMap<'tcx>,
     ) -> Self {
         Verifier {
             ast_utils,
