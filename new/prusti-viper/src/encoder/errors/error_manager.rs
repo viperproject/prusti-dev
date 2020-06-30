@@ -6,7 +6,7 @@
 
 use prusti_common::vir::Position;
 use std::collections::HashMap;
-// use syntax::codemap::CodeMap;
+use rustc_span::source_map::SourceMap;
 use rustc_span::MultiSpan;
 use uuid::Uuid;
 use viper::VerificationError;
@@ -95,23 +95,22 @@ pub enum ErrorCtxt {
 
 /// The error manager
 #[derive(Clone)]
-pub struct ErrorManager//<'tcx>
+pub struct ErrorManager<'tcx>
  {
-    // codemap: &'tcx CodeMap,
+    codemap: &'tcx SourceMap,
     source_span: HashMap<String, MultiSpan>,
     error_contexts: HashMap<String, ErrorCtxt>,
 }
 
-impl//<'tcx>
- ErrorManager//<'tcx>
+impl<'tcx> ErrorManager<'tcx>
  {
-    // pub fn new(codemap: &'tcx CodeMap) -> Self {
-    //     ErrorManager {
-    //         codemap,
-    //         source_span: HashMap::new(),
-    //         error_contexts: HashMap::new(),
-    //     }
-    // }
+    pub fn new(codemap: &'tcx SourceMap) -> Self {
+        ErrorManager {
+            codemap,
+            source_span: HashMap::new(),
+            error_contexts: HashMap::new(),
+        }
+    }
 
     pub fn register<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt) -> Position {
         let pos = self.register_span(span);
@@ -120,24 +119,23 @@ impl//<'tcx>
     }
 
     pub fn register_span<T: Into<MultiSpan>>(&mut self, span: T) -> Position {
-        // let span = span.into();
-        // let pos_id = Uuid::new_v4().to_hyphenated().to_string();
-        // debug!("Register position {:?} at span {:?}", pos_id, span);
-        // let pos = if let Some(primary_span) = span.primary_span() {
-        //     let lines_info = self
-        //         .codemap
-        //         .span_to_lines(primary_span.source_callsite())
-        //         .unwrap();
-        //     let first_line_info = lines_info.lines.get(0).unwrap();
-        //     let line = first_line_info.line_index as i32 + 1;
-        //     let column = first_line_info.start_col.0 as i32 + 1;
-        //     Position::new(line, column, pos_id.clone())
-        // } else {
-        //     Position::new(0, 0, pos_id.clone())
-        // };
-        // self.source_span.insert(pos_id, span);
-        // pos
-        unimplemented!();
+        let span = span.into();
+        let pos_id = Uuid::new_v4().to_hyphenated().to_string();
+        debug!("Register position {:?} at span {:?}", pos_id, span);
+        let pos = if let Some(primary_span) = span.primary_span() {
+            let lines_info = self
+                .codemap
+                .span_to_lines(primary_span.source_callsite())
+                .unwrap();
+            let first_line_info = lines_info.lines.get(0).unwrap();
+            let line = first_line_info.line_index as i32 + 1;
+            let column = first_line_info.start_col.0 as i32 + 1;
+            Position::new(line, column, pos_id.clone())
+        } else {
+            Position::new(0, 0, pos_id.clone())
+        };
+        self.source_span.insert(pos_id, span);
+        pos
     }
 
     pub fn register_error(&mut self, pos: &Position, error_ctxt: ErrorCtxt) {

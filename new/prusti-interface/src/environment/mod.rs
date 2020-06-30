@@ -42,6 +42,7 @@ use crate::data::ProcedureDefId;
 // use syntax::codemap::CodeMap;
 // use syntax::codemap::Span;
 // use utils::get_attr_value;
+use rustc_span::source_map::SourceMap;
 
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
@@ -78,10 +79,10 @@ impl<'tcx> Environment<'tcx> {
         self.tcx.type_of(def_id)
     }
 
-    // /// Returns the `CodeMap`
-    // pub fn codemap(&self) -> &'tcx CodeMap {
-    //     self.state.session.codemap()
-    // }
+    /// Returns the `CodeMap`
+    pub fn codemap(&self) -> &'tcx SourceMap {
+        self.tcx.sess.source_map()
+    }
 
     // /// Emits a warning message
     // pub fn warn(&self, msg: &str) {

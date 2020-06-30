@@ -7,7 +7,7 @@
 use crate::encoder::builtin_encoder::BuiltinFunctionKind;
 use crate::encoder::errors::ErrorCtxt;
 use crate::encoder::Encoder;
-// use prusti_common::vir;
+use prusti_common::vir;
 // use prusti_common::config;
 use rustc_hir::def_id::DefId;
 use rustc_middle::{mir, ty};
@@ -629,9 +629,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
         bb_data.terminator().source_info.span
     }
 
-//     pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
-//         self.encoder
-//             .error_manager()
-//             .register(span, ErrorCtxt::GenericExpression)
-//     }
+    pub fn encode_expr_pos(&self, span: Span) -> vir::Position {
+        self.encoder
+            .error_manager()
+            .register(span, ErrorCtxt::GenericExpression)
+    }
 }

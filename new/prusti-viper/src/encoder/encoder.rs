@@ -51,7 +51,7 @@ use std::convert::TryInto;
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
     spec: &'v typed::SpecificationMap,
-    // error_manager: RefCell<ErrorManager<'tcx>>,
+    error_manager: RefCell<ErrorManager<'tcx>>,
     procedure_contracts: RefCell<HashMap<ProcedureDefId, ProcedureContractMirDef<'tcx>>>,
     builtin_methods: RefCell<HashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     // builtin_functions: RefCell<HashMap<BuiltinFunctionKind, vir::Function>>,
@@ -112,7 +112,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         Encoder {
             env,
             spec,
-            // error_manager: RefCell::new(ErrorManager::new(env.codemap())),
+            error_manager: RefCell::new(ErrorManager::new(env.codemap())),
             procedure_contracts: RefCell::new(HashMap::new()),
             builtin_methods: RefCell::new(HashMap::new()),
             // builtin_functions: RefCell::new(HashMap::new()),
@@ -181,9 +181,9 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.spec
     }
 
-    // pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {
-    //     self.error_manager.borrow_mut()
-    // }
+    pub fn error_manager(&self) -> RefMut<ErrorManager<'tcx>> {
+        self.error_manager.borrow_mut()
+    }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: EncodingError) {
         debug!("Encoding error: {:?}", encoding_error);
