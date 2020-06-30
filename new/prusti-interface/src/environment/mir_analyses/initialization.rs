@@ -19,10 +19,13 @@
 use super::common::{self, WorkItem};
 use crate::environment::place_set::PlaceSet;
 use csv::{ReaderBuilder, WriterBuilder};
-use rustc::ty::TyCtxt;
-use rustc::{hir, mir};
-use rustc_data_structures::indexed_vec::Idx;
+use rustc_middle::ty::TyCtxt;
+use rustc_middle::mir;
+use rustc_hir as hir;
+use rustc_index::vec::Idx;
 use std::path::Path;
+use log::trace;
+use serde::{Serialize, Deserialize};
 
 /// The result of the definitely initialized analysis.
 pub type DefinitelyInitializedAnalysisResult<'tcx> = common::AnalysisResult<PlaceSet<'tcx>>;
@@ -41,8 +44,8 @@ struct DefinitelyInitializedAnalysis<'a, 'tcx: 'a> {
     result: DefinitelyInitializedAnalysisResult<'tcx>,
     /// Work queue.
     queue: Vec<WorkItem>,
-    mir: &'a mir::Mir<'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    mir: &'a mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
     /// Should we intersect or union the incoming branches?
     ///
     /// We need first to compute the fix-point by using `Union` because
@@ -53,7 +56,7 @@ struct DefinitelyInitializedAnalysis<'a, 'tcx: 'a> {
 }
 
 impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
-    fn new(mir: &'a mir::Mir<'tcx>, tcx: TyCtxt<'a, 'tcx, 'tcx>) -> Self {
+    fn new(mir: &'a mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         Self {
             result: DefinitelyInitializedAnalysisResult::new(),
             mir: mir,
@@ -81,7 +84,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
         // Arguments are definitely initialized.
         let mut place_set = PlaceSet::new();
         for arg in self.mir.args_iter() {
-            self.set_place_initialised(&mut place_set, &mir::Place::Local(arg));
+            self.set_place_initialised(&mut place_set, &arg.into());
         }
         self.result.before_block.insert(mir::START_BLOCK, place_set);
     }
@@ -137,7 +140,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
         let statement = &self.mir[location.block].statements[location.statement_index];
         let mut place_set = self.get_place_set_before_statement(location);
         match statement.kind {
-            mir::StatementKind::Assign(ref target, ref source) => {
+            mir::StatementKind::Assign(box (ref target, ref source)) => {
                 match source {
                     mir::Rvalue::Repeat(ref operand, _)
                     | mir::Rvalue::Cast(_, ref operand, _)
@@ -223,7 +226,7 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
     fn merge_effects(&mut self, bb: mir::BasicBlock) {
         trace!("[enter] merge_effects bb={:?}", bb);
         let place_set = {
-            let sets = self.mir.predecessors_for(bb);
+            let sets = &self.mir.predecessors()[bb];
             let sets = sets.iter();
             let mut sets = sets.map(|&predecessor| self.get_place_set_after_block(predecessor));
             if let Some(first) = sets.next() {
@@ -349,9 +352,9 @@ impl<'a, 'tcx: 'a> DefinitelyInitializedAnalysis<'a, 'tcx> {
 /// Compute the which places are definitely initialized at each program
 /// point.
 pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
-    mir: &'a mir::Mir<'tcx>,
-    tcx: TyCtxt<'a, 'tcx, 'tcx>,
-    def_path: hir::map::DefPath,
+    mir: &'a mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    def_path: hir::definitions::DefPath,
 ) -> DefinitelyInitializedAnalysisResult<'tcx> {
     let mut analysis = DefinitelyInitializedAnalysis::new(mir, tcx);
     analysis.initialize();
@@ -409,7 +412,7 @@ impl<'tcx> DefinitelyInitializedAnalysisResult<'tcx> {
         records
     }
     /// Compare the expected analysis results with the actual.
-    fn compare_with_expected(&self, def_path: hir::map::DefPath, test_file: String) {
+    fn compare_with_expected(&self, def_path: hir::definitions::DefPath, test_file: String) {
         trace!(
             "[enter] compare_definitely_initialized def_path={:?} test_file={}",
             def_path,

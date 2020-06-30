@@ -15,7 +15,7 @@ use super::polonius_info::PoloniusInfo;
 use super::procedure::Procedure;
 use data::ProcedureDefId;
 use rustc::hir;
-use rustc::mir;
+use rustc_middle::mir;
 use rustc::ty::TyCtxt;
 use rustc_data_structures::indexed_vec::Idx;
 use rustc_hash::FxHashMap;
@@ -26,7 +26,7 @@ use std::fs::File;
 use std::io::{self, BufWriter, Write};
 use std::path::PathBuf;
 
-pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, procedures: &Vec<ProcedureDefId>) {
+pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'tcx>, procedures: &Vec<ProcedureDefId>) {
     trace!("[dump_borrowck_info] enter");
 
     assert!(tcx.use_mir_borrowck(), "NLL is not enabled.");
@@ -43,7 +43,7 @@ pub fn dump_borrowck_info<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, procedures: &Ve
 }
 
 struct InfoPrinter<'a, 'tcx: 'a> {
-    pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
+    pub tcx: TyCtxt<'tcx>,
 }
 
 impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
@@ -98,8 +98,8 @@ impl<'a, 'tcx> InfoPrinter<'a, 'tcx> {
 
 struct MirInfoPrinter<'a, 'tcx: 'a> {
     pub def_path: hir::map::DefPath,
-    pub tcx: TyCtxt<'a, 'tcx, 'tcx>,
-    pub mir: &'a mir::Mir<'tcx>,
+    pub tcx: TyCtxt<'tcx>,
+    pub mir: &'a mir::Body<'tcx>,
     pub graph: cell::RefCell<BufWriter<File>>,
     pub loops: loops::ProcedureLoops,
     pub initialization: DefinitelyInitializedAnalysisResult<'tcx>,

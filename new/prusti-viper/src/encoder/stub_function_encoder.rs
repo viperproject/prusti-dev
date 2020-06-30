@@ -8,11 +8,11 @@ use encoder::mir_encoder::MirEncoder;
 use encoder::Encoder;
 use prusti_common::vir;
 use rustc::hir::def_id::DefId;
-use rustc::mir;
+use rustc_middle::mir;
 
 pub struct StubFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    mir: &'p mir::Mir<'tcx>,
+    mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     proc_def_id: DefId,
 }
@@ -21,7 +21,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StubFunctionEncoder<'p, 'v, 'r, 'a, '
     pub fn new(
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
         proc_def_id: DefId,
-        mir: &'p mir::Mir<'tcx>,
+        mir: &'p mir::Body<'tcx>,
     ) -> Self {
         trace!("StubFunctionEncoder constructor: {:?}", proc_def_id);
         StubFunctionEncoder {

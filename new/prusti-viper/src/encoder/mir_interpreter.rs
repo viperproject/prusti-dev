@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_common::vir;
-use rustc::mir;
+use rustc_middle::mir;
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
@@ -32,7 +32,7 @@ pub trait BackwardMirInterpreter<'tcx> {
 /// Interpret a loop-less MIR starting from the end and return the **initial** state.
 /// The result is None if the CFG contains a loop.
 pub fn run_backward_interpretation<'tcx, S: Debug, I: BackwardMirInterpreter<'tcx, State = S>>(
-    mir: &mir::Mir<'tcx>,
+    mir: &mir::Body<'tcx>,
     interpreter: &I,
 ) -> Option<S> {
     let basic_blocks = mir.basic_blocks();
@@ -98,7 +98,7 @@ pub fn run_backward_interpretation_point_to_point<
     S: Debug + Clone,
     I: BackwardMirInterpreter<'tcx, State = S>,
 >(
-    mir: &mir::Mir<'tcx>,
+    mir: &mir::Body<'tcx>,
     interpreter: &I,
     initial_bbi: mir::BasicBlock,
     final_bbi: mir::BasicBlock,

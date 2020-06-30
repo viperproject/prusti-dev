@@ -18,7 +18,7 @@ use prusti_common::vir::ExprIterator;
 use prusti_interface::specifications::*;
 use rustc::hir;
 use rustc::hir::def_id::DefId;
-use rustc::mir;
+use rustc_middle::mir;
 use rustc::ty;
 use std::collections::HashMap;
 use syntax::ast;
@@ -26,7 +26,7 @@ use syntax::ast;
 pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     // FIXME: this should be the MIR of the `__spec` function
-    mir: Option<&'p mir::Mir<'tcx>>,
+    mir: Option<&'p mir::Body<'tcx>>,
     /// The context in which the specification should be encoded
     target_label: &'p str,
     target_args: &'p [vir::Expr],
@@ -40,7 +40,7 @@ pub struct SpecEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> SpecEncoder<'p, 'v, 'r, 'a, 'tcx> {
     pub fn new(
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        mir: &'p mir::Mir<'tcx>,
+        mir: &'p mir::Body<'tcx>,
         target_label: &'p str,
         target_args: &'p [vir::Expr],
         target_return: Option<&'p vir::Expr>,
@@ -667,7 +667,7 @@ struct StraightLineBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> StraightLineBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
     fn new(
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        mir: &'p mir::Mir<'tcx>,
+        mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         namespace: String,
     ) -> Self {

@@ -873,7 +873,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     // pub fn encode_assertion(
     //     &self,
     //     assertion: &TypedAssertion,
-    //     mir: &mir::Mir<'tcx>,
+    //     mir: &mir::Body<'tcx>,
     //     label: &str,
     //     encoded_args: &[vir::Expr],
     //     encoded_return: Option<&vir::Expr>,

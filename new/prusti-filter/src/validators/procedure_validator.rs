@@ -7,7 +7,7 @@
 use prusti_interface::environment::{Procedure, ProcedureLoops};
 use rustc::hir;
 use rustc::hir::def_id::DefId;
-use rustc::mir;
+use rustc_middle::mir;
 use rustc::ty;
 use std::collections::{HashSet, HashMap};
 use syntax::codemap::Span;
@@ -17,7 +17,7 @@ use validators::Reason;
 use validators::SupportStatus;
 
 pub struct ProcedureValidator<'a, 'tcx: 'a> {
-    tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
+    tcx: ty::TyCtxt<'tcx>,
     support: SupportStatus,
     visited_return_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>,
     visited_inner_type_variants: HashSet<&'tcx ty::TypeVariants<'tcx>>,
@@ -52,7 +52,7 @@ impl<'a, 'tcx: 'a> CommonValidator<'a, 'tcx> for ProcedureValidator<'a, 'tcx> {
         self.support
     }
 
-    fn tcx(&self) -> ty::TyCtxt<'a, 'tcx, 'tcx> {
+    fn tcx(&self) -> ty::TyCtxt<'tcx> {
         self.tcx
     }
 
@@ -70,7 +70,7 @@ impl<'a, 'tcx: 'a> CommonValidator<'a, 'tcx> for ProcedureValidator<'a, 'tcx> {
 }
 
 impl<'a, 'tcx: 'a> ProcedureValidator<'a, 'tcx> {
-    pub fn new(tcx: ty::TyCtxt<'a, 'tcx, 'tcx>) -> Self {
+    pub fn new(tcx: ty::TyCtxt<'tcx>) -> Self {
         ProcedureValidator {
             tcx,
             support: SupportStatus::new(),

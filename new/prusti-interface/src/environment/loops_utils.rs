@@ -7,8 +7,9 @@
 use super::borrowck::facts;
 use super::place_set::PlaceSet;
 use crate::utils;
-use rustc::mir;
+use rustc_middle::mir;
 use std::fmt;
+use log::{debug, trace};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PermissionKind {

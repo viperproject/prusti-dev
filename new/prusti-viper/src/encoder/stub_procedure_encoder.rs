@@ -17,7 +17,7 @@ use rustc_middle::mir;
 pub struct StubProcedureEncoder//<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a>
  {
     // encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    // mir: &'p mir::Mir<'tcx>,
+    // mir: &'p mir::Body<'tcx>,
     // mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     // def_id: DefId,
     // procedure: &'p Procedure<'a, 'tcx>,

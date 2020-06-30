@@ -71,7 +71,7 @@ fn convert_to_vir<'tcx, T: Eq + Hash + Clone>(
 
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> InitInfo {
     pub fn new(
-        mir: &'p mir::Mir<'tcx>,
+        mir: &'p mir::Body<'tcx>,
         tcx: ty::TyCtxt<'p, 'tcx, 'tcx>,
         def_id: DefId,
         mir_encoder: &MirEncoder<'p, 'v, 'r, 'a, 'tcx>,

@@ -7,7 +7,7 @@
 use rustc::hir;
 use rustc::hir::map::Node;
 use rustc::middle::const_val::ConstVal;
-use rustc::mir;
+use rustc_middle::mir;
 use rustc::mir::BinOp;
 use rustc::mir::UnOp;
 use rustc::ty;
@@ -44,7 +44,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn get_support_status(self) -> SupportStatus;
 
-    fn tcx(&self) -> ty::TyCtxt<'a, 'tcx, 'tcx>;
+    fn tcx(&self) -> ty::TyCtxt<'tcx>;
 
     fn check_hir(&mut self, node: Node) {
         match node {
@@ -219,7 +219,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-    fn check_mir_stmt(&mut self, mir: &mir::Mir<'tcx>, stmt: &mir::Statement<'tcx>) {
+    fn check_mir_stmt(&mut self, mir: &mir::Body<'tcx>, stmt: &mir::Statement<'tcx>) {
         trace!("check_mir_stmt {:?}", stmt);
         let span = stmt.source_info.span;
 
@@ -253,7 +253,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-    fn check_mir_terminator(&mut self, mir: &mir::Mir<'tcx>, term: &mir::Terminator<'tcx>) {
+    fn check_mir_terminator(&mut self, mir: &mir::Body<'tcx>, term: &mir::Terminator<'tcx>) {
         trace!("check_mir_terminator {:?}", term);
         let span = term.source_info.span;
 
@@ -314,7 +314,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn check_terminator_call(
         &mut self,
-        mir: &mir::Mir<'tcx>,
+        mir: &mir::Body<'tcx>,
         func: &mir::Operand<'tcx>,
         args: &Vec<mir::Operand<'tcx>>,
         destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
@@ -372,7 +372,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-    fn get_place_ty(&self, mir: &mir::Mir<'tcx>, place: &mir::Place<'tcx>) -> ty::Ty<'tcx> {
+    fn get_place_ty(&self, mir: &mir::Body<'tcx>, place: &mir::Place<'tcx>) -> ty::Ty<'tcx> {
         match place {
             mir::Place::Local(ref local) => mir.local_decls[*local].ty,
 
@@ -387,7 +387,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-    fn get_operand_ty(&self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
+    fn get_operand_ty(&self, mir: &mir::Body<'tcx>, operand: &mir::Operand<'tcx>) -> ty::Ty<'tcx> {
         match operand {
             mir::Operand::Copy(ref place) | mir::Operand::Move(ref place) => {
                 self.get_place_ty(mir, place)
@@ -397,7 +397,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-    fn check_place(&mut self, mir: &mir::Mir<'tcx>, place: &mir::Place<'tcx>, span: Span) {
+    fn check_place(&mut self, mir: &mir::Body<'tcx>, place: &mir::Place<'tcx>, span: Span) {
         match place {
             mir::Place::Local(ref local) => {
                 let local_ty = &mir.local_decls[*local].ty;
@@ -414,7 +414,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn check_projection(
         &mut self,
-        mir: &mir::Mir<'tcx>,
+        mir: &mir::Body<'tcx>,
         projection: &mir::PlaceProjection<'tcx>,
         span: Span,
     ) {
@@ -479,7 +479,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         }
     }
 
-    fn check_rvalue(&mut self, mir: &mir::Mir<'tcx>, rvalue: &mir::Rvalue<'tcx>, span: Span) {
+    fn check_rvalue(&mut self, mir: &mir::Body<'tcx>, rvalue: &mir::Rvalue<'tcx>, span: Span) {
         match rvalue {
             mir::Rvalue::Use(ref operand) => self.check_operand(mir, operand, span),
 
@@ -532,7 +532,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn check_cast(
         &mut self,
-        mir: &mir::Mir<'tcx>,
+        mir: &mir::Body<'tcx>,
         _cast_kind: mir::CastKind,
         op: &mir::Operand<'tcx>,
         dst_ty: ty::Ty<'tcx>,
@@ -669,7 +669,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
         };
     }
 
-    fn check_operand(&mut self, mir: &mir::Mir<'tcx>, operand: &mir::Operand<'tcx>, span: Span) {
+    fn check_operand(&mut self, mir: &mir::Body<'tcx>, operand: &mir::Operand<'tcx>, span: Span) {
         match operand {
             mir::Operand::Copy(ref place) | mir::Operand::Move(ref place) => {
                 self.check_place(mir, place, span)
@@ -742,7 +742,7 @@ pub trait CommonValidator<'a, 'tcx: 'a> {
 
     fn check_aggregate(
         &mut self,
-        mir: &mir::Mir<'tcx>,
+        mir: &mir::Body<'tcx>,
         kind: &mir::AggregateKind<'tcx>,
         operands: &Vec<mir::Operand<'tcx>>,
         span: Span,

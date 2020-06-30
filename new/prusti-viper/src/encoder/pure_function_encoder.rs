@@ -21,14 +21,14 @@ use prusti_common::config;
 use prusti_interface::specifications::SpecificationSet;
 use rustc::hir;
 use rustc::hir::def_id::DefId;
-use rustc::mir;
+use rustc_middle::mir;
 use rustc::ty;
 use std::collections::HashMap;
 
 pub struct PureFunctionEncoder<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
     proc_def_id: DefId,
-    mir: &'p mir::Mir<'tcx>,
+    mir: &'p mir::Body<'tcx>,
     interpreter: PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx>,
 }
 
@@ -36,7 +36,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
     pub fn new(
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
         proc_def_id: DefId,
-        mir: &'p mir::Mir<'tcx>,
+        mir: &'p mir::Body<'tcx>,
         is_encoding_assertion: bool,
     ) -> Self {
         trace!("PureFunctionEncoder constructor: {:?}", proc_def_id);
@@ -344,7 +344,7 @@ impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionEncoder<'p, 'v, 'r, 'a, '
 
 pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> {
     encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-    mir: &'p mir::Mir<'tcx>,
+    mir: &'p mir::Body<'tcx>,
     mir_encoder: MirEncoder<'p, 'v, 'r, 'a, 'tcx>,
     namespace: String,
     /// True if the encoder is currently encoding an assertion and not a pure function body. This
@@ -360,7 +360,7 @@ pub(super) struct PureFunctionBackwardInterpreter<'p, 'v: 'p, 'r: 'v, 'a: 'r, 't
 impl<'p, 'v: 'p, 'r: 'v, 'a: 'r, 'tcx: 'a> PureFunctionBackwardInterpreter<'p, 'v, 'r, 'a, 'tcx> {
     pub(super) fn new(
         encoder: &'p Encoder<'v, 'r, 'a, 'tcx>,
-        mir: &'p mir::Mir<'tcx>,
+        mir: &'p mir::Body<'tcx>,
         def_id: DefId,
         namespace: String,
         is_encoding_assertion: bool,

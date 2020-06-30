@@ -17,7 +17,7 @@ use prusti_common::vir::{CfgBlockIndex, CfgReplacer, CheckNoOpAction};
 use prusti_common::vir::{ExprFolder, FallibleExprFolder, PermAmount};
 use prusti_common::config;
 use prusti_common::report;
-use rustc::mir;
+use rustc_middle::mir;
 use std;
 use std::collections::{HashMap, HashSet};
 use std::mem;
