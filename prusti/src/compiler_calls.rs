@@ -93,7 +93,7 @@ impl<'a> CompilerCalls<'a> for RegisterCalls {
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
 
-            let stopwatch = Stopwatch::start("trait register build");
+            let stopwatch = Stopwatch::start("prusti", "trait register build");
             prusti_interface::parser::register_attributes(state);
             prusti_interface::parser::register_traits(state, register.clone());
             stopwatch.finish();
@@ -178,7 +178,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
             std::mem::replace(&mut control.after_parse.callback, box |_| {});
         control.after_parse.callback = box move |state| {
             trace!("[after_parse.callback] enter");
-            let stopwatch = Stopwatch::start("annotation parsing");
+            let stopwatch = Stopwatch::start("prusti", "annotation parsing");
             prusti_interface::parser::register_attributes(state);
             let untyped_specifications =
                 prusti_interface::parser::rewrite_crate(state, register.clone());
@@ -193,7 +193,7 @@ impl<'a> CompilerCalls<'a> for PrustiCompilerCalls {
         control.after_analysis.callback = box move |state| {
             trace!("[after_analysis.callback] enter");
 
-            let stopwatch = Stopwatch::start("annotation type-checking");
+            let stopwatch = Stopwatch::start("prusti", "annotation type-checking");
             let untyped_specifications = get_specifications.replace(None).unwrap();
             let typed_specifications = typeck::type_specifications(state, untyped_specifications);
             debug!("typed_specifications = {:?}", typed_specifications);

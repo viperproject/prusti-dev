@@ -44,7 +44,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
             task.procedures.len()
         );
 
-        let mut stopwatch = Stopwatch::start("encoding to Viper");
+        let mut stopwatch = Stopwatch::start("prusti-viper", "encoding to Viper");
 
         // Dump the configuration
         log::report("config", "prusti", config::dump());
@@ -152,7 +152,7 @@ impl<'v, 'r, 'a, 'tcx> Verifier<'v, 'r, 'a, 'tcx> {
                 };
                 service.verify(request)
             } else {
-                let mut stopwatch = Stopwatch::start("JVM startup");
+                let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
                 let verifier_builder = VerifierBuilder::new();
                 stopwatch.start_next("running verifier");
                 VerifierRunner::with_default_configured_runner(&verifier_builder, |runner| {

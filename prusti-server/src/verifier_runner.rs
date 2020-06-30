@@ -53,7 +53,7 @@ impl<'v> VerifierRunner<'v> {
     }
 
     pub fn verify(&self, program: Program, program_name: &str) -> VerificationResult {
-        let mut stopwatch = Stopwatch::start("construction of JVM objects");
+        let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
         let viper_program = program.to_viper(&self.ast_factory);
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");

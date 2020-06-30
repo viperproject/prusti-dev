@@ -40,7 +40,7 @@ pub struct PrustiServer {
 
 impl PrustiServer {
     pub fn new() -> PrustiServer {
-        let stopwatch = Stopwatch::start("JVM startup");
+        let stopwatch = Stopwatch::start("prusti-server", "JVM startup");
         let verifier_builder = Arc::new(VerifierBuilder::new());
         stopwatch.finish();
 

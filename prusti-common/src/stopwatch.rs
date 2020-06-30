@@ -5,56 +5,66 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use std::{
+    fmt::Display,
     marker::PhantomData,
     time::{Duration, Instant},
 };
 
 pub trait LogLevel {
-    fn log_start(name: &String);
-
-    fn log_finish(name: &String, duration: Duration);
+    fn log_start(prefix: &String, name: &String);
+    fn log_finish(prefix: &String, name: &String, duration: Duration);
 }
 
 pub struct Stopwatch<Level: LogLevel> {
     start_time: Instant,
+    prefix: String,
     section_name: String,
     is_finished: bool,
     level: PhantomData<Level>,
 }
 
 impl Stopwatch<log_level::Info> {
-    pub fn start<S: ToString>(section_name: S) -> Self {
-        Self::_start(section_name)
+    /// Starts a stopwatch logging at info level, within the given domain, timing a section with the given name.
+    pub fn start<D: Display, S: ToString>(domain: D, section_name: S) -> Self {
+        Self::start_info(domain, section_name)
     }
 }
 
 impl<Level: LogLevel> Stopwatch<Level> {
-    fn _start<S: ToString>(section_name: S) -> Self {
-        let section_name = section_name.to_string();
-        Level::log_start(&section_name);
+    fn _start(prefix: String, section_name: String) -> Self {
+        Level::log_start(&prefix, &section_name);
 
         Self {
             start_time: Instant::now(),
+            prefix,
             section_name,
             is_finished: false,
             level: PhantomData,
         }
     }
 
+    /// Finishes up the current section, logging the time taken, and starts timing the next one.
     pub fn start_next<S: ToString>(&mut self, section_name: S) {
         let now = Instant::now();
-        Level::log_finish(&self.section_name, now.duration_since(self.start_time));
+        Level::log_finish(
+            &self.prefix,
+            &self.section_name,
+            now.duration_since(self.start_time),
+        );
         self.section_name = section_name.to_string();
-        Level::log_start(&self.section_name);
+        Level::log_start(&self.prefix, &self.section_name);
         self.start_time = now;
     }
 
+    /// Finishes up the current section, logging the time taken.
+    ///
+    /// - Note: Simply dropping the stopwatch has the same effect.
     pub fn finish(mut self) {
         self._finish();
     }
 
     fn _finish(&mut self) {
-        Level::log_finish(&self.section_name, self.start_time.elapsed());
+        Level::log_finish(&self.prefix, &self.section_name, self.start_time.elapsed());
         self.is_finished = true;
     }
 }
@@ -75,13 +85,14 @@ pub mod log_level {
             pub struct $name;
 
             impl LogLevel for $name {
-                fn log_start(name: &String) {
-                    $level!("Starting: {}", name);
+                fn log_start(prefix: &String, name: &String) {
+                    $level!("{}Starting: {}", prefix, name);
                 }
 
-                fn log_finish(name: &String, duration: Duration) {
+                fn log_finish(prefix: &String, name: &String, duration: Duration) {
                     $level!(
-                        "Completed: {} ({}.{} seconds)",
+                        "{}Completed: {} ({}.{} seconds)",
+                        prefix,
                         name,
                         duration.as_secs(),
                         duration.subsec_millis() / 10
@@ -90,8 +101,9 @@ pub mod log_level {
             }
 
             impl Stopwatch<$name> {
-                pub fn $start<S: ToString>(section_name: S) -> Self {
-                    Self::_start(section_name)
+                /// Starts a stopwatch logging at this level, within the given domain, timing a section with the given name.
+                pub fn $start<D: Display, S: ToString>(domain: D, section_name: S) -> Self {
+                    Self::_start(format!("[{}] ", domain), section_name.to_string())
                 }
             }
         };
